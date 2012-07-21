@@ -151,7 +151,10 @@ public class QuantizedRecorder implements MeasurementProcessor, Cloneable {
         return result;
     }
     
-    
+    /**
+     * this class ordering is based on start Interval ordering
+     */ 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("EQ_COMPARETO_USE_OBJECT_EQUALS")
     public static class Quanta implements Comparable<Quanta> {
         private final long intervalStart;
         private final long intervalEnd;
@@ -216,17 +219,18 @@ public class QuantizedRecorder implements MeasurementProcessor, Cloneable {
     public synchronized EntityMeasurements aggregate(EntityMeasurements mSource) {
        
         QuantizedRecorder other = (QuantizedRecorder) mSource;
-    
-        long [] quantizedM = quatizedMeasurements.clone();
-        for (int i=0 ; i< quantizedM.length; i++ )
-            quantizedM[i] += other.quatizedMeasurements[i];
-        
-        return new QuantizedRecorder(measuredEntity, unitOfMeasurement, 
-                Math.min(this.minMeasurement, other.minMeasurement), 
-                        Math.max(this.maxMeasurement, other.maxMeasurement),
-                        this.measurementCount + other.measurementCount,
-                        this.measurementTotal + other.measurementTotal, 
-                quantasPerMagnitude, magnitudes, quantizedM);
+        synchronized (other) {
+            long [] quantizedM = quatizedMeasurements.clone();
+            for (int i=0 ; i< quantizedM.length; i++ )
+                quantizedM[i] += other.quatizedMeasurements[i];
+
+            return new QuantizedRecorder(measuredEntity, unitOfMeasurement, 
+                    Math.min(this.minMeasurement, other.minMeasurement), 
+                            Math.max(this.maxMeasurement, other.maxMeasurement),
+                            this.measurementCount + other.measurementCount,
+                            this.measurementTotal + other.measurementTotal, 
+                    quantasPerMagnitude, magnitudes, quantizedM);
+        }
                 
         
     }
@@ -270,23 +274,23 @@ public class QuantizedRecorder implements MeasurementProcessor, Cloneable {
                 + Arrays.toString(quatizedMeasurements) + '}';
     }
 
-    public long getMaxMeasurement() {
+    public synchronized long getMaxMeasurement() {
         return maxMeasurement;
     }
 
-    public long getMeasurementCount() {
+    public synchronized long getMeasurementCount() {
         return measurementCount;
     }
 
-    public long getMeasurementTotal() {
+    public synchronized long getMeasurementTotal() {
         return measurementTotal;
     }
 
-    public long getMinMeasurement() {
+    public synchronized long getMinMeasurement() {
         return minMeasurement;
     }
 
-    public long[] getQuatizedMeasurements() {
+    public synchronized long[] getQuatizedMeasurements() {
         return quatizedMeasurements.clone();
     }
 
