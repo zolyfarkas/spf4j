@@ -132,51 +132,37 @@ public class InverseGrayScale
         return new Color(g, g, g, this.alpha);
     }
 
-    /**
-     * Tests this <code>GrayPaintScale</code> instance for equality with an
-     * arbitrary object.  This method returns <code>true</code> if and only
-     * if:
-     * <ul>
-     * <li><code>obj</code> is not <code>null</code>;</li>
-     * <li><code>obj</code> is an instance of <code>GrayPaintScale</code>;</li>
-     * </ul>
-     *
-     * @param obj  the object (<code>null</code> permitted).
-     *
-     * @return A boolean.
-     */
+    @Override
     public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (!(obj instanceof org.jfree.chart.renderer.GrayPaintScale)) {
+        if (obj == null) {
             return false;
         }
-        InverseGrayScale that = (InverseGrayScale) obj;
-        if (this.lowerBound != that.lowerBound) {
+        if (getClass() != obj.getClass()) {
             return false;
         }
-        if (this.upperBound != that.upperBound) {
+        final InverseGrayScale other = (InverseGrayScale) obj;
+        if (Double.doubleToLongBits(this.lowerBound) != Double.doubleToLongBits(other.lowerBound)) {
             return false;
         }
-        if (this.alpha != that.alpha) {
+        if (Double.doubleToLongBits(this.upperBound) != Double.doubleToLongBits(other.upperBound)) {
+            return false;
+        }
+        if (this.alpha != other.alpha) {
             return false;
         }
         return true;
     }
 
-    /**
-     * Returns a hash code for this instance.
-     *
-     * @return A hash code.
-     */
+    @Override
     public int hashCode() {
-        int hash = 7;
-        hash = HashUtilities.hashCode(hash, this.lowerBound);
-        hash = HashUtilities.hashCode(hash, this.upperBound);
-        hash = 43 * hash + this.alpha;
+        int hash = 3;
+        hash = 97 * hash + (int) (Double.doubleToLongBits(this.lowerBound) ^ (Double.doubleToLongBits(this.lowerBound) >>> 32));
+        hash = 97 * hash + (int) (Double.doubleToLongBits(this.upperBound) ^ (Double.doubleToLongBits(this.upperBound) >>> 32));
+        hash = 97 * hash + this.alpha;
         return hash;
     }
+
+
 
     /**
      * Returns a clone of this <code>GrayPaintScale</code> instance.
