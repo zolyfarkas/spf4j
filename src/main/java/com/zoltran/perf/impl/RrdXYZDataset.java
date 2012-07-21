@@ -201,6 +201,7 @@ public class RrdXYZDataset implements XYZDataset {
         return tu;
     }
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings
     private class NumberTickUnitImpl extends NumberTickUnit {
 
         private final long[] timestamps;
@@ -223,5 +224,7 @@ public class RrdXYZDataset implements XYZDataset {
             }
             return formatter.print(val * 1000);
         }
+        
+        
     }
 }
