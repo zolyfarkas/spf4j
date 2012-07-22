@@ -7,11 +7,8 @@ package com.zoltran.pool;
  *
  * @author zoly
  */
-public interface ObjectLifecycleManager<T> {
+public interface ObjectLifecycleManager<T> extends ObjectFactory<T> {
     
-    T create();
-    
-    void dispose(T object);
     
     void beforeBorrow(T object);
     

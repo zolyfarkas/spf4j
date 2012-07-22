@@ -3,18 +3,20 @@
  */
 package com.zoltran.pool;
 
+import java.io.Closeable;
 import javax.annotation.Nullable;
 
 /**
  *
  * @author zoly
  */
-public interface ObjectBorower<T> {
+public interface ObjectBorower<T> extends Disposable {
     
     @Nullable
     T requestReturnObject();
     
     @Nullable
-    T returnObject() throws InterruptedException;
+    T returnObjectIfAvailable() throws InterruptedException;
     
+
 }

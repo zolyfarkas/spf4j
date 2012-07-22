@@ -4,14 +4,17 @@
 package com.zoltran.pool;
 
 import java.io.Closeable;
+import java.util.concurrent.TimeoutException;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author zoly
  */
-public interface SmartObjectPool<T> extends Closeable {
+@ParametersAreNonnullByDefault
+public interface SmartObjectPool<T> extends Disposable {
     
-    T borrowObject(ObjectBorower borower);
+    T borrowObject(ObjectBorower borower) throws InterruptedException, TimeoutException;
     
     void returnObject(T object, ObjectBorower borower);
     

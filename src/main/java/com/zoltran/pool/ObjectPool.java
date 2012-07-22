@@ -4,6 +4,7 @@
 package com.zoltran.pool;
 
 import java.io.Closeable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Object pool interface.
@@ -13,12 +14,13 @@ import java.io.Closeable;
  * 
  * @author zoly
  */
-public interface ObjectPool<T>  extends Closeable {
+@ParametersAreNonnullByDefault
+public interface ObjectPool<T>  extends Disposable, Scanable<T> {
     
     T borrowObject();
     
     void returnObject(T object);
    
     void returnObject(T object, Exception e);
-        
+    
 }
