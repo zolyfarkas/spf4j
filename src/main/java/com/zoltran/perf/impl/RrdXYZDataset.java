@@ -20,6 +20,7 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.rrd4j.core.FetchData;
 
 @Immutable
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("SE_BAD_FIELD_INNER_CLASS")
 public class RrdXYZDataset implements XYZDataset {
 
     private final double[] x;
