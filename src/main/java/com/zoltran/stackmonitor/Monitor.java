@@ -43,10 +43,17 @@ public class Monitor {
                 break;
             }
         }
-        String[] newArgs = new String[args.length - sepPos];
-        String[] ownArgs = new String[sepPos];
-        System.arraycopy(args, sepPos, newArgs, 0, newArgs.length);
-        System.arraycopy(args, 0, ownArgs, 0, sepPos);
+        String[] newArgs ;
+        String[] ownArgs ;
+        if (sepPos == args.length) {
+           newArgs = new String[0];
+           ownArgs = args;
+        } else {
+            newArgs = new String[args.length - sepPos-1];
+            ownArgs = new String[sepPos];
+            System.arraycopy(args, sepPos+1, newArgs, 0, newArgs.length);
+            System.arraycopy(args, 0, ownArgs, 0, sepPos);            
+        }
         Options options = new Options();
         CmdLineParser parser = new CmdLineParser(options);
         parser.parseArgument(ownArgs);
