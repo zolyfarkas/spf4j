@@ -64,7 +64,7 @@ public class MonitorTest {
         String serializedFile = File.createTempFile("stackSample", ".samp").getPath();
         final FileOutputStream os = new FileOutputStream(serializedFile);
         try  {
-            sampler.applyOnCpuSamples(new Function<SampleNode, SampleNode> () {
+            sampler.getStackCollector().applyOnCpuSamples(new Function<SampleNode, SampleNode> () {
 
                 public SampleNode apply(SampleNode f) {
                     try {
@@ -85,7 +85,7 @@ public class MonitorTest {
         try {
             final CodedInputStream is = CodedInputStream.newInstance(fis);
             is.setRecursionLimit(1024);
-            anotherOne.applyOnCpuSamples(new Function<SampleNode, SampleNode>() {
+            anotherOne.getStackCollector().applyOnCpuSamples(new Function<SampleNode, SampleNode>() {
 
                 public SampleNode apply(SampleNode f) {
                     try {
