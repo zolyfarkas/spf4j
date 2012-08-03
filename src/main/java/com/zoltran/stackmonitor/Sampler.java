@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
