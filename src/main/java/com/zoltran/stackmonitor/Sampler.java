@@ -164,6 +164,8 @@ public class Sampler implements SamplerMBean {
         writer.append("\" style=\"vertical-align:top ;background:").
                 append(COLORS[(int) (Math.random() * COLORS.length)]).append("\">");
         m.toWriter(writer);
+        writer.append(":");
+        writer.append(Integer.toString( node.getCount()));
         writer.append("</td></tr>\n");
         int totalSamples = node.getCount();
 
