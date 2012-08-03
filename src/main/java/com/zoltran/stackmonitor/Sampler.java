@@ -38,31 +38,49 @@ public class Sampler implements SamplerMBean {
 
     private volatile boolean stopped;
     private volatile long sampleTimeMillis;
-    private final MxStackCollector stackCollector;
+    private volatile boolean isJmxRegistered;
+    private final StackCollector stackCollector;
+    private final ObjectName name;
+    
     @GuardedBy("this")
     private Thread samplingThread;
     
 
     public Sampler() {
-        this(100);
+        this(100, new MxStackCollector());
+    }
+    
+      public Sampler(long sampleTimeMillis) {
+        this(sampleTimeMillis, new MxStackCollector());
+    }
+    
+    public Sampler( StackCollector collector) {
+        this(100, collector);
     }
 
-    public Sampler(long sampleTimeMillis) {
+    public Sampler(long sampleTimeMillis, StackCollector collector) {
         stopped = true;
         this.sampleTimeMillis = sampleTimeMillis;
-        this.stackCollector = new MxStackCollector(this);
-
+        this.stackCollector = collector;
+        try {
+            this.name = new ObjectName("StackMonitor:name=StackSampler");
+        } catch (MalformedObjectNameException ex) {
+            throw new RuntimeException(ex);
+        } 
+        this.isJmxRegistered = false;
     }
 
-    @PostConstruct
-    public void init() throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
-        ManagementFactory.getPlatformMBeanServer().registerMBean(this, new ObjectName("StackMonitor:name=StackSampler"));
+
+    public void registerJmx() throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
+        ManagementFactory.getPlatformMBeanServer().registerMBean(this, name);
+        isJmxRegistered=true;
     }
 
     @Override
     public synchronized void start() {
         if (stopped) {
             stopped = false;
+            final long stMillis = sampleTimeMillis;
             samplingThread = new Thread(new Runnable() {
 
                 @SuppressWarnings("SleepWhileInLoop")
@@ -70,7 +88,7 @@ public class Sampler implements SamplerMBean {
                     while (!stopped) {
                         stackCollector.sample();
                         try {
-                            Thread.sleep(sampleTimeMillis);
+                            Thread.sleep(stMillis);
                         } catch (InterruptedException ex) {
                             stopped = true;
                         }
@@ -163,7 +181,6 @@ public class Sampler implements SamplerMBean {
         writer.append("</table>\n");
     }
 
-    @PreDestroy
     @Override
     public synchronized void stop() throws InterruptedException {
         stopped = true;
@@ -203,10 +220,21 @@ public class Sampler implements SamplerMBean {
         stackCollector.clear();
     }
 
-    public MxStackCollector getStackCollector() {
+    public StackCollector getStackCollector() {
         return stackCollector;
     }
     
-    
+    @PreDestroy
+    public void dispose() throws InterruptedException{
+        stop();
+        try {
+            if (isJmxRegistered)
+                ManagementFactory.getPlatformMBeanServer().unregisterMBean(name);
+        } catch (InstanceNotFoundException ex) {
+            throw new RuntimeException(ex);
+        } catch (MBeanRegistrationException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
     
 }

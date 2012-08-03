@@ -12,10 +12,7 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
+import javax.management.*;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -47,9 +44,16 @@ public class MonitorTest {
     
     
     @Test(timeout=20000)
-    public void testApp() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException {
+    public void testApp() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException, InstanceNotFoundException {
         String report = File.createTempFile("stackSample", ".html").getPath();
         Monitor.main(new String[]{"-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
+        System.out.println(report);
+    }
+    
+    @Test(timeout=20000)
+    public void testApp2() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException {
+        String report = File.createTempFile("stackSampleSimple", ".html").getPath();
+        Monitor.main(new String[]{"-simple" ,"-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
         System.out.println(report);
     }
     
@@ -58,7 +62,7 @@ public class MonitorTest {
     public void testProto() throws InterruptedException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, IOException {
         
         Sampler sampler = new Sampler(1);
-        sampler.init();
+        sampler.registerJmx();
         sampler.start();
         MonitorTest.main(new String [] {});
         String serializedFile = File.createTempFile("stackSample", ".samp").getPath();

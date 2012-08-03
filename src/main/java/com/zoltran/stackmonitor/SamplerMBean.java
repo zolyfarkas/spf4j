@@ -17,7 +17,6 @@ public interface SamplerMBean extends ReportGenerator{
 
     void start();
 
-    @PreDestroy
     void stop() throws InterruptedException;
     
     void clear();

@@ -4,47 +4,49 @@
  */
 package com.zoltran.stackmonitor;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
-import java.lang.management.ThreadMXBean;
+import java.util.Map;
 
 /**
  *
  * @author zoly
  */
-public class MxStackCollector extends AbstractStackCollector {
+public class SimpleStackCollector extends AbstractStackCollector {
 
-    private final ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
 
+    
 
     @Override
     public void sample() {
-        ThreadInfo[] stackDump = threadMX.dumpAllThreads(true, true);
+        Map<Thread, StackTraceElement[]> stackDump = Thread.getAllStackTraces();
         recordStackDump(stackDump);
     }
 
-    private void recordStackDump(ThreadInfo[] stackDump) {
+    private void recordStackDump(Map<Thread, StackTraceElement[]> stackDump) {
         synchronized (sampleSync) {
-            for (ThreadInfo entry : stackDump) {
-                StackTraceElement[] stackTrace = entry.getStackTrace();
-                if (stackTrace.length > 0 && !(entry.getThreadId() == Thread.currentThread().getId())) {
-                    Thread.State state = entry.getThreadState();
-                    if (state == Thread.State.BLOCKED || state == Thread.State.TIMED_WAITING || state == Thread.State.WAITING) {
+            for (Map.Entry<Thread, StackTraceElement[]> entry : stackDump.entrySet()) {
+                StackTraceElement[] stackTrace = entry.getValue();
+                if (stackTrace.length > 0 && !entry.getKey().equals(Thread.currentThread())) {
+                    Method m = new Method(stackTrace[0]);
+                    if (MethodClassifier.isWaitMethod(m)) {
                         if (waitSamples == null) {
                             waitSamples = new SampleNode(stackTrace, stackTrace.length - 1);
                         } else {
                             waitSamples.addSample(stackTrace, stackTrace.length - 1);
                         }
-                    } else if (state == Thread.State.RUNNABLE) {
+
+                    }  else {
                         if (cpuSamples == null) {
                             cpuSamples = new SampleNode(stackTrace, stackTrace.length - 1);
                         } else {
                             cpuSamples.addSample(stackTrace, stackTrace.length - 1);
                         }
+
                     }
                 }
             }
         }
     }
+
+
     
 }
