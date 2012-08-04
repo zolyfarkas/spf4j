@@ -157,28 +157,39 @@ public class Sampler implements SamplerMBean {
         "#FF701B", "#FF601B", "#FF501B", "#FF401B"};
 
     private static void generateHtmlTable(Writer writer, Method m, SampleNode node, int tableWidth) throws IOException {
+        Map<Method, SampleNode> subNodes = node.getSubNodes();
         writer.append("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"overflow:hidden;table-layout:fixed;width:").
-                append(Integer.toString(tableWidth)).append("\"><tr><td title=\"");
+                append(Integer.toString(tableWidth)).append("px\">\n");
+        int totalSamples = node.getCount();
+      
+        if (subNodes != null) {
+            writer.append("<tr style=\"height:1em\">");
+            int sumSubNodes=0;
+            for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
+                int width = entry.getValue().getCount() * tableWidth / totalSamples;
+                writer.append("<td style=\"vertical-align:bottom; width:").append(Integer.toString(width)).append("px\">");
+                generateHtmlTable(writer, entry.getKey(), entry.getValue(), width);
+                writer.append("</td>");
+                sumSubNodes+=width;
+            }
+            writer.append("<td></td>");
+            writer.append("</tr>\n");
+        }
+       writer.append( "<tr style=\"height:1em\" ><td ");
+        if (subNodes != null) {
+            writer.append("colspan=\""). append(Integer.toString( subNodes.size()+1)).append("\" ");
+        }
+        writer.append( " title=\"");
         m.toWriter(writer);
-        writer.append("\" style=\"vertical-align:top ;background:").
+        writer.append(":");
+        writer.append(Integer.toString( node.getCount()));        
+        writer.append("\" style=\"overflow:hidden;width:100%;vertical-align:bottom ;background:").
                 append(COLORS[(int) (Math.random() * COLORS.length)]).append("\">");
         m.toWriter(writer);
         writer.append(":");
         writer.append(Integer.toString( node.getCount()));
         writer.append("</td></tr>\n");
-        int totalSamples = node.getCount();
-
-        Map<Method, SampleNode> subNodes = node.getSubNodes();
-        if (subNodes != null) {
-            writer.append("<tr><td><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"overflow:hidden;table-layout:fixed\"><tr>\n");
-            for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
-                int width = entry.getValue().getCount() * tableWidth / totalSamples;
-                writer.append("<td style=\"vertical-align:top; width:").append(Integer.toString(width)).append("px\">");
-                generateHtmlTable(writer, entry.getKey(), entry.getValue(), width);
-                writer.append("</td>");
-            }
-            writer.append("</tr></table></td></tr>");
-        }
+ 
         writer.append("</table>\n");
     }
 
