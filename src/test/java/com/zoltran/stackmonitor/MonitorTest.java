@@ -107,7 +107,7 @@ public class MonitorTest {
            fis.close(); 
         }
         String report = File.createTempFile("stackSample", ".html").getPath();
-        anotherOne.generateHtmlMonitorReport(report, 1000);
+        anotherOne.generateHtmlMonitorReport(report, 1000, 25);
         System.out.println(report);    
     }
     

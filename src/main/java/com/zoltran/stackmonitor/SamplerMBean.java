@@ -5,7 +5,6 @@ package com.zoltran.stackmonitor;
 
 import com.zoltran.base.ReportGenerator;
 import java.io.IOException;
-import javax.annotation.PreDestroy;
 
 /**
  *
@@ -13,7 +12,7 @@ import javax.annotation.PreDestroy;
  */
 public interface SamplerMBean extends ReportGenerator{
 
-    void generateHtmlMonitorReport(String fileName, int chartWidth) throws IOException;
+    void generateHtmlMonitorReport(String fileName, int chartWidth, int maxDepth) throws IOException;
 
     void start();
 

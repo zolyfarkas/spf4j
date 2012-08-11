@@ -102,7 +102,7 @@ public class Sampler implements SamplerMBean {
     }
 
     @Override
-    public synchronized void generateHtmlMonitorReport(String fileName, final int chartWidth) throws IOException {
+    public synchronized void generateHtmlMonitorReport(String fileName, final int chartWidth, final int maxDepth) throws IOException {
 
         final Writer writer = new BufferedWriter(new FileWriter(fileName));
         try {
@@ -115,7 +115,7 @@ public class Sampler implements SamplerMBean {
                     if (input != null) {
                         try {
                             writer.append("<h1>CPU stats</h1>");
-                            generateHtmlTable(writer, Method.ROOT, input, chartWidth);
+                            generateHtmlTable(writer, Method.ROOT, input, chartWidth, maxDepth);
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -133,7 +133,7 @@ public class Sampler implements SamplerMBean {
                     if (input != null) {
                         try {
                             writer.append("<h1>WAIT stats</h1>");
-                            generateHtmlTable(writer, Method.ROOT, input, chartWidth);
+                            generateHtmlTable(writer, Method.ROOT, input, chartWidth, maxDepth);
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -156,21 +156,19 @@ public class Sampler implements SamplerMBean {
         "#FFC01B", "#FFA01B", "#FF901B", "#FF801B",
         "#FF701B", "#FF601B", "#FF501B", "#FF401B"};
 
-    private static void generateHtmlTable(Writer writer, Method m, SampleNode node, int tableWidth) throws IOException {
+    private static void generateHtmlTable(Writer writer, Method m, SampleNode node, int tableWidth, int maxDepth) throws IOException {
         Map<Method, SampleNode> subNodes = node.getSubNodes();
         writer.append("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"overflow:hidden;table-layout:fixed;width:").
                 append(Integer.toString(tableWidth)).append("px\">\n");
         int totalSamples = node.getCount();
       
-        if (subNodes != null) {
+        if (subNodes != null && maxDepth > 0) {
             writer.append("<tr style=\"height:1em\">");
-            int sumSubNodes=0;
             for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
                 int width = entry.getValue().getCount() * tableWidth / totalSamples;
                 writer.append("<td style=\"vertical-align:bottom; width:").append(Integer.toString(width)).append("px\">");
-                generateHtmlTable(writer, entry.getKey(), entry.getValue(), width);
+                generateHtmlTable(writer, entry.getKey(), entry.getValue(), width, maxDepth-1);
                 writer.append("</td>");
-                sumSubNodes+=width;
             }
             writer.append("<td></td>");
             writer.append("</tr>\n");
@@ -217,8 +215,9 @@ public class Sampler implements SamplerMBean {
     @Override
     public List<String> generate(Properties props) throws IOException {
         int width = Integer.valueOf(props.getProperty("width", "1200"));
+        int maxDepth = Integer.valueOf(props.getProperty("maxDepth", "1200"));
         String fileName = File.createTempFile("stack", ".html").getAbsolutePath();
-        generateHtmlMonitorReport(fileName, width);
+        generateHtmlMonitorReport(fileName, width, maxDepth);
         return Arrays.asList(fileName);
     }
 
