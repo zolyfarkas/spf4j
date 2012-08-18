@@ -12,7 +12,13 @@ import java.io.IOException;
  */
 public interface SamplerMBean extends ReportGenerator{
 
-    void generateHtmlMonitorReport(String fileName, int chartWidth, int maxDepth) throws IOException;
+    void generateHtmlMonitorReport(String fileName, int chartWidth, int maxDepth) throws IOException;  
+    
+    void generateSvgHtmlMonitorReport(String fileName, int chartWidth, int maxDepth) throws IOException;  
+    
+    void generateCpuSvg(String fileName, int chartWidth, int maxDepth) throws IOException;
+    
+    void generateWaitSvg(String fileName, int chartWidth, int maxDepth) throws IOException;
 
     void start();
 

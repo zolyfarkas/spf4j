@@ -208,5 +208,103 @@ public class Sampler implements SamplerMBean {
             throw new RuntimeException(ex);
         }
     }
+
+    @Override
+    public void generateCpuSvg(String fileName, final int chartWidth, final int maxDepth) throws IOException {
+        final Writer writer = new BufferedWriter(new FileWriter(fileName));
+        try {
+
+            stackCollector.applyOnCpuSamples(new Function<SampleNode, SampleNode>() {
+
+                @Override
+                public SampleNode apply(SampleNode input) {
+                    if (input != null) {
+                        try {
+                            StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                    return input;
+                }
+            });
+        } finally {
+            writer.close();
+        }
+    }
+
+    @Override
+    public void generateWaitSvg(String fileName, final int chartWidth, final int maxDepth) throws IOException {
+               final Writer writer = new BufferedWriter(new FileWriter(fileName));
+        try {
+
+            stackCollector.applyOnWaitSamples(new Function<SampleNode, SampleNode>() {
+
+                @Override
+                public SampleNode apply(SampleNode input) {
+                    if (input != null) {
+                        try {
+                            StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                    return input;
+                }
+            });
+        } finally {
+            writer.close();
+        }
+    }
+
+    @Override
+    public void generateSvgHtmlMonitorReport(String fileName, final int chartWidth, final int maxDepth) throws IOException {
+                final Writer writer = new BufferedWriter(new FileWriter(fileName));
+        try {
+            writer.append("<html>");
+
+            stackCollector.applyOnCpuSamples(new Function<SampleNode, SampleNode>() {
+
+                @Override
+                public SampleNode apply(SampleNode input) {
+                    if (input != null) {
+                        try {
+                            writer.append("<h1>CPU stats</h1>");
+                             StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                    return input;
+                }
+            });
+
+
+
+            stackCollector.applyOnWaitSamples(new Function<SampleNode, SampleNode>() {
+
+                @Override
+                public SampleNode apply(SampleNode input) {
+                    if (input != null) {
+                        try {
+                            writer.append("<h1>WAIT stats</h1>");
+                            StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                    return input;
+                }
+            });
+
+
+
+            writer.append("</html>");
+
+        } finally {
+            writer.close();
+        }
+
+    }
     
 }

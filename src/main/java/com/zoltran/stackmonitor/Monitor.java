@@ -36,6 +36,9 @@ public class Monitor {
         private boolean startSampler = false;
         @Option(name = "-simple", usage = "start the stack sampler with simple stack sampling")
         private boolean simpleCollector = false;
+        @Option(name = "-svg", usage = "stack visualization will be in svg format")
+        private boolean svgReport = false;
+        
     }
     private static volatile boolean generatedAndDisposed;
 
@@ -67,6 +70,7 @@ public class Monitor {
         final String reportOut = options.reportOut;
         final int chartWidth = options.chartWidth;
         final int maxDepth = options.maxDepth;
+        final boolean svgReport = options.svgReport;
 
         final Sampler sampler;
         if (options.simpleCollector) {
@@ -81,17 +85,12 @@ public class Monitor {
             @Override
             public void run() {
                 try {
-                    synchronized (Monitor.class) {
-                        if (!generatedAndDisposed) {
-                            sampler.generateHtmlMonitorReport(reportOut, chartWidth, maxDepth);
-                            sampler.dispose();
-                            generatedAndDisposed = true;
-                        }
-                    }
+                    generateReportAndDispose(sampler, reportOut, chartWidth, maxDepth, svgReport);
                 } catch (Exception ex) {
                     log.error("Exception while shutting down", ex);
                 }
             }
+
         }, "Sampling report"));
         sampler.registerJmx();
 
@@ -101,15 +100,26 @@ public class Monitor {
         try {
             Class.forName(options.mainClass).getMethod("main", String[].class).invoke(null, (Object) newArgs);
         } finally {
-            synchronized (Monitor.class) {
-                if (!generatedAndDisposed) {
-                    sampler.generateHtmlMonitorReport(reportOut, chartWidth, maxDepth);
-                    sampler.dispose();
-                    generatedAndDisposed = true;
-                }
-            }
+            generateReportAndDispose(sampler, reportOut, chartWidth, maxDepth, svgReport);
         }
 
 
     }
+    
+    private static void generateReportAndDispose(final Sampler sampler,
+            final String reportOut, final int chartWidth, final int maxDepth, boolean svgReport) throws IOException, InterruptedException {
+                synchronized (Monitor.class) {
+                    if (!generatedAndDisposed) {
+                        if (svgReport) {
+                            sampler.generateSvgHtmlMonitorReport(reportOut, chartWidth, maxDepth);
+                        }
+                        else {
+                            sampler.generateHtmlMonitorReport(reportOut, chartWidth, maxDepth);
+                        }
+                        sampler.dispose();
+                        generatedAndDisposed = true;
+                    }
+                }
+    }
+    
 }

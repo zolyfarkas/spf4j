@@ -79,7 +79,11 @@ public class StackVisualizer {
         writer.append("<rect x=\"0\" y=\""+ (depth * 15) +"\" width=\"" + width +"\" height=\"15\" fill=\"" + 
                         COLORS[(int) (Math.random() * COLORS.length)] +"\"  />" );
         
-        writer.append("<text x=\"0\" y=\""+ (depth * 15) +"\" font-size=\"12\" font-family=\"Verdana\" fill=\"rgb(0,0,0)\" />" );
+        writer.append("<text x=\"0\" y=\""+ (depth * 15) +"\" font-size=\"12\" font-family=\"Verdana\" fill=\"rgb(0,0,0)\" >" );
+        m.toWriter(writer);
+        writer.append(":");
+        writer.append(Integer.toString( node.getCount())); 
+        writer.append("</text>");
  
         writer.append("</svg>\n");
         return depth +1;

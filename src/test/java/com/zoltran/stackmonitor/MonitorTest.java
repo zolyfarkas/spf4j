@@ -42,6 +42,13 @@ public class MonitorTest {
         Thread.sleep(100000);
     }
     
+  
+    @Test(timeout=20000)
+    public void testAppSvg() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException, InstanceNotFoundException {
+        String report = File.createTempFile("stackSampleSVG", ".html").getPath();
+        Monitor.main(new String[]{"-svg", "-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
+        System.out.println(report);
+    }
     
     
     @Test(timeout=20000)
