@@ -8,7 +8,6 @@ import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.GuardedBy;
@@ -115,7 +114,7 @@ public class Sampler implements SamplerMBean {
                     if (input != null) {
                         try {
                             writer.append("<h1>CPU stats</h1>");
-                            generateHtmlTable(writer, Method.ROOT, input, chartWidth, maxDepth);
+                            StackVisualizer.generateHtmlTable(writer, Method.ROOT, input, chartWidth, maxDepth);
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -133,7 +132,7 @@ public class Sampler implements SamplerMBean {
                     if (input != null) {
                         try {
                             writer.append("<h1>WAIT stats</h1>");
-                            generateHtmlTable(writer, Method.ROOT, input, chartWidth, maxDepth);
+                            StackVisualizer.generateHtmlTable(writer, Method.ROOT, input, chartWidth, maxDepth);
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -151,45 +150,7 @@ public class Sampler implements SamplerMBean {
         }
 
     }
-    private static final String[] COLORS = {"#CCE01B",
-        "#DDE01B", "#EEE01B", "#FFE01B", "#FFD01B",
-        "#FFC01B", "#FFA01B", "#FF901B", "#FF801B",
-        "#FF701B", "#FF601B", "#FF501B", "#FF401B"};
 
-    private static void generateHtmlTable(Writer writer, Method m, SampleNode node, int tableWidth, int maxDepth) throws IOException {
-        Map<Method, SampleNode> subNodes = node.getSubNodes();
-        writer.append("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"overflow:hidden;table-layout:fixed;width:").
-                append(Integer.toString(tableWidth)).append("px\">\n");
-        int totalSamples = node.getCount();
-      
-        if (subNodes != null && maxDepth > 0) {
-            writer.append("<tr style=\"height:1em\">");
-            for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
-                int width = entry.getValue().getCount() * tableWidth / totalSamples;
-                writer.append("<td style=\"vertical-align:bottom; width:").append(Integer.toString(width)).append("px\">");
-                generateHtmlTable(writer, entry.getKey(), entry.getValue(), width, maxDepth-1);
-                writer.append("</td>");
-            }
-            writer.append("<td></td>");
-            writer.append("</tr>\n");
-        }
-       writer.append( "<tr style=\"height:1em\" ><td ");
-        if (subNodes != null) {
-            writer.append("colspan=\""). append(Integer.toString( subNodes.size()+1)).append("\" ");
-        }
-        writer.append( " title=\"");
-        m.toWriter(writer);
-        writer.append(":");
-        writer.append(Integer.toString( node.getCount()));        
-        writer.append("\" style=\"overflow:hidden;width:100%;vertical-align:bottom ;background:").
-                append(COLORS[(int) (Math.random() * COLORS.length)]).append("\">");
-        m.toWriter(writer);
-        writer.append(":");
-        writer.append(Integer.toString( node.getCount()));
-        writer.append("</td></tr>\n");
- 
-        writer.append("</table>\n");
-    }
 
     @Override
     public synchronized void stop() throws InterruptedException {
