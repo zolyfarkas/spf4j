@@ -220,7 +220,7 @@ public class Sampler implements SamplerMBean {
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
                         try {
-                            StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth);
+                            StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth, "a");
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -244,7 +244,7 @@ public class Sampler implements SamplerMBean {
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
                         try {
-                            StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth);
+                            StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth, "b");
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -257,10 +257,13 @@ public class Sampler implements SamplerMBean {
         }
     }
 
+    
     @Override
     public void generateSvgHtmlMonitorReport(String fileName, final int chartWidth, final int maxDepth) throws IOException {
                 final Writer writer = new BufferedWriter(new FileWriter(fileName));
         try {
+            writer.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
+"<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\" \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n");
             writer.append("<html>");
 
             stackCollector.applyOnCpuSamples(new Function<SampleNode, SampleNode>() {
@@ -270,7 +273,7 @@ public class Sampler implements SamplerMBean {
                     if (input != null) {
                         try {
                             writer.append("<h1>CPU stats</h1>");
-                             StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth);
+                             StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth, "a");
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -288,7 +291,7 @@ public class Sampler implements SamplerMBean {
                     if (input != null) {
                         try {
                             writer.append("<h1>WAIT stats</h1>");
-                            StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth);
+                            StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth, "b");
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }

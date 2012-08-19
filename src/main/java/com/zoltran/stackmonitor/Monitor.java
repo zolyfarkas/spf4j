@@ -31,13 +31,13 @@ public class Monitor {
         @Option(name = "-w", usage = "flame chart width")
         private int chartWidth = 2000;
         @Option(name = "-md", usage = "maximum stack trace depth")
-        private int maxDepth = 25;
+        private int maxDepth = Integer.MAX_VALUE;
         @Option(name = "-ss", usage = "start the stack sampler")
         private boolean startSampler = false;
         @Option(name = "-simple", usage = "start the stack sampler with simple stack sampling")
         private boolean simpleCollector = false;
         @Option(name = "-svg", usage = "stack visualization will be in svg format")
-        private boolean svgReport = false;
+        private boolean svgReport = true;
         
     }
     private static volatile boolean generatedAndDisposed;

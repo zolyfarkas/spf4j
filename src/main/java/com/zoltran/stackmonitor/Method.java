@@ -3,6 +3,7 @@
  */
 package com.zoltran.stackmonitor;
 
+import com.zoltran.base.HtmlUtils;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
@@ -75,6 +76,12 @@ public final class Method {
     public void toWriter(Writer w) throws IOException {
         w.append(methodName).append("@").append(declaringClass);
     }
+    
+    public void toHtmlWriter(Writer w) throws IOException {
+        w.append(HtmlUtils.htmlEscape( methodName)).append(HtmlUtils.htmlEscape("@")).append(HtmlUtils.htmlEscape(declaringClass));
+    }
+    
+    
     
     public static final Method ROOT= new Method(ManagementFactory.getRuntimeMXBean().getName(), "ROOT");
     

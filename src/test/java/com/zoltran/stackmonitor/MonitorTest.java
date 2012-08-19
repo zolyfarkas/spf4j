@@ -58,7 +58,6 @@ public class MonitorTest {
         System.out.println(report);
     }
     
-    
     @Test(timeout=20000)
     public void testApp() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException, InstanceNotFoundException {
         String report = File.createTempFile("stackSample", ".html").getPath();
@@ -133,7 +132,7 @@ public class MonitorTest {
                         while (!stopped) {
                             double rnd = Math.random();
                             if (rnd < 0.33) {                                
-                                    doStuff1(rnd);                                
+                                    doStuff1(rnd,50);                                
                             } else if (rnd < 0.66) {
                                 doStuff2(rnd);
                             } else {
@@ -159,9 +158,13 @@ public class MonitorTest {
                     return rnd;
                 }
 
-                private void doStuff1(double rnd) throws InterruptedException {
-                    Thread.sleep(10);
-                    System.out.println("Rnd:" + rnd);
+                private void doStuff1(double rnd, int depth) throws InterruptedException {
+                    if (depth<=0) {
+                        Thread.sleep(10);
+                        System.out.println("Rnd:" + rnd);
+                    } else {
+                        doStuff1(rnd, depth -1);
+                    }
                 }
             }, "Thread" + i);
             t.start();

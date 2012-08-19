@@ -62,5 +62,21 @@ public class SampleNode {
         return "SampleNode{" + "count=" + count + ", subNodes=" + subNodes + '}';
     }
     
+    public int height() {
+        if (subNodes == null) {
+            return 1;
+        } else {
+            int subHeight = 0;
+            for (SampleNode node: subNodes.values()) {
+                int nHeight = node.height();
+                if (nHeight > subHeight) {
+                    subHeight = nHeight;
+                }
+            }
+            return subHeight +1;
+        }
+            
+    }
+    
     
 }
