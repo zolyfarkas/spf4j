@@ -36,8 +36,8 @@ public class Monitor {
         private boolean startSampler = false;
         @Option(name = "-simple", usage = "start the stack sampler with simple stack sampling")
         private boolean simpleCollector = false;
-        @Option(name = "-svg", usage = "stack visualization will be in svg format")
-        private boolean svgReport = true;
+        @Option(name = "-nosvg", usage = "stack visualization will be in svg format")
+        private boolean noSvgReport = false;
         
     }
     private static volatile boolean generatedAndDisposed;
@@ -70,7 +70,7 @@ public class Monitor {
         final String reportOut = options.reportOut;
         final int chartWidth = options.chartWidth;
         final int maxDepth = options.maxDepth;
-        final boolean svgReport = options.svgReport;
+        final boolean svgReport = !options.noSvgReport;
 
         final Sampler sampler;
         if (options.simpleCollector) {
