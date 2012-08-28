@@ -20,6 +20,8 @@ import org.slf4j.LoggerFactory;
  */
 public class Monitor {
 
+    private static final Logger log = LoggerFactory.getLogger(Monitor.class);
+    
     private static class Options {
 
         @Option(name = "-f", usage = "output to this file the perf report")
@@ -80,8 +82,6 @@ public class Monitor {
         }
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
-            private final Logger log = LoggerFactory.getLogger("ShutdownHandler");
-
             @Override
             public void run() {
                 try {
@@ -97,13 +97,7 @@ public class Monitor {
         if (options.startSampler) {
             sampler.start();
         }
-        try {
-            Class.forName(options.mainClass).getMethod("main", String[].class).invoke(null, (Object) newArgs);
-        } finally {
-            generateReportAndDispose(sampler, reportOut, chartWidth, maxDepth, svgReport);
-        }
-
-
+        Class.forName(options.mainClass).getMethod("main", String[].class).invoke(null, (Object) newArgs);
     }
     
     private static void generateReportAndDispose(final Sampler sampler,
@@ -111,11 +105,12 @@ public class Monitor {
                 synchronized (Monitor.class) {
                     if (!generatedAndDisposed) {
                         if (svgReport) {
-                            sampler.generateSvgHtmlMonitorReport(reportOut, chartWidth, maxDepth);
+                            sampler.generateSvgHtmlMonitorReport(reportOut, chartWidth, maxDepth);                         
                         }
                         else {
                             sampler.generateHtmlMonitorReport(reportOut, chartWidth, maxDepth);
                         }
+                        log.info("Sample report written to {}", reportOut);
                         sampler.dispose();
                         generatedAndDisposed = true;
                     }

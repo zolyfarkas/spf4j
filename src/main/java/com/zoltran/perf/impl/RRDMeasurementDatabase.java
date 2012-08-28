@@ -3,10 +3,8 @@
  */
 package com.zoltran.perf.impl;
 
-import com.zoltran.base.Pair;
 import com.zoltran.perf.EntityMeasurements;
 import com.zoltran.perf.MeasurementDatabase;
-import com.zoltran.perf.impl.QuantizedRecorder.Quanta;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
@@ -20,22 +18,20 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.imageio.ImageIO;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.chart.axis.TickUnits;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.XYBlockRenderer;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.rrd4j.ConsolFun;
 import org.rrd4j.DsType;
 import org.rrd4j.core.*;
 import org.rrd4j.graph.RrdGraph;
 import org.rrd4j.graph.RrdGraphConstants;
 import org.rrd4j.graph.RrdGraphDef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -46,6 +42,9 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable {
 
     private final String databaseFolder;
     private final Map<String, RrdDb> databases;
+    private static final Logger LOG = LoggerFactory.getLogger(RRDMeasurementDatabase.class);
+    
+    static final Class<RrdGraphConstants> preload = RrdGraphConstants.class;
 
     public RRDMeasurementDatabase(String databaseFolder) {
         this.databaseFolder = databaseFolder;
@@ -57,7 +56,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable {
                 + measurement.getUnitOfMeasurement() + "_" + new LocalDate().getWeekOfWeekyear() + ".rrd4j";
     }
     private static final int SECONDS_PER_HOUR = 3600;
-    private static final int SECONDS_PER_WEEK = 3600 * 24 * 7;
+    private static final int SECONDS_PER_WEEK = SECONDS_PER_HOUR * 24 * 7;
 
     public RrdDb getRrdDb(EntityMeasurements measurement, int sampleTimeSeconds) throws IOException {
         String rrdFilePath = databaseFolder + File.separator + getDBName(measurement, sampleTimeSeconds);
@@ -85,8 +84,8 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable {
         }
     }
 
+    @Override
     public void saveMeasurements(EntityMeasurements measurement, long timeStampMillis, int sampleTimeMillis) throws IOException {
-        System.out.println("time: " + timeStampMillis + "m = " + measurement);
         RrdDb rrdDb = getRrdDb(measurement, sampleTimeMillis / 1000);
         Sample sample = rrdDb.createSample(timeStampMillis / 1000);
         Map<String, Number> measurements = measurement.getMeasurements(true);
@@ -98,6 +97,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable {
     }
 
     @PreDestroy
+    @Override
     public void close() throws IOException {
         synchronized (databases) {
             for (RrdDb db : databases.values()) {
@@ -117,6 +117,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable {
                 result.add(generateHeatChart(startTimeMillis, endTimeMillis, entry.getValue(), width, height));
             }
         }
+        LOG.info("Generated charts {}", result);
         return result;
     }
 
@@ -126,7 +127,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable {
         gDef.setWidth(width);
         gDef.setHeight(height);
         File rrdFile = new File(rrdpath);
-        String graphicFile = File.createTempFile(rrdFile.getName(), ".png").getPath();       
+        String graphicFile = File.createTempFile(rrdFile.getName(), ".png", new File(rrdpath).getParentFile()).getPath();       
         gDef.setFilename(graphicFile);
         gDef.setStartTime(startTimeMillis / 1000);
         gDef.setEndTime(endTimeMillis / 1000);
@@ -209,7 +210,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable {
         chart.removeLegend();
         chart.setBackgroundPaint(Color.white);
         BufferedImage bi = chart.createBufferedImage(width, height);
-        File graphicFile = File.createTempFile(rrdFile.getName(), ".png"); 
+        File graphicFile =  File.createTempFile(rrdFile.getName(), ".png", new File(rrdDb.getCanonicalPath()).getParentFile() ); 
         ImageIO.write(bi, "png", graphicFile);
         return graphicFile.getPath();
     }

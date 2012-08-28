@@ -52,6 +52,7 @@ public class MonitorTest {
     
     
     @Test(timeout=20000)
+    @Ignore
     public void testApp2() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException {
         String report = File.createTempFile("stackSampleSimple", ".html").getPath();
         Monitor.main(new String[]{"-simple" ,"-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
@@ -59,6 +60,7 @@ public class MonitorTest {
     }
     
     @Test(timeout=20000)
+    @Ignore
     public void testApp() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException, InstanceNotFoundException {
         String report = File.createTempFile("stackSample", ".html").getPath();
         Monitor.main(new String[]{"-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
