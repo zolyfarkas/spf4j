@@ -18,6 +18,31 @@
         </license>
     </licenses>
   
+    <profiles>
+        <profile>
+            <id>win</id>
+            <activation>
+                <os>
+                    <family>Windows</family>
+                </os>
+            </activation>
+            <properties>
+                <protoc.bin>c:/protobuf-2.4.1/bin/protoc.exe</protoc.bin>
+            </properties>
+        </profile>
+        <profile>
+            <id>unix</id>
+            <activation>
+                <os>
+                    <family>Unix</family>
+                </os>
+            </activation>
+            <properties>
+                <protoc.bin>/usr/local/bin/protoc</protoc.bin>
+            </properties>
+        </profile>
+    </profiles>
+
 
     <pluginRepositories>
         <pluginRepository>
@@ -130,7 +155,7 @@
                 <artifactId>maven-protoc-plugin</artifactId>
                 <version>0.1.10</version>
                 <configuration>
-                    <protocExecutable>/usr/local/bin/protoc</protocExecutable>
+                    <protocExecutable>${protoc.bin}</protocExecutable>
                 </configuration>
                 <executions>
                     <execution>
@@ -165,7 +190,7 @@
                     
                     <findbugsXmlOutput>true</findbugsXmlOutput>
                     <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
- <!--                   <excludeFilterFile>${basedir}/findbugs-exclude.xml</excludeFilterFile> -->
+                    <!--                   <excludeFilterFile>${basedir}/findbugs-exclude.xml</excludeFilterFile> -->
                 </configuration>
                 <executions>
                     <execution>
