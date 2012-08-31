@@ -99,16 +99,39 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
         }
     }
 
+    private static long msToS(long ms) {
+        long result = ms/1000;
+        if ((ms%1000)>500) {
+            result++;
+        }
+        return result;
+    }
+    
+    private static int msToS(int ms) {
+        int result = ms/1000;
+        if ((ms%1000)>500) {
+            result++;
+        }
+        return result;
+    }
+    
     @Override
     public void saveMeasurements(EntityMeasurements measurement, long timeStampMillis, int sampleTimeMillis) throws IOException {
-        RrdDb rrdDb = getRrdDb(measurement, sampleTimeMillis / 1000);
-        Sample sample = rrdDb.createSample(timeStampMillis / 1000);
+        RrdDb rrdDb = getRrdDb(measurement, msToS(sampleTimeMillis));
+        Sample sample = rrdDb.createSample(msToS(timeStampMillis));
         Map<String, Number> measurements = measurement.getMeasurements(true);
 
         for (Map.Entry<String, Number> entry : measurements.entrySet()) {
             sample.setValue(entry.getKey(), entry.getValue().doubleValue());
         }
-        sample.update();
+        try {
+            sample.update();
+            LOG.debug("Measurement {} persisted at {}", measurement.getMeasuredEntity(), timeStampMillis );
+        } catch(IOException e) {
+            throw new IOException("Cannot persist sample " + measurement.getMeasuredEntity() + " at " + timeStampMillis  ,e);
+        } catch(RuntimeException e) {
+            throw new IOException("Cannot persist sample " + measurement.getMeasuredEntity() + " at " + timeStampMillis, e);
+        }
     }
 
     @PreDestroy
