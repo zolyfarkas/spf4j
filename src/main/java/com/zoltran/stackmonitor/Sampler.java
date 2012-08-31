@@ -61,7 +61,7 @@ public class Sampler implements SamplerMBean {
         this.sampleTimeMillis = sampleTimeMillis;
         this.stackCollector = collector;
         try {
-            this.name = new ObjectName("StackMonitor:name=StackSampler");
+            this.name = new ObjectName("SPF4J:name=StackSampler");
         } catch (MalformedObjectNameException ex) {
             throw new RuntimeException(ex);
         } 

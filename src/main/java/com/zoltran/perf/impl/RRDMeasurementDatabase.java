@@ -10,12 +10,19 @@ import java.awt.image.BufferedImage;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.imageio.ImageIO;
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
@@ -38,19 +45,27 @@ import org.slf4j.LoggerFactory;
  * @author zoly
  */
 @ThreadSafe
-public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable {
+public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, RRDMeasurementDatabaseMBean {
 
     private final String databaseFolder;
     private final Map<String, RrdDb> databases;
     private static final Logger LOG = LoggerFactory.getLogger(RRDMeasurementDatabase.class);
     
-    static final Class<RrdGraphConstants> preload = RrdGraphConstants.class;
 
     public RRDMeasurementDatabase(String databaseFolder) {
         this.databaseFolder = databaseFolder;
         databases = new HashMap<String, RrdDb>();
     }
 
+    private static final AtomicInteger dbCount = new AtomicInteger(0);
+    
+    public void registerJmx() throws MalformedObjectNameException, InstanceAlreadyExistsException, 
+            MBeanRegistrationException, NotCompliantMBeanException {
+        ManagementFactory.getPlatformMBeanServer().registerMBean(this, 
+                new ObjectName("SPF4J:name=RRDMeasurementDatabase" + dbCount.getAndIncrement()));
+    }
+    
+    
     private static String getDBName(EntityMeasurements measurement, int sampleTimeSeconds) {
         return measurement.getMeasuredEntity().toString() + "_" + sampleTimeSeconds + "_"
                 + measurement.getUnitOfMeasurement() + "_" + new LocalDate().getWeekOfWeekyear() + ".rrd4j";
@@ -107,7 +122,9 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable {
         }
     }
 
-    public List<String> generateCharts(long startTimeMillis, long endTimeMillis, int width, int height) throws IOException {
+    @Override
+    public List<String> generateCharts(long startTimeMillis, long endTimeMillis,
+        int width, int height) throws IOException {
         List<String> result = new ArrayList<String>();
         synchronized (databases) {
             for (Map.Entry<String, RrdDb> entry : databases.entrySet()) {
@@ -127,7 +144,8 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable {
         gDef.setWidth(width);
         gDef.setHeight(height);
         File rrdFile = new File(rrdpath);
-        String graphicFile = File.createTempFile(rrdFile.getName(), ".png", new File(rrdpath).getParentFile()).getPath();       
+        String graphicFile = File.createTempFile(rrdFile.getName(), ".png", 
+                new File(rrdpath).getParentFile()).getPath();       
         gDef.setFilename(graphicFile);
         gDef.setStartTime(startTimeMillis / 1000);
         gDef.setEndTime(endTimeMillis / 1000);
@@ -210,7 +228,8 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable {
         chart.removeLegend();
         chart.setBackgroundPaint(Color.white);
         BufferedImage bi = chart.createBufferedImage(width, height);
-        File graphicFile =  File.createTempFile(rrdFile.getName(), ".png", new File(rrdDb.getCanonicalPath()).getParentFile() ); 
+        File graphicFile =  File.createTempFile(rrdFile.getName(), ".png", 
+                new File(rrdDb.getCanonicalPath()).getParentFile() ); 
         ImageIO.write(bi, "png", graphicFile);
         return graphicFile.getPath();
     }
@@ -246,6 +265,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable {
         }
     }
 
+    @Override
     public List<String> getMeasurements() throws IOException {
         List<String> result = new ArrayList<String>();
         synchronized (databases) {
@@ -261,6 +281,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable {
         return result;
     }
 
+    @Override
     public List<String> generate(Properties props) throws IOException {
        int width = Integer.valueOf(props.getProperty("width", "1200"));
        int height = Integer.valueOf(props.getProperty("height", "800"));
@@ -271,6 +292,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable {
     }
     
 
+    @Override
     public List<String> getParameters() {
         return Arrays.asList("width", "height", "startTime", "endTime");
     }

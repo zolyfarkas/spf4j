@@ -19,6 +19,16 @@ public final class RecorderFactory {
             new RRDMeasurementDatabase(System.getProperty("rrd.perf.folder", 
             System.getProperty("java.io.tmpdir")));
     
+    static {
+        try
+        {
+            RRD_DATABASE.registerJmx();
+        } catch (Exception ex)
+        {
+            throw new RuntimeException(ex);
+        }
+    }
+    
     public static MeasurementRecorder createScalableQuantizedRecorder(Object forWhat, String unitOfMeasurement, int sampleTimeMillis,
              int factor, int lowerMagnitude, 
             int higherMagnitude, int quantasPerMagnitude ) {
