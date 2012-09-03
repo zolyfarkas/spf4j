@@ -3,6 +3,10 @@
  */
 package com.zoltran.perf.impl;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.zoltran.base.Pair;
 import com.zoltran.perf.EntityMeasurements;
 import com.zoltran.perf.MeasurementDatabase;
 import java.awt.Color;
@@ -48,24 +52,47 @@ import org.slf4j.LoggerFactory;
 public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, RRDMeasurementDatabaseMBean {
 
     private final String databaseFolder;
-    private final Map<String, RrdDb> databases;
+    private final LoadingCache<Pair<EntityMeasurements, Integer>, RrdDb> databases;
     private static final Logger LOG = LoggerFactory.getLogger(RRDMeasurementDatabase.class);
-    
 
-    public RRDMeasurementDatabase(String databaseFolder) {
+    public RRDMeasurementDatabase(final String databaseFolder) {
         this.databaseFolder = databaseFolder;
-        databases = new HashMap<String, RrdDb>();
-    }
+        databases = CacheBuilder.newBuilder().maximumSize(2048).build(
+                new CacheLoader<Pair<EntityMeasurements, Integer>, RrdDb>() {
+                    @Override
+                    public RrdDb load(Pair<EntityMeasurements, Integer> key) throws Exception {
+                        int sampleTimeSeconds = key.getSecond();
+                        EntityMeasurements emeasurements = key.getFirst();
+                        String rrdFilePath = databaseFolder + File.separator + getDBName(emeasurements,
+                                sampleTimeSeconds);
+                        File rrdFile = new File(rrdFilePath);
+                        if (rrdFile.exists()) {
+                            return new RrdDb(rrdFilePath);
+                        } else {
+                            RrdDef rrdDef = new RrdDef(rrdFilePath, sampleTimeSeconds);
+                            rrdDef.addArchive(ConsolFun.FIRST, 0.5, 1, SECONDS_PER_WEEK / sampleTimeSeconds); // 1 week worth of data at original granularity.
+                            rrdDef.setStartTime(System.currentTimeMillis() / 1000);
+                            int heartbeat = sampleTimeSeconds * 2;
 
+                            Map<String, Number> measurements = emeasurements.getMeasurements(false);
+                            for (String mName : measurements.keySet()) {
+                                rrdDef.addDatasource(mName, DsType.GAUGE, heartbeat, Double.NaN, Double.NaN);
+                            }
+                            return new RrdDb(rrdDef);
+                        }
+
+                    }
+                });
+
+    }
     private static final AtomicInteger dbCount = new AtomicInteger(0);
-    
-    public void registerJmx() throws MalformedObjectNameException, InstanceAlreadyExistsException, 
+
+    public void registerJmx() throws MalformedObjectNameException, InstanceAlreadyExistsException,
             MBeanRegistrationException, NotCompliantMBeanException {
-        ManagementFactory.getPlatformMBeanServer().registerMBean(this, 
+        ManagementFactory.getPlatformMBeanServer().registerMBean(this,
                 new ObjectName("SPF4J:name=RRDMeasurementDatabase" + dbCount.getAndIncrement()));
     }
-    
-    
+
     private static String getDBName(EntityMeasurements measurement, int sampleTimeSeconds) {
         return measurement.getMeasuredEntity().toString() + "_" + sampleTimeSeconds + "_"
                 + measurement.getUnitOfMeasurement() + "_" + new LocalDate().getWeekOfWeekyear() + ".rrd4j";
@@ -73,51 +100,25 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
     private static final int SECONDS_PER_HOUR = 3600;
     private static final int SECONDS_PER_WEEK = SECONDS_PER_HOUR * 24 * 7;
 
-    public RrdDb getRrdDb(EntityMeasurements measurement, int sampleTimeSeconds) throws IOException {
-        String rrdFilePath = databaseFolder + File.separator + getDBName(measurement, sampleTimeSeconds);
-        synchronized (databases) {
-            RrdDb result = databases.get(rrdFilePath);
-            if (result == null) {
-                File rrdFile = new File(rrdFilePath);
-                if (rrdFile.exists()) {
-                    result = new RrdDb(rrdFilePath);
-                } else {
-                    RrdDef rrdDef = new RrdDef(rrdFilePath, sampleTimeSeconds);
-                    rrdDef.addArchive(ConsolFun.FIRST, 0.5, 1, SECONDS_PER_WEEK / sampleTimeSeconds); // 1 week worth of data at original granularity.
-                    rrdDef.setStartTime(System.currentTimeMillis() / 1000);
-                    int heartbeat = sampleTimeSeconds * 2;
-
-                    Map<String, Number> measurements = measurement.getMeasurements(false);
-                    for (String mName : measurements.keySet()) {
-                        rrdDef.addDatasource(mName, DsType.GAUGE, heartbeat, Double.NaN, Double.NaN);
-                    }
-                    result = new RrdDb(rrdDef);
-                }
-                databases.put(rrdFilePath, result);
-            }
-            return result;
-        }
-    }
-
     private static long msToS(long ms) {
-        long result = ms/1000;
-        if ((ms%1000)>500) {
+        long result = ms / 1000;
+        if ((ms % 1000) > 500) {
             result++;
         }
         return result;
     }
-    
+
     private static int msToS(int ms) {
-        int result = ms/1000;
-        if ((ms%1000)>500) {
+        int result = ms / 1000;
+        if ((ms % 1000) > 500) {
             result++;
         }
         return result;
     }
-    
+
     @Override
     public void saveMeasurements(EntityMeasurements measurement, long timeStampMillis, int sampleTimeMillis) throws IOException {
-        RrdDb rrdDb = getRrdDb(measurement, msToS(sampleTimeMillis));
+        RrdDb rrdDb = databases.getUnchecked(new Pair(measurement, msToS(sampleTimeMillis)));
         Sample sample = rrdDb.createSample(msToS(timeStampMillis));
         Map<String, Number> measurements = measurement.getMeasurements(true);
 
@@ -126,10 +127,10 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
         }
         try {
             sample.update();
-            LOG.debug("Measurement {} persisted at {}", measurement.getMeasuredEntity(), timeStampMillis );
-        } catch(IOException e) {
-            throw new IOException("Cannot persist sample " + measurement.getMeasuredEntity() + " at " + timeStampMillis  ,e);
-        } catch(RuntimeException e) {
+            LOG.info("Measurement {} persisted at {}", measurement.getMeasuredEntity(), timeStampMillis);
+        } catch (IOException e) {
+            throw new IOException("Cannot persist sample " + measurement.getMeasuredEntity() + " at " + timeStampMillis, e);
+        } catch (RuntimeException e) {
             throw new IOException("Cannot persist sample " + measurement.getMeasuredEntity() + " at " + timeStampMillis, e);
         }
     }
@@ -137,26 +138,27 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
     @PreDestroy
     @Override
     public void close() throws IOException {
-        synchronized (databases) {
-            for (RrdDb db : databases.values()) {
-                db.close();
-            }
-            databases.clear();
+        for (RrdDb db : databases.asMap().values()) {
+            db.close();
         }
+        databases.invalidateAll();
     }
 
     @Override
     public List<String> generateCharts(long startTimeMillis, long endTimeMillis,
-        int width, int height) throws IOException {
+            int width, int height) throws IOException {
         List<String> result = new ArrayList<String>();
-        synchronized (databases) {
-            for (Map.Entry<String, RrdDb> entry : databases.entrySet()) {
-                String rrdpath = entry.getKey();
-                syncDb(entry.getValue());
-                result.add(generateMinMaxAvgChart( startTimeMillis, endTimeMillis, rrdpath, width, height));
-                result.add(generateHeatChart(startTimeMillis, endTimeMillis, entry.getValue(), width, height));
-            }
+
+        for (Map.Entry<Pair<EntityMeasurements, Integer>, RrdDb> entry : databases.asMap().entrySet()) {
+            int sampleTimeSeconds = entry.getKey().getSecond();
+            EntityMeasurements emeasurements = entry.getKey().getFirst();
+            String rrdpath = databaseFolder + File.separator + getDBName(emeasurements,
+                    sampleTimeSeconds);
+            syncDb(entry.getValue());
+            result.add(generateMinMaxAvgChart(startTimeMillis, endTimeMillis, rrdpath, width, height));
+            result.add(generateHeatChart(startTimeMillis, endTimeMillis, entry.getValue(), width, height));
         }
+
         LOG.info("Generated charts {}", result);
         return result;
     }
@@ -167,8 +169,8 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
         gDef.setWidth(width);
         gDef.setHeight(height);
         File rrdFile = new File(rrdpath);
-        String graphicFile = File.createTempFile(rrdFile.getName(), ".png", 
-                new File(rrdpath).getParentFile()).getPath();       
+        String graphicFile = File.createTempFile(rrdFile.getName(), ".png",
+                new File(rrdpath).getParentFile()).getPath();
         gDef.setFilename(graphicFile);
         gDef.setStartTime(startTimeMillis / 1000);
         gDef.setEndTime(endTimeMillis / 1000);
@@ -189,32 +191,31 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
         gDef.setImageInfo("<img src='%s' width='%d' height = '%d'>");
         gDef.setPoolUsed(false);
         gDef.setImageFormat("png");
-        if (endTimeMillis -startTimeMillis < 360000) {
-             gDef. setTimeAxis(RrdGraphConstants.MINUTE, 1,
-             RrdGraphConstants.MINUTE, 30,
-             RrdGraphConstants.HOUR, 1,
-             0, "%H");
-        }
-        else {    
-            gDef. setTimeAxis(RrdGraphConstants.HOUR, 1,
-             RrdGraphConstants.HOUR, 24,
-             RrdGraphConstants.HOUR, 4,
-             0, "%H");
+        if (endTimeMillis - startTimeMillis < 360000) {
+            gDef.setTimeAxis(RrdGraphConstants.MINUTE, 1,
+                    RrdGraphConstants.MINUTE, 30,
+                    RrdGraphConstants.HOUR, 1,
+                    0, "%H");
+        } else {
+            gDef.setTimeAxis(RrdGraphConstants.HOUR, 1,
+                    RrdGraphConstants.HOUR, 24,
+                    RrdGraphConstants.HOUR, 4,
+                    0, "%H");
         }
         new RrdGraph(gDef);
         return graphicFile;
     }
-    
-    private static String generateHeatChart( long startTimeMillis, long endTimeMillis, final RrdDb rrdDb,
+
+    private static String generateHeatChart(long startTimeMillis, long endTimeMillis, final RrdDb rrdDb,
             int width, int height) throws IOException {
-        FetchRequest request = rrdDb.createFetchRequest(ConsolFun.FIRST, startTimeMillis/1000,
+        FetchRequest request = rrdDb.createFetchRequest(ConsolFun.FIRST, startTimeMillis / 1000,
                 endTimeMillis / 1000);
         final FetchData data = request.fetchData();
         final RrdXYZDataset dataSet = new RrdXYZDataset(data);
         File rrdFile = new File(rrdDb.getPath());
         NumberAxis xAxis = new NumberAxis("Time");
 
-        
+
         xAxis.setStandardTickUnits(dataSet.createXTickUnits());
         xAxis.setLowerMargin(0);
         xAxis.setUpperMargin(0);
@@ -225,41 +226,39 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
         yAxis.setUpperMargin(0);
         XYBlockRenderer renderer = new XYBlockRenderer();
         PaintScale scale;
-        if (dataSet.getMinValue() >= dataSet.getMaxValue())
-            if (dataSet.getMinValue() == Double.POSITIVE_INFINITY)
+        if (dataSet.getMinValue() >= dataSet.getMaxValue()) {
+            if (dataSet.getMinValue() == Double.POSITIVE_INFINITY) {
                 scale = new InverseGrayScale(0, 1);
-            else
-                scale = new InverseGrayScale(dataSet.getMinValue(), dataSet.getMaxValue()+1);
-        else
-            scale = new InverseGrayScale(dataSet.getMinValue(), dataSet.getMaxValue()) ;
-            
+            } else {
+                scale = new InverseGrayScale(dataSet.getMinValue(), dataSet.getMaxValue() + 1);
+            }
+        } else {
+            scale = new InverseGrayScale(dataSet.getMinValue(), dataSet.getMaxValue());
+        }
+
         renderer.setPaintScale(scale);
         renderer.setBlockWidth(1);
         renderer.setBlockHeight(1);
-       
+
         XYPlot plot = new XYPlot(dataSet, xAxis, yAxis, renderer);
         plot.setBackgroundPaint(Color.white);
         plot.setDomainGridlinesVisible(false);
         plot.setRangeGridlinesVisible(false);
         plot.setRangeMinorGridlinesVisible(false);
-        
-       
+
+
         JFreeChart chart = new JFreeChart(rrdFile.getName(), plot);
-        PaintScaleLegend legend = new PaintScaleLegend(scale,new NumberAxis("Count"));
+        PaintScaleLegend legend = new PaintScaleLegend(scale, new NumberAxis("Count"));
         legend.setMargin(0, 5, 0, 5);
         chart.addSubtitle(legend);
         chart.removeLegend();
         chart.setBackgroundPaint(Color.white);
         BufferedImage bi = chart.createBufferedImage(width, height);
-        File graphicFile =  File.createTempFile(rrdFile.getName(), ".png", 
-                new File(rrdDb.getCanonicalPath()).getParentFile() ); 
+        File graphicFile = File.createTempFile(rrdFile.getName(), ".png",
+                new File(rrdDb.getCanonicalPath()).getParentFile());
         ImageIO.write(bi, "png", graphicFile);
         return graphicFile.getPath();
     }
-    
-    
-
-    
     private static final Method syncMethod;
 
     static {
@@ -291,29 +290,27 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
     @Override
     public List<String> getMeasurements() throws IOException {
         List<String> result = new ArrayList<String>();
-        synchronized (databases) {
-            for (Map.Entry<String, RrdDb> entry : databases.entrySet()) {
-                RrdDb db = entry.getValue();
-                syncDb(db);
-                FetchRequest request = db.createFetchRequest(ConsolFun.FIRST, db.getRrdDef().getStartTime(),
-                        System.currentTimeMillis() / 1000);
-                FetchData data = request.fetchData();
-                result.add(data.dump());
-            }
+
+        for (RrdDb db : databases.asMap().values()) {
+            syncDb(db);
+            FetchRequest request = db.createFetchRequest(ConsolFun.FIRST, db.getRrdDef().getStartTime(),
+                    System.currentTimeMillis() / 1000);
+            FetchData data = request.fetchData();
+            result.add(data.dump());
         }
+
         return result;
     }
 
     @Override
     public List<String> generate(Properties props) throws IOException {
-       int width = Integer.valueOf(props.getProperty("width", "1200"));
-       int height = Integer.valueOf(props.getProperty("height", "800"));
-       long startTime = Long.valueOf(props.getProperty("startTime",
-               Long.toString( new LocalDate().withDayOfWeek(DateTimeConstants.MONDAY).toDate().getTime())  ));
-       long endTime = Long.valueOf(props.getProperty("endTime", Long.toString(System.currentTimeMillis())));
-       return generateCharts(startTime, endTime, width, height);
+        int width = Integer.valueOf(props.getProperty("width", "1200"));
+        int height = Integer.valueOf(props.getProperty("height", "800"));
+        long startTime = Long.valueOf(props.getProperty("startTime",
+                Long.toString(new LocalDate().withDayOfWeek(DateTimeConstants.MONDAY).toDate().getTime())));
+        long endTime = Long.valueOf(props.getProperty("endTime", Long.toString(System.currentTimeMillis())));
+        return generateCharts(startTime, endTime, width, height);
     }
-    
 
     @Override
     public List<String> getParameters() {

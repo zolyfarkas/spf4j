@@ -3,6 +3,8 @@
  */
 package com.zoltran.base;
 
+import com.google.common.base.Objects;
+
 /**
  *
  * @author zoly
@@ -47,8 +49,7 @@ public final class Pair<A extends Comparable,B extends Comparable>
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        return hash;
+        return Objects.hashCode(first,second);
     }
 
     @Override

@@ -64,16 +64,20 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
         synchronized (threadLocalRecorders) {
             List<Thread> removeThreads = new ArrayList<Thread>();
             for (Map.Entry<Thread, MeasurementProcessor> entry: threadLocalRecorders.entrySet()) {
-                if (!entry.getKey().isAlive() && reset)
+                if (!entry.getKey().isAlive() && reset) {
                     removeThreads.add(entry.getKey());
+                }
                 EntityMeasurements measurements = entry.getValue().createClone(reset);  
-                if (result == null)
+                if (result == null) {
                     result = measurements;
-                else 
+                }
+                else {
                     result = result.aggregate(measurements);
+                }
             }
-            for (Thread t : removeThreads)
+            for (Thread t : removeThreads) {
                 threadLocalRecorders.remove(t);
+            }
         }
         return (result == null) ? processorTemplate.getMeasurements(false) : result.getMeasurements(false);
     }
@@ -119,6 +123,11 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
 
     @Override
     public EntityMeasurements createLike(Object entity) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public int compareTo(Object o) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
     

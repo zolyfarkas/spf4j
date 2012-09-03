@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
  * @author zoly
  */
 
-public interface EntityMeasurements {
+public interface EntityMeasurements extends Comparable{
     
     @Nonnull
     Map<String, Number> getMeasurements(boolean reset);    

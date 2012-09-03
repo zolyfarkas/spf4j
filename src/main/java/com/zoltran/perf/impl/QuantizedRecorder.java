@@ -150,6 +150,12 @@ public class QuantizedRecorder implements MeasurementProcessor, Cloneable {
             reset();
         return result;
     }
+
+    @Override
+    public int compareTo(Object o) {
+        return this.measuredEntity.getClass().getName().compareTo(
+                ((QuantizedRecorder) o).measuredEntity.getClass().getName() );
+    }
     
     /**
      * this class ordering is based on start Interval ordering
