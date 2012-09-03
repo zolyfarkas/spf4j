@@ -9,12 +9,14 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  *
  * @author zoly
  */
+@SuppressWarnings("SleepWhileInLoop")
 public class RecorderFactoryTest {
     
 
@@ -37,7 +39,6 @@ public class RecorderFactoryTest {
      * Test of createScalableQuantizedRecorder method, of class RecorderFactory.
      */
     @Test
-    @SuppressWarnings("SleepWhileInLoop")
     public void testCreateScalableQuantizedRecorder() throws IOException, InterruptedException {
         System.out.println("createScalableQuantizedRecorder");
         Object forWhat = "test1";
@@ -64,7 +65,7 @@ public class RecorderFactoryTest {
      * Test of createScalableQuantizedRecorderSource method, of class RecorderFactory.
      */
     @Test
-    @SuppressWarnings("SleepWhileInLoop")
+    @Ignore
     public void testCreateScalableQuantizedRecorderSource() throws IOException, InterruptedException {
         System.out.println("createScalableQuantizedRecorderSource");
         Object forWhat = "bla";
@@ -90,7 +91,7 @@ public class RecorderFactoryTest {
     
     
     @Test
-    @SuppressWarnings("SleepWhileInLoop")
+    @Ignore
     public void testOutofQuantizedZoneValues() throws IOException, InterruptedException {
         System.out.println("testOutofQuantizedZoneValues");
         Object forWhat = "largeVals";

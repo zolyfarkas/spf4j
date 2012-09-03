@@ -27,20 +27,24 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
+import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.StandardXYSeriesLabelGenerator;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.XYBlockRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.PaintScaleLegend;
+import org.jfree.data.time.FixedMillisecond;
+import org.jfree.data.time.TimeSeries;
+import org.jfree.data.time.TimeSeriesCollection;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.LocalDate;
 import org.rrd4j.ConsolFun;
 import org.rrd4j.DsType;
 import org.rrd4j.core.*;
-import org.rrd4j.graph.RrdGraph;
-import org.rrd4j.graph.RrdGraphConstants;
-import org.rrd4j.graph.RrdGraphDef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,7 +159,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
             String rrdpath = databaseFolder + File.separator + getDBName(emeasurements,
                     sampleTimeSeconds);
             syncDb(entry.getValue());
-            result.add(generateMinMaxAvgChart(startTimeMillis, endTimeMillis, rrdpath, width, height));
+            result.add(generateMinMaxAvgChart(startTimeMillis, endTimeMillis, entry.getValue(), width, height));
             result.add(generateHeatChart(startTimeMillis, endTimeMillis, entry.getValue(), width, height));
         }
 
@@ -163,47 +167,47 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
         return result;
     }
 
-    private static String generateMinMaxAvgChart(long startTimeMillis, long endTimeMillis, String rrdpath,
+
+    private static String generateMinMaxAvgChart(long startTimeMillis, long endTimeMillis, final RrdDb rrdDb,
             int width, int height) throws IOException {
-        RrdGraphDef gDef = new RrdGraphDef();
-        gDef.setWidth(width);
-        gDef.setHeight(height);
-        File rrdFile = new File(rrdpath);
-        String graphicFile = File.createTempFile(rrdFile.getName(), ".png",
-                new File(rrdpath).getParentFile()).getPath();
-        gDef.setFilename(graphicFile);
-        gDef.setStartTime(startTimeMillis / 1000);
-        gDef.setEndTime(endTimeMillis / 1000);
-        gDef.setTitle("Measurements for " + rrdpath);
-        gDef.setVerticalLabel("ms");
-
-        gDef.datasource("min", rrdpath, "min", ConsolFun.FIRST);
-        gDef.datasource("max", rrdpath, "max", ConsolFun.FIRST);
-        gDef.datasource("total", rrdpath, "total", ConsolFun.FIRST);
-        gDef.datasource("count", rrdpath, "count", ConsolFun.FIRST);
-
-        gDef.datasource("avg", "total,count,/");
-
-        gDef.line("min", Color.GREEN, "min");
-        gDef.line("max", Color.BLUE, "max");
-        gDef.line("avg", Color.MAGENTA, "avg");
-        gDef.hrule(2568, Color.GREEN, "hrule");
-        gDef.setImageInfo("<img src='%s' width='%d' height = '%d'>");
-        gDef.setPoolUsed(false);
-        gDef.setImageFormat("png");
-        if (endTimeMillis - startTimeMillis < 360000) {
-            gDef.setTimeAxis(RrdGraphConstants.MINUTE, 1,
-                    RrdGraphConstants.MINUTE, 30,
-                    RrdGraphConstants.HOUR, 1,
-                    0, "%H");
-        } else {
-            gDef.setTimeAxis(RrdGraphConstants.HOUR, 1,
-                    RrdGraphConstants.HOUR, 24,
-                    RrdGraphConstants.HOUR, 4,
-                    0, "%H");
+        FetchRequest request = rrdDb.createFetchRequest(ConsolFun.FIRST, startTimeMillis / 1000,
+                endTimeMillis / 1000);
+        request.setFilter("min", "max", "total", "count");
+        final FetchData data = request.fetchData();
+        double [] min = data.getValues("min");
+        double [] max = data.getValues("max");
+        double [] total = data.getValues("total");
+        double [] count = data.getValues("count");
+        long [] timestamps = data.getTimestamps();
+        TimeSeries minTs = new TimeSeries("min");
+        TimeSeries maxTs = new TimeSeries("max");
+        TimeSeries avgTs = new TimeSeries("avg");
+        for (int i=0;i<timestamps.length; i++) {
+            FixedMillisecond ts = new FixedMillisecond(timestamps[i] *1000);
+            minTs.add(ts, min[i]);
+            maxTs.add(ts, max[i]);
+            avgTs.add(ts, total[i]/count[i]);
         }
-        new RrdGraph(gDef);
-        return graphicFile;
+        TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();
+        timeseriescollection.addSeries(minTs);
+        timeseriescollection.addSeries(maxTs);
+        timeseriescollection.addSeries(avgTs);
+        JFreeChart jfreechart = ChartFactory.createTimeSeriesChart("Measurements for " + rrdDb.getPath(), 
+                "Time", "Value", timeseriescollection, true, true, false);
+        XYPlot xyplot = (XYPlot)jfreechart.getPlot();
+        DateAxis dateaxis = (DateAxis)xyplot.getDomainAxis();
+        dateaxis.setVerticalTickLabels(true);
+        XYLineAndShapeRenderer xylineandshaperenderer = (XYLineAndShapeRenderer)xyplot.getRenderer();
+        xylineandshaperenderer.setBaseShapesVisible(true);
+        xylineandshaperenderer.setSeriesFillPaint(0, Color.red);
+        xylineandshaperenderer.setSeriesFillPaint(1, Color.white);
+        xylineandshaperenderer.setUseFillPaint(true);
+        xylineandshaperenderer.setLegendItemToolTipGenerator(new StandardXYSeriesLabelGenerator("Tooltip {0}"));
+         BufferedImage bi = jfreechart.createBufferedImage(width, height);
+        File graphicFile = File.createTempFile(new File(rrdDb.getPath()).getName(), ".png",
+                new File(rrdDb.getCanonicalPath()).getParentFile());
+        ImageIO.write(bi, "png", graphicFile);
+        return graphicFile.getPath();
     }
 
     private static String generateHeatChart(long startTimeMillis, long endTimeMillis, final RrdDb rrdDb,
