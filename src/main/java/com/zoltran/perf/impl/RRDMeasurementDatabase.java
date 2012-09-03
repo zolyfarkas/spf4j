@@ -127,7 +127,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
         }
         try {
             sample.update();
-            LOG.info("Measurement {} persisted at {}", measurement.getMeasuredEntity(), timeStampMillis);
+            LOG.debug("Measurement {} persisted at {}", measurement.getMeasuredEntity(), timeStampMillis);
         } catch (IOException e) {
             throw new IOException("Cannot persist sample " + measurement.getMeasuredEntity() + " at " + timeStampMillis, e);
         } catch (RuntimeException e) {
