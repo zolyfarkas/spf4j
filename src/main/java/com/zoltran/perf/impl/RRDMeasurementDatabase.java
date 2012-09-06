@@ -148,6 +148,15 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
         databases.invalidateAll();
     }
 
+    
+    @Override
+    public List<String> generateCharts(int width, int height) throws IOException {
+        long startTime = new LocalDate().withDayOfWeek(DateTimeConstants.MONDAY).toDateTimeAtStartOfDay().getMillis();
+        long endTime = System.currentTimeMillis();
+        return generateCharts(startTime, endTime, width, height);
+    }
+    
+    
     @Override
     public List<String> generateCharts(long startTimeMillis, long endTimeMillis,
             int width, int height) throws IOException {

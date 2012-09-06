@@ -29,6 +29,8 @@ public interface RRDMeasurementDatabaseMBean
 
     List<String> generate(Properties props) throws IOException;
 
+    List<String> generateCharts(int width, int height) throws IOException;
+    
     List<String> generateCharts(long startTimeMillis, long endTimeMillis, int width, int height) throws IOException;
 
     List<String> getMeasurements() throws IOException;
