@@ -6,7 +6,7 @@ package com.zoltran.pool.impl;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.zoltran.pool.ObjectBorower;
-import com.zoltran.pool.ObjectFactory;
+import com.zoltran.pool.ObjectPool;
 import com.zoltran.pool.SmartObjectPool;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -33,12 +33,12 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     
     private final Condition available;
     
-    private final ObjectFactory<T> factory;
+    private final ObjectPool.Factory<T> factory;
     
     private final long timeoutMillis;
     
 
-    public SimpleSmartObjectPool(int maxSize, ObjectFactory<T> factory, long timeoutMillis, boolean fair) {
+    public SimpleSmartObjectPool(int maxSize, ObjectPool.Factory<T> factory, long timeoutMillis, boolean fair) {
         this.maxSize = maxSize;
         this.factory = factory;
         this.timeoutMillis = timeoutMillis;

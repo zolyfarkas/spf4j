@@ -3,7 +3,8 @@
  */
 package com.zoltran.pool;
 
-import java.io.Closeable;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -21,6 +22,25 @@ public interface ObjectPool<T>  extends Disposable, Scanable<T> {
     
     void returnObject(T object);
    
-    void returnObject(T object, Exception e);
+    void returnObject(T object, @NonNull Exception e);
+    
+    
+    public interface Hook<T> {
+        
+        void onBorrow(T object);
+        
+        void onReturn(T object);
+        
+    }
+    
+    public interface Factory<T> {
+    
+        T create();
+    
+        void dispose(T object);
+        
+        boolean validate(T object, @Nullable Exception e);
+        
+    }
     
 }

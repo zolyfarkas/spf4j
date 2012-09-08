@@ -6,12 +6,9 @@ package com.zoltran.pool.impl;
 
 import com.zoltran.pool.Disposable;
 import com.zoltran.pool.ObjectBorower;
-import com.zoltran.pool.ObjectFactory;
+import com.zoltran.pool.ObjectPool;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.junit.*;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -22,7 +19,7 @@ public class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmartObjec
     
     private TestObject borowedObject = null;
       
-    private SimpleSmartObjectPool<TestObject> instance = new SimpleSmartObjectPool(10, new ObjectFactory<TestObject>() {
+    private SimpleSmartObjectPool<TestObject> instance = new SimpleSmartObjectPool(10, new ObjectPool.Factory<TestObject>() {
            @Override
             public TestObject create() {
                System.out.println("Creating Object");
@@ -40,6 +37,11 @@ public class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmartObjec
                     throw new RuntimeException(ex);
                 }
             }
+
+        @Override
+        public boolean validate(TestObject object, Exception e) {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
         }, 10000, true);
  
             
