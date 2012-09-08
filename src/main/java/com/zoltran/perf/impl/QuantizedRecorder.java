@@ -124,12 +124,16 @@ public class QuantizedRecorder implements MeasurementProcessor, Cloneable {
 
     }
 
+    @Override
     public synchronized Map<String, Number> getMeasurements(boolean reset) {
         Map<String, Number> result = new HashMap<String, Number>();
-        result.put("min", this.minMeasurement);
-        result.put("max", this.maxMeasurement);
         result.put("total", this.measurementTotal);
         result.put("count", this.measurementCount);
+        if (this.measurementCount > 0) {
+            result.put("min", this.minMeasurement);
+            result.put("max", this.maxMeasurement);
+        }
+        
         result.put("QNI_" + this.magnitudes[0] , this.quatizedMeasurements[0]);
         if (magnitudes.length > 0) {
             int k = 1;
