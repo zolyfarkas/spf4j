@@ -44,8 +44,9 @@ public class ScalableMeasurementRecorderSource implements MeasurementRecorderSou
         samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(new AbstractRunnable(true) {
             @Override
             public void doRun() throws IOException {
-                for (EntityMeasurements m: ScalableMeasurementRecorderSource.this.getEntitiesMeasurements(true).values())
+                for (EntityMeasurements m: ScalableMeasurementRecorderSource.this.getEntitiesMeasurements(true).values()) {
                     database.saveMeasurements(m, System.currentTimeMillis(), sampleTimeMillis);
+                }
             }
         }, sampleTimeMillis);
     }
@@ -76,10 +77,12 @@ public class ScalableMeasurementRecorderSource implements MeasurementRecorderSou
 
                         Object what = lentry.getKey();
                         EntityMeasurements existingMeasurement = result.get(what);
-                        if (existingMeasurement == null)                           
+                        if (existingMeasurement == null) {                           
                             existingMeasurement = lentry.getValue().createClone(reset);
-                        else
+                        }
+                        else {
                             existingMeasurement = existingMeasurement.aggregate(lentry.getValue().createClone(reset));
+                        }
                         result.put(what, existingMeasurement);
                     }                
                 }
@@ -90,6 +93,7 @@ public class ScalableMeasurementRecorderSource implements MeasurementRecorderSou
         
     }
     
+    @Override
     public void close() {
         samplingFuture.cancel(false);             
     }

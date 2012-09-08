@@ -65,7 +65,6 @@ public class RecorderFactoryTest {
      * Test of createScalableQuantizedRecorderSource method, of class RecorderFactory.
      */
     @Test
-    @Ignore
     public void testCreateScalableQuantizedRecorderSource() throws IOException, InterruptedException {
         System.out.println("createScalableQuantizedRecorderSource");
         Object forWhat = "bla";
@@ -91,7 +90,6 @@ public class RecorderFactoryTest {
     
     
     @Test
-    @Ignore
     public void testOutofQuantizedZoneValues() throws IOException, InterruptedException {
         System.out.println("testOutofQuantizedZoneValues");
         Object forWhat = "largeVals";

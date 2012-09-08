@@ -13,6 +13,9 @@ import java.io.IOException;
  */
 public interface MeasurementDatabase extends ReportGenerator {
     
+    void alocateMeasurements(EntityMeasurementsInfo measurement, int sampleTimeMillis)
+            throws IOException;
+    
     void saveMeasurements(EntityMeasurements measurement, long timeStampMillis, int sampleTimeMillis)
             throws IOException;
     

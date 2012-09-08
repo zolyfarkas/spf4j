@@ -6,6 +6,7 @@ package com.zoltran.perf.impl;
 import com.zoltran.base.AbstractRunnable;
 import com.zoltran.base.DefaultScheduler;
 import com.zoltran.perf.EntityMeasurements;
+import com.zoltran.perf.EntityMeasurementsInfo;
 import com.zoltran.perf.MeasurementDatabase;
 import com.zoltran.perf.MeasurementProcessor;
 import com.zoltran.perf.MeasurementRecorder;
@@ -44,6 +45,11 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
                 return result;
             }
         };
+        try {
+            database.alocateMeasurements(processor.getInfo(), sampleTimeMillis);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
         samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(new AbstractRunnable(true) {
             @Override
             public void doRun() throws IOException {
@@ -54,6 +60,7 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
         
     }
 
+    @Override
     public void record(long measurement) {
         threadLocalRecorder.get().record(measurement);
     }
@@ -87,15 +94,6 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
         throw new UnsupportedOperationException("Aggregating Scalable Recorders not supported");
     }
 
-    @Override
-    public Object getMeasuredEntity() {
-       return processorTemplate.getMeasuredEntity();
-    }
-
-    @Override
-    public String getUnitOfMeasurement() {
-       return processorTemplate.getUnitOfMeasurement();
-    }
 
 
     @Override
@@ -103,6 +101,7 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
     public void close() {
         samplingFuture.cancel(false);             
     }
@@ -127,9 +126,10 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
     }
 
     @Override
-    public int compareTo(Object o) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public EntityMeasurementsInfo getInfo() {
+        return processorTemplate.getInfo();
     }
+
     
     
     

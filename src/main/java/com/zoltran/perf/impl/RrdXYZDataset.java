@@ -3,8 +3,9 @@
  */
 package com.zoltran.perf.impl;
 
+import com.zoltran.base.ComparablePair;
 import com.zoltran.base.Pair;
-import com.zoltran.perf.impl.QuantizedRecorder.Quanta;
+import com.zoltran.perf.impl.Quanta;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,18 +29,18 @@ public class RrdXYZDataset implements XYZDataset {
     private final double[] z;
     private final double minValue;
     private final double maxValue;
-    private final List<Pair<QuantizedRecorder.Quanta, Integer>> quantas;
+    private final List<ComparablePair<Quanta, Integer>> quantas;
     private final FetchData data;
 
     public RrdXYZDataset(final FetchData data) {
         this.data = data;
         String[] dataSources = data.getDsNames();
-        quantas = new ArrayList<Pair<QuantizedRecorder.Quanta, Integer>>();
+        quantas = new ArrayList<ComparablePair<Quanta, Integer>>();
         for (int i = 0; i < dataSources.length; i++) {
             String ds = dataSources[i];
             if (ds.startsWith("Q")) {
-                QuantizedRecorder.Quanta quanta = new QuantizedRecorder.Quanta(ds);
-                quantas.add(new Pair(quanta, i));
+                Quanta quanta = new Quanta(ds);
+                quantas.add(new ComparablePair(quanta, i));
             }
         }
         Collections.sort(quantas);
@@ -54,7 +55,7 @@ public class RrdXYZDataset implements XYZDataset {
 
         //long [] timestamps = data.getTimestamps();        
         for (int j = 0; j < quantas.size(); j++) {
-            Pair<QuantizedRecorder.Quanta, Integer> pair = quantas.get(j);
+            ComparablePair<Quanta, Integer> pair = quantas.get(j);
             double[] values = data.getValues(pair.getSecond());
 
             for (int i = 0; i < values.length; i++) {
@@ -76,62 +77,77 @@ public class RrdXYZDataset implements XYZDataset {
 
     }
 
+    @Override
     public Number getZ(int series, int item) {
         return z[item];
     }
 
+    @Override
     public double getZValue(int series, int item) {
         return z[item];
     }
 
+    @Override
     public DomainOrder getDomainOrder() {
         return DomainOrder.ASCENDING;
     }
 
+    @Override
     public int getItemCount(int series) {
         return x.length;
     }
 
+    @Override
     public Number getX(int series, int item) {
         return x[item];
     }
 
+    @Override
     public double getXValue(int series, int item) {
         return x[item];
     }
 
+    @Override
     public Number getY(int series, int item) {
         return y[item];
     }
 
+    @Override
     public double getYValue(int series, int item) {
         return y[item];
     }
 
+    @Override
     public int getSeriesCount() {
         return 1;
     }
 
+    @Override
     public Comparable getSeriesKey(int series) {
         return "RrdXYZDataset";
     }
 
+    @Override
     public int indexOf(Comparable seriesKey) {
         return 0;
     }
 
+    @Override
     public void addChangeListener(DatasetChangeListener listener) {
         // nothing
     }
 
+    @Override
     public void removeChangeListener(DatasetChangeListener listener) {
         // nothing
     }
 
+    @Override
     public DatasetGroup getGroup() {
         return null;
     }
 
+    @Override
     public void setGroup(DatasetGroup group) {
         // nothing
     }
@@ -144,7 +160,7 @@ public class RrdXYZDataset implements XYZDataset {
         return minValue;
     }
 
-    public List<Pair<Quanta, Integer>> getQuantas() {
+    public List<ComparablePair<Quanta, Integer>> getQuantas() {
         return quantas;
     }
 
@@ -158,40 +174,46 @@ public class RrdXYZDataset implements XYZDataset {
         final long[] timestamps = data.getTimestamps();
         tux.add(new NumberTickUnitImpl(1, timestamps, formatter)); // base
         long nr = 5 / data.getStep();
-        if (nr > 1)
+        if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, formatter));
+        }
         
         nr = 15 / data.getStep();
-        if (nr > 1)
+        if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, formatter));
+        }
         // minute
         nr = 60 / data.getStep();
-        if (nr > 1)
+        if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, formatter));
+        }
         // 15 minute
         nr = 900 /data.getStep();
-        if (nr > 1)
+        if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, formatter));
+        }
         // hour
         nr =3600 /data.getStep();
-        if (nr> 1)
+        if (nr> 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, formatter));
+        }
         // 6 hour
         nr = 21600 /data.getStep();
-        if (nr > 1)
+        if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, formatter));
+        }
 
         return tux;
     }
 
     public TickUnits createYTickUnits() {
         TickUnits tu = new TickUnits();
-        final List<Pair<Quanta, Integer>> quantas = this.getQuantas();
+        final List<ComparablePair<Quanta, Integer>> lquantas = this.getQuantas();
         tu.add(new NumberTickUnit(1) {
 
             @Override
             public String valueToString(double value) {
-                long val = quantas.get((int) Math.round(value)).getFirst().getIntervalStart();
+                long val = lquantas.get((int) Math.round(value)).getFirst().getIntervalStart();
                 if (val == Long.MIN_VALUE) {
                     return "NI";
                 } else {

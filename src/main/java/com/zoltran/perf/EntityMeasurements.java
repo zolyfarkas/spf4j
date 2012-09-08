@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
  * @author zoly
  */
 
-public interface EntityMeasurements extends Comparable{
+public interface EntityMeasurements {
     
     @Nonnull
     Map<String, Number> getMeasurements(boolean reset);    
@@ -22,15 +22,11 @@ public interface EntityMeasurements extends Comparable{
     EntityMeasurements  aggregate(@Nonnull EntityMeasurements mSource);
     
     @Nonnull
-    Object getMeasuredEntity();
-    
-    @Nonnull
-    String getUnitOfMeasurement();
-    
-    @Nonnull
     EntityMeasurements createClone(boolean reset);
     
     @Nonnull
     EntityMeasurements createLike(Object entity);
+    
+    EntityMeasurementsInfo getInfo();
     
 }

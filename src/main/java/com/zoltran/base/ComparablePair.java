@@ -9,9 +9,10 @@ import com.google.common.base.Objects;
  *
  * @author zoly
  */
-public final class Pair<A,B>{
+public final class ComparablePair<A extends Comparable,B extends Comparable>
+    implements Comparable<ComparablePair<A,B>> {
 
-    public Pair(A first, B second) {
+    public ComparablePair(A first, B second) {
         this.first = first;
         this.second = second;
     }
@@ -36,7 +37,7 @@ public final class Pair<A,B>{
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final Pair<A, B> other = (Pair<A, B>) obj;
+        final ComparablePair<A, B> other = (ComparablePair<A, B>) obj;
         if (this.first != other.first && (this.first == null || !this.first.equals(other.first))) {
             return false;
         }
@@ -54,6 +55,15 @@ public final class Pair<A,B>{
     @Override
     public String toString() {
         return "Pair{" + "first=" + first + ", second=" + second + '}';
-    }  
+    }
+
+    public int compareTo(ComparablePair<A, B> o) {
+        if (this.first.equals(o.first))
+            return this.second.compareTo(o.second);
+        else 
+            return this.first.compareTo(o.first);
+    }
+    
+    
     
 }

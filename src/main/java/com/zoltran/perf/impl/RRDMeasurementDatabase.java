@@ -8,6 +8,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.zoltran.base.Pair;
 import com.zoltran.perf.EntityMeasurements;
+import com.zoltran.perf.EntityMeasurementsInfo;
 import com.zoltran.perf.MeasurementDatabase;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -56,17 +57,17 @@ import org.slf4j.LoggerFactory;
 public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, RRDMeasurementDatabaseMBean {
 
     private final String databaseFolder;
-    private final LoadingCache<Pair<EntityMeasurements, Integer>, RrdDb> databases;
+    private final LoadingCache<Pair<EntityMeasurementsInfo, Integer>, RrdDb> databases;
     private static final Logger LOG = LoggerFactory.getLogger(RRDMeasurementDatabase.class);
 
     public RRDMeasurementDatabase(final String databaseFolder) {
         this.databaseFolder = databaseFolder;
         databases = CacheBuilder.newBuilder().maximumSize(2048).build(
-                new CacheLoader<Pair<EntityMeasurements, Integer>, RrdDb>() {
+                new CacheLoader<Pair<EntityMeasurementsInfo, Integer>, RrdDb>() {
                     @Override
-                    public RrdDb load(Pair<EntityMeasurements, Integer> key) throws Exception {
+                    public RrdDb load(Pair<EntityMeasurementsInfo, Integer> key) throws Exception {
                         int sampleTimeSeconds = key.getSecond();
-                        EntityMeasurements emeasurements = key.getFirst();
+                        EntityMeasurementsInfo emeasurements = key.getFirst();
                         String rrdFilePath = databaseFolder + File.separator + getDBName(emeasurements,
                                 sampleTimeSeconds);
                         File rrdFile = new File(rrdFilePath);
@@ -77,9 +78,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
                             rrdDef.addArchive(ConsolFun.FIRST, 0.5, 1, SECONDS_PER_WEEK / sampleTimeSeconds); // 1 week worth of data at original granularity.
                             rrdDef.setStartTime(System.currentTimeMillis() / 1000);
                             int heartbeat = sampleTimeSeconds * 2;
-
-                            Map<String, Number> measurements = emeasurements.getMeasurements(false);
-                            for (String mName : measurements.keySet()) {
+                            for (String mName : emeasurements.getMeasurementNames()) {
                                 rrdDef.addDatasource(mName, DsType.GAUGE, heartbeat, Double.NaN, Double.NaN);
                             }
                             return new RrdDb(rrdDef);
@@ -97,7 +96,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
                 new ObjectName("SPF4J:name=RRDMeasurementDatabase" + dbCount.getAndIncrement()));
     }
 
-    private static String getDBName(EntityMeasurements measurement, int sampleTimeSeconds) {
+    private static String getDBName(EntityMeasurementsInfo measurement, int sampleTimeSeconds) {
         return measurement.getMeasuredEntity().toString() + "_" + sampleTimeSeconds + "_"
                 + measurement.getUnitOfMeasurement() + "_" + new LocalDate().getWeekOfWeekyear() + ".rrd4j";
     }
@@ -122,7 +121,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
 
     @Override
     public void saveMeasurements(EntityMeasurements measurement, long timeStampMillis, int sampleTimeMillis) throws IOException {
-        RrdDb rrdDb = databases.getUnchecked(new Pair(measurement, msToS(sampleTimeMillis)));
+        RrdDb rrdDb = databases.getUnchecked(new Pair(measurement.getInfo(), msToS(sampleTimeMillis)));
         Sample sample = rrdDb.createSample(msToS(timeStampMillis));
         Map<String, Number> measurements = measurement.getMeasurements(true);
 
@@ -131,11 +130,11 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
         }
         try {
             sample.update();
-            LOG.debug("Measurement {} persisted at {}", measurement.getMeasuredEntity(), timeStampMillis);
+            LOG.debug("Measurement {} persisted at {}", measurement.getInfo(), timeStampMillis);
         } catch (IOException e) {
-            throw new IOException("Cannot persist sample " + measurement.getMeasuredEntity() + " at " + timeStampMillis, e);
+            throw new IOException("Cannot persist sample " + measurement.getInfo() + " at " + timeStampMillis, e);
         } catch (RuntimeException e) {
-            throw new IOException("Cannot persist sample " + measurement.getMeasuredEntity() + " at " + timeStampMillis, e);
+            throw new IOException("Cannot persist sample " + measurement.getInfo() + " at " + timeStampMillis, e);
         }
     }
 
@@ -162,11 +161,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
             int width, int height) throws IOException {
         List<String> result = new ArrayList<String>();
 
-        for (Map.Entry<Pair<EntityMeasurements, Integer>, RrdDb> entry : databases.asMap().entrySet()) {
-            int sampleTimeSeconds = entry.getKey().getSecond();
-            EntityMeasurements emeasurements = entry.getKey().getFirst();
-            String rrdpath = databaseFolder + File.separator + getDBName(emeasurements,
-                    sampleTimeSeconds);
+        for (Map.Entry<Pair<EntityMeasurementsInfo, Integer>, RrdDb> entry : databases.asMap().entrySet()) {
             syncDb(entry.getValue());
             result.add(generateMinMaxAvgChart(startTimeMillis, endTimeMillis, entry.getValue(), width, height));
             result.add(generateHeatChart(startTimeMillis, endTimeMillis, entry.getValue(), width, height));
@@ -328,5 +323,11 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
     @Override
     public List<String> getParameters() {
         return Arrays.asList("width", "height", "startTime", "endTime");
+    }
+
+    @Override
+    public void alocateMeasurements(EntityMeasurementsInfo measurement, int sampleTimeMillis) throws IOException {
+        RrdDb rrdDb = databases.getUnchecked(new Pair(measurement, msToS(sampleTimeMillis)));
+        LOG.debug("Prepared rrd database: {}", rrdDb.getPath());
     }
 }
