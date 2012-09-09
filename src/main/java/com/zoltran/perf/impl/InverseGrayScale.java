@@ -123,12 +123,18 @@ public class InverseGrayScale
     public Paint getPaint(double value) {
         double v = Math.max(value, this.lowerBound);
         v = Math.min(v, this.upperBound);
-        int g = 255 -  (int) ((v - this.lowerBound) / (this.upperBound
-                - this.lowerBound) * 255.0);
+        int g;
+        if (value>=1) {
+            g = 240 -  (int) ((v - this.lowerBound) / (this.upperBound
+                - this.lowerBound) * 240.0);
+        }
+        else {
+            g = 255 -  (int) ((v - this.lowerBound) / (this.upperBound
+                - this.lowerBound) * 15.0); 
+        }
         // FIXME:  it probably makes sense to allocate an array of 256 Colors
         // and lazily populate this array...
-        if (value>0 && g>240)
-            g=240;           
+
         return new Color(g, g, g, this.alpha);
     }
 
@@ -172,6 +178,7 @@ public class InverseGrayScale
      * @throws CloneNotSupportedException if there is a problem cloning this
      *     instance.
      */
+    @Override
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
