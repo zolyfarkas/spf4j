@@ -6,7 +6,6 @@ package com.zoltran.perf.impl;
 import java.awt.Color;
 import java.awt.Paint;
 import java.io.Serializable;
-import org.jfree.chart.HashUtilities;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.util.PublicCloneable;
 
@@ -86,6 +85,7 @@ public class InverseGrayScale
      *
      * @see #getUpperBound()
      */
+    @Override
     public double getLowerBound() {
         return this.lowerBound;
     }
@@ -97,6 +97,7 @@ public class InverseGrayScale
      *
      * @see #getLowerBound()
      */
+    @Override
     public double getUpperBound() {
         return this.upperBound;
     }
@@ -120,6 +121,7 @@ public class InverseGrayScale
      *
      * @return A paint for the specified value.
      */
+    @Override
     public Paint getPaint(double value) {
         double v = Math.max(value, this.lowerBound);
         v = Math.min(v, this.upperBound);
