@@ -3,7 +3,6 @@
  */
 package com.zoltran.pool;
 
-import java.io.Closeable;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.ParametersAreNonnullByDefault;
 

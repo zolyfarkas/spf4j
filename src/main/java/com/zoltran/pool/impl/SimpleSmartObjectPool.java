@@ -65,8 +65,9 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                 borrowedObjects.put(borower, object);
                 return object;
             } else {
-                if (borrowedObjects.isEmpty())
+                if (borrowedObjects.isEmpty()) {
                     throw new RuntimeException("Pool size is probably closing down or is missconfigured withe size 0");
+                }
                 for(ObjectBorower<T> b: borrowedObjects.keySet()) {
                     T object = b.returnObjectIfAvailable();
                     if (object != null) {
@@ -83,8 +84,9 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                    return object;
                 }
                 while (returnedObjects.isEmpty()) {               
-                    if (!available.await(timeoutMillis, TimeUnit.MILLISECONDS))
+                    if (!available.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
                         throw new TimeoutException("Object wait timeout expired " + timeoutMillis);
+                    }
                 }
                 Iterator<T> it = returnedObjects.iterator();
                 object = it.next();
