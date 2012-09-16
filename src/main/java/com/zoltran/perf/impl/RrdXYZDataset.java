@@ -4,8 +4,6 @@
 package com.zoltran.perf.impl;
 
 import com.zoltran.base.ComparablePair;
-import com.zoltran.base.Pair;
-import com.zoltran.perf.impl.Quanta;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -171,6 +169,8 @@ public class RrdXYZDataset implements XYZDataset {
     public TickUnits createXTickUnits() {
         TickUnits tux = new TickUnits();
         final DateTimeFormatter formatter = ISODateTimeFormat.dateHourMinuteSecond();
+        final DateTimeFormatter shortFormat = ISODateTimeFormat.dateHour();
+        final DateTimeFormatter mediumFormat = ISODateTimeFormat.dateHourMinute();
         final long[] timestamps = data.getTimestamps();
         tux.add(new NumberTickUnitImpl(1, timestamps, formatter)); // base
         long nr = 5 / data.getStep();
@@ -185,22 +185,22 @@ public class RrdXYZDataset implements XYZDataset {
         // minute
         nr = 60 / data.getStep();
         if (nr > 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, formatter));
+            tux.add(new NumberTickUnitImpl(nr, timestamps, mediumFormat));
         }
         // 15 minute
         nr = 900 /data.getStep();
         if (nr > 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, formatter));
+            tux.add(new NumberTickUnitImpl(nr, timestamps, mediumFormat));
         }
         // hour
         nr =3600 /data.getStep();
         if (nr> 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, formatter));
+            tux.add(new NumberTickUnitImpl(nr, timestamps, shortFormat));
         }
         // 6 hour
         nr = 21600 /data.getStep();
         if (nr > 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, formatter));
+            tux.add(new NumberTickUnitImpl(nr, timestamps, shortFormat));
         }
 
         return tux;
