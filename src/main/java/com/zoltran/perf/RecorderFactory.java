@@ -30,11 +30,6 @@ import com.zoltran.perf.impl.ScalableMeasurementRecorderSource;
 public final class RecorderFactory {
     
     
-    public static class RecorderSource{
-        public static MeasurementRecorderSource INSTANCE;        
-    }
-    
-    
     static final RRDMeasurementDatabase RRD_DATABASE = 
             new RRDMeasurementDatabase(System.getProperty("rrd.perf.folder", 
             System.getProperty("java.io.tmpdir")));

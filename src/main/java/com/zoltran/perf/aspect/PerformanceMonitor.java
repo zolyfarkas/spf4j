@@ -18,15 +18,13 @@
  */
 package com.zoltran.perf.aspect;
 
-import com.zoltran.perf.RecorderFactory.RecorderSource;
-
 /**
  *
  * @author zoly
  */
-@interface MonitorPerformance
+@interface PerformanceMonitor
 {
     long warnThresholdMillis() default 10000;
     long errorThresholdMillis() default 60000;
-    Class<? extends RecorderSource> recorderSource();
+    Class<? extends RecorderSourceInstance> recorderSource();
 }
