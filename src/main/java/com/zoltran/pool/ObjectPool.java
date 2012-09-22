@@ -3,7 +3,7 @@
  */
 package com.zoltran.pool;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -18,11 +18,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public interface ObjectPool<T>  extends Disposable, Scanable<T> {
     
-    T borrowObject();
+    @Nonnull
+    T borrowObject() throws ObjectCreationException;
     
     void returnObject(T object);
    
-    void returnObject(T object, @NonNull Exception e);
+    void returnObject(T object, Exception e);
     
     
     public interface Hook<T> {
@@ -35,7 +36,7 @@ public interface ObjectPool<T>  extends Disposable, Scanable<T> {
     
     public interface Factory<T> {
     
-        T create();
+        T create() throws ObjectCreationException;
     
         void dispose(T object);
         
