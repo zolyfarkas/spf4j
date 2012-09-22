@@ -59,6 +59,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <aspectj.version>1.6.12</aspectj.version>
     </properties>
     
     <scm>
@@ -118,12 +119,12 @@
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.6.12</version>
+            <version>${aspectj.version}</version>
         </dependency>
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
-            <version>1.6.12</version>
+            <version>${aspectj.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -169,13 +170,49 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.5</version>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.aspectj</groupId>
+                                    <artifactId>aspectjweaver</artifactId>
+                                    <version>${aspectj.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                        </configuration>
+                    </execution>
+                </executions>
+
+            </plugin>
+
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.12</version>
                 <configuration>
                     <forkMode>always</forkMode>
-                    <threadCount>10</threadCount>
-                    <useSystemClassLoader>true</useSystemClassLoader>
-                    
+                    <argLine>-javaagent:${project.build.directory}/lib/aspectjweaver-${aspectj.version}.jar </argLine>
+                    <systemPropertyVariables>
+                        <property>
+                            <name>aj.weaving.verbose</name>
+                            <value>true</value>
+                        </property>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
             <plugin>

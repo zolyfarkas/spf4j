@@ -18,13 +18,20 @@
  */
 package com.zoltran.perf.aspect;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  *
  * @author zoly
  */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
 @interface PerformanceMonitor
 {
     long warnThresholdMillis() default 10000;
     long errorThresholdMillis() default 60000;
-    Class<? extends RecorderSourceInstance> recorderSource();
+    Class<? extends RecorderSourceInstance> recorderSource() default RecorderSourceInstance.Rs5m.class;
 }

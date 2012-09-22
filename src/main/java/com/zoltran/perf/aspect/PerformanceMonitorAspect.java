@@ -25,7 +25,6 @@ import com.zoltran.perf.MeasurementRecorderSource;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.bouncycastle.asn1.x509.V1TBSCertificateGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +47,11 @@ public class PerformanceMonitorAspect
             return (MeasurementRecorderSource) key.getField("INSTANCE").get(null);
         }
     });
+    
+    
+    
 
-    @Around("execution(@com.zoltran.perf.aspect * *(..)) && annotation(annot)")
+    @Around(value="execution(@com.zoltran.perf.aspect.PerformanceMonitor * *(..)) && @annotation(annot)", argNames="pjp,annot")
     public Object performanceMonitoredMethod(ProceedingJoinPoint pjp, PerformanceMonitor annot) throws Throwable
     {
         final long start = System.currentTimeMillis();
@@ -59,12 +61,12 @@ public class PerformanceMonitorAspect
         mrs.getRecorder(pjp.toLongString()).record(elapsed);
         if (elapsed > annot.warnThresholdMillis()) {
             if (elapsed > annot.errorThresholdMillis()) {
-                LOG.error("Execution time  {} ms for {} exceeds error threshold, arguments {}", new Object[]{
-                            elapsed, pjp.toShortString(), pjp.getArgs()
+                LOG.error("Execution time  {} ms for {} exceeds error threshold of {} ms, arguments {}", new Object[]{
+                            elapsed, pjp.toShortString(), annot.errorThresholdMillis(), pjp.getArgs()
                         });
             } else {
-                LOG.warn("Execution time  {} ms for {} exceeds warning threshold, arguments {}", new Object[]{
-                            elapsed, pjp.toShortString(), pjp.getArgs()
+                LOG.warn("Execution time  {} ms for {} exceeds warning threshold of {} ms, arguments {}", new Object[]{
+                            elapsed, pjp.toShortString(),annot.warnThresholdMillis(), pjp.getArgs()
                         });
             }
         } else {
