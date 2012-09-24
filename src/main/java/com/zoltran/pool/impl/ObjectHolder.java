@@ -24,7 +24,8 @@ import com.zoltran.pool.ObjectPool;
 import java.util.concurrent.TimeoutException;
 
 /**
- *
+ * this is not a thread safe implementation.
+ * 
  * @author zoly
  */
 
@@ -76,19 +77,34 @@ public class ObjectHolder<T> implements ObjectPool<T>
     @Override
     public void returnObject(T object, Exception e)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (!borrowed || object != obj) {
+            throw new IllegalStateException("Cannot return something that was "
+                    + "not borrowed from here " + object);
+        }
+        borrowed = false;
+        if (!factory.validate(object, e)) {
+            obj = null;
+            factory.dispose(object); 
+        }
     }
 
     @Override
     public void dispose() throws TimeoutException, InterruptedException
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (borrowed) {
+            throw new IllegalStateException("Cannot dispose when object is borrowed");
+        }
+        obj = null;
+        factory.dispose(obj); 
+        
     }
 
     @Override
     public void scan(ScanHandler<T> handler)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+       if (!borrowed && obj != null) {
+           handler.handle(obj);
+       }
     }
     
 }
