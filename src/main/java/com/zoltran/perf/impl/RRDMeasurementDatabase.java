@@ -96,8 +96,19 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
                 new ObjectName("SPF4J:name=RRDMeasurementDatabase" + dbCount.getAndIncrement()));
     }
 
+    private static String fixName(String name) {
+        StringBuilder result = new StringBuilder(name.length());
+        for (int i=0;i<name.length();i++) {
+            char c = name.charAt(i);
+            if (Character.isJavaIdentifierPart(c)) {
+                result.append(c);
+            }
+        }
+        return result.toString();
+    }
+    
     private static String getDBName(EntityMeasurementsInfo measurement, int sampleTimeSeconds) {
-        return measurement.getMeasuredEntity().toString() + "_" + sampleTimeSeconds + "_"
+        return fixName(measurement.getMeasuredEntity().toString()) + "_" + sampleTimeSeconds + "_"
                 + measurement.getUnitOfMeasurement() + "_" + new LocalDate().getWeekOfWeekyear() + ".rrd4j";
     }
     private static final int SECONDS_PER_HOUR = 3600;
