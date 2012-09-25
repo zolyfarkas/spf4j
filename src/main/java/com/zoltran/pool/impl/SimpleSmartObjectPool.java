@@ -6,6 +6,7 @@ package com.zoltran.pool.impl;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.zoltran.pool.ObjectBorower;
+import com.zoltran.pool.ObjectCreationException;
 import com.zoltran.pool.ObjectPool;
 import com.zoltran.pool.SmartObjectPool;
 import java.util.ArrayList;
@@ -51,7 +52,8 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     
     
     @Override
-    public T borrowObject(ObjectBorower borower) throws InterruptedException, TimeoutException {
+    public T borrowObject(ObjectBorower borower) throws InterruptedException, 
+        TimeoutException, ObjectCreationException {
         lock.lock();
         try {
             if (returnedObjects.size() >0 ) {

@@ -13,7 +13,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public interface SmartObjectPool<T> extends Disposable {
     
-    T borrowObject(ObjectBorower borower) throws InterruptedException, TimeoutException;
+    T borrowObject(ObjectBorower borower) throws InterruptedException,
+            TimeoutException, ObjectCreationException;
     
     void returnObject(T object, ObjectBorower borower);
     
