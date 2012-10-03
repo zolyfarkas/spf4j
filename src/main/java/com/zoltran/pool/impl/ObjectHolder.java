@@ -94,9 +94,10 @@ public class ObjectHolder<T> implements ObjectPool<T>
         if (borrowed) {
             throw new IllegalStateException("Cannot dispose when object is borrowed");
         }
-        obj = null;
-        factory.dispose(obj); 
-        
+        if (obj != null) {
+            factory.dispose(obj); 
+            obj = null;
+        } 
     }
 
     @Override
