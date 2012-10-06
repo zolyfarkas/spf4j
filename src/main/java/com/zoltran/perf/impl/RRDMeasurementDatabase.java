@@ -194,6 +194,22 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
         double [] total = data.getValues("total");
         double [] count = data.getValues("count");
         long [] timestamps = data.getTimestamps();
+        BufferedImage bi = createMinMaxAvgImg(timestamps, min, max, total, count, rrdDb, width, height-height/3);
+        
+        BufferedImage bi2 = createCountImg(timestamps, count, rrdDb, width, height/3);
+        
+        BufferedImage combined = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB); 
+        combined.getGraphics().drawImage(bi, 0, 0, null);
+        combined.getGraphics().drawImage(bi2, 0, height-height/3, null);
+
+        File graphicFile = File.createTempFile(new File(rrdDb.getPath()).getName(), ".png",
+                new File(rrdDb.getCanonicalPath()).getParentFile());
+        ImageIO.write(combined, "png", graphicFile);
+        return graphicFile.getPath();
+    }
+    
+    private static BufferedImage createMinMaxAvgImg(long[] timestamps, double[] min, double[] max, double[] total, double[] count, final RrdDb rrdDb, int width, int height)
+    {
         TimeSeries minTs = new TimeSeries("min");
         TimeSeries maxTs = new TimeSeries("max");
         TimeSeries avgTs = new TimeSeries("avg");
@@ -218,13 +234,36 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
         xylineandshaperenderer.setSeriesFillPaint(1, Color.white);
         xylineandshaperenderer.setUseFillPaint(true);
         xylineandshaperenderer.setLegendItemToolTipGenerator(new StandardXYSeriesLabelGenerator("Tooltip {0}"));
-         BufferedImage bi = jfreechart.createBufferedImage(width, height);
-        File graphicFile = File.createTempFile(new File(rrdDb.getPath()).getName(), ".png",
-                new File(rrdDb.getCanonicalPath()).getParentFile());
-        ImageIO.write(bi, "png", graphicFile);
-        return graphicFile.getPath();
+        BufferedImage bi = jfreechart.createBufferedImage(width, height);
+        return bi;
     }
 
+    private static BufferedImage createCountImg(long[] timestamps,  double[] count, final RrdDb rrdDb, int width, int height)
+    {
+        TimeSeries countTs = new TimeSeries("count");
+        for (int i=0;i<timestamps.length; i++) {
+            FixedMillisecond ts = new FixedMillisecond(timestamps[i] *1000);
+            countTs.add(ts, count[i]);
+        }
+        TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();
+        timeseriescollection.addSeries(countTs);
+        JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(null, 
+                "Time", "Value", timeseriescollection, true, true, false);
+        XYPlot xyplot = (XYPlot)jfreechart.getPlot();
+        DateAxis dateaxis = (DateAxis)xyplot.getDomainAxis();
+        dateaxis.setVerticalTickLabels(true);
+        XYLineAndShapeRenderer xylineandshaperenderer = (XYLineAndShapeRenderer)xyplot.getRenderer();
+        xylineandshaperenderer.setBaseShapesVisible(true);
+        xylineandshaperenderer.setSeriesFillPaint(0, Color.red);
+        xylineandshaperenderer.setSeriesFillPaint(1, Color.white);
+        xylineandshaperenderer.setUseFillPaint(true);
+        xylineandshaperenderer.setLegendItemToolTipGenerator(new StandardXYSeriesLabelGenerator("Tooltip {0}"));
+        BufferedImage bi = jfreechart.createBufferedImage(width, height);
+        return bi;
+    }
+
+    
+    
     private static String generateHeatChart(long startTimeMillis, long endTimeMillis, final RrdDb rrdDb,
             int width, int height) throws IOException {
         FetchRequest request = rrdDb.createFetchRequest(ConsolFun.FIRST, startTimeMillis / 1000,
