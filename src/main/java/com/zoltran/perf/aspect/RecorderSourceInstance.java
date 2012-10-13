@@ -20,7 +20,7 @@ package com.zoltran.perf.aspect;
 
 import com.zoltran.perf.MeasurementRecorderSource;
 import com.zoltran.perf.RecorderFactory;
-
+import com.zoltran.perf.impl.NopMeasurementRecorderSource;
 
 public abstract class RecorderSourceInstance
 {
@@ -29,6 +29,13 @@ public abstract class RecorderSourceInstance
     {
     }
 
+    public static final class RsNop extends RecorderSourceInstance
+    {
+
+        public static final MeasurementRecorderSource INSTANCE =
+                NopMeasurementRecorderSource.INSTANCE;
+    }
+    
     public static final class Rs5m extends RecorderSourceInstance
     {
 
