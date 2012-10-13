@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@interface PerformanceMonitor
+public @interface PerformanceMonitor
 {
     long warnThresholdMillis() default 10000;
     long errorThresholdMillis() default 60000;
