@@ -11,7 +11,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public interface SmartObjectPool<T> extends Disposable {
+public interface SmartObjectPool<T> extends Disposable, Scanable<T> {
     
     T borrowObject(ObjectBorower borower) throws InterruptedException,
             TimeoutException, ObjectCreationException;

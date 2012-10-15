@@ -3,14 +3,14 @@
  */
 package com.zoltran.pool;
 
-import java.io.Closeable;
 import javax.annotation.Nullable;
 
 /**
  *
  * @author zoly
  */
-public interface ObjectBorower<T> extends Disposable {
+public interface ObjectBorower<T> extends Scanable<T>
+{
     
     @Nullable
     T requestReturnObject();

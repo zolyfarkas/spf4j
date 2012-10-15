@@ -3,6 +3,7 @@
  */
 package com.zoltran.pool;
 
+import java.util.concurrent.TimeoutException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -16,21 +17,19 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public interface ObjectPool<T>  extends Disposable, Scanable<T> {
+public interface ObjectPool<T>  extends Disposable {
     
     @Nonnull
-    T borrowObject() throws ObjectCreationException;
+    T borrowObject() throws ObjectCreationException, 
+        InterruptedException, TimeoutException;
+      
+    void returnObject(T object, @Nullable Exception e)  
+            throws TimeoutException, InterruptedException;
     
-    void returnObject(T object);
-   
-    void returnObject(T object, Exception e);
     
-    
-    public interface Hook<T> {
+    public interface Handler<T> {
         
-        void onBorrow(T object);
-        
-        void onReturn(T object);
+        void handle(T object);
         
     }
     
@@ -38,7 +37,7 @@ public interface ObjectPool<T>  extends Disposable, Scanable<T> {
     
         T create() throws ObjectCreationException;
     
-        void dispose(T object);
+        void dispose(T object) throws TimeoutException, InterruptedException;
         
         boolean validate(T object, @Nullable Exception e);
         

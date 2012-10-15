@@ -21,6 +21,7 @@ package com.zoltran.pool.impl;
 
 import com.zoltran.pool.ObjectCreationException;
 import com.zoltran.pool.ObjectPool;
+import com.zoltran.pool.Scanable;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -30,7 +31,7 @@ import java.util.concurrent.TimeoutException;
  */
 
 
-public class ObjectHolder<T> implements ObjectPool<T>
+public class ObjectHolder<T> implements ObjectPool<T>,  Scanable<T>
 {
 
     private T obj;
@@ -65,24 +66,14 @@ public class ObjectHolder<T> implements ObjectPool<T>
     }
 
     @Override
-    public void returnObject(T object)
+    public void returnObject(T object, Exception e) throws TimeoutException, InterruptedException
     {
         if (!borrowed || object != obj) {
             throw new IllegalStateException("Cannot return something that was "
                     + "not borrowed from here " + object);
         }
         borrowed = false;
-    }
-
-    @Override
-    public void returnObject(T object, Exception e)
-    {
-        if (!borrowed || object != obj) {
-            throw new IllegalStateException("Cannot return something that was "
-                    + "not borrowed from here " + object);
-        }
-        borrowed = false;
-        if (!factory.validate(object, e)) {
+        if (e != null && !factory.validate(object, e)) {
             obj = null;
             factory.dispose(object); 
         }
@@ -101,11 +92,12 @@ public class ObjectHolder<T> implements ObjectPool<T>
     }
 
     @Override
-    public void scan(ScanHandler<T> handler)
+    public boolean scan(ScanHandler<T> handler)
     {
        if (!borrowed && obj != null) {
-           handler.handle(obj);
+           return handler.handle(obj);
        }
+       return true;
     }
-    
+   
 }

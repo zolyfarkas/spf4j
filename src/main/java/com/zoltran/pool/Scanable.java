@@ -10,9 +10,20 @@ package com.zoltran.pool;
  */
 public interface Scanable<T> {
     
-    void scan( ScanHandler<T> handler );  
+    /**
+     * 
+     * @param handler
+     * @return false if scan operation aborted by handler 
+     */
+    boolean scan( ScanHandler<T> handler );  
             
     interface ScanHandler<O> {
+        
+        /**
+         * method to handle object
+         * @param object
+         * @return true if scan operation is to continue
+         */        
         boolean handle(O object);
     }
     

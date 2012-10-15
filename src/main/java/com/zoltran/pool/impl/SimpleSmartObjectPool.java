@@ -45,11 +45,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         this.timeoutMillis = timeoutMillis;
         this.lock = new ReentrantLock(fair);
         this.available = this.lock.newCondition();
-    }
-    
-    
-    
-    
+    } 
     
     @Override
     public T borrowObject(ObjectBorower borower) throws InterruptedException, 
@@ -71,14 +67,24 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                     throw new RuntimeException("Pool size is probably closing down or is missconfigured withe size 0");
                 }
                 for(ObjectBorower<T> b: borrowedObjects.keySet()) {
-                    T object = b.returnObjectIfAvailable();
-                    if (object != null) {
-                        borrowedObjects.remove(b, object);
-                        borrowedObjects.put(borower, object);
-                        return object;
+                    if (borower != b) {
+                        T object = b.returnObjectIfAvailable();
+                        if (object != null) {
+                            borrowedObjects.remove(b, object);
+                            borrowedObjects.put(borower, object);
+                            return object;
+                        }
                     }
                 }
-                ObjectBorower<T> b = borrowedObjects.keySet().iterator().next();
+                Iterator<ObjectBorower<T>> itt = borrowedObjects.keySet().iterator(); 
+                ObjectBorower<T> b = itt.next();
+                while (b == borower && itt.hasNext()) {
+                    b = itt.next();
+                }
+                if (b == borower) {
+                    throw new IllegalStateException("Borrower " + b + " already has "
+                            + "max number of pool objects");
+                }
                 T object = b.requestReturnObject();
                 if (object != null) {
                    borrowedObjects.remove(b, object);
@@ -119,25 +125,46 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         try {
             maxSize = 0;
             for(ObjectBorower<T> b: borrowedObjects.keySet()) {
-               b.dispose();
+               b.requestReturnObject();
             }   
             disposeReturnedObjects();
             while (!borrowedObjects.isEmpty()) {               
-                    if (!available.await(timeoutMillis, TimeUnit.MILLISECONDS))
+                    if (!available.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
                         throw new TimeoutException("Object wait timeout expired " + timeoutMillis);
+                    }
                     disposeReturnedObjects();
-            }           
-             
+            }                     
         } finally {
             lock.unlock();
         }
     }
 
-    private void disposeReturnedObjects() {
+    private void disposeReturnedObjects() throws TimeoutException, InterruptedException {
         for (T obj : returnedObjects) {
             factory.dispose(obj);
         }
         returnedObjects.clear();
+    }
+
+    @Override
+    public boolean scan(ScanHandler<T> handler)
+    {
+        lock.lock();
+        try {
+            for (ObjectBorower objectBorower : borrowedObjects.keySet()) {
+                if (!objectBorower.scan(handler)) {
+                    return false;
+                }
+            }
+            for (T object : returnedObjects) {
+                if (!handler.handle(object)) {
+                    return false;
+                }
+            }
+            return true;
+        } finally {
+            lock.unlock();
+        }
     }
     
 }

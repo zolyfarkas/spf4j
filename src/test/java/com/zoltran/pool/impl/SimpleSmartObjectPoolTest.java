@@ -64,10 +64,9 @@ public class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmartObjec
     }
 
     @Override
-    public void dispose() throws TimeoutException, InterruptedException {
-        if (borowedObject != null) {
-            instance.returnObject(borowedObject, this);
-        }
+    public boolean scan(ScanHandler<TestObject> handler)
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     
