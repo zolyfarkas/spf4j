@@ -34,7 +34,8 @@ public class ExceptionChain
     private static final Field field;
     static {
         try {
-            field = Throwable.class.getField("cause");
+            Class clasz = Throwable.class;
+            field = Throwable.class .getDeclaredField("cause");
         } catch (NoSuchFieldException ex) {
             throw new RuntimeException(ex);
         } catch (SecurityException ex) {
