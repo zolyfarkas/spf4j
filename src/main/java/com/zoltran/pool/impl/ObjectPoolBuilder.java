@@ -18,15 +18,50 @@
 
 package com.zoltran.pool.impl;
 
+import com.zoltran.pool.ObjectPool;
+import java.util.concurrent.ScheduledExecutorService;
+
 /**
  *
  * @author zoly
  */
 
 
-public class ObjectPoolBuilder
+public class ObjectPoolBuilder<T>
 {
-    public ObjectPoolBuilder() {
-        
+    private int maxSize;
+    private ObjectPool.Factory<T> factory;
+    private long timeoutMillis;
+    private boolean fair;
+    private ScheduledExecutorService maintenanceExecutor;
+    private long maintenanceInterval;
+    
+    
+    public ObjectPoolBuilder(int maxSize, ObjectPool.Factory<T> factory) {     
+        this.fair=true;
+        this.timeoutMillis = 60000;
+        this.maxSize = maxSize;
+        this.factory = factory;
+    }
+    
+    public ObjectPoolBuilder unfair() {
+        this.fair = false;
+        return this;
+    }
+    
+    public ObjectPoolBuilder withOperationTimeout(long timeoutMillis) {
+        this.timeoutMillis = timeoutMillis;
+        return this;
+    }
+    
+    public ObjectPoolBuilder withMaintenance(ScheduledExecutorService exec, 
+            long maintenanceInterval) {
+        this.maintenanceExecutor = exec;
+        this.maintenanceInterval = maintenanceInterval;
+        return this;
+    }
+    
+    public  ObjectPool<T> build() {
+        return new ScalableObjectPool<T>(maxSize, factory, timeoutMillis, fair);
     }
 }

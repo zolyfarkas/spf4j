@@ -7,6 +7,7 @@ package com.zoltran.pool.impl;
 import com.zoltran.pool.Disposable;
 import com.zoltran.pool.ObjectBorower;
 import com.zoltran.pool.ObjectPool;
+import java.util.Collection;
 import java.util.concurrent.TimeoutException;
 import org.junit.*;
 
@@ -65,6 +66,12 @@ public class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmartObjec
 
     @Override
     public boolean scan(ScanHandler<TestObject> handler)
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Collection<TestObject> returnObjectsIfNotNeeded()
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }

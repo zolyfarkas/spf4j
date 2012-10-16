@@ -10,6 +10,7 @@ import com.zoltran.pool.ObjectCreationException;
 import com.zoltran.pool.ObjectPool;
 import com.zoltran.pool.SmartObjectPool;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -70,7 +71,9 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                     if (borower != b) {
                         T object = b.returnObjectIfAvailable();
                         if (object != null) {
-                            borrowedObjects.remove(b, object);
+                            if (!borrowedObjects.remove(b, object)) {
+                                throw new IllegalStateException("Returned Object hasn't been borrowed " + object);
+                            }
                             borrowedObjects.put(borower, object);
                             return object;
                         }
@@ -87,7 +90,9 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                 }
                 T object = b.requestReturnObject();
                 if (object != null) {
-                   borrowedObjects.remove(b, object);
+                   if (!borrowedObjects.remove(b, object)) {
+                       throw new IllegalStateException("Returned Object hasn't been borrowed " + object);
+                   }
                    borrowedObjects.put(borower, object);
                    return object;
                 }
@@ -151,9 +156,21 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     {
         lock.lock();
         try {
-            for (ObjectBorower objectBorower : borrowedObjects.keySet()) {
-                if (!objectBorower.scan(handler)) {
-                    return false;
+            for (ObjectBorower<T> objectBorower : borrowedObjects.keySet()) {
+                try {
+                    if (!objectBorower.scan(handler)) {
+                        return false;
+                    }
+                } finally {
+                    Collection<T> returned = objectBorower.returnObjectsIfNotNeeded();
+                    if (returned != null) {
+                        for (T ro : returned) {
+                            if (!borrowedObjects.remove(objectBorower, ro)) {
+                                throw new IllegalStateException("Object returned hasn't been borrowed" + ro);
+                            }
+                            returnedObjects.add(ro);
+                        }
+                    }
                 }
             }
             for (T object : returnedObjects) {

@@ -3,6 +3,7 @@
  */
 package com.zoltran.pool;
 
+import java.util.Collection;
 import javax.annotation.Nullable;
 
 /**
@@ -18,5 +19,7 @@ public interface ObjectBorower<T> extends Scanable<T>
     @Nullable
     T returnObjectIfAvailable() throws InterruptedException;
     
-
+    @Nullable
+    Collection<T> returnObjectsIfNotNeeded();
+    
 }

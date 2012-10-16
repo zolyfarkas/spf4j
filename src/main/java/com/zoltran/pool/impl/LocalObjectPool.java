@@ -23,6 +23,7 @@ import com.zoltran.pool.ObjectBorower;
 import com.zoltran.pool.ObjectCreationException;
 import com.zoltran.pool.ObjectPool;
 import com.zoltran.pool.SmartObjectPool;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -44,6 +45,8 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
     private final SmartObjectPool<ObjectHolder<T>> globalPool;
     
     private int reqReturnObjects;
+    
+    private final Thread thread;
 
     public LocalObjectPool(SmartObjectPool<ObjectHolder<T>> globalPool)
     {
@@ -51,6 +54,7 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
         borrowedObjects = new HashMap<T, ObjectHolder<T>>();
         this.globalPool = globalPool;
         reqReturnObjects = 0;
+        thread = Thread.currentThread();
     }
    
     @Override
@@ -123,5 +127,18 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
             return null;
         }
     }
+
+    @Override
+    public Collection<ObjectHolder<T>> returnObjectsIfNotNeeded()
+    {
+        if (!thread.isAlive()) {
+            if (!borrowedObjects.isEmpty()) {
+                throw new IllegalStateException("Objects not returned by dead thread: " + borrowedObjects);
+            }
+            return localObjects;
+        }
+        return null;
+    }
+    
     
 }
