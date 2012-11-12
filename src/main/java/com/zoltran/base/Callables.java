@@ -138,7 +138,7 @@ public class Callables
                throw ex1; 
             } catch (Exception e) {
                 if (prevEx != null) {
-                    ExceptionChain.chain(e, prevEx);
+                    e = ExceptionChain.chain(e, prevEx);
                     prevEx = e;
                 }
                 ex =e;
