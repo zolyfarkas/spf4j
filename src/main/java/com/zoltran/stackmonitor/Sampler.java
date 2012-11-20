@@ -4,6 +4,7 @@
 package com.zoltran.stackmonitor;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicates;
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
@@ -107,14 +108,15 @@ public class Sampler implements SamplerMBean {
         try {
             writer.append("<html>");
 
-            stackCollector.applyOnCpuSamples(new Function<SampleNode, SampleNode>() {
+            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
 
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
+                        SampleNode finput = input.filteredByLeaf(WaitMethodClassifier.INSTANCE);
                         try {
                             writer.append("<h1>CPU stats</h1>");
-                            StackVisualizer.generateHtmlTable(writer, Method.ROOT, input, chartWidth, maxDepth);
+                            StackVisualizer.generateHtmlTable(writer, Method.ROOT, finput, chartWidth, maxDepth);
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -124,15 +126,15 @@ public class Sampler implements SamplerMBean {
             });
 
 
-
-            stackCollector.applyOnWaitSamples(new Function<SampleNode, SampleNode>() {
+            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
 
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
+                        SampleNode finput = input.filteredByLeaf(Predicates.not(WaitMethodClassifier.INSTANCE));
                         try {
                             writer.append("<h1>WAIT stats</h1>");
-                            StackVisualizer.generateHtmlTable(writer, Method.ROOT, input, chartWidth, maxDepth);
+                            StackVisualizer.generateHtmlTable(writer, Method.ROOT, finput, chartWidth, maxDepth);
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -214,13 +216,14 @@ public class Sampler implements SamplerMBean {
         final Writer writer = new BufferedWriter(new FileWriter(fileName));
         try {
 
-            stackCollector.applyOnCpuSamples(new Function<SampleNode, SampleNode>() {
+            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
 
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
+                        SampleNode finput = input.filteredByLeaf(WaitMethodClassifier.INSTANCE);
                         try {
-                            StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth, "a");
+                            StackVisualizer.generateSvg(writer, Method.ROOT, finput,0,0 ,chartWidth, maxDepth, "a");
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -234,15 +237,16 @@ public class Sampler implements SamplerMBean {
     }
 
     @Override
-    public void generateWaitSvg(String fileName, final int chartWidth, final int maxDepth) throws IOException {
+    public void generateTotalSvg(String fileName, final int chartWidth, final int maxDepth) throws IOException {
                final Writer writer = new BufferedWriter(new FileWriter(fileName));
         try {
 
-            stackCollector.applyOnWaitSamples(new Function<SampleNode, SampleNode>() {
+            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
 
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
+                    
                         try {
                             StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth, "b");
                         } catch (IOException ex) {
@@ -266,40 +270,44 @@ public class Sampler implements SamplerMBean {
 "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\" \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n");
             writer.append("<html>");
 
-            stackCollector.applyOnCpuSamples(new Function<SampleNode, SampleNode>() {
+            
+            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
 
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
-                        try {
-                            writer.append("<h1>CPU stats</h1>");
-                             StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth, "a");
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
+                       
+                            try {
+                                writer.append("<h1>Total stats</h1>");
+                                 StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth, "a");
+                            } catch (IOException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        
+                    }
+                    return input;
+                }
+            });
+            
+            
+            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
+
+                @Override
+                public SampleNode apply(SampleNode input) {
+                    if (input != null) {
+                        SampleNode finput = input.filteredByLeaf(WaitMethodClassifier.INSTANCE);
+                        if (finput != null) {
+                            try {
+                                writer.append("<h1>CPU stats</h1>");
+                                 StackVisualizer.generateSvg(writer, Method.ROOT, finput,0,0 ,chartWidth, maxDepth, "b");
+                            } catch (IOException ex) {
+                                throw new RuntimeException(ex);
+                            }
                         }
                     }
                     return input;
                 }
             });
-
-
-
-            stackCollector.applyOnWaitSamples(new Function<SampleNode, SampleNode>() {
-
-                @Override
-                public SampleNode apply(SampleNode input) {
-                    if (input != null) {
-                        try {
-                            writer.append("<h1>WAIT stats</h1>");
-                            StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth, "b");
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    }
-                    return input;
-                }
-            });
-
 
 
             writer.append("</html>");

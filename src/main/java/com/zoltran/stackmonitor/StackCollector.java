@@ -12,9 +12,7 @@ import com.google.common.base.Function;
  */
 public interface StackCollector {
 
-    SampleNode applyOnCpuSamples(Function<SampleNode, SampleNode> predicate);
-
-    SampleNode applyOnWaitSamples(Function<SampleNode, SampleNode> predicate);
+    SampleNode applyOnSamples(Function<SampleNode, SampleNode> predicate);
 
     void clear();
 

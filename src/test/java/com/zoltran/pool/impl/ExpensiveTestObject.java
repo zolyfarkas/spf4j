@@ -18,12 +18,15 @@
 
 package com.zoltran.pool.impl;
 
+import java.io.Closeable;
+import java.io.IOException;
+
 /**
  * This is a pooled object implementation, that behaves like a connection object. 
  * @author zoly
  */
 
-public class PooledTestObject
+public class ExpensiveTestObject implements Closeable
 {
     private final long maxIdleMillis;
     
@@ -32,15 +35,49 @@ public class PooledTestObject
     private final long minOperationMillis;
     
     private final long maxOperationMillis;
+    
+    private long lastTouchedTimeMillis;
+    
+    private int nrUses;
 
-    public PooledTestObject(long maxIdleMillis, int nrUsesToFailAfter, long minOperationMillis, long maxOperationMillis)
+    public ExpensiveTestObject(long maxIdleMillis, int nrUsesToFailAfter, long minOperationMillis, long maxOperationMillis)
     {
         this.maxIdleMillis = maxIdleMillis;
         this.nrUsesToFailAfter = nrUsesToFailAfter;
         this.minOperationMillis = minOperationMillis;
         this.maxOperationMillis = maxOperationMillis;
+        lastTouchedTimeMillis = System.currentTimeMillis();
+        nrUses = 0;
+        simulateDoStuff();
     }
     
+    
+    public void doStuff() throws IOException {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
+            throw new IOException("Connection timed out");
+        }
+        if (nrUses > nrUsesToFailAfter) {
+            throw new IOException("Simulated random crap");
+        }
+        simulateDoStuff();
+        nrUses ++;
+        lastTouchedTimeMillis = System.currentTimeMillis();       
+    }
+
+    @Override
+    public void close() throws IOException {
+        doStuff();
+    }
+
+    private void simulateDoStuff() throws RuntimeException {
+        long sleepTime = (long) (Math.random() * (maxOperationMillis - minOperationMillis));
+        try {
+            Thread.sleep(minOperationMillis + sleepTime);
+        } catch (InterruptedException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
     
     
 }

@@ -4,6 +4,7 @@
  */
 package com.zoltran.stackmonitor;
 
+import com.google.common.base.Predicate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,9 +12,9 @@ import java.util.Set;
  *
  * @author zoly
  */
-public final class MethodClassifier {
+public final class WaitMethodClassifier implements Predicate<Method> {
 
-    private MethodClassifier() {}
+    private WaitMethodClassifier() {}
     
     private static final Set<Method> WAIT_METHODS = new HashSet();
 
@@ -25,7 +26,11 @@ public final class MethodClassifier {
         WAIT_METHODS.add(new Method("java.net.PlainSocketImpl", "socketConnect"));
     }
 
-    public static boolean isWaitMethod(Method m) {
-        return WAIT_METHODS.contains(m);
+   
+    @Override
+    public boolean apply(Method input) {
+       return WAIT_METHODS.contains(input); 
     }
+    
+    public static final WaitMethodClassifier INSTANCE = new WaitMethodClassifier();
 }

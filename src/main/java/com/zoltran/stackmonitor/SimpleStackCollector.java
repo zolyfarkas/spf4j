@@ -12,9 +12,6 @@ import java.util.Map;
  */
 public class SimpleStackCollector extends AbstractStackCollector {
 
-
-    
-
     @Override
     public void sample() {
         Map<Thread, StackTraceElement[]> stackDump = Thread.getAllStackTraces();
@@ -22,31 +19,11 @@ public class SimpleStackCollector extends AbstractStackCollector {
     }
 
     private void recordStackDump(Map<Thread, StackTraceElement[]> stackDump) {
-        synchronized (sampleSync) {
-            for (Map.Entry<Thread, StackTraceElement[]> entry : stackDump.entrySet()) {
-                StackTraceElement[] stackTrace = entry.getValue();
-                if (stackTrace.length > 0 && !entry.getKey().equals(Thread.currentThread())) {
-                    Method m = new Method(stackTrace[0]);
-                    if (MethodClassifier.isWaitMethod(m)) {
-                        if (waitSamples == null) {
-                            waitSamples = new SampleNode(stackTrace, stackTrace.length - 1);
-                        } else {
-                            waitSamples.addSample(stackTrace, stackTrace.length - 1);
-                        }
-
-                    }  else {
-                        if (cpuSamples == null) {
-                            cpuSamples = new SampleNode(stackTrace, stackTrace.length - 1);
-                        } else {
-                            cpuSamples.addSample(stackTrace, stackTrace.length - 1);
-                        }
-
-                    }
-                }
+        for (Map.Entry<Thread, StackTraceElement[]> entry : stackDump.entrySet()) {
+            StackTraceElement[] stackTrace = entry.getValue();
+            if (stackTrace.length > 0 && !entry.getKey().equals(Thread.currentThread())) {
+                addSample(stackTrace);
             }
         }
     }
-
-
-    
 }

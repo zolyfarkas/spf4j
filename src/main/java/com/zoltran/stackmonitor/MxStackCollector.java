@@ -16,7 +16,6 @@ public class MxStackCollector extends AbstractStackCollector {
 
     private final ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
 
-
     @Override
     public void sample() {
         ThreadInfo[] stackDump = threadMX.dumpAllThreads(true, true);
@@ -24,27 +23,11 @@ public class MxStackCollector extends AbstractStackCollector {
     }
 
     private void recordStackDump(ThreadInfo[] stackDump) {
-        synchronized (sampleSync) {
-            for (ThreadInfo entry : stackDump) {
-                StackTraceElement[] stackTrace = entry.getStackTrace();
-                if (stackTrace.length > 0 && !(entry.getThreadId() == Thread.currentThread().getId())) {
-                    Thread.State state = entry.getThreadState();
-                    if (state == Thread.State.BLOCKED || state == Thread.State.TIMED_WAITING || state == Thread.State.WAITING) {
-                        if (waitSamples == null) {
-                            waitSamples = new SampleNode(stackTrace, stackTrace.length - 1);
-                        } else {
-                            waitSamples.addSample(stackTrace, stackTrace.length - 1);
-                        }
-                    } else if (state == Thread.State.RUNNABLE) {
-                        if (cpuSamples == null) {
-                            cpuSamples = new SampleNode(stackTrace, stackTrace.length - 1);
-                        } else {
-                            cpuSamples.addSample(stackTrace, stackTrace.length - 1);
-                        }
-                    }
-                }
+        for (ThreadInfo entry : stackDump) {
+            StackTraceElement[] stackTrace = entry.getStackTrace();
+            if (stackTrace.length > 0 && !(entry.getThreadId() == Thread.currentThread().getId())) {
+                addSample(stackTrace);
             }
         }
     }
-    
 }

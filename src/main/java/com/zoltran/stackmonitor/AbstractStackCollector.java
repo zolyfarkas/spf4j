@@ -16,29 +16,31 @@ public abstract class AbstractStackCollector implements StackCollector {
     
     protected final Object sampleSync = new Object();
     @GuardedBy(value = "sampleSync")
-    protected SampleNode cpuSamples;
-    @GuardedBy(value = "sampleSync")
-    protected SampleNode waitSamples;
+    private SampleNode samples;
+
     
-        @Override
-    public SampleNode applyOnCpuSamples(Function<SampleNode, SampleNode> predicate) {
+    @Override
+    public SampleNode applyOnSamples(Function<SampleNode, SampleNode> predicate) {
         synchronized (sampleSync) {
-            return cpuSamples = predicate.apply(cpuSamples);
+            return samples = predicate.apply(samples);
         }
     }
 
-    @Override
-    public SampleNode applyOnWaitSamples(Function<SampleNode, SampleNode> predicate) {
-        synchronized (sampleSync) {
-            return waitSamples = predicate.apply(waitSamples);
-        }
-    }
 
     @Override
     public void clear() {
         synchronized (sampleSync) {
-            cpuSamples = null;
-            waitSamples = null;
+            samples = null;
+        }
+    }
+    
+    protected void addSample(StackTraceElement[] stackTrace) {
+        synchronized (sampleSync) {
+            if (samples == null) {
+                samples = new SampleNode(stackTrace, stackTrace.length - 1);
+            } else {
+                samples.addSample(stackTrace, stackTrace.length - 1);
+            }
         }
     }
     

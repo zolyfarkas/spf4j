@@ -20,16 +20,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public interface ObjectPool<T>  extends Disposable {
     
     @Nonnull
-    T borrowObject() throws ObjectCreationException, 
+    T borrowObject() throws ObjectCreationException, ObjectBorrowException,
         InterruptedException, TimeoutException;
       
     void returnObject(T object, @Nullable Exception e)  
-            throws TimeoutException, InterruptedException;
+            throws ObjectReturnException, TimeoutException, InterruptedException;
     
     
-    public interface Handler<T> {
+    public interface Hook<T> {
         
-        void handle(T object);
+        void handle(T object) throws Exception;
         
     }
     

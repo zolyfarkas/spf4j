@@ -42,7 +42,7 @@ public class Template<T>
     
 
 
-    public void doOnPooledObject(final ObjectPool.Handler<T> handler)
+    public void doOnPooledObject(final ObjectPool.Hook<T> handler)
             throws ObjectCreationException, InterruptedException, TimeoutException
     {
         Callables.executeWithRetry(new Callable<Void>() { 
@@ -57,7 +57,7 @@ public class Template<T>
     }
     
     
-    public static <T> void doOnPooledObject(ObjectPool.Handler<T> handler, ObjectPool<T> pool)
+    public static <T> void doOnPooledObject(ObjectPool.Hook<T> handler, ObjectPool<T> pool)
             throws ObjectCreationException, InterruptedException, TimeoutException
     {
         T object = pool.borrowObject();

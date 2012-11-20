@@ -34,16 +34,15 @@ public class MonitorTest {
     
     
     @Test
-    @Ignore
     public void testJmx() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, InterruptedException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
         String report = File.createTempFile("stackSample", ".html").getPath();
         Monitor.main(new String[]{"-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
         System.out.println(report);
-        Thread.sleep(100000);
     }
     
   
     @Test(timeout=20000)
+    @Ignore
     public void testApphtml() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException, InstanceNotFoundException {
         String report = File.createTempFile("stackSampleHtml", ".html").getPath();
         Monitor.main(new String[]{"-nosvg", "-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
@@ -79,8 +78,9 @@ public class MonitorTest {
         String serializedFile = File.createTempFile("stackSample", ".samp").getPath();
         final FileOutputStream os = new FileOutputStream(serializedFile);
         try  {
-            sampler.getStackCollector().applyOnCpuSamples(new Function<SampleNode, SampleNode> () {
+            sampler.getStackCollector().applyOnSamples(new Function<SampleNode, SampleNode> () {
 
+                @Override
                 public SampleNode apply(SampleNode f) {
                     try {
                         Converter.fromSampleNodeToProto(f).writeTo(os);
@@ -100,8 +100,9 @@ public class MonitorTest {
         try {
             final CodedInputStream is = CodedInputStream.newInstance(fis);
             is.setRecursionLimit(1024);
-            anotherOne.getStackCollector().applyOnCpuSamples(new Function<SampleNode, SampleNode>() {
+            anotherOne.getStackCollector().applyOnSamples(new Function<SampleNode, SampleNode>() {
 
+                @Override
                 public SampleNode apply(SampleNode f) {
                     try {
                         return Converter.fromProtoToSampleNode( ProtoSampleNodes.SampleNode.parseFrom(is) );
@@ -129,6 +130,7 @@ public class MonitorTest {
         for (int i = 0; i < 20; i++) {
             Thread t = new Thread(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         while (!stopped) {
@@ -174,8 +176,9 @@ public class MonitorTest {
         }
         Thread.sleep(5000);
         stopped = true;
-        for(Thread t: threads)
+        for(Thread t: threads) {
             t.join();
+        }
         
     }
 }

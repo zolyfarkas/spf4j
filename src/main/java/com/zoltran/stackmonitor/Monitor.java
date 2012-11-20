@@ -85,6 +85,7 @@ public class Monitor {
             @Override
             public void run() {
                 try {
+                    sampler.stop();
                     generateReportAndDispose(sampler, reportOut, chartWidth, maxDepth, svgReport);
                 } catch (Exception ex) {
                     log.error("Exception while shutting down", ex);
