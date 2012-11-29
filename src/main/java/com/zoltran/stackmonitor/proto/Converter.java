@@ -24,7 +24,7 @@ public class Converter {
     
     public static ProtoSampleNodes.SampleNode fromSampleNodeToProto(SampleNode node) {
         
-        ProtoSampleNodes.SampleNode.Builder resultBuilder = ProtoSampleNodes.SampleNode.newBuilder().setCount(node.getCount()); 
+        ProtoSampleNodes.SampleNode.Builder resultBuilder = ProtoSampleNodes.SampleNode.newBuilder().setCount(node.getSampleCount()); 
         
         Map<Method,SampleNode> subNodes = node.getSubNodes();
         if (subNodes != null) {

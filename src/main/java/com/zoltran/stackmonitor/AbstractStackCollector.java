@@ -18,6 +18,7 @@ public abstract class AbstractStackCollector implements StackCollector {
     @GuardedBy(value = "sampleSync")
     private SampleNode samples;
 
+    private int nrNodes = 0;
     
     @Override
     public SampleNode applyOnSamples(Function<SampleNode, SampleNode> predicate) {
@@ -31,6 +32,7 @@ public abstract class AbstractStackCollector implements StackCollector {
     public void clear() {
         synchronized (sampleSync) {
             samples = null;
+            nrNodes = 0;
         }
     }
     
@@ -38,11 +40,23 @@ public abstract class AbstractStackCollector implements StackCollector {
         synchronized (sampleSync) {
             if (samples == null) {
                 samples = new SampleNode(stackTrace, stackTrace.length - 1);
+                nrNodes += stackTrace.length +1;
             } else {
-                samples.addSample(stackTrace, stackTrace.length - 1);
+                nrNodes += samples.addSample(stackTrace, stackTrace.length - 1);
             }
         }
     }
-    
+
+    @Override
+    public String toString() {
+        synchronized (sampleSync) {
+            return "AbstractStackCollector{" + "samples=" + samples + ", nrNodes=" + nrNodes + '}';
+        }
+    }
+
+    public int getNrNodes() {
+        return nrNodes;
+    }
+
     
 }

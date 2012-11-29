@@ -20,9 +20,10 @@
 package com.zoltran.pool.impl;
 
 import com.zoltran.pool.ObjectCreationException;
+import com.zoltran.pool.ObjectDisposeException;
 import com.zoltran.pool.ObjectPool;
-import com.zoltran.pool.Scanable;
-import java.util.concurrent.TimeoutException;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * this is not a thread safe implementation.
@@ -30,8 +31,8 @@ import java.util.concurrent.TimeoutException;
  * @author zoly
  */
 
-
-public class ObjectHolder<T> implements ObjectPool<T>,  Scanable<T>
+@ParametersAreNonnullByDefault
+public class ObjectHolder<T> 
 {
 
     private T obj;
@@ -52,11 +53,10 @@ public class ObjectHolder<T> implements ObjectPool<T>,  Scanable<T>
         }
     }
     
-    @Override
-    public T borrowObject() throws ObjectCreationException
+    synchronized public T borrowOrCreateObjectIfPossible() throws ObjectCreationException
     {
         if (borrowed) {
-           throw new IllegalStateException("Object is already borrowed"); 
+           return null;
         }
         if (obj == null) {
             obj = factory.create();
@@ -64,40 +64,46 @@ public class ObjectHolder<T> implements ObjectPool<T>,  Scanable<T>
         borrowed = true;
         return obj;
     }
+    
+    @Nullable
+    synchronized public T borrowObjectIfAvailable()
+    {
+        if (borrowed || obj == null) {
+           return null; 
+        }
+        borrowed = true;
+        return obj;
+    }
 
-    @Override
-    public void returnObject(T object, Exception e) throws TimeoutException, InterruptedException
+    synchronized public void returnObject(T object, Exception e) throws ObjectDisposeException
     {
         if (!borrowed || object != obj) {
             throw new IllegalStateException("Cannot return something that was "
                     + "not borrowed from here " + object);
         }
         borrowed = false;
-        if (e != null && !factory.validate(object, e)) {
+        if (e != null && factory.validate(object, e) != null) {
             obj = null;
             factory.dispose(object); 
         }
     }
 
-    @Override
-    public void dispose() throws TimeoutException, InterruptedException
+    synchronized public boolean disposeIfNotBorrowed() throws ObjectDisposeException
     {
         if (borrowed) {
-            throw new IllegalStateException("Cannot dispose when object is borrowed");
+            return false;
         }
         if (obj != null) {
             factory.dispose(obj); 
             obj = null;
         } 
+        return true;
     }
 
     @Override
-    public boolean scan(ScanHandler<T> handler)
-    {
-       if (!borrowed && obj != null) {
-           return handler.handle(obj);
-       }
-       return true;
+    synchronized public String toString() {
+        return "ObjectHolder{" + "obj=" + obj + ", borrowed=" + borrowed + ", factory=" + factory + '}';
     }
-   
+    
+    
 }

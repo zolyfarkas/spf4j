@@ -5,7 +5,9 @@
 package com.zoltran.pool.impl;
 
 import com.zoltran.pool.ObjectCreationException;
+import com.zoltran.pool.ObjectDisposeException;
 import com.zoltran.pool.ObjectPool;
+import com.zoltran.pool.ObjectReturnException;
 import com.zoltran.pool.Scanable;
 import java.util.concurrent.TimeoutException;
 
@@ -13,7 +15,7 @@ import java.util.concurrent.TimeoutException;
  *
  * @author zoly
  */
-public class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<T> {
+public class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<ObjectHolder<T>> {
 
     private final SimpleSmartObjectPool<ObjectHolder<T>> globalPool;
     
@@ -41,25 +43,18 @@ public class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<T> {
     }
 
     @Override
-    public void returnObject(T object, Exception e) throws TimeoutException, InterruptedException {
+    public void returnObject(T object, Exception e) throws ObjectReturnException, ObjectDisposeException {
         localPool.get().returnObject(object, e);
     }
 
     @Override
-    public void dispose() throws TimeoutException, InterruptedException {
+    public void dispose() throws ObjectDisposeException{
         globalPool.dispose();
     }
 
     @Override
-    public boolean scan(final ScanHandler<T> handler) {
-        return globalPool.scan(new ScanHandler<ObjectHolder<T>>() {
-
-            @Override
-            public boolean handle(ObjectHolder<T> object)
-            {
-                return object.scan(handler);
-            }
-        });
+    public boolean scan(final ScanHandler<ObjectHolder<T>> handler) throws Exception {
+        return globalPool.scan(handler);
     }
     
 }

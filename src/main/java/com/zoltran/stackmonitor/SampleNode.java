@@ -4,7 +4,6 @@
 package com.zoltran.stackmonitor;
 
 import com.google.common.base.Predicate;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -16,11 +15,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class SampleNode {
     
-    private int count;
+    private int sampleCount;
     private Map<Method, SampleNode> subNodes;
     
     public SampleNode(StackTraceElement[] stackTrace, int from) {
-        count = 1;
+        sampleCount = 1;
         if (from >= 0) {
             subNodes = new HashMap();
             subNodes.put(new Method(stackTrace[from]), new SampleNode(stackTrace, --from));
@@ -28,34 +27,34 @@ public class SampleNode {
     }
 
     public SampleNode(int count, @Nullable Map<Method, SampleNode> subNodes) {
-        this.count = count;
+        this.sampleCount = count;
         this.subNodes = subNodes;
     }
     
     
     
-    public void addSample(StackTraceElement[] stackTrace, int from) {
-        count++;
+    public int addSample(StackTraceElement[] stackTrace, int from) {
+        sampleCount++;
         if (from >= 0) {
             Method method = new Method(stackTrace[from]);
             SampleNode subNode = null;
             if (subNodes == null) {
                 subNodes = new HashMap();
-            }
-            else {
+            } else {
                 subNode = subNodes.get(method);
             }
             if (subNode == null) {
-                subNodes.put(method, new SampleNode(stackTrace, --from));
-            }
-            else {
-                subNode.addSample(stackTrace, --from);
+                subNodes.put(method, new SampleNode(stackTrace, from-1));
+                return from+1;
+            } else {
+                return subNode.addSample(stackTrace, from-1);
             }               
         }
+        return 0;
     }
 
-    public int getCount() {
-        return count;
+    public int getSampleCount() {
+        return sampleCount;
     }
 
     @Nullable
@@ -65,7 +64,7 @@ public class SampleNode {
 
     @Override
     public String toString() {
-        return "SampleNode{" + "count=" + count + ", subNodes=" + subNodes + '}';
+        return "SampleNode{" + "count=" + sampleCount + ", subNodes=" + subNodes + '}';
     }
     
     public int height() {
@@ -87,7 +86,7 @@ public class SampleNode {
     @Nullable
     public SampleNode filteredByLeaf(Predicate<Method> predicate) {
         
-        int newCount = this.count;
+        int newCount = this.sampleCount;
         
         Map<Method, SampleNode> sns = null;
         if (this.subNodes != null) {
@@ -95,16 +94,16 @@ public class SampleNode {
                 Method method = entry.getKey();
                 SampleNode sn = entry.getValue();
                 if (predicate.apply(method) && sn.height() == 1)  {
-                    newCount -= sn.getCount();
+                    newCount -= sn.getSampleCount();
                 } else {
                     if (sns == null) {
                         sns = new HashMap<Method, SampleNode>();
                     }
                     SampleNode sn2 = sn.filteredByLeaf(predicate);
                     if (sn2 == null) {
-                        newCount -= sn.getCount();
+                        newCount -= sn.getSampleCount();
                     } else {
-                        newCount -= sn.getCount() - sn2.getCount();
+                        newCount -= sn.getSampleCount() - sn2.getSampleCount();
                         sns.put(method, sn2);
                     }
                     

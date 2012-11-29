@@ -4,13 +4,11 @@
  */
 package com.zoltran.pool;
 
-import java.util.concurrent.TimeoutException;
-
 /**
  *
  * @author zoly
  */
 public interface Disposable {
     
-    public void dispose() throws TimeoutException, InterruptedException;
+    public void dispose() throws ObjectDisposeException;
 }

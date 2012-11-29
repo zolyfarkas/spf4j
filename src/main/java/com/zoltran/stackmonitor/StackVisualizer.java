@@ -26,12 +26,12 @@ public class StackVisualizer {
         Map<Method, SampleNode> subNodes = node.getSubNodes();
         writer.append("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"overflow:hidden;table-layout:fixed;width:").
                 append(Integer.toString(tableWidth)).append("px\">\n");
-        int totalSamples = node.getCount();
+        int totalSamples = node.getSampleCount();
 
         if (subNodes != null && maxDepth > 0) {
             writer.append("<tr style=\"height:1em\">");
             for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
-                int width = entry.getValue().getCount() * tableWidth / totalSamples;
+                int width = entry.getValue().getSampleCount() * tableWidth / totalSamples;
                 writer.append("<td style=\"vertical-align:bottom; width:").append(Integer.toString(width)).append("px\">");
                 generateHtmlTable(writer, entry.getKey(), entry.getValue(), width, maxDepth - 1);
                 writer.append("</td>");
@@ -46,7 +46,7 @@ public class StackVisualizer {
         writer.append(" title=\"");
         m.toHtmlWriter(writer);
         writer.append(":");
-        writer.append(Integer.toString(node.getCount()));
+        writer.append(Integer.toString(node.getSampleCount()));
         writer.append("\" style=\"overflow:hidden;width:100%;vertical-align:bottom ;background:").
                 append(COLORS[(int) (Math.random() * COLORS.length)]).append("\">");
         m.toHtmlWriter(writer);
@@ -107,7 +107,7 @@ public class StackVisualizer {
 
         Map<Method, SampleNode> subNodes = node.getSubNodes();
 
-        int totalSamples = node.getCount();
+        int totalSamples = node.getSampleCount();
         String id = idPfx + "ix" + x + "y" + y;
         String content = HtmlUtils.htmlEscape(m.toString() + ":" + Integer.toString(totalSamples));
         writer.append("<g onmouseover=\"" + idPfx + "ss(evt,'" + content + "'," + x + ", " + y + " )\" onmouseout=\"" + idPfx + "hh()\">");
@@ -123,7 +123,7 @@ public class StackVisualizer {
         if (subNodes != null && maxDepth > 0) {
             int rx = 0;
             for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
-                int cwidth = entry.getValue().getCount() * width / totalSamples;
+                int cwidth = entry.getValue().getSampleCount() * width / totalSamples;
                 generateSubSvg(writer, entry.getKey(), entry.getValue(), rx + x, y + 15, cwidth, maxDepth - 1, idPfx);
                 rx += cwidth;
             }

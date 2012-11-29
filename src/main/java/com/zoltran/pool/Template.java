@@ -57,8 +57,8 @@ public class Template<T>
     }
     
     
-    public static <T> void doOnPooledObject(ObjectPool.Hook<T> handler, ObjectPool<T> pool)
-            throws ObjectCreationException, InterruptedException, TimeoutException
+    public static <T> void doOnPooledObject(ObjectPool.Hook<T> handler, ObjectPool<T> pool) throws ObjectCreationException, ObjectBorrowException, 
+            InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException         
     {
         T object = pool.borrowObject();
         try {
@@ -67,6 +67,9 @@ public class Template<T>
         } catch (RuntimeException e) {
             pool.returnObject(object, e);
             throw e;
+        } catch (Exception e) {
+            pool.returnObject(object, e);
+            throw new RuntimeException(e);
         }
     }
 }

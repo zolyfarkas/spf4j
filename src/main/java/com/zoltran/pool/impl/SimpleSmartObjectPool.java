@@ -7,6 +7,7 @@ package com.zoltran.pool.impl;
 import com.google.common.collect.LinkedHashMultimap;
 import com.zoltran.pool.ObjectBorower;
 import com.zoltran.pool.ObjectCreationException;
+import com.zoltran.pool.ObjectDisposeException;
 import com.zoltran.pool.ObjectPool;
 import com.zoltran.pool.SmartObjectPool;
 import java.util.ArrayList;
@@ -125,7 +126,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     }
 
     @Override
-    public void dispose() throws InterruptedException, TimeoutException {
+    public void dispose() throws ObjectDisposeException {
         lock.lock();
         try {
             maxSize = 0;
@@ -139,12 +140,14 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                     }
                     disposeReturnedObjects();
             }                     
+        } catch (Exception e) {
+          throw new ObjectDisposeException(e);  
         } finally {
             lock.unlock();
         }
     }
 
-    private void disposeReturnedObjects() throws TimeoutException, InterruptedException {
+    private void disposeReturnedObjects() throws ObjectDisposeException {
         for (T obj : returnedObjects) {
             factory.dispose(obj);
         }
@@ -152,7 +155,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     }
 
     @Override
-    public boolean scan(ScanHandler<T> handler)
+    public boolean scan(ScanHandler<T> handler) throws Exception
     {
         lock.lock();
         try {

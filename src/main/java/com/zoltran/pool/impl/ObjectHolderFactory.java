@@ -21,10 +21,10 @@
 package com.zoltran.pool.impl;
 
 import com.zoltran.pool.ObjectCreationException;
+import com.zoltran.pool.ObjectDisposeException;
 import com.zoltran.pool.ObjectPool;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.TimeoutException;
 
 /**
  *
@@ -62,15 +62,17 @@ public class ObjectHolderFactory<T> implements ObjectPool.Factory<ObjectHolder<T
     }
 
     @Override
-    public void dispose(ObjectHolder<T> object) throws TimeoutException, InterruptedException
+    public void dispose(ObjectHolder<T> object) throws ObjectDisposeException
     {
-       object.dispose();
+       if (!object.disposeIfNotBorrowed()) {
+           throw new RuntimeException("Object from holder is borrowed " + object);
+       }
     }
 
     @Override
-    public boolean validate(ObjectHolder<T> object, Exception e)
+    public Exception validate(ObjectHolder<T> object, Exception e)
     {
-        return true;
+        return null;
     }
     
 }

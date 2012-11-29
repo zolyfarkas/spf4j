@@ -21,7 +21,9 @@ package com.zoltran.pool.impl;
 
 import com.zoltran.pool.ObjectBorower;
 import com.zoltran.pool.ObjectCreationException;
+import com.zoltran.pool.ObjectDisposeException;
 import com.zoltran.pool.ObjectPool;
+import com.zoltran.pool.ObjectReturnException;
 import com.zoltran.pool.SmartObjectPool;
 import java.util.Collection;
 import java.util.HashMap;
@@ -63,18 +65,20 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
     {
         T object;
         ObjectHolder<T> objectHolder;
-        if (localObjects.isEmpty()) {
-            objectHolder = globalPool.borrowObject(this);
-        } else {
-            objectHolder = localObjects.remove();
-        }
-        object = objectHolder.borrowObject();
+        do {
+            if (localObjects.isEmpty()) {
+                objectHolder = globalPool.borrowObject(this);
+            } else {
+                objectHolder = localObjects.remove();
+            }
+            object = objectHolder.borrowOrCreateObjectIfPossible();
+        } while (object == null);
         borrowedObjects.put(object, objectHolder);
         return object;
     }
 
     @Override
-    public synchronized void returnObject(T object, Exception e) throws TimeoutException, InterruptedException
+    public synchronized void returnObject(T object, Exception e) throws ObjectReturnException, ObjectDisposeException
     {
         ObjectHolder holder = borrowedObjects.remove(object);
         if (holder == null) {
@@ -90,13 +94,13 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
     }
 
     @Override
-    public void dispose() throws TimeoutException, InterruptedException
+    public void dispose() throws ObjectDisposeException
     {
         throw new UnsupportedOperationException("LocalPool dispose is not supported");
     }
 
     @Override
-    public synchronized boolean scan(ScanHandler<ObjectHolder<T>> handler)
+    public synchronized boolean scan(ScanHandler<ObjectHolder<T>> handler) throws Exception
     {
         for (ObjectHolder<T> object : localObjects) {
             if (!handler.handle(object)) {
