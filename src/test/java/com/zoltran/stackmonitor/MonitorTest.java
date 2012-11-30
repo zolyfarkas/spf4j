@@ -24,12 +24,22 @@ public class MonitorTest {
     @BeforeClass
     public static void init() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
             public void uncaughtException(Thread t, Throwable e) {
                 StringWriter strw = new StringWriter();
                 e.printStackTrace(new PrintWriter(strw));
                 Assert.fail("Got Exception: " + strw.toString());
             }
         });
+    }
+    
+
+    @Test
+    @Ignore
+    public void testError() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, InterruptedException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
+        String report = File.createTempFile("stackSample", ".html").getPath();
+        Monitor.main(new String[]{"-ASDF","-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
+        System.out.println(report);
     }
     
     
@@ -54,7 +64,7 @@ public class MonitorTest {
     @Ignore
     public void testApp2() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException {
         String report = File.createTempFile("stackSampleSimple", ".html").getPath();
-        Monitor.main(new String[]{"-simple" ,"-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
+        Monitor.main(new String[]{"-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
         System.out.println(report);
     }
     

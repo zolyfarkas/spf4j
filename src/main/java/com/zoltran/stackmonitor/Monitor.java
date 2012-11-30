@@ -24,27 +24,28 @@ public class Monitor {
     
     private static class Options {
 
-        @Option(name = "-f", usage = "output to this file the perf report")
+        @Option(name = "-f", usage = "output to this file the perf report, format is HTML")
         private String reportOut;
         @Option(name = "-main", usage = "the main class name", required = true)
         private String mainClass;
-        @Option(name = "-si", usage = "the stack sampling interval")
+        @Option(name = "-si", usage = "the stack sampling interval in milliseconds")
         private int sampleInterval = 100;
-        @Option(name = "-w", usage = "flame chart width")
+        @Option(name = "-w", usage = "flame chart width in pixels")
         private int chartWidth = 2000;
         @Option(name = "-md", usage = "maximum stack trace depth")
         private int maxDepth = Integer.MAX_VALUE;
-        @Option(name = "-ss", usage = "start the stack sampler")
+        @Option(name = "-ss", usage = "start the stack sampling thread. (can also be done manually via jmx)")
         private boolean startSampler = false;
-        @Option(name = "-simple", usage = "start the stack sampler with simple stack sampling")
-        private boolean simpleCollector = false;
         @Option(name = "-nosvg", usage = "stack visualization will be in svg format")
         private boolean noSvgReport = false;
         
     }
     private static volatile boolean generatedAndDisposed;
 
-    public static void main(String[] args) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException {
+    public static void main(String[] args) throws ClassNotFoundException, NoSuchMethodException,
+            IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, 
+            MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, 
+            NotCompliantMBeanException, InterruptedException {
 
         generatedAndDisposed = false;
         
@@ -68,18 +69,19 @@ public class Monitor {
         }
         Options options = new Options();
         CmdLineParser parser = new CmdLineParser(options);
-        parser.parseArgument(ownArgs);
+        try {
+            parser.parseArgument(ownArgs);
+        } catch (CmdLineException e) {
+            System.err.println("Error: " + e.getMessage() + "\nUsage:");
+            parser.printUsage(System.err);
+            System.exit(1);
+        }
         final String reportOut = options.reportOut;
         final int chartWidth = options.chartWidth;
         final int maxDepth = options.maxDepth;
         final boolean svgReport = !options.noSvgReport;
 
-        final Sampler sampler;
-        if (options.simpleCollector) {
-            sampler = new Sampler(options.sampleInterval, new SimpleStackCollector());
-        } else {
-            sampler = new Sampler(options.sampleInterval);
-        }
+        final Sampler sampler = new Sampler(options.sampleInterval, new SimpleStackCollector());
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
