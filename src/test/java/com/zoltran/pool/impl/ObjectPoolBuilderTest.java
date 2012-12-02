@@ -4,8 +4,13 @@
  */
 package com.zoltran.pool.impl;
 
+import com.zoltran.pool.ObjectBorrowException;
+import com.zoltran.pool.ObjectCreationException;
+import com.zoltran.pool.ObjectDisposeException;
 import com.zoltran.pool.ObjectPool;
+import com.zoltran.pool.ObjectReturnException;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeoutException;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -19,81 +24,15 @@ public class ObjectPoolBuilderTest {
      * Test of build method, of class ObjectPoolBuilder.
      */
     @Test
-    public void testBuild() {
+    public void testBuild() throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException {
         System.out.println("build");
         ObjectPool<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory()).build();
-        fail("The test case is a prototype.");
+        System.out.println(pool);
+        ExpensiveTestObject object = pool.borrowObject();
+        System.out.println(pool);
+        pool.returnObject(object, null);
+        System.out.println(pool);
+        
     }
-    
-    
-    @Test
-    public void testUnfair() {
-        System.out.println("unfair");
-        ObjectPoolBuilder instance = null;
-        ObjectPoolBuilder expResult = null;
-        ObjectPoolBuilder result = instance.unfair();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of withOperationTimeout method, of class ObjectPoolBuilder.
-     */
-    @Test
-    public void testWithOperationTimeout() {
-        System.out.println("withOperationTimeout");
-        long timeoutMillis = 0L;
-        ObjectPoolBuilder instance = null;
-        ObjectPoolBuilder expResult = null;
-        ObjectPoolBuilder result = instance.withOperationTimeout(timeoutMillis);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of withMaintenance method, of class ObjectPoolBuilder.
-     */
-    @Test
-    public void testWithMaintenance() {
-        System.out.println("withMaintenance");
-        ScheduledExecutorService exec = null;
-        long maintenanceInterval = 0L;
-        ObjectPoolBuilder instance = null;
-        ObjectPoolBuilder expResult = null;
-        ObjectPoolBuilder result = instance.withMaintenance(exec, maintenanceInterval);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of withBorrowHook method, of class ObjectPoolBuilder.
-     */
-    @Test
-    public void testWithBorrowHook() {
-        System.out.println("withBorrowHook");
-        ObjectPoolBuilder instance = null;
-        ObjectPoolBuilder expResult = null;
-        ObjectPoolBuilder result = instance.withBorrowHook(null);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of withReturnHook method, of class ObjectPoolBuilder.
-     */
-    @Test
-    public void testWithReturnHook() {
-        System.out.println("withReturnHook");
-        ObjectPoolBuilder instance = null;
-        ObjectPoolBuilder expResult = null;
-        ObjectPoolBuilder result = instance.withReturnHook(null);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
+  
 }

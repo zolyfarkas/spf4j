@@ -56,5 +56,12 @@ public class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<ObjectHol
     public boolean scan(final ScanHandler<ObjectHolder<T>> handler) throws Exception {
         return globalPool.scan(handler);
     }
+
+    @Override
+    public String toString() {
+        return "ScalableObjectPool{" + "globalPool=" + globalPool + '}';
+    }
+    
+    
     
 }

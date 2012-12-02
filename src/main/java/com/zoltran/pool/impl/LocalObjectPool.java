@@ -133,7 +133,7 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
     }
 
     @Override
-    public Collection<ObjectHolder<T>> returnObjectsIfNotNeeded()
+    public synchronized Collection<ObjectHolder<T>> returnObjectsIfNotNeeded()
     {
         if (!thread.isAlive()) {
             if (!borrowedObjects.isEmpty()) {
@@ -143,6 +143,13 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
         }
         return null;
     }
+
+    @Override
+    public synchronized String toString() {
+        return "LocalObjectPool{" + "localObjects=" + localObjects + ", borrowedObjects=" + borrowedObjects + ", reqReturnObjects=" + reqReturnObjects + ", thread=" + thread + '}';
+    }
+    
+    
     
     
 }
