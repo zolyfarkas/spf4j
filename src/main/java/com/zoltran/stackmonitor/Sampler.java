@@ -113,9 +113,9 @@ public class Sampler implements SamplerMBean {
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
-                        SampleNode finput = input.filteredByLeaf(WaitMethodClassifier.INSTANCE);
+                        SampleNode finput = input;
                         try {
-                            writer.append("<h1>CPU stats</h1>");
+                            writer.append("<h1>Total stats</h1>");
                             StackVisualizer.generateHtmlTable(writer, Method.ROOT, finput, chartWidth, maxDepth);
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
@@ -131,9 +131,9 @@ public class Sampler implements SamplerMBean {
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
-                        SampleNode finput = input.filteredByLeaf(Predicates.not(WaitMethodClassifier.INSTANCE));
+                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);
                         try {
-                            writer.append("<h1>WAIT stats</h1>");
+                            writer.append("<h1>CPU stats</h1>");
                             StackVisualizer.generateHtmlTable(writer, Method.ROOT, finput, chartWidth, maxDepth);
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
@@ -221,7 +221,7 @@ public class Sampler implements SamplerMBean {
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
-                        SampleNode finput = input.filteredByLeaf(WaitMethodClassifier.INSTANCE);
+                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);
                         try {
                             StackVisualizer.generateSvg(writer, Method.ROOT, finput,0,0 ,chartWidth, maxDepth, "a");
                         } catch (IOException ex) {
@@ -295,7 +295,7 @@ public class Sampler implements SamplerMBean {
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
-                        SampleNode finput = input.filteredByLeaf(WaitMethodClassifier.INSTANCE);
+                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);
                         if (finput != null) {
                             try {
                                 writer.append("<h1>CPU stats</h1>");

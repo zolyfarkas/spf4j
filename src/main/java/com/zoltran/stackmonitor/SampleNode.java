@@ -84,7 +84,7 @@ public class SampleNode {
     }
     
     @Nullable
-    public SampleNode filteredByLeaf(Predicate<Method> predicate) {
+    public SampleNode filteredBy(Predicate<Method> predicate) {
         
         int newCount = this.sampleCount;
         
@@ -93,13 +93,13 @@ public class SampleNode {
             for (Map.Entry<Method, SampleNode> entry:  this.subNodes.entrySet()) {
                 Method method = entry.getKey();
                 SampleNode sn = entry.getValue();
-                if (predicate.apply(method) && sn.height() == 1)  {
+                if (predicate.apply(method))  {
                     newCount -= sn.getSampleCount();
                 } else {
                     if (sns == null) {
                         sns = new HashMap<Method, SampleNode>();
                     }
-                    SampleNode sn2 = sn.filteredByLeaf(predicate);
+                    SampleNode sn2 = sn.filteredBy(predicate);
                     if (sn2 == null) {
                         newCount -= sn.getSampleCount();
                     } else {

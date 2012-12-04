@@ -32,7 +32,7 @@ public class DemoTest {
     @Test
     public void testJmx() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, InterruptedException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
         String report = File.createTempFile("stackSampleDemo", ".html").getPath();
-        Monitor.main(new String[]{"-simple","-f",report, "-ss", "-si", "1", "-w","600", "-main", DemoTest.class.getName()});
+        Monitor.main(new String[]{"-f",report, "-ss", "-si", "1", "-w","600", "-main", DemoTest.class.getName()});
         System.out.println(report);
     }
     

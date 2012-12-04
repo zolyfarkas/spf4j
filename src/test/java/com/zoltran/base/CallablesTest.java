@@ -20,13 +20,8 @@
 package com.zoltran.base;
 
 import java.util.concurrent.Callable;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -78,7 +73,7 @@ public class CallablesTest
                     
                 return 1;
             }
-        }, 3, 10, 10);
+        }, 1, 10, 10);
         long elapsedTime = System.currentTimeMillis() - startTime;
        Assert.assertEquals(1L, result.longValue());
        Assert.assertTrue("Operation has to take at least 10 ms", elapsedTime > 10L);
