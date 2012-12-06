@@ -58,6 +58,9 @@ public class StackVisualizer {
     }
 
     public static void generateSvg(Writer writer, Method m, SampleNode node, int x, int y, int width, int maxDepth, String idPfx) throws IOException {
+        if (width < 200) {
+            throw new IllegalArgumentException("width must be greater than 200, it is " + width);
+        }
         writer.append("<svg width=\"" + width + "\" height= \"" + (15 * node.height() + 15) + "\" onload=\"" + idPfx + "init(evt)\" >\n");
         writer.append("<script type=\"text/ecmascript\">\n"
                 + "<![CDATA[\n"

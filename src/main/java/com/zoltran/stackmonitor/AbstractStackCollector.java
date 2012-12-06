@@ -55,7 +55,9 @@ public abstract class AbstractStackCollector implements StackCollector {
     }
 
     public int getNrNodes() {
-        return nrNodes;
+        synchronized (sampleSync) {
+            return nrNodes;
+        }
     }
 
     

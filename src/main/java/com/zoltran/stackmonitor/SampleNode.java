@@ -112,7 +112,10 @@ public class SampleNode {
         }
         if (newCount == 0) {
             return null;
-        } else {
+        } else if  (newCount <0 ) {
+            throw new IllegalStateException("child sample counts must be <= parent sample count, detail: " + this);
+        }
+        else {
             return new SampleNode(newCount, sns);
         }
     }
