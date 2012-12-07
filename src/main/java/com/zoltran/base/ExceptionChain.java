@@ -39,7 +39,6 @@ public class ExceptionChain {
 
     static {
         try {
-            Class clasz = Throwable.class;
             field = Throwable.class.getDeclaredField("cause");
         } catch (NoSuchFieldException ex) {
             throw new RuntimeException(ex);
