@@ -17,6 +17,7 @@
  */
 package com.zoltran.pool.impl;
 
+import com.zoltran.pool.ObjectCreationException;
 import com.zoltran.pool.ObjectDisposeException;
 import com.zoltran.pool.ObjectPool;
 import com.zoltran.pool.Scanable;
@@ -39,12 +40,14 @@ public class ObjectPoolBuilder<T> {
     private long maintenanceInterval;
     private ObjectPool.Hook<T> borrowHook;
     private ObjectPool.Hook<T> returnHook;
+    private int initialSize;
 
     public ObjectPoolBuilder(int maxSize, ObjectPool.Factory<T> factory) {
         this.fair = true;
         this.timeoutMillis = 60000;
         this.maxSize = maxSize;
         this.factory = factory;
+        this.initialSize = 0;
     }
 
     public ObjectPoolBuilder<T> unfair() {
@@ -52,6 +55,11 @@ public class ObjectPoolBuilder<T> {
         return this;
     }
 
+    public ObjectPoolBuilder<T> withInitialSize(int initialSize) {
+        this.initialSize = initialSize;
+        return this;
+    }
+    
     public ObjectPoolBuilder<T> withOperationTimeout(long timeoutMillis) {
         this.timeoutMillis = timeoutMillis;
         return this;
@@ -74,8 +82,8 @@ public class ObjectPoolBuilder<T> {
         return this;
     }
 
-    public ObjectPool<T> build() {
-        ObjectPool<T> pool = new ScalableObjectPool<T>(maxSize, factory, timeoutMillis, fair);
+    public ObjectPool<T> build() throws ObjectCreationException {
+        ObjectPool<T> pool = new ScalableObjectPool<T>(initialSize, maxSize, factory, timeoutMillis, fair);
         if (borrowHook != null || returnHook != null) {
             pool = new ObjectPoolWrapper<T>(pool, borrowHook, returnHook);
         }

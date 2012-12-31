@@ -1,6 +1,19 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package com.zoltran.pool.impl;
 
@@ -27,18 +40,21 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
 
     private int maxSize;
     private final LinkedHashMultimap<ObjectBorower<T>, T> borrowedObjects = LinkedHashMultimap.create();
-    private final List<T> returnedObjects = new ArrayList<T>();
+    private final List<T> availableObjects = new ArrayList<T>();
     private final ReentrantLock lock;
     private final Condition available;
     private final ObjectPool.Factory<T> factory;
     private final long timeoutMillis;
 
-    public SimpleSmartObjectPool(int maxSize, ObjectPool.Factory<T> factory, long timeoutMillis, boolean fair) {
+    public SimpleSmartObjectPool(int initialSize, int maxSize, ObjectPool.Factory<T> factory, long timeoutMillis, boolean fair) throws ObjectCreationException {
         this.maxSize = maxSize;
         this.factory = factory;
         this.timeoutMillis = timeoutMillis;
         this.lock = new ReentrantLock(fair);
         this.available = this.lock.newCondition();
+        for (int i=0; i< initialSize; i++) {
+            availableObjects.add(factory.create());
+        }
     }
 
     @Override
@@ -46,8 +62,8 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
             TimeoutException, ObjectCreationException {
         lock.lock();
         try {
-            if (returnedObjects.size() > 0) {
-                Iterator<T> it = returnedObjects.iterator();
+            if (availableObjects.size() > 0) {
+                Iterator<T> it = availableObjects.iterator();
                 T object = it.next();
                 it.remove();
                 borrowedObjects.put(borower, object);
@@ -89,12 +105,12 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                     borrowedObjects.put(borower, object);
                     return object;
                 }
-                while (returnedObjects.isEmpty()) {
+                while (availableObjects.isEmpty()) {
                     if (!available.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
                         throw new TimeoutException("Object wait timeout expired " + timeoutMillis);
                     }
                 }
-                Iterator<T> it = returnedObjects.iterator();
+                Iterator<T> it = availableObjects.iterator();
                 object = it.next();
                 it.remove();
                 borrowedObjects.put(borower, object);
@@ -110,7 +126,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         lock.lock();
         try {
             borrowedObjects.remove(borower, object);
-            returnedObjects.add(object);
+            availableObjects.add(object);
             available.signalAll();
         } finally {
             lock.unlock();
@@ -140,10 +156,10 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     }
 
     private void disposeReturnedObjects() throws ObjectDisposeException {
-        for (T obj : returnedObjects) {
+        for (T obj : availableObjects) {
             factory.dispose(obj);
         }
-        returnedObjects.clear();
+        availableObjects.clear();
     }
 
     @Override
@@ -162,12 +178,12 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                             if (!borrowedObjects.remove(objectBorower, ro)) {
                                 throw new IllegalStateException("Object returned hasn't been borrowed" + ro);
                             }
-                            returnedObjects.add(ro);
+                            availableObjects.add(ro);
                         }
                     }
                 }
             }
-            for (T object : returnedObjects) {
+            for (T object : availableObjects) {
                 if (!handler.handle(object)) {
                     return false;
                 }
@@ -182,7 +198,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     public String toString() {
         lock.lock();
         try {
-            return "SimpleSmartObjectPool{" + "maxSize=" + maxSize + ", borrowedObjects=" + borrowedObjects + ", returnedObjects=" + returnedObjects + ", factory=" + factory + ", timeoutMillis=" + timeoutMillis + '}';
+            return "SimpleSmartObjectPool{" + "maxSize=" + maxSize + ", borrowedObjects=" + borrowedObjects + ", returnedObjects=" + availableObjects + ", factory=" + factory + ", timeoutMillis=" + timeoutMillis + '}';
         } finally {
             lock.unlock();
         }

@@ -101,7 +101,23 @@ public class Callables
        return executeWithRetry(what, new RetryPause(nrImmediateRetries, nrTotalRetries, retryWaitMillis),
                NORETRY_FOR_RESULT, RETRY_FOR_ANY_EXCEPTION);
     }
-      
+     
+    /**
+     * Naive implementation of execution with retry logic.
+     * a callable will be executed and retry attempted in current thread,
+     * a number of immediate retries, and a number of delayed retries.
+     * the immediate retries should take advantage of redundancy of a particular service,
+     * while the delayed retries should deal with a complete service outage.
+     * The reason why I call this implementation naive is because this can cause
+     * the current thread to sleep instead of doing other work.
+     * 
+     * @param what
+     * @param doBeforeRetry
+     * @param retryOnReturnVal
+     * @param retryOnException
+     * @return
+     * @throws InterruptedException 
+     */
     public static <T> T executeWithRetry(Callable<T> what, Callable<Boolean> doBeforeRetry, 
             Predicate<? super T> retryOnReturnVal, Predicate<Exception> retryOnException) 
             throws InterruptedException
