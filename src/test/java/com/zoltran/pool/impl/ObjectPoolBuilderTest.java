@@ -17,22 +17,28 @@
  */
 package com.zoltran.pool.impl;
 
+import com.google.common.base.Throwables;
 import com.zoltran.pool.ObjectBorrowException;
 import com.zoltran.pool.ObjectCreationException;
 import com.zoltran.pool.ObjectDisposeException;
 import com.zoltran.pool.ObjectPool;
 import com.zoltran.pool.ObjectReturnException;
 import com.zoltran.pool.Template;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -63,16 +69,32 @@ public class ObjectPoolBuilderTest {
         final ObjectPool<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory()).build();
      
         ExecutorService exec = Executors.newFixedThreadPool(10);
-        CompletionService cs = new ExecutorCompletionService(exec);
-        final ConcurrentMap<Future<Integer>, Integer> retryCounts = new ConcurrentHashMap<Future<Integer>, Integer>();
+        final CompletionService<Integer> cs = new ExecutorCompletionService(exec);
+        final ConcurrentMap<Future<Integer>, Integer> futureToTask = new ConcurrentHashMap<Future<Integer>, Integer>();
+        
+        for (int i=0; i<1000; i++) {
+            Future<Integer> future = cs.submit(new TestCallable(pool, i));
+            futureToTask.put(future, i);
+        }        
         
         Thread completionManager = new Thread(new Runnable (){
 
+            Map<Integer, Integer> failureCounts = new HashMap<Integer, Integer>();
+            
             @Override
             public void run() {
+               try {
                while (true) {
-                   
+                   Future<Integer> taskFuture = cs.take();
+                       try {
+                           Integer taskNr = taskFuture.get();
+                       } catch (ExecutionException ex) {
+                           
+                       }
                }
+               } catch (InterruptedException e) {
+                   System.err.println("Interrupted:" + Throwables.getStackTraceAsString(e));
+               } 
             }
         });
         
@@ -93,7 +115,8 @@ public class ObjectPoolBuilderTest {
         }
         
         @Override
-        public Integer call() throws Exception {
+        public Integer call() throws ObjectCreationException, ObjectBorrowException,
+        InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException{
             Template.doOnPooledObject(new ObjectPool.Hook<ExpensiveTestObject> () {
 
                 @Override
