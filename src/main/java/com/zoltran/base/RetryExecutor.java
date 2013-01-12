@@ -4,6 +4,7 @@
  */
 package com.zoltran.base;
 
+import com.google.common.base.Predicate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -37,6 +38,7 @@ public class RetryExecutor implements ExecutorService {
     private final int nrTotalRetries;
     private final long delayMillis;
     private RetryManager retryManager;
+    private final Predicate<Exception> retryException;
 
     private synchronized void startRetryManager() {
         if (this.retryManager == null) {
@@ -68,7 +70,8 @@ public class RetryExecutor implements ExecutorService {
         private final long delay;
         private final boolean isExecution;
 
-        public FailedExecutionResult(ExecutionException exception, FutureBean future, Callable callable, long delay, boolean isExecution) {
+        public FailedExecutionResult(ExecutionException exception, FutureBean future, 
+                Callable callable, long delay, boolean isExecution) {
             this.exception = exception;
             this.future = future;
             this.callable = callable;
@@ -161,8 +164,12 @@ public class RetryExecutor implements ExecutorService {
                 }
                 return null;
             } catch (Exception e) {
-                startRetryManager();
-                executionEvents.add(new FailedExecutionResult(new ExecutionException(e), future, callable, 0, false));
+                if (retryException.apply(e)) {
+                    startRetryManager();
+                    executionEvents.add(new FailedExecutionResult(new ExecutionException(e), future, callable, 0, false));
+                } else {
+                    future.setExceptionResult(new ExecutionException(e));
+                }
                 return null;
             }
         }
@@ -228,13 +235,14 @@ public class RetryExecutor implements ExecutorService {
     }
 
     public RetryExecutor(ExecutorService exec, int nrImmediateRetries,
-            int nrTotalRetries, long delayMillis) {
+            int nrTotalRetries, long delayMillis,  Predicate<Exception> retryException) {
         executionService = exec;
         executionAttempts = new ConcurrentHashMap<Callable<? extends Object>, Pair<Integer, ExecutionException>>();
         this.nrImmediateRetries = nrImmediateRetries;
         this.nrTotalRetries = nrTotalRetries;
         this.delayMillis = delayMillis;
         this.exec = exec;
+        this.retryException = retryException;
     }
 
     @Override

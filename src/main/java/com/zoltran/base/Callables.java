@@ -107,7 +107,7 @@ public class Callables
      * a callable will be executed and retry attempted in current thread,
      * a number of immediate retries, and a number of delayed retries.
      * the immediate retries should take advantage of redundancy of a particular service,
-     * while the delayed retries should deal with a complete service outage.
+     * while the delayed retries should deal with a temporary service outage.
      * The reason why I call this implementation naive is because this can cause
      * the current thread to sleep instead of doing other work.
      * 
