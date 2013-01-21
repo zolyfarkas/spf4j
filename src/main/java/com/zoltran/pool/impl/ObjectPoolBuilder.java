@@ -30,7 +30,7 @@ import java.util.logging.Logger;
  *
  * @author zoly
  */
-public class ObjectPoolBuilder<T> {
+public class ObjectPoolBuilder<T,E extends Exception> {
 
     private int maxSize;
     private ObjectPool.Factory<T> factory;
@@ -38,8 +38,8 @@ public class ObjectPoolBuilder<T> {
     private boolean fair;
     private ScheduledExecutorService maintenanceExecutor;
     private long maintenanceInterval;
-    private ObjectPool.Hook<T> borrowHook;
-    private ObjectPool.Hook<T> returnHook;
+    private ObjectPool.Hook<T,E> borrowHook;
+    private ObjectPool.Hook<T,E> returnHook;
     private int initialSize;
 
     public ObjectPoolBuilder(int maxSize, ObjectPool.Factory<T> factory) {
@@ -50,34 +50,34 @@ public class ObjectPoolBuilder<T> {
         this.initialSize = 0;
     }
 
-    public ObjectPoolBuilder<T> unfair() {
+    public ObjectPoolBuilder<T,E> unfair() {
         this.fair = false;
         return this;
     }
 
-    public ObjectPoolBuilder<T> withInitialSize(int initialSize) {
+    public ObjectPoolBuilder<T,E> withInitialSize(int initialSize) {
         this.initialSize = initialSize;
         return this;
     }
     
-    public ObjectPoolBuilder<T> withOperationTimeout(long timeoutMillis) {
+    public ObjectPoolBuilder<T,E> withOperationTimeout(long timeoutMillis) {
         this.timeoutMillis = timeoutMillis;
         return this;
     }
 
-    public ObjectPoolBuilder<T> withMaintenance(ScheduledExecutorService exec,
+    public ObjectPoolBuilder<T,E> withMaintenance(ScheduledExecutorService exec,
             long maintenanceInterval) {
         this.maintenanceExecutor = exec;
         this.maintenanceInterval = maintenanceInterval;
         return this;
     }
 
-    public ObjectPoolBuilder<T> withBorrowHook(ObjectPool.Hook<T> hook) {
+    public ObjectPoolBuilder<T,E> withBorrowHook(ObjectPool.Hook<T,E> hook) {
         this.borrowHook = hook;
         return this;
     }
 
-    public ObjectPoolBuilder<T> withReturnHook(ObjectPool.Hook<T> hook) {
+    public ObjectPoolBuilder<T, E> withReturnHook(ObjectPool.Hook<T, E> hook) {
         this.returnHook = hook;
         return this;
     }

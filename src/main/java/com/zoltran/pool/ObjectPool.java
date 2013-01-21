@@ -61,9 +61,9 @@ public interface ObjectPool<T>  extends Disposable {
             throws ObjectReturnException, ObjectDisposeException;
     
         
-    public interface Hook<T> {
+    public interface Hook<T, E extends Exception> {
         
-        void handle(T object) throws Exception;
+        void handle(T object) throws E;
         
     }
     

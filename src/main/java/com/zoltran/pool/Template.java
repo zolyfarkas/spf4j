@@ -21,16 +21,18 @@
 package com.zoltran.pool;
 
 import com.zoltran.base.Callables;
+import java.lang.reflect.ParameterizedType;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 
-public class Template<T>
+public class Template<T, E extends Exception>
 {
 
     private final ObjectPool<T> pool;
     private final int nrImmediateRetries;
     private final int nrTotalRetries;
     private final int retryWaitMillis;
+    private final Class<E> exceptionClasz;
 
     public Template(ObjectPool<T> pool, int nrImmediateRetries, int nrTotalRetries, int retryWaitMillis)
     {
@@ -38,18 +40,20 @@ public class Template<T>
         this.nrImmediateRetries = nrImmediateRetries;
         this.nrTotalRetries = nrTotalRetries;
         this.retryWaitMillis = retryWaitMillis;
+        exceptionClasz = (Class<E>) ((ParameterizedType) getClass()
+                            .getGenericSuperclass()).getActualTypeArguments()[0];
     }
     
 
 
-    public void doOnPooledObject(final ObjectPool.Hook<T> handler)
+    public void doOnPooledObject(final ObjectPool.Hook<T, E> handler)
             throws ObjectCreationException, InterruptedException, TimeoutException
     {
         Callables.executeWithRetry(new Callable<Void>() { 
             @Override
             public Void call() throws Exception
             {
-                doOnPooledObject(handler, pool);
+                doOnPooledObject(handler, pool, exceptionClasz);
                 return null;
             }
         }, nrImmediateRetries, nrTotalRetries, retryWaitMillis);
@@ -57,8 +61,8 @@ public class Template<T>
     }
     
     
-    public static <T> void doOnPooledObject(ObjectPool.Hook<T> handler, ObjectPool<T> pool) throws ObjectCreationException, ObjectBorrowException, 
-            InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException         
+    public static <T, E extends Exception> void doOnPooledObject(ObjectPool.Hook<T, E> handler, ObjectPool<T> pool, Class<E> clasz) throws ObjectCreationException, ObjectBorrowException, 
+            InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, E         
     {
         T object = pool.borrowObject();
         try {
@@ -69,7 +73,11 @@ public class Template<T>
             throw e;
         } catch (Exception e) {
             pool.returnObject(object, e);
-            throw new RuntimeException(e);
+            if (clasz.isInstance(e)) {
+                throw clasz.cast(e);
+            } else {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

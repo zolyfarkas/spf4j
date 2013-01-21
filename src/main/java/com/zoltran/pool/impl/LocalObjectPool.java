@@ -145,7 +145,7 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
     }
 
     @Override
-    public synchronized String toString() {
+    public String toString() {
         return "LocalObjectPool{" + "localObjects=" + localObjects + ", borrowedObjects=" + borrowedObjects + ", reqReturnObjects=" + reqReturnObjects + ", thread=" + thread + '}';
     }
     

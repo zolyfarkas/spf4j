@@ -50,7 +50,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         this.maxSize = maxSize;
         this.factory = factory;
         this.timeoutMillis = timeoutMillis;
-        this.lock = new ReentrantLock(fair);
+        this.lock = new ReentrantLock(true);
         this.available = this.lock.newCondition();
         for (int i=0; i< initialSize; i++) {
             availableObjects.add(factory.create());
@@ -198,7 +198,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     public String toString() {
         lock.lock();
         try {
-            return "SimpleSmartObjectPool{" + "maxSize=" + maxSize + ", borrowedObjects=" + borrowedObjects + ", returnedObjects=" + availableObjects + ", factory=" + factory + ", timeoutMillis=" + timeoutMillis + '}';
+            return "SimpleSmartObjectPool{" + "maxSize=" + maxSize + ", borrowedObjects=" + borrowedObjects.values() + ", returnedObjects=" + availableObjects + ", factory=" + factory + ", timeoutMillis=" + timeoutMillis + '}';
         } finally {
             lock.unlock();
         }
