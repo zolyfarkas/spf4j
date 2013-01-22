@@ -27,11 +27,24 @@ import javax.annotation.Nullable;
 public interface ObjectBorower<T> extends Scanable<T>
 {
     
-    @Nullable
-    T requestReturnObject();
+    public Object REQUEST_MADE= new Object(); 
+    
+    /**
+     * Non Blocking method.
+     * @return null if request was not made, the object of available, 
+     * or REQUEST_MADE if request could be made to return Object.
+     */
     
     @Nullable
-    T returnObjectIfAvailable() throws InterruptedException;
+    Object requestReturnObject();
+    
+    /**
+     * Non Blocking method.
+     * @return null or the object if available.
+     * @throws InterruptedException 
+     */
+    @Nullable
+    T returnObjectIfAvailable();
     
     @Nullable
     Collection<T> returnObjectsIfNotNeeded();

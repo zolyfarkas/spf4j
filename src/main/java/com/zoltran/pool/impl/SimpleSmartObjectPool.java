@@ -88,23 +88,29 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                         }
                     }
                 }
-                Iterator<ObjectBorower<T>> itt = borrowedObjects.keySet().iterator();
-                ObjectBorower<T> b = itt.next();
-                while (b == borower && itt.hasNext()) {
-                    b = itt.next();
-                }
-                if (b == borower) {
-                    throw new IllegalStateException("Borrower " + b + " already has "
-                            + "max number of pool objects");
-                }
-                T object = b.requestReturnObject();
-                if (object != null) {
-                    if (!borrowedObjects.remove(b, object)) {
-                        throw new IllegalStateException("Returned Object hasn't been borrowed " + object);
+                Object object;
+                do {
+                    Iterator<ObjectBorower<T>> itt = borrowedObjects.keySet().iterator();
+                    ObjectBorower<T> b = itt.next();
+                    while (b == borower && itt.hasNext()) {
+                        b = itt.next();
                     }
-                    borrowedObjects.put(borower, object);
-                    return object;
-                }
+                    if (b == borower) {
+                        throw new IllegalStateException("Borrower " + b + " already has "
+                                + "max number of pool objects");
+                    }
+                    do {
+                        object = b.requestReturnObject();
+                        if (object != null && object != ObjectBorower.REQUEST_MADE ) {
+                            if (!borrowedObjects.remove(b, object)) {
+                                throw new IllegalStateException("Returned Object hasn't been borrowed " + object);
+                            }
+                            borrowedObjects.put(borower, (T)object);
+                            return (T)object;
+                        }
+                    } while (object != ObjectBorower.REQUEST_MADE && (itt.hasNext() && ((b = itt.next()) != null )));
+                } while (object != ObjectBorower.REQUEST_MADE); 
+                
                 while (availableObjects.isEmpty()) {
                     if (!available.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
                         throw new TimeoutException("Object wait timeout expired " + timeoutMillis);
@@ -113,8 +119,9 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                 Iterator<T> it = availableObjects.iterator();
                 object = it.next();
                 it.remove();
-                borrowedObjects.put(borower, object);
-                return object;
+                borrowedObjects.put(borower, (T)object);
+                return (T)object;
+                
             }
         } finally {
             lock.unlock();

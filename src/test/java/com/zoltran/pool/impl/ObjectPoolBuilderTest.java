@@ -62,7 +62,7 @@ public class ObjectPoolBuilderTest {
     }
     
     
-    @Test
+    @Test(timeout=2000000)
     public void testPoolUse() throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException {
         System.out.println("poolUse");
         final ObjectPool<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory()).build();
@@ -103,7 +103,7 @@ public class ObjectPoolBuilderTest {
             try {
                 System.out.println("Task " + future.get() + " finished ");
             } catch (ExecutionException ex) {
-                System.out.println("Task " + future + " faild with " + ex);
+                System.out.println("Task " + future + " failed with " + ex);
                 ex.printStackTrace();
             }
         }

@@ -78,7 +78,7 @@ public class Template<T, E extends Exception>
             } else {
                 throw new RuntimeException(e);
             }
-        }
+        } 
     }
 }
 
