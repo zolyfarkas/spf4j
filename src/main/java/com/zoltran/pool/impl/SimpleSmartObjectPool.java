@@ -78,7 +78,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                 }
                 for (ObjectBorower<T> b : borrowedObjects.keySet()) {
                     if (borower != b) {
-                        T object = b.returnObjectIfAvailable();
+                        T object = b.returnObjectIfNotInUse();
                         if (object != null) {
                             if (!borrowedObjects.remove(b, object)) {
                                 throw new IllegalStateException("Returned Object hasn't been borrowed " + object);

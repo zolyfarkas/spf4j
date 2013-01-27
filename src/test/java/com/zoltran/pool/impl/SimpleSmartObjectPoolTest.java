@@ -69,7 +69,7 @@ public class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmartObjec
     }
 
     @Override
-    public TestObject returnObjectIfAvailable() {
+    public TestObject returnObjectIfNotInUse() {
         return borowedObject;
     }
 

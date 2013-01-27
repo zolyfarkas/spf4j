@@ -126,7 +126,7 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
         if (acquired) {
             lock.lock();
             try {
-                ObjectHolder<T> objectHolder = returnObjectIfAvailable();
+                ObjectHolder<T> objectHolder = returnObjectIfNotInUse();
                 if (objectHolder != null) {
                     return objectHolder;
                 } else {
@@ -142,7 +142,7 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
     }
 
     @Override
-    public ObjectHolder<T> returnObjectIfAvailable() {
+    public ObjectHolder<T> returnObjectIfNotInUse() {
         boolean acquired = lock.tryLock();
         if (acquired) {
             try {

@@ -44,7 +44,14 @@ public interface ObjectBorower<T> extends Scanable<T>
      * @throws InterruptedException 
      */
     @Nullable
-    T returnObjectIfAvailable();
+    T returnObjectIfNotInUse();
+    
+    /**
+     * This method is a cleanup method.
+     * The purpose is to recover all borrowed objects before once this borrower 
+     * will never use thema anymore...
+     * @return all objects borrowed
+     */
     
     @Nullable
     Collection<T> returnObjectsIfNotNeeded();
