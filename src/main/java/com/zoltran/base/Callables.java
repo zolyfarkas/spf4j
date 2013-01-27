@@ -22,6 +22,8 @@ package com.zoltran.base;
 import com.google.common.base.Predicate;
 import java.util.concurrent.Callable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for executing stuff with retry logic.
@@ -30,6 +32,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class Callables
 {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(Callables.class);
+    
     public static final Predicate<Object> NORETRY_FOR_RESULT =  new Predicate<Object> () {
 
         @Override
@@ -58,6 +63,7 @@ public class Callables
         @Override
         public boolean apply(Exception input)
         {
+            LOG.debug("Exception encountered, retrying...", input);
             return true;
         }        
     };
