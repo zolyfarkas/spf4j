@@ -18,6 +18,8 @@
 package com.zoltran.pool.impl;
 
 import com.google.common.collect.LinkedHashMultimap;
+import com.zoltran.base.ExceptionChain;
+import com.zoltran.base.Pair;
 import com.zoltran.pool.ObjectBorower;
 import com.zoltran.pool.ObjectCreationException;
 import com.zoltran.pool.ObjectDisposeException;
@@ -52,7 +54,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         this.timeoutMillis = timeoutMillis;
         this.lock = new ReentrantLock(true);
         this.available = this.lock.newCondition();
-        for (int i=0; i< initialSize; i++) {
+        for (int i = 0; i < initialSize; i++) {
             availableObjects.add(factory.create());
         }
     }
@@ -101,16 +103,16 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                     }
                     do {
                         object = b.requestReturnObject();
-                        if (object != null && object != ObjectBorower.REQUEST_MADE ) {
+                        if (object != null && object != ObjectBorower.REQUEST_MADE) {
                             if (!borrowedObjects.remove(b, object)) {
                                 throw new IllegalStateException("Returned Object hasn't been borrowed " + object);
                             }
-                            borrowedObjects.put(borower, (T)object);
-                            return (T)object;
+                            borrowedObjects.put(borower, (T) object);
+                            return (T) object;
                         }
-                    } while (object != ObjectBorower.REQUEST_MADE && (itt.hasNext() && ((b = itt.next()) != null )));
-                } while (object != ObjectBorower.REQUEST_MADE); 
-                
+                    } while (object != ObjectBorower.REQUEST_MADE && (itt.hasNext() && ((b = itt.next()) != null)));
+                } while (object != ObjectBorower.REQUEST_MADE);
+
                 while (availableObjects.isEmpty()) {
                     if (!available.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
                         throw new TimeoutException("Object wait timeout expired " + timeoutMillis);
@@ -119,9 +121,9 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                 Iterator<T> it = availableObjects.iterator();
                 object = it.next();
                 it.remove();
-                borrowedObjects.put(borower, (T)object);
-                return (T)object;
-                
+                borrowedObjects.put(borower, (T) object);
+                return (T) object;
+
             }
         } finally {
             lock.unlock();
@@ -145,15 +147,29 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         lock.lock();
         try {
             maxSize = 0;
+            List<Pair<ObjectBorower<T>,Object>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>,Object>>();
             for (ObjectBorower<T> b : borrowedObjects.keySet()) {
-                b.requestReturnObject();
+                Object object = b.requestReturnObject();
+                returnedObjects.add(new Pair(b,object));
             }
-            disposeReturnedObjects();
+            for (Pair<ObjectBorower<T>,Object> objectAndBorrower : returnedObjects) {
+                Object object = objectAndBorrower.getSecond();
+                if (object != null && object != ObjectBorower.REQUEST_MADE) {
+                    if (!borrowedObjects.remove(objectAndBorrower.getFirst(), object)) {
+                        throw new IllegalStateException("Returned Object hasn't been borrowed " + object);
+                    }
+                    availableObjects.add((T) object);
+                }
+            }         
+            ObjectDisposeException exception = disposeReturnedObjects(null);
             while (!borrowedObjects.isEmpty()) {
                 if (!available.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
                     throw new TimeoutException("Object wait timeout expired " + timeoutMillis);
                 }
-                disposeReturnedObjects();
+                disposeReturnedObjects(exception);
+            }
+            if (exception != null) {
+                throw exception;
             }
         } catch (Exception e) {
             throw new ObjectDisposeException(e);
@@ -162,11 +178,19 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         }
     }
 
-    private void disposeReturnedObjects() throws ObjectDisposeException {
+    private ObjectDisposeException disposeReturnedObjects(ObjectDisposeException exception) {
+        ObjectDisposeException result = exception;
         for (T obj : availableObjects) {
-            factory.dispose(obj);
+            try {
+                factory.dispose(obj);
+            } catch (ObjectDisposeException ex) {
+                result = ExceptionChain.chain(ex, result);
+            } catch (Exception ex) {
+                result = ExceptionChain.chain(new ObjectDisposeException(ex), result);
+            }
         }
         availableObjects.clear();
+        return result;
     }
 
     @Override

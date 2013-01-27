@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeoutException;
 import junit.framework.Assert;
 import org.junit.Test;
@@ -57,40 +58,79 @@ public class ObjectPoolBuilderTest {
         System.out.println(pool);       
     }
     
+ 
+        @Test(timeout=20000)
+    public void testPoolUseNoFailures() throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+        System.out.println("poolUse");
+        final ObjectPool<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory(1000000, 1000000, 1, 5)).build();
+        runTest(pool,0,10000);   
+        pool.dispose();
+    }
+    
     
     @Test(timeout=20000)
     public void testPoolUse() throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
         System.out.println("poolUse");
         final ObjectPool<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory()).build();
-     
+        runTest(pool,0,10000);   
+        try {
+            pool.dispose();
+        } catch (ObjectDisposeException ex) {
+            ex.printStackTrace();
+        }
+    }
+    
+    @Test(timeout=200000)
+    public void testPoolUseWithMaintenance() throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+        System.out.println("poolUseWithMainteinance");
+
+        final ObjectPool<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory())
+                .withMaintenance(com.zoltran.base.DefaultScheduler.INSTANCE, 10).build();
+        runTest(pool,5, 100000);
+        try {
+            pool.dispose();
+        } catch (ObjectDisposeException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private Thread startDeadlockMonitor(final long deadlockTimeout) {
         Thread monitor = new Thread(new Runnable() {
 
             @Override
             public void run() {
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(deadlockTimeout);
+                    ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
+                    System.err.println(Arrays.toString(threadMX.dumpAllThreads(true, true)));             
+                    Assert.fail("Test needs to finish in "+deadlockTimeout+" ms, Stack Traces");
                 } catch (InterruptedException ex) {
-                    Assert.fail("Test was interrupted and needs to finish in 10 seconds");
+                    // terminating monitor
                 }
-                
-                ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
-                System.err.println(Arrays.toString(threadMX.dumpAllThreads(true, true)));
-                
-                Assert.fail("Test needs to finish in 10 seconds, Stack Traces");
             }
         });
         monitor.start();
+        return monitor;
+    }
+
+    private void runTest(final ObjectPool<ExpensiveTestObject> pool, 
+            long sleepBetweenSubmit, long deadlockTimeout) throws InterruptedException, ExecutionException {
+        Thread monitor = startDeadlockMonitor(deadlockTimeout);     
         ExecutorService execService = Executors.newFixedThreadPool(10);
         BlockingQueue<Future<Integer>> completionQueue = new LinkedBlockingDeque<Future<Integer>>();
         RetryExecutor<Integer> exec = new RetryExecutor<Integer>(execService, 8, 16, 5000, Callables.RETRY_FOR_ANY_EXCEPTION,
                  completionQueue);
         for (int i=0; i<1000; i++) {
             exec.submit(new TestCallable(pool, i));
+            Thread.sleep(sleepBetweenSubmit);
         }        
         for (int i=0; i<1000; i++) {
             System.out.println("Task " + completionQueue.take().get() + " finished ");
         }
-        
+        monitor.interrupt();
+        monitor.join();
+        Thread.sleep(100);
+        Assert.assertEquals(0, completionQueue.size());
     }
     
     

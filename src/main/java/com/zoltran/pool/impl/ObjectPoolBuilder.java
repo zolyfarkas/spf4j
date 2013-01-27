@@ -35,7 +35,7 @@ public class ObjectPoolBuilder<T,E extends Exception> {
     private long timeoutMillis;
     private boolean fair;
     private ScheduledExecutorService maintenanceExecutor;
-    private long maintenanceInterval;
+    private long maintenanceIntervalMillis;
     private ObjectPool.Hook<T,E> borrowHook;
     private ObjectPool.Hook<T,E> returnHook;
     private int initialSize;
@@ -64,9 +64,9 @@ public class ObjectPoolBuilder<T,E extends Exception> {
     }
 
     public ObjectPoolBuilder<T,E> withMaintenance(ScheduledExecutorService exec,
-            long maintenanceInterval) {
+            long maintenanceIntervalMillis) {
         this.maintenanceExecutor = exec;
-        this.maintenanceInterval = maintenanceInterval;
+        this.maintenanceIntervalMillis = maintenanceIntervalMillis;
         return this;
     }
 
@@ -108,7 +108,7 @@ public class ObjectPoolBuilder<T,E extends Exception> {
                     } catch (Exception ex) {
                     }
                 }
-            }, maintenanceInterval, maintenanceInterval, TimeUnit.MILLISECONDS);
+            }, maintenanceIntervalMillis, maintenanceIntervalMillis, TimeUnit.MILLISECONDS);
         }
         return pool;
     }

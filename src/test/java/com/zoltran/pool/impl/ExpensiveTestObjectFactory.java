@@ -62,11 +62,11 @@ public class ExpensiveTestObjectFactory implements ObjectPool.Factory<ExpensiveT
 
     @Override
     public Exception validate(ExpensiveTestObject object, Exception e) {
-       if (e instanceof IOException) {
+       if (e != null && e instanceof IOException) {
            return e;
        } else {
             try {
-                object.doStuff();
+                object.testObject();
                 return null;
             } catch (IOException ex) {
                 return ex;

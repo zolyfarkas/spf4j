@@ -20,6 +20,7 @@ package com.zoltran.pool.impl;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This is a pooled object implementation, that behaves like a connection object. 
@@ -39,7 +40,11 @@ public class ExpensiveTestObject implements Closeable
     private long lastTouchedTimeMillis;
     
     private int nrUses;
-
+    
+    private static final AtomicInteger OBJ_COUNT = new AtomicInteger();
+            
+    private final String id;
+            
     public ExpensiveTestObject(long maxIdleMillis, int nrUsesToFailAfter, long minOperationMillis, long maxOperationMillis)
     {
         this.maxIdleMillis = maxIdleMillis;
@@ -49,6 +54,7 @@ public class ExpensiveTestObject implements Closeable
         lastTouchedTimeMillis = System.currentTimeMillis();
         nrUses = 0;
         simulateDoStuff(maxOperationMillis - minOperationMillis);
+        id = "Test Object " + OBJ_COUNT.getAndIncrement();
     }
     
     
@@ -66,6 +72,7 @@ public class ExpensiveTestObject implements Closeable
     }
     
     public void testObject() throws IOException {
+        System.out.println("Testing object id " + id);
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
             throw new IOException("Connection closed");
