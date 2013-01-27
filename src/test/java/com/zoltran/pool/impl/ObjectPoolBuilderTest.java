@@ -32,11 +32,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeoutException;
 import junit.framework.Assert;
 import org.junit.Test;
@@ -62,8 +66,8 @@ public class ObjectPoolBuilderTest {
     }
     
     
-    @Test(timeout=2000000)
-    public void testPoolUse() throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException {
+    @Test(timeout=20000)
+    public void testPoolUse() throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
         System.out.println("poolUse");
         final ObjectPool<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory()).build();
      
@@ -77,14 +81,6 @@ public class ObjectPoolBuilderTest {
                     Assert.fail("Test was interrupted and needs to finish in 10 seconds");
                 }
                 
-//                Map<Thread, StackTraceElement []> stackTraces = Thread.getAllStackTraces();
-//                for (Map.Entry<Thread, StackTraceElement []> entry: stackTraces.entrySet()) {
-//                    System.err.println("Thread: " +entry.getKey());
-//                    System.err.println("Stack Trace:");
-//                    StackTraceElement[] trace = entry.getValue();
-//                    for (int i=0; i < trace.length; i++)
-//                        System.err.println("\tat " + trace[i]);
-//                    }
                 ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
                 System.err.println(Arrays.toString(threadMX.dumpAllThreads(true, true)));
                 
@@ -93,19 +89,14 @@ public class ObjectPoolBuilderTest {
         });
         monitor.start();
         ExecutorService execService = Executors.newFixedThreadPool(10);
-        RetryExecutor exec = new RetryExecutor(execService, 8, 16, 5000, Callables.RETRY_FOR_ANY_EXCEPTION);
-        List<Future<Integer>> futures = new ArrayList<Future<Integer>>();
+        BlockingQueue<Future<Integer>> completionQueue = new LinkedBlockingDeque<Future<Integer>>();
+        RetryExecutor<Integer> exec = new RetryExecutor<Integer>(execService, 8, 16, 5000, Callables.RETRY_FOR_ANY_EXCEPTION,
+                 completionQueue);
         for (int i=0; i<1000; i++) {
-            Future<Integer> future = exec.submit(new TestCallable(pool, i));
-            futures.add(future);
+            exec.submit(new TestCallable(pool, i));
         }        
-        for (Future<Integer> future: futures) {
-            try {
-                System.out.println("Task " + future.get() + " finished ");
-            } catch (ExecutionException ex) {
-                System.out.println("Task " + future + " failed with " + ex);
-                ex.printStackTrace();
-            }
+        for (int i=0; i<1000; i++) {
+            System.out.println("Task " + completionQueue.take().get() + " finished ");
         }
         
     }

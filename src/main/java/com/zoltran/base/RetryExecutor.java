@@ -8,6 +8,7 @@ import com.google.common.base.Predicate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -18,12 +19,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.Nullable;
 
 /**
- *
+ * Executor that will execute Callables with retry.
+ * This executor cannot be used inside a Completion service.
+ * as such it allow
+ * 
  * @author zoly
  */
-public class RetryExecutor implements ExecutorService {
+public class RetryExecutor<T> implements ExecutorService{
 
     private final ExecutorService executionService;
     /**
@@ -37,23 +42,30 @@ public class RetryExecutor implements ExecutorService {
     private final int nrImmediateRetries;
     private final int nrTotalRetries;
     private final long delayMillis;
-    private RetryManager retryManager;
+    private volatile RetryManager retryManager;
     private final Predicate<Exception> retryException;
+    private final BlockingQueue<Future<T>> completionQueue;
 
-    private synchronized void startRetryManager() {
+    private void startRetryManager() {
         if (this.retryManager == null) {
-            this.retryManager = new RetryManager();
-            this.retryManager.start();
+            synchronized(this) {
+                if (this.retryManager == null) {
+                    this.retryManager = new RetryManager();
+                    this.retryManager.start();
+                }
+            }
         }
     }
 
-    private synchronized void shutdownRetryManager()  {
-        if (this.retryManager != null) {
-            this.retryManager.interrupt();
-            try {
-                this.retryManager.join();
-            } catch (InterruptedException ex) {
-                throw new RuntimeException(ex);
+    private void shutdownRetryManager()  {
+        synchronized(this) {
+            if (this.retryManager != null) {
+                this.retryManager.interrupt();
+                try {
+                    this.retryManager.join();
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         }
     }
@@ -235,7 +247,8 @@ public class RetryExecutor implements ExecutorService {
     }
 
     public RetryExecutor(ExecutorService exec, int nrImmediateRetries,
-            int nrTotalRetries, long delayMillis,  Predicate<Exception> retryException) {
+            int nrTotalRetries, long delayMillis,  Predicate<Exception> retryException, 
+            @Nullable BlockingQueue<Future<T>> completionQueue) {
         executionService = exec;
         executionAttempts = new ConcurrentHashMap<Callable<? extends Object>, Pair<Integer, ExecutionException>>();
         this.nrImmediateRetries = nrImmediateRetries;
@@ -243,6 +256,7 @@ public class RetryExecutor implements ExecutorService {
         this.delayMillis = delayMillis;
         this.exec = exec;
         this.retryException = retryException;
+        this.completionQueue = completionQueue;
     }
 
     @Override
@@ -272,23 +286,38 @@ public class RetryExecutor implements ExecutorService {
         return exec.awaitTermination(timeout, unit);
     }
 
-    @Override
-    public <T> Future<T> submit(Callable<T> task) {
-        FutureBean<T> result = new FutureBean<T>();
-        executionService.execute(new RetryableCallable<T>(task, result));
-        return result;
+    private  FutureBean<T> createFutureBean() {
+        if (completionQueue == null) {
+            return new FutureBean<T>();
+        } else {
+            return new FutureBean<T>(){
+                @Override
+                public void done() {
+                    completionQueue.add(this);
+                }
+            };
+        }
     }
+    
+    
+    @Override
+    public <A> Future<A> submit(Callable<A> task) {
+        FutureBean<T> result = createFutureBean();
+        executionService.execute(new RetryableCallable(task, result));
+        return (Future<A>) result;
+    }
+   
 
     @Override
-    public <T> Future<T> submit(Runnable task, T result) {
-        FutureBean<T> resultFuture = new FutureBean<T>();
+    public <A> Future<A> submit(Runnable task, A result) {
+        FutureBean<T> resultFuture = createFutureBean();
         executionService.execute(new RetryableCallable<T>(task, result, resultFuture));
-        return resultFuture;
+        return (Future<A>) resultFuture;
     }
 
     @Override
     public Future<?> submit(Runnable task) {
-        FutureBean<?> resultFuture = new FutureBean();
+        FutureBean<?> resultFuture = createFutureBean();
         executionService.execute(new RetryableCallable(task, null, resultFuture));
         return resultFuture;
     }
