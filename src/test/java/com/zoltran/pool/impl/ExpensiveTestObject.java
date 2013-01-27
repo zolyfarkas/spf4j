@@ -48,30 +48,45 @@ public class ExpensiveTestObject implements Closeable
         this.maxOperationMillis = maxOperationMillis;
         lastTouchedTimeMillis = System.currentTimeMillis();
         nrUses = 0;
-        simulateDoStuff();
+        simulateDoStuff(maxOperationMillis - minOperationMillis);
     }
     
     
     public void doStuff() throws IOException {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
-            throw new IOException("Connection timed out");
+            throw new IOException("Connection closed");
         }
         if (nrUses > nrUsesToFailAfter) {
             throw new IOException("Simulated random crap");
         }
-        simulateDoStuff();
+        simulateDoStuff(maxOperationMillis - minOperationMillis);
         nrUses ++;
         lastTouchedTimeMillis = System.currentTimeMillis();       
     }
+    
+    public void testObject() throws IOException {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
+            throw new IOException("Connection closed");
+        }
+        if (nrUses > nrUsesToFailAfter) {
+            throw new IOException("Simulated random crap");
+        }
+        simulateDoStuff(0);
+        nrUses ++;
+        lastTouchedTimeMillis = System.currentTimeMillis();       
+    }
+    
+    
 
     @Override
     public void close() throws IOException {
         doStuff();
     }
 
-    private void simulateDoStuff() throws RuntimeException {
-        long sleepTime = (long) (Math.random() * (maxOperationMillis - minOperationMillis));
+    private void simulateDoStuff(long time) throws RuntimeException {
+        long sleepTime = (long) (Math.random() * (time));
         try {
             Thread.sleep(minOperationMillis + sleepTime);
         } catch (InterruptedException ex) {

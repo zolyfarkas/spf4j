@@ -24,19 +24,11 @@ import com.zoltran.pool.ObjectCreationException;
 import com.zoltran.pool.ObjectDisposeException;
 import com.zoltran.pool.ObjectPool;
 import com.zoltran.pool.ObjectReturnException;
-import com.zoltran.pool.Template;
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -97,33 +89,6 @@ public class ObjectPoolBuilderTest {
         }        
         for (int i=0; i<1000; i++) {
             System.out.println("Task " + completionQueue.take().get() + " finished ");
-        }
-        
-    }
-    
-    
-    public static class TestCallable implements Callable<Integer> {
-
-        private final ObjectPool<ExpensiveTestObject> pool;
-        private final int testNr;
-        
-        public TestCallable (ObjectPool<ExpensiveTestObject> pool, int testNr) {
-            this.pool = pool;
-            this.testNr = testNr;
-        }
-        
-        @Override
-        public Integer call() throws ObjectCreationException, ObjectBorrowException,
-        InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, IOException{
-            Template.doOnPooledObject(new ObjectPool.Hook<ExpensiveTestObject, IOException> () {
-
-                @Override
-                public void handle(ExpensiveTestObject object) throws IOException {
-                    object.doStuff();
-                }
-                
-            }, pool, IOException.class );
-        return testNr;    
         }
         
     }
