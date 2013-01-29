@@ -17,12 +17,15 @@
  */
 package com.zoltran.base;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import com.google.common.base.Throwables;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.lang.reflect.Field;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -33,64 +36,81 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class Exceptions {
 
-    public static <T extends Throwable> T chain(T t, Throwable newRootCause) {
-        Throwable cause = t.getCause();
-        if (cause != null) {
-            cause = chain(cause, newRootCause);
-        } else {
-            cause = newRootCause;
+    private static final Field field;
+
+    static {
+        try {
+            field = Throwable.class.getDeclaredField("cause");
+        } catch (NoSuchFieldException ex) {
+            throw new RuntimeException(ex);
+        } catch (SecurityException ex) {
+            throw new RuntimeException(ex);
         }
-        Class<? extends Throwable> clasz = t.getClass();
-        T result = null;
-        Constructor<T>[] constructors = (Constructor<T>[]) clasz.getDeclaredConstructors();
-        Arrays.sort(constructors, new Comparator<Constructor<T>>() {
+        AccessController.doPrivileged(new PrivilegedAction() {
             @Override
-            public int compare(Constructor<T> o1, Constructor<T> o2) {
-                return o2.getParameterTypes().length - o1.getParameterTypes().length;
+            public Object run() {
+                field.setAccessible(true);
+                return null; // nothing to return
             }
         });
 
-        List<Constructor<T>> unsupportedConstructors = null;
-        for (Constructor<T> constructor : constructors) {
-            Class<?>[] parameterTypes = constructor.getParameterTypes();
-            if (!constructor.isAccessible()) {
-                constructor.setAccessible(true);
-            }
-            try {
-                if (parameterTypes.length == 2 && parameterTypes[0].equals(String.class)
-                        && parameterTypes[1].equals(Throwable.class)) {
-                    result = constructor.newInstance(t.getMessage(), cause);
-                    break;
-                } else if (parameterTypes.length == 1 && parameterTypes[0].equals(String.class)) {
-                    result = constructor.newInstance(t.getMessage());
-                    result.initCause(cause);
-                    break;
-                } else if (parameterTypes.length == 0) {
-                    result = constructor.newInstance();
-                    result.initCause(cause);
-                    break;
-                } else {
-                    if (unsupportedConstructors == null) {
-                        unsupportedConstructors = new ArrayList<Constructor<T>>();
+    }
+
+    private static Throwable chain0(final Throwable t, final Throwable cause) {
+        final Throwable rc = Throwables.getRootCause(t);
+        try {
+            AccessController.doPrivileged(new PrivilegedAction() {
+                @Override
+                public Object run() {
+                    try {
+                        field.set(rc, cause);
+                    } catch (IllegalArgumentException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (IllegalAccessException ex) {
+                        throw new RuntimeException(ex);
                     }
-                    unsupportedConstructors.add(constructor);
+                    return null; // nothing to return
                 }
+            });
 
-            } catch (InstantiationException ex) {
-                throw new RuntimeException(ex);
-            } catch (IllegalAccessException ex) {
-                throw new RuntimeException(ex);
-            } catch (IllegalArgumentException ex) {
-                throw new RuntimeException(ex);
-            } catch (InvocationTargetException ex) {
-                throw new RuntimeException(ex);
+        } catch (IllegalArgumentException ex) {
+            throw new RuntimeException(ex);
+        }
+        return t;
+    }
+
+    /**
+     * This method will clone the exception t and will set a new root cause.
+     *
+     * @param <T>
+     * @param t
+     * @param newRootCause
+     * @return
+     */
+    public static <T extends Throwable> T chain(T t, Throwable newRootCause) {
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream out = new ObjectOutputStream(bos);
+            try {
+                out.writeObject(t);
+            } finally {
+                out.close();
             }
-        }
-        if (result == null) {
-            throw new RuntimeException("Unable to clone exception " + t + " unsupp constructors: " + unsupportedConstructors);
-        }
 
-        result.setStackTrace(t.getStackTrace());
-        return result;
+            T result;
+            ObjectInputStream in = new ObjectInputStream(
+                    new ByteArrayInputStream(bos.toByteArray()));
+            try {
+                result = (T) in.readObject();
+            } finally {
+                in.close();
+            }
+            chain0(result, newRootCause);
+            return result;
+        } catch (ClassNotFoundException ex) {
+            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }
