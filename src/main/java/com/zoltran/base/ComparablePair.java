@@ -72,11 +72,14 @@ public final class ComparablePair<A extends Comparable,B extends Comparable>
         return "Pair{" + "first=" + first + ", second=" + second + '}';
     }
 
+    @Override
     public int compareTo(ComparablePair<A, B> o) {
-        if (this.first.equals(o.first))
+        if (this.first.equals(o.first)) {
             return this.second.compareTo(o.second);
-        else 
+        }
+        else {
             return this.first.compareTo(o.first);
+        }
     }
     
     
