@@ -1,5 +1,5 @@
 
- /*
+/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -16,17 +16,15 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
-
 package com.zoltran.pool;
 
 import com.zoltran.base.Callables;
+import com.zoltran.base.Exceptions;
 import java.lang.reflect.ParameterizedType;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 
-public class Template<T, E extends Exception>
-{
+public class Template<T, E extends Exception> {
 
     private final ObjectPool<T> pool;
     private final int nrImmediateRetries;
@@ -34,51 +32,48 @@ public class Template<T, E extends Exception>
     private final int retryWaitMillis;
     private final Class<E> exceptionClasz;
 
-    public Template(ObjectPool<T> pool, int nrImmediateRetries, int nrTotalRetries, int retryWaitMillis)
-    {
+    public Template(ObjectPool<T> pool, int nrImmediateRetries, int nrTotalRetries, int retryWaitMillis) {
         this.pool = pool;
         this.nrImmediateRetries = nrImmediateRetries;
         this.nrTotalRetries = nrTotalRetries;
         this.retryWaitMillis = retryWaitMillis;
         exceptionClasz = (Class<E>) ((ParameterizedType) getClass()
-                            .getGenericSuperclass()).getActualTypeArguments()[0];
+                .getGenericSuperclass()).getActualTypeArguments()[0];
     }
-    
-
 
     public void doOnPooledObject(final ObjectPool.Hook<T, E> handler)
-            throws ObjectCreationException, InterruptedException, TimeoutException
-    {
-        Callables.executeWithRetry(new Callable<Void>() { 
+            throws ObjectCreationException, InterruptedException, TimeoutException {
+        Callables.executeWithRetry(new Callable<Void>() {
             @Override
-            public Void call() throws Exception
-            {
+            public Void call() throws Exception {
                 doOnPooledObject(handler, pool, exceptionClasz);
                 return null;
             }
         }, nrImmediateRetries, nrTotalRetries, retryWaitMillis);
-        
+
     }
-    
-    
-    public static <T, E extends Exception> void doOnPooledObject(ObjectPool.Hook<T, E> handler, ObjectPool<T> pool, Class<E> clasz) throws ObjectCreationException, ObjectBorrowException, 
-            InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, E         
-    {
+
+    public static <T, E extends Exception> void doOnPooledObject(ObjectPool.Hook<T, E> handler, ObjectPool<T> pool, Class<E> clasz)
+            throws ObjectReturnException, ObjectDisposeException, ObjectCreationException,
+            ObjectBorrowException, InterruptedException, TimeoutException, E {
         T object = pool.borrowObject();
         try {
             handler.handle(object);
-            pool.returnObject(object, null);
-        } catch (RuntimeException e) {
-            pool.returnObject(object, e);
-            throw e;
         } catch (Exception e) {
-            pool.returnObject(object, e);
-            if (clasz.isInstance(e)) {
-                throw clasz.cast(e);
+            try {
+                pool.returnObject(object, e);
+            } catch (ObjectReturnException ex) {
+                throw Exceptions.chain(ex, e);
+            } catch (ObjectDisposeException ex) {
+                throw Exceptions.chain(ex, e);
+            }
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
             } else {
                 throw new RuntimeException(e);
             }
-        } 
+        }
+        pool.returnObject(object, null);
+
     }
 }
-
