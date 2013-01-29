@@ -33,7 +33,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class Exceptions {
 
-
     public static <T extends Throwable> T chain(T t, Throwable newRootCause) {
         Throwable cause = t.getCause();
         if (cause != null) {
@@ -91,7 +90,7 @@ public class Exceptions {
             throw new RuntimeException("Unable to clone exception " + t + " unsupp constructors: " + unsupportedConstructors);
         }
 
-        result.setStackTrace (t.getStackTrace());
-        return result ;
-}
+        result.setStackTrace(t.getStackTrace());
+        return result;
+    }
 }
