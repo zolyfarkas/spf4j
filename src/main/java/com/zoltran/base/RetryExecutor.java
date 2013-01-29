@@ -221,7 +221,7 @@ public class RetryExecutor<T> implements ExecutorService{
                             attemptsInfo = new Pair<Integer, ExecutionException>(1, event.getException());
                         } else {
                             attemptsInfo = new Pair<Integer, ExecutionException>(attemptsInfo.getFirst() + 1,
-                                    ExceptionChain.chain(event.getException(), attemptsInfo.getSecond()));
+                                    Exceptions.chain(event.getException(), attemptsInfo.getSecond()));
                         }
                         int nrAttempts = attemptsInfo.getFirst();
                         if (nrAttempts > nrTotalRetries) {

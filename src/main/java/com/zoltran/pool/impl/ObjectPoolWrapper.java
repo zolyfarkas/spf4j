@@ -17,7 +17,7 @@
  */
 package com.zoltran.pool.impl;
 
-import com.zoltran.base.ExceptionChain;
+import com.zoltran.base.Exceptions;
 import com.zoltran.pool.ObjectBorrowException;
 import com.zoltran.pool.ObjectCreationException;
 import com.zoltran.pool.ObjectDisposeException;
@@ -66,9 +66,9 @@ public class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<ObjectHold
             try {
                 pool.returnObject(result, e);
             } catch (ObjectReturnException ex) {
-                throw ExceptionChain.chain(new RuntimeException(ex), e);
+                throw Exceptions.chain(new RuntimeException(ex), e);
             } catch (ObjectDisposeException ex) {
-                 throw ExceptionChain.chain(new RuntimeException(ex), e);
+                 throw Exceptions.chain(new RuntimeException(ex), e);
             }
             throw new ObjectBorrowException("Exception while executing borrow hook", e);
         }

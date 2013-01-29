@@ -17,9 +17,7 @@
  */
 package com.zoltran.base;
 
-import com.google.common.base.Throwables;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,32 +31,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public class ExceptionChain {
+public class Exceptions {
 
-    private static final Field field;
-
-    static {
-        try {
-            field = Throwable.class.getDeclaredField("cause");
-        } catch (NoSuchFieldException ex) {
-            throw new RuntimeException(ex);
-        } catch (SecurityException ex) {
-            throw new RuntimeException(ex);
-        }
-        field.setAccessible(true);
-    }
-
-    public static Throwable chain0(Throwable t, Throwable cause) {
-        Throwable rc = Throwables.getRootCause(t);
-        try {
-            field.set(rc, cause);
-        } catch (IllegalArgumentException ex) {
-            throw new RuntimeException(ex);
-        } catch (IllegalAccessException ex) {
-            throw new RuntimeException(ex);
-        }
-        return t;
-    }
 
     public static <T extends Throwable> T chain(T t, Throwable newRootCause) {
         Throwable cause = t.getCause();

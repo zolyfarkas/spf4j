@@ -38,7 +38,7 @@ public class ExceptionChainTest {
         System.out.println("chain");
         Throwable t = new RuntimeException("", new SocketTimeoutException("Boo timeout"));
         Throwable newRootCause = new TimeoutException("Booo");
-        Throwable result = ExceptionChain.chain(t, newRootCause);
+        Throwable result = Exceptions.chain(t, newRootCause);
         result.printStackTrace();
         Assert.assertEquals(newRootCause, Throwables.getRootCause(result));
         Assert.assertEquals(3, Throwables.getCausalChain(result).size());

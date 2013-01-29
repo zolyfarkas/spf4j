@@ -18,7 +18,7 @@
 package com.zoltran.pool.impl;
 
 import com.google.common.collect.LinkedHashMultimap;
-import com.zoltran.base.ExceptionChain;
+import com.zoltran.base.Exceptions;
 import com.zoltran.base.Pair;
 import com.zoltran.pool.ObjectBorower;
 import com.zoltran.pool.ObjectCreationException;
@@ -184,9 +184,9 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
             try {
                 factory.dispose(obj);
             } catch (ObjectDisposeException ex) {
-                result = ExceptionChain.chain(ex, result);
+                result = Exceptions.chain(ex, result);
             } catch (Exception ex) {
-                result = ExceptionChain.chain(new ObjectDisposeException(ex), result);
+                result = Exceptions.chain(new ObjectDisposeException(ex), result);
             }
         }
         availableObjects.clear();
