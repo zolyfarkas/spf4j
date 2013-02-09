@@ -124,7 +124,6 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
     public Object requestReturnObject() {
         boolean acquired = lock.tryLock();
         if (acquired) {
-            lock.lock();
             try {
                 ObjectHolder<T> objectHolder = returnObjectIfNotInUse();
                 if (objectHolder != null) {
