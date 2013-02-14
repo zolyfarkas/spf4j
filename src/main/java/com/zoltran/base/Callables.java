@@ -107,6 +107,14 @@ public class Callables
        return executeWithRetry(what, new RetryPause(nrImmediateRetries, nrTotalRetries, retryWaitMillis),
                NORETRY_FOR_RESULT, RETRY_FOR_ANY_EXCEPTION);
     }
+    
+    public static <T> T executeWithRetry(Callable<T> what, int nrImmediateRetries,
+            int nrTotalRetries, int retryWaitMillis , Predicate<Exception> retryOnException) 
+            throws InterruptedException
+    {
+       return executeWithRetry(what, new RetryPause(nrImmediateRetries, nrTotalRetries, retryWaitMillis),
+               NORETRY_FOR_RESULT, retryOnException);
+    }
      
     /**
      * Naive implementation of execution with retry logic.
