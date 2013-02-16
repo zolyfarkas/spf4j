@@ -136,6 +136,7 @@ public class QuantizedRecorder implements MeasurementProcessor, Cloneable {
         this.info = info;
     }
 
+    @Override
     public synchronized void record(long measurement) {
         measurementCount++;
         measurementTotal += measurement;  // TODO: check for overflow

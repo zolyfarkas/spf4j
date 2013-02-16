@@ -146,10 +146,10 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
 
     @Override
     public void saveMeasurements(EntityMeasurements measurement, long timeStampMillis, int sampleTimeMillis) throws IOException {
+        Map<String, Number> measurements = measurement.getMeasurements(true);
+        
         RrdDb rrdDb = databases.getUnchecked(new Pair(measurement.getInfo(), msToS(sampleTimeMillis)));
         Sample sample = rrdDb.createSample(msToS(timeStampMillis));
-        Map<String, Number> measurements = measurement.getMeasurements(true);
-
         for (Map.Entry<String, Number> entry : measurements.entrySet()) {
             sample.setValue(entry.getKey(), entry.getValue().doubleValue());
         }

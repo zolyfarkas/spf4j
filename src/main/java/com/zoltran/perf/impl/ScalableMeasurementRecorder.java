@@ -65,9 +65,15 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
             throw new RuntimeException(ex);
         }
         samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(new AbstractRunnable(true) {
+            private volatile long lastRun = 0;
+            
             @Override
             public void doRun() throws IOException {
-                database.saveMeasurements(ScalableMeasurementRecorder.this, System.currentTimeMillis(), sampleTimeMillis);
+                long currentTime = System.currentTimeMillis();
+                if (currentTime > lastRun) {
+                    database.saveMeasurements(ScalableMeasurementRecorder.this, currentTime, sampleTimeMillis);
+                } 
+                lastRun = currentTime;
             }
         }, sampleTimeMillis);
 

@@ -56,15 +56,23 @@ public class ScalableMeasurementRecorderSource implements MeasurementRecorderSou
             
         };
         samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(new AbstractRunnable(true) {
+            
+            private volatile long lastRun = 0;
+            
             @Override
             public void doRun() throws IOException {
-                for (EntityMeasurements m: ScalableMeasurementRecorderSource.this.getEntitiesMeasurements(true).values()) {
-                    database.saveMeasurements(m, System.currentTimeMillis(), sampleTimeMillis);
+                long currentTime = System.currentTimeMillis();
+                if (currentTime > lastRun) {
+                    for (EntityMeasurements m: ScalableMeasurementRecorderSource.this.getEntitiesMeasurements(true).values()) {
+                        database.saveMeasurements(m, currentTime, sampleTimeMillis);
+                    }
                 }
+                lastRun = currentTime;
             }
         }, sampleTimeMillis);
     }
     
+    @Override
     public MeasurementRecorder getRecorder(Object forWhat) {        
         Map<Object, MeasurementProcessor> recorders = threadLocalMeasurementProcessorMap.get();
         synchronized(recorders) {
