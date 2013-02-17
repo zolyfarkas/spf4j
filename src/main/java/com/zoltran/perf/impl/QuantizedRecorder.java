@@ -33,7 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * @author zoly
  */
 @ThreadSafe
-public class QuantizedRecorder implements MeasurementProcessor, Cloneable {
+public class QuantizedRecorder implements MeasurementProcessor {
 
     private long minMeasurement;
     private long maxMeasurement;

@@ -18,7 +18,7 @@ import java.util.Set;
  * @author zoly
  */
 public class CountingRecorder 
-    implements MeasurementProcessor, Cloneable {
+    implements MeasurementProcessor {
 
     private long counter;
     private final EntityMeasurementsInfo info;
