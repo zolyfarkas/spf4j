@@ -71,7 +71,9 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
             public void doRun() throws IOException {
                 long currentTime = System.currentTimeMillis();
                 if (currentTime > lastRun) {
-                    database.saveMeasurements(ScalableMeasurementRecorder.this, currentTime, sampleTimeMillis);
+                    database.saveMeasurements(ScalableMeasurementRecorder.this.getInfo(), 
+                            ScalableMeasurementRecorder.this.getMeasurements(true),
+                            currentTime, sampleTimeMillis);
                 } 
                 lastRun = currentTime;
             }

@@ -64,7 +64,7 @@ public class ScalableMeasurementRecorderSource implements MeasurementRecorderSou
                 long currentTime = System.currentTimeMillis();
                 if (currentTime > lastRun) {
                     for (EntityMeasurements m: ScalableMeasurementRecorderSource.this.getEntitiesMeasurements(true).values()) {
-                        database.saveMeasurements(m, currentTime, sampleTimeMillis);
+                        database.saveMeasurements(m.getInfo(),m.getMeasurements(true), currentTime, sampleTimeMillis);
                     }
                 }
                 lastRun = currentTime;

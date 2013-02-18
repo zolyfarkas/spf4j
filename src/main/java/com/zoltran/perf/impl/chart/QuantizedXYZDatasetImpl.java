@@ -15,9 +15,10 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package com.zoltran.perf.impl;
+package com.zoltran.perf.impl.chart;
 
 import com.zoltran.base.ComparablePair;
+import com.zoltran.perf.impl.Quanta;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,11 +31,10 @@ import org.jfree.data.general.DatasetGroup;
 import org.jfree.data.xy.XYZDataset;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
-import org.rrd4j.core.FetchData;
 
 @Immutable
 @edu.umd.cs.findbugs.annotations.SuppressWarnings("SE_BAD_FIELD_INNER_CLASS")
-public class RrdXYZDataset implements XYZDataset {
+public class QuantizedXYZDatasetImpl implements XYZDataset {
 
     private final double[] x;
     private final double[] y;
@@ -42,11 +42,14 @@ public class RrdXYZDataset implements XYZDataset {
     private final double minValue;
     private final double maxValue;
     private final List<ComparablePair<Quanta, Integer>> quantas;
-    private final FetchData data;
+    private final double [][] data;
+    private final long startTimeMillis;
+    private final long stepMillis;
 
-    public RrdXYZDataset(final FetchData data) {
+    public QuantizedXYZDatasetImpl(String[] dataSources, double [][] data, long startTimeMillis, long step) {
         this.data = data;
-        String[] dataSources = data.getDsNames();
+        this.startTimeMillis = startTimeMillis;
+        this.stepMillis = step;
         quantas = new ArrayList<ComparablePair<Quanta, Integer>>();
         for (int i = 0; i < dataSources.length; i++) {
             String ds = dataSources[i];
@@ -56,36 +59,36 @@ public class RrdXYZDataset implements XYZDataset {
             }
         }
         Collections.sort(quantas);
-        int seriesSize = quantas.size() * data.getValues(quantas.get(0).getSecond()).length;
+        int seriesSize = quantas.size() * data[quantas.get(0).getSecond()].length;
         x = new double[seriesSize];
         y = new double[seriesSize];
         z = new double[seriesSize];
-        double minValue = Double.POSITIVE_INFINITY;
-        double maxValue = Double.NEGATIVE_INFINITY;
+        double lMinValue = Double.POSITIVE_INFINITY;
+        double lMaxValue = Double.NEGATIVE_INFINITY;
 
         int k = 0;
 
         //long [] timestamps = data.getTimestamps();        
         for (int j = 0; j < quantas.size(); j++) {
             ComparablePair<Quanta, Integer> pair = quantas.get(j);
-            double[] values = data.getValues(pair.getSecond());
+            double[] values = data[pair.getSecond()];
 
             for (int i = 0; i < values.length; i++) {
                 x[k] = i; //timestamps[i]*1000;
                 y[k] = j; //(double) pair.getFirst().getClosestToZero();
                 double zval = values[i];
                 z[k] = zval;
-                if (zval > maxValue) {
-                    maxValue = zval;
+                if (zval > lMaxValue) {
+                    lMaxValue = zval;
                 }
-                if (zval < minValue) {
-                    minValue = zval;
+                if (zval < lMinValue) {
+                    lMinValue = zval;
                 }
                 k++;
             }
         }
-        this.minValue = minValue;
-        this.maxValue = maxValue;
+        this.minValue = lMinValue;
+        this.maxValue = lMaxValue;
 
     }
 
@@ -176,43 +179,46 @@ public class RrdXYZDataset implements XYZDataset {
         return quantas;
     }
 
-    public FetchData getData() {
-        return data;
-    }
+ 
 
     public TickUnits createXTickUnits() {
         TickUnits tux = new TickUnits();
         final DateTimeFormatter formatter = ISODateTimeFormat.dateHourMinuteSecond();
         final DateTimeFormatter shortFormat = ISODateTimeFormat.dateHour();
         final DateTimeFormatter mediumFormat = ISODateTimeFormat.dateHourMinute();
-        final long[] timestamps = data.getTimestamps();
+        final long[] timestamps = new long[data[0].length];
+        long time = startTimeMillis;
+        for(int i=0; i< timestamps.length; i++) {
+            timestamps[i] = time;
+            time+= stepMillis;
+        }
         tux.add(new NumberTickUnitImpl(1, timestamps, formatter)); // base
-        long nr = 5 / data.getStep();
+        long nr = 5 / stepMillis;
         if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, formatter));
         }
         
-        nr = 15 / data.getStep();
+        nr = 15 / stepMillis;
         if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, formatter));
         }
         // minute
-        nr = 60 / data.getStep();
+        nr = 60 / stepMillis;
         if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, mediumFormat));
         }
         // 15 minute
-        nr = 900 /data.getStep();
+        nr = 900 /stepMillis;
         if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, mediumFormat));
         }
         // hour
-        nr =3600 /data.getStep();
+        nr =3600 /stepMillis;
         if (nr> 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, shortFormat));
         }
         // 6 hour
-        nr = 21600 /data.getStep();
+        nr = 21600 /stepMillis;
         if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, shortFormat));
         }
@@ -255,11 +261,11 @@ public class RrdXYZDataset implements XYZDataset {
             int ival = (int) Math.round(value);
             long val;
             if (ival >= timestamps.length) {
-                val = timestamps[timestamps.length - 1] + data.getStep() * (ival - timestamps.length + 1);
+                val = timestamps[timestamps.length - 1] + stepMillis * (ival - timestamps.length + 1);
             } else {
                 val = timestamps[ival];
             }
-            return formatter.print(val * 1000);
+            return formatter.print(val);
         }
         
         
