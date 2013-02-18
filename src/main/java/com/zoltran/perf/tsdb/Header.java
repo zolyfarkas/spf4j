@@ -91,6 +91,11 @@ public class Header {
     public byte[] getMetaData() {
         return metaData;
     }
+
+    @Override
+    public String toString() {
+        return "Header{" + "type=" + type + ", version=" + version + ", sampleIntervalMillis=" + sampleIntervalMillis + ", metaData=" + metaData + '}';
+    }
     
     
 }

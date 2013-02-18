@@ -19,9 +19,9 @@
 package com.zoltran.perf;
 
 import com.zoltran.perf.impl.QuantizedRecorder;
-import com.zoltran.perf.impl.rrd.RRDMeasurementDatabase;
 import com.zoltran.perf.impl.ScalableMeasurementRecorder;
 import com.zoltran.perf.impl.ScalableMeasurementRecorderSource;
+import com.zoltran.perf.impl.rrd.RRDMeasurementDatabase;
 
 /**
  *

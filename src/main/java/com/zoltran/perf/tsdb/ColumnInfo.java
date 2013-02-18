@@ -4,7 +4,6 @@
  */
 package com.zoltran.perf.tsdb;
 
-import com.google.common.base.Charsets;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
@@ -94,6 +93,15 @@ public class ColumnInfo {
 
     public long getLocation() {
         return location;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    @Override
+    public String toString() {
+        return "ColumnInfo{" + "location=" + location + ", nextColumnInfo=" + nextColumnInfo + ", groupName=" + groupName + ", columnNames=" + columnNames + '}';
     }
     
     
