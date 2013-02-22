@@ -21,7 +21,8 @@ package com.zoltran.perf;
 import com.zoltran.perf.impl.QuantizedRecorder;
 import com.zoltran.perf.impl.ScalableMeasurementRecorder;
 import com.zoltran.perf.impl.ScalableMeasurementRecorderSource;
-import com.zoltran.perf.impl.mdb.rrd.RRDMeasurementDatabase;
+import com.zoltran.perf.impl.mdb.tsdb.TSDBMeasurementDatabase;
+import java.lang.management.ManagementFactory;
 
 /**
  *
@@ -30,14 +31,16 @@ import com.zoltran.perf.impl.mdb.rrd.RRDMeasurementDatabase;
 public final class RecorderFactory {
     
     
-    static final RRDMeasurementDatabase RRD_DATABASE = 
-            new RRDMeasurementDatabase(System.getProperty("rrd.perf.folder", 
-            System.getProperty("java.io.tmpdir")));
+    static final TSDBMeasurementDatabase TS_DATABASE;
     
     static {
         try
         {
-            RRD_DATABASE.registerJmx();
+            TS_DATABASE = new TSDBMeasurementDatabase(System.getProperty("perf.db.folder", 
+            System.getProperty("java.io.tmpdir")) + System.getProperty("perf.db.name", ManagementFactory.getRuntimeMXBean().getName()+".tsdb" ));
+            TS_DATABASE.registerJmx();
+            TS_DATABASE.flushEvery(600000);
+            TS_DATABASE.closeOnShutdown();
         } catch (Exception ex)
         {
             throw new RuntimeException(ex);
@@ -48,7 +51,7 @@ public final class RecorderFactory {
              int factor, int lowerMagnitude, 
             int higherMagnitude, int quantasPerMagnitude ) {
         return new ScalableMeasurementRecorder(new QuantizedRecorder(forWhat,
-                unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude), sampleTimeMillis, RRD_DATABASE);
+                unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude), sampleTimeMillis, TS_DATABASE);
     }
     
     
@@ -56,7 +59,7 @@ public final class RecorderFactory {
              int factor, int lowerMagnitude, 
             int higherMagnitude, int quantasPerMagnitude ) {
         return new ScalableMeasurementRecorderSource(new QuantizedRecorder(forWhat,
-                unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude), sampleTimeMillis, RRD_DATABASE);
+                unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude), sampleTimeMillis, TS_DATABASE);
     }
     
 }

@@ -17,7 +17,6 @@
  */
 package com.zoltran.perf.impl.mdb.tsdb;
 
-import com.zoltran.perf.impl.mdb.rrd.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
@@ -33,8 +32,6 @@ public interface TSDBMeasurementDatabaseMBean
     List<String> generateCharts(int width, int height) throws IOException;
     
     List<String> generateCharts(long startTimeMillis, long endTimeMillis, int width, int height) throws IOException;
-
-    List<String> getMeasurements() throws IOException;
 
     List<String> getParameters();
     

@@ -95,7 +95,12 @@ public class TimeSeriesDatabase implements Closeable {
         }
     }
 
-    public synchronized void addColumns(String groupName, int sampleTime, String[] columnNames, byte[][] metaData) throws IOException {
+    public synchronized boolean hasColumnGroup(String groupName) {
+        return groups.containsKey(groupName);
+    }
+    
+    
+    public synchronized void addColumnGroup(String groupName, int sampleTime, String[] columnNames, byte[][] metaData) throws IOException {
         if (groups.containsKey(groupName)) {
             throw new IllegalArgumentException("group already exists " + groupName);
         }
@@ -116,6 +121,9 @@ public class TimeSeriesDatabase implements Closeable {
     }
 
     public synchronized void write(long time, String groupName, long[] values) throws IOException {
+        if (!groups.containsKey(groupName)) {
+            throw new IllegalArgumentException("Unknown group name" + groupName);
+        }
         DataFragment writeDataFragment = writeDataFragments.get(groupName);
         if (writeDataFragment == null) {
             writeDataFragment = new DataFragment(time);
@@ -202,5 +210,12 @@ public class TimeSeriesDatabase implements Closeable {
     public String getDBFilePath() {
         return pathToDatabaseFile;
     }
+
+    @Override
+    public String toString() {
+        return "TimeSeriesDatabase{" + "groups=" + groups + ", pathToDatabaseFile=" + pathToDatabaseFile + '}';
+    }
+    
+    
     
 }

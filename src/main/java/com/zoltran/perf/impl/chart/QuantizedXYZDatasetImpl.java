@@ -17,6 +17,7 @@
  */
 package com.zoltran.perf.impl.chart;
 
+import com.zoltran.base.Arrays;
 import com.zoltran.base.ComparablePair;
 import com.zoltran.perf.impl.Quanta;
 import java.util.ArrayList;
@@ -71,8 +72,7 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
         //long [] timestamps = data.getTimestamps();        
         for (int j = 0; j < quantas.size(); j++) {
             ComparablePair<Quanta, Integer> pair = quantas.get(j);
-            double[] values = data[pair.getSecond()];
-
+            double[] values = Arrays.getColumn(data, pair.getSecond());
             for (int i = 0; i < values.length; i++) {
                 x[k] = i; //timestamps[i]*1000;
                 y[k] = j; //(double) pair.getFirst().getClosestToZero();

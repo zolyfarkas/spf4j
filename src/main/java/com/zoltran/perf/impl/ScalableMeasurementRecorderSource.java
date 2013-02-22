@@ -19,6 +19,7 @@ package com.zoltran.perf.impl;
 
 import com.zoltran.base.AbstractRunnable;
 import com.zoltran.base.DefaultScheduler;
+import com.zoltran.base.Pair;
 import com.zoltran.perf.*;
 import java.io.Closeable;
 import java.io.IOException;
@@ -84,7 +85,7 @@ public class ScalableMeasurementRecorderSource implements MeasurementRecorderSou
         synchronized(recorders) {
             MeasurementProcessor result = recorders.get(forWhat);
             if (result == null)  {
-                result = (MeasurementProcessor) processorTemplate.createLike(forWhat);
+                result = (MeasurementProcessor) processorTemplate.createLike(new Pair(processorTemplate.getInfo().getMeasuredEntity(), forWhat ));
                 recorders.put(forWhat, result);
             }
             return result; 

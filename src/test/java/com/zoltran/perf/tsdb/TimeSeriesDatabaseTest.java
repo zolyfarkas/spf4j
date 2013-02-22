@@ -28,14 +28,14 @@ public class TimeSeriesDatabaseTest {
         System.out.println("testWriteTSDB");
         new File(fileName).delete();
         TimeSeriesDatabase instance = new TimeSeriesDatabase(fileName, new byte[] {});
-        instance.addColumns("gr1", 5, new String[]{ "a","b"}, new byte [][] {});
+        instance.addColumnGroup("gr1", 5, new String[]{ "a","b"}, new byte [][] {});
         instance.write(System.currentTimeMillis(), "gr1", new long[] {0, 1});
         Thread.sleep(5);
         instance.write(System.currentTimeMillis(), "gr1", new long[] {1, 2});
         Thread.sleep(5);
         instance.write(System.currentTimeMillis(), "gr1", new long[] {3, 4});
         Thread.sleep(5);
-        instance.addColumns("gr2", 5, new String[] {"a","b"}, new byte [][] {});
+        instance.addColumnGroup("gr2", 5, new String[] {"a","b"}, new byte [][] {});
         instance.write(System.currentTimeMillis(), "gr2",  new long[] { 7, 8});
         instance.flush();
     
@@ -52,7 +52,7 @@ public class TimeSeriesDatabaseTest {
     public void testWriteBadTSDB() throws Exception {
         System.out.println("testWriteTSDB");
         TimeSeriesDatabase instance = new TimeSeriesDatabase(System.getProperty("java.io.tmpdir")+ "/testdb.tsdb", new byte[] {});
-        instance.addColumns("gr1", 5, new String[]{ "a","b"}, new byte [][] {});
+        instance.addColumnGroup("gr1", 5, new String[]{ "a","b"}, new byte [][] {});
         instance.close();
     }
 
