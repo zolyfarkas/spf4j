@@ -21,7 +21,6 @@ import com.zoltran.base.Pair;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 import java.io.Closeable;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -55,8 +54,10 @@ public class TimeSeriesDatabase implements Closeable {
     private final TableOfContents toc;
     private ColumnInfo lastColumnInfo;
     private final Map<String, DataFragment> writeDataFragments;
+    private final String pathToDatabaseFile;
 
     public TimeSeriesDatabase(String pathToDatabaseFile, byte[] metaData) throws IOException {
+        this.pathToDatabaseFile = pathToDatabaseFile;
         file = new RandomAccessFile(pathToDatabaseFile, "rw");
         // read or create header
         if (file.length() == 0) {
@@ -94,14 +95,14 @@ public class TimeSeriesDatabase implements Closeable {
         }
     }
 
-    public synchronized void addColumns(String groupName, String[] columnNames, byte[][] metaData) throws IOException {
+    public synchronized void addColumns(String groupName, int sampleTime, String[] columnNames, byte[][] metaData) throws IOException {
         if (groups.containsKey(groupName)) {
             throw new IllegalArgumentException("group already exists " + groupName);
         }
         //write column information at the enf of the file.
         flush();
         file.seek(file.length());
-        ColumnInfo colInfo = new ColumnInfo(groupName, columnNames, metaData, file.getFilePointer());
+        ColumnInfo colInfo = new ColumnInfo(groupName, columnNames, metaData,sampleTime, file.getFilePointer());
         colInfo.writeTo(file);
         //update refferences to this new ColumnInfo.
         if (lastColumnInfo != null) {
@@ -151,11 +152,11 @@ public class TimeSeriesDatabase implements Closeable {
         return groups.values();
     }
 
-    public synchronized Pair<TLongArrayList, List<long[]>> readAll(String groupName) throws IOException {
-        return readAll(groupName, 0, Long.MAX_VALUE);
+    public synchronized Pair<long[], long[][]> readAll(String groupName) throws IOException {
+        return read(groupName, 0, Long.MAX_VALUE);
     }
     
-    public synchronized Pair<TLongArrayList, List<long[]>> readAll(String groupName, long startTime, long endTime) throws IOException {
+    public synchronized Pair<long[], long[][]> read(String groupName, long startTime, long endTime) throws IOException {
         TLongArrayList timeStamps = new TLongArrayList();
         List<long[]> data = new ArrayList<long[]>();
         ColumnInfo info = groups.get(groupName);
@@ -191,10 +192,15 @@ public class TimeSeriesDatabase implements Closeable {
             }
             while (nextFragmentLocation > 0);
         }
-        return new Pair<TLongArrayList, List<long[]>>(timeStamps, data);
+        return new Pair<long[], long[][]>(timeStamps.toArray(), data.toArray(new long[data.size()][]));
     }
 
     public synchronized void sync() throws IOException {
         file.getFD().sync();
     }
+    
+    public String getDBFilePath() {
+        return pathToDatabaseFile;
+    }
+    
 }

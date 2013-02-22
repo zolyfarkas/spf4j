@@ -26,9 +26,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import javax.annotation.concurrent.ThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ThreadSafe
 public class ScalableMeasurementRecorderSource implements MeasurementRecorderSource, EntityMeasurementsSource, Closeable {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);
 
     
     private final Map<Thread, Map<Object, MeasurementProcessor>> measurementProcessorMap;
@@ -63,11 +67,13 @@ public class ScalableMeasurementRecorderSource implements MeasurementRecorderSou
             public void doRun() throws IOException {
                 long currentTime = System.currentTimeMillis();
                 if (currentTime > lastRun) {
+                    lastRun = currentTime;
                     for (EntityMeasurements m: ScalableMeasurementRecorderSource.this.getEntitiesMeasurements(true).values()) {
                         database.saveMeasurements(m.getInfo(),m.getMeasurements(true), currentTime, sampleTimeMillis);
                     }
+                } else {
+                    LOG.warn("Last measurement recording was at {} current run is {}, something is wrong" , lastRun, currentTime);
                 }
-                lastRun = currentTime;
             }
         }, sampleTimeMillis);
     }

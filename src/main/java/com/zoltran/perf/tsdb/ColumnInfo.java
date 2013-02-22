@@ -17,6 +17,7 @@
  */
 package com.zoltran.perf.tsdb;
 
+import gnu.trove.map.hash.TObjectIntHashMap;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
@@ -35,22 +36,29 @@ public class ColumnInfo {
     private long firstDataFragment;
     private long lastDataFragment;
     private final String groupName;
+    private final int sampleTime;
     private final String [] columnNames;
     private final byte [][] columnMetaData;
-    
+    private final TObjectIntHashMap<String> nameToIndex;
     
 
-    public ColumnInfo(String groupName, String [] columnNames, byte [][] columnMetaData, long location) {      
+    ColumnInfo(String groupName, String [] columnNames, byte [][] columnMetaData, 
+            int sampleTime, long location) {      
         this.location = location;
         this.nextColumnInfo = 0;
         this.firstDataFragment = 0;
         this.lastDataFragment = 0;
         this.groupName = groupName;
+        this.sampleTime = sampleTime;
         this.columnNames = columnNames;
         this.columnMetaData = columnMetaData;
+        this.nameToIndex = new TObjectIntHashMap<String>(columnNames.length + columnNames.length/3);
+        for(int i=0; i< columnNames.length;i++) {
+            this.nameToIndex.put(columnNames[i], i);
+        }
     }
 
-    public ColumnInfo(RandomAccessFile raf) throws IOException {
+    ColumnInfo(RandomAccessFile raf) throws IOException {
         location = raf.getFilePointer();
         FileChannel ch = raf.getChannel();
         FileLock lock = ch.lock(location, 8, true);
@@ -59,10 +67,14 @@ public class ColumnInfo {
             this.firstDataFragment = raf.readLong();
             this.lastDataFragment = raf.readLong();
             this.groupName = raf.readUTF();
+            this.sampleTime = raf.readInt();
             int nrColumns = raf.readShort();
             columnNames = new String[nrColumns];
+            this.nameToIndex = new TObjectIntHashMap<String>(nrColumns+ nrColumns /3);
             for (int i=0; i< columnNames.length; i++) {
-                columnNames[i] = raf.readUTF();
+                String colName = raf.readUTF();
+                columnNames[i] = colName;
+                this.nameToIndex.put(colName, i);
             }
             columnMetaData = new byte[raf.readInt()][];
             for (int i=0; i< columnMetaData.length; i++) {
@@ -82,6 +94,7 @@ public class ColumnInfo {
         dos.writeLong(firstDataFragment);
         dos.writeLong(lastDataFragment);
         dos.writeUTF(groupName);
+        dos.writeInt(sampleTime);
         dos.writeShort(columnNames.length);
         for (String columnName: columnNames) {
             dos.writeUTF(columnName);
@@ -174,8 +187,13 @@ public class ColumnInfo {
         return columnMetaData;
     }
     
-    
+    public int getColumnIndex(String columnName) {
+        return this.nameToIndex.get(columnName);
+    }
 
-    
+    public int getSampleTime() {
+        return sampleTime;
+    }
+ 
     
 }
