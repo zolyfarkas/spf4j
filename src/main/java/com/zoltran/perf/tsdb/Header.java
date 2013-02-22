@@ -32,14 +32,12 @@ public class Header {
     public static final String TYPE="TSDB"; 
     
     private final String type;
-    private final int version;
-    private final int sampleIntervalMillis;    
+    private final int version;  
     private final byte[] metaData;
 
-    public Header(int version, int sampleIntervalMillis, byte[] metaData) {
+    public Header(int version, byte[] metaData) {
         this.type = TYPE;
         this.version = version;
-        this.sampleIntervalMillis = sampleIntervalMillis;
         this.metaData = metaData;
     }
 
@@ -54,7 +52,6 @@ public class Header {
                 throw new IOException("Invalid File Type " + this.type);
             }
             this.version = raf.readInt();
-            this.sampleIntervalMillis = raf.readInt();
             int metaDataSize = raf.readInt();
             if (metaDataSize > 0) {
                 FileLock metaLock = ch.lock(ch.position(), metaDataSize, true);
@@ -78,7 +75,6 @@ public class Header {
         try {
             raf.write(type.getBytes(Charsets.US_ASCII));
             raf.writeInt(version);
-            raf.writeInt(sampleIntervalMillis);
             raf.writeInt(metaData.length);
             if (metaData.length > 0) {
                 raf.write(metaData);
@@ -97,9 +93,6 @@ public class Header {
         return version;
     }
 
-    public int getSampleIntervalMillis() {
-        return sampleIntervalMillis;
-    }
 
     public byte[] getMetaData() {
         return metaData;
@@ -107,8 +100,9 @@ public class Header {
 
     @Override
     public String toString() {
-        return "Header{" + "type=" + type + ", version=" + version + ", sampleIntervalMillis=" + sampleIntervalMillis + ", metaData=" + metaData + '}';
+        return "Header{" + "type=" + type + ", version=" + version + ", metaData=" + metaData + '}';
     }
+
     
     
 }

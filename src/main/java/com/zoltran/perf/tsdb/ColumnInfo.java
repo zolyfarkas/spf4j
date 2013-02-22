@@ -31,17 +31,23 @@ import java.nio.channels.FileLock;
  */
 public class ColumnInfo {
     private final long location;        
-    private long nextColumnInfo;  
+    private long nextColumnInfo; 
+    private long firstDataFragment;
+    private long lastDataFragment;
     private final String groupName;
     private final String [] columnNames;
+    private final byte [][] columnMetaData;
     
     
 
-    public ColumnInfo(String groupName, String [] columnNames, long location) {      
+    public ColumnInfo(String groupName, String [] columnNames, byte [][] columnMetaData, long location) {      
         this.location = location;
         this.nextColumnInfo = 0;
+        this.firstDataFragment = 0;
+        this.lastDataFragment = 0;
         this.groupName = groupName;
         this.columnNames = columnNames;
+        this.columnMetaData = columnMetaData;
     }
 
     public ColumnInfo(RandomAccessFile raf) throws IOException {
@@ -50,12 +56,22 @@ public class ColumnInfo {
         FileLock lock = ch.lock(location, 8, true);
         try {
             this.nextColumnInfo = raf.readLong();
+            this.firstDataFragment = raf.readLong();
+            this.lastDataFragment = raf.readLong();
             this.groupName = raf.readUTF();
             int nrColumns = raf.readShort();
             columnNames = new String[nrColumns];
             for (int i=0; i< columnNames.length; i++) {
                 columnNames[i] = raf.readUTF();
             }
+            columnMetaData = new byte[raf.readInt()][];
+            for (int i=0; i< columnMetaData.length; i++) {
+                int metaLength = raf.readInt();
+                byte [] colMetaData = new byte[metaLength];
+                raf.readFully(colMetaData);
+                columnMetaData[i] = colMetaData;
+            }
+            
         } finally {
             lock.release();
         }
@@ -63,11 +79,19 @@ public class ColumnInfo {
 
     public void writeTo(DataOutput dos) throws IOException {        
         dos.writeLong(nextColumnInfo);
+        dos.writeLong(firstDataFragment);
+        dos.writeLong(lastDataFragment);
         dos.writeUTF(groupName);
         dos.writeShort(columnNames.length);
         for (String columnName: columnNames) {
             dos.writeUTF(columnName);
         }
+        dos.writeInt(columnMetaData.length);
+        for (byte[] colMeta : columnMetaData) {        
+            dos.writeInt(colMeta.length);
+            dos.write(colMeta);              
+        }
+        
     }
     
     public void writeTo(RandomAccessFile raf) throws IOException {        
@@ -100,6 +124,32 @@ public class ColumnInfo {
         }
     }
 
+    public void setFirstDataFragment(long firstDataFragment, RandomAccessFile raf) throws IOException {
+        this.firstDataFragment = firstDataFragment;
+        FileChannel ch = raf.getChannel();
+        FileLock lock = ch.lock(raf.getFilePointer()+8,8,false);
+        try {
+            raf.seek(location+8);
+            raf.writeLong(firstDataFragment);
+        } finally {
+            lock.release();
+        }
+    }
+    
+    
+    public void setLastDataFragment(long lastDataFragment, RandomAccessFile raf) throws IOException {
+        this.lastDataFragment = lastDataFragment;
+        FileChannel ch = raf.getChannel();
+        FileLock lock = ch.lock(raf.getFilePointer()+16,8,false);
+        try {
+            raf.seek(location+16);
+            raf.writeLong(lastDataFragment);
+        } finally {
+            lock.release();
+        }
+    }
+    
+    
     public long getNextColumnInfo() {
         return nextColumnInfo;
     }
@@ -112,11 +162,20 @@ public class ColumnInfo {
         return groupName;
     }
 
-    @Override
-    public String toString() {
-        return "ColumnInfo{" + "location=" + location + ", nextColumnInfo=" + nextColumnInfo + ", groupName=" + groupName + ", columnNames=" + columnNames + '}';
+    public long getFirstDataFragment() {
+        return firstDataFragment;
+    }
+
+    public long getLastDataFragment() {
+        return lastDataFragment;
+    }
+
+    public byte[][] getColumnMetaData() {
+        return columnMetaData;
     }
     
+    
+
     
     
 }

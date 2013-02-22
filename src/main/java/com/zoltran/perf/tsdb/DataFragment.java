@@ -17,7 +17,7 @@
  */
 package com.zoltran.perf.tsdb;
 
-import gnu.trove.list.array.TLongArrayList;
+import gnu.trove.list.array.TIntArrayList;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
@@ -36,19 +36,19 @@ import java.util.List;
  * @author zoly
  */
 public class DataFragment {
-    private final long location;        
+    private long location;        
     private long nextDataFragment;  
     private final long startTimeMillis;
     private List<double[]> data;
-    private TLongArrayList timestamps;
-   
+    private TIntArrayList timestamps;
+    
 
-    public DataFragment(long startTimeMillis, long location) {      
-        this.location = location;
+    public DataFragment(long startTimeMillis) {      
+        this.location = 0;
         this.nextDataFragment = 0;
         this.startTimeMillis = startTimeMillis;
         data = new ArrayList<double[]>();
-        timestamps = new TLongArrayList();
+        timestamps = new TIntArrayList();
     }
 
     public DataFragment(RandomAccessFile raf) throws IOException {
@@ -60,7 +60,7 @@ public class DataFragment {
             this.startTimeMillis = raf.readLong();
             int nrSamples = raf.readInt();
             int samplesLength = raf.readInt();
-            int bufferSize = nrSamples * (samplesLength *8 + 8);
+            int bufferSize = nrSamples * (samplesLength *8 + 4);
             byte [] buffer = new byte [bufferSize];
             raf.readFully(buffer);
             loadData(nrSamples, samplesLength, new DataInputStream(new ByteArrayInputStream(buffer)));            
@@ -75,7 +75,7 @@ public class DataFragment {
         dos.writeInt(data.size());
         dos.writeInt(data.get(0).length);
         for (int i=0; i< timestamps.size(); i++) {
-            dos.writeLong(timestamps.get(i));
+            dos.writeInt(timestamps.get(i));
             for (double value: data.get(i)) {
                 dos.writeDouble(value);
             }
@@ -99,16 +99,21 @@ public class DataFragment {
     
     public void addData(long timestamp, double [] dataRow) {
         data.add(dataRow);
-        timestamps.add(timestamp);
+        timestamps.add( (int )(startTimeMillis - timestamp) );
     }
     
     
     public void setNextDataFragment(long nextDataFragment, RandomAccessFile raf) throws IOException {
         this.nextDataFragment = nextDataFragment;
+        setNextDataFragment(location, nextDataFragment, raf);
+    }
+    
+    
+   public static void setNextDataFragment(long dataFragmentPosition, long nextDataFragment, RandomAccessFile raf) throws IOException {
         FileChannel ch = raf.getChannel();
         FileLock lock = ch.lock(raf.getFilePointer(),8,false);
         try {
-            raf.seek(location);
+            raf.seek(dataFragmentPosition);
             raf.writeLong(nextDataFragment);
         } finally {
             lock.release();
@@ -125,9 +130,9 @@ public class DataFragment {
 
     private void loadData(int nrSamples, int samplesLength, DataInput raf) throws IOException {
         data = new ArrayList(nrSamples);
-        timestamps = new TLongArrayList(nrSamples);
+        timestamps = new TIntArrayList(nrSamples);
         for (int i=0; i< nrSamples;i++) {
-            timestamps.add(raf.readLong());
+            timestamps.add(raf.readInt());
             double [] row = new double[samplesLength];
             for(int j=0; j< samplesLength; j++) {
                 row[j] = raf.readDouble();
@@ -148,10 +153,16 @@ public class DataFragment {
         return data;
     }
 
-    public TLongArrayList getTimestamps() {
+    public TIntArrayList getTimestamps() {
         return timestamps;
     }
 
+    public void setLocation(long location) {
+        this.location = location;
+    }
+
+    
+    
     @Override
     public String toString() {
         return "DataFragment{" + "location=" + location + ", nextDataFragment=" + nextDataFragment + ", startTimeMillis=" + startTimeMillis + ", data=" + data + ", timestamps=" + timestamps + '}';
