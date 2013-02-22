@@ -31,18 +31,18 @@ public class TimeSeriesDatabaseTest {
         new File(fileName).delete();
         TimeSeriesDatabase instance = new TimeSeriesDatabase(fileName, new byte[] {});
         instance.addColumns("gr1", new String[]{ "a","b"}, new byte [][] {});
-        instance.write(System.currentTimeMillis(), "gr1", new double[] {0.1, 0.2});
+        instance.write(System.currentTimeMillis(), "gr1", new long[] {0, 1});
         Thread.sleep(5);
-        instance.write(System.currentTimeMillis(), "gr1", new double[] {1, 2});
+        instance.write(System.currentTimeMillis(), "gr1", new long[] {1, 2});
         Thread.sleep(5);
-        instance.write(System.currentTimeMillis(), "gr1", new double[] {3, 4});
+        instance.write(System.currentTimeMillis(), "gr1", new long[] {3, 4});
         Thread.sleep(5);
         instance.addColumns("gr2", new String[] {"a","b"}, new byte [][] {});
-        instance.write(System.currentTimeMillis(), "gr2",  new double[] { 7, 8});
+        instance.write(System.currentTimeMillis(), "gr2",  new long[] { 7, 8});
         instance.flush();
     
         System.out.println(instance.getColumnsInfo());
-        Pair<TLongArrayList, List<double[]>> readAll = instance.readAll("gr1");
+        Pair<TLongArrayList, List<long[]>> readAll = instance.readAll("gr1");
         printValues(readAll);
         readAll = instance.readAll("gr2");
         printValues(readAll);
@@ -58,9 +58,9 @@ public class TimeSeriesDatabaseTest {
         instance.close();
     }
 
-    private void printValues(Pair<TLongArrayList, List<double[]>> readAll) {
+    private void printValues(Pair<TLongArrayList, List<long[]>> readAll) {
         TLongArrayList ts = readAll.getFirst();
-        List<double[]> values = readAll.getSecond();
+        List<long[]> values = readAll.getSecond();
         for (int i = 0; i< ts.size(); i++ ) {
             System.out.println(ts.get(i) + ":" + Arrays.toString(values.get(i)));
         }

@@ -17,9 +17,11 @@
  */
 package com.zoltran.perf.impl.mdb.tsdb;
 
+import com.google.common.base.Charsets;
 import com.zoltran.perf.EntityMeasurementsInfo;
 import com.zoltran.perf.MeasurementDatabase;
 import com.zoltran.perf.impl.chart.Charts;
+import com.zoltran.perf.tsdb.TimeSeriesDatabase;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -51,48 +53,37 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
 
 
 
-    private final TSDBMeasurementDatabase database;
+    private final TimeSeriesDatabase database;
     private static final Logger LOG = LoggerFactory.getLogger(TSDBMeasurementDatabase.class);
 
-    public TSDBMeasurementDatabase(final String databaseName) {
-        this.database = new TSDBMeasurementDatabase(databaseName);
-        
-
+    public TSDBMeasurementDatabase(final String databaseName) throws IOException {
+        this.database = new TimeSeriesDatabase(databaseName, new byte[] {});
     }
     private static final AtomicInteger dbCount = new AtomicInteger(0);
 
     public void registerJmx() throws MalformedObjectNameException, InstanceAlreadyExistsException,
             MBeanRegistrationException, NotCompliantMBeanException {
         ManagementFactory.getPlatformMBeanServer().registerMBean(this,
-                new ObjectName("SPF4J:name=RRDMeasurementDatabase" + dbCount.getAndIncrement()));
-    }
-
-    private static String fixName(String name) {
-        StringBuilder result = new StringBuilder(name.length());
-        for (int i=0;i<name.length();i++) {
-            char c = name.charAt(i);
-            if (Character.isJavaIdentifierPart(c)) {
-                result.append(c);
-            }
-        }
-        return result.toString();
-    }
-    
-    private static String getDBName(EntityMeasurementsInfo measurement, int sampleTimeSeconds) {
-        return fixName(measurement.getMeasuredEntity().toString()) + "_" + sampleTimeSeconds + "_"
-                + measurement.getUnitOfMeasurement() + "_" + new LocalDate().getWeekOfWeekyear() + ".rrd4j";
+                new ObjectName("SPF4J:name=TSDBMeasurementDatabase" + dbCount.getAndIncrement()));
     }
 
     @Override
     public void alocateMeasurements(EntityMeasurementsInfo measurement, int sampleTimeMillis) throws IOException {
-        throw new UnsupportedOperationException();
+        String [] measurementNames = measurement.getMeasurementNames();
+        byte [] uom = measurement.getUnitOfMeasurement().getBytes(Charsets.UTF_8);
+        byte [][] metaData = new byte [measurementNames.length] [];
+        for(int i=0;i< metaData.length; i++) { 
+            metaData[i] =uom;
+        }
+        database.addColumns(measurement.getMeasuredEntity().toString(), measurementNames, 
+                metaData);
     }
     
     
     
     @Override
     public void saveMeasurements(EntityMeasurementsInfo measurementInfo, long [] measurements, long timeStampMillis, int sampleTimeMillis) throws IOException {
-           throw new UnsupportedOperationException();
+        database.write(timeStampMillis, measurementInfo.getMeasuredEntity().toString(), measurements);   
     }
 
     @PreDestroy

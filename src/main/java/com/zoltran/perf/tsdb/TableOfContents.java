@@ -26,7 +26,7 @@ import java.nio.channels.FileLock;
  *
  * @author zoly
  */
-public class TableOfContents {
+class TableOfContents {
     private final long location;
     private long lastColumnInfo;
     private long firstColumnInfo;

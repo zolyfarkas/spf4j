@@ -27,7 +27,7 @@ import java.nio.channels.FileLock;
  * TSDB header detail
  * @author zoly
  */
-public class Header {
+class Header {
     
     public static final String TYPE="TSDB"; 
     

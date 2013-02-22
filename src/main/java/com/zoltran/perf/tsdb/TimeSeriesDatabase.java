@@ -56,7 +56,7 @@ public class TimeSeriesDatabase implements Closeable {
     private ColumnInfo lastColumnInfo;
     private final Map<String, DataFragment> writeDataFragments;
 
-    public TimeSeriesDatabase(String pathToDatabaseFile, byte[] metaData) throws FileNotFoundException, IOException {
+    public TimeSeriesDatabase(String pathToDatabaseFile, byte[] metaData) throws IOException {
         file = new RandomAccessFile(pathToDatabaseFile, "rw");
         // read or create header
         if (file.length() == 0) {
@@ -114,7 +114,7 @@ public class TimeSeriesDatabase implements Closeable {
         groups.put(groupName, colInfo);
     }
 
-    public synchronized void write(long time, String groupName, double[] values) throws IOException {
+    public synchronized void write(long time, String groupName, long[] values) throws IOException {
         DataFragment writeDataFragment = writeDataFragments.get(groupName);
         if (writeDataFragment == null) {
             writeDataFragment = new DataFragment(time);
@@ -151,32 +151,47 @@ public class TimeSeriesDatabase implements Closeable {
         return groups.values();
     }
 
-    public synchronized Pair<TLongArrayList, List<double[]>> readAll(String groupName) throws IOException {
+    public synchronized Pair<TLongArrayList, List<long[]>> readAll(String groupName) throws IOException {
+        return readAll(groupName, 0, Long.MAX_VALUE);
+    }
+    
+    public synchronized Pair<TLongArrayList, List<long[]>> readAll(String groupName, long startTime, long endTime) throws IOException {
         TLongArrayList timeStamps = new TLongArrayList();
-        List<double[]> data = new ArrayList<double[]>();
+        List<long[]> data = new ArrayList<long[]>();
         ColumnInfo info = groups.get(groupName);
 
         if (info.getFirstDataFragment() > 0) {
-            file.seek(info.getFirstDataFragment());
-            DataFragment frag = new DataFragment(file);
-            long fragStartTime = frag.getStartTimeMillis();
-            TIntArrayList fragTimestamps = frag.getTimestamps();
-            for (int i = 0; i < fragTimestamps.size(); i++) {
-                timeStamps.add(fragStartTime + fragTimestamps.get(i));
-            }
-            data.addAll(frag.getData());
-            while (frag.getNextDataFragment() > 0) {
-                file.seek(frag.getNextDataFragment());
+            DataFragment frag;
+            long nextFragmentLocation = info.getFirstDataFragment();
+            do {
+                file.seek(nextFragmentLocation);
                 frag = new DataFragment(file);
-                fragStartTime = frag.getStartTimeMillis();
-                fragTimestamps = frag.getTimestamps();
-                for (int i = 0; i < fragTimestamps.size(); i++) {
-                    timeStamps.add(fragStartTime + fragTimestamps.get(i));
+                long fragStartTime = frag.getStartTimeMillis();
+                if (fragStartTime > startTime) {
+                    TIntArrayList fragTimestamps = frag.getTimestamps();
+                    int nr = 0;
+                    for (int i = 0; i < fragTimestamps.size(); i++) {
+                        long ts = fragStartTime + fragTimestamps.get(i);
+                        if (ts < endTime) {
+                            timeStamps.add(ts);
+                            nr++;
+                        } else {
+                            break;
+                        }
+                    }
+                    List<long[]> d = frag.getData();
+                    for (int i=0; i< nr; i++) {
+                        data.add(d.get(i));
+                    }
+                    if (fragTimestamps.size() > nr) {
+                        break;
+                    }
                 }
-                data.addAll(frag.getData());
+                nextFragmentLocation = frag.getNextDataFragment();
             }
+            while (nextFragmentLocation > 0);
         }
-        return new Pair<TLongArrayList, List<double[]>>(timeStamps, data);
+        return new Pair<TLongArrayList, List<long[]>>(timeStamps, data);
     }
 
     public synchronized void sync() throws IOException {

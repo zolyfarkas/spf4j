@@ -35,11 +35,11 @@ import java.util.List;
  *
  * @author zoly
  */
-public class DataFragment {
+class DataFragment {
     private long location;        
     private long nextDataFragment;  
     private final long startTimeMillis;
-    private List<double[]> data;
+    private List<long[]> data;
     private TIntArrayList timestamps;
     
 
@@ -47,7 +47,7 @@ public class DataFragment {
         this.location = 0;
         this.nextDataFragment = 0;
         this.startTimeMillis = startTimeMillis;
-        data = new ArrayList<double[]>();
+        data = new ArrayList<long[]>();
         timestamps = new TIntArrayList();
     }
 
@@ -76,8 +76,8 @@ public class DataFragment {
         dos.writeInt(data.get(0).length);
         for (int i=0; i< timestamps.size(); i++) {
             dos.writeInt(timestamps.get(i));
-            for (double value: data.get(i)) {
-                dos.writeDouble(value);
+            for (long value: data.get(i)) {
+                dos.writeLong(value);
             }
         }        
     }
@@ -97,9 +97,9 @@ public class DataFragment {
     }
 
     
-    public void addData(long timestamp, double [] dataRow) {
+    public void addData(long timestamp, long [] dataRow) {
         data.add(dataRow);
-        timestamps.add( (int )(startTimeMillis - timestamp) );
+        timestamps.add( (int )(timestamp - startTimeMillis) );
     }
     
     
@@ -133,9 +133,9 @@ public class DataFragment {
         timestamps = new TIntArrayList(nrSamples);
         for (int i=0; i< nrSamples;i++) {
             timestamps.add(raf.readInt());
-            double [] row = new double[samplesLength];
+            long [] row = new long[samplesLength];
             for(int j=0; j< samplesLength; j++) {
-                row[j] = raf.readDouble();
+                row[j] = raf.readLong();
             }                
             data.add(row);
         }
@@ -149,7 +149,7 @@ public class DataFragment {
         return data.size();
     }
 
-    public List<double[]> getData() {
+    public List<long[]> getData() {
         return data;
     }
 
