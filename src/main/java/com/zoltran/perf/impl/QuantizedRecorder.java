@@ -21,11 +21,11 @@ import com.google.common.math.IntMath;
 import com.zoltran.perf.EntityMeasurements;
 import com.zoltran.perf.EntityMeasurementsInfo;
 import com.zoltran.perf.MeasurementProcessor;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -92,7 +92,7 @@ public class QuantizedRecorder implements MeasurementProcessor {
             magnitudes[j++] = fromValue;
             fromValue *= factor;
         }
-        final Set<String> result = new HashSet<String>();
+        final List<String> result = new ArrayList();
         result.add("total");
         result.add("count");
         result.add("min");
@@ -113,7 +113,7 @@ public class QuantizedRecorder implements MeasurementProcessor {
             result.add("Q" + prevVal
                     + "_PI");
         }
-        info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement, result);
+        info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement, result.toArray(new String [result.size()]));
 
     }
 
@@ -172,31 +172,18 @@ public class QuantizedRecorder implements MeasurementProcessor {
     }
 
     @Override
-    public synchronized Map<String, Number> getMeasurements(boolean reset) {
-        Map<String, Number> result = new HashMap<String, Number>();
-        result.put("total", this.measurementTotal);
-        result.put("count", this.measurementCount);
-        if (this.measurementCount > 0) {
-            result.put("min", this.minMeasurement);
-            result.put("max", this.maxMeasurement);
-        }
-
-        result.put("QNI_" + this.magnitudes[0], this.quatizedMeasurements[0]);
-        if (magnitudes.length > 0) {
-            int k = 1;
-            long prevVal = magnitudes[0];
-            for (int i = 1; i < magnitudes.length; i++) {
-                long magVal = magnitudes[i];
-                long intSize = magVal - prevVal;
-                for (int j = 0; j < quantasPerMagnitude; j++) {
-                    result.put("Q" + (prevVal + intSize * j / quantasPerMagnitude)
-                            + "_" + (prevVal + intSize * (j + 1) / quantasPerMagnitude), this.quatizedMeasurements[k++]);
-                }
-                prevVal = magVal;
-            }
-            result.put("Q" + prevVal
-                    + "_PI", this.quatizedMeasurements[k]);
-        }
+    public synchronized long[] getMeasurements(boolean reset) {
+        long[] result = new long[info.getNumberOfMeasurements()];
+        int i=0;
+        result[i++] = this.measurementTotal;
+        result[i++] =  this.measurementCount;
+        
+        result[i++] = this.minMeasurement;
+        result[i++] = this.maxMeasurement;
+        
+        for (int j=0;j< this.quatizedMeasurements.length; j++) {
+            result[i++] = this.quatizedMeasurements[j];
+        }     
         if (reset) {
             reset();
         }

@@ -17,7 +17,6 @@
  */
 package com.zoltran.perf;
 
-import java.util.Set;
 import javax.annotation.Nonnull;
 
 /**
@@ -32,6 +31,8 @@ public interface EntityMeasurementsInfo {
     @Nonnull
     String getUnitOfMeasurement();
     
-    Set<String> getMeasurementNames();
+    String [] getMeasurementNames();
+    
+    int getNumberOfMeasurements();
     
 }

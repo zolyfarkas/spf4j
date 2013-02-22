@@ -19,7 +19,6 @@ package com.zoltran.perf;
 
 import com.zoltran.base.ReportGenerator;
 import java.io.IOException;
-import java.util.Map;
 
 /**
  *
@@ -30,7 +29,7 @@ public interface MeasurementDatabase extends ReportGenerator {
     void alocateMeasurements(EntityMeasurementsInfo measurement, int sampleTimeMillis)
             throws IOException;
     
-    void saveMeasurements(EntityMeasurementsInfo measurementInfo, Map<String,Number> measurements,
+    void saveMeasurements(EntityMeasurementsInfo measurementInfo, long []measurements,
             long timeStampMillis, int sampleTimeMillis)
             throws IOException;
     

@@ -33,12 +33,16 @@ import java.util.Set;
  * Yet another time series database. Why? because all the other ts databases had
  * various constraints that restrict the functionality I can add to spf4j.
  *
- * Features: 
+ * Initial Features: 
  * 
  * 1. measurements can be added dynamically anytime to a database. 
  * 2. long measurement names.
+ * 3. the stored interval is not known from the beginning.
  * 4. implementation biased towards write performance.
- *
+ * 
+ * Future thoughts:
+ * 
+ * 
  *
  * @author zoly
  */

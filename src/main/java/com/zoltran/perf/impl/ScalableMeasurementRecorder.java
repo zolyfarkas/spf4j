@@ -88,7 +88,7 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
     }
 
     @Override
-    public Map<String, Number> getMeasurements(boolean reset) {
+    public long [] getMeasurements(boolean reset) {
         EntityMeasurements result  = null;
         synchronized (threadLocalRecorders) {
             List<Thread> removeThreads = new ArrayList<Thread>();

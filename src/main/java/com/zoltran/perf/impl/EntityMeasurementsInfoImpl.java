@@ -18,7 +18,7 @@
 package com.zoltran.perf.impl;
 
 import com.zoltran.perf.EntityMeasurementsInfo;
-import java.util.Set;
+import java.util.Arrays;
 
 /**
  *
@@ -27,9 +27,9 @@ import java.util.Set;
 public class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
     private final Object measuredEntity;
     private final String unitOfMeasurement;
-    private final Set<String> measurementNames;
+    private final String[] measurementNames;
 
-    public EntityMeasurementsInfoImpl(Object measuredEntity, String unitOfMeasurement, Set<String> measurementNames) {
+    public EntityMeasurementsInfoImpl(Object measuredEntity, String unitOfMeasurement, String [] measurementNames) {
         this.measuredEntity = measuredEntity;
         this.unitOfMeasurement = unitOfMeasurement;
         this.measurementNames = measurementNames;
@@ -46,7 +46,7 @@ public class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
     }
 
     @Override
-    public Set<String> getMeasurementNames() {
+    public String [] getMeasurementNames() {
         return measurementNames;
     }
 
@@ -70,15 +70,22 @@ public class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
         if ((this.unitOfMeasurement == null) ? (other.unitOfMeasurement != null) : !this.unitOfMeasurement.equals(other.unitOfMeasurement)) {
             return false;
         }
-        if (this.measurementNames != other.measurementNames && (this.measurementNames == null || !this.measurementNames.equals(other.measurementNames))) {
+        if (!Arrays.deepEquals(this.measurementNames, other.measurementNames)) {
             return false;
         }
         return true;
     }
 
+
+
     @Override
     public String toString() {
         return "EntityMeasurementsInfoImpl{" + "measuredEntity=" + measuredEntity + ", unitOfMeasurement=" + unitOfMeasurement + ", measurementNames=" + measurementNames + '}';
+    }
+
+    @Override
+    public int getNumberOfMeasurements() {
+        return measurementNames.length;
     }
     
     

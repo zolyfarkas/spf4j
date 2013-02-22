@@ -19,7 +19,6 @@
 package com.zoltran.perf;
 
 
-import java.util.Map;
 import javax.annotation.Nonnull;
 
 
@@ -31,7 +30,7 @@ import javax.annotation.Nonnull;
 public interface EntityMeasurements {
     
     @Nonnull
-    Map<String, Number> getMeasurements(boolean reset);    
+    long [] getMeasurements(boolean reset);    
     
     @Nonnull
     EntityMeasurements  aggregate(@Nonnull EntityMeasurements mSource);

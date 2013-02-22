@@ -17,9 +17,9 @@
  */
 package com.zoltran.perf.impl;
 
-import java.util.Map;
-import static org.junit.Assert.assertArrayEquals;
+import java.util.Arrays;
 import org.junit.*;
+import static org.junit.Assert.assertArrayEquals;
 
 /**
  *
@@ -94,8 +94,8 @@ public class QuantizedRecorderTest {
         instance.record(15000);
         assertArrayEquals(new long[] {0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4}, instance.getQuatizedMeasurements());
         System.out.println(instance);
-        Map result = instance.getMeasurements(false);
-        System.out.println(result);
+        long[] result = instance.getMeasurements(false);
+        System.out.println(Arrays.toString(result));
     }
   
     
@@ -116,8 +116,8 @@ public class QuantizedRecorderTest {
         instance.record(-10);
         assertArrayEquals(new long[] {1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4}, instance.getQuatizedMeasurements());
         System.out.println(instance);
-        Map result = instance.getMeasurements(false);
-        System.out.println(result);
+        long[] result = instance.getMeasurements(false);
+        System.out.println(Arrays.toString(result));
     }
 
 

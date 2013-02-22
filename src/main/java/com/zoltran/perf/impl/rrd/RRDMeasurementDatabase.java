@@ -141,13 +141,16 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
     
     
     @Override
-    public void saveMeasurements(EntityMeasurementsInfo measurementInfo, Map<String, Number> measurements, long timeStampMillis, int sampleTimeMillis) throws IOException {
+    public void saveMeasurements(EntityMeasurementsInfo measurementInfo, long [] measurements, long timeStampMillis, int sampleTimeMillis) throws IOException {
         
         RrdDb rrdDb = databases.getUnchecked(new Pair(measurementInfo, msToS(sampleTimeMillis)));
         Sample sample = rrdDb.createSample(msToS(timeStampMillis));
-        for (Map.Entry<String, Number> entry : measurements.entrySet()) {
-            sample.setValue(entry.getKey(), entry.getValue().doubleValue());
+        
+        String [] measurementNames = measurementInfo.getMeasurementNames();
+        for (int i=0; i< measurements.length; i++) {
+            sample.setValue(measurementNames[i], (double)measurements[i]);
         }
+
         try {
             sample.update();
             LOG.debug("Measurement {} persisted at {}", measurementInfo, timeStampMillis);
@@ -221,7 +224,7 @@ public class RRDMeasurementDatabase implements MeasurementDatabase, Closeable, R
                 endTimeMillis / 1000);
         final FetchData data = request.fetchData();
         String [] dsNames = data.getDsNames();
-        double [][] values = new double[dsNames.length][];
+        double [][] values = data.getValues();
         File rrdFile = new File(rrdDb.getPath());
         File graphicFile = File.createTempFile(rrdFile.getName(), ".png",
                 new File(rrdDb.getCanonicalPath()).getParentFile());

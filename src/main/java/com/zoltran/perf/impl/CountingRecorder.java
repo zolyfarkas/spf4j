@@ -7,11 +7,6 @@ package com.zoltran.perf.impl;
 import com.zoltran.perf.EntityMeasurements;
 import com.zoltran.perf.EntityMeasurementsInfo;
 import com.zoltran.perf.MeasurementProcessor;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -23,12 +18,7 @@ public class CountingRecorder
     private long counter;
     private final EntityMeasurementsInfo info;
     
-    private static final Set<String> measurements;
-    static {
-        HashSet set = new HashSet();
-        set.add("counter");
-        measurements = Collections.unmodifiableSet(set);
-    }
+    private static final String [] measurements ={"counter"};
 
     private CountingRecorder(final Object measuredEntity, final String unitOfMeasurement, long counter) {
         this(measuredEntity, unitOfMeasurement);
@@ -48,10 +38,8 @@ public class CountingRecorder
     }
 
     @Override
-    public synchronized Map<String, Number> getMeasurements(boolean reset) {
-        
-        Map<String, Number> result = new HashMap<String, Number>();
-        result.put("counter", counter);
+    public synchronized long[] getMeasurements(boolean reset) {
+        long[] result = new long[] {counter};
         if (reset) {
             counter = 0;
         }
