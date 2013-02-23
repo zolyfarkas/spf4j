@@ -60,7 +60,7 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
             }
         }
         Collections.sort(quantas);
-        int seriesSize = quantas.size() * data[quantas.get(0).getSecond()].length;
+        int seriesSize = quantas.size() * data.length;
         x = new double[seriesSize];
         y = new double[seriesSize];
         z = new double[seriesSize];

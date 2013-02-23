@@ -76,12 +76,13 @@ public class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
         return true;
     }
 
-
-
     @Override
     public String toString() {
-        return "EntityMeasurementsInfoImpl{" + "measuredEntity=" + measuredEntity + ", unitOfMeasurement=" + unitOfMeasurement + ", measurementNames=" + measurementNames + '}';
+        return "EntityMeasurementsInfoImpl{" + "measuredEntity=" + measuredEntity + ", unitOfMeasurement=" + unitOfMeasurement + ", measurementNames=" + Arrays.toString(measurementNames)+ '}';
     }
+
+
+
 
     @Override
     public int getNumberOfMeasurements() {
