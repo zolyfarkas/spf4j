@@ -68,7 +68,7 @@ public final class Pair<A,B>{
 
     @Override
     public String toString() {
-        return "Pair{" + "first=" + first + ", second=" + second + '}';
+        return "(" + first + "," + second + ')';
     }  
     
 }
