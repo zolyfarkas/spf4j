@@ -32,7 +32,7 @@ public class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
     public EntityMeasurementsInfoImpl(Object measuredEntity, String unitOfMeasurement, String [] measurementNames) {
         this.measuredEntity = measuredEntity;
         this.unitOfMeasurement = unitOfMeasurement;
-        this.measurementNames = measurementNames;
+        this.measurementNames = measurementNames.clone();
     }
 
     @Override
@@ -47,7 +47,7 @@ public class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
 
     @Override
     public String [] getMeasurementNames() {
-        return measurementNames;
+        return measurementNames.clone();
     }
 
     @Override

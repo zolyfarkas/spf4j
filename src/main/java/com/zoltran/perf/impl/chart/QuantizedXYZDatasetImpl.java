@@ -47,6 +47,7 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
     private final long startTimeMillis;
     private final long stepMillis;
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP")
     public QuantizedXYZDatasetImpl(String[] dataSources, double [][] data, long startTimeMillis, long step) {
         this.data = data;
         this.startTimeMillis = startTimeMillis;

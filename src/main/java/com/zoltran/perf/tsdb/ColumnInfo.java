@@ -122,7 +122,7 @@ public class ColumnInfo {
     }
 
     public String [] getColumnNames() {
-        return columnNames;
+        return columnNames.clone();
     }
 
     public void setNextColumnInfo(long nextColumnInfo, RandomAccessFile raf) throws IOException {
@@ -184,7 +184,7 @@ public class ColumnInfo {
     }
 
     public byte[][] getColumnMetaData() {
-        return columnMetaData;
+        return columnMetaData.clone();
     }
     
     public int getColumnIndex(String columnName) {

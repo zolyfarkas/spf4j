@@ -100,7 +100,7 @@ class Header {
 
     @Override
     public String toString() {
-        return "Header{" + "type=" + type + ", version=" + version + ", metaData=" + metaData + '}';
+        return "Header{" + "type=" + type + ", version=" + version + '}';
     }
 
     
