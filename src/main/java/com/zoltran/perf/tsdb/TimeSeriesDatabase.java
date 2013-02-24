@@ -100,14 +100,14 @@ public class TimeSeriesDatabase implements Closeable {
     }
     
     
-    public synchronized void addColumnGroup(String groupName, int sampleTime, String[] columnNames, byte[][] metaData) throws IOException {
+    public synchronized void addColumnGroup(String groupName, byte [] groupMetaData, int sampleTime, String[] columnNames, byte[][] metaData) throws IOException {
         if (groups.containsKey(groupName)) {
             throw new IllegalArgumentException("group already exists " + groupName);
         }
         //write column information at the enf of the file.
         flush();
         file.seek(file.length());
-        ColumnInfo colInfo = new ColumnInfo(groupName, columnNames, metaData,sampleTime, file.getFilePointer());
+        ColumnInfo colInfo = new ColumnInfo(groupName, groupMetaData, columnNames, metaData,sampleTime, file.getFilePointer());
         colInfo.writeTo(file);
         //update refferences to this new ColumnInfo.
         if (lastColumnInfo != null) {

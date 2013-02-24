@@ -17,6 +17,7 @@
  */
 package com.zoltran.perf.impl.chart;
 
+import com.zoltran.base.Arrays;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -47,55 +48,29 @@ public final class Charts {
     
     public static BufferedImage createMinMaxAvgCountImg(String chartName, long[] timestamps,
             double[] min, double[] max, double[] total, double[] count,  int width, int height) {
-        BufferedImage bi = Charts.createMinMaxAvgImg(chartName, timestamps, min, max, total, count, width, height-height/3);
-        BufferedImage bi2 = Charts.createCountImg(timestamps, count, width, height/3);
+        
+        BufferedImage bi = Charts.createTimeSeriesChart(chartName, timestamps,
+                new String [] {"min", "max", "avg"}, new double[] [] {min, max, Arrays.divide(total, count)}, width, height-height/3);
+        BufferedImage bi2 = Charts.createTimeSeriesChart(null, timestamps,
+                new String[] {"count"}, new double [][] { count}, width, height/3);
         BufferedImage combined = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         combined.getGraphics().drawImage(bi, 0, 0, null);
         combined.getGraphics().drawImage(bi2, 0, height-height/3, null);
         return combined;
     }
     
-    public static BufferedImage createCountImg(long[] timestamps,  double[] count,int width, int height)
+    public static BufferedImage createTimeSeriesChart(String chartName, long[] timestamps,  
+            String [] measurementNames, double[][] measurements,int width, int height)
     {
-        TimeSeries countTs = new TimeSeries("count");
-        for (int i=0;i<timestamps.length; i++) {
-            FixedMillisecond ts = new FixedMillisecond(timestamps[i]);
-            countTs.add(ts, count[i]);
-        }
         TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();
-        timeseriescollection.addSeries(countTs);
-        JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(null, 
-                "Time", "Value", timeseriescollection, true, true, false);
-        XYPlot xyplot = (XYPlot)jfreechart.getPlot();
-        DateAxis dateaxis = (DateAxis)xyplot.getDomainAxis();
-        dateaxis.setVerticalTickLabels(true);
-        XYLineAndShapeRenderer xylineandshaperenderer = (XYLineAndShapeRenderer)xyplot.getRenderer();
-        xylineandshaperenderer.setBaseShapesVisible(true);
-        xylineandshaperenderer.setSeriesFillPaint(0, Color.red);
-        xylineandshaperenderer.setSeriesFillPaint(1, Color.white);
-        xylineandshaperenderer.setUseFillPaint(true);
-        xylineandshaperenderer.setLegendItemToolTipGenerator(new StandardXYSeriesLabelGenerator("Tooltip {0}"));
-        BufferedImage bi = jfreechart.createBufferedImage(width, height);
-        return bi;
-    }
-    
-    
-    public static BufferedImage createMinMaxAvgImg( String chartName, long[] timestamps, 
-            double[] min, double[] max, double[] total, double[] count, int width, int height)
-    {
-        TimeSeries minTs = new TimeSeries("min");
-        TimeSeries maxTs = new TimeSeries("max");
-        TimeSeries avgTs = new TimeSeries("avg");
-        for (int i=0;i<timestamps.length; i++) {
-            FixedMillisecond ts = new FixedMillisecond(timestamps[i]);
-            minTs.add(ts, min[i]);
-            maxTs.add(ts, max[i]);
-            avgTs.add(ts, total[i]/count[i]);
+        for (int i=0; i< measurementNames.length; i++) {
+            TimeSeries tseries = new TimeSeries(measurementNames[i]);
+            for (int j=0;j<timestamps.length; j++) {
+                FixedMillisecond ts = new FixedMillisecond(timestamps[j]);
+                tseries.add(ts, measurements[i][j]);
+            }
+            timeseriescollection.addSeries(tseries);
         }
-        TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();
-        timeseriescollection.addSeries(minTs);
-        timeseriescollection.addSeries(maxTs);
-        timeseriescollection.addSeries(avgTs);
         JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(chartName, 
                 "Time", "Value", timeseriescollection, true, true, false);
         XYPlot xyplot = (XYPlot)jfreechart.getPlot();
@@ -103,16 +78,13 @@ public final class Charts {
         dateaxis.setVerticalTickLabels(true);
         XYLineAndShapeRenderer xylineandshaperenderer = (XYLineAndShapeRenderer)xyplot.getRenderer();
         xylineandshaperenderer.setBaseShapesVisible(true);
-        xylineandshaperenderer.setSeriesFillPaint(0, Color.red);
-        xylineandshaperenderer.setSeriesFillPaint(1, Color.white);
         xylineandshaperenderer.setUseFillPaint(true);
         xylineandshaperenderer.setLegendItemToolTipGenerator(new StandardXYSeriesLabelGenerator("Tooltip {0}"));
         BufferedImage bi = jfreechart.createBufferedImage(width, height);
         return bi;
     }
     
-    
-    
+        
     public static void createHeatChart( String chartName, File file,
             String[] dsNames, double[][] values, 
             long startTimeMillis, long stepMillis, int width, int height) throws IOException {

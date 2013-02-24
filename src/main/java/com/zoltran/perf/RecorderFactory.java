@@ -18,6 +18,7 @@
  */
 package com.zoltran.perf;
 
+import com.zoltran.perf.impl.CountingRecorder;
 import com.zoltran.perf.impl.QuantizedRecorder;
 import com.zoltran.perf.impl.ScalableMeasurementRecorder;
 import com.zoltran.perf.impl.ScalableMeasurementRecorderSource;
@@ -47,19 +48,36 @@ public final class RecorderFactory {
         }
     }
     
-    public static MeasurementRecorder createScalableQuantizedRecorder(Object forWhat, String unitOfMeasurement, int sampleTimeMillis,
+    public static MeasurementRecorder createScalableQuantizedRecorder(
+            Object forWhat, String unitOfMeasurement, int sampleTimeMillis,
              int factor, int lowerMagnitude, 
             int higherMagnitude, int quantasPerMagnitude ) {
         return new ScalableMeasurementRecorder(new QuantizedRecorder(forWhat,
-                unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude), sampleTimeMillis, TS_DATABASE);
+                unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, 
+                quantasPerMagnitude), sampleTimeMillis, TS_DATABASE);
+    }
+    
+    public static MeasurementRecorder createScalableCountingRecorder(
+            Object forWhat, String unitOfMeasurement, int sampleTimeMillis) {
+        return new ScalableMeasurementRecorder(new CountingRecorder(forWhat,
+                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
     }
     
     
-    public static MeasurementRecorderSource createScalableQuantizedRecorderSource(Object forWhat, String unitOfMeasurement, int sampleTimeMillis,
+    public static MeasurementRecorderSource createScalableQuantizedRecorderSource(
+            Object forWhat, String unitOfMeasurement, int sampleTimeMillis,
              int factor, int lowerMagnitude, 
             int higherMagnitude, int quantasPerMagnitude ) {
         return new ScalableMeasurementRecorderSource(new QuantizedRecorder(forWhat,
-                unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude), sampleTimeMillis, TS_DATABASE);
+                unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude),
+                sampleTimeMillis, TS_DATABASE);
+    }
+    
+    
+    public static MeasurementRecorderSource createScalableCountingRecorderSource(
+            Object forWhat, String unitOfMeasurement, int sampleTimeMillis) {
+        return new ScalableMeasurementRecorderSource(new CountingRecorder(forWhat,
+                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
     }
     
 }

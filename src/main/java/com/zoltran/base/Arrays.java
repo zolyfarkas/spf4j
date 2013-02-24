@@ -36,6 +36,13 @@ public final class Arrays {
         return result;
     }
     
+    public static double [] divide (double [] arr1, double [] arr2) {
+        double [] result = new double [arr1.length];
+        for (int i=0; i< result.length; i++) {
+            result [i] = arr1[i]/arr2[i];
+        }
+        return result;
+    }
     
     
 }

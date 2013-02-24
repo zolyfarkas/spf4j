@@ -24,22 +24,24 @@ import java.util.concurrent.atomic.AtomicInteger;
  * The default thread factory
  */
 public class CustomThreadFactory implements ThreadFactory {
-    static final AtomicInteger poolNumber = new AtomicInteger(1);
-    final ThreadGroup group;
-    final AtomicInteger threadNumber = new AtomicInteger(1);
-    final String namePrefix;
+    private static final AtomicInteger poolNumber = new AtomicInteger(1);
+    private final ThreadGroup group;
+    private final AtomicInteger threadNumber = new AtomicInteger(1);
+    private final String namePrefix;
+    private final boolean daemon;
+    
 
-    CustomThreadFactory(String name) {
+    CustomThreadFactory(String name, boolean daemon) {
         SecurityManager s = System.getSecurityManager();
         group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
         namePrefix = name + poolNumber.getAndIncrement() + "-thread-";
+        this.daemon = daemon;
     }
 
+    @Override
     public Thread newThread(Runnable r) {
         Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
-        if (t.isDaemon()) {
-            t.setDaemon(false);
-        }
+        t.setDaemon(daemon);
         if (t.getPriority() != Thread.NORM_PRIORITY) {
             t.setPriority(Thread.NORM_PRIORITY);
         }

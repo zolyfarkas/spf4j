@@ -28,6 +28,8 @@ public class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
     private final Object measuredEntity;
     private final String unitOfMeasurement;
     private final String[] measurementNames;
+    
+ 
 
     public EntityMeasurementsInfoImpl(Object measuredEntity, String unitOfMeasurement, String [] measurementNames) {
         this.measuredEntity = measuredEntity;

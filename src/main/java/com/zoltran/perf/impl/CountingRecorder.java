@@ -18,7 +18,7 @@ public class CountingRecorder
     private long counter;
     private final EntityMeasurementsInfo info;
     
-    private static final String [] measurements ={"counter"};
+    private static final String [] measurements ={"count"};
 
     private CountingRecorder(final Object measuredEntity, final String unitOfMeasurement, long counter) {
         this(measuredEntity, unitOfMeasurement);

@@ -37,12 +37,13 @@ public class ColumnInfo {
     private long lastDataFragment;
     private final String groupName;
     private final int sampleTime;
+    private final byte[] groupMetaData;
     private final String [] columnNames;
     private final byte [][] columnMetaData;
     private final TObjectIntHashMap<String> nameToIndex;
     
 
-    ColumnInfo(String groupName, String [] columnNames, byte [][] columnMetaData, 
+    ColumnInfo(String groupName, byte [] groupMetaData, String [] columnNames, byte [][] columnMetaData, 
             int sampleTime, long location) {      
         this.location = location;
         this.nextColumnInfo = 0;
@@ -50,6 +51,7 @@ public class ColumnInfo {
         this.lastDataFragment = 0;
         this.groupName = groupName;
         this.sampleTime = sampleTime;
+        this.groupMetaData = groupMetaData;
         this.columnNames = columnNames;
         this.columnMetaData = columnMetaData;
         this.nameToIndex = new TObjectIntHashMap<String>(columnNames.length + columnNames.length/3);
@@ -68,6 +70,9 @@ public class ColumnInfo {
             this.lastDataFragment = raf.readLong();
             this.groupName = raf.readUTF();
             this.sampleTime = raf.readInt();
+            int grMetaSize = raf.readInt();
+            this.groupMetaData = new byte [grMetaSize];
+            raf.readFully(groupMetaData);
             int nrColumns = raf.readShort();
             columnNames = new String[nrColumns];
             this.nameToIndex = new TObjectIntHashMap<String>(nrColumns+ nrColumns /3);
@@ -95,6 +100,8 @@ public class ColumnInfo {
         dos.writeLong(lastDataFragment);
         dos.writeUTF(groupName);
         dos.writeInt(sampleTime);
+        dos.writeInt(groupMetaData.length);
+        dos.write(groupMetaData);
         dos.writeShort(columnNames.length);
         for (String columnName: columnNames) {
             dos.writeUTF(columnName);
@@ -188,12 +195,23 @@ public class ColumnInfo {
     }
     
     public int getColumnIndex(String columnName) {
-        return this.nameToIndex.get(columnName);
+        Integer result = this.nameToIndex.get(columnName);
+        if (result == null) {
+            return -1;
+        } else {
+            return result;
+        }
     }
 
     public int getSampleTime() {
         return sampleTime;
     }
+
+    public byte[] getGroupMetaData() {
+        return groupMetaData.clone();
+    }
+    
+    
  
     
 }
