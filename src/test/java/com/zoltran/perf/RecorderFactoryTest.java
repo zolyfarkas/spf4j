@@ -123,6 +123,27 @@ public class RecorderFactoryTest {
     }
     
     
+       /**
+     * Test of createScalableQuantizedRecorderSource method, of class RecorderFactory.
+     */
+    @Test
+    public void testCreateScalableCountingRecorderSource() throws IOException, InterruptedException {
+        System.out.println("createScalableCountingRecorderSource");
+        Object forWhat = "counters";
+        String unitOfMeasurement = "counts";
+        int sampleTime = 1000;
+        MeasurementRecorderSource result = RecorderFactory.createScalableCountingRecorderSource(
+                forWhat, unitOfMeasurement, sampleTime);
+        for (int i=0; i<5000; i++) {
+            result.getRecorder("X"+ i%2).record(1);
+            Thread.sleep(1);
+        }
+        long endTime = System.currentTimeMillis();
+        System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime, endTime, 1200, 600));
+        ((Closeable)result).close();
+    }
+    
+    
     public static void main(String[] args) throws IOException, InterruptedException {
        new RecorderFactoryTest(). testCreateScalableQuantizedRecorder();
     }

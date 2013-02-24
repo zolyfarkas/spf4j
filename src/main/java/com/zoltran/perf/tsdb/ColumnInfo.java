@@ -211,7 +211,13 @@ public class ColumnInfo {
         return groupMetaData.clone();
     }
     
+    public int getColumnNumber() {
+        return columnNames.length;
+    }
     
+    public String getColumnName(int index) {
+        return columnNames[index];
+    } 
  
     
 }
