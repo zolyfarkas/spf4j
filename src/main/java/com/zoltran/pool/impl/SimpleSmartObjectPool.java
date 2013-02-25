@@ -150,7 +150,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
             List<Pair<ObjectBorower<T>,Object>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>,Object>>();
             for (ObjectBorower<T> b : borrowedObjects.keySet()) {
                 Object object = b.requestReturnObject();
-                returnedObjects.add(new Pair(b,object));
+                returnedObjects.add(Pair.of(b,object));
             }
             for (Pair<ObjectBorower<T>,Object> objectAndBorrower : returnedObjects) {
                 Object object = objectAndBorrower.getSecond();

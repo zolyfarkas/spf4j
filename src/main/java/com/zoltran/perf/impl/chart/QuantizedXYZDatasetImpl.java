@@ -57,7 +57,7 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
             String ds = dataSources[i];
             if (ds.startsWith("Q")) {
                 Quanta quanta = new Quanta(ds);
-                quantas.add(new ComparablePair(quanta, i));
+                quantas.add(ComparablePair.of(quanta, i));
             }
         }
         Collections.sort(quantas);

@@ -218,9 +218,9 @@ public class RetryExecutor<T> implements ExecutorService{
                     } else {
                         Pair<Integer, ExecutionException> attemptsInfo = executionAttempts.get(event.getCallable());
                         if (attemptsInfo == null) {
-                            attemptsInfo = new Pair<Integer, ExecutionException>(1, event.getException());
+                            attemptsInfo = Pair.of(1, event.getException());
                         } else {
-                            attemptsInfo = new Pair<Integer, ExecutionException>(attemptsInfo.getFirst() + 1,
+                            attemptsInfo = Pair.of(attemptsInfo.getFirst() + 1,
                                     Exceptions.chain(event.getException(), attemptsInfo.getSecond()));
                         }
                         int nrAttempts = attemptsInfo.getFirst();

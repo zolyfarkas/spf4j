@@ -72,13 +72,13 @@ public class FutureBean<T> implements Future<T> {
     }
 
     public synchronized void setResult(Object result) {
-        resultStore = new Pair<Object, ExecutionException>(result, (ExecutionException) null);
+        resultStore = Pair.of(result, (ExecutionException) null);
         done();
         this.notifyAll();
     }
 
     public synchronized void setExceptionResult(ExecutionException result) {
-        resultStore = new Pair<Object, ExecutionException>(null, (ExecutionException) result);
+        resultStore = Pair.of(null, (ExecutionException) result);
         done();
         this.notifyAll();
     }

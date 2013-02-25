@@ -19,6 +19,7 @@
 package com.zoltran.base;
 
 import com.google.common.base.Objects;
+import java.util.List;
 
 /**
  *
@@ -29,6 +30,10 @@ public final class Pair<A,B>{
     public Pair(A first, B second) {
         this.first = first;
         this.second = second;
+    }
+    
+    public static <A, B> Pair<A,B> of (A first, B second) {
+        return new Pair<A, B>(first, second);
     }
     
     private final A first;
@@ -70,5 +75,9 @@ public final class Pair<A,B>{
     public String toString() {
         return "(" + first + "," + second + ')';
     }  
+    
+    public List<Object> toList() {
+        return java.util.Arrays.asList(first, second);
+    }
     
 }

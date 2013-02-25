@@ -200,7 +200,7 @@ public class TimeSeriesDatabase implements Closeable {
             }
             while (nextFragmentLocation > 0);
         }
-        return new Pair<long[], long[][]>(timeStamps.toArray(), data.toArray(new long[data.size()][]));
+        return Pair.of(timeStamps.toArray(), data.toArray(new long[data.size()][]));
     }
 
     public synchronized void sync() throws IOException {

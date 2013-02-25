@@ -301,7 +301,7 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
           }        
           nextTime+=sampleTime;
        }
-       return new Pair<long[], double[][]>(lts, dr);
+       return Pair.of(lts, dr);
     }
      
     private String generateHeatChart(ColumnInfo info, Pair<long[], long[][]> data,

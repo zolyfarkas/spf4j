@@ -19,6 +19,7 @@
 package com.zoltran.base;
 
 import com.google.common.base.Objects;
+import java.util.List;
 
 /**
  *
@@ -31,6 +32,11 @@ public final class ComparablePair<A extends Comparable,B extends Comparable>
         this.first = first;
         this.second = second;
     }
+    
+    public static <A extends Comparable, B extends Comparable> ComparablePair<A,B> of (A first, B second) {
+        return new ComparablePair<A, B>(first, second);
+    }
+    
     
     private final A first;
     
@@ -82,6 +88,9 @@ public final class ComparablePair<A extends Comparable,B extends Comparable>
         }
     }
     
+    public List<Comparable> toList() {
+        return java.util.Arrays.asList(first, second);
+    }
     
     
 }
