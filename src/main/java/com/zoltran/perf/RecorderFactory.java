@@ -19,6 +19,7 @@
 package com.zoltran.perf;
 
 import com.zoltran.perf.impl.CountingRecorder;
+import com.zoltran.perf.impl.MinMaxAvgRecorder;
 import com.zoltran.perf.impl.QuantizedRecorder;
 import com.zoltran.perf.impl.ScalableMeasurementRecorder;
 import com.zoltran.perf.impl.ScalableMeasurementRecorderSource;
@@ -64,6 +65,13 @@ public final class RecorderFactory {
     }
     
     
+        public static MeasurementRecorder createScalableMinMaxAvgRecorder(
+            Object forWhat, String unitOfMeasurement, int sampleTimeMillis) {
+        return new ScalableMeasurementRecorder(new MinMaxAvgRecorder(forWhat,
+                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+    }
+    
+    
     public static MeasurementRecorderSource createScalableQuantizedRecorderSource(
             Object forWhat, String unitOfMeasurement, int sampleTimeMillis,
              int factor, int lowerMagnitude, 
@@ -79,5 +87,12 @@ public final class RecorderFactory {
         return new ScalableMeasurementRecorderSource(new CountingRecorder(forWhat,
                 unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
     }
+    
+   public static MeasurementRecorderSource createScalableMinMaxAvgRecorderSource(
+            Object forWhat, String unitOfMeasurement, int sampleTimeMillis) {
+        return new ScalableMeasurementRecorderSource(new MinMaxAvgRecorder(forWhat,
+                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+    }
+    
     
 }

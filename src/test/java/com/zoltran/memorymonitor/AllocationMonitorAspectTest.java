@@ -47,6 +47,8 @@ public class AllocationMonitorAspectTest {
      */
     @Test
     public void testAfterAllocation() throws InterruptedException, IOException {
+        System.setProperty("perf.memory.sampleTime", "1000");
+        MemoryUsageSampler.startMemoryUsageSampling(500);
         for (int i = 0; i < 1000; i++) {
             System.err.println("T" + i);
             if (i % 100 == 0) {
@@ -55,7 +57,6 @@ public class AllocationMonitorAspectTest {
         }
         testAllocInStaticContext();
         TestClass.testAllocInStaticContext();
-
         System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime, System.currentTimeMillis(), 1200, 600));
     }
 }
