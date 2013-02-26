@@ -226,10 +226,10 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
     }     
             
     private static boolean canGenerateMinMaxAvgCount(ColumnInfo info) {
-        return (info.getColumnIndex("min") >= 0 &&
-                info.getColumnIndex("max") >= 0 &&
-                info.getColumnIndex("total") >= 0 &&
-                info.getColumnIndex("count") >= 0);
+        return ((info.getColumnIndex("min") >= 0) &&
+                (info.getColumnIndex("max") >= 0) &&
+                (info.getColumnIndex("total") >= 0) &&
+                (info.getColumnIndex("count") >= 0));
     }
     
     private static boolean canGenerateHeatChart(ColumnInfo info) {

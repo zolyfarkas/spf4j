@@ -17,7 +17,6 @@
  */
 package com.zoltran.perf.tsdb;
 
-import gnu.trove.map.hash.TObjectIntHashMap;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
@@ -25,6 +24,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -40,7 +41,7 @@ public class ColumnInfo {
     private final byte[] groupMetaData;
     private final String [] columnNames;
     private final byte [][] columnMetaData;
-    private final TObjectIntHashMap<String> nameToIndex;
+    private final Map<String, Integer> nameToIndex;
     
 
     ColumnInfo(String groupName, byte [] groupMetaData, String [] columnNames, byte [][] columnMetaData, 
@@ -54,7 +55,7 @@ public class ColumnInfo {
         this.groupMetaData = groupMetaData;
         this.columnNames = columnNames;
         this.columnMetaData = columnMetaData;
-        this.nameToIndex = new TObjectIntHashMap<String>(columnNames.length + columnNames.length/3);
+        this.nameToIndex = new HashMap<String, Integer>(columnNames.length + columnNames.length/3);
         for(int i=0; i< columnNames.length;i++) {
             this.nameToIndex.put(columnNames[i], i);
         }
@@ -75,7 +76,7 @@ public class ColumnInfo {
             raf.readFully(groupMetaData);
             int nrColumns = raf.readShort();
             columnNames = new String[nrColumns];
-            this.nameToIndex = new TObjectIntHashMap<String>(nrColumns+ nrColumns /3);
+            this.nameToIndex = new HashMap<String, Integer>(nrColumns+ nrColumns /3);
             for (int i=0; i< columnNames.length; i++) {
                 String colName = raf.readUTF();
                 columnNames[i] = colName;

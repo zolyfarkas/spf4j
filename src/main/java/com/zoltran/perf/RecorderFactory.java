@@ -32,7 +32,7 @@ import java.lang.management.ManagementFactory;
 public final class RecorderFactory {
     
     
-    static final TSDBMeasurementDatabase TS_DATABASE;
+    public static final TSDBMeasurementDatabase TS_DATABASE;
     
     static {
         try
