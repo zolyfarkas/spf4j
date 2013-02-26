@@ -48,8 +48,9 @@ public abstract class AbstractRunnable implements Runnable {
             doRun();
         } 
         catch (Exception ex) {
-            if (Throwables.getRootCause(ex) instanceof Error)
+            if (Throwables.getRootCause(ex) instanceof Error) {
                 Runtime.goDownWithError(ex, 666);
+            }
             if (lenient) {
                 LOGGER.warn("Exception in runnable: ", ex);
             } else {
