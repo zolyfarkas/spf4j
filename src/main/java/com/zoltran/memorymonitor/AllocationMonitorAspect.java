@@ -24,8 +24,6 @@ import com.zoltran.perf.RecorderFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -39,9 +37,7 @@ public class AllocationMonitorAspect {
             Integer.valueOf(System.getProperty("perf.allocations.sampleTime", "1000")) );
     
     private static final boolean RECORD_OBJECT_SIZE = Boolean.valueOf(System.getProperty("perf.allocations.recordSize", "true"));
-    
-    private static final Logger LOG = LoggerFactory.getLogger(AllocationMonitorAspect.class);
-    
+       
     @AfterReturning(pointcut = "call(*.new(..))", returning = "obj", argNames="jp,obj" )
     public void afterAllocation(JoinPoint jp, Object obj) {
         if (RECORD_OBJECT_SIZE) {
