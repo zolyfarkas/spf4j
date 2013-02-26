@@ -42,6 +42,20 @@ import org.jfree.data.time.TimeSeriesCollection;
  * @author zoly
  */
 public final class Charts {
+
+    private static BufferedImage buildChart(String chartName, TimeSeriesCollection timeseriescollection, int width, int height) {
+        JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(chartName, 
+                "Time", "Value", timeseriescollection, true, true, false);
+        XYPlot xyplot = (XYPlot)jfreechart.getPlot();
+        DateAxis dateaxis = (DateAxis)xyplot.getDomainAxis();
+        dateaxis.setVerticalTickLabels(true);
+        XYLineAndShapeRenderer xylineandshaperenderer = (XYLineAndShapeRenderer)xyplot.getRenderer();
+        xylineandshaperenderer.setBaseShapesVisible(true);
+        xylineandshaperenderer.setUseFillPaint(true);
+        xylineandshaperenderer.setLegendItemToolTipGenerator(new StandardXYSeriesLabelGenerator("Tooltip {0}"));
+        BufferedImage bi = jfreechart.createBufferedImage(width, height);
+        return bi;
+    }
     
     private Charts () {}
     
@@ -71,16 +85,24 @@ public final class Charts {
             }
             timeseriescollection.addSeries(tseries);
         }
-        JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(chartName, 
-                "Time", "Value", timeseriescollection, true, true, false);
-        XYPlot xyplot = (XYPlot)jfreechart.getPlot();
-        DateAxis dateaxis = (DateAxis)xyplot.getDomainAxis();
-        dateaxis.setVerticalTickLabels(true);
-        XYLineAndShapeRenderer xylineandshaperenderer = (XYLineAndShapeRenderer)xyplot.getRenderer();
-        xylineandshaperenderer.setBaseShapesVisible(true);
-        xylineandshaperenderer.setUseFillPaint(true);
-        xylineandshaperenderer.setLegendItemToolTipGenerator(new StandardXYSeriesLabelGenerator("Tooltip {0}"));
-        BufferedImage bi = jfreechart.createBufferedImage(width, height);
+        BufferedImage bi = buildChart(chartName, timeseriescollection, width, height);
+        return bi;
+    }
+    
+    
+    public static BufferedImage createTimeSeriesChart(String chartName, long[][] timestamps,  
+            String [] measurementNames, double[][] measurements,int width, int height)
+    {
+        TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();
+        for (int i=0; i< measurementNames.length; i++) {
+            TimeSeries tseries = new TimeSeries(measurementNames[i]);
+            for (int j=0;j<timestamps[i].length; j++) {
+                FixedMillisecond ts = new FixedMillisecond(timestamps[i][j]);
+                tseries.add(ts, measurements[i][j]);
+            }
+            timeseriescollection.addSeries(tseries);
+        }
+        BufferedImage bi = buildChart(chartName, timeseriescollection, width, height);
         return bi;
     }
     

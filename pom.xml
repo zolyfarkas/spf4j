@@ -164,6 +164,23 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <index>true</index>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                        </manifest>
+                        <manifestEntries>
+                            <Premain-Class>com.zoltran.base.InstrumentationHelper</Premain-Class>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>            
+            
+            <plugin>
                 <groupId>com.google.protobuf.tools</groupId>
                 <artifactId>maven-protoc-plugin</artifactId>
                 <version>0.1.10</version>
@@ -218,7 +235,7 @@
                 <version>2.12</version>
                 <configuration>
                     <forkMode>always</forkMode>
-                    <argLine>-javaagent:${project.build.directory}/lib/aspectjweaver-${aspectj.version}.jar </argLine>
+                    <argLine>-javaagent:${project.build.directory}/lib/aspectjweaver-${aspectj.version}.jar -javaagent:${project.build.directory}/spf4j-${project.version}.jar</argLine>
                     <systemPropertyVariables>
                         <property>
                             <name>aj.weaving.verbose</name>

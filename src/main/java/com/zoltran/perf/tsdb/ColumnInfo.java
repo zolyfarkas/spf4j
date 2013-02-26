@@ -219,6 +219,12 @@ public class ColumnInfo {
     public String getColumnName(int index) {
         return columnNames[index];
     } 
+
+    @Override
+    public String toString() {
+        return "ColumnInfo{" + "location=" + location + ", nextColumnInfo=" + nextColumnInfo + ", firstDataFragment=" + firstDataFragment + ", lastDataFragment=" + lastDataFragment + ", groupName=" + groupName + ", sampleTime=" + sampleTime + ", groupMetaData=" + groupMetaData + ", columnNames=" + columnNames + ", columnMetaData=" + columnMetaData + ", nameToIndex=" + nameToIndex + '}';
+    }
  
+    
     
 }
