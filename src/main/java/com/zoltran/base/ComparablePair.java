@@ -88,7 +88,7 @@ public final class ComparablePair<A extends Comparable,B extends Comparable>
         }
     }
     
-    public List<Comparable> toList() {
+    public List<? extends Comparable> toList() {
         return java.util.Arrays.asList(first, second);
     }
     
