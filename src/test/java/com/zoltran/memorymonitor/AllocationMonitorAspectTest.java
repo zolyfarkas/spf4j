@@ -31,7 +31,7 @@ public class AllocationMonitorAspectTest {
 
     public AllocationMonitorAspectTest() {
     }
-    private long startTime = System.currentTimeMillis();
+    private final long startTime = System.currentTimeMillis();
 
     private static void testAllocInStaticContext() throws InterruptedException {
         for (int i = 0; i < 1000; i++) {

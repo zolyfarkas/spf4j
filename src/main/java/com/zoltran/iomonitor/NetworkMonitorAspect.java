@@ -20,6 +20,8 @@ package com.zoltran.iomonitor;
 
 import com.zoltran.perf.MeasurementRecorderSource;
 import com.zoltran.perf.RecorderFactory;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -67,5 +69,19 @@ public class NetworkMonitorAspect {
         RECORDER_WRITE.getRecorder(pjp.getSourceLocation().getWithinType()).record(result);
         return result;
     }
+    
+    
+    @Around("call(* java.net.Socket.getInputStream())")
+    public Object socketIS(ProceedingJoinPoint pjp) throws Throwable {
+        InputStream result = (InputStream) pjp.proceed();
+        return new MeasuredInputStream(result, pjp.getSourceLocation().getWithinType(), RECORDER_READ);
+    }
+    
+    @Around("call(* java.net.Socket.getOutputStream())")
+    public Object socketOS(ProceedingJoinPoint pjp) throws Throwable {
+        OutputStream result = (OutputStream) pjp.proceed();
+        return new MeasuredOutputStream(result, pjp.getSourceLocation().getWithinType(), RECORDER_WRITE);
+    }
+    
     
 }

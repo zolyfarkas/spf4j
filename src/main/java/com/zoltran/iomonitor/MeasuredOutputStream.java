@@ -33,7 +33,7 @@ public class MeasuredOutputStream extends OutputStream {
     private final MeasurementRecorderSource recorderSource;
     
     
-    public MeasuredOutputStream(OutputStream os, MeasurementRecorderSource recorderSource, Class<?> from) {
+    public MeasuredOutputStream(OutputStream os, Class<?> from, MeasurementRecorderSource recorderSource) {
      this.os = os;
      this.from = from;
      this.recorderSource = recorderSource;
