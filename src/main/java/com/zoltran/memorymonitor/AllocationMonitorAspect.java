@@ -34,7 +34,7 @@ public class AllocationMonitorAspect {
 
     private static final MeasurementRecorderSource RECORDER = 
             RecorderFactory.createScalableCountingRecorderSource("allocations", "instances", 
-            Integer.valueOf(System.getProperty("perf.allocations.sampleTime", "1000")) );
+            Integer.valueOf(System.getProperty("perf.allocations.sampleTime", "300000")) );
     
     private static final boolean RECORD_OBJECT_SIZE = Boolean.valueOf(System.getProperty("perf.allocations.recordSize", "true"));
        

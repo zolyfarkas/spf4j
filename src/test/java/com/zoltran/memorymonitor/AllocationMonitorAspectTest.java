@@ -48,6 +48,7 @@ public class AllocationMonitorAspectTest {
     @Test
     public void testAfterAllocation() throws InterruptedException, IOException {
         System.setProperty("perf.memory.sampleTime", "1000");
+        System.setProperty("perf.allocations.sampleTime", "1000");
         MemoryUsageSampler.startMemoryUsageSampling(500);
         for (int i = 0; i < 1000; i++) {
             System.err.println("T" + i);
