@@ -23,6 +23,12 @@ package com.zoltran.perf;
  */
 public interface MeasurementRecorderSource {
     
+    /**
+     * do not hold onto the returned recorder. 
+     * the returned recorder should never cross Thread boundaries.
+     * @param forWhat
+     * @return 
+     */
     MeasurementRecorder getRecorder(Object forWhat);
     
 }
