@@ -38,7 +38,8 @@ public class MinMaxAvgRecorder
 
     private MinMaxAvgRecorder(final Object measuredEntity, final String unitOfMeasurement, 
             long counter, long total, long min, long max) {
-        this.info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement, measurements);
+        this.info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement, 
+                measurements, new String [] {"count",unitOfMeasurement, unitOfMeasurement, unitOfMeasurement});
         this.counter = counter;
         this.total = total;
         this.min = min;

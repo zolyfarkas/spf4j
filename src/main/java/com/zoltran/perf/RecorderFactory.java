@@ -24,6 +24,7 @@ import com.zoltran.perf.impl.QuantizedRecorder;
 import com.zoltran.perf.impl.ScalableMeasurementRecorder;
 import com.zoltran.perf.impl.ScalableMeasurementRecorderSource;
 import com.zoltran.perf.impl.mdb.tsdb.TSDBMeasurementDatabase;
+import java.io.File;
 import java.lang.management.ManagementFactory;
 
 /**
@@ -39,12 +40,11 @@ public final class RecorderFactory {
         try
         {
             TS_DATABASE = new TSDBMeasurementDatabase(System.getProperty("perf.db.folder", 
-            System.getProperty("java.io.tmpdir")) + System.getProperty("perf.db.name", ManagementFactory.getRuntimeMXBean().getName()+".tsdb" ));
+            System.getProperty("java.io.tmpdir")) + File.separator + System.getProperty("perf.db.name", ManagementFactory.getRuntimeMXBean().getName()+".tsdb" ));
             TS_DATABASE.registerJmx();
             TS_DATABASE.flushEvery(600000);
             TS_DATABASE.closeOnShutdown();
-        } catch (Exception ex)
-        {
+        } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }

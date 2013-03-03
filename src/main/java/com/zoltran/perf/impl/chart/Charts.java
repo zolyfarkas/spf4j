@@ -43,9 +43,9 @@ import org.jfree.data.time.TimeSeriesCollection;
  */
 public final class Charts {
 
-    private static BufferedImage buildChart(String chartName, TimeSeriesCollection timeseriescollection, int width, int height) {
+    private static BufferedImage buildChart(String chartName, String uom, TimeSeriesCollection timeseriescollection, int width, int height) {
         JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(chartName, 
-                "Time", "Value", timeseriescollection, true, true, false);
+                "Time", uom, timeseriescollection, true, true, false);
         XYPlot xyplot = (XYPlot)jfreechart.getPlot();
         DateAxis dateaxis = (DateAxis)xyplot.getDomainAxis();
         dateaxis.setVerticalTickLabels(true);
@@ -61,12 +61,12 @@ public final class Charts {
     
     
     public static BufferedImage createMinMaxAvgCountImg(String chartName, long[] timestamps,
-            double[] min, double[] max, double[] total, double[] count,  int width, int height) {
+            double[] min, double[] max, double[] total, double[] count, String uom,  int width, int height) {
         
         BufferedImage bi = Charts.createTimeSeriesChart(chartName, timestamps,
-                new String [] {"min", "max", "avg"}, new double[] [] {min, max, Arrays.divide(total, count)}, width, height-height/3);
+                new String [] {"min", "max", "avg"}, uom, new double[] [] {min, max, Arrays.divide(total, count)}, width, height-height/3);
         BufferedImage bi2 = Charts.createTimeSeriesChart(null, timestamps,
-                new String[] {"count"}, new double [][] { count}, width, height/3);
+                new String[] {"count"}, "count", new double [][] { count}, width, height/3);
         BufferedImage combined = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         combined.getGraphics().drawImage(bi, 0, 0, null);
         combined.getGraphics().drawImage(bi2, 0, height-height/3, null);
@@ -74,7 +74,7 @@ public final class Charts {
     }
     
     public static BufferedImage createTimeSeriesChart(String chartName, long[] timestamps,  
-            String [] measurementNames, double[][] measurements,int width, int height)
+            String [] measurementNames, String uom, double[][] measurements,int width, int height)
     {
         TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();
         for (int i=0; i< measurementNames.length; i++) {
@@ -85,13 +85,13 @@ public final class Charts {
             }
             timeseriescollection.addSeries(tseries);
         }
-        BufferedImage bi = buildChart(chartName, timeseriescollection, width, height);
+        BufferedImage bi = buildChart(chartName, uom, timeseriescollection, width, height);
         return bi;
     }
     
     
     public static BufferedImage createTimeSeriesChart(String chartName, long[][] timestamps,  
-            String [] measurementNames, double[][] measurements,int width, int height)
+            String [] measurementNames, String uom, double[][] measurements,int width, int height)
     {
         TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();
         for (int i=0; i< measurementNames.length; i++) {
@@ -102,7 +102,7 @@ public final class Charts {
             }
             timeseriescollection.addSeries(tseries);
         }
-        BufferedImage bi = buildChart(chartName, timeseriescollection, width, height);
+        BufferedImage bi = buildChart(chartName, uom, timeseriescollection, width, height);
         return bi;
     }
     

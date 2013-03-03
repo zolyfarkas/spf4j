@@ -33,6 +33,8 @@ public interface EntityMeasurementsInfo {
     
     String [] getMeasurementNames();
     
+    String [] getMeasurementUnits();
+    
     int getNumberOfMeasurements();
     
 }

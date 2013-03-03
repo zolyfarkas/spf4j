@@ -20,8 +20,7 @@ package com.zoltran.iomonitor;
 
 import com.zoltran.perf.MeasurementRecorderSource;
 import com.zoltran.perf.RecorderFactory;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.File;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -31,36 +30,36 @@ import org.aspectj.lang.annotation.Aspect;
  * @author zoly
  */
 @Aspect
-public class NetworkMonitorAspect {
+public class FileMonitorAspect {
 
     private static final MeasurementRecorderSource RECORDER_READ =
-            RecorderFactory.createScalableCountingRecorderSource("network-read", "bytes",
-            Integer.valueOf(System.getProperty("perf.network.sampleTime", "300000")));
+            RecorderFactory.createScalableCountingRecorderSource("file-read", "bytes",
+            Integer.valueOf(System.getProperty("perf.file.sampleTime", "300000")));
     
     private static final MeasurementRecorderSource RECORDER_WRITE =
-            RecorderFactory.createScalableCountingRecorderSource("network-write", "bytes",
-            Integer.valueOf(System.getProperty("perf.network.sampleTime", "300000")));
+            RecorderFactory.createScalableCountingRecorderSource("file-write", "bytes",
+            Integer.valueOf(System.getProperty("perf.file.sampleTime", "300000")));
     
 
-    @Around("call(long java.nio.channels.SocketChannel.read(..))")
+    @Around("call(long java.nio.channels.FileChannel.read(..))")
     public Object nioReadLong(ProceedingJoinPoint pjp) throws Throwable {
         Long result = (Long) pjp.proceed();
-        if (result >=0 ) {
+        if (result >= 0) {
             RECORDER_READ.getRecorder(pjp.getSourceLocation().getWithinType()).record(result);
         }
         return result;
     }
     
-    @Around("call(int java.nio.channels.SocketChannel.read(..))")
+    @Around("call(int java.nio.channels.FileChannel.read(..))")
     public Object nioReadInt(ProceedingJoinPoint pjp) throws Throwable {
         Integer result = (Integer) pjp.proceed();
-        if (result >=0) {
+        if (result >= 0) {
             RECORDER_READ.getRecorder(pjp.getSourceLocation().getWithinType()).record(result);
         }
         return result;
     }
     
-    @Around("call(long java.nio.channels.SocketChannel.write(..))")
+    @Around("call(long java.nio.channels.FileChannel.write(..))")
     public Object nioWriteLong(ProceedingJoinPoint pjp) throws Throwable {
         Long result = (Long) pjp.proceed();
         if (result >= 0) {
@@ -69,26 +68,23 @@ public class NetworkMonitorAspect {
         return result;
     }
     
-    @Around("call(int java.nio.channels.SocketChannel.write(..))")
+    @Around("call(int java.nio.channels.FileChannel.write(..))")
     public Object nioWriteInt(ProceedingJoinPoint pjp) throws Throwable {
         Integer result = (Integer) pjp.proceed();
-        if (result >= 0) {
-            RECORDER_WRITE.getRecorder(pjp.getSourceLocation().getWithinType()).record(result);
-        }
+        RECORDER_WRITE.getRecorder(pjp.getSourceLocation().getWithinType()).record(result);
         return result;
     }
     
-    
-    @Around("call(* java.net.Socket.getInputStream())")
-    public Object socketIS(ProceedingJoinPoint pjp) throws Throwable {
-        InputStream result = (InputStream) pjp.proceed();
-        return new MeasuredInputStream(result, pjp.getSourceLocation().getWithinType(), RECORDER_READ);
+    @Around("call(java.io.FileInputStream.new(java.io.File))")
+    public Object fileIS(ProceedingJoinPoint pjp) throws Throwable {
+        pjp.proceed();
+        return new MeasuredFileInputStream((File)pjp.getArgs()[0], pjp.getSourceLocation().getWithinType(), RECORDER_READ);
     }
     
-    @Around("call(* java.net.Socket.getOutputStream())")
-    public Object socketOS(ProceedingJoinPoint pjp) throws Throwable {
-        OutputStream result = (OutputStream) pjp.proceed();
-        return new MeasuredOutputStream(result, pjp.getSourceLocation().getWithinType(), RECORDER_WRITE);
+    @Around("call(java.io.FileOutputStream.new(java.io.File))")
+    public Object fileOS(ProceedingJoinPoint pjp) throws Throwable {
+        pjp.proceed();
+        return new MeasuredFileOutputStream((File)pjp.getArgs()[0], pjp.getSourceLocation().getWithinType(), RECORDER_WRITE);
     }
     
     

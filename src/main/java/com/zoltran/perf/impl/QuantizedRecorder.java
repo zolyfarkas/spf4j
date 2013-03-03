@@ -92,13 +92,17 @@ public class QuantizedRecorder implements MeasurementProcessor {
             magnitudes[j++] = fromValue;
             fromValue *= factor;
         }
+        
+        final List<String> uom = new ArrayList();
+        
         final List<String> result = new ArrayList();
-        result.add("total");
-        result.add("count");
-        result.add("min");
-        result.add("max");
+        result.add("total"); uom.add(unitOfMeasurement);
+        result.add("count"); uom.add("count");
+        result.add("min"); uom.add(unitOfMeasurement);
+        result.add("max"); uom.add(unitOfMeasurement);
 
-        result.add("QNI_" + magnitudes[0]);
+        result.add("QNI_" + magnitudes[0]);uom.add("count");
+        
         if (magnitudes.length > 0) {
             long prevVal = magnitudes[0];
             for (int i = 1; i < magnitudes.length; i++) {
@@ -107,13 +111,16 @@ public class QuantizedRecorder implements MeasurementProcessor {
                 for (j = 0; j < quantasPerMagnitude; j++) {
                     result.add("Q" + (prevVal + intSize * j / quantasPerMagnitude)
                             + "_" + (prevVal + intSize * (j + 1) / quantasPerMagnitude));
+                    uom.add("count");
                 }
                 prevVal = magVal;
             }
             result.add("Q" + prevVal
                     + "_PI");
+            uom.add("count");
         }
-        info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement, result.toArray(new String [result.size()]));
+        info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement,
+                result.toArray(new String [result.size()]), uom.toArray(new String [uom.size()]));
 
     }
 

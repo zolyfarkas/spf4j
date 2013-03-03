@@ -33,9 +33,10 @@ public class CountingRecorder
     private final EntityMeasurementsInfo info;
     
     private static final String [] measurements ={"count", "total"};
-
+    
     private CountingRecorder(final Object measuredEntity, final String unitOfMeasurement, long counter, long total) {
-        this.info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement, measurements);
+        this.info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement, 
+                measurements, new String [] {"count", unitOfMeasurement});
         this.counter = counter;
         this.total = total;
     }

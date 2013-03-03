@@ -28,13 +28,17 @@ public class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
     private final Object measuredEntity;
     private final String unitOfMeasurement;
     private final String[] measurementNames;
+    private final String[] measurementUnits;
     
  
 
-    public EntityMeasurementsInfoImpl(Object measuredEntity, String unitOfMeasurement, String [] measurementNames) {
+    public EntityMeasurementsInfoImpl(Object measuredEntity,
+            String unitOfMeasurement, 
+            String [] measurementNames, String[] measurementUnits) {
         this.measuredEntity = measuredEntity;
         this.unitOfMeasurement = unitOfMeasurement;
         this.measurementNames = measurementNames.clone();
+        this.measurementUnits = measurementUnits.clone();
     }
 
     @Override
@@ -84,11 +88,14 @@ public class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
     }
 
 
-
-
     @Override
     public int getNumberOfMeasurements() {
         return measurementNames.length;
+    }
+
+    @Override
+    public String[] getMeasurementUnits() {
+        return measurementUnits.clone();
     }
     
     
