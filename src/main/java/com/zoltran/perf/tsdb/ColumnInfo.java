@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -222,7 +223,7 @@ public class ColumnInfo {
 
     @Override
     public String toString() {
-        return "ColumnInfo{" + "location=" + location + ", nextColumnInfo=" + nextColumnInfo + ", firstDataFragment=" + firstDataFragment + ", lastDataFragment=" + lastDataFragment + ", groupName=" + groupName + ", sampleTime=" + sampleTime + ", groupMetaData=" + groupMetaData + ", columnNames=" + columnNames + ", columnMetaData=" + columnMetaData + ", nameToIndex=" + nameToIndex + '}';
+        return "ColumnInfo{" + "location=" + location + ", nextColumnInfo=" + nextColumnInfo + ", firstDataFragment=" + firstDataFragment + ", lastDataFragment=" + lastDataFragment + ", groupName=" + groupName + ", sampleTime=" + sampleTime + ", columnNames=" + Arrays.toString(columnNames) + ", nameToIndex=" + nameToIndex + '}';
     }
  
     
