@@ -85,7 +85,7 @@ public interface ObjectPool<T>  extends Disposable {
         void dispose(T object) throws ObjectDisposeException;
         
         /**
-         * Validate the object, return null if valid, a Exception with vallidation
+         * Validate the object, return null if valid, a Exception with validation
          * detail otherwise.
          * 
          * @param object

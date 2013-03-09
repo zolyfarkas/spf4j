@@ -81,7 +81,7 @@ public class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<ObjectHold
                 returnHook.handle(object);
             }
         } catch (Exception ex) {
-            throw new ObjectReturnException("Exception while executing borrow hook", e);
+            throw new ObjectReturnException("Exception while executing return hook", e);
         } finally {
             pool.returnObject(object, e);
         }
