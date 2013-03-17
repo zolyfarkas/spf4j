@@ -31,7 +31,8 @@ public interface ObjectBorower<T> extends Scanable<T>
     
     /**
      * Non Blocking method.
-     * @return null if request was not made, the object of available, 
+     * @return null if request was not made, 
+     * the object if available, 
      * or REQUEST_MADE if request could be made to return Object.
      */
     
@@ -49,7 +50,7 @@ public interface ObjectBorower<T> extends Scanable<T>
     /**
      * This method is a cleanup method.
      * The purpose is to recover all borrowed objects before once this borrower 
-     * will never use thema anymore...
+     * will never use them anymore...
      * @return all objects borrowed
      */
     

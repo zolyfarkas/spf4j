@@ -24,6 +24,8 @@ import com.zoltran.pool.ObjectDisposeException;
 import com.zoltran.pool.ObjectPool;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * this is not a thread safe implementation.
@@ -35,6 +37,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class ObjectHolder<T> 
 {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ObjectHolder.class);
+    
     private T obj;
     
     private boolean borrowed;
@@ -82,12 +86,29 @@ public class ObjectHolder<T>
                     + "not borrowed from here " + object);
         }
         borrowed = false;
-        if (e != null && factory.validate(object, e) != null) {
-            obj = null;
-            factory.dispose(object); 
+        if (e != null) {
+           Exception ex = safeValidate(e);
+           LOG.debug("Object {} returned with exception {} validation failed", obj, e, ex);
+           if (ex != null) {
+               obj = null;
+               factory.dispose(object);
+           }
         }
     }
-
+    
+    synchronized public void validateObjectIfNotBorrowed() throws ObjectDisposeException {
+        if (!borrowed && obj != null) {
+           Exception e = safeValidate(null);
+           LOG.debug("Object {} validation failed", obj, e);
+           if (e != null) {
+               T object = obj;
+               obj = null;
+               factory.dispose(object);
+           }
+        }
+    }
+    
+    
     synchronized public boolean disposeIfNotBorrowed() throws ObjectDisposeException
     {
         if (borrowed) {
@@ -103,6 +124,23 @@ public class ObjectHolder<T>
     @Override
     synchronized public String toString() {
         return "ObjectHolder{" + "obj=" + obj + ", borrowed=" + borrowed + ", factory=" + factory + '}';
+    }
+
+    /**
+     * Protects against poor validation implementations.
+     * @return
+     * @throws RuntimeException
+     * @throws ObjectDisposeException 
+     */
+    
+    private Exception safeValidate(Exception exc) throws RuntimeException, ObjectDisposeException {
+        Exception e;
+        try {
+             e = factory.validate(obj, exc);
+        } catch (Exception ex) {
+            e = ex;
+        }
+        return e;
     }
     
     

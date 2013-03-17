@@ -17,6 +17,7 @@
  */
 package com.zoltran.pool.impl;
 
+import com.zoltran.base.AbstractRunnable;
 import com.zoltran.pool.ObjectCreationException;
 import com.zoltran.pool.ObjectDisposeException;
 import com.zoltran.pool.ObjectPool;
@@ -87,26 +88,17 @@ public class ObjectPoolBuilder<T,E extends Exception> {
         }
         final Scanable<ObjectHolder<T>> scanable = (Scanable<ObjectHolder<T>>) pool;
         if (maintenanceExecutor != null) {
-            maintenanceExecutor.scheduleWithFixedDelay(new Runnable() {
+            maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnable(true) {
                 @Override
-                public void run() {
-                    try {
+                public void doRun() throws Exception {
                         scanable.scan(new Scanable.ScanHandler<ObjectHolder<T>>() {
                             @Override
                             public boolean handle(ObjectHolder<T> object) throws ObjectDisposeException {
-                                T o = object.borrowObjectIfAvailable();
-                                if (o != null) {
-                                    try {
-                                        factory.validate(o, null);
-                                    } finally {
-                                        object.returnObject(o, null);
-                                    }
-                                }
+                                object.validateObjectIfNotBorrowed();
                                 return true;
                             }
                         });
-                    } catch (Exception ex) {
-                    }
+                   
                 }
             }, maintenanceIntervalMillis, maintenanceIntervalMillis, TimeUnit.MILLISECONDS);
         }

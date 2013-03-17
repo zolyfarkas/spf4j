@@ -18,6 +18,7 @@
 package com.zoltran.pool;
 
 import java.util.concurrent.TimeoutException;
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -34,7 +35,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public interface ObjectPool<T>  extends Disposable {
     
     /**
-     * block until a object is available for the pool and return it.
+     * block until a object is available and return it.
      *
      * @return
      * @throws ObjectCreationException
@@ -51,6 +52,7 @@ public interface ObjectPool<T>  extends Disposable {
     /**
      * return a object previously borrowed from the pool, 
      * together with a optional exception in case one was encountered while using the object.
+     * passing an exception will case the object to be validated and potentially retired.
      * 
      * @param object
      * @param e
@@ -93,6 +95,7 @@ public interface ObjectPool<T>  extends Disposable {
          * @return 
          */ 
         @Nullable
+        @CheckReturnValue
         Exception validate(T object, @Nullable Exception e);
         
     }
