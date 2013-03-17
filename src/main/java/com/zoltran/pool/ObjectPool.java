@@ -69,6 +69,7 @@ public interface ObjectPool<T>  extends Disposable {
         
     }
     
+    @ParametersAreNonnullByDefault
     public interface Factory<T> {
     
         /**
