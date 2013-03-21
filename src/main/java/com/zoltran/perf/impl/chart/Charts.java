@@ -107,8 +107,8 @@ public final class Charts {
     }
     
         
-    public static void createHeatChart( String chartName, File file,
-            String[] dsNames, double[][] values, 
+    public static void createHeatChart( String chartName, String uom, File file,
+            String[] dsNames, double[][] values,
             long startTimeMillis, long stepMillis, int width, int height) throws IOException {
         final QuantizedXYZDatasetImpl dataSet = new QuantizedXYZDatasetImpl(dsNames,values, startTimeMillis, stepMillis );
         NumberAxis xAxis = new NumberAxis("Time");
@@ -117,7 +117,7 @@ public final class Charts {
         xAxis.setStandardTickUnits(dataSet.createXTickUnits());
         xAxis.setLowerMargin(0);
         xAxis.setUpperMargin(0);
-        NumberAxis yAxis = new NumberAxis("Measurement");
+        NumberAxis yAxis = new NumberAxis(uom);
 
         yAxis.setStandardTickUnits(dataSet.createYTickUnits());
         yAxis.setLowerMargin(0);
