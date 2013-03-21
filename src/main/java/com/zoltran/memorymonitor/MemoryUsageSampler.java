@@ -29,7 +29,11 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- *
+ * This class allows you to poll and record to a file the heap commited and heap used
+ * for your java process.
+ *  start data recording by calling the startMemoryUsageSampling method,
+ *  stop the data recording by calling the method: startMemoryUsageSampling.
+ * 
  * @author zoly
  */
 public class MemoryUsageSampler {
