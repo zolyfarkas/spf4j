@@ -32,11 +32,20 @@ import org.aspectj.lang.annotation.Aspect;
 @Aspect
 public class AllocationMonitorAspect {
 
-    private static final MeasurementRecorderSource RECORDER = 
-            RecorderFactory.createScalableCountingRecorderSource("allocations", "instances", 
-            Integer.valueOf(System.getProperty("perf.allocations.sampleTime", "300000")) );
     
     private static final boolean RECORD_OBJECT_SIZE = Boolean.valueOf(System.getProperty("perf.allocations.recordSize", "true"));
+    
+   private static final MeasurementRecorderSource RECORDER;
+   
+   static {
+       if (RECORD_OBJECT_SIZE) {
+           RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "bytes", 
+            Integer.valueOf(System.getProperty("perf.allocations.sampleTime", "300000")) );
+       } else {
+           RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "instances", 
+            Integer.valueOf(System.getProperty("perf.allocations.sampleTime", "300000")) );
+       }
+   }
        
     @AfterReturning(pointcut = "call(*.new(..))", returning = "obj", argNames="jp,obj" )
     public void afterAllocation(JoinPoint jp, Object obj) {
