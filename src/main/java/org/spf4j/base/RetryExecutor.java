@@ -156,6 +156,13 @@ public class RetryExecutor<T> implements ExecutorService{
         public Callable<Object> getCallable() {
             return callable;
         }
+
+        public boolean isIsExecution() {
+            return isExecution;
+        }
+        
+        
+        
     }
 
     private class RetryableCallable<T> implements Callable<T>, Runnable {
@@ -227,7 +234,7 @@ public class RetryExecutor<T> implements ExecutorService{
             while (!managerThread.isInterrupted()) {
                 try {
                     FailedExecutionResult event = executionEvents.take();
-                    if (event.isExecution) {
+                    if (event.isIsExecution()) {
                         executionService.execute(new RetryableCallable<Object>(event.getCallable(), event.getFuture()));
                     } else {
                         Pair<Integer, ExecutionException> attemptsInfo = executionAttempts.get(event.getCallable());

@@ -217,8 +217,9 @@ public class Sampler implements SamplerMBean {
     public void dispose() throws InterruptedException{
         stop();
         try {
-            if (isJmxRegistered)
+            if (isJmxRegistered) {
                 ManagementFactory.getPlatformMBeanServer().unregisterMBean(name);
+            }
         } catch (InstanceNotFoundException ex) {
             throw new RuntimeException(ex);
         } catch (MBeanRegistrationException ex) {
