@@ -34,8 +34,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public class Exceptions {
+public final class Exceptions {
 
+    private Exceptions() {}
+    
     private static final Field field;
 
     static {

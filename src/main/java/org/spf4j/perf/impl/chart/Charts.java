@@ -17,7 +17,6 @@
  */
 package org.spf4j.perf.impl.chart;
 
-import org.spf4j.base.Arrays;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -36,6 +35,7 @@ import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.data.time.FixedMillisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
+import org.spf4j.base.Arrays;
 
 /**
  *

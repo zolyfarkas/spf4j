@@ -30,8 +30,10 @@ import org.slf4j.LoggerFactory;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public class Callables
+public final class Callables
 {
+    
+    private Callables() {}
     
     private static final Logger LOG = LoggerFactory.getLogger(Callables.class);
     
