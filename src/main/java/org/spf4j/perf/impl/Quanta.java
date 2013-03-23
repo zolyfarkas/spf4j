@@ -1,0 +1,79 @@
+ /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.impl;
+
+/**
+ * this class ordering is based on start Interval ordering
+ */
+@edu.umd.cs.findbugs.annotations.SuppressWarnings(value = "EQ_COMPARETO_USE_OBJECT_EQUALS")
+public class Quanta implements Comparable<Quanta> {
+    private final long intervalStart;
+    private final long intervalEnd;
+
+    public Quanta(long intervalStart, long intervalEnd) {
+        this.intervalStart = intervalStart;
+        this.intervalEnd = intervalEnd;
+    }
+
+    public Quanta(String stringVariant) {
+        int undLocation = stringVariant.indexOf('_');
+        if (undLocation < 0) {
+            throw new IllegalArgumentException("Invalid Quanta DataSource " + stringVariant);
+        }
+        String startStr = stringVariant.substring(1, undLocation);
+        String endStr = stringVariant.substring(undLocation + 1);
+        if (startStr.equals("NI")) {
+            this.intervalStart = Long.MIN_VALUE;
+        } else {
+            this.intervalStart = Long.valueOf(startStr);
+        }
+        if (endStr.equals("PI")) {
+            this.intervalEnd = Long.MAX_VALUE;
+        } else {
+            this.intervalEnd = Long.valueOf(endStr);
+        }
+    }
+
+    public long getIntervalEnd() {
+        return intervalEnd;
+    }
+
+    public long getIntervalStart() {
+        return intervalStart;
+    }
+
+    public long getClosestToZero() {
+        return (intervalStart < 0) ? intervalEnd : intervalStart;
+    }
+
+    @Override
+    public String toString() {
+        return "Q" + ((intervalStart == Long.MIN_VALUE) ? "NI" : intervalStart) + "_" + ((intervalEnd == Long.MAX_VALUE) ? "PI" : intervalEnd);
+    }
+
+    public int compareTo(Quanta o) {
+        if (this.intervalStart < o.intervalStart) {
+            return -1;
+        } else if (this.intervalStart > o.intervalStart) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    
+}
