@@ -18,9 +18,9 @@
  */
 package org.spf4j.iomonitor;
 
-import org.spf4j.perf.MeasurementRecorderSource;
 import java.io.IOException;
 import java.io.OutputStream;
+import org.spf4j.perf.MeasurementRecorderSource;
 
 /**
  *
