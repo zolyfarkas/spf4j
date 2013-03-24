@@ -17,9 +17,6 @@
  */
 package org.spf4j.perf.impl.chart;
 
-import org.spf4j.base.Arrays;
-import org.spf4j.base.ComparablePair;
-import org.spf4j.perf.impl.Quanta;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +29,9 @@ import org.jfree.data.general.DatasetGroup;
 import org.jfree.data.xy.XYZDataset;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.spf4j.base.Arrays;
+import org.spf4j.base.ComparablePair;
+import org.spf4j.perf.impl.Quanta;
 
 @Immutable
 @edu.umd.cs.findbugs.annotations.SuppressWarnings("SE_BAD_FIELD_INNER_CLASS")

@@ -33,8 +33,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ExceptionsTest {
     
-    private static final Logger LOG = LoggerFactory.getLogger(ExceptionsTest.class);
-
     /**
      * Test of chain method, of class ExceptionChain.
      */

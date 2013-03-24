@@ -4,12 +4,8 @@
  */
 package org.spf4j.base;
 
-import org.spf4j.base.DefaultScheduler;
 import java.util.concurrent.ScheduledFuture;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *

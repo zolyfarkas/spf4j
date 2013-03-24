@@ -19,8 +19,6 @@ package org.spf4j.pool.impl;
 
 
 import java.io.IOException;
-import org.apache.commons.pool.ObjectPool;
-import org.apache.commons.pool.ObjectPoolFactory;
 import org.apache.commons.pool.PoolableObjectFactory;
 
 /**

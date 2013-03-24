@@ -26,6 +26,7 @@ import java.lang.instrument.Instrumentation;
  */
 public final  class InstrumentationHelper {
     
+    private InstrumentationHelper() {}
     
     private static Instrumentation instrumentation;
 

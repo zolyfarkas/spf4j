@@ -32,8 +32,10 @@ import org.slf4j.LoggerFactory;
 /**
  * @author zoly
  */
-public class Monitor {
+public final class Monitor {
 
+    private Monitor() {}
+    
     private static final Logger log = LoggerFactory.getLogger(Monitor.class);
     
     private static class Options {
