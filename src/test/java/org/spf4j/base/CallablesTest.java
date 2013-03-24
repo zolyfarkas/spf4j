@@ -87,7 +87,7 @@ public class CallablesTest
     public void testExecuteWithRetry_4args_3() throws Exception
     {
         System.out.println("executeWithRetry");
-        Integer result = Callables.executeWithRetry(new Callable<Integer> () {
+        Callables.executeWithRetry(new Callable<Integer> () {
 
             private int count;
             @Override

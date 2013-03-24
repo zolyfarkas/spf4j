@@ -17,6 +17,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -27,6 +28,7 @@ import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.management.*;
+import org.spf4j.base.AbstractRunnable;
 
 /**
  * Utility that allow you to sample what the application is doing. It generates
@@ -45,7 +47,6 @@ import javax.management.*;
  * @author zoly
  */
 @ThreadSafe
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("I18N")
 public class Sampler implements SamplerMBean {
 
     private volatile boolean stopped;
@@ -93,10 +94,11 @@ public class Sampler implements SamplerMBean {
         if (stopped) {
             stopped = false;
             final long stMillis = sampleTimeMillis;
-            samplingThread = new Thread(new Runnable() {
+            samplingThread = new Thread(new AbstractRunnable() {
 
                 @SuppressWarnings("SleepWhileInLoop")
-                public void run() {
+                @Override
+                public void doRun() {
                     while (!stopped) {
                         stackCollector.sample();
                         try {
@@ -117,7 +119,7 @@ public class Sampler implements SamplerMBean {
     @Override
     public synchronized void generateHtmlMonitorReport(String fileName, final int chartWidth, final int maxDepth) throws IOException {
 
-        final Writer writer = new BufferedWriter(new FileWriter(fileName));
+        final Writer writer = new BufferedWriter(new OutputStreamWriter( new FileOutputStream(fileName), Charsets.UTF_8));
         try {
             writer.append("<html>");
 
@@ -215,8 +217,9 @@ public class Sampler implements SamplerMBean {
     public void dispose() throws InterruptedException{
         stop();
         try {
-            if (isJmxRegistered)
+            if (isJmxRegistered) {
                 ManagementFactory.getPlatformMBeanServer().unregisterMBean(name);
+            }
         } catch (InstanceNotFoundException ex) {
             throw new RuntimeException(ex);
         } catch (MBeanRegistrationException ex) {
@@ -226,7 +229,7 @@ public class Sampler implements SamplerMBean {
 
     @Override
     public void generateCpuSvg(String fileName, final int chartWidth, final int maxDepth) throws IOException {
-        final Writer writer = new BufferedWriter(new FileWriter(fileName));
+        final Writer writer = new BufferedWriter(new OutputStreamWriter( new FileOutputStream(fileName), Charsets.UTF_8));
         try {
 
             stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
@@ -251,7 +254,7 @@ public class Sampler implements SamplerMBean {
 
     @Override
     public void generateTotalSvg(String fileName, final int chartWidth, final int maxDepth) throws IOException {
-               final Writer writer = new BufferedWriter(new FileWriter(fileName));
+        final Writer writer = new BufferedWriter(new OutputStreamWriter( new FileOutputStream(fileName), Charsets.UTF_8));
         try {
 
             stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
@@ -277,7 +280,7 @@ public class Sampler implements SamplerMBean {
     
     @Override
     public void generateSvgHtmlMonitorReport(String fileName, final int chartWidth, final int maxDepth) throws IOException {
-                final Writer writer = new BufferedWriter(new FileWriter(fileName));
+        final Writer writer = new BufferedWriter(new OutputStreamWriter( new FileOutputStream(fileName), Charsets.UTF_8));
         try {
             writer.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
 "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\" \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n");

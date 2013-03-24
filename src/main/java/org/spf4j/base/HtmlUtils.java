@@ -34,8 +34,10 @@ import java.util.Map;
  * @author Juergen Hoeller
  * @since 01.03.2003
  */
-public abstract class HtmlUtils {
+public final class HtmlUtils {
 
+        private HtmlUtils() {}
+    
 	private static final String EMPTY_REFERENCE = "&;";
 	private static final String REFERENCE_START = "&#";
 	private static final String MALFORMED_REFERENCE = "&#;";
@@ -312,7 +314,7 @@ public abstract class HtmlUtils {
 			return null;
 		}
 
-		StringBuffer escaped = new StringBuffer(s.length());
+		StringBuilder escaped = new StringBuilder(s.length());
 		for (int i = 0; i < s.length(); i++) {
 			char c = s.charAt(i);
 			// handle non special ASCII chars first since they will be most common
@@ -623,7 +625,7 @@ public abstract class HtmlUtils {
 			return null;
 		}
 
-		StringBuffer unescaped = new StringBuffer(s.length());
+		StringBuilder unescaped = new StringBuilder(s.length());
 		for (int i = 0; i < s.length(); i++) {
 			char c = s.charAt(i);
 			if (c == '&') {
@@ -693,7 +695,7 @@ public abstract class HtmlUtils {
 	 * @param c the character to write
 	 * @param buf the buffer to write into
 	 */
-	private static void writeDecimalReference(char c, StringBuffer buf) {
+	private static void writeDecimalReference(char c, StringBuilder buf) {
 		buf.append(REFERENCE_START);
 		buf.append((int) c);
 		buf.append(';');
