@@ -51,7 +51,7 @@ class TableOfContents {
 
     public void writeTo(RandomAccessFile raf) throws IOException {
         FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(this.location, 32, false);
+        FileLock lock = ch.lock(this.location, 16, false);
         try {
             raf.seek(location);
             raf.writeLong(firstColumnInfo);        
@@ -74,7 +74,7 @@ class TableOfContents {
     public void setLastColumnInfo(long lastColumnInfo,RandomAccessFile raf) throws IOException {
         this.lastColumnInfo = lastColumnInfo;
         FileChannel ch = raf.getChannel();
-        long loc = location+16;
+        long loc = location+8;
         FileLock lock = ch.lock(loc, 8, false);
         try {
             raf.seek(loc);           
@@ -95,6 +95,14 @@ class TableOfContents {
             lock.release();
         }
     }
+
+    @Override
+    public String toString() {
+        return "TableOfContents{" + "location=" + location + ", lastColumnInfo=" + lastColumnInfo + ", firstColumnInfo=" + firstColumnInfo + '}';
+    }
+    
+    
+    
     
     
 }

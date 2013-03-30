@@ -111,7 +111,7 @@ class DataFragment {
     
    public static void setNextDataFragment(long dataFragmentPosition, long nextDataFragment, RandomAccessFile raf) throws IOException {
         FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(raf.getFilePointer(),8,false);
+        FileLock lock = ch.lock(dataFragmentPosition,8,false);
         try {
             raf.seek(dataFragmentPosition);
             raf.writeLong(nextDataFragment);

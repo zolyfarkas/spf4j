@@ -108,7 +108,7 @@ public class TimeSeriesDatabase implements Closeable {
         if (groups.containsKey(groupName)) {
             throw new IllegalArgumentException("group already exists " + groupName);
         }
-        //write column information at the enf of the file.
+        //write column information at the end of the file.
         flush();
         file.seek(file.length());
         ColumnInfo colInfo = new ColumnInfo(groupName, groupMetaData, columnNames, metaData, sampleTime, file.getFilePointer());
