@@ -17,6 +17,7 @@
  */
 package org.spf4j.perf.impl.chart;
 
+import com.google.common.base.Charsets;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -34,6 +35,8 @@ import org.jfree.data.time.FixedMillisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.spf4j.base.Arrays;
+import org.spf4j.base.Pair;
+import org.spf4j.perf.tsdb.ColumnInfo;
 
 /**
  *
@@ -82,12 +85,10 @@ public final class Charts {
         return chart;
     }
 
-    private static BufferedImage createChartImg(String chartName, String uom, TimeSeriesCollection timeseriescollection, int width, int height) {
-        JFreeChart jfreechart = createJFreeChart(chartName, uom, timeseriescollection);
-        BufferedImage bi = jfreechart.createBufferedImage(width, height);
-        return bi;
-    }
-
+    
+    
+    
+ 
     private static JFreeChart createJFreeChart(String chartName, String uom, TimeSeriesCollection timeseriescollection) {
         JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(chartName,
                 "Time", uom, timeseriescollection, true, true, false);
@@ -104,18 +105,18 @@ public final class Charts {
     public static BufferedImage createMinMaxAvgCountImg(String chartName, long[] timestamps,
             double[] min, double[] max, double[] total, double[] count, String uom, int width, int height) {
 
-        BufferedImage bi = Charts.createTimeSeriesChartImg(chartName, timestamps,
-                new String[]{"min", "max", "avg"}, uom, new double[][]{min, max, Arrays.divide(total, count)}, width, height - height / 3);
-        BufferedImage bi2 = Charts.createTimeSeriesChartImg(null, timestamps,
-                new String[]{"count"}, "count", new double[][]{count}, width, height / 3);
+        BufferedImage bi = Charts.createTimeSeriesJFreeChart(chartName, timestamps,
+                new String[]{"min", "max", "avg"}, uom, new double[][]{min, max, Arrays.divide(total, count)}).createBufferedImage(width, height - height / 3);
+        BufferedImage bi2 = Charts.createTimeSeriesJFreeChart(null, timestamps,
+                new String[]{"count"}, "count", new double[][]{count}).createBufferedImage( width, height / 3);
         BufferedImage combined = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         combined.getGraphics().drawImage(bi, 0, 0, null);
         combined.getGraphics().drawImage(bi2, 0, height - height / 3, null);
         return combined;
     }
 
-    public static BufferedImage createTimeSeriesChartImg(String chartName, long[] timestamps,
-            String[] measurementNames, String uom, double[][] measurements, int width, int height) {
+    
+    private static TimeSeriesCollection createTimeSeriesCollection(String[] measurementNames, long[] timestamps, double[][] measurements) {
         TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();
         for (int i = 0; i < measurementNames.length; i++) {
             TimeSeries tseries = new TimeSeries(measurementNames[i]);
@@ -125,12 +126,20 @@ public final class Charts {
             }
             timeseriescollection.addSeries(tseries);
         }
-        BufferedImage bi = createChartImg(chartName, uom, timeseriescollection, width, height);
-        return bi;
+        return timeseriescollection;
     }
-
-    public static BufferedImage createTimeSeriesChartImg(String chartName, long[][] timestamps,
-            String[] measurementNames, String uom, double[][] measurements, int width, int height) {
+    
+    
+ 
+    
+    public static JFreeChart createTimeSeriesJFreeChart(String chartName, long[] timestamps,
+            String[] measurementNames, String uom, double[][] measurements) {
+        TimeSeriesCollection timeseriescollection = createTimeSeriesCollection(measurementNames, timestamps, measurements);
+        return createJFreeChart(chartName, uom, timeseriescollection);
+    }
+    
+    
+    private static TimeSeriesCollection createTimeSeriesCollection(String[] measurementNames, long[][] timestamps, double[][] measurements) {
         TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();
         for (int i = 0; i < measurementNames.length; i++) {
             TimeSeries tseries = new TimeSeries(measurementNames[i]);
@@ -140,14 +149,45 @@ public final class Charts {
             }
             timeseriescollection.addSeries(tseries);
         }
-        BufferedImage bi = createChartImg(chartName, uom, timeseriescollection, width, height);
-        return bi;
+        return timeseriescollection;
     }
 
-    public static BufferedImage createHeatChartImg(String chartName, String uom,
-            String[] dsNames, double[][] values,
-            long startTimeMillis, long stepMillis, int width, int height) throws IOException {
-        JFreeChart chart = createHeatJFreeChart(dsNames, values, startTimeMillis, stepMillis, uom, chartName);
-        return chart.createBufferedImage(width, height);
+
+    
+    public static JFreeChart createTimeSeriesJFreeChart(String chartName, long[][] timestamps,
+            String[] measurementNames, String uom, double[][] measurements) {
+        TimeSeriesCollection timeseriescollection = createTimeSeriesCollection(measurementNames, timestamps, measurements);
+        return createJFreeChart(chartName, uom, timeseriescollection);
     }
+    
+   
+    
+    
+    public static Pair<long[], double[][]> fillGaps(long[] timestamps, long[][] data, int sampleTime, int nrColumns) {
+        long startTime = timestamps[0];
+        int nrSamples = (int) ((timestamps[timestamps.length - 1] - startTime) / sampleTime);
+        long[] lts = new long[nrSamples];
+        double[][] dr = new double[nrSamples][];
+        long nextTime = startTime;
+        int j = 0;
+        int maxDeviation = sampleTime / 2;
+        double[] nodata = new double[nrColumns];
+        for (int i = 0; i < nrColumns; i++) {
+            nodata[i] = Double.NaN;
+        }
+        for (int i = 0; i < nrSamples; i++) {
+            lts[i] = nextTime;
+
+            if (Math.abs(timestamps[j] - nextTime) < maxDeviation) {
+                dr[i] = Arrays.toDoubleArray(data[j]);
+                j++;
+            } else {
+                dr[i] = nodata;
+            }
+            nextTime += sampleTime;
+        }
+        return Pair.of(lts, dr);
+    }
+    
+
 }

@@ -4,10 +4,21 @@
  */
 package org.spf4j.ui;
 
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.spf4j.perf.impl.chart.Charts;
+import org.spf4j.perf.impl.mdb.tsdb.TSDBMeasurementDatabase;
 import org.spf4j.perf.tsdb.ColumnInfo;
 import org.spf4j.perf.tsdb.TimeSeriesDatabase;
 
@@ -18,7 +29,7 @@ import org.spf4j.perf.tsdb.TimeSeriesDatabase;
 public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
 
     private final TimeSeriesDatabase tsDb;
-    
+
     /**
      * Creates new form TSDBViewJInternalFrame
      */
@@ -30,7 +41,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(databaseFile);
         for (ColumnInfo info : columnsInfo) {
             DefaultMutableTreeNode child = new DefaultMutableTreeNode(info.getGroupName());
-            for (String colName :info.getColumnNames()) {
+            for (String colName : info.getColumnNames()) {
                 child.add(new DefaultMutableTreeNode(colName));
             }
             root.add(child);
@@ -49,8 +60,13 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
     private void initComponents() {
 
         rightPanel = new javax.swing.JPanel();
+        mainSplitPannel = new javax.swing.JSplitPane();
+        jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         measurementTree = new javax.swing.JTree();
+        jToolBar1 = new javax.swing.JToolBar();
+        jButton1 = new javax.swing.JButton();
+        chartPannel = new javax.swing.JScrollPane();
 
         org.jdesktop.layout.GroupLayout rightPanelLayout = new org.jdesktop.layout.GroupLayout(rightPanel);
         rightPanel.setLayout(rightPanelLayout);
@@ -67,23 +83,108 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         setMaximizable(true);
         setResizable(true);
 
+        mainSplitPannel.setDividerSize(5);
+
+        measurementTree.setAutoscrolls(true);
         jScrollPane1.setViewportView(measurementTree);
+
+        jToolBar1.setFloatable(false);
+        jToolBar1.setRollover(true);
+
+        jButton1.setText("Plot");
+        jButton1.setFocusable(false);
+        jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jButton1);
+
+        org.jdesktop.layout.GroupLayout jPanel2Layout = new org.jdesktop.layout.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .add(jToolBar1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+            .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanel2Layout.createSequentialGroup()
+                .add(jToolBar1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 444, Short.MAX_VALUE))
+        );
+
+        mainSplitPannel.setLeftComponent(jPanel2);
+        mainSplitPannel.setRightComponent(chartPannel);
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 365, Short.MAX_VALUE)
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .add(mainSplitPannel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE)
+            .add(layout.createSequentialGroup()
+                .add(mainSplitPannel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 479, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        TreePath[] selectionPaths = measurementTree.getSelectionPaths();
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        chartPannel.setViewportView(content);
+        for (TreePath path : selectionPaths) {
+            Object[] pathArr = path.getPath();
+            if (pathArr.length < 2) {
+                continue;
+            }
+            ColumnInfo info = tsDb.getColumnInfo((String) ((DefaultMutableTreeNode) pathArr[1]).getUserObject());
+            if (TSDBMeasurementDatabase.canGenerateHeatChart(info)) {
+                try {
+                    JFreeChart chart = tsDb.createHeatJFreeChart(info.getGroupName());
+                    ChartPanel pannel = new ChartPanel(chart);
+                    pannel.setPreferredSize(new Dimension(600, 1024));
+                    content.add(pannel);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+            if (TSDBMeasurementDatabase.canGenerateMinMaxAvgCount(info)) {
+                try {
+                    JFreeChart chart = tsDb.createMinMaxAvgJFreeChart(info.getGroupName());
+                    ChartPanel pannel = new ChartPanel(chart);
+                    pannel.setPreferredSize(new Dimension(600, 1024));
+                    content.add(pannel);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+
+        }
+        chartPannel.repaint();
+
+    }//GEN-LAST:event_jButton1ActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JScrollPane chartPannel;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JSplitPane mainSplitPannel;
     private javax.swing.JTree measurementTree;
     private javax.swing.JPanel rightPanel;
     // End of variables declaration//GEN-END:variables
