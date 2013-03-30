@@ -147,33 +147,36 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         chartPannel.setViewportView(content);
-        for (TreePath path : selectionPaths) {
-            Object[] pathArr = path.getPath();
-            if (pathArr.length < 2) {
-                continue;
-            }
-            ColumnInfo info = tsDb.getColumnInfo((String) ((DefaultMutableTreeNode) pathArr[1]).getUserObject());
-            if (TSDBMeasurementDatabase.canGenerateHeatChart(info)) {
-                try {
+        try {
+            for (TreePath path : selectionPaths) {
+                Object[] pathArr = path.getPath();
+                if (pathArr.length < 2) {
+                    continue;
+                }
+                ColumnInfo info = tsDb.getColumnInfo((String) ((DefaultMutableTreeNode) pathArr[1]).getUserObject());
+                if (TSDBMeasurementDatabase.canGenerateHeatChart(info)) {
                     JFreeChart chart = tsDb.createHeatJFreeChart(info.getGroupName());
                     ChartPanel pannel = new ChartPanel(chart);
                     pannel.setPreferredSize(new Dimension(600, 1024));
                     content.add(pannel);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
                 }
-            }
-            if (TSDBMeasurementDatabase.canGenerateMinMaxAvgCount(info)) {
-                try {
+                if (TSDBMeasurementDatabase.canGenerateMinMaxAvgCount(info)) {
                     JFreeChart chart = tsDb.createMinMaxAvgJFreeChart(info.getGroupName());
                     ChartPanel pannel = new ChartPanel(chart);
                     pannel.setPreferredSize(new Dimension(600, 1024));
                     content.add(pannel);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
 
+                }
+                if (TSDBMeasurementDatabase.canGenerateCount(info)) {
+                    JFreeChart chart = tsDb.createCountJFreeChart(info.getGroupName());
+                    ChartPanel pannel = new ChartPanel(chart);
+                    pannel.setPreferredSize(new Dimension(600, 1024));
+                    content.add(pannel);
+                }
+
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
         chartPannel.repaint();
 

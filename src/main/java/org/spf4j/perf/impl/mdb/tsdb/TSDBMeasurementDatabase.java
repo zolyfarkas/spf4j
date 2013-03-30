@@ -241,6 +241,11 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
                 && (info.getColumnIndex("count") >= 0));
     }
 
+    public static boolean canGenerateCount(ColumnInfo info) {
+        return ((info.getColumnIndex("count") >= 0));
+    }
+    
+    
     public static boolean canGenerateHeatChart(ColumnInfo info) {
         for (String mname : info.getColumnNames()) {
             if (mname.startsWith("Q") && mname.contains("_")) {
