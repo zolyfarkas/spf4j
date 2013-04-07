@@ -23,11 +23,17 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
+import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.Transparency;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import java.util.Map;
 import javax.swing.JPanel;
+import javax.swing.ToolTipManager;
+import org.spf4j.base.RTree;
 import org.spf4j.stackmonitor.Method;
 import org.spf4j.stackmonitor.SampleNode;
 
@@ -39,10 +45,27 @@ public class StackPanel extends JPanel {
 
     private SampleNode samples;
     
+    private RTree<String> tooltipDetail = new RTree<String>();
+            
+            
     public StackPanel(SampleNode samples) {
         this.samples =  samples;
         setPreferredSize(new Dimension(400,14*samples.height()));
+        ToolTipManager.sharedInstance().registerComponent(this);
     }
+
+    @Override
+    public String getToolTipText(MouseEvent event) {
+        Point location = event.getPoint();
+        List<String> tips = tooltipDetail.search(new float [] {location.x, location.y}, new float [] {0,0});
+        if (tips.size() >=1) {
+            return tips.get(0);
+        } else {
+            return null;
+        }
+    }
+    
+    
     
     
     @Override
@@ -62,14 +85,17 @@ public class StackPanel extends JPanel {
                         Transparency.TRANSLUCENT);
         
         int width = (int) available.getWidth();
-        paintNode(Method.ROOT, samples, img.createGraphics(), 0, 0, width, rowHeight , 0);    
+        tooltipDetail.clear();
+        Graphics2D gr = img.createGraphics();
+        gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        paintNode(Method.ROOT, samples, gr, 0, 0, width, rowHeight , 0);    
         g2.drawImage(img, insets.left, insets.top, this);
         g2.dispose();
     }
     
     private int paintNode (Method method, SampleNode node, Graphics2D g2, int x, int y, int width, int height, int depth) {
         int sampleCount = node.getSampleCount();
-        String val = method.getMethodName() + "-" + sampleCount;
+        String val = method.toString() + "-" + sampleCount;
 
         if (depth %2 ==0) {
             g2.setPaint(Color.YELLOW);
@@ -80,6 +106,7 @@ public class StackPanel extends JPanel {
         }
         g2.setClip(x, y, width, height);
         g2.fillRect(x, y,width, height);
+        tooltipDetail.insert(new float [] {x,y}, new float[] {width, height}, val);
         g2.setPaint(Color.BLACK);
         g2.drawString(val, x, y +height -1);  
         Map<Method, SampleNode> children = node.getSubNodes();
