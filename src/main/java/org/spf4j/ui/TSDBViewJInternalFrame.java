@@ -5,11 +5,8 @@
 package org.spf4j.ui;
 
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -17,7 +14,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.spf4j.perf.impl.chart.Charts;
 import org.spf4j.perf.impl.mdb.tsdb.TSDBMeasurementDatabase;
 import org.spf4j.perf.tsdb.ColumnInfo;
 import org.spf4j.perf.tsdb.TimeSeriesDatabase;

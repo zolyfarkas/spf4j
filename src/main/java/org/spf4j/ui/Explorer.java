@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import javax.swing.JFileChooser;
 import javax.swing.JInternalFrame;
+import javax.swing.filechooser.FileFilter;
 
 /**
  *
@@ -130,16 +131,49 @@ public class Explorer extends javax.swing.JFrame {
 
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
         JFileChooser chooser = new JFileChooser();
+        chooser.setFileFilter(new FileFilter() {
+
+            @Override
+            public boolean accept(File f) {
+                if (f.isFile()) {
+                    String name = f.getName();
+                    if (name.endsWith("tsdb") || name.endsWith("ssdump")) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+
+            @Override
+            public String getDescription() {
+                return "spf4j dumps";
+            }
+        });
         int returnVal = chooser.showOpenDialog(this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
             
-            JInternalFrame frame;             
-            try {
-                frame = new TSDBViewJInternalFrame(file.getAbsolutePath());
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
+            String fileName = file.getName();
+            JInternalFrame frame;
+            if (fileName.endsWith("tsdb")) {
+                  
+                try {
+                    frame = new TSDBViewJInternalFrame(file.getAbsolutePath());
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            } else if (fileName.endsWith("ssdump")){
+                try {
+                    frame = new StackDumpJInternalFrame(file.getAbsolutePath());
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            } else {
+                throw new RuntimeException("Unsupported file");
             }
             frame.setVisible(true);
             desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);

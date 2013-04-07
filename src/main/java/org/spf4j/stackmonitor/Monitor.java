@@ -46,6 +46,8 @@ public final class Monitor {
         private String mainClass;
         @Option(name = "-si", usage = "the stack sampling interval in milliseconds")
         private int sampleInterval = 100;
+        @Option(name = "-di", usage = "the stack sampling interval in milliseconds")
+        private int dumpInterval = 3600000;
         @Option(name = "-w", usage = "flame chart width in pixels")
         private int chartWidth = 2000;
         @Option(name = "-md", usage = "maximum stack trace depth")
@@ -97,7 +99,7 @@ public final class Monitor {
         final int maxDepth = options.maxDepth;
         final boolean svgReport = !options.noSvgReport;
 
-        final Sampler sampler = new Sampler(options.sampleInterval, new SimpleStackCollector());
+        final Sampler sampler = new Sampler(options.sampleInterval, options.dumpInterval, new SimpleStackCollector());
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override

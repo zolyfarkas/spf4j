@@ -40,7 +40,9 @@ public final class RecorderFactory {
         try
         {
             TS_DATABASE = new TSDBMeasurementDatabase(System.getProperty("perf.db.folder", 
-            System.getProperty("java.io.tmpdir")) + File.separator + System.getProperty("perf.db.name", ManagementFactory.getRuntimeMXBean().getName()+".tsdb" ));
+            System.getProperty("java.io.tmpdir")) + File.separator + 
+                    System.getProperty("perf.db.name", 
+                    ManagementFactory.getRuntimeMXBean().getName()+".tsdb" ));
             TS_DATABASE.registerJmx();
             TS_DATABASE.flushEvery(600000);
             TS_DATABASE.closeOnShutdown();
