@@ -145,7 +145,6 @@ public class Explorer extends javax.swing.JFrame {
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
         JFileChooser chooser = new JFileChooser();
         chooser.setFileFilter(new FileFilter() {
-
             @Override
             public boolean accept(File f) {
                 if (f.isFile()) {
@@ -169,17 +168,17 @@ public class Explorer extends javax.swing.JFrame {
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
-            
+
             String fileName = file.getName();
             JInternalFrame frame;
             if (fileName.endsWith("tsdb")) {
-                  
+
                 try {
                     frame = new TSDBViewJInternalFrame(file.getAbsolutePath());
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
-            } else if (fileName.endsWith("ssdump")){
+            } else if (fileName.endsWith("ssdump")) {
                 try {
                     frame = new StackDumpJInternalFrame(file.getAbsolutePath());
                 } catch (IOException ex) {
@@ -190,7 +189,7 @@ public class Explorer extends javax.swing.JFrame {
             }
             frame.setVisible(true);
             desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
-        } 
+        }
     }//GEN-LAST:event_openMenuItemActionPerformed
 
     /**

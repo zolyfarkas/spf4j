@@ -31,29 +31,28 @@ import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
  */
 public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
 
-    
     private SampleNode samples;
+
     /**
      * Creates new form StackDumpJInternalFrame
      */
     public StackDumpJInternalFrame(String sampleFile) throws IOException {
         super(sampleFile);
-        initComponents(); 
+        initComponents();
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sampleFile));
         final CodedInputStream is = CodedInputStream.newInstance(bis);
         is.setRecursionLimit(Short.MAX_VALUE);
         try {
-            samples = Converter.fromProtoToSampleNode( ProtoSampleNodes.SampleNode.parseFrom(is) );
+            samples = Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));
         } finally {
             bis.close();
         }
         ssScrollPanel.setViewportView(new StackPanel(samples));
         ssScrollPanel.setVisible(true);
         pack();
-       
+
     }
 
-    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
