@@ -59,11 +59,14 @@ public class StackPanel extends JPanel
 
     public StackPanel(SampleNode samples) {
         this.samples = samples;
-        setPreferredSize(new Dimension(400, 14 * samples.height()));
+        setPreferredSize(new Dimension(400, 20 * samples.height() + 10)); 
         ToolTipManager.sharedInstance().registerComponent(this);
         menu = buildPopupMenu();
         addMouseListener(this);
     }
+
+    
+    
     
     private JPopupMenu buildPopupMenu() {
         JPopupMenu result = new JPopupMenu("Actions");
@@ -95,20 +98,24 @@ public class StackPanel extends JPanel
                 size.getWidth() - insets.left - insets.right,
                 size.getHeight() - insets.top - insets.bottom);
         Graphics2D g2 = (Graphics2D) g.create();
-        int rowHeight = (int) g2.getFont().getStringBounds("ROOT", g2.getFontRenderContext()).getHeight();
+        try {
+            int rowHeight = (int) g2.getFont().getStringBounds("ROOT", g2.getFontRenderContext()).getHeight();
 
-        GraphicsConfiguration gc = g2.getDeviceConfiguration();
-        BufferedImage img = gc.createCompatibleImage(
-                (int) available.getWidth(), (int) available.getHeight(),
-                Transparency.TRANSLUCENT);
+            GraphicsConfiguration gc = g2.getDeviceConfiguration();
+            BufferedImage img = gc.createCompatibleImage(
+                    (int) available.getWidth(), (int) available.getHeight(),
+                    Transparency.TRANSLUCENT);
 
-        int width = (int) available.getWidth();
-        tooltipDetail.clear();
-        Graphics2D gr = img.createGraphics();
-        gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        paintNode(Method.ROOT, samples, gr, 0, 0, width, rowHeight, 0);
-        g2.drawImage(img, insets.left, insets.top, this);
-        g2.dispose();
+            int width = (int) available.getWidth();
+            tooltipDetail.clear();
+            Graphics2D gr = img.createGraphics();
+            gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            int height = paintNode(Method.ROOT, samples, gr, 0, 0, width, rowHeight, 0);
+            g2.drawImage(img, insets.left, insets.top, this);
+            setPreferredSize( new Dimension( (int)size.getWidth(), height + 10 ) );
+        } finally {
+            g2.dispose();
+        }
     }
 
     private int paintNode(Method method, SampleNode node, Graphics2D g2, int x, int y, int width, int height, int depth) {

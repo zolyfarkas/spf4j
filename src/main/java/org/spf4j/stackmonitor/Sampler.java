@@ -162,7 +162,7 @@ public class Sampler implements SamplerMBean {
 
     @Override
     public synchronized void generateHtmlMonitorReport(String fileName, final int chartWidth, final int maxDepth) throws IOException {
-
+        dumpToFile();
         final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
             writer.append("<html>");
@@ -318,7 +318,7 @@ public class Sampler implements SamplerMBean {
 
     @Override
     public void generateSvgHtmlMonitorReport(String fileName, final int chartWidth, final int maxDepth) throws IOException {
-
+        dumpToFile();
         final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
             writer.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
