@@ -88,62 +88,7 @@ public class MonitorTest {
         String report = File.createTempFile("stackSample", ".html").getPath();
         Monitor.main(new String[]{"-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
         System.out.println(report);
-    }
-    
-    
-    @Test
-    @Ignore
-    public void testProto() throws InterruptedException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, IOException {
-        
-        Sampler sampler = new Sampler(1);
-        sampler.registerJmx();
-        sampler.start();
-        MonitorTest.main(new String [] {});
-        String serializedFile = File.createTempFile("stackSample", ".samp").getPath();
-        final FileOutputStream os = new FileOutputStream(serializedFile);
-        try  {
-            sampler.getStackCollector().applyOnSamples(new Function<SampleNode, SampleNode> () {
-
-                @Override
-                public SampleNode apply(SampleNode f) {
-                    try {
-                        Converter.fromSampleNodeToProto(f).writeTo(os);
-                    } catch (IOException ex) {
-                       throw new RuntimeException(ex);
-                    }
-                    return f;
-                }
-
-            });
-        } finally {
-            os.close();
-        }
-        sampler.stop();
-        Sampler anotherOne = new Sampler(100);        
-        FileInputStream fis = new FileInputStream(serializedFile);
-        try {
-            final CodedInputStream is = CodedInputStream.newInstance(fis);
-            is.setRecursionLimit(1024);
-            anotherOne.getStackCollector().applyOnSamples(new Function<SampleNode, SampleNode>() {
-
-                @Override
-                public SampleNode apply(SampleNode f) {
-                    try {
-                        return Converter.fromProtoToSampleNode( ProtoSampleNodes.SampleNode.parseFrom(is) );
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }
-
-            });     
-        } finally {
-           fis.close(); 
-        }
-        String report = File.createTempFile("stackSample", ".html").getPath();
-        anotherOne.generateHtmlMonitorReport(report, 1000, 25);
-        System.out.println(report);    
-    }
-    
+    }    
     
     
     private static volatile boolean stopped;

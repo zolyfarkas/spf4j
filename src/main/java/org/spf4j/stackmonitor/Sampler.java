@@ -28,7 +28,11 @@ import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.management.*;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.stackmonitor.proto.Converter;
 
 /**
  * Utility that allow you to sample what the application is doing. It generates
@@ -51,42 +55,47 @@ public class Sampler implements SamplerMBean {
 
     private volatile boolean stopped;
     private volatile long sampleTimeMillis;
+    private volatile long dumpTimeMillis;
     private volatile boolean isJmxRegistered;
     private final StackCollector stackCollector;
     private final ObjectName name;
+    private long lastDumpTime = System.currentTimeMillis();
     
     @GuardedBy("this")
     private Thread samplingThread;
-    
+    private final String filePrefix = System.getProperty("perf.db.folder",
+            System.getProperty("java.io.tmpdir")) + File.separator
+            + System.getProperty("perf.db.name",
+            ManagementFactory.getRuntimeMXBean().getName());
 
     public Sampler() {
-        this(100, new MxStackCollector());
-    }
-    
-      public Sampler(long sampleTimeMillis) {
-        this(sampleTimeMillis, new MxStackCollector());
-    }
-    
-    public Sampler( StackCollector collector) {
-        this(100, collector);
+        this(100, 3600000, new MxStackCollector());
     }
 
-    public Sampler(long sampleTimeMillis, StackCollector collector) {
+    public Sampler(long sampleTimeMillis) {
+        this(sampleTimeMillis, 3600000, new MxStackCollector());
+    }
+
+    public Sampler(StackCollector collector) {
+        this(100, 3600000, collector);
+    }
+
+    public Sampler(long sampleTimeMillis, long dumpTimeMillis, StackCollector collector) {
         stopped = true;
         this.sampleTimeMillis = sampleTimeMillis;
+        this.dumpTimeMillis = dumpTimeMillis;
         this.stackCollector = collector;
         try {
             this.name = new ObjectName("SPF4J:name=StackSampler");
         } catch (MalformedObjectNameException ex) {
             throw new RuntimeException(ex);
-        } 
+        }
         this.isJmxRegistered = false;
     }
 
-
     public void registerJmx() throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
         ManagementFactory.getPlatformMBeanServer().registerMBean(this, name);
-        isJmxRegistered=true;
+        isJmxRegistered = true;
     }
 
     @Override
@@ -94,18 +103,28 @@ public class Sampler implements SamplerMBean {
         if (stopped) {
             stopped = false;
             final long stMillis = sampleTimeMillis;
+
+            final long dumpCount = dumpTimeMillis / sampleTimeMillis;
+
             samplingThread = new Thread(new AbstractRunnable() {
+                private long dumpCounter = 0;
 
                 @SuppressWarnings("SleepWhileInLoop")
                 @Override
-                public void doRun() {
+                public void doRun() throws IOException, InterruptedException {
                     while (!stopped) {
                         stackCollector.sample();
-                        try {
-                            Thread.sleep(stMillis);
-                        } catch (InterruptedException ex) {
-                            stopped = true;
+                        Thread.sleep(stMillis);
+                        dumpCounter++;
+                        if (dumpCounter >= dumpCount) {
+                            dumpCounter = 0;
+                            dumpToFile();
+                            lastDumpTime = System.currentTimeMillis();
+                            clear();
                         }
+
+
+
                     }
                 }
             }, "Stack Sampling Thread");
@@ -115,16 +134,40 @@ public class Sampler implements SamplerMBean {
         }
 
     }
+    private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();
+
+    public synchronized void dumpToFile() throws IOException {
+        final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePrefix + "_"
+                + TS_FORMAT.print(lastDumpTime) + "_" +TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump"));
+        try {
+            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
+                @Override
+                public SampleNode apply(SampleNode input) {
+                    try {
+                        Converter.fromSampleNodeToProto(input).writeTo(bos);
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    return input;
+                }
+            });
+
+
+        } finally {
+            bos.close();
+        }
+        lastDumpTime = System.currentTimeMillis();
+
+    }
 
     @Override
     public synchronized void generateHtmlMonitorReport(String fileName, final int chartWidth, final int maxDepth) throws IOException {
-
-        final Writer writer = new BufferedWriter(new OutputStreamWriter( new FileOutputStream(fileName), Charsets.UTF_8));
+        dumpToFile();
+        final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
             writer.append("<html>");
 
             stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
-
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
@@ -142,7 +185,6 @@ public class Sampler implements SamplerMBean {
 
 
             stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
-
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
@@ -167,7 +209,6 @@ public class Sampler implements SamplerMBean {
         }
 
     }
-
 
     @Override
     public synchronized void stop() throws InterruptedException {
@@ -212,9 +253,9 @@ public class Sampler implements SamplerMBean {
     public StackCollector getStackCollector() {
         return stackCollector;
     }
-    
+
     @PreDestroy
-    public void dispose() throws InterruptedException{
+    public void dispose() throws InterruptedException {
         stop();
         try {
             if (isJmxRegistered) {
@@ -229,17 +270,16 @@ public class Sampler implements SamplerMBean {
 
     @Override
     public void generateCpuSvg(String fileName, final int chartWidth, final int maxDepth) throws IOException {
-        final Writer writer = new BufferedWriter(new OutputStreamWriter( new FileOutputStream(fileName), Charsets.UTF_8));
+        final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
 
             stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
-
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
                         SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);
                         try {
-                            StackVisualizer.generateSvg(writer, Method.ROOT, finput,0,0 ,chartWidth, maxDepth, "a");
+                            StackVisualizer.generateSvg(writer, Method.ROOT, finput, 0, 0, chartWidth, maxDepth, "a");
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -254,17 +294,16 @@ public class Sampler implements SamplerMBean {
 
     @Override
     public void generateTotalSvg(String fileName, final int chartWidth, final int maxDepth) throws IOException {
-        final Writer writer = new BufferedWriter(new OutputStreamWriter( new FileOutputStream(fileName), Charsets.UTF_8));
+        final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
 
             stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
-
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
-                    
+
                         try {
-                            StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth, "b");
+                            StackVisualizer.generateSvg(writer, Method.ROOT, input, 0, 0, chartWidth, maxDepth, "b");
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -277,37 +316,35 @@ public class Sampler implements SamplerMBean {
         }
     }
 
-    
     @Override
     public void generateSvgHtmlMonitorReport(String fileName, final int chartWidth, final int maxDepth) throws IOException {
-        final Writer writer = new BufferedWriter(new OutputStreamWriter( new FileOutputStream(fileName), Charsets.UTF_8));
+        dumpToFile();
+        final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
-            writer.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
-"<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\" \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n");
+            writer.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+                    + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\" \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n");
             writer.append("<html>");
 
-            
-            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
 
+            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
-                       
-                            try {
-                                writer.append("<h1>Total stats</h1>");
-                                 StackVisualizer.generateSvg(writer, Method.ROOT, input,0,0 ,chartWidth, maxDepth, "a");
-                            } catch (IOException ex) {
-                                throw new RuntimeException(ex);
-                            }
-                        
+
+                        try {
+                            writer.append("<h1>Total stats</h1>");
+                            StackVisualizer.generateSvg(writer, Method.ROOT, input, 0, 0, chartWidth, maxDepth, "a");
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+
                     }
                     return input;
                 }
             });
-            
-            
-            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
 
+
+            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
                 @Override
                 public SampleNode apply(SampleNode input) {
                     if (input != null) {
@@ -315,7 +352,7 @@ public class Sampler implements SamplerMBean {
                         if (finput != null) {
                             try {
                                 writer.append("<h1>CPU stats</h1>");
-                                 StackVisualizer.generateSvg(writer, Method.ROOT, finput,0,0 ,chartWidth, maxDepth, "b");
+                                StackVisualizer.generateSvg(writer, Method.ROOT, finput, 0, 0, chartWidth, maxDepth, "b");
                             } catch (IOException ex) {
                                 throw new RuntimeException(ex);
                             }
@@ -333,5 +370,14 @@ public class Sampler implements SamplerMBean {
         }
 
     }
-    
+
+    @Override
+    public long getDumpTimeMillis() {
+        return dumpTimeMillis;
+    }
+
+    @Override
+    public void setDumpTimeMillis(long dumpTimeMillis) {
+        this.dumpTimeMillis = dumpTimeMillis;
+    }
 }
