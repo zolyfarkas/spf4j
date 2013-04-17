@@ -234,7 +234,13 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
 
             @Override
             public String valueToString(double value) {
-                long val = lquantas.get((int) Math.round(value)).getFirst().getIntervalStart();
+                int idx = (int) Math.round(value);
+                if (idx <0) {
+                    return "NI";
+                } else if (idx >= lquantas.size()) {
+                    return "PI";
+                }
+                long val = lquantas.get(idx).getFirst().getIntervalStart();
                 if (val == Long.MIN_VALUE) {
                     return "NI";
                 } else {
@@ -263,7 +269,10 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
             long val;
             if (ival >= timestamps.length) {
                 val = timestamps[timestamps.length - 1] + stepMillis * (ival - timestamps.length + 1);
-            } else {
+            } else if (ival < 0) {
+                val = timestamps[0] + ival * stepMillis;
+            }
+            else {
                 val = timestamps[ival];
             }
             return formatter.print(val);

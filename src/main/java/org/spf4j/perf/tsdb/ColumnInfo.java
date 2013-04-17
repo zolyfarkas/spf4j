@@ -137,7 +137,7 @@ public class ColumnInfo {
     public void setNextColumnInfo(long nextColumnInfo, RandomAccessFile raf) throws IOException {
         this.nextColumnInfo = nextColumnInfo;
         FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(raf.getFilePointer(),8,false);
+        FileLock lock = ch.lock(location,8,false);
         try {
             raf.seek(location);
             raf.writeLong(nextColumnInfo);
@@ -149,7 +149,7 @@ public class ColumnInfo {
     public void setFirstDataFragment(long firstDataFragment, RandomAccessFile raf) throws IOException {
         this.firstDataFragment = firstDataFragment;
         FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(raf.getFilePointer()+8,8,false);
+        FileLock lock = ch.lock(location+8,8,false);
         try {
             raf.seek(location+8);
             raf.writeLong(firstDataFragment);

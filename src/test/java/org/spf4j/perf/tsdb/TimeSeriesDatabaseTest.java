@@ -8,6 +8,7 @@ import org.spf4j.perf.tsdb.TimeSeriesDatabase;
 import org.spf4j.base.Pair;
 import java.io.File;
 import java.util.Arrays;
+import junit.framework.Assert;
 import org.junit.Test;
 
 /**
@@ -39,7 +40,12 @@ public class TimeSeriesDatabaseTest {
         instance.addColumnGroup("gr2", new byte []{}, 5, new String[] {"a","b"}, new byte [][] {});
         instance.write(System.currentTimeMillis(), "gr2",  new long[] { 7, 8});
         instance.flush();
-    
+        
+        instance.addColumnGroup("gr3", new byte []{}, 5, new String[] {"a","b"}, new byte [][] {});
+        instance.write(System.currentTimeMillis(), "gr3",  new long[] { 7, 8});
+        Thread.sleep(5);
+        instance.write(System.currentTimeMillis(), "gr3",  new long[] { 9, 10});
+ 
         System.out.println(instance.getColumnsInfo());
         Pair<long[], long[][]> readAll = instance.readAll("gr1");
         printValues(readAll);
@@ -47,11 +53,18 @@ public class TimeSeriesDatabaseTest {
         printValues(readAll);
         
         instance.close();
+        
+        TimeSeriesDatabase instanceRead = new TimeSeriesDatabase(fileName, null);
+        
+        System.out.println(instanceRead.getColumnsInfo());
+        Assert.assertEquals(3, instanceRead.getColumnsInfo().size()); 
+        
+        
     }
     
     @Test(expected=IllegalArgumentException.class)
     public void testWriteBadTSDB() throws Exception {
-        System.out.println("testWriteTSDB");
+        System.out.println("testWriteBadTSDB");
         TimeSeriesDatabase instance = new TimeSeriesDatabase(System.getProperty("java.io.tmpdir")+ "/testdb.tsdb", new byte[] {});
         instance.addColumnGroup("gr1", new byte []{}, 5, new String[]{ "a","b"}, new byte [][] {});
         instance.close();

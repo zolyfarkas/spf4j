@@ -4,7 +4,7 @@
 
     <groupId>org.spf4j</groupId>
     <artifactId>spf4j</artifactId>
-    <version>4.0</version>
+    <version>4.2</version>
     <packaging>jar</packaging>
 
     <name>spf4j</name>
@@ -144,6 +144,11 @@
             <version>0.4.32</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.swinglabs</groupId>
+            <artifactId>swing-layout</artifactId>
+            <version>1.0.3</version>
+        </dependency>
     </dependencies>
   
     <developers>
@@ -177,6 +182,7 @@
                         <index>true</index>
                         <manifest>
                             <addClasspath>true</addClasspath>
+                            <mainClass>org.spf4j.ui.Explorer</mainClass>
                         </manifest>
                         <manifestEntries>
                             <Premain-Class>org.spf4j.base.InstrumentationHelper</Premain-Class>
@@ -284,6 +290,39 @@
                         <goals>
                             <goal>check</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>org.spf4j.ui.Explorer</mainClass>
+                                </transformer>
+                            </transformers>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>ui</shadedClassifierName> <!-- Any name that makes sense -->
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
