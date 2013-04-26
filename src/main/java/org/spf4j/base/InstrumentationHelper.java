@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
@@ -24,17 +23,17 @@ import java.lang.instrument.Instrumentation;
  *
  * @author zoly
  */
-public final  class InstrumentationHelper {
+public final class InstrumentationHelper {
     
-    private InstrumentationHelper() {}
+    private InstrumentationHelper() { }
     
     private static Instrumentation instrumentation;
 
-    public static void premain(String args, Instrumentation inst) {
+    public static void premain(final String args, final Instrumentation inst) {
         instrumentation = inst;
     }
 
-    public static long getObjectSize(Object o) {
+    public static long getObjectSize(final Object o) {
         return instrumentation.getObjectSize(o);
     }
 }

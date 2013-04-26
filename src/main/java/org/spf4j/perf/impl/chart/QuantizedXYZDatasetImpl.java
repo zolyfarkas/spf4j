@@ -34,8 +34,7 @@ import org.spf4j.base.ComparablePair;
 import org.spf4j.perf.impl.Quanta;
 
 @Immutable
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("SE_BAD_FIELD_INNER_CLASS")
-public class QuantizedXYZDatasetImpl implements XYZDataset {
+public final class QuantizedXYZDatasetImpl implements XYZDataset {
 
     private final double[] x;
     private final double[] y;
@@ -47,9 +46,9 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
     private final long startTimeMillis;
     private final long stepMillis;
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("EI_EXPOSE_REP")
-    public QuantizedXYZDatasetImpl(String[] dataSources, double [][] data, long startTimeMillis, long step) {
-        this.data = data;
+    public QuantizedXYZDatasetImpl(final String[] dataSources, final double [][] pdata,
+                        final long startTimeMillis, final long step) {
+        this.data = pdata.clone();
         this.startTimeMillis = startTimeMillis;
         this.stepMillis = step;
         quantas = new ArrayList<ComparablePair<Quanta, Integer>>();
@@ -69,8 +68,7 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
         double lMaxValue = Double.NEGATIVE_INFINITY;
 
         int k = 0;
-
-        //long [] timestamps = data.getTimestamps();        
+      
         for (int j = 0; j < quantas.size(); j++) {
             ComparablePair<Quanta, Integer> pair = quantas.get(j);
             double[] values = Arrays.getColumn(data, pair.getSecond());
@@ -94,12 +92,12 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
     }
 
     @Override
-    public Number getZ(int series, int item) {
+    public Number getZ(final int series, final int item) {
         return z[item];
     }
 
     @Override
-    public double getZValue(int series, int item) {
+    public double getZValue(final int series, final int item) {
         return z[item];
     }
 
@@ -109,27 +107,27 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
     }
 
     @Override
-    public int getItemCount(int series) {
+    public int getItemCount(final int series) {
         return x.length;
     }
 
     @Override
-    public Number getX(int series, int item) {
+    public Number getX(final int series, final int item) {
         return x[item];
     }
 
     @Override
-    public double getXValue(int series, int item) {
+    public double getXValue(final int series, final int item) {
         return x[item];
     }
 
     @Override
-    public Number getY(int series, int item) {
+    public Number getY(final int series, final int item) {
         return y[item];
     }
 
     @Override
-    public double getYValue(int series, int item) {
+    public double getYValue(final int series, final int item) {
         return y[item];
     }
 
@@ -139,22 +137,22 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
     }
 
     @Override
-    public Comparable getSeriesKey(int series) {
+    public Comparable getSeriesKey(final int series) {
         return "RrdXYZDataset";
     }
 
     @Override
-    public int indexOf(Comparable seriesKey) {
+    public int indexOf(final Comparable seriesKey) {
         return 0;
     }
 
     @Override
-    public void addChangeListener(DatasetChangeListener listener) {
+    public void addChangeListener(final DatasetChangeListener listener) {
         // nothing
     }
 
     @Override
-    public void removeChangeListener(DatasetChangeListener listener) {
+    public void removeChangeListener(final DatasetChangeListener listener) {
         // nothing
     }
 
@@ -164,7 +162,7 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
     }
 
     @Override
-    public void setGroup(DatasetGroup group) {
+    public void setGroup(final DatasetGroup group) {
         // nothing
     }
 
@@ -189,39 +187,39 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
         final DateTimeFormatter mediumFormat = ISODateTimeFormat.dateHourMinute();
         final long[] timestamps = new long[data[0].length];
         long time = startTimeMillis;
-        for(int i=0; i< timestamps.length; i++) {
+        for (int i = 0; i < timestamps.length; i++) {
             timestamps[i] = time;
-            time+= stepMillis;
+            time += stepMillis;
         }
-        tux.add(new NumberTickUnitImpl(1, timestamps, formatter)); // base
+        tux.add(new NumberTickUnitImpl(1, timestamps, stepMillis, formatter)); // base
         long nr = 5 / stepMillis;
         if (nr > 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, formatter));
+            tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, formatter));
         }
         
         nr = 15 / stepMillis;
         if (nr > 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, formatter));
+            tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, formatter));
         }
         // minute
         nr = 60 / stepMillis;
         if (nr > 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, mediumFormat));
+            tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));
         }
         // 15 minute
-        nr = 900 /stepMillis;
+        nr = 900 / stepMillis;
         if (nr > 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, mediumFormat));
+            tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));
         }
         // hour
-        nr =3600 /stepMillis;
-        if (nr> 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, shortFormat));
+        nr = 3600 / stepMillis;
+        if (nr > 1) {
+            tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, shortFormat));
         }
         // 6 hour
-        nr = 21600 /stepMillis;
+        nr = 21600 / stepMillis;
         if (nr > 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, shortFormat));
+            tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, shortFormat));
         }
 
         return tux;
@@ -233,9 +231,9 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
         tu.add(new NumberTickUnit(1) {
 
             @Override
-            public String valueToString(double value) {
+            public String valueToString(final double value) {
                 int idx = (int) Math.round(value);
-                if (idx <0) {
+                if (idx < 0) {
                     return "NI";
                 } else if (idx >= lquantas.size()) {
                     return "PI";
@@ -251,32 +249,69 @@ public class QuantizedXYZDatasetImpl implements XYZDataset {
         return tu;
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings
-    private class NumberTickUnitImpl extends NumberTickUnit {
 
+    private static class NumberTickUnitImpl extends NumberTickUnit {
+
+        private static final long serialVersionUID = 0L;
+        
         private final long[] timestamps;
-        private final DateTimeFormatter formatter;
+        private final long stepMillis;
+        private final transient DateTimeFormatter formatter;
 
-        public NumberTickUnitImpl(double size, long[] timestamps, DateTimeFormatter formatter) {
+        public NumberTickUnitImpl(final double size, final long[] timestamps,
+                final long stepMillis, final DateTimeFormatter formatter) {
             super(size);
             this.timestamps = timestamps;
             this.formatter = formatter;
+            this.stepMillis = stepMillis;
         }
 
         @Override
-        public String valueToString(double value) {
+        public String valueToString(final double value) {
             int ival = (int) Math.round(value);
             long val;
             if (ival >= timestamps.length) {
                 val = timestamps[timestamps.length - 1] + stepMillis * (ival - timestamps.length + 1);
             } else if (ival < 0) {
                 val = timestamps[0] + ival * stepMillis;
-            }
-            else {
+            } else {
                 val = timestamps[ival];
             }
             return formatter.print(val);
         }
+
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 89 * hash + java.util.Arrays.hashCode(this.timestamps);
+            hash = 89 * hash + (int) (this.stepMillis ^ (this.stepMillis >>> 32));
+            hash = 89 * hash + (this.formatter != null ? this.formatter.hashCode() : 0);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final NumberTickUnitImpl other = (NumberTickUnitImpl) obj;
+            if (!java.util.Arrays.equals(this.timestamps, other.timestamps)) {
+                return false;
+            }
+            if (this.stepMillis != other.stepMillis) {
+                return false;
+            }
+            if (this.formatter != other.formatter
+                    && (this.formatter == null || !this.formatter.equals(other.formatter))) {
+                return false;
+            }
+            return true;
+        }
+        
+        
         
         
     }

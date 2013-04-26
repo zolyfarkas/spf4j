@@ -30,7 +30,7 @@ import javax.annotation.Nonnull;
 public interface EntityMeasurements {
     
     @Nonnull
-    long [] getMeasurements(boolean reset);    
+    long [] getMeasurements(boolean reset);
     
     @Nonnull
     EntityMeasurements  aggregate(@Nonnull EntityMeasurements mSource);

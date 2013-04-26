@@ -26,33 +26,34 @@ import org.spf4j.perf.MeasurementRecorderSource;
  *
  * @author zoly
  */
-public class MeasuredOutputStream extends OutputStream {
+public final class MeasuredOutputStream extends OutputStream {
     
     private final OutputStream os;
     private final Class<?> from;
     private final MeasurementRecorderSource recorderSource;
     
     
-    public MeasuredOutputStream(OutputStream os, Class<?> from, MeasurementRecorderSource recorderSource) {
+    public MeasuredOutputStream(final OutputStream os, final Class<?> from,
+            final MeasurementRecorderSource recorderSource) {
      this.os = os;
      this.from = from;
      this.recorderSource = recorderSource;
     }
 
     @Override
-    public void write(int b) throws IOException {
+    public void write(final int b) throws IOException {
         os.write(b);
         recorderSource.getRecorder(from).record(1);
     }
 
     @Override
-    public void write(byte[] b) throws IOException {
+    public void write(final byte[] b) throws IOException {
         os.write(b);
         recorderSource.getRecorder(from).record(b.length);
     }
 
     @Override
-    public void write(byte[] b, int off, int len) throws IOException {
+    public void write(final byte[] b, final int off, final int len) throws IOException {
         os.write(b, off, len);
         recorderSource.getRecorder(from).record(len);
     }
@@ -67,4 +68,4 @@ public class MeasuredOutputStream extends OutputStream {
         os.close();
     }
   
-} 
+}

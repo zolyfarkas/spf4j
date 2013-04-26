@@ -61,7 +61,8 @@ import org.slf4j.LoggerFactory;
  * @author zoly
  */
 @ThreadSafe
-public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, TSDBMeasurementDatabaseMBean {
+public final class TSDBMeasurementDatabase
+    implements MeasurementDatabase, Closeable, TSDBMeasurementDatabaseMBean {
 
     private final TimeSeriesDatabase database;
     private volatile ScheduledFuture<?> future;
@@ -70,12 +71,12 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
     public TSDBMeasurementDatabase(final String databaseName) throws IOException {
         this.database = new TimeSeriesDatabase(databaseName, new byte[]{});
     }
-    private static final AtomicInteger dbCount = new AtomicInteger(0);
+    private static final AtomicInteger COUNTER = new AtomicInteger(0);
 
     public void registerJmx() throws MalformedObjectNameException, InstanceAlreadyExistsException,
             MBeanRegistrationException, NotCompliantMBeanException {
         ManagementFactory.getPlatformMBeanServer().registerMBean(this,
-                new ObjectName("SPF4J:name=TSDBMeasurementDatabase" + dbCount.getAndIncrement()));
+                new ObjectName("SPF4J:name=TSDBMeasurementDatabase" + COUNTER.getAndIncrement()));
     }
 
     public void closeOnShutdown() {
@@ -87,7 +88,7 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
         }, "tsdb shutdown"));
     }
 
-    public void flushEvery(int intervalMillis) {
+    public void flushEvery(final int intervalMillis) {
         future = DefaultScheduler.INSTANCE.scheduleAtFixedRate(new AbstractRunnable(false) {
             @Override
             public void doRun() throws Exception {
@@ -97,27 +98,36 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
     }
 
     @Override
-    public void alocateMeasurements(EntityMeasurementsInfo measurement, int sampleTimeMillis) throws IOException {
+    public void alocateMeasurements(final EntityMeasurementsInfo measurement,
+                                    final int sampleTimeMillis) throws IOException {
         String groupName = measurement.getMeasuredEntity().toString();
-        if (!database.hasColumnGroup(groupName)) {
-            String[] measurementNames = measurement.getMeasurementNames();
-            byte[] uom = measurement.getUnitOfMeasurement().getBytes(Charsets.UTF_8);
-            byte[][] metaData = new byte[measurementNames.length][];
-            String [] uoms = measurement.getMeasurementUnits();
-            for (int i = 0; i < metaData.length; i++) {
-                metaData[i] = uoms[i].getBytes(Charsets.UTF_8);
+        alocateMeasurements(groupName, measurement, sampleTimeMillis);
+    }
+    
+    private void alocateMeasurements(final String groupName, final EntityMeasurementsInfo measurement,
+            final int sampleTimeMillis) throws IOException {
+        synchronized (database) {
+            if (!database.hasColumnGroup(groupName)) {
+                String[] measurementNames = measurement.getMeasurementNames();
+                byte[] uom = measurement.getUnitOfMeasurement().getBytes(Charsets.UTF_8);
+                byte[][] metaData = new byte[measurementNames.length][];
+                String [] uoms = measurement.getMeasurementUnits();
+                for (int i = 0; i < metaData.length; i++) {
+                    metaData[i] = uoms[i].getBytes(Charsets.UTF_8);
+                }
+                database.addColumnGroup(groupName, uom, sampleTimeMillis, measurementNames,
+                        metaData);
             }
-            database.addColumnGroup(groupName, uom, sampleTimeMillis, measurementNames,
-                    metaData);
         }
     }
 
+
     @Override
-    public void saveMeasurements(EntityMeasurementsInfo measurementInfo, long[] measurements, long timeStampMillis, int sampleTimeMillis) throws IOException {
+    public void saveMeasurements(final EntityMeasurementsInfo measurementInfo,
+                    final long[] measurements, final long timeStampMillis, final int sampleTimeMillis)
+            throws IOException {
         String groupName = measurementInfo.getMeasuredEntity().toString();
-        if (!database.hasColumnGroup(groupName)) {
-            alocateMeasurements(measurementInfo, sampleTimeMillis);
-        }
+        alocateMeasurements(groupName, measurementInfo, sampleTimeMillis);
         database.write(timeStampMillis, groupName, measurements);
     }
 
@@ -130,7 +140,7 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
         database.close();
     }
 
-    private static String fixName(String name) {
+    private static String fixName(final String name) {
         StringBuilder result = new StringBuilder(name.length());
         for (int i = 0; i < name.length(); i++) {
             char c = name.charAt(i);
@@ -142,7 +152,7 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
     }
 
     @Override
-    public List<String> generateCharts(int width, int height) throws IOException {
+    public List<String> generateCharts(final int width, final int height) throws IOException {
         long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
         long endTime = System.currentTimeMillis();
         return generateCharts(startTime, endTime, width, height);
@@ -160,8 +170,8 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
      * @throws IOException
      */
     @Override
-    public List<String> generateCharts(long startTimeMillis, long endTimeMillis,
-            int width, int height) throws IOException {
+    public List<String> generateCharts(final long startTimeMillis, final long endTimeMillis,
+            final int width, final int height) throws IOException {
         try {
             database.flush();
             List<String> result = new ArrayList<String>();
@@ -194,7 +204,7 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
                     cdata2[i] = Arrays.getColumnAsDoubles(data.getSecond(), colInfo.getColumnIndex("total"));
                     measurementNames[i] = colInfo.getGroupName() + ".count";
                     measurementNames2[i] = colInfo.getGroupName() + ".total";
-                    uom2 = new String (colInfo.getGroupMetaData(), Charsets.UTF_8 );
+                    uom2 = new String(colInfo.getGroupMetaData(), Charsets.UTF_8);
                     i++;
                 }
                 result.add(generateCountChart(entry.getKey(), timestamps, measurementNames,
@@ -211,7 +221,7 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
         }
     }
 
-    private static Multimap<String, ColumnInfo> getCounters(Collection<ColumnInfo> columnInfos) {
+    private static Multimap<String, ColumnInfo> getCounters(final Collection<ColumnInfo> columnInfos) {
         Multimap<String, ColumnInfo> result = HashMultimap.create();
         for (ColumnInfo info : columnInfos) {
             if (isCounterOnly(info)) {
@@ -228,25 +238,25 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
         return result;
     }
 
-    public static boolean isCounterOnly(ColumnInfo info) {
+    public static boolean isCounterOnly(final ColumnInfo info) {
         String[] columns = info.getColumnNames();
         return columns.length == 2 && columns[0].equals("count")
                 && columns[1].equals("total");
     }
 
-    public static boolean canGenerateMinMaxAvgCount(ColumnInfo info) {
+    public static boolean canGenerateMinMaxAvgCount(final ColumnInfo info) {
         return ((info.getColumnIndex("min") >= 0)
                 && (info.getColumnIndex("max") >= 0)
                 && (info.getColumnIndex("total") >= 0)
                 && (info.getColumnIndex("count") >= 0));
     }
 
-    public static boolean canGenerateCount(ColumnInfo info) {
+    public static boolean canGenerateCount(final ColumnInfo info) {
         return ((info.getColumnIndex("count") >= 0));
     }
     
     
-    public static boolean canGenerateHeatChart(ColumnInfo info) {
+    public static boolean canGenerateHeatChart(final ColumnInfo info) {
         for (String mname : info.getColumnNames()) {
             if (mname.startsWith("Q") && mname.contains("_")) {
                 return true;
@@ -256,8 +266,8 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
     }
 
     private String generateMinMaxAvgCountChart(
-            ColumnInfo info, Pair<long[], long[][]> data,
-            int width, int height) throws IOException {
+            final ColumnInfo info, final Pair<long[], long[][]> data,
+            final int width, final int height) throws IOException {
         long[][] vals = data.getSecond();
         double[] min = Arrays.getColumnAsDoubles(vals, info.getColumnIndex("min"));
         double[] max = Arrays.getColumnAsDoubles(vals, info.getColumnIndex("max"));
@@ -281,9 +291,11 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
     }
 
     private String generateCountChart(
-            String groupName, long[][] timestamps, String[] measurementNames, String[] measurementNames2,
-            String uom1, String uom2,
-            double[][] measurements, double[][] measurements2, int width, int height) throws IOException {
+            final String groupName, final long[][] timestamps,
+            final String[] measurementNames, final String[] measurementNames2,
+            final String uom1, final String uom2,
+            final double[][] measurements, final double[][] measurements2,
+            final int width, final int height) throws IOException {
         BufferedImage count = Charts.createTimeSeriesJFreeChart("Measurements for "
                 + groupName + " generated by spf4j",
                 timestamps, measurementNames, uom1, measurements).createBufferedImage(width, height / 2);
@@ -304,9 +316,9 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
     }
 
 
-    private String generateHeatChart(ColumnInfo info, Pair<long[], long[][]> data,
-            int width, int height) throws IOException {
-        JFreeChart chart = TimeSeriesDatabase.createHeatJFreeChart(data, info);       
+    private String generateHeatChart(final ColumnInfo info, final Pair<long[], long[][]> data,
+            final int width, final int height) throws IOException {
+        JFreeChart chart = TimeSeriesDatabase.createHeatJFreeChart(data, info);
         BufferedImage img = chart.createBufferedImage(width, height);
         File dbFile = new File(database.getDBFilePath());
         File graphicFile = File.createTempFile(dbFile.getName() + "_" + fixName(info.getGroupName()), ".dist.png",
@@ -316,7 +328,7 @@ public class TSDBMeasurementDatabase implements MeasurementDatabase, Closeable, 
     }
 
     @Override
-    public List<String> generate(Properties props) throws IOException {
+    public List<String> generate(final Properties props) throws IOException {
         int width = Integer.valueOf(props.getProperty("width", "1200"));
         int height = Integer.valueOf(props.getProperty("height", "800"));
         long startTime = Long.valueOf(props.getProperty("startTime",

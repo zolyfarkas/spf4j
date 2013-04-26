@@ -1,5 +1,4 @@
-
- /*
+/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -30,90 +29,73 @@ import org.slf4j.LoggerFactory;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class Callables
-{
-    
-    private Callables() {}
-    
-    private static final Logger LOG = LoggerFactory.getLogger(Callables.class);
-    
-    public static final Predicate<Object> NORETRY_FOR_RESULT =  new Predicate<Object> () {
+public final class Callables {
 
+    private Callables() { }
+
+    private static final Logger LOG = LoggerFactory.getLogger(Callables.class);
+
+    public static final Predicate<Object> NORETRY_FOR_RESULT = new Predicate<Object>() {
         @Override
-        public boolean apply(Object input)
-        {
+        public boolean apply(final Object input) {
             return false;
         }
-        
     };
-    
-    public static final Predicate<?> RETRY_FOR_NULL_RESULT =  new Predicate<Object> () {
 
+    public static final Predicate<?> RETRY_FOR_NULL_RESULT = new Predicate<Object>() {
         @Override
-        public boolean apply(Object input)
-        {
-            if (input == null) {
-                return false;
-            } else {
-                return true;
-            }
-        }        
+        public boolean apply(final Object input) {
+            return (input != null);
+        }
     };
-    
-   public static final Predicate<Exception> RETRY_FOR_ANY_EXCEPTION =  new Predicate<Exception> () {
 
+   public static final Predicate<Exception> RETRY_FOR_ANY_EXCEPTION = new Predicate<Exception>() {
         @Override
-        public boolean apply(Exception input)
-        {
+        public boolean apply(final Exception input) {
             LOG.debug("Exception encountered, retrying...", input);
             return true;
-        }        
+        }
     };
-    
-    public static class RetryPause implements Callable<Boolean> {
+
+    public static final class RetryPause implements Callable<Boolean> {
 
         private final int nrImmediateRetries;
         private final int nrTotalRetries;
         private final int waitMillis;
         private int count;
 
-        public RetryPause(int nrImmediateRetries, int nrTotalRetries, int retryWaitMillis)
+        public RetryPause(final int nrImmediateRetries, final int nrTotalRetries, final int retryWaitMillis)
         {
-            assert(nrImmediateRetries < nrTotalRetries);
+            assert (nrImmediateRetries < nrTotalRetries);
             this.nrImmediateRetries = nrImmediateRetries;
             this.nrTotalRetries = nrTotalRetries;
             this.waitMillis = retryWaitMillis;
         }
-        
-        
-        
+           
         @Override
-        public Boolean call() throws Exception
-        {
+        public Boolean call() throws Exception {
            if (count > nrTotalRetries) {
                return false;
            }
-           if (count> nrImmediateRetries) {
+           if (count > nrImmediateRetries) {
                Thread.sleep(waitMillis);
            }
-           count++;   
+           count++;
            return true;
         }
         
     }
     
-    public static <T> T executeWithRetry(Callable<T> what,int nrImmediateRetries,
-            int nrTotalRetries, int retryWaitMillis ) 
-            throws InterruptedException
-    {
+    public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
+            final int nrTotalRetries, final int retryWaitMillis)
+            throws InterruptedException {
        return executeWithRetry(what, new RetryPause(nrImmediateRetries, nrTotalRetries, retryWaitMillis),
                NORETRY_FOR_RESULT, RETRY_FOR_ANY_EXCEPTION);
     }
     
-    public static <T> T executeWithRetry(Callable<T> what, int nrImmediateRetries,
-            int nrTotalRetries, int retryWaitMillis , Predicate<Exception> retryOnException) 
-            throws InterruptedException
-    {
+    public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
+            final int nrTotalRetries, final int retryWaitMillis , final Predicate<Exception> retryOnException)
+            throws InterruptedException {
        return executeWithRetry(what, new RetryPause(nrImmediateRetries, nrTotalRetries, retryWaitMillis),
                NORETRY_FOR_RESULT, retryOnException);
     }
@@ -132,22 +114,21 @@ public final class Callables
      * @param retryOnReturnVal
      * @param retryOnException
      * @return
-     * @throws InterruptedException 
+     * @throws InterruptedException
      */
-    public static <T> T executeWithRetry(Callable<T> what, Callable<Boolean> doBeforeRetry, 
-            Predicate<? super T> retryOnReturnVal, Predicate<Exception> retryOnException) 
-            throws InterruptedException
-    {
+    public static <T> T executeWithRetry(final Callable<T> what, final Callable<Boolean> doBeforeRetry,
+            final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
+            throws InterruptedException {
         T result = null;
         Exception ex = null;
         try {
             result = what.call();
         } catch (InterruptedException ex1) {
-               throw ex1; 
+               throw ex1;
         } catch (Exception e) {
-            ex =e;
+            ex = e;
         }
-        Exception prevEx = ex;        
+        Exception prevEx = ex;
         while ((ex != null && retryOnException.apply(ex)) || retryOnReturnVal.apply(result)) {
             if (Thread.interrupted()) {
                 throw new InterruptedException();
@@ -158,7 +139,7 @@ public final class Callables
                     break;
                 }
             } catch (InterruptedException ex1) {
-               throw ex1; 
+               throw ex1;
             }  catch (Exception ex1) {
                 throw new RuntimeException(ex1);
             }
@@ -167,14 +148,14 @@ public final class Callables
             try {
                 result = what.call();
             } catch (InterruptedException ex1) {
-               throw ex1; 
+               throw ex1;
             } catch (Exception e) {
                 if (prevEx != null) {
                     e = Exceptions.chain(e, prevEx);
                     prevEx = e;
                 }
-                ex =e;
-            }  
+                ex = e;
+            }
         }
         if (ex != null) {
             throw new RuntimeException(ex);

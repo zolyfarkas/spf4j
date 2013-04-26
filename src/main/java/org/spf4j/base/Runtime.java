@@ -28,12 +28,12 @@ import org.slf4j.LoggerFactory;
  */
 public final class Runtime {
  
-    private Runtime () {}
+    private Runtime() { }
     
     private static final Logger LOGGER = LoggerFactory.getLogger(Runtime.class);
 
     
-    public static  void goDownWithError(Throwable t, int exitCode) {
+    public static  void goDownWithError(final Throwable t, final int exitCode) {
         try {
             LOGGER.error("Unrecoverable Error, going down", t);
         } finally {

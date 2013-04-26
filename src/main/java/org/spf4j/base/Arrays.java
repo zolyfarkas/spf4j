@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
@@ -23,39 +22,39 @@ package org.spf4j.base;
  * @author zoly
  */
 public final class Arrays {
-    private Arrays() {}
-    
-    public static double[] getColumnAsDoubles(long [][] data, int columnNumber) {
+    private Arrays() { }
+
+    public static double[] getColumnAsDoubles(final long [][] data, final int columnNumber) {
         double [] result = new double [data.length];
-        for (int i=0; i< result.length; i++) {
-            result[i] =data [i][columnNumber];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = data [i][columnNumber];
         }
         return result;
     }
-    
-    
-    public static double[] getColumn(double [][] data, int columnNumber) {
+
+
+    public static double[] getColumn(final double [][] data, final int columnNumber) {
         double [] result = new double [data.length];
-        for (int i=0; i< result.length; i++) {
-            result[i] =data [i][columnNumber];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = data[i][columnNumber];
         }
         return result;
     }
-    
-    public static double[] toDoubleArray(long [] larr) {
+
+    public static double[] toDoubleArray(final long [] larr) {
         double [] result = new double[larr.length];
-        for (int i=0; i< larr.length;i++) {
+        for (int i = 0; i < larr.length; i++) {
             result[i] = larr[i];
         }
         return result;
     }
-    
-    public static double [] divide (double [] arr1, double [] arr2) {
+
+    public static double [] divide(final double [] arr1, final double [] arr2) {
         double [] result = new double [arr1.length];
-        for (int i=0; i< result.length; i++) {
-            result [i] = arr1[i]/arr2[i];
+        for (int i = 0; i < result.length; i++) {
+            result [i] = arr1[i] / arr2[i];
         }
         return result;
     }
-    
+
 }

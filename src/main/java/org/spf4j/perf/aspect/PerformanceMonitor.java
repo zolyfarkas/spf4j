@@ -29,8 +29,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface PerformanceMonitor
-{
+public @interface PerformanceMonitor {
     long warnThresholdMillis() default 10000;
     long errorThresholdMillis() default 60000;
     Class<? extends RecorderSourceInstance> recorderSource() default RecorderSourceInstance.Rs5m.class;

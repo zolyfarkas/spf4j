@@ -24,8 +24,7 @@ import java.util.Properties;
 
 
 
-public interface TSDBMeasurementDatabaseMBean
-{
+public interface TSDBMeasurementDatabaseMBean {
 
     List<String> generate(Properties props) throws IOException;
 

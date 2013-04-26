@@ -36,7 +36,8 @@ import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
 
 @ThreadSafe
-public class ScalableMeasurementRecorderSource implements MeasurementRecorderSource, EntityMeasurementsSource, Closeable {
+public final class ScalableMeasurementRecorderSource implements
+        MeasurementRecorderSource, EntityMeasurementsSource, Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);
 
@@ -49,16 +50,16 @@ public class ScalableMeasurementRecorderSource implements MeasurementRecorderSou
     private final ScheduledFuture<?> samplingFuture;
     private final MeasurementProcessor processorTemplate;
     
-    public ScalableMeasurementRecorderSource (final MeasurementProcessor processor , 
+    public ScalableMeasurementRecorderSource(final MeasurementProcessor processor,
             final int sampleTimeMillis, final MeasurementDatabase database) {
         this.processorTemplate = processor;
-        measurementProcessorMap = new HashMap<Thread, Map<Object, MeasurementProcessor>>(); 
+        measurementProcessorMap = new HashMap<Thread, Map<Object, MeasurementProcessor>>();
         threadLocalMeasurementProcessorMap = new ThreadLocal<Map<Object, MeasurementProcessor>>() {
 
             @Override
             protected Map<Object, MeasurementProcessor> initialValue() {
                 Map<Object, MeasurementProcessor> result = new HashMap<Object, MeasurementProcessor>();
-                synchronized(measurementProcessorMap) {
+                synchronized (measurementProcessorMap) {
                     measurementProcessorMap.put(Thread.currentThread(), result);
                 }
                 return result;
@@ -74,55 +75,56 @@ public class ScalableMeasurementRecorderSource implements MeasurementRecorderSou
                 long currentTime = System.currentTimeMillis();
                 if (currentTime > lastRun) {
                     lastRun = currentTime;
-                    for (EntityMeasurements m: ScalableMeasurementRecorderSource.this.getEntitiesMeasurements(true).values()) {
-                        database.saveMeasurements(m.getInfo(),m.getMeasurements(true), currentTime, sampleTimeMillis);
+                    for (EntityMeasurements m
+                            : ScalableMeasurementRecorderSource.this.getEntitiesMeasurements(true).values()) {
+                        database.saveMeasurements(m.getInfo(), m.getMeasurements(true), currentTime, sampleTimeMillis);
                     }
                 } else {
-                    LOG.warn("Last measurement recording was at {} current run is {}, something is wrong" , lastRun, currentTime);
+                    LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
+                            lastRun, currentTime);
                 }
             }
         }, sampleTimeMillis);
     }
     
     @Override
-    public MeasurementRecorder getRecorder(Object forWhat) {        
+    public MeasurementRecorder getRecorder(final Object forWhat) {
         Map<Object, MeasurementProcessor> recorders = threadLocalMeasurementProcessorMap.get();
-        synchronized(recorders) {
+        synchronized (recorders) {
             MeasurementProcessor result = recorders.get(forWhat);
             if (result == null)  {
                 result = (MeasurementProcessor) processorTemplate.createLike(
-                        Pair.of(processorTemplate.getInfo().getMeasuredEntity(), forWhat ));
+                        Pair.of(processorTemplate.getInfo().getMeasuredEntity(), forWhat));
                 recorders.put(forWhat, result);
             }
-            return result; 
-        }      
+            return result;
+        }
     }
 
     @Override
-    public Map<Object, EntityMeasurements> getEntitiesMeasurements(boolean reset) {
+    public Map<Object, EntityMeasurements> getEntitiesMeasurements(final boolean reset) {
         
         Map<Object, EntityMeasurements> result = new HashMap<Object, EntityMeasurements>();
         
         synchronized(measurementProcessorMap) {        
-            for(Map.Entry<Thread, Map<Object, MeasurementProcessor>> entry: measurementProcessorMap.entrySet()) {
+            for (Map.Entry<Thread, Map<Object, MeasurementProcessor>> entry : measurementProcessorMap.entrySet()) {
                 
                 Map<Object, MeasurementProcessor> measurements = entry.getValue();
-                synchronized(measurements) {
-                    for( Map.Entry<Object, MeasurementProcessor> lentry : measurements.entrySet()) {
+                synchronized (measurements) {
+                    for (Map.Entry<Object, MeasurementProcessor> lentry : measurements.entrySet()) {
 
                         Object what = lentry.getKey();
                         EntityMeasurements existingMeasurement = result.get(what);
-                        if (existingMeasurement == null) {                           
+                        if (existingMeasurement == null) {
                             existingMeasurement = lentry.getValue().createClone(reset);
-                        }
-                        else {
+                        } else {
                             existingMeasurement = existingMeasurement.aggregate(lentry.getValue().createClone(reset));
                         }
                         result.put(what, existingMeasurement);
-                    }                
+                    }
                 }
-            }    
-        }       
+            }
+        }
         return result;
         
         
@@ -130,12 +132,12 @@ public class ScalableMeasurementRecorderSource implements MeasurementRecorderSou
     
     @Override
     public void close() {
-        samplingFuture.cancel(false);             
+        samplingFuture.cancel(false);
     }
 
     @Override
     protected void finalize() throws Throwable {
-        try{
+        try {
             super.finalize();
         } finally {
             this.close();

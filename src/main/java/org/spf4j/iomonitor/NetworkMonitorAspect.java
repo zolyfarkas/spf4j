@@ -31,7 +31,7 @@ import org.spf4j.perf.RecorderFactory;
  * @author zoly
  */
 @Aspect
-public class NetworkMonitorAspect {
+public final class NetworkMonitorAspect {
 
     private static final MeasurementRecorderSource RECORDER_READ =
             RecorderFactory.createScalableCountingRecorderSource("network-read", "bytes",
@@ -43,25 +43,25 @@ public class NetworkMonitorAspect {
     
 
     @Around("call(long java.nio.channels.SocketChannel.read(..))")
-    public Object nioReadLong(ProceedingJoinPoint pjp) throws Throwable {
+    public Object nioReadLong(final ProceedingJoinPoint pjp) throws Throwable {
         Long result = (Long) pjp.proceed();
-        if (result >=0 ) {
+        if (result >= 0) {
             RECORDER_READ.getRecorder(pjp.getSourceLocation().getWithinType()).record(result);
         }
         return result;
     }
     
     @Around("call(int java.nio.channels.SocketChannel.read(..))")
-    public Object nioReadInt(ProceedingJoinPoint pjp) throws Throwable {
+    public Object nioReadInt(final ProceedingJoinPoint pjp) throws Throwable {
         Integer result = (Integer) pjp.proceed();
-        if (result >=0) {
+        if (result >= 0) {
             RECORDER_READ.getRecorder(pjp.getSourceLocation().getWithinType()).record(result);
         }
         return result;
     }
     
     @Around("call(long java.nio.channels.SocketChannel.write(..))")
-    public Object nioWriteLong(ProceedingJoinPoint pjp) throws Throwable {
+    public Object nioWriteLong(final ProceedingJoinPoint pjp) throws Throwable {
         Long result = (Long) pjp.proceed();
         if (result >= 0) {
             RECORDER_WRITE.getRecorder(pjp.getSourceLocation().getWithinType()).record(result);
@@ -70,7 +70,7 @@ public class NetworkMonitorAspect {
     }
     
     @Around("call(int java.nio.channels.SocketChannel.write(..))")
-    public Object nioWriteInt(ProceedingJoinPoint pjp) throws Throwable {
+    public Object nioWriteInt(final ProceedingJoinPoint pjp) throws Throwable {
         Integer result = (Integer) pjp.proceed();
         if (result >= 0) {
             RECORDER_WRITE.getRecorder(pjp.getSourceLocation().getWithinType()).record(result);
@@ -80,13 +80,13 @@ public class NetworkMonitorAspect {
     
     
     @Around("call(* java.net.Socket.getInputStream())")
-    public Object socketIS(ProceedingJoinPoint pjp) throws Throwable {
+    public Object socketIS(final ProceedingJoinPoint pjp) throws Throwable {
         InputStream result = (InputStream) pjp.proceed();
         return new MeasuredInputStream(result, pjp.getSourceLocation().getWithinType(), RECORDER_READ);
     }
     
     @Around("call(* java.net.Socket.getOutputStream())")
-    public Object socketOS(ProceedingJoinPoint pjp) throws Throwable {
+    public Object socketOS(final ProceedingJoinPoint pjp) throws Throwable {
         OutputStream result = (OutputStream) pjp.proceed();
         return new MeasuredOutputStream(result, pjp.getSourceLocation().getWithinType(), RECORDER_WRITE);
     }

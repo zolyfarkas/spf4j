@@ -27,30 +27,32 @@ import org.aspectj.lang.annotation.Aspect;
 
 /**
  *
- * @author zoly    
+ * @author zoly
  */
 @Aspect
-public class AllocationMonitorAspect {
+public final class AllocationMonitorAspect {
 
     
-    private static final boolean RECORD_OBJECT_SIZE = Boolean.valueOf(System.getProperty("perf.allocations.recordSize", "true"));
+    private static final boolean RECORD_OBJECT_SIZE =
+            Boolean.valueOf(System.getProperty("perf.allocations.recordSize", "true"));
     
    private static final MeasurementRecorderSource RECORDER;
    
    static {
        if (RECORD_OBJECT_SIZE) {
-           RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "bytes", 
-            Integer.valueOf(System.getProperty("perf.allocations.sampleTime", "300000")) );
+           RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "bytes",
+            Integer.valueOf(System.getProperty("perf.allocations.sampleTime", "300000")));
        } else {
-           RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "instances", 
-            Integer.valueOf(System.getProperty("perf.allocations.sampleTime", "300000")) );
+           RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "instances",
+            Integer.valueOf(System.getProperty("perf.allocations.sampleTime", "300000")));
        }
    }
        
-    @AfterReturning(pointcut = "call(*.new(..))", returning = "obj", argNames="jp,obj" )
-    public void afterAllocation(JoinPoint jp, Object obj) {
+    @AfterReturning(pointcut = "call(*.new(..))", returning = "obj", argNames = "jp,obj")
+    public void afterAllocation(final JoinPoint jp, final Object obj) {
         if (RECORD_OBJECT_SIZE) {
-            RECORDER.getRecorder(jp.getSourceLocation().getWithinType()).record(InstrumentationHelper.getObjectSize(obj));
+            RECORDER.getRecorder(jp.getSourceLocation().getWithinType()).
+                    record(InstrumentationHelper.getObjectSize(obj));
         } else {
             RECORDER.getRecorder(jp.getSourceLocation().getWithinType()).record(1);
         }

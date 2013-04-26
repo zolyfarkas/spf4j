@@ -26,35 +26,35 @@ import java.nio.channels.FileLock;
  *
  * @author zoly
  */
-class TableOfContents {
+final class TableOfContents {
     private final long location;
     private long lastColumnInfo;
     private long firstColumnInfo;
 
-    public TableOfContents(long location) {
-        this.location = location; 
+    public TableOfContents(final long location) {
+        this.location = location;
         firstColumnInfo = 0;
-        lastColumnInfo = 0;    
+        lastColumnInfo = 0;
     }
     
-    public TableOfContents(RandomAccessFile raf) throws IOException {
+    public TableOfContents(final RandomAccessFile raf) throws IOException {
         this.location = raf.getFilePointer();
         FileChannel ch = raf.getChannel();
         FileLock lock = ch.lock(this.location, 16, true);
         try {
             this.firstColumnInfo = raf.readLong();
-            this.lastColumnInfo = raf.readLong();         
+            this.lastColumnInfo = raf.readLong();
         } finally {
             lock.release();
         }
     }
 
-    public void writeTo(RandomAccessFile raf) throws IOException {
+    public void writeTo(final RandomAccessFile raf) throws IOException {
         FileChannel ch = raf.getChannel();
         FileLock lock = ch.lock(this.location, 16, false);
         try {
             raf.seek(location);
-            raf.writeLong(firstColumnInfo);        
+            raf.writeLong(firstColumnInfo);
             raf.writeLong(lastColumnInfo);
         } finally {
             lock.release();
@@ -71,21 +71,21 @@ class TableOfContents {
     }
 
     
-    public void setLastColumnInfo(long lastColumnInfo,RandomAccessFile raf) throws IOException {
-        this.lastColumnInfo = lastColumnInfo;
+    public void setLastColumnInfo(final long plastColumnInfo, final RandomAccessFile raf) throws IOException {
+        this.lastColumnInfo = plastColumnInfo;
         FileChannel ch = raf.getChannel();
-        long loc = location+8;
+        long loc = location + 8;
         FileLock lock = ch.lock(loc, 8, false);
         try {
-            raf.seek(loc);           
+            raf.seek(loc);
             raf.writeLong(lastColumnInfo);
         } finally {
             lock.release();
         }
     }
     
-    public void setFirstColumnInfo(long firstColumnInfo, RandomAccessFile raf) throws IOException {
-        this.firstColumnInfo = firstColumnInfo;
+    public void setFirstColumnInfo(final long pfirstColumnInfo, final RandomAccessFile raf) throws IOException {
+        this.firstColumnInfo = pfirstColumnInfo;
         FileChannel ch = raf.getChannel();
         FileLock lock = ch.lock(location, 8, false);
         try {
@@ -98,7 +98,8 @@ class TableOfContents {
 
     @Override
     public String toString() {
-        return "TableOfContents{" + "location=" + location + ", lastColumnInfo=" + lastColumnInfo + ", firstColumnInfo=" + firstColumnInfo + '}';
+        return "TableOfContents{" + "location=" + location + ", lastColumnInfo=" + lastColumnInfo
+                + ", firstColumnInfo=" + firstColumnInfo + '}';
     }
     
     

@@ -42,7 +42,7 @@ import javax.annotation.Nullable;
  * 
  * @author zoly
  */
-public class RetryExecutor<T> implements ExecutorService{
+public class RetryExecutor<T> implements ExecutorService {
 
     private final ExecutorService executionService;
     /**
@@ -62,7 +62,7 @@ public class RetryExecutor<T> implements ExecutorService{
 
     private void startRetryManager() {
         if (this.retryManager == null) {
-            synchronized(this) {
+            synchronized (this) {
                 if (this.retryManager == null) {
                     this.retryManager = new RetryManager();
                     this.retryManager.start();
@@ -72,7 +72,7 @@ public class RetryExecutor<T> implements ExecutorService{
     }
 
     private void shutdownRetryManager()  {
-        synchronized(this) {
+        synchronized (this) {
             if (this.retryManager != null) {
                 this.retryManager.interrupt();
                 try {
@@ -96,8 +96,8 @@ public class RetryExecutor<T> implements ExecutorService{
         private final long delay;
         private final boolean isExecution;
 
-        public FailedExecutionResult(ExecutionException exception, FutureBean future, 
-                Callable callable, long delay, boolean isExecution) {
+        public FailedExecutionResult(final ExecutionException exception, final FutureBean future,
+                final Callable callable, final long delay, final boolean isExecution) {
             this.exception = exception;
             this.future = future;
             this.callable = callable;
@@ -106,12 +106,12 @@ public class RetryExecutor<T> implements ExecutorService{
         }
 
         @Override
-        public long getDelay(TimeUnit unit) {
+        public long getDelay(final TimeUnit unit) {
             return unit.convert(delay - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
         }
 
         @Override
-        public int compareTo(Delayed o) {
+        public int compareTo(final Delayed o) {
             long tDelay = getDelay(TimeUnit.MILLISECONDS);
             long oDelay = o.getDelay(TimeUnit.MILLISECONDS);
             if (tDelay > oDelay) {
@@ -124,7 +124,7 @@ public class RetryExecutor<T> implements ExecutorService{
         }
 
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(final Object obj) {
             if (obj == null) {
                 return false;
             } else {
@@ -170,12 +170,12 @@ public class RetryExecutor<T> implements ExecutorService{
         private final Callable callable;
         private final FutureBean<T> future;
 
-        public RetryableCallable(Callable<T> callable, FutureBean<T> future) {
+        public RetryableCallable(final Callable<T> callable, final FutureBean<T> future) {
             this.callable = callable;
             this.future = future;
         }
         
-        public RetryableCallable(final Runnable task, final Object result, FutureBean<T> future) {
+        public RetryableCallable(final Runnable task, final Object result, final FutureBean<T> future) {
             this.callable = new Callable() {
 
                 @Override
@@ -254,7 +254,7 @@ public class RetryExecutor<T> implements ExecutorService{
                                     event.getCallable(), delayMillis, true));
                         } else {
                             executionAttempts.put(event.getCallable(), attemptsInfo);
-                            executionService. execute(new RetryableCallable<Object>(event.getCallable(), event.getFuture()));
+                            executionService.execute(new RetryableCallable<Object>(event.getCallable(), event.getFuture()));
                         }
                     }
 
@@ -267,9 +267,9 @@ public class RetryExecutor<T> implements ExecutorService{
         }
     }
 
-    public RetryExecutor(ExecutorService exec, int nrImmediateRetries,
-            int nrTotalRetries, long delayMillis,  Predicate<Exception> retryException, 
-            @Nullable BlockingQueue<Future<T>> completionQueue) {
+    public RetryExecutor(final ExecutorService exec, final int nrImmediateRetries,
+            final int nrTotalRetries, final long delayMillis,  final Predicate<Exception> retryException,
+            final @Nullable BlockingQueue<Future<T>> completionQueue) {
         executionService = exec;
         executionAttempts = new ConcurrentHashMap<Callable<? extends Object>, Pair<Integer, ExecutionException>>();
         this.nrImmediateRetries = nrImmediateRetries;
@@ -281,29 +281,29 @@ public class RetryExecutor<T> implements ExecutorService{
     }
 
     @Override
-    public void shutdown() {
+    public final void shutdown() {
         shutdownRetryManager();
         exec.shutdown();
     }
 
     @Override
-    public List<Runnable> shutdownNow() {
+    public final List<Runnable> shutdownNow() {
         shutdownRetryManager();
         return exec.shutdownNow();
     }
 
     @Override
-    public boolean isShutdown() {
+    public final boolean isShutdown() {
         return exec.isShutdown();
     }
 
     @Override
-    public boolean isTerminated() {
+    public final boolean isTerminated() {
         return exec.isTerminated();
     }
 
     @Override
-    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    public final boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
         return exec.awaitTermination(timeout, unit);
     }
 
@@ -311,7 +311,7 @@ public class RetryExecutor<T> implements ExecutorService{
         if (completionQueue == null) {
             return new FutureBean<T>();
         } else {
-            return new FutureBean<T>(){
+            return new FutureBean<T>() {
                 @Override
                 public void done() {
                     completionQueue.add(this);
@@ -322,7 +322,7 @@ public class RetryExecutor<T> implements ExecutorService{
     
     
     @Override
-    public <A> Future<A> submit(Callable<A> task) {
+    public final <A> Future<A> submit(final Callable<A> task) {
         FutureBean<T> result = createFutureBean();
         executionService.execute(new RetryableCallable(task, result));
         return (Future<A>) result;
@@ -330,29 +330,32 @@ public class RetryExecutor<T> implements ExecutorService{
    
 
     @Override
-    public <A> Future<A> submit(Runnable task, A result) {
+    public final <A> Future<A> submit(final Runnable task, final A result) {
         FutureBean<T> resultFuture = createFutureBean();
         executionService.execute(new RetryableCallable<T>(task, result, resultFuture));
         return (Future<A>) resultFuture;
     }
 
     @Override
-    public Future<?> submit(Runnable task) {
+    public final Future<?> submit(final Runnable task) {
         FutureBean<?> resultFuture = createFutureBean();
         executionService.execute(new RetryableCallable(task, null, resultFuture));
         return resultFuture;
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+    public final <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> tasks)
+            throws InterruptedException {
         List<Future<T>> result = new ArrayList<Future<T>>();
-        for (Callable task: tasks) {
+        for (Callable task : tasks) {
             result.add(this.submit(task));
         }
-        for(Future fut: result) {
+        for (Future fut : result) {
             try {
                 fut.get();
+            // CHECKSTYLE:OFF
             } catch (ExecutionException ex) {
+                //CHECKSTYLE:ON
                 // Swallow exception for now, this sexception will be thoriwn when the client will call get again..
             }
         }
@@ -360,22 +363,25 @@ public class RetryExecutor<T> implements ExecutorService{
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
+    public final  <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> tasks,
+                final long timeout, final TimeUnit unit) throws InterruptedException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+    public final <T> T invokeAny(final Collection<? extends Callable<T>> tasks)
+            throws InterruptedException, ExecutionException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public final <T> T invokeAny(final Collection<? extends Callable<T>> tasks, final long timeout, final TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public void execute(Runnable command) {
+    public final void execute(final Runnable command) {
         executionService.execute(new RetryableCallable(command, null, null));
     }
 }
