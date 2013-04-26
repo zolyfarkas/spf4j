@@ -24,37 +24,34 @@ import javax.annotation.Nullable;
  *
  * @author zoly
  */
-public interface ObjectBorower<T> extends Scanable<T>
-{
-    
-    public Object REQUEST_MADE= new Object(); 
-    
+public interface ObjectBorower<T> extends Scanable<T> {
+
+    Object REQUEST_MADE = new Object();
+
     /**
      * Non Blocking method.
-     * @return null if request was not made, 
-     * the object if available, 
-     * or REQUEST_MADE if request could be made to return Object.
+     *
+     * @return null if request was not made, the object if available, or REQUEST_MADE if request could be made to return
+     * Object.
      */
-    
     @Nullable
     Object requestReturnObject();
-    
+
     /**
      * Non Blocking method.
+     *
      * @return null or the object if available.
-     * @throws InterruptedException 
+     * @throws InterruptedException
      */
     @Nullable
     T returnObjectIfNotInUse();
-    
+
     /**
-     * This method is a cleanup method.
-     * The purpose is to recover all borrowed objects before once this borrower 
-     * will never use them anymore...
+     * This method is a cleanup method. The purpose is to recover all borrowed objects before once this borrower will
+     * never use them anymore...
+     *
      * @return all objects borrowed
      */
-    
     @Nullable
     Collection<T> returnObjectsIfNotNeeded();
-    
 }

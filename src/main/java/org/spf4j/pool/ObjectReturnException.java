@@ -1,5 +1,5 @@
 
- /*
+/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -16,35 +16,26 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.pool;
 
 /**
  *
  * @author zoly
  */
+public class ObjectReturnException extends PoolException {
 
-
-public class ObjectReturnException extends PoolException
-{
-
-    public ObjectReturnException(Throwable cause)
-    {
+    public ObjectReturnException(final Throwable cause) {
         super(cause);
     }
 
-    public ObjectReturnException(String message, Throwable cause)
-    {
+    public ObjectReturnException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public ObjectReturnException(String message)
-    {
+    public ObjectReturnException(final String message) {
         super(message);
     }
 
-    public ObjectReturnException()
-    {
+    public ObjectReturnException() {
     }
-    
 }

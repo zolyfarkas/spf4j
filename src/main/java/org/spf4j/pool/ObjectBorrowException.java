@@ -1,5 +1,5 @@
 
- /*
+/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -16,35 +16,26 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.pool;
 
 /**
  *
  * @author zoly
  */
+public class ObjectBorrowException extends PoolException {
 
-
-public class ObjectBorrowException extends PoolException
-{
-
-    public ObjectBorrowException(Throwable cause)
-    {
+    public ObjectBorrowException(final Throwable cause) {
         super(cause);
     }
 
-    public ObjectBorrowException(String message, Throwable cause)
-    {
+    public ObjectBorrowException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public ObjectBorrowException(String message)
-    {
+    public ObjectBorrowException(final String message) {
         super(message);
     }
 
-    public ObjectBorrowException()
-    {
+    public ObjectBorrowException() {
     }
-    
 }

@@ -26,9 +26,9 @@ public interface Scanable<T> {
     /**
      * 
      * @param handler
-     * @return false if scan operation aborted by handler 
+     * @return false if scan operation aborted by handler.
      */
-    boolean scan( ScanHandler<T> handler ) throws Exception;  
+    boolean scan(ScanHandler<T> handler) throws Exception;
             
     interface ScanHandler<O> {
         

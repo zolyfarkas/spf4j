@@ -21,23 +21,20 @@ package org.spf4j.pool;
  *
  * @author zoly
  */
-public class PoolException  extends Exception {
+public class PoolException extends Exception {
 
-    public PoolException(Throwable cause) {
+    public PoolException(final Throwable cause) {
         super(cause);
     }
 
-    public PoolException(String message, Throwable cause) {
+    public PoolException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public PoolException(String message) {
+    public PoolException(final String message) {
         super(message);
     }
 
     public PoolException() {
     }
-    
-    
-    
 }

@@ -24,7 +24,7 @@ import java.lang.reflect.ParameterizedType;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 
-public class Template<T, E extends Exception> {
+public final class Template<T, E extends Exception> {
 
     private final ObjectPool<T> pool;
     private final int nrImmediateRetries;
@@ -32,7 +32,8 @@ public class Template<T, E extends Exception> {
     private final int retryWaitMillis;
     private final Class<E> exceptionClasz;
 
-    public Template(ObjectPool<T> pool, int nrImmediateRetries, int nrTotalRetries, int retryWaitMillis) {
+    public Template(final ObjectPool<T> pool, final int nrImmediateRetries,
+            final int nrTotalRetries, final int retryWaitMillis) {
         this.pool = pool;
         this.nrImmediateRetries = nrImmediateRetries;
         this.nrTotalRetries = nrTotalRetries;
@@ -53,7 +54,8 @@ public class Template<T, E extends Exception> {
 
     }
 
-    public static <T, E extends Exception> void doOnPooledObject(ObjectPool.Hook<T, E> handler, ObjectPool<T> pool, Class<E> clasz)
+    public static <T, E extends Exception> void doOnPooledObject(final ObjectPool.Hook<T, E> handler,
+            final ObjectPool<T> pool, final Class<E> clasz)
             throws ObjectReturnException, ObjectDisposeException, ObjectCreationException,
             ObjectBorrowException, InterruptedException, TimeoutException, E {
         T object = pool.borrowObject();
@@ -74,6 +76,5 @@ public class Template<T, E extends Exception> {
             }
         }
         pool.returnObject(object, null);
-
     }
 }

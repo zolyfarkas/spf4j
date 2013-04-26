@@ -1,5 +1,5 @@
 
- /*
+/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -16,35 +16,26 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.pool;
 
 /**
  *
  * @author zoly
  */
+public class ObjectCreationException extends PoolException {
 
-
-public class ObjectCreationException extends PoolException
-{
-
-    public ObjectCreationException(Throwable cause)
-    {
+    public ObjectCreationException(final Throwable cause) {
         super(cause);
     }
 
-    public ObjectCreationException(String message, Throwable cause)
-    {
+    public ObjectCreationException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public ObjectCreationException(String message)
-    {
+    public ObjectCreationException(String message) {
         super(message);
     }
 
-    public ObjectCreationException()
-    {
+    public ObjectCreationException() {
     }
-    
 }
