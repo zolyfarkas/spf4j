@@ -38,7 +38,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author zoly
  */
-public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
+public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
 
     private int maxSize;
     private final LinkedHashMultimap<ObjectBorower<T>, T> borrowedObjects = LinkedHashMultimap.create();
@@ -48,7 +48,9 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     private final ObjectPool.Factory<T> factory;
     private final long timeoutMillis;
 
-    public SimpleSmartObjectPool(int initialSize, int maxSize, ObjectPool.Factory<T> factory, long timeoutMillis, boolean fair) throws ObjectCreationException {
+    public SimpleSmartObjectPool(final int initialSize, final int maxSize,
+            final ObjectPool.Factory<T> factory, final long timeoutMillis, final boolean fair)
+            throws ObjectCreationException {
         this.maxSize = maxSize;
         this.factory = factory;
         this.timeoutMillis = timeoutMillis;
@@ -60,7 +62,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     }
 
     @Override
-    public T borrowObject(ObjectBorower borower) throws InterruptedException,
+    public T borrowObject(final ObjectBorower borower) throws InterruptedException,
             TimeoutException, ObjectCreationException {
         lock.lock();
         try {
@@ -131,7 +133,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     }
 
     @Override
-    public void returnObject(T object, ObjectBorower borower) {
+    public void returnObject(final T object, final ObjectBorower borower) {
         lock.lock();
         try {
             borrowedObjects.remove(borower, object);
@@ -147,12 +149,12 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         lock.lock();
         try {
             maxSize = 0;
-            List<Pair<ObjectBorower<T>,Object>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>,Object>>();
+            List<Pair<ObjectBorower<T>, Object>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>, Object>>();
             for (ObjectBorower<T> b : borrowedObjects.keySet()) {
                 Object object = b.requestReturnObject();
-                returnedObjects.add(Pair.of(b,object));
+                returnedObjects.add(Pair.of(b, object));
             }
-            for (Pair<ObjectBorower<T>,Object> objectAndBorrower : returnedObjects) {
+            for (Pair<ObjectBorower<T>, Object> objectAndBorrower : returnedObjects) {
                 Object object = objectAndBorrower.getSecond();
                 if (object != null && object != ObjectBorower.REQUEST_MADE) {
                     if (!borrowedObjects.remove(objectAndBorrower.getFirst(), object)) {
@@ -160,7 +162,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                     }
                     availableObjects.add((T) object);
                 }
-            }         
+            }
             ObjectDisposeException exception = disposeReturnedObjects(null);
             while (!borrowedObjects.isEmpty()) {
                 if (!available.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
@@ -178,7 +180,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         }
     }
 
-    private ObjectDisposeException disposeReturnedObjects(ObjectDisposeException exception) {
+    private ObjectDisposeException disposeReturnedObjects(final ObjectDisposeException exception) {
         ObjectDisposeException result = exception;
         for (T obj : availableObjects) {
             try {
@@ -194,7 +196,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     }
 
     @Override
-    public boolean scan(ScanHandler<T> handler) throws Exception {
+    public boolean scan(final ScanHandler<T> handler) throws Exception {
         lock.lock();
         try {
             for (ObjectBorower<T> objectBorower : borrowedObjects.keySet()) {
@@ -229,7 +231,9 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     public String toString() {
         lock.lock();
         try {
-            return "SimpleSmartObjectPool{" + "maxSize=" + maxSize + ", borrowedObjects=" + borrowedObjects.values() + ", returnedObjects=" + availableObjects + ", factory=" + factory + ", timeoutMillis=" + timeoutMillis + '}';
+            return "SimpleSmartObjectPool{" + "maxSize=" + maxSize + ", borrowedObjects="
+                    + borrowedObjects.values() + ", returnedObjects=" + availableObjects
+                    + ", factory=" + factory + ", timeoutMillis=" + timeoutMillis + '}';
         } finally {
             lock.unlock();
         }

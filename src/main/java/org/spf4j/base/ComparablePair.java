@@ -27,7 +27,7 @@ import java.util.List;
  * @author zoly
  */
 public final class ComparablePair<A extends Comparable & Serializable, B extends Comparable & Serializable>
-    implements Comparable<ComparablePair<A, B>> {
+    implements Comparable<ComparablePair<A, B>>, Serializable {
 
     public ComparablePair(final A first, final B second) {
         this.first = first;

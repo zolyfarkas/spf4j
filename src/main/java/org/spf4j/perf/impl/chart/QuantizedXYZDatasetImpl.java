@@ -17,6 +17,7 @@
  */
 package org.spf4j.perf.impl.chart;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,14 +35,14 @@ import org.spf4j.base.ComparablePair;
 import org.spf4j.perf.impl.Quanta;
 
 @Immutable
-public final class QuantizedXYZDatasetImpl implements XYZDataset {
+public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
 
     private final double[] x;
     private final double[] y;
     private final double[] z;
     private final double minValue;
     private final double maxValue;
-    private final List<ComparablePair<Quanta, Integer>> quantas;
+    private final ArrayList<ComparablePair<Quanta, Integer>> quantas;
     private final double [][] data;
     private final long startTimeMillis;
     private final long stepMillis;
