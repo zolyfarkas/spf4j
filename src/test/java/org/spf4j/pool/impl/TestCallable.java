@@ -18,20 +18,21 @@ import java.util.concurrent.TimeoutException;
  *
  * @author zoly
  */
-public class TestCallable implements Callable<Integer> {
+public final class TestCallable implements Callable<Integer> {
     private final ObjectPool<ExpensiveTestObject> pool;
     private final int testNr;
 
-    public TestCallable(ObjectPool<ExpensiveTestObject> pool, int testNr) {
+    public TestCallable(final ObjectPool<ExpensiveTestObject> pool, final int testNr) {
         this.pool = pool;
         this.testNr = testNr;
     }
 
     @Override
-    public Integer call() throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, IOException {
+    public Integer call() throws ObjectCreationException, ObjectBorrowException, InterruptedException,
+            TimeoutException, ObjectReturnException, ObjectDisposeException, IOException {
         Template.doOnPooledObject(new ObjectPool.Hook<ExpensiveTestObject, IOException>() {
             @Override
-            public void handle(ExpensiveTestObject object) throws IOException {
+            public void handle(final ExpensiveTestObject object) throws IOException {
                 object.doStuff();
             }
         }, pool, IOException.class);
