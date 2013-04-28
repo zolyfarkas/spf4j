@@ -89,7 +89,7 @@ public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo 
     public String toString() {
         return "EntityMeasurementsInfoImpl{" + "measuredEntity=" + measuredEntity
                 + ", unitOfMeasurement=" + unitOfMeasurement + ", measurementNames="
-                + Arrays.toString(measurementNames)+ '}';
+                + Arrays.toString(measurementNames) + '}';
     }
 
 

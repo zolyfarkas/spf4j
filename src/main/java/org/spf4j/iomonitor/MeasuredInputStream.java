@@ -85,7 +85,7 @@ public final class MeasuredInputStream  extends InputStream {
     @Override
     public int read() throws IOException {
         int result = is.read();
-        if (result >=0 ) {
+        if (result >= 0) {
             recorderSource.getRecorder(from).record(1);
         }
         return result;

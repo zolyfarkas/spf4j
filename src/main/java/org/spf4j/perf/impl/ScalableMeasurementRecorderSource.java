@@ -106,7 +106,7 @@ public final class ScalableMeasurementRecorderSource implements
         
         Map<Object, EntityMeasurements> result = new HashMap<Object, EntityMeasurements>();
         
-        synchronized(measurementProcessorMap) {        
+        synchronized (measurementProcessorMap) {
             for (Map.Entry<Thread, Map<Object, MeasurementProcessor>> entry : measurementProcessorMap.entrySet()) {
                 
                 Map<Object, MeasurementProcessor> measurements = entry.getValue();

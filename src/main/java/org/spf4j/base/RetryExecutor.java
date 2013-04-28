@@ -129,7 +129,7 @@ public class RetryExecutor<T> implements ExecutorService {
                 return false;
             } else {
                 if (obj instanceof Delayed) {
-                    return this.compareTo((Delayed)obj) == 0;
+                    return this.compareTo((Delayed) obj) == 0;
                 } else {
                     return false;
                 }
@@ -199,7 +199,8 @@ public class RetryExecutor<T> implements ExecutorService {
             } catch (Exception e) {
                 if (retryException.apply(e)) {
                     startRetryManager();
-                    executionEvents.add(new FailedExecutionResult(new ExecutionException(e), future, callable, 0, false));
+                    executionEvents.add(
+                            new FailedExecutionResult(new ExecutionException(e), future, callable, 0, false));
                 } else {
                     future.setExceptionResult(new ExecutionException(e));
                 }
@@ -254,7 +255,8 @@ public class RetryExecutor<T> implements ExecutorService {
                                     event.getCallable(), delayMillis, true));
                         } else {
                             executionAttempts.put(event.getCallable(), attemptsInfo);
-                            executionService.execute(new RetryableCallable<Object>(event.getCallable(), event.getFuture()));
+                            executionService.execute(
+                                    new RetryableCallable<Object>(event.getCallable(), event.getFuture()));
                         }
                     }
 
@@ -303,7 +305,7 @@ public class RetryExecutor<T> implements ExecutorService {
     }
 
     @Override
-    public final boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    public final boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
         return exec.awaitTermination(timeout, unit);
     }
 

@@ -99,19 +99,20 @@ final class DataFragment {
     
     public void addData(final long timestamp, final long [] dataRow) {
         data.add(dataRow);
-        timestamps.add( (int )(timestamp - startTimeMillis) );
+        timestamps.add((int) (timestamp - startTimeMillis));
     }
     
     
-    public void setNextDataFragment(long nextDataFragment, RandomAccessFile raf) throws IOException {
-        this.nextDataFragment = nextDataFragment;
+    public void setNextDataFragment(final long pnextDataFragment, final RandomAccessFile raf) throws IOException {
+        this.nextDataFragment = pnextDataFragment;
         setNextDataFragment(location, nextDataFragment, raf);
     }
     
     
-   public static void setNextDataFragment(long dataFragmentPosition, long nextDataFragment, RandomAccessFile raf) throws IOException {
+   public static void setNextDataFragment(final long dataFragmentPosition, final long nextDataFragment,
+           final RandomAccessFile raf) throws IOException {
         FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(dataFragmentPosition,8,false);
+        FileLock lock = ch.lock(dataFragmentPosition, 8, false);
         try {
             raf.seek(dataFragmentPosition);
             raf.writeLong(nextDataFragment);
@@ -128,15 +129,15 @@ final class DataFragment {
         return location;
     }
 
-    private void loadData(int nrSamples, int samplesLength, DataInput raf) throws IOException {
+    private void loadData(final int nrSamples, final int samplesLength, final DataInput raf) throws IOException {
         data = new ArrayList(nrSamples);
         timestamps = new TIntArrayList(nrSamples);
-        for (int i=0; i< nrSamples;i++) {
+        for (int i = 0; i < nrSamples; i++) {
             timestamps.add(raf.readInt());
             long [] row = new long[samplesLength];
-            for(int j=0; j< samplesLength; j++) {
+            for (int j = 0; j < samplesLength; j++) {
                 row[j] = raf.readLong();
-            }                
+            }
             data.add(row);
         }
     }
@@ -157,7 +158,7 @@ final class DataFragment {
         return timestamps;
     }
 
-    public void setLocation(long location) {
+    public void setLocation(final long location) {
         this.location = location;
     }
 
@@ -165,7 +166,8 @@ final class DataFragment {
     
     @Override
     public String toString() {
-        return "DataFragment{" + "location=" + location + ", nextDataFragment=" + nextDataFragment + ", startTimeMillis=" + startTimeMillis + ", data=" + data + ", timestamps=" + timestamps + '}';
+        return "DataFragment{" + "location=" + location + ", nextDataFragment=" + nextDataFragment
+                + ", startTimeMillis=" + startTimeMillis + ", data=" + data + ", timestamps=" + timestamps + '}';
     }
     
     

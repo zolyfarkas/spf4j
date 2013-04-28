@@ -34,7 +34,7 @@ public final class ComparablePair<A extends Comparable & Serializable, B extends
         this.second = second;
     }
     
-    public static <A extends Comparable & Serializable, B extends Comparable & Serializable> ComparablePair<A, B> 
+    public static <A extends Comparable & Serializable, B extends Comparable & Serializable> ComparablePair<A, B>
             of(final A first, final B second) {
         return new ComparablePair<A, B>(first, second);
     }
