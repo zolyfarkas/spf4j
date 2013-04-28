@@ -20,6 +20,7 @@ package org.spf4j.stackmonitor;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
@@ -123,7 +124,8 @@ public final class Monitor {
     
     private static void generateReportAndDispose(final Sampler sampler,
             final String reportOut, final int chartWidth,
-            final int maxDepth, final boolean svgReport) throws IOException, InterruptedException {
+            final int maxDepth, final boolean svgReport) throws IOException,
+                InterruptedException, InstanceNotFoundException {
                 synchronized (Monitor.class) {
                     if (!generatedAndDisposed) {
                         if (svgReport) {

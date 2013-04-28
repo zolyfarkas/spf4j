@@ -32,7 +32,7 @@ public class ObjectCreationException extends PoolException {
         super(message, cause);
     }
 
-    public ObjectCreationException(String message) {
+    public ObjectCreationException(final String message) {
         super(message);
     }
 
