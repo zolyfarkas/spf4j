@@ -19,7 +19,13 @@ package org.spf4j.stackmonitor;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.List;
@@ -27,8 +33,12 @@ import java.util.Properties;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-import javax.management.*;
-import org.joda.time.LocalDateTime;
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.AbstractRunnable;
@@ -257,7 +267,7 @@ public final class Sampler implements SamplerMBean {
     }
 
     @PreDestroy
-    public void dispose() throws InterruptedException {
+    public void dispose() throws InterruptedException, InstanceNotFoundException {
         stop();
         try {
             if (isJmxRegistered) {

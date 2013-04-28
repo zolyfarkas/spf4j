@@ -271,7 +271,7 @@ public class RetryExecutor<T> implements ExecutorService {
 
     public RetryExecutor(final ExecutorService exec, final int nrImmediateRetries,
             final int nrTotalRetries, final long delayMillis,  final Predicate<Exception> retryException,
-            final @Nullable BlockingQueue<Future<T>> completionQueue) {
+            @Nullable final BlockingQueue<Future<T>> completionQueue) {
         executionService = exec;
         executionAttempts = new ConcurrentHashMap<Callable<? extends Object>, Pair<Integer, ExecutionException>>();
         this.nrImmediateRetries = nrImmediateRetries;

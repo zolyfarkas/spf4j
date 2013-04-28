@@ -46,7 +46,7 @@ public interface SamplerMBean extends ReportGenerator {
 
     long getDumpTimeMillis();
     
-    void setDumpTimeMillis(long dumpTimeMillis);    
+    void setDumpTimeMillis(long dumpTimeMillis);
     
     boolean isStopped();
     

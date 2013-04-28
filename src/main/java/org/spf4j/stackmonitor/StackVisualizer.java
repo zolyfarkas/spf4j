@@ -151,7 +151,7 @@ public final class StackVisualizer {
         if (subNodes != null && maxDepth > 0) {
             int rx = 0;
             for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
-                int cwidth = (int) (((long)entry.getValue().getSampleCount()) * width / totalSamples);
+                int cwidth = (int) (((long) entry.getValue().getSampleCount()) * width / totalSamples);
                 generateSubSvg(writer, entry.getKey(), entry.getValue(), rx + x, y + 15, cwidth, maxDepth - 1, idPfx);
                 rx += cwidth;
             }
