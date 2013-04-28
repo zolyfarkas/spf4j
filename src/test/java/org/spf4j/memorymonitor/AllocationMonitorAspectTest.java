@@ -18,7 +18,6 @@
  */
 package org.spf4j.memorymonitor;
 
-import org.spf4j.memorymonitor.MemoryUsageSampler;
 import com.google.common.base.Strings;
 import org.spf4j.perf.RecorderFactory;
 import java.io.IOException;
@@ -28,7 +27,7 @@ import org.junit.Test;
  *
  * @author zoly
  */
-public class AllocationMonitorAspectTest {
+public final class AllocationMonitorAspectTest {
 
     public AllocationMonitorAspectTest() {
     }
@@ -59,6 +58,7 @@ public class AllocationMonitorAspectTest {
         }
         testAllocInStaticContext();
         TestClass.testAllocInStaticContext();
-        System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime, System.currentTimeMillis(), 1200, 600));
+        System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime,
+                System.currentTimeMillis(), 1200, 600));
     }
 }

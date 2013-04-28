@@ -24,7 +24,9 @@ import com.google.common.base.Strings;
  *
  * @author zoly
  */
-public class TestClass {
+public final class TestClass {
+    
+    private TestClass() { }
 
     public static void testAllocInStaticContext() throws InterruptedException {
         for (int i = 0; i < 1000; i++) {

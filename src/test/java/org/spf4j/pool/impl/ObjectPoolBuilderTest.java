@@ -17,7 +17,6 @@
  */
 package org.spf4j.pool.impl;
 
-import org.spf4j.pool.impl.ObjectPoolBuilder;
 import org.spf4j.base.Callables;
 import org.spf4j.base.RetryExecutor;
 import org.spf4j.pool.ObjectBorrowException;
@@ -42,37 +41,45 @@ import org.junit.Test;
  *
  * @author zoly
  */
-public class ObjectPoolBuilderTest {
+public final class ObjectPoolBuilderTest {
   
     /**
      * Test of build method, of class ObjectPoolBuilder.
      */
     @Test
-    public void testBuild() throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException {
+    public void testBuild()
+            throws ObjectCreationException, ObjectBorrowException,
+            InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException {
         System.out.println("build");
         ObjectPool<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory()).build();
         System.out.println(pool);
         ExpensiveTestObject object = pool.borrowObject();
         System.out.println(pool);
         pool.returnObject(object, null);
-        System.out.println(pool);       
+        System.out.println(pool);
     }
     
  
-        @Test(timeout=20000)
-    public void testPoolUseNoFailures() throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+    @Test(timeout = 20000)
+    public void testPoolUseNoFailures()
+                throws ObjectCreationException, ObjectBorrowException, InterruptedException,
+                TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
         System.out.println("poolUse");
-        final ObjectPool<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory(1000000, 1000000, 1, 5)).build();
-        runTest(pool,0,10000);   
+        final ObjectPool<ExpensiveTestObject> pool
+                = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory(1000000, 1000000, 1, 5)).build();
+        runTest(pool, 0, 10000);
         pool.dispose();
     }
     
     
-    @Test(timeout=20000)
-    public void testPoolUse() throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+    @Test(timeout = 20000)
+    public void testPoolUse()
+            throws ObjectCreationException, ObjectBorrowException, InterruptedException,
+            TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
         System.out.println("poolUse");
-        final ObjectPool<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory()).build();
-        runTest(pool,0,10000);   
+        final ObjectPool<ExpensiveTestObject> pool
+                = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory()).build();
+        runTest(pool, 0, 10000);   
         try {
             pool.dispose();
         } catch (ObjectDisposeException ex) {
@@ -80,13 +87,15 @@ public class ObjectPoolBuilderTest {
         }
     }
     
-    @Test(timeout=200000)
-    public void testPoolUseWithMaintenance() throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+    @Test(timeout = 200000)
+    public void testPoolUseWithMaintenance()
+            throws ObjectCreationException, ObjectBorrowException, InterruptedException,
+            TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
         System.out.println("poolUseWithMainteinance");
 
         final ObjectPool<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory())
                 .withMaintenance(org.spf4j.base.DefaultScheduler.INSTANCE, 10).build();
-        runTest(pool,5, 100000);
+        runTest(pool, 5, 100000);
         try {
             pool.dispose();
         } catch (ObjectDisposeException ex) {
@@ -102,10 +111,11 @@ public class ObjectPoolBuilderTest {
                 try {
                     Thread.sleep(deadlockTimeout);
                     ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
-                    System.err.println(Arrays.toString(threadMX.dumpAllThreads(true, true)));             
-                    Assert.fail("Test needs to finish in "+deadlockTimeout+" ms, Stack Traces");
+                    System.err.println(Arrays.toString(threadMX.dumpAllThreads(true, true)));
+                    Assert.fail("Test needs to finish in " + deadlockTimeout + " ms, Stack Traces");
                 } catch (InterruptedException ex) {
                     // terminating monitor
+                    return;
                 }
             }
         });
@@ -113,18 +123,19 @@ public class ObjectPoolBuilderTest {
         return monitor;
     }
 
-    private void runTest(final ObjectPool<ExpensiveTestObject> pool, 
-            long sleepBetweenSubmit, long deadlockTimeout) throws InterruptedException, ExecutionException {
-        Thread monitor = startDeadlockMonitor(deadlockTimeout);     
+    private void runTest(final ObjectPool<ExpensiveTestObject> pool,
+            final long sleepBetweenSubmit, final long deadlockTimeout) throws InterruptedException, ExecutionException {
+        Thread monitor = startDeadlockMonitor(deadlockTimeout);
         ExecutorService execService = Executors.newFixedThreadPool(10);
         BlockingQueue<Future<Integer>> completionQueue = new LinkedBlockingDeque<Future<Integer>>();
-        RetryExecutor<Integer> exec = new RetryExecutor<Integer>(execService, 8, 16, 5000, Callables.RETRY_FOR_ANY_EXCEPTION,
+        RetryExecutor<Integer> exec
+                = new RetryExecutor<Integer>(execService, 8, 16, 5000, Callables.RETRY_FOR_ANY_EXCEPTION,
                  completionQueue);
-        for (int i=0; i<1000; i++) {
+        for (int i = 0; i < 1000; i++) {
             exec.submit(new TestCallable(pool, i));
             Thread.sleep(sleepBetweenSubmit);
-        }        
-        for (int i=0; i<1000; i++) {
+        }
+        for (int i = 0; i < 1000; i++) {
             System.out.println("Task " + completionQueue.take().get() + " finished ");
         }
         monitor.interrupt();
@@ -132,7 +143,6 @@ public class ObjectPoolBuilderTest {
         Thread.sleep(100);
         Assert.assertEquals(0, completionQueue.size());
     }
-    
-    
+   
   
 }

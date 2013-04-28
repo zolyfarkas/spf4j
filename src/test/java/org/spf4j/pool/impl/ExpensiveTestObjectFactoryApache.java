@@ -25,14 +25,15 @@ import org.apache.commons.pool.PoolableObjectFactory;
  *
  * @author zoly
  */
-public class ExpensiveTestObjectFactoryApache implements PoolableObjectFactory<ExpensiveTestObject> {
+public final class ExpensiveTestObjectFactoryApache implements PoolableObjectFactory<ExpensiveTestObject> {
 
     private final long maxIdleMillis;
     private final int nrUsesToFailAfter;
     private final long  minOperationMillis;
     private final long maxOperationMillis;
 
-    public ExpensiveTestObjectFactoryApache(long maxIdleMillis, int nrUsesToFailAfter, long minOperationMillis, long maxOperationMillis) {
+    public ExpensiveTestObjectFactoryApache(final long maxIdleMillis, final int nrUsesToFailAfter,
+            final long minOperationMillis, final long maxOperationMillis) {
         this.maxIdleMillis = maxIdleMillis;
         this.nrUsesToFailAfter = nrUsesToFailAfter;
         this.minOperationMillis = minOperationMillis;
@@ -50,12 +51,12 @@ public class ExpensiveTestObjectFactoryApache implements PoolableObjectFactory<E
     }
 
     @Override
-    public void destroyObject(ExpensiveTestObject t) throws Exception {
-            t.close();       
+    public void destroyObject(final ExpensiveTestObject t) throws Exception {
+            t.close();
     }
 
     @Override
-    public boolean validateObject(ExpensiveTestObject t) {
+    public boolean validateObject(final ExpensiveTestObject t) {
             try {
                 t.doStuff();
                 return true;
@@ -65,14 +66,11 @@ public class ExpensiveTestObjectFactoryApache implements PoolableObjectFactory<E
     }
 
     @Override
-    public void activateObject(ExpensiveTestObject t) throws Exception {
-       
+    public void activateObject(final ExpensiveTestObject t) throws Exception {      
     }
 
     @Override
-    public void passivateObject(ExpensiveTestObject t) throws Exception {
-       
+    public void passivateObject(final ExpensiveTestObject t) throws Exception { 
     }
     
- 
 }

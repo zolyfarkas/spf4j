@@ -17,21 +17,18 @@
  */
 package org.spf4j.base;
 
-import org.spf4j.base.Exceptions;
 import com.google.common.base.Throwables;
 import java.net.SocketTimeoutException;
 import java.sql.BatchUpdateException;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author zoly
  */
-public class ExceptionsTest {
+public final class ExceptionsTest {
     
     /**
      * Test of chain method, of class ExceptionChain.
@@ -51,11 +48,12 @@ public class ExceptionsTest {
     @Test
     public void testChain2() {
         System.out.println("chain");
-        Throwable t = new RuntimeException("bla1", new BatchUpdateException("Sql bla", "ORA-500", 500, new int[] {1,2}, new RuntimeException("la la")));
+        Throwable t = new RuntimeException("bla1",
+                new BatchUpdateException("Sql bla", "ORA-500", 500, new int[] {1, 2}, new RuntimeException("la la")));
         Throwable newRootCause = new TimeoutException("Booo");
         Throwable result = Exceptions.chain(t, newRootCause);
         result.printStackTrace();
-        Assert.assertArrayEquals(new int[] {1,2}, ((BatchUpdateException)result.getCause()).getUpdateCounts());
+        Assert.assertArrayEquals(new int[] {1, 2}, ((BatchUpdateException) result.getCause()).getUpdateCounts());
         Assert.assertEquals(newRootCause, Throwables.getRootCause(result));
         Assert.assertEquals(4, Throwables.getCausalChain(result).size());
         

@@ -18,44 +18,41 @@
 
 package org.spf4j.base;
 
-import org.spf4j.base.Callables;
-import org.spf4j.base.RetryExecutor;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import static org.junit.Assert.*;
+import junit.framework.Assert;
 import org.junit.Test;
 
 /**
  *
  * @author zoly
  */
-public class RetryExecutorTest {
+public final class RetryExecutorTest {
     
     public RetryExecutorTest() {
     }
 
     @Test
-    public void testSubmit_Callable() throws InterruptedException, ExecutionException {
+    public void testSubmitCallable() throws InterruptedException, ExecutionException {
         System.out.println("submit");
-        RetryExecutor instance = new RetryExecutor(Executors.newFixedThreadPool(10), 3, 
+        RetryExecutor instance = new RetryExecutor(Executors.newFixedThreadPool(10), 3,
                 10, 100, Callables.RETRY_FOR_ANY_EXCEPTION, null);
-        Future result = instance.submit(new Callable<Integer> () {
+        Future result = instance.submit(new Callable<Integer>() {
 
             private int count;
             @Override
-            public Integer call() throws Exception
-            {
+            public Integer call() throws Exception {
                 System.out.println("exec " + count + " st " + System.currentTimeMillis());
                 count++;
-                if (count <5) {
+                if (count < 5) {
                     throw new RuntimeException("Aaaaaaaaaaa" + count);
                 }
                     
                 return 1;
             }
         });
-        assertEquals(1, result.get());
+        Assert.assertEquals(1, result.get());
     }
 }

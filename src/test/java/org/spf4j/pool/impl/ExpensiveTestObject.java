@@ -15,7 +15,6 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.pool.impl;
 
 import java.io.Closeable;
@@ -23,30 +22,23 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This is a pooled object implementation, that behaves like a connection object. 
+ * This is a pooled object implementation, that behaves like a connection object.
+ *
  * @author zoly
  */
+public final class ExpensiveTestObject implements Closeable {
 
-public class ExpensiveTestObject implements Closeable
-{
     private final long maxIdleMillis;
-    
     private final int nrUsesToFailAfter;
-    
     private final long minOperationMillis;
-    
     private final long maxOperationMillis;
-    
     private long lastTouchedTimeMillis;
-    
     private int nrUses;
-    
     private static final AtomicInteger OBJ_COUNT = new AtomicInteger();
-            
     private final String id;
-            
-    public ExpensiveTestObject(long maxIdleMillis, int nrUsesToFailAfter, long minOperationMillis, long maxOperationMillis)
-    {
+
+    public ExpensiveTestObject(final long maxIdleMillis, final int nrUsesToFailAfter,
+            final long minOperationMillis, final long maxOperationMillis) {
         this.maxIdleMillis = maxIdleMillis;
         this.nrUsesToFailAfter = nrUsesToFailAfter;
         this.minOperationMillis = minOperationMillis;
@@ -56,8 +48,7 @@ public class ExpensiveTestObject implements Closeable
         simulateDoStuff(maxOperationMillis - minOperationMillis);
         id = "Test Object " + OBJ_COUNT.getAndIncrement();
     }
-    
-    
+
     public void doStuff() throws IOException {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
@@ -67,10 +58,10 @@ public class ExpensiveTestObject implements Closeable
             throw new IOException("Simulated random crap");
         }
         simulateDoStuff(maxOperationMillis - minOperationMillis);
-        nrUses ++;
-        lastTouchedTimeMillis = System.currentTimeMillis();       
+        nrUses++;
+        lastTouchedTimeMillis = System.currentTimeMillis();
     }
-    
+
     public void testObject() throws IOException {
         System.out.println("Testing object id " + id);
         long currentTime = System.currentTimeMillis();
@@ -81,11 +72,9 @@ public class ExpensiveTestObject implements Closeable
             throw new IOException("Simulated random crap");
         }
         simulateDoStuff(0);
-        nrUses ++;
-        lastTouchedTimeMillis = System.currentTimeMillis();       
+        nrUses++;
+        lastTouchedTimeMillis = System.currentTimeMillis();
     }
-    
-    
 
     @Override
     public void close() throws IOException {
@@ -100,6 +89,4 @@ public class ExpensiveTestObject implements Closeable
             throw new RuntimeException(ex);
         }
     }
-    
-    
 }

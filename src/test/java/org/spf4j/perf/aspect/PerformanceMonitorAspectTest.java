@@ -1,5 +1,5 @@
 
- /*
+/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -16,30 +16,27 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.perf.aspect;
 
-import org.spf4j.perf.aspect.PerformanceMonitor;
 import org.junit.Test;
 
 /**
  *
  * @author zoly
  */
-public class PerformanceMonitorAspectTest
-{
+public final class PerformanceMonitorAspectTest {
+
     /**
      * Test of performanceMonitoredMethod method, of class PerformanceMonitorAspect.
      */
     @Test
-    public void testPerformanceMonitoredMethod() throws Exception
-    {
-        for(int i=0; i<10 ; i++) {
+    public void testPerformanceMonitoredMethod() throws Exception {
+        for (int i = 0; i < 10; i++) {
             somethingTomeasure();
         }
     }
-    
-    @PerformanceMonitor(warnThresholdMillis=1)
+
+    @PerformanceMonitor(warnThresholdMillis = 1)
     public void somethingTomeasure() throws InterruptedException {
         Thread.sleep(10);
     }
