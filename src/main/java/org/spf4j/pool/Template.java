@@ -42,11 +42,14 @@ public final class Template<T, E extends Exception> {
                 .getGenericSuperclass()).getActualTypeArguments()[0];
     }
 
+    // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
     public void doOnPooledObject(final ObjectPool.Hook<T, E> handler)
             throws ObjectCreationException, InterruptedException, TimeoutException {
         Callables.executeWithRetry(new Callable<Void>() {
             @Override
-            public Void call() throws Exception {
+            public Void call() throws ObjectReturnException, ObjectDisposeException,
+                    ObjectCreationException, ObjectBorrowException,
+                    InterruptedException, TimeoutException, E  {
                 doOnPooledObject(handler, pool, exceptionClasz);
                 return null;
             }

@@ -60,8 +60,9 @@ public interface ObjectPool<T> extends Disposable {
             throws ObjectReturnException, ObjectDisposeException;
 
     public interface Hook<T, E extends Exception> {
-
+        // CHECKSTYLE:OFF -- checkstyle does not seem to handle genric exceptions
         void handle(T object) throws E;
+        // CHECKSTYLE:ON
     }
 
     @ParametersAreNonnullByDefault
