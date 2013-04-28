@@ -48,8 +48,10 @@ public interface ObjectPool<T> extends Disposable {
             InterruptedException, TimeoutException;
 
     /**
-     * return a object previously borrowed from the pool, together with a optional exception in case one was encountered
-     * while using the object. passing an exception will case the object to be validated and potentially retired.
+     * return a object previously borrowed from the pool,
+     * together with a optional exception in case one was encountered
+     * while using the object. passing an exception will cause the object
+     * to be validated and potentially retired from the pool.
      *
      * @param object
      * @param e
