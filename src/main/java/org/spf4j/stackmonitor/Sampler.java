@@ -51,7 +51,7 @@ import org.spf4j.stackmonitor.proto.Converter;
  * @author zoly
  */
 @ThreadSafe
-public class Sampler implements SamplerMBean {
+public final class Sampler implements SamplerMBean {
 
     private volatile boolean stopped;
     private volatile long sampleTimeMillis;
@@ -72,15 +72,15 @@ public class Sampler implements SamplerMBean {
         this(100, 3600000, new MxStackCollector());
     }
 
-    public Sampler(long sampleTimeMillis) {
+    public Sampler(final long sampleTimeMillis) {
         this(sampleTimeMillis, 3600000, new MxStackCollector());
     }
 
-    public Sampler(StackCollector collector) {
+    public Sampler(final StackCollector collector) {
         this(100, 3600000, collector);
     }
 
-    public Sampler(long sampleTimeMillis, long dumpTimeMillis, StackCollector collector) {
+    public Sampler(final long sampleTimeMillis, final long dumpTimeMillis, final StackCollector collector) {
         stopped = true;
         this.sampleTimeMillis = sampleTimeMillis;
         this.dumpTimeMillis = dumpTimeMillis;
@@ -93,7 +93,9 @@ public class Sampler implements SamplerMBean {
         this.isJmxRegistered = false;
     }
 
-    public void registerJmx() throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
+    public void registerJmx()
+            throws MalformedObjectNameException, InstanceAlreadyExistsException,
+            MBeanRegistrationException, NotCompliantMBeanException {
         ManagementFactory.getPlatformMBeanServer().registerMBean(this, name);
         isJmxRegistered = true;
     }
@@ -138,11 +140,11 @@ public class Sampler implements SamplerMBean {
 
     public synchronized void dumpToFile() throws IOException {
         final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePrefix + "_"
-                + TS_FORMAT.print(lastDumpTime) + "_" +TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump"));
+                + TS_FORMAT.print(lastDumpTime) + "_" + TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump"));
         try {
             stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
                 @Override
-                public SampleNode apply(SampleNode input) {
+                public SampleNode apply(final SampleNode input) {
                     try {
                         Converter.fromSampleNodeToProto(input).writeTo(bos);
                     } catch (IOException ex) {
@@ -161,15 +163,17 @@ public class Sampler implements SamplerMBean {
     }
 
     @Override
-    public synchronized void generateHtmlMonitorReport(String fileName, final int chartWidth, final int maxDepth) throws IOException {
+    public synchronized void generateHtmlMonitorReport(final String fileName, final int chartWidth, final int maxDepth)
+            throws IOException {
         dumpToFile();
-        final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
+        final Writer writer
+                = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
             writer.append("<html>");
 
             stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
                 @Override
-                public SampleNode apply(SampleNode input) {
+                public SampleNode apply(final SampleNode input) {
                     if (input != null) {
                         SampleNode finput = input;
                         try {
@@ -186,7 +190,7 @@ public class Sampler implements SamplerMBean {
 
             stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
                 @Override
-                public SampleNode apply(SampleNode input) {
+                public SampleNode apply(final SampleNode input) {
                     if (input != null) {
                         SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);
                         try {
@@ -199,8 +203,6 @@ public class Sampler implements SamplerMBean {
                     return input;
                 }
             });
-
-
 
             writer.append("</html>");
 
@@ -222,7 +224,7 @@ public class Sampler implements SamplerMBean {
     }
 
     @Override
-    public void setSampleTimeMillis(long sampleTimeMillis) {
+    public void setSampleTimeMillis(final long sampleTimeMillis) {
         this.sampleTimeMillis = sampleTimeMillis;
     }
 
@@ -232,7 +234,7 @@ public class Sampler implements SamplerMBean {
     }
 
     @Override
-    public List<String> generate(Properties props) throws IOException {
+    public List<String> generate(final Properties props) throws IOException {
         int width = Integer.valueOf(props.getProperty("width", "1200"));
         int maxDepth = Integer.valueOf(props.getProperty("maxDepth", "1200"));
         String fileName = File.createTempFile("stack", ".html").getAbsolutePath();
@@ -269,13 +271,14 @@ public class Sampler implements SamplerMBean {
     }
 
     @Override
-    public void generateCpuSvg(String fileName, final int chartWidth, final int maxDepth) throws IOException {
-        final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
+    public void generateCpuSvg(final String fileName, final int chartWidth, final int maxDepth) throws IOException {
+        final Writer writer
+                = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
 
             stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
                 @Override
-                public SampleNode apply(SampleNode input) {
+                public SampleNode apply(final SampleNode input) {
                     if (input != null) {
                         SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);
                         try {
@@ -293,13 +296,14 @@ public class Sampler implements SamplerMBean {
     }
 
     @Override
-    public void generateTotalSvg(String fileName, final int chartWidth, final int maxDepth) throws IOException {
-        final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
+    public void generateTotalSvg(final String fileName, final int chartWidth, final int maxDepth) throws IOException {
+        final Writer writer
+                = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
 
             stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
                 @Override
-                public SampleNode apply(SampleNode input) {
+                public SampleNode apply(final SampleNode input) {
                     if (input != null) {
 
                         try {
@@ -317,18 +321,21 @@ public class Sampler implements SamplerMBean {
     }
 
     @Override
-    public void generateSvgHtmlMonitorReport(String fileName, final int chartWidth, final int maxDepth) throws IOException {
+    public void generateSvgHtmlMonitorReport(final String fileName, final int chartWidth, final int maxDepth)
+            throws IOException {
         dumpToFile();
-        final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
+        final Writer writer
+                = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
             writer.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-                    + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\" \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n");
+                    + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\""
+                    + " \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n");
             writer.append("<html>");
 
 
             stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
                 @Override
-                public SampleNode apply(SampleNode input) {
+                public SampleNode apply(final SampleNode input) {
                     if (input != null) {
 
                         try {
@@ -346,13 +353,14 @@ public class Sampler implements SamplerMBean {
 
             stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
                 @Override
-                public SampleNode apply(SampleNode input) {
+                public SampleNode apply(final SampleNode input) {
                     if (input != null) {
                         SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);
                         if (finput != null) {
                             try {
                                 writer.append("<h1>CPU stats</h1>");
-                                StackVisualizer.generateSvg(writer, Method.ROOT, finput, 0, 0, chartWidth, maxDepth, "b");
+                                StackVisualizer.generateSvg(writer, Method.ROOT,
+                                        finput, 0, 0, chartWidth, maxDepth, "b");
                             } catch (IOException ex) {
                                 throw new RuntimeException(ex);
                             }
@@ -377,7 +385,7 @@ public class Sampler implements SamplerMBean {
     }
 
     @Override
-    public void setDumpTimeMillis(long dumpTimeMillis) {
+    public void setDumpTimeMillis(final long dumpTimeMillis) {
         this.dumpTimeMillis = dumpTimeMillis;
     }
 }

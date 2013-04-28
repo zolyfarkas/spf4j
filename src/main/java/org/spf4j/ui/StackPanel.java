@@ -57,9 +57,9 @@ public class StackPanel extends JPanel
     private int xx;
     private int yy;
 
-    public StackPanel(SampleNode samples) {
+    public StackPanel(final SampleNode samples) {
         this.samples = samples;
-        setPreferredSize(new Dimension(400, 20 * samples.height() + 10)); 
+        setPreferredSize(new Dimension(400, 20 * samples.height() + 10));
         ToolTipManager.sharedInstance().registerComponent(this);
         menu = buildPopupMenu();
         addMouseListener(this);
@@ -79,7 +79,7 @@ public class StackPanel extends JPanel
     
 
     @Override
-    public String getToolTipText(MouseEvent event) {
+    public String getToolTipText(final MouseEvent event) {
         Point location = event.getPoint();
         List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{location.x, location.y}, new float[]{0, 0});
         if (tips.size() >= 1) {
@@ -112,13 +112,15 @@ public class StackPanel extends JPanel
             gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             int height = paintNode(Method.ROOT, samples, gr, 0, 0, width, rowHeight, 0);
             g2.drawImage(img, insets.left, insets.top, this);
-            setPreferredSize( new Dimension( (int)size.getWidth(), height + 10 ) );
+            setPreferredSize(new Dimension((int)size.getWidth(), height + 10));
         } finally {
             g2.dispose();
         }
     }
 
-    private int paintNode(Method method, SampleNode node, Graphics2D g2, int x, int y, int width, int height, int depth) {
+    private int paintNode(final Method method, final SampleNode node,
+            final Graphics2D g2, final int x, final int py, final int width, final int height, final int depth) {
+        int y = py;
         int sampleCount = node.getSampleCount();
         String val = method.toString() + "-" + sampleCount;
 
@@ -155,7 +157,7 @@ public class StackPanel extends JPanel
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(final ActionEvent e) {
         if (e.getActionCommand().equals("FILTER")) {
             List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{xx, yy}, new float[]{0, 0});
             if (tips.size() >= 1) {
@@ -163,21 +165,21 @@ public class StackPanel extends JPanel
                 samples = samples.filteredBy(new Predicate<Method>() {
 
                     @Override
-                    public boolean apply(Method t) {
+                    public boolean apply(final Method t) {
                         return t.equals(value);
                     }
                 });
                 repaint();
-            } 
+            }
         }
     }
 
     @Override
-    public void mouseClicked(MouseEvent e) {
+    public void mouseClicked(final MouseEvent e) {
     }
 
     @Override
-    public void mousePressed(MouseEvent e) {
+    public final void mousePressed(final MouseEvent e) {
         if (e.isPopupTrigger()) {
             xx = e.getX();
             yy = e.getY();
@@ -186,19 +188,19 @@ public class StackPanel extends JPanel
     }
 
     @Override
-    public void mouseReleased(MouseEvent e) {
+    public final void mouseReleased(final MouseEvent e) {
         if (e.isPopupTrigger()) {
             xx = e.getX();
             yy = e.getY();
             menu.show(this, e.getX(), e.getY());
-        }    
+        }
     }
 
     @Override
-    public void mouseEntered(MouseEvent e) {
+    public void mouseEntered(final MouseEvent e) {
     }
 
     @Override
-    public void mouseExited(MouseEvent e) {
+    public void mouseExited(final MouseEvent e) {
     }
 }

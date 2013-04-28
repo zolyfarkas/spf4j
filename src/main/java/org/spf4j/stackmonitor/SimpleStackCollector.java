@@ -23,7 +23,7 @@ import java.util.Map;
  *
  * @author zoly
  */
-public class SimpleStackCollector extends AbstractStackCollector {
+public final class SimpleStackCollector extends AbstractStackCollector {
 
     @Override
     public void sample() {
@@ -31,7 +31,7 @@ public class SimpleStackCollector extends AbstractStackCollector {
         recordStackDump(stackDump);
     }
 
-    private void recordStackDump(Map<Thread, StackTraceElement[]> stackDump) {
+    private void recordStackDump(final Map<Thread, StackTraceElement[]> stackDump) {
         for (Map.Entry<Thread, StackTraceElement[]> entry : stackDump.entrySet()) {
             StackTraceElement[] stackTrace = entry.getValue();
             if (stackTrace.length > 0 && !entry.getKey().equals(Thread.currentThread())) {

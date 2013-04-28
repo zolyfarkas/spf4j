@@ -36,7 +36,7 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     /**
      * Creates new form StackDumpJInternalFrame
      */
-    public StackDumpJInternalFrame(String sampleFile) throws IOException {
+    public StackDumpJInternalFrame(final String sampleFile) throws IOException {
         super(sampleFile);
         initComponents();
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sampleFile));

@@ -25,7 +25,7 @@ import java.lang.management.ThreadMXBean;
  *
  * @author zoly
  */
-public class MxStackCollector extends AbstractStackCollector {
+public final class MxStackCollector extends AbstractStackCollector {
 
     private final ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
 
@@ -35,7 +35,7 @@ public class MxStackCollector extends AbstractStackCollector {
         recordStackDump(stackDump);
     }
 
-    private void recordStackDump(ThreadInfo[] stackDump) {
+    private void recordStackDump(final ThreadInfo[] stackDump) {
         for (ThreadInfo entry : stackDump) {
             StackTraceElement[] stackTrace = entry.getStackTrace();
             if (stackTrace.length > 0 && !(entry.getThreadId() == Thread.currentThread().getId())) {

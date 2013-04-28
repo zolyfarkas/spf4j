@@ -27,29 +27,30 @@ import javax.annotation.concurrent.GuardedBy;
 public abstract class AbstractStackCollector implements StackCollector {
  
     
-    protected final Object sampleSync = new Object();
+    private final Object sampleSync = new Object();
     @GuardedBy(value = "sampleSync")
     private SampleNode samples;
 
     private int nrNodes = 0;
     
     @Override
-    public SampleNode applyOnSamples(Function<SampleNode, SampleNode> predicate) {
+    public final SampleNode applyOnSamples(final Function<SampleNode, SampleNode> predicate) {
         synchronized (sampleSync) {
-            return samples = predicate.apply(samples);
+            samples = predicate.apply(samples);
+            return samples;
         }
     }
 
 
     @Override
-    public void clear() {
+    public final void clear() {
         synchronized (sampleSync) {
             samples = null;
             nrNodes = 0;
         }
     }
     
-    protected void addSample(StackTraceElement[] stackTrace) {
+    public final void addSample(final StackTraceElement[] stackTrace) {
         synchronized (sampleSync) {
             if (samples == null) {
                 samples = new SampleNode(stackTrace, stackTrace.length - 1);
@@ -61,13 +62,13 @@ public abstract class AbstractStackCollector implements StackCollector {
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         synchronized (sampleSync) {
             return "AbstractStackCollector{" + "samples=" + samples + ", nrNodes=" + nrNodes + '}';
         }
     }
 
-    public int getNrNodes() {
+    public final int getNrNodes() {
         synchronized (sampleSync) {
             return nrNodes;
         }
