@@ -30,7 +30,7 @@ public final class TestCallable implements Callable<Integer> {
     @Override
     public Integer call() throws ObjectCreationException, ObjectBorrowException, InterruptedException,
             TimeoutException, ObjectReturnException, ObjectDisposeException, IOException {
-        Template.doOnPooledObject(new ObjectPool.Hook<ExpensiveTestObject, IOException>() {
+        Template.doOnPooledObject(new ObjectPool.Handler<ExpensiveTestObject, IOException>() {
             @Override
             public void handle(final ExpensiveTestObject object) throws IOException {
                 object.doStuff();

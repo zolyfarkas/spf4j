@@ -37,8 +37,8 @@ public final class ObjectPoolBuilder<T, E extends Exception> {
     private boolean fair;
     private ScheduledExecutorService maintenanceExecutor;
     private long maintenanceIntervalMillis;
-    private ObjectPool.Hook<T, E> borrowHook;
-    private ObjectPool.Hook<T, E> returnHook;
+    private ObjectPool.Handler<T, E> borrowHook;
+    private ObjectPool.Handler<T, E> returnHook;
     private int initialSize;
 
     public ObjectPoolBuilder(final int maxSize, final ObjectPool.Factory<T> factory) {
@@ -71,12 +71,12 @@ public final class ObjectPoolBuilder<T, E extends Exception> {
         return this;
     }
 
-    public ObjectPoolBuilder<T, E> withBorrowHook(final ObjectPool.Hook<T, E> phook) {
+    public ObjectPoolBuilder<T, E> withBorrowHook(final ObjectPool.Handler<T, E> phook) {
         this.borrowHook = phook;
         return this;
     }
 
-    public ObjectPoolBuilder<T, E> withReturnHook(final ObjectPool.Hook<T, E> phook) {
+    public ObjectPoolBuilder<T, E> withReturnHook(final ObjectPool.Handler<T, E> phook) {
         this.returnHook = phook;
         return this;
     }

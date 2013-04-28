@@ -37,13 +37,13 @@ public final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<Obje
 
     private final ObjectPool<T> pool;
     
-    private final Hook<T, ? extends Exception> borrowHook;
+    private final Handler<T, ? extends Exception> borrowHook;
     
-    private final Hook<T, ? extends Exception> returnHook;
+    private final Handler<T, ? extends Exception> returnHook;
 
     public ObjectPoolWrapper(final ObjectPool<T> pool,
-            @Nullable final Hook<T, ? extends Exception> borrowHook,
-            @Nullable final Hook<T, ? extends Exception> returnHook) {
+            @Nullable final Handler<T, ? extends Exception> borrowHook,
+            @Nullable final Handler<T, ? extends Exception> returnHook) {
         this.pool = pool;
         this.borrowHook = borrowHook;
         this.returnHook = returnHook;
