@@ -36,7 +36,7 @@ public final class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<Obj
     
     
     public ScalableObjectPool(final int initialSize, final int maxSize, final ObjectPool.Factory<T> factory,
-            final long timeoutMillis, final boolean fair) throws ObjectCreationException {        
+            final long timeoutMillis, final boolean fair) throws ObjectCreationException {
         globalPool = new SimpleSmartObjectPool<ObjectHolder<T>>(initialSize, maxSize,
                 new ObjectHolderFactory<T>(initialSize, factory), timeoutMillis, fair);
         localPool = new ThreadLocal<LocalObjectPool<T>>() {
@@ -60,7 +60,7 @@ public final class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<Obj
     }
 
     @Override
-    public void dispose() throws ObjectDisposeException{
+    public void dispose() throws ObjectDisposeException {
         globalPool.dispose();
     }
 

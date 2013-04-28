@@ -112,7 +112,9 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                             borrowedObjects.put(borower, (T) object);
                             return (T) object;
                         }
+                    //CHECKSTYLE:OFF -- inner assignement
                     } while (object != ObjectBorower.REQUEST_MADE && (itt.hasNext() && ((b = itt.next()) != null)));
+                    //CHECKSTYLE:ON
                 } while (object != ObjectBorower.REQUEST_MADE);
 
                 while (availableObjects.isEmpty()) {

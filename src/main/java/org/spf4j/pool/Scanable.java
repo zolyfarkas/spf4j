@@ -36,7 +36,7 @@ public interface Scanable<T> {
          * method to handle object
          * @param object
          * @return true if scan operation is to continue
-         */        
+         */
         boolean handle(O object) throws Exception;
     }
     

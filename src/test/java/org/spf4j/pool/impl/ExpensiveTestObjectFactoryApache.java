@@ -66,11 +66,11 @@ public final class ExpensiveTestObjectFactoryApache implements PoolableObjectFac
     }
 
     @Override
-    public void activateObject(final ExpensiveTestObject t) throws Exception {      
+    public void activateObject(final ExpensiveTestObject t) throws Exception {
     }
 
     @Override
-    public void passivateObject(final ExpensiveTestObject t) throws Exception { 
+    public void passivateObject(final ExpensiveTestObject t) throws Exception {
     }
     
 }

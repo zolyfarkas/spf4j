@@ -48,7 +48,7 @@ import org.spf4j.stackmonitor.SampleNode;
  *
  * @author zoly
  */
-public class StackPanel extends JPanel
+public final class StackPanel extends JPanel
         implements ActionListener, MouseListener {
 
     private SampleNode samples;
@@ -90,7 +90,7 @@ public class StackPanel extends JPanel
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
+    protected void paintComponent(final Graphics g) {
         super.paintComponent(g);
         Dimension size = getSize();
         Insets insets = getInsets();
@@ -112,7 +112,7 @@ public class StackPanel extends JPanel
             gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             int height = paintNode(Method.ROOT, samples, gr, 0, 0, width, rowHeight, 0);
             g2.drawImage(img, insets.left, insets.top, this);
-            setPreferredSize(new Dimension((int)size.getWidth(), height + 10));
+            setPreferredSize(new Dimension((int) size.getWidth(), height + 10));
         } finally {
             g2.dispose();
         }
@@ -179,7 +179,7 @@ public class StackPanel extends JPanel
     }
 
     @Override
-    public final void mousePressed(final MouseEvent e) {
+    public void mousePressed(final MouseEvent e) {
         if (e.isPopupTrigger()) {
             xx = e.getX();
             yy = e.getY();
@@ -188,7 +188,7 @@ public class StackPanel extends JPanel
     }
 
     @Override
-    public final void mouseReleased(final MouseEvent e) {
+    public void mouseReleased(final MouseEvent e) {
         if (e.isPopupTrigger()) {
             xx = e.getX();
             yy = e.getY();

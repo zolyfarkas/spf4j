@@ -54,7 +54,7 @@ public abstract class AbstractStackCollector implements StackCollector {
         synchronized (sampleSync) {
             if (samples == null) {
                 samples = new SampleNode(stackTrace, stackTrace.length - 1);
-                nrNodes += stackTrace.length +1;
+                nrNodes += stackTrace.length + 1;
             } else {
                 nrNodes += samples.addSample(stackTrace, stackTrace.length - 1);
             }

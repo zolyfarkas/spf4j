@@ -79,7 +79,7 @@ public final class ObjectPoolBuilderTest {
         System.out.println("poolUse");
         final ObjectPool<ExpensiveTestObject> pool
                 = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory()).build();
-        runTest(pool, 0, 10000);   
+        runTest(pool, 0, 10000);
         try {
             pool.dispose();
         } catch (ObjectDisposeException ex) {

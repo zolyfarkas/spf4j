@@ -81,7 +81,7 @@ public final class ExpensiveTestObject implements Closeable {
         doStuff();
     }
 
-    private void simulateDoStuff(long time) throws RuntimeException {
+    private void simulateDoStuff(final long time) throws RuntimeException {
         long sleepTime = (long) (Math.random() * (time));
         try {
             Thread.sleep(minOperationMillis + sleepTime);

@@ -36,7 +36,7 @@ public final class Method {
         this.methodName = elem.getMethodName();
     }
     
-    public Method(final Class<?> clasz, String methodName) {
+    public Method(final Class<?> clasz, final String methodName) {
         this.declaringClass = clasz.getName();
         this.methodName = methodName;
     }
