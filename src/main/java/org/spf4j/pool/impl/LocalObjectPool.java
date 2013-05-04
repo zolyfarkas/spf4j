@@ -18,6 +18,7 @@
  */
 package org.spf4j.pool.impl;
 
+import java.util.ArrayList;
 import org.spf4j.pool.ObjectBorower;
 import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectDisposeException;
@@ -157,6 +158,28 @@ public final class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<Ob
             return null;
         }
     }
+    
+    
+    @Override
+    public Collection<ObjectHolder<T>> returnObjectsIfNotInUse() {
+        boolean acquired = lock.tryLock();
+        if (acquired) {
+            try {
+                if (!localObjects.isEmpty()) {
+                    Collection<ObjectHolder<T>> result = new ArrayList<ObjectHolder<T>>(localObjects);
+                    localObjects.clear();
+                    return result;
+                } else {
+                    return null;
+                }
+            } finally {
+                lock.unlock();
+            }
+        } else {
+            return null;
+        }
+    }
+    
 
     @Override
     public Collection<ObjectHolder<T>> returnObjectsIfNotNeeded() {

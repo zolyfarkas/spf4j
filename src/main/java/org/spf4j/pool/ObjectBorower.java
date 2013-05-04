@@ -46,6 +46,14 @@ public interface ObjectBorower<T> extends Scanable<T> {
     @Nullable
     T returnObjectIfNotInUse();
 
+    
+    /**
+     * Return all objects that are not currently in use.
+     */
+    
+    @Nullable
+    Collection<T> returnObjectsIfNotInUse();
+    
     /**
      * This method is a cleanup method. The purpose is to recover all borrowed objects before once this borrower will
      * never use them anymore...

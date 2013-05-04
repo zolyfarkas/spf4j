@@ -82,6 +82,11 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
+    public Collection<TestObject> returnObjectsIfNotInUse() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
     public static final class TestObject implements Disposable {
 
         private boolean disposed = false;

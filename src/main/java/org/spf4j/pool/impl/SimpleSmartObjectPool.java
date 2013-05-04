@@ -112,7 +112,7 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                             borrowedObjects.put(borower, (T) object);
                             return (T) object;
                         }
-                    //CHECKSTYLE:OFF -- inner assignement
+                        //CHECKSTYLE:OFF -- inner assignement
                     } while (object != ObjectBorower.REQUEST_MADE && (itt.hasNext() && ((b = itt.next()) != null)));
                     //CHECKSTYLE:ON
                 } while (object != ObjectBorower.REQUEST_MADE);
@@ -151,18 +151,20 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         lock.lock();
         try {
             maxSize = 0;
-            List<Pair<ObjectBorower<T>, Object>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>, Object>>();
+            List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>, T>>();
             for (ObjectBorower<T> b : borrowedObjects.keySet()) {
-                Object object = b.requestReturnObject();
-                returnedObjects.add(Pair.of(b, object));
+                T object = (T) b.requestReturnObject();
+                if (object != null) {
+                    returnedObjects.add(Pair.of(b, object));
+                }
             }
-            for (Pair<ObjectBorower<T>, Object> objectAndBorrower : returnedObjects) {
-                Object object = objectAndBorrower.getSecond();
-                if (object != null && object != ObjectBorower.REQUEST_MADE) {
+            for (Pair<ObjectBorower<T>, T> objectAndBorrower : returnedObjects) {
+                T object = objectAndBorrower.getSecond();
+                if (object != ObjectBorower.REQUEST_MADE) {
                     if (!borrowedObjects.remove(objectAndBorrower.getFirst(), object)) {
                         throw new IllegalStateException("Returned Object hasn't been borrowed " + object);
                     }
-                    availableObjects.add((T) object);
+                    availableObjects.add(object);
                 }
             }
             ObjectDisposeException exception = disposeReturnedObjects(null);
@@ -224,6 +226,28 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                 }
             }
             return true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void requestReturnFromBorrowersIfNotInUse() {
+        lock.lock();
+        try {
+            List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>, T>>();
+            for (ObjectBorower<T> b : borrowedObjects.keySet()) {
+                Collection<T> objects = b.returnObjectsIfNotInUse();
+                if (objects != null) {
+                    for (T object : objects) {
+                        returnedObjects.add(Pair.of(b, object));
+                    }
+                }
+            }
+            for (Pair<ObjectBorower<T>, T> ro : returnedObjects) {
+                T object = ro.getSecond();
+                borrowedObjects.remove(ro.getFirst(), object);
+                availableObjects.add(object);
+            }
         } finally {
             lock.unlock();
         }
