@@ -68,6 +68,10 @@ public final class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<Obj
     public boolean scan(final ScanHandler<ObjectHolder<T>> handler) throws Exception {
         return globalPool.scan(handler);
     }
+    
+    public void requestReturnFromBorrowersIfNotInUse() {
+        globalPool.requestReturnFromBorrowersIfNotInUse();
+    }
 
     @Override
     public String toString() {

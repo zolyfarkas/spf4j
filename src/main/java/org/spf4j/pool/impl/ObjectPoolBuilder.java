@@ -40,6 +40,7 @@ public final class ObjectPoolBuilder<T, E extends Exception> {
     private ObjectPool.Handler<T, E> borrowHook;
     private ObjectPool.Handler<T, E> returnHook;
     private int initialSize;
+    private boolean collectBorrowed;
 
     public ObjectPoolBuilder(final int maxSize, final ObjectPool.Factory<T> factory) {
         this.fair = true;
@@ -65,9 +66,10 @@ public final class ObjectPoolBuilder<T, E extends Exception> {
     }
 
     public ObjectPoolBuilder<T, E> withMaintenance(final ScheduledExecutorService pexec,
-            final long pmaintenanceIntervalMillis) {
+            final long pmaintenanceIntervalMillis, final boolean pcollectBorrowed) {
         this.maintenanceExecutor = pexec;
         this.maintenanceIntervalMillis = pmaintenanceIntervalMillis;
+        this.collectBorrowed = pcollectBorrowed;
         return this;
     }
 
@@ -82,7 +84,9 @@ public final class ObjectPoolBuilder<T, E extends Exception> {
     }
 
     public ObjectPool<T> build() throws ObjectCreationException {
-        ObjectPool<T> pool = new ScalableObjectPool<T>(initialSize, maxSize, factory, timeoutMillis, fair);
+        final ScalableObjectPool<T> underlyingPool =
+                new ScalableObjectPool<T>(initialSize, maxSize, factory, timeoutMillis, fair);
+        ObjectPool<T> pool = underlyingPool;
         if (borrowHook != null || returnHook != null) {
             pool = new ObjectPoolWrapper<T>(pool, borrowHook, returnHook);
         }
@@ -91,6 +95,9 @@ public final class ObjectPoolBuilder<T, E extends Exception> {
             maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnable(true) {
                 @Override
                 public void doRun() throws Exception {
+                        if (ObjectPoolBuilder.this.collectBorrowed) {
+                            underlyingPool.requestReturnFromBorrowersIfNotInUse();
+                        }
                         scanable.scan(new Scanable.ScanHandler<ObjectHolder<T>>() {
                             @Override
                             public boolean handle(final ObjectHolder<T> object) throws ObjectDisposeException {
