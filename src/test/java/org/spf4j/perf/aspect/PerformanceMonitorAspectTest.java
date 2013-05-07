@@ -32,12 +32,12 @@ public final class PerformanceMonitorAspectTest {
     @Test
     public void testPerformanceMonitoredMethod() throws Exception {
         for (int i = 0; i < 10; i++) {
-            somethingTomeasure();
+            somethingTomeasure(i, "Test");
         }
     }
 
     @PerformanceMonitor(warnThresholdMillis = 1)
-    public void somethingTomeasure() throws InterruptedException {
+    public void somethingTomeasure(int arg1, String arg2) throws InterruptedException {
         Thread.sleep(10);
     }
 }
