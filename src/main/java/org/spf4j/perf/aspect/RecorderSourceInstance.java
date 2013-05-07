@@ -22,6 +22,11 @@ import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.RecorderFactory;
 import org.spf4j.perf.impl.NopMeasurementRecorderSource;
 
+/**
+ * I am simulating a lazy enum.
+ * @author zoly
+ */
+
 public abstract class RecorderSourceInstance {
 
     private RecorderSourceInstance() {

@@ -49,7 +49,7 @@ public final class PerformanceMonitorAspect {
     
     
 
-    @Around(value = "execution(@com.zoltran.perf.aspect.PerformanceMonitor * *(..)) && @annotation(annot)",
+    @Around(value = "execution(@org.spf4j.perf.aspect.PerformanceMonitor * *(..)) && @annotation(annot)",
             argNames = "pjp,annot")
     public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final PerformanceMonitor annot)
             throws Throwable {
