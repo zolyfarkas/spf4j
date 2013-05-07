@@ -37,7 +37,7 @@ public final class PerformanceMonitorAspectTest {
     }
 
     @PerformanceMonitor(warnThresholdMillis = 1)
-    public void somethingTomeasure(int arg1, String arg2) throws InterruptedException {
+    public void somethingTomeasure(final int arg1, final String arg2) throws InterruptedException {
         Thread.sleep(10);
     }
 }
