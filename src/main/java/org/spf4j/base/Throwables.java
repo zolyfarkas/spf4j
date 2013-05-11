@@ -28,7 +28,7 @@ import java.security.PrivilegedAction;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- * utility class for throwables;
+ * utility class for throwables.
  *
  * @author zoly
  */
