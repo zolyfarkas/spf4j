@@ -68,9 +68,9 @@ public final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<Obje
             try {
                 pool.returnObject(result, e);
             } catch (ObjectReturnException ex) {
-                throw Throwables.chain(new RuntimeException(ex), e);
+                throw Throwables.suppress(new RuntimeException(ex), e);
             } catch (ObjectDisposeException ex) {
-                 throw Throwables.chain(new RuntimeException(ex), e);
+                 throw Throwables.suppress(new RuntimeException(ex), e);
             }
             throw new ObjectBorrowException("Exception while executing borrow hook", e);
         }

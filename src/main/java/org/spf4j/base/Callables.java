@@ -162,7 +162,7 @@ public final class Callables {
                throw ex1;
             } catch (Exception e) {
                 if (prevEx != null) {
-                    e = Throwables.chain(e, prevEx);
+                    e = Throwables.suppress(e, prevEx);
                     prevEx = e;
                 }
                 ex = e;

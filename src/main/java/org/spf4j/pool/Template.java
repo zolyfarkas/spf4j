@@ -68,9 +68,9 @@ public final class Template<T, E extends Exception> {
             try {
                 pool.returnObject(object, e);
             } catch (ObjectReturnException ex) {
-                throw Throwables.chain(ex, e);
+                throw Throwables.suppress(ex, e);
             } catch (ObjectDisposeException ex) {
-                throw Throwables.chain(ex, e);
+                throw Throwables.suppress(ex, e);
             }
             if (e instanceof RuntimeException) {
                 throw (RuntimeException) e;

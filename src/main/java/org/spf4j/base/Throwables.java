@@ -114,4 +114,16 @@ public final class Throwables {
             throw new RuntimeException(ex);
         }
     }
+    /**
+     * Functionality equivalent for java 1.7 Throwable.addSuppressed.
+     * 
+     * @param <T>
+     * @param t
+     * @param newRootCause
+     * @return
+     */
+    public static <T extends Throwable> T suppress(final T t, final Throwable suppressed) {
+        return chain(t, new SuppressedThrowable(suppressed));
+    }
+    
 }
