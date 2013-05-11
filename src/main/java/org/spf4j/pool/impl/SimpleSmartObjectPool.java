@@ -18,7 +18,7 @@
 package org.spf4j.pool.impl;
 
 import com.google.common.collect.LinkedHashMultimap;
-import org.spf4j.base.Exceptions;
+import org.spf4j.base.Throwables;
 import org.spf4j.base.Pair;
 import org.spf4j.pool.ObjectBorower;
 import org.spf4j.pool.ObjectCreationException;
@@ -190,9 +190,9 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
             try {
                 factory.dispose(obj);
             } catch (ObjectDisposeException ex) {
-                result = Exceptions.chain(ex, result);
+                result = Throwables.chain(ex, result);
             } catch (Exception ex) {
-                result = Exceptions.chain(new ObjectDisposeException(ex), result);
+                result = Throwables.chain(new ObjectDisposeException(ex), result);
             }
         }
         availableObjects.clear();

@@ -18,7 +18,11 @@
  */
 package org.spf4j.perf.aspect;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.junit.Test;
+import org.spf4j.perf.MeasurementRecorderSource;
 
 /**
  *
@@ -40,4 +44,32 @@ public final class PerformanceMonitorAspectTest {
     public void somethingTomeasure(final int arg1, final String arg2) throws InterruptedException {
         Thread.sleep(10);
     }
+    
+    private static final LoadingCache<Class<? extends RecorderSourceInstance>, MeasurementRecorderSource> REC_SOURCES =
+            CacheBuilder.newBuilder().concurrencyLevel(8).
+            build(new CacheLoader<Class<? extends RecorderSourceInstance>, MeasurementRecorderSource>()
+    {
+        @Override
+        public MeasurementRecorderSource load(final Class<? extends RecorderSourceInstance> key) throws Exception {
+            return (MeasurementRecorderSource) key.getField("INSTANCE").get(null);
+        }
+    });
+    
+    @Test
+    public void testPerformanceImplementation() throws Exception {
+        MeasurementRecorderSource source;
+        long startTime = System.currentTimeMillis();
+        for (int i = 0; i < 1000000; i++) {
+            source = (MeasurementRecorderSource) RecorderSourceInstance.RsNop.class.getField("INSTANCE").get(null);
+        }
+        long intTime = System.currentTimeMillis();
+        for (int i = 0; i < 1000000; i++) {
+            source = REC_SOURCES.get(RecorderSourceInstance.RsNop.class);
+        }
+        long endTime = System.currentTimeMillis();
+        System.out.println("non cached " + (intTime - startTime));
+        System.out.println("cached " + (endTime - intTime));
+        
+    }
+    
 }

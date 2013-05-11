@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.spf4j.base;
+package org.spf4j.concurrent;
 
 import com.google.common.base.Predicate;
 import java.util.ArrayList;
@@ -34,6 +34,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
+import org.spf4j.base.Throwables;
+import org.spf4j.base.Pair;
 
 /**
  * Executor that will execute Callables with retry.
@@ -243,7 +245,7 @@ public class RetryExecutor<T> implements ExecutorService {
                             attemptsInfo = Pair.of(1, event.getException());
                         } else {
                             attemptsInfo = Pair.of(attemptsInfo.getFirst() + 1,
-                                    Exceptions.chain(event.getException(), attemptsInfo.getSecond()));
+                                    Throwables.chain(event.getException(), attemptsInfo.getSecond()));
                         }
                         int nrAttempts = attemptsInfo.getFirst();
                         if (nrAttempts > nrTotalRetries) {

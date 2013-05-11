@@ -18,6 +18,7 @@
 
 package org.spf4j.base;
 
+import org.spf4j.concurrent.RetryExecutor;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;

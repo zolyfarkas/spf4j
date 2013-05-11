@@ -18,7 +18,7 @@
 package org.spf4j.pool.impl;
 
 import org.spf4j.base.Callables;
-import org.spf4j.base.RetryExecutor;
+import org.spf4j.concurrent.RetryExecutor;
 import org.spf4j.pool.ObjectBorrowException;
 import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectDisposeException;

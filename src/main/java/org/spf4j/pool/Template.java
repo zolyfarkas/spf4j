@@ -19,7 +19,7 @@
 package org.spf4j.pool;
 
 import org.spf4j.base.Callables;
-import org.spf4j.base.Exceptions;
+import org.spf4j.base.Throwables;
 import java.lang.reflect.ParameterizedType;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
@@ -68,9 +68,9 @@ public final class Template<T, E extends Exception> {
             try {
                 pool.returnObject(object, e);
             } catch (ObjectReturnException ex) {
-                throw Exceptions.chain(ex, e);
+                throw Throwables.chain(ex, e);
             } catch (ObjectDisposeException ex) {
-                throw Exceptions.chain(ex, e);
+                throw Throwables.chain(ex, e);
             }
             if (e instanceof RuntimeException) {
                 throw (RuntimeException) e;

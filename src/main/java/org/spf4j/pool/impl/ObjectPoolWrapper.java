@@ -17,7 +17,7 @@
  */
 package org.spf4j.pool.impl;
 
-import org.spf4j.base.Exceptions;
+import org.spf4j.base.Throwables;
 import org.spf4j.pool.ObjectBorrowException;
 import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectDisposeException;
@@ -68,9 +68,9 @@ public final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<Obje
             try {
                 pool.returnObject(result, e);
             } catch (ObjectReturnException ex) {
-                throw Exceptions.chain(new RuntimeException(ex), e);
+                throw Throwables.chain(new RuntimeException(ex), e);
             } catch (ObjectDisposeException ex) {
-                 throw Exceptions.chain(new RuntimeException(ex), e);
+                 throw Throwables.chain(new RuntimeException(ex), e);
             }
             throw new ObjectBorrowException("Exception while executing borrow hook", e);
         }

@@ -17,7 +17,6 @@
  */
 package org.spf4j.base;
 
-import com.google.common.base.Throwables;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -29,14 +28,14 @@ import java.security.PrivilegedAction;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- * Chainable exception class;
+ * utility class for throwables;
  *
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class Exceptions {
+public final class Throwables {
 
-    private Exceptions() { }
+    private Throwables() { }
     
     private static final Field CAUSE_FIELD;
 
@@ -59,7 +58,7 @@ public final class Exceptions {
     }
 
     private static Throwable chain0(final Throwable t, final Throwable cause) {
-        final Throwable rc = Throwables.getRootCause(t);
+        final Throwable rc = com.google.common.base.Throwables.getRootCause(t);
         try {
             AccessController.doPrivileged(new PrivilegedAction() {
                 @Override
