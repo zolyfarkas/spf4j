@@ -27,27 +27,27 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public class SampleNode {
+public final class SampleNode {
     
     private int sampleCount;
     private Map<Method, SampleNode> subNodes;
     
-    public SampleNode(StackTraceElement[] stackTrace, int from) {
+    public SampleNode(final StackTraceElement[] stackTrace, final int from) {
         sampleCount = 1;
         if (from >= 0) {
             subNodes = new HashMap();
-            subNodes.put(new Method(stackTrace[from]), new SampleNode(stackTrace, --from));
+            subNodes.put(new Method(stackTrace[from]), new SampleNode(stackTrace, from - 1));
         }
     }
 
-    public SampleNode(int count, @Nullable Map<Method, SampleNode> subNodes) {
+    public SampleNode(final int count, @Nullable final Map<Method, SampleNode> subNodes) {
         this.sampleCount = count;
         this.subNodes = subNodes;
     }
     
     
     
-    public int addSample(StackTraceElement[] stackTrace, int from) {
+    public int addSample(final StackTraceElement[] stackTrace, final int from) {
         sampleCount++;
         if (from >= 0) {
             Method method = new Method(stackTrace[from]);
@@ -58,11 +58,11 @@ public class SampleNode {
                 subNode = subNodes.get(method);
             }
             if (subNode == null) {
-                subNodes.put(method, new SampleNode(stackTrace, from-1));
-                return from+1;
+                subNodes.put(method, new SampleNode(stackTrace, from - 1));
+                return from + 1;
             } else {
-                return subNode.addSample(stackTrace, from-1);
-            }               
+                return subNode.addSample(stackTrace, from - 1);
+            }
         }
         return 0;
     }
@@ -86,25 +86,25 @@ public class SampleNode {
             return 1;
         } else {
             int subHeight = 0;
-            for (SampleNode node: subNodes.values()) {
+            for (SampleNode node : subNodes.values()) {
                 int nHeight = node.height();
                 if (nHeight > subHeight) {
                     subHeight = nHeight;
                 }
             }
-            return subHeight +1;
+            return subHeight + 1;
         }
             
     }
     
     @Nullable
-    public SampleNode filteredBy(Predicate<Method> predicate) {
+    public SampleNode filteredBy(final Predicate<Method> predicate) {
         
         int newCount = this.sampleCount;
         
         Map<Method, SampleNode> sns = null;
         if (this.subNodes != null) {
-            for (Map.Entry<Method, SampleNode> entry:  this.subNodes.entrySet()) {
+            for (Map.Entry<Method, SampleNode> entry :  this.subNodes.entrySet()) {
                 Method method = entry.getKey();
                 SampleNode sn = entry.getValue();
                 if (predicate.apply(method))  {
@@ -126,10 +126,9 @@ public class SampleNode {
         }
         if (newCount == 0) {
             return null;
-        } else if  (newCount <0 ) {
+        } else if  (newCount < 0) {
             throw new IllegalStateException("child sample counts must be <= parent sample count, detail: " + this);
-        }
-        else {
+        } else {
             return new SampleNode(newCount, sns);
         }
     }

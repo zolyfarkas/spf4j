@@ -17,35 +17,19 @@
  */
 package org.spf4j.perf.impl;
 
-import org.spf4j.perf.impl.QuantizedRecorder;
 import java.util.Arrays;
-import org.junit.*;
 import static org.junit.Assert.assertArrayEquals;
+import org.junit.Test;
 
 /**
  *
  * @author zoly
  */
-public class QuantizedRecorderTest {
+public final class QuantizedRecorderTest {
     
     public QuantizedRecorderTest() {
     }
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-    
-    @Before
-    public void setUp() {
-    }
-    
-    @After
-    public void tearDown() {
-    }
 
     /**
      * Test of record method, of class QuantizedRecorder.
@@ -53,7 +37,7 @@ public class QuantizedRecorderTest {
     @Test
     public void testRecord1() {
         System.out.println("record");
-        QuantizedRecorder instance = new QuantizedRecorder("test", "ms", 
+        QuantizedRecorder instance = new QuantizedRecorder("test", "ms",
                 10, 0, 3, 10);
         instance.record(0);
         instance.record(1);
@@ -61,14 +45,14 @@ public class QuantizedRecorderTest {
         instance.record(10);
         instance.record(11);
         instance.record(250);
-        instance.record(15000);        
+        instance.record(15000);
         System.out.println(instance);
     }
 
         @Test
     public void testRecord2() {
         System.out.println("record");
-        QuantizedRecorder instance = new QuantizedRecorder("test", "ms", 
+        QuantizedRecorder instance = new QuantizedRecorder("test", "ms",
                 10, -3, 3, 10);
         instance.record(0);
         instance.record(1);
@@ -84,7 +68,7 @@ public class QuantizedRecorderTest {
     @Test
     public void testRecord3() {
         System.out.println("record");
-        QuantizedRecorder instance = new QuantizedRecorder("test", "ms", 
+        QuantizedRecorder instance = new QuantizedRecorder("test", "ms",
                 10, 0, 1, 10);
         instance.record(0);
         instance.record(1);
@@ -103,7 +87,7 @@ public class QuantizedRecorderTest {
         @Test
     public void testRecord4() {
         System.out.println("record");
-        QuantizedRecorder instance = new QuantizedRecorder("test", "ms", 
+        QuantizedRecorder instance = new QuantizedRecorder("test", "ms",
                 10, -1, 1, 10);
         instance.record(0);
         instance.record(1);
@@ -115,7 +99,8 @@ public class QuantizedRecorderTest {
         instance.record(-15000);
         instance.record(-10);
         instance.record(-10);
-        assertArrayEquals(new long[] {1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4}, instance.getQuatizedMeasurements());
+        assertArrayEquals(new long[] {1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4},
+                instance.getQuatizedMeasurements());
         System.out.println(instance);
         long[] result = instance.getMeasurements(false);
         System.out.println(Arrays.toString(result));

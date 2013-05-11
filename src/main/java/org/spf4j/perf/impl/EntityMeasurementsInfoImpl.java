@@ -19,12 +19,14 @@ package org.spf4j.perf.impl;
 
 import org.spf4j.perf.EntityMeasurementsInfo;
 import java.util.Arrays;
+import javax.annotation.concurrent.Immutable;
 
 /**
  *
  * @author zoly
  */
-public class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
+@Immutable
+public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
     private final Object measuredEntity;
     private final String unitOfMeasurement;
     private final String[] measurementNames;
@@ -32,9 +34,8 @@ public class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
     
  
 
-    public EntityMeasurementsInfoImpl(Object measuredEntity,
-            String unitOfMeasurement, 
-            String [] measurementNames, String[] measurementUnits) {
+    public EntityMeasurementsInfoImpl(final Object measuredEntity, final String unitOfMeasurement,
+            final String [] measurementNames, final String[] measurementUnits) {
         this.measuredEntity = measuredEntity;
         this.unitOfMeasurement = unitOfMeasurement;
         this.measurementNames = measurementNames.clone();
@@ -62,7 +63,7 @@ public class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }
@@ -70,10 +71,12 @@ public class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
             return false;
         }
         final EntityMeasurementsInfoImpl other = (EntityMeasurementsInfoImpl) obj;
-        if (this.measuredEntity != other.measuredEntity && (this.measuredEntity == null || !this.measuredEntity.equals(other.measuredEntity))) {
+        if (this.measuredEntity != other.measuredEntity
+                && (this.measuredEntity == null || !this.measuredEntity.equals(other.measuredEntity))) {
             return false;
         }
-        if ((this.unitOfMeasurement == null) ? (other.unitOfMeasurement != null) : !this.unitOfMeasurement.equals(other.unitOfMeasurement)) {
+        if ((this.unitOfMeasurement == null)
+                ? (other.unitOfMeasurement != null) : !this.unitOfMeasurement.equals(other.unitOfMeasurement)) {
             return false;
         }
         if (!Arrays.deepEquals(this.measurementNames, other.measurementNames)) {
@@ -84,7 +87,9 @@ public class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
 
     @Override
     public String toString() {
-        return "EntityMeasurementsInfoImpl{" + "measuredEntity=" + measuredEntity + ", unitOfMeasurement=" + unitOfMeasurement + ", measurementNames=" + Arrays.toString(measurementNames)+ '}';
+        return "EntityMeasurementsInfoImpl{" + "measuredEntity=" + measuredEntity
+                + ", unitOfMeasurement=" + unitOfMeasurement + ", measurementNames="
+                + Arrays.toString(measurementNames) + '}';
     }
 
 

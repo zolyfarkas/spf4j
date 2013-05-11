@@ -32,7 +32,7 @@ import org.junit.Test;
 /**
  * @author zoly
  */
-public class FileMonitorAspectTest {
+public final class FileMonitorAspectTest {
     
     public FileMonitorAspectTest() {
     }
@@ -47,9 +47,9 @@ public class FileMonitorAspectTest {
         System.setProperty("perf.file.sampleTime", "1000");
         File tempFile = File.createTempFile("test", ".tmp");
         tempFile.deleteOnExit();
-        Writer fw = new OutputStreamWriter( new FileOutputStream(tempFile));
+        Writer fw = new OutputStreamWriter(new FileOutputStream(tempFile));
         try {
-            for(int i=0; i< 10 ; i++) {
+            for (int i = 0; i < 10; i++) {
                 fw.write("bla bla test\n");
                 Thread.sleep(500);
             }
@@ -57,7 +57,7 @@ public class FileMonitorAspectTest {
             fw.close();
         }
         Thread.sleep(1000);
-        BufferedReader fr = new BufferedReader(new InputStreamReader( new FileInputStream(tempFile)));
+        BufferedReader fr = new BufferedReader(new InputStreamReader(new FileInputStream(tempFile)));
         try {
             String line = fr.readLine();
             while (line != null) {

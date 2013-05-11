@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * @author zoly
  */
 @ThreadSafe
-public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityMeasurements, Closeable {
+public final class ScalableMeasurementRecorder implements MeasurementRecorder, EntityMeasurements, Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);
     
@@ -49,7 +49,8 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
     private final ScheduledFuture<?> samplingFuture;
     private final MeasurementProcessor processorTemplate;
 
-    public ScalableMeasurementRecorder(final MeasurementProcessor processor, final int sampleTimeMillis, final MeasurementDatabase database) {
+    public ScalableMeasurementRecorder(final MeasurementProcessor processor, final int sampleTimeMillis,
+            final MeasurementDatabase database) {
         threadLocalRecorders = new HashMap<Thread, MeasurementProcessor>();
         processorTemplate = processor;
         threadLocalRecorder = new ThreadLocal<MeasurementProcessor>() {
@@ -76,11 +77,12 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
                 long currentTime = System.currentTimeMillis();
                 if (currentTime > lastRun) {
                     lastRun = currentTime;
-                    database.saveMeasurements(ScalableMeasurementRecorder.this.getInfo(), 
+                    database.saveMeasurements(ScalableMeasurementRecorder.this.getInfo(),
                             ScalableMeasurementRecorder.this.getMeasurements(true),
                             currentTime, sampleTimeMillis);
                 } else {
-                    LOG.warn("Last measurement recording was at {} current run is {}, something is wrong" , lastRun, currentTime);
+                    LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
+                            lastRun, currentTime);
                 }
             }
         }, sampleTimeMillis);
@@ -89,24 +91,24 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
     }
 
     @Override
-    public void record(long measurement) {
+    public void record(final long measurement) {
         threadLocalRecorder.get().record(measurement);
     }
 
     @Override
-    public long [] getMeasurements(boolean reset) {
+    public long [] getMeasurements(final boolean reset) {
         EntityMeasurements result  = null;
         synchronized (threadLocalRecorders) {
             List<Thread> removeThreads = new ArrayList<Thread>();
-            for (Map.Entry<Thread, MeasurementProcessor> entry: threadLocalRecorders.entrySet()) {
-                if (!entry.getKey().isAlive() && reset) {
-                    removeThreads.add(entry.getKey());
+            for (Map.Entry<Thread, MeasurementProcessor> entry : threadLocalRecorders.entrySet()) {
+                Thread t = entry.getKey();
+                if (!t.isAlive() && reset) {
+                    removeThreads.add(t);
                 }
-                EntityMeasurements measurements = entry.getValue().createClone(reset);  
+                EntityMeasurements measurements = entry.getValue().createClone(reset);
                 if (result == null) {
                     result = measurements;
-                }
-                else {
+                } else {
                     result = result.aggregate(measurements);
                 }
             }
@@ -118,25 +120,25 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
     }
 
     @Override
-    public EntityMeasurements aggregate(EntityMeasurements mSource) {
+    public EntityMeasurements aggregate(final EntityMeasurements mSource) {
         throw new UnsupportedOperationException("Aggregating Scalable Recorders not supported");
     }
 
 
 
     @Override
-    public EntityMeasurements createClone(boolean reset) {
+    public EntityMeasurements createClone(final boolean reset) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public void close() {
-        samplingFuture.cancel(false);             
+        samplingFuture.cancel(false);
     }
 
     @Override
     protected void finalize() throws Throwable {
-        try{
+        try {
             super.finalize();
         } finally {
             this.close();
@@ -145,11 +147,12 @@ public class ScalableMeasurementRecorder implements MeasurementRecorder, EntityM
 
     @Override
     public String toString() {
-        return "ScalableMeasurementRecorder{" + "threadLocalRecorders=" + threadLocalRecorders + ", processorTemplate=" + processorTemplate + '}';
+        return "ScalableMeasurementRecorder{" + "threadLocalRecorders=" + threadLocalRecorders
+                + ", processorTemplate=" + processorTemplate + '}';
     }
 
     @Override
-    public EntityMeasurements createLike(Object entity) {
+    public EntityMeasurements createLike(final Object entity) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

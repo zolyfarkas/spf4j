@@ -15,38 +15,42 @@ import org.spf4j.perf.MeasurementRecorderSource;
  *
  * @author zoly
  */
-public class MeasuredFileInputStream extends FileInputStream {
+public final class MeasuredFileInputStream extends FileInputStream {
 
     private final Class<?> from;
     private final MeasurementRecorderSource recorderSource;
 
-    public MeasuredFileInputStream(String name, Class<?> from, MeasurementRecorderSource recorderSource) throws FileNotFoundException {
+    public MeasuredFileInputStream(final String name, final Class<?> from,
+            final MeasurementRecorderSource recorderSource)
+            throws FileNotFoundException {
         super(name);
         this.from = from;
         this.recorderSource = recorderSource;
     }
 
-    public MeasuredFileInputStream(File file, Class<?> from, MeasurementRecorderSource recorderSource) throws FileNotFoundException {
+    public MeasuredFileInputStream(final File file, final Class<?> from, final MeasurementRecorderSource recorderSource)
+            throws FileNotFoundException {
         super(file);
         this.from = from;
         this.recorderSource = recorderSource;
     }
 
-    public MeasuredFileInputStream(FileDescriptor fdObj, Class<?> from, MeasurementRecorderSource recorderSource) {
+    public MeasuredFileInputStream(final FileDescriptor fdObj, final Class<?> from,
+            final MeasurementRecorderSource recorderSource) {
         super(fdObj);
         this.from = from;
         this.recorderSource = recorderSource;
     }
 
     @Override
-    public int read(byte[] b) throws IOException {
+    public int read(final byte[] b) throws IOException {
         int result = super.read(b);
         recorderSource.getRecorder(from).record(result);
         return result;
     }
 
     @Override
-    public int read(byte[] b, int off, int len) throws IOException {
+    public int read(final byte[] b, final int off, final int len) throws IOException {
         int result = super.read(b, off, len);
         recorderSource.getRecorder(from).record(result);
         return result;

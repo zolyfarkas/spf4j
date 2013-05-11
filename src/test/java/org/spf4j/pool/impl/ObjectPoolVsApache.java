@@ -17,9 +17,8 @@
  */
 package org.spf4j.pool.impl;
 
-import org.spf4j.pool.impl.ObjectPoolBuilder;
 import org.spf4j.base.Callables;
-import org.spf4j.base.RetryExecutor;
+import org.spf4j.concurrent.RetryExecutor;
 import org.spf4j.pool.ObjectBorrowException;
 import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectDisposeException;
@@ -40,18 +39,23 @@ import org.junit.Test;
  *
  * @author zoly
  */
-public class ObjectPoolVsApache {
+public final class ObjectPoolVsApache {
   
-    private static final int TEST_TASKS=1000000;
+    private static final int TEST_TASKS = 1000000;
     
-    @Test(timeout=200000)
-    public void testPerformance() throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+    @Test(timeout = 200000)
+    public void testPerformance()
+            throws ObjectCreationException, ObjectBorrowException, InterruptedException,
+            TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
         System.out.println("poolUse");
-        final ObjectPool<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory(1000, 100, 0, 1)).build();
-        final org.apache.commons.pool.impl.GenericObjectPool apool = new GenericObjectPool(new ExpensiveTestObjectFactoryApache(1000, 10, 0, 1), 10);
+        final ObjectPool<ExpensiveTestObject> pool
+                = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory(1000, 100, 0, 1)).build();
+        final org.apache.commons.pool.impl.GenericObjectPool apool
+                = new GenericObjectPool(new ExpensiveTestObjectFactoryApache(1000, 10, 0, 1), 10);
         ExecutorService execService = Executors.newFixedThreadPool(10);
         BlockingQueue<Future<Integer>> completionQueue = new LinkedBlockingDeque<Future<Integer>>();
-        RetryExecutor<Integer> exec = new RetryExecutor<Integer>(execService, 8, 16, 5000, Callables.RETRY_FOR_ANY_EXCEPTION,
+        RetryExecutor<Integer> exec
+                = new RetryExecutor<Integer>(execService, 8, 16, 5000, Callables.RETRY_FOR_ANY_EXCEPTION,
                  completionQueue);
         long zpooltime = testPool(exec, pool, completionQueue);
         long apooltime = testPoolApache(exec, apool, completionQueue);
@@ -59,32 +63,33 @@ public class ObjectPoolVsApache {
         
     }
 
-    private long testPool(RetryExecutor<Integer> exec, final ObjectPool<ExpensiveTestObject> pool, BlockingQueue<Future<Integer>> completionQueue) throws InterruptedException, ExecutionException {
+    private long testPool(final RetryExecutor<Integer> exec, final ObjectPool<ExpensiveTestObject> pool,
+            final BlockingQueue<Future<Integer>> completionQueue) throws InterruptedException, ExecutionException {
         long startTime = System.currentTimeMillis();
-        for (int i=0; i<TEST_TASKS; i++) {
+        for (int i = 0; i < TEST_TASKS; i++) {
             exec.submit(new TestCallable(pool, i));
-        }        
-        for (int i=0; i<TEST_TASKS; i++) {
+        }
+        for (int i = 0; i < TEST_TASKS; i++) {
             completionQueue.take().get();
         }
-        long elapsedTime = System.currentTimeMillis() - startTime;       
-        System.out.println("Completed all "+TEST_TASKS+" tasks in " + elapsedTime + "ms ");
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        System.out.println("Completed all " + TEST_TASKS + " tasks in " + elapsedTime + "ms ");
         return elapsedTime;
     }
     
     
-    private long testPoolApache(RetryExecutor<Integer> exec, 
-            final org.apache.commons.pool.impl.GenericObjectPool pool, 
-            BlockingQueue<Future<Integer>> completionQueue) throws InterruptedException, ExecutionException {
+    private long testPoolApache(final RetryExecutor<Integer> exec,
+            final org.apache.commons.pool.impl.GenericObjectPool pool,
+            final BlockingQueue<Future<Integer>> completionQueue) throws InterruptedException, ExecutionException {
         long startTime = System.currentTimeMillis();
-        for (int i=0; i<TEST_TASKS; i++) {
+        for (int i = 0; i < TEST_TASKS; i++) {
             exec.submit(new TestCallableApache(pool, i));
-        }        
-        for (int i=0; i<TEST_TASKS; i++) {
+        }
+        for (int i = 0; i < TEST_TASKS; i++) {
             completionQueue.take().get();
         }
-        long elapsedTime = System.currentTimeMillis() - startTime;       
-        System.out.println("Completed all "+TEST_TASKS+" tasks in " + elapsedTime + "ms ");
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        System.out.println("Completed all " + TEST_TASKS + " tasks in " + elapsedTime + "ms ");
         return elapsedTime;
     }
     

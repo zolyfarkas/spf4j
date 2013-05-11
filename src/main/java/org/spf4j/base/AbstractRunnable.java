@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
@@ -29,27 +28,27 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractRunnable implements Runnable {
 
-    protected final boolean lenient;
+    private final boolean lenient;
 
-    public AbstractRunnable(boolean lenient) {
+    public AbstractRunnable(final boolean lenient) {
         this.lenient = lenient;
     }
 
     public AbstractRunnable() {
         this(false);
-    }  
-    
-    
+    }
+
+    public static final int ERROR_EXIT_CODE = 666;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRunnable.class);
-    
+
     @Override
     public final void run() {
         try {
             doRun();
-        } 
-        catch (Exception ex) {
+        } catch (Exception ex) {
             if (Throwables.getRootCause(ex) instanceof Error) {
-                Runtime.goDownWithError(ex, 666);
+                Runtime.goDownWithError(ex, ERROR_EXIT_CODE);
             }
             if (lenient) {
                 LOGGER.warn("Exception in runnable: ", ex);
@@ -57,12 +56,11 @@ public abstract class AbstractRunnable implements Runnable {
                 LOGGER.error("Exception in runnable: ", ex);
                 throw new RuntimeException(ex);
             }
-        }
-        catch (Throwable ex) {
-           Runtime.goDownWithError(ex, 666);
+        } catch (Throwable ex) {
+           Runtime.goDownWithError(ex, ERROR_EXIT_CODE);
         }
     }
-    
+
     public abstract void doRun() throws Exception;
-    
+
 }

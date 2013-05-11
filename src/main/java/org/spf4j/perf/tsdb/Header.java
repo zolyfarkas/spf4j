@@ -27,21 +27,21 @@ import java.nio.channels.FileLock;
  * TSDB header detail
  * @author zoly
  */
-class Header {
+final class Header {
     
-    public static final String TYPE="TSDB"; 
+    public static final String TYPE = "TSDB";
     
     private final String type;
-    private final int version;  
+    private final int version;
     private final byte[] metaData;
 
-    public Header(int version, byte[] metaData) {
+    public Header(final int version, final byte[] metaData) {
         this.type = TYPE;
         this.version = version;
         this.metaData = metaData;
     }
 
-    public Header(RandomAccessFile raf) throws IOException {
+    public Header(final RandomAccessFile raf) throws IOException {
         FileChannel ch = raf.getChannel();
         FileLock lock = ch.lock(ch.position(), 16, true);
         try {
@@ -69,7 +69,7 @@ class Header {
         }
     }
 
-    public void writeTo(RandomAccessFile raf) throws IOException {
+    public void writeTo(final RandomAccessFile raf) throws IOException {
         FileChannel ch = raf.getChannel();
         FileLock lock = ch.lock();
         try {

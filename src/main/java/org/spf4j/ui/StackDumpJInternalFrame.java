@@ -15,6 +15,7 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+//CHECKSTYLE:OFF
 package org.spf4j.ui;
 
 import com.google.protobuf.CodedInputStream;
@@ -36,7 +37,7 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     /**
      * Creates new form StackDumpJInternalFrame
      */
-    public StackDumpJInternalFrame(String sampleFile) throws IOException {
+    public StackDumpJInternalFrame(final String sampleFile) throws IOException {
         super(sampleFile);
         initComponents();
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sampleFile));

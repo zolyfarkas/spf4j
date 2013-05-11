@@ -15,97 +15,110 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.stackmonitor;
 
-import com.google.common.base.Function;
-import com.google.protobuf.CodedInputStream;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.management.*;
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.kohsuke.args4j.CmdLineException;
-import org.spf4j.stackmonitor.proto.Converter;
-import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
 
-public class MonitorTest {
+public final class MonitorTest {
 
     @BeforeClass
     public static void init() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
-            public void uncaughtException(Thread t, Throwable e) {
+            public void uncaughtException(final Thread t, final Throwable e) {
                 StringWriter strw = new StringWriter();
                 e.printStackTrace(new PrintWriter(strw));
                 Assert.fail("Got Exception: " + strw.toString());
             }
         });
     }
-    
 
     @Test
     @Ignore
-    public void testError() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, InterruptedException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
+    public void testError() throws ClassNotFoundException, NoSuchMethodException,
+            IllegalAccessException, InvocationTargetException,
+            IOException, CmdLineException, InterruptedException, MalformedObjectNameException,
+            InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
         String report = File.createTempFile("stackSample", ".html").getPath();
-        Monitor.main(new String[]{"-ASDF","-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
+        Monitor.main(new String[]{"-ASDF", "-f", report, "-ss", "-si", "10", "-w", "600", "-main",
+            MonitorTest.class.getName()});
         System.out.println(report);
     }
-    
-    
+
     @Test
-    public void testJmx() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, InterruptedException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
+    public void testJmx() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
+            InvocationTargetException, IOException, CmdLineException,
+            InterruptedException, MalformedObjectNameException, InstanceAlreadyExistsException,
+            MBeanRegistrationException, NotCompliantMBeanException {
         String report = File.createTempFile("stackSample", ".html").getPath();
-        Monitor.main(new String[]{"-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
+        Monitor.main(new String[]{"-f", report, "-ss", "-si", "10", "-w", "600", "-main",
+            MonitorTest.class.getName()});
         System.out.println(report);
     }
-    
-  
-    @Test(timeout=20000)
+
+    @Test(timeout = 20000)
     @Ignore
-    public void testApphtml() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException, InstanceNotFoundException {
+    public void testApphtml() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
+            InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException,
+            InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException,
+            InterruptedException, InstanceNotFoundException {
         String report = File.createTempFile("stackSampleHtml", ".html").getPath();
-        Monitor.main(new String[]{"-nosvg", "-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
+        Monitor.main(new String[]{"-nosvg", "-f", report, "-ss", "-si", "10", "-w", "600", "-main",
+            MonitorTest.class.getName()});
         System.out.println(report);
     }
-    
-    
-    @Test(timeout=20000)
+
+    @Test(timeout = 20000)
     @Ignore
-    public void testApp2() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException {
+    public void testApp2() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
+            InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException,
+            InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException,
+            InterruptedException {
         String report = File.createTempFile("stackSampleSimple", ".html").getPath();
-        Monitor.main(new String[]{"-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
+        Monitor.main(new String[]{"-f", report, "-ss", "-si", "10", "-w", "600", "-main", MonitorTest.class.getName()});
         System.out.println(report);
     }
-    
-    @Test(timeout=20000)
+
+    @Test(timeout = 20000)
     @Ignore
-    public void testApp() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException, InstanceNotFoundException {
+    public void testApp() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
+            InvocationTargetException, IOException, CmdLineException,
+            MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException,
+            NotCompliantMBeanException, InterruptedException, InstanceNotFoundException {
         String report = File.createTempFile("stackSample", ".html").getPath();
-        Monitor.main(new String[]{"-f",report, "-ss", "-si", "10", "-w","600", "-main", MonitorTest.class.getName()});
+        Monitor.main(new String[]{"-f", report, "-ss", "-si", "10", "-w", "600", "-main", MonitorTest.class.getName()});
         System.out.println(report);
-    }    
-    
-    
+    }
     private static volatile boolean stopped;
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(final String[] args) throws InterruptedException {
         stopped = false;
         List<Thread> threads = new ArrayList<Thread>();
         for (int i = 0; i < 20; i++) {
             Thread t = new Thread(new Runnable() {
-
                 @Override
                 public void run() {
                     try {
                         while (!stopped) {
                             double rnd = Math.random();
-                            if (rnd < 0.33) {                                
-                                    doStuff1(rnd,50);                                
+                            if (rnd < 0.33) {
+                                doStuff1(rnd, 50);
                             } else if (rnd < 0.66) {
                                 doStuff2(rnd);
                             } else {
@@ -118,12 +131,13 @@ public class MonitorTest {
 
                 }
 
-                private double doStuff3(double rnd) throws InterruptedException{                
+                private double doStuff3(final double rnd) throws InterruptedException {
                     Thread.sleep(1);
-                    return  rnd * Math.pow(2, 10000);
+                    return rnd * Math.pow(2, 10000);
                 }
 
-                private double doStuff2(double rnd) throws InterruptedException {
+                private double doStuff2(final double prnd) throws InterruptedException {
+                    double rnd = prnd;
                     Thread.sleep(1);
                     for (int j = 0; j < 10000; j++) {
                         rnd = rnd + rnd;
@@ -131,12 +145,12 @@ public class MonitorTest {
                     return rnd;
                 }
 
-                private void doStuff1(double rnd, int depth) throws InterruptedException {
-                    if (depth<=0) {
+                private void doStuff1(final double rnd, final int depth) throws InterruptedException {
+                    if (depth <= 0) {
                         Thread.sleep(10);
                         System.out.println("Rnd:" + rnd);
                     } else {
-                        doStuff1(rnd, depth -1);
+                        doStuff1(rnd, depth - 1);
                     }
                 }
             }, "Thread" + i);
@@ -145,9 +159,9 @@ public class MonitorTest {
         }
         Thread.sleep(5000);
         stopped = true;
-        for(Thread t: threads) {
+        for (Thread t : threads) {
             t.join();
         }
-        
+
     }
 }

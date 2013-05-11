@@ -18,6 +18,7 @@
  */
 package org.spf4j.pool.impl;
 
+import java.util.ArrayList;
 import org.spf4j.pool.ObjectBorower;
 import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectDisposeException;
@@ -36,7 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author zoly
  */
-public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHolder<T>> {
+public final class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHolder<T>> {
 
     private final Queue<ObjectHolder<T>> localObjects;
     private final Map<T, ObjectHolder<T>> borrowedObjects;
@@ -45,7 +46,7 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
     private final Thread thread;
     private final ReentrantLock lock;
 
-    public LocalObjectPool(SmartObjectPool<ObjectHolder<T>> globalPool) {
+    public LocalObjectPool(final SmartObjectPool<ObjectHolder<T>> globalPool) {
         localObjects = new LinkedList<ObjectHolder<T>>();
         borrowedObjects = new HashMap<T, ObjectHolder<T>>();
         this.globalPool = globalPool;
@@ -77,7 +78,7 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
     }
 
     @Override
-    public void returnObject(T object, Exception e) throws ObjectReturnException, ObjectDisposeException {
+    public void returnObject(final T object, final Exception e) throws ObjectReturnException, ObjectDisposeException {
         lock.lock();
         try {
             ObjectHolder holder = borrowedObjects.remove(object);
@@ -106,7 +107,7 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
     }
 
     @Override
-    public boolean scan(ScanHandler<ObjectHolder<T>> handler) throws Exception {
+    public boolean scan(final ScanHandler<ObjectHolder<T>> handler) throws Exception {
         lock.lock();
         try {
             for (ObjectHolder<T> object : localObjects) {
@@ -157,6 +158,28 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
             return null;
         }
     }
+    
+    
+    @Override
+    public Collection<ObjectHolder<T>> returnObjectsIfNotInUse() {
+        boolean acquired = lock.tryLock();
+        if (acquired) {
+            try {
+                if (!localObjects.isEmpty()) {
+                    Collection<ObjectHolder<T>> result = new ArrayList<ObjectHolder<T>>(localObjects);
+                    localObjects.clear();
+                    return result;
+                } else {
+                    return null;
+                }
+            } finally {
+                lock.unlock();
+            }
+        } else {
+            return null;
+        }
+    }
+    
 
     @Override
     public Collection<ObjectHolder<T>> returnObjectsIfNotNeeded() {
@@ -180,6 +203,7 @@ public class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHo
 
     @Override
     public String toString() {
-        return "LocalObjectPool{" + "localObjects=" + localObjects + ", borrowedObjects=" + borrowedObjects + ", reqReturnObjects=" + reqReturnObjects + ", thread=" + thread + '}';
+        return "LocalObjectPool{" + "localObjects=" + localObjects + ", borrowedObjects="
+                + borrowedObjects + ", reqReturnObjects=" + reqReturnObjects + ", thread=" + thread + '}';
     }
 }

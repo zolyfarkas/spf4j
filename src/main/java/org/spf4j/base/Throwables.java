@@ -17,7 +17,6 @@
  */
 package org.spf4j.base;
 
-import com.google.common.base.Throwables;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -29,20 +28,20 @@ import java.security.PrivilegedAction;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- * Chainable exception class;
+ * utility class for throwables.
  *
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class Exceptions {
+public final class Throwables {
 
-    private Exceptions() {}
+    private Throwables() { }
     
-    private static final Field field;
+    private static final Field CAUSE_FIELD;
 
     static {
         try {
-            field = Throwable.class.getDeclaredField("cause");
+            CAUSE_FIELD = Throwable.class.getDeclaredField("cause");
         } catch (NoSuchFieldException ex) {
             throw new RuntimeException(ex);
         } catch (SecurityException ex) {
@@ -51,7 +50,7 @@ public final class Exceptions {
         AccessController.doPrivileged(new PrivilegedAction() {
             @Override
             public Object run() {
-                field.setAccessible(true);
+                CAUSE_FIELD.setAccessible(true);
                 return null; // nothing to return
             }
         });
@@ -59,13 +58,13 @@ public final class Exceptions {
     }
 
     private static Throwable chain0(final Throwable t, final Throwable cause) {
-        final Throwable rc = Throwables.getRootCause(t);
+        final Throwable rc = com.google.common.base.Throwables.getRootCause(t);
         try {
             AccessController.doPrivileged(new PrivilegedAction() {
                 @Override
                 public Object run() {
                     try {
-                        field.set(rc, cause);
+                        CAUSE_FIELD.set(rc, cause);
                     } catch (IllegalArgumentException ex) {
                         throw new RuntimeException(ex);
                     } catch (IllegalAccessException ex) {
@@ -89,7 +88,7 @@ public final class Exceptions {
      * @param newRootCause
      * @return
      */
-    public static <T extends Throwable> T chain(T t, Throwable newRootCause) {
+    public static <T extends Throwable> T chain(final T t, final Throwable newRootCause) {
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutputStream out = new ObjectOutputStream(bos);

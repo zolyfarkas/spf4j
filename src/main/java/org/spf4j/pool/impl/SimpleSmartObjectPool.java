@@ -18,7 +18,7 @@
 package org.spf4j.pool.impl;
 
 import com.google.common.collect.LinkedHashMultimap;
-import org.spf4j.base.Exceptions;
+import org.spf4j.base.Throwables;
 import org.spf4j.base.Pair;
 import org.spf4j.pool.ObjectBorower;
 import org.spf4j.pool.ObjectCreationException;
@@ -38,7 +38,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author zoly
  */
-public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
+public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
 
     private int maxSize;
     private final LinkedHashMultimap<ObjectBorower<T>, T> borrowedObjects = LinkedHashMultimap.create();
@@ -48,7 +48,9 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     private final ObjectPool.Factory<T> factory;
     private final long timeoutMillis;
 
-    public SimpleSmartObjectPool(int initialSize, int maxSize, ObjectPool.Factory<T> factory, long timeoutMillis, boolean fair) throws ObjectCreationException {
+    public SimpleSmartObjectPool(final int initialSize, final int maxSize,
+            final ObjectPool.Factory<T> factory, final long timeoutMillis, final boolean fair)
+            throws ObjectCreationException {
         this.maxSize = maxSize;
         this.factory = factory;
         this.timeoutMillis = timeoutMillis;
@@ -60,7 +62,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     }
 
     @Override
-    public T borrowObject(ObjectBorower borower) throws InterruptedException,
+    public T borrowObject(final ObjectBorower borower) throws InterruptedException,
             TimeoutException, ObjectCreationException {
         lock.lock();
         try {
@@ -110,7 +112,9 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                             borrowedObjects.put(borower, (T) object);
                             return (T) object;
                         }
+                        //CHECKSTYLE:OFF -- inner assignement
                     } while (object != ObjectBorower.REQUEST_MADE && (itt.hasNext() && ((b = itt.next()) != null)));
+                    //CHECKSTYLE:ON
                 } while (object != ObjectBorower.REQUEST_MADE);
 
                 while (availableObjects.isEmpty()) {
@@ -131,7 +135,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     }
 
     @Override
-    public void returnObject(T object, ObjectBorower borower) {
+    public void returnObject(final T object, final ObjectBorower borower) {
         lock.lock();
         try {
             borrowedObjects.remove(borower, object);
@@ -147,20 +151,22 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         lock.lock();
         try {
             maxSize = 0;
-            List<Pair<ObjectBorower<T>,Object>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>,Object>>();
+            List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>, T>>();
             for (ObjectBorower<T> b : borrowedObjects.keySet()) {
-                Object object = b.requestReturnObject();
-                returnedObjects.add(Pair.of(b,object));
+                T object = (T) b.requestReturnObject();
+                if (object != null) {
+                    returnedObjects.add(Pair.of(b, object));
+                }
             }
-            for (Pair<ObjectBorower<T>,Object> objectAndBorrower : returnedObjects) {
-                Object object = objectAndBorrower.getSecond();
-                if (object != null && object != ObjectBorower.REQUEST_MADE) {
+            for (Pair<ObjectBorower<T>, T> objectAndBorrower : returnedObjects) {
+                T object = objectAndBorrower.getSecond();
+                if (object != ObjectBorower.REQUEST_MADE) {
                     if (!borrowedObjects.remove(objectAndBorrower.getFirst(), object)) {
                         throw new IllegalStateException("Returned Object hasn't been borrowed " + object);
                     }
-                    availableObjects.add((T) object);
+                    availableObjects.add(object);
                 }
-            }         
+            }
             ObjectDisposeException exception = disposeReturnedObjects(null);
             while (!borrowedObjects.isEmpty()) {
                 if (!available.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
@@ -178,15 +184,15 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         }
     }
 
-    private ObjectDisposeException disposeReturnedObjects(ObjectDisposeException exception) {
+    private ObjectDisposeException disposeReturnedObjects(final ObjectDisposeException exception) {
         ObjectDisposeException result = exception;
         for (T obj : availableObjects) {
             try {
                 factory.dispose(obj);
             } catch (ObjectDisposeException ex) {
-                result = Exceptions.chain(ex, result);
+                result = Throwables.chain(ex, result);
             } catch (Exception ex) {
-                result = Exceptions.chain(new ObjectDisposeException(ex), result);
+                result = Throwables.chain(new ObjectDisposeException(ex), result);
             }
         }
         availableObjects.clear();
@@ -194,7 +200,7 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     }
 
     @Override
-    public boolean scan(ScanHandler<T> handler) throws Exception {
+    public boolean scan(final ScanHandler<T> handler) throws Exception {
         lock.lock();
         try {
             for (ObjectBorower<T> objectBorower : borrowedObjects.keySet()) {
@@ -225,11 +231,35 @@ public class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         }
     }
 
+    public void requestReturnFromBorrowersIfNotInUse() {
+        lock.lock();
+        try {
+            List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>, T>>();
+            for (ObjectBorower<T> b : borrowedObjects.keySet()) {
+                Collection<T> objects = b.returnObjectsIfNotInUse();
+                if (objects != null) {
+                    for (T object : objects) {
+                        returnedObjects.add(Pair.of(b, object));
+                    }
+                }
+            }
+            for (Pair<ObjectBorower<T>, T> ro : returnedObjects) {
+                T object = ro.getSecond();
+                borrowedObjects.remove(ro.getFirst(), object);
+                availableObjects.add(object);
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
     @Override
     public String toString() {
         lock.lock();
         try {
-            return "SimpleSmartObjectPool{" + "maxSize=" + maxSize + ", borrowedObjects=" + borrowedObjects.values() + ", returnedObjects=" + availableObjects + ", factory=" + factory + ", timeoutMillis=" + timeoutMillis + '}';
+            return "SimpleSmartObjectPool{" + "maxSize=" + maxSize + ", borrowedObjects="
+                    + borrowedObjects.values() + ", returnedObjects=" + availableObjects
+                    + ", factory=" + factory + ", timeoutMillis=" + timeoutMillis + '}';
         } finally {
             lock.unlock();
         }

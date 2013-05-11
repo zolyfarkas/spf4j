@@ -30,7 +30,7 @@ import org.junit.Test;
  * @author zoly
  */
 @SuppressWarnings("SleepWhileInLoop")
-public class RecorderFactoryTest {
+public final class RecorderFactoryTest {
     
 
     private long startTime = System.currentTimeMillis();
@@ -39,7 +39,7 @@ public class RecorderFactoryTest {
     public static void init() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
-            public void uncaughtException(Thread t, Throwable e) {
+            public void uncaughtException(final Thread t, final Throwable e) {
                 StringWriter strw = new StringWriter();
                 e.printStackTrace(new PrintWriter(strw));
                 Assert.fail("Got Exception: " + strw.toString());
@@ -63,13 +63,13 @@ public class RecorderFactoryTest {
         int quantasPerMagnitude = 10;
         MeasurementRecorder result = RecorderFactory.createScalableQuantizedRecorder(
                 forWhat, unitOfMeasurement, sampleTime, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
-        for (int i=0; i<500; i++) {
+        for (int i = 0; i < 500; i++) {
             result.record(i);
             Thread.sleep(20);
         }
         long endTime = System.currentTimeMillis();
         System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime, endTime, 1200, 600));
-        ((Closeable)result).close();
+        ((Closeable) result).close();
         
     }
 
@@ -88,13 +88,13 @@ public class RecorderFactoryTest {
         int quantasPerMagnitude = 10;
         MeasurementRecorderSource result = RecorderFactory.createScalableQuantizedRecorderSource(
                 forWhat, unitOfMeasurement, sampleTime, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
-        for (int i=0; i<5000; i++) {
-            result.getRecorder("X"+ i%2).record(i);
+        for (int i = 0; i < 5000; i++) {
+            result.getRecorder("X" + i % 2).record(i);
             Thread.sleep(1);
         }
         long endTime = System.currentTimeMillis();
         System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime, endTime, 1200, 600));
-        ((Closeable)result).close();
+        ((Closeable) result).close();
     }
     
     
@@ -112,13 +112,13 @@ public class RecorderFactoryTest {
         int quantasPerMagnitude = 10;
         MeasurementRecorder result = RecorderFactory.createScalableQuantizedRecorder(
                 forWhat, unitOfMeasurement, sampleTime, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
-        for (int i=0; i<500; i++) {
+        for (int i = 0; i < 500; i++) {
             result.record(10000);
             Thread.sleep(20);
         }
         long endTime = System.currentTimeMillis();
         System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime, endTime, 1200, 1600));
-        ((Closeable)result).close();
+        ((Closeable) result).close();
         
     }
     
@@ -134,18 +134,18 @@ public class RecorderFactoryTest {
         int sampleTime = 1000;
         MeasurementRecorderSource result = RecorderFactory.createScalableCountingRecorderSource(
                 forWhat, unitOfMeasurement, sampleTime);
-        for (int i=0; i<5000; i++) {
-            result.getRecorder("X"+ i%2).record(1);
+        for (int i = 0; i < 5000; i++) {
+            result.getRecorder("X" + i % 2).record(1);
             Thread.sleep(1);
         }
         long endTime = System.currentTimeMillis();
         System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime, endTime, 1200, 600));
-        ((Closeable)result).close();
+        ((Closeable) result).close();
     }
     
     
-    public static void main(String[] args) throws IOException, InterruptedException {
-       new RecorderFactoryTest(). testCreateScalableQuantizedRecorder();
+    public static void main(final String[] args) throws IOException, InterruptedException {
+       new RecorderFactoryTest().testCreateScalableQuantizedRecorder();
     }
     
 }

@@ -17,7 +17,7 @@
  */
 package org.spf4j.pool.impl;
 
-import org.spf4j.base.Exceptions;
+import org.spf4j.base.Throwables;
 import org.spf4j.pool.ObjectBorrowException;
 import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectDisposeException;
@@ -33,16 +33,17 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<ObjectHolder<T>>{
+public final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<ObjectHolder<T>> {
 
     private final ObjectPool<T> pool;
     
-    private final Hook<T, ? extends Exception> borrowHook;
+    private final Handler<T, ? extends Exception> borrowHook;
     
-    private final Hook<T, ? extends Exception> returnHook;
+    private final Handler<T, ? extends Exception> returnHook;
 
-    public ObjectPoolWrapper(ObjectPool<T> pool, @Nullable Hook<T, ? extends Exception> borrowHook, 
-            @Nullable Hook<T, ? extends Exception> returnHook) {
+    public ObjectPoolWrapper(final ObjectPool<T> pool,
+            @Nullable final Handler<T, ? extends Exception> borrowHook,
+            @Nullable final Handler<T, ? extends Exception> returnHook) {
         this.pool = pool;
         this.borrowHook = borrowHook;
         this.returnHook = returnHook;
@@ -55,29 +56,30 @@ public class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<ObjectHold
     
     
     @Override
-    public T borrowObject() throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
+    public T borrowObject()
+            throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
         T result = pool.borrowObject();
         try {
             if (borrowHook != null) {
                 borrowHook.handle(result);
-            } 
+            }
             return result;
         } catch (Exception e) {
             try {
                 pool.returnObject(result, e);
             } catch (ObjectReturnException ex) {
-                throw Exceptions.chain(new RuntimeException(ex), e);
+                throw Throwables.chain(new RuntimeException(ex), e);
             } catch (ObjectDisposeException ex) {
-                 throw Exceptions.chain(new RuntimeException(ex), e);
+                 throw Throwables.chain(new RuntimeException(ex), e);
             }
             throw new ObjectBorrowException("Exception while executing borrow hook", e);
         }
     }
 
     @Override
-    public void returnObject(T object, Exception e) throws ObjectReturnException, ObjectDisposeException {
+    public void returnObject(final T object, final Exception e) throws ObjectReturnException, ObjectDisposeException {
         try {
-            if (returnHook != null) { 
+            if (returnHook != null) {
                 returnHook.handle(object);
             }
         } catch (Exception ex) {
@@ -93,9 +95,9 @@ public class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<ObjectHold
     }
 
     @Override
-    public boolean scan(ScanHandler<ObjectHolder<T>> handler) throws Exception {
+    public boolean scan(final ScanHandler<ObjectHolder<T>> handler) throws Exception {
         if (pool instanceof Scanable) {
-            return ((Scanable<ObjectHolder<T>>)pool).scan(handler);
+            return ((Scanable<ObjectHolder<T>>) pool).scan(handler);
         } else {
             throw new RuntimeException("Wrapped pool is not scanable");
         }

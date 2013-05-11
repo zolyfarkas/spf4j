@@ -19,7 +19,11 @@
 package org.spf4j.base;
 
 import com.google.common.util.concurrent.MoreExecutors;
-import java.util.concurrent.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 
 /**
  *
@@ -27,36 +31,37 @@ import java.util.concurrent.*;
  */
 public final class DefaultScheduler {
 
-    private DefaultScheduler() {}
+    private DefaultScheduler() { }
     
     
-    public static final ScheduledExecutorService INSTANCE = 
+    public static final ScheduledExecutorService INSTANCE =
             MoreExecutors.getExitingScheduledExecutorService(
             new ScheduledThreadPoolExecutor(2,
-            new CustomThreadFactory("DefaultScheduler", false)))            
-            ;
+            new CustomThreadFactory("DefaultScheduler", false)));
 
     
     private static final long HOUR_MILLIS = 3600000;
     
-    private static final long DAY_MILLIS = HOUR_MILLIS *24 ;
+    private static final long DAY_MILLIS = HOUR_MILLIS * 24;
     
     /**
      * this will schedule a runnable aligned to the hour or day.
      * @param command
      * @param millisInterval
-     * @return 
+     * @return Future that allows to cancel the schedule.
      */
-    public static ScheduledFuture<?> scheduleAllignedAtFixedRateMillis(Runnable command,long millisInterval) {
+    public static ScheduledFuture<?> scheduleAllignedAtFixedRateMillis(
+            final Runnable command, final long millisInterval) {
        long currentTime = System.currentTimeMillis();
        long nextScheduleTime;
        if (millisInterval < HOUR_MILLIS) {
             long millisPastHour = currentTime % HOUR_MILLIS;
-            nextScheduleTime = (millisPastHour / millisInterval + 1)* millisInterval + currentTime - millisPastHour;
+            nextScheduleTime = (millisPastHour / millisInterval + 1) * millisInterval + currentTime - millisPastHour;
        } else {
            long millisPastDay = currentTime % DAY_MILLIS;
-           nextScheduleTime = (millisPastDay / millisInterval + 1)* millisInterval + currentTime - millisPastDay;
+           nextScheduleTime = (millisPastDay / millisInterval + 1) * millisInterval + currentTime - millisPastDay;
        }
-       return INSTANCE.scheduleAtFixedRate(command, nextScheduleTime - currentTime, millisInterval, TimeUnit.MILLISECONDS);
+       return INSTANCE.scheduleAtFixedRate(
+               command, nextScheduleTime - currentTime, millisInterval, TimeUnit.MILLISECONDS);
     }
 }

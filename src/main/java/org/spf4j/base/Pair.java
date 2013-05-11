@@ -25,14 +25,14 @@ import java.util.List;
  *
  * @author zoly
  */
-public final class Pair<A,B>{
+public final class Pair<A, B> {
 
-    public Pair(A first, B second) {
+    public Pair(final A first, final B second) {
         this.first = first;
         this.second = second;
     }
     
-    public static <A, B> Pair<A,B> of (A first, B second) {
+    public static <A, B> Pair<A, B> of(final A first, final B second) {
         return new Pair<A, B>(first, second);
     }
         
@@ -49,7 +49,7 @@ public final class Pair<A,B>{
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }
@@ -68,13 +68,13 @@ public final class Pair<A,B>{
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(first,second);
+        return Objects.hashCode(first, second);
     }
 
     @Override
     public String toString() {
         return "(" + first + "," + second + ')';
-    }  
+    }
     
     public List<Object> toList() {
         return java.util.Arrays.asList(first, second);

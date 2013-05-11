@@ -17,20 +17,24 @@
  */
 package org.spf4j.perf.impl;
 
+import java.io.Serializable;
+import javax.annotation.concurrent.Immutable;
+
 /**
  * this class ordering is based on start Interval ordering
  */
-@edu.umd.cs.findbugs.annotations.SuppressWarnings(value = "EQ_COMPARETO_USE_OBJECT_EQUALS")
-public class Quanta implements Comparable<Quanta> {
+@Immutable
+public final class Quanta implements Comparable<Quanta>, Serializable {
+
     private final long intervalStart;
     private final long intervalEnd;
 
-    public Quanta(long intervalStart, long intervalEnd) {
+    public Quanta(final long intervalStart, final long intervalEnd) {
         this.intervalStart = intervalStart;
         this.intervalEnd = intervalEnd;
     }
 
-    public Quanta(String stringVariant) {
+    public Quanta(final String stringVariant) {
         int undLocation = stringVariant.indexOf('_');
         if (undLocation < 0) {
             throw new IllegalArgumentException("Invalid Quanta DataSource " + stringVariant);
@@ -63,17 +67,48 @@ public class Quanta implements Comparable<Quanta> {
 
     @Override
     public String toString() {
-        return "Q" + ((intervalStart == Long.MIN_VALUE) ? "NI" : intervalStart) + "_" + ((intervalEnd == Long.MAX_VALUE) ? "PI" : intervalEnd);
+        return "Q" + ((intervalStart == Long.MIN_VALUE)
+                ? "NI" : intervalStart) + "_" + ((intervalEnd == Long.MAX_VALUE) ? "PI" : intervalEnd);
     }
 
-    public int compareTo(Quanta o) {
+    @Override
+    public int compareTo(final Quanta o) {
         if (this.intervalStart < o.intervalStart) {
             return -1;
         } else if (this.intervalStart > o.intervalStart) {
             return 1;
         } else {
-            return 0;
+            if (this.intervalEnd < o.intervalEnd) {
+                return -1;
+            } else if (this.intervalEnd > o.intervalEnd) {
+                return 1;
+            } else {
+                return 0;
+            }
         }
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + (int) (this.intervalStart ^ (this.intervalStart >>> 32));
+        hash = 89 * hash + (int) (this.intervalEnd ^ (this.intervalEnd >>> 32));
+        return hash;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Quanta other = (Quanta) obj;
+        return this.compareTo(other) == 0;
+    }
     
+    
+    
+
 }

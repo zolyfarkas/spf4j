@@ -23,23 +23,23 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * The default thread factory
  */
-public class CustomThreadFactory implements ThreadFactory {
-    private static final AtomicInteger poolNumber = new AtomicInteger(1);
+public final class CustomThreadFactory implements ThreadFactory {
+    private static final AtomicInteger POOL_NUMBER = new AtomicInteger(1);
     private final ThreadGroup group;
     private final AtomicInteger threadNumber = new AtomicInteger(1);
     private final String namePrefix;
     private final boolean daemon;
     
 
-    CustomThreadFactory(String name, boolean daemon) {
+    public CustomThreadFactory(final String name, final boolean daemon) {
         SecurityManager s = System.getSecurityManager();
         group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
-        namePrefix = name + poolNumber.getAndIncrement() + "-thread-";
+        namePrefix = name + POOL_NUMBER.getAndIncrement() + "-thread-";
         this.daemon = daemon;
     }
 
     @Override
-    public Thread newThread(Runnable r) {
+    public Thread newThread(final Runnable r) {
         Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
         t.setDaemon(daemon);
         if (t.getPriority() != Thread.NORM_PRIORITY) {

@@ -28,21 +28,20 @@ import java.util.concurrent.TimeoutException;
  *
  * @author zoly
  */
-public class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<ObjectHolder<T>> {
+public final class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<ObjectHolder<T>> {
 
     private final SimpleSmartObjectPool<ObjectHolder<T>> globalPool;
     
     private final ThreadLocal<LocalObjectPool<T>> localPool;
     
     
-    public ScalableObjectPool(int initialSize, int maxSize, ObjectPool.Factory<T> factory,
-            long timeoutMillis, boolean fair) throws ObjectCreationException {        
-        globalPool = new SimpleSmartObjectPool<ObjectHolder<T>>
-                (initialSize, maxSize, new ObjectHolderFactory<T>(initialSize, factory), timeoutMillis, fair);
+    public ScalableObjectPool(final int initialSize, final int maxSize, final ObjectPool.Factory<T> factory,
+            final long timeoutMillis, final boolean fair) throws ObjectCreationException {
+        globalPool = new SimpleSmartObjectPool<ObjectHolder<T>>(initialSize, maxSize,
+                new ObjectHolderFactory<T>(initialSize, factory), timeoutMillis, fair);
         localPool = new ThreadLocal<LocalObjectPool<T>>() {
                     @Override
-                    protected LocalObjectPool<T> initialValue()
-                    {
+                    protected LocalObjectPool<T> initialValue() {
                         return new LocalObjectPool<T>(globalPool);
                     }
         };
@@ -56,18 +55,22 @@ public class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<ObjectHol
     }
 
     @Override
-    public void returnObject(T object, Exception e) throws ObjectReturnException, ObjectDisposeException {
+    public void returnObject(final T object, final Exception e) throws ObjectReturnException, ObjectDisposeException {
         localPool.get().returnObject(object, e);
     }
 
     @Override
-    public void dispose() throws ObjectDisposeException{
+    public void dispose() throws ObjectDisposeException {
         globalPool.dispose();
     }
 
     @Override
     public boolean scan(final ScanHandler<ObjectHolder<T>> handler) throws Exception {
         return globalPool.scan(handler);
+    }
+    
+    public void requestReturnFromBorrowersIfNotInUse() {
+        globalPool.requestReturnFromBorrowersIfNotInUse();
     }
 
     @Override

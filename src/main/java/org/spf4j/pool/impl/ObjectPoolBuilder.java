@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author zoly
  */
-public class ObjectPoolBuilder<T,E extends Exception> {
+public final class ObjectPoolBuilder<T, E extends Exception> {
 
     private int maxSize;
     private ObjectPool.Factory<T> factory;
@@ -37,11 +37,12 @@ public class ObjectPoolBuilder<T,E extends Exception> {
     private boolean fair;
     private ScheduledExecutorService maintenanceExecutor;
     private long maintenanceIntervalMillis;
-    private ObjectPool.Hook<T,E> borrowHook;
-    private ObjectPool.Hook<T,E> returnHook;
+    private ObjectPool.Handler<T, E> borrowHook;
+    private ObjectPool.Handler<T, E> returnHook;
     private int initialSize;
+    private boolean collectBorrowed;
 
-    public ObjectPoolBuilder(int maxSize, ObjectPool.Factory<T> factory) {
+    public ObjectPoolBuilder(final int maxSize, final ObjectPool.Factory<T> factory) {
         this.fair = true;
         this.timeoutMillis = 60000;
         this.maxSize = maxSize;
@@ -49,40 +50,43 @@ public class ObjectPoolBuilder<T,E extends Exception> {
         this.initialSize = 0;
     }
 
-    public ObjectPoolBuilder<T,E> unfair() {
+    public ObjectPoolBuilder<T, E> unfair() {
         this.fair = false;
         return this;
     }
 
-    public ObjectPoolBuilder<T,E> withInitialSize(int initialSize) {
-        this.initialSize = initialSize;
+    public ObjectPoolBuilder<T, E> withInitialSize(final int pinitialSize) {
+        this.initialSize = pinitialSize;
         return this;
     }
     
-    public ObjectPoolBuilder<T,E> withOperationTimeout(long timeoutMillis) {
-        this.timeoutMillis = timeoutMillis;
+    public ObjectPoolBuilder<T, E> withOperationTimeout(final long ptimeoutMillis) {
+        this.timeoutMillis = ptimeoutMillis;
         return this;
     }
 
-    public ObjectPoolBuilder<T,E> withMaintenance(ScheduledExecutorService exec,
-            long maintenanceIntervalMillis) {
-        this.maintenanceExecutor = exec;
-        this.maintenanceIntervalMillis = maintenanceIntervalMillis;
+    public ObjectPoolBuilder<T, E> withMaintenance(final ScheduledExecutorService pexec,
+            final long pmaintenanceIntervalMillis, final boolean pcollectBorrowed) {
+        this.maintenanceExecutor = pexec;
+        this.maintenanceIntervalMillis = pmaintenanceIntervalMillis;
+        this.collectBorrowed = pcollectBorrowed;
         return this;
     }
 
-    public ObjectPoolBuilder<T,E> withBorrowHook(ObjectPool.Hook<T,E> hook) {
-        this.borrowHook = hook;
+    public ObjectPoolBuilder<T, E> withBorrowHook(final ObjectPool.Handler<T, E> phook) {
+        this.borrowHook = phook;
         return this;
     }
 
-    public ObjectPoolBuilder<T, E> withReturnHook(ObjectPool.Hook<T, E> hook) {
-        this.returnHook = hook;
+    public ObjectPoolBuilder<T, E> withReturnHook(final ObjectPool.Handler<T, E> phook) {
+        this.returnHook = phook;
         return this;
     }
 
     public ObjectPool<T> build() throws ObjectCreationException {
-        ObjectPool<T> pool = new ScalableObjectPool<T>(initialSize, maxSize, factory, timeoutMillis, fair);
+        final ScalableObjectPool<T> underlyingPool =
+                new ScalableObjectPool<T>(initialSize, maxSize, factory, timeoutMillis, fair);
+        ObjectPool<T> pool = underlyingPool;
         if (borrowHook != null || returnHook != null) {
             pool = new ObjectPoolWrapper<T>(pool, borrowHook, returnHook);
         }
@@ -91,9 +95,12 @@ public class ObjectPoolBuilder<T,E extends Exception> {
             maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnable(true) {
                 @Override
                 public void doRun() throws Exception {
+                        if (ObjectPoolBuilder.this.collectBorrowed) {
+                            underlyingPool.requestReturnFromBorrowersIfNotInUse();
+                        }
                         scanable.scan(new Scanable.ScanHandler<ObjectHolder<T>>() {
                             @Override
-                            public boolean handle(ObjectHolder<T> object) throws ObjectDisposeException {
+                            public boolean handle(final ObjectHolder<T> object) throws ObjectDisposeException {
                                 object.validateObjectIfNotBorrowed();
                                 return true;
                             }

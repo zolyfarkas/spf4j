@@ -24,11 +24,11 @@ import java.io.IOException;
  *
  * @author zoly
  */
-public interface SamplerMBean extends ReportGenerator{
+public interface SamplerMBean extends ReportGenerator {
 
-    void generateHtmlMonitorReport(String fileName, int chartWidth, int maxDepth) throws IOException;  
+    void generateHtmlMonitorReport(String fileName, int chartWidth, int maxDepth) throws IOException;
     
-    void generateSvgHtmlMonitorReport(String fileName, int chartWidth, int maxDepth) throws IOException;  
+    void generateSvgHtmlMonitorReport(String fileName, int chartWidth, int maxDepth) throws IOException;
     
     void generateCpuSvg(String fileName, int chartWidth, int maxDepth) throws IOException;
     
@@ -42,11 +42,11 @@ public interface SamplerMBean extends ReportGenerator{
 
     long getSampleTimeMillis();
     
-    void setSampleTimeMillis(long sampleTimeMillis) ;
+    void setSampleTimeMillis(long sampleTimeMillis);
 
     long getDumpTimeMillis();
     
-    void setDumpTimeMillis(long dumpTimeMillis) ;    
+    void setDumpTimeMillis(long dumpTimeMillis);
     
     boolean isStopped();
     

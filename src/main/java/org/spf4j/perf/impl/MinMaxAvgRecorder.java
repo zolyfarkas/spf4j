@@ -25,7 +25,7 @@ import org.spf4j.perf.MeasurementProcessor;
  *
  * @author zoly
  */
-public class MinMaxAvgRecorder 
+public final class MinMaxAvgRecorder
     implements MeasurementProcessor {
 
     private long counter;
@@ -34,12 +34,12 @@ public class MinMaxAvgRecorder
     private long max;
     private final EntityMeasurementsInfo info;
     
-    private static final String [] measurements ={"count", "total", "min", "max"};
+    private static final String [] MEASUREMENTS = {"count", "total", "min", "max"};
 
-    private MinMaxAvgRecorder(final Object measuredEntity, final String unitOfMeasurement, 
-            long counter, long total, long min, long max) {
-        this.info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement, 
-                measurements, new String [] {"count",unitOfMeasurement, unitOfMeasurement, unitOfMeasurement});
+    private MinMaxAvgRecorder(final Object measuredEntity, final String unitOfMeasurement,
+            final long counter, final long total, final long min, final long max) {
+        this.info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement,
+                MEASUREMENTS, new String [] {"count", unitOfMeasurement, unitOfMeasurement, unitOfMeasurement});
         this.counter = counter;
         this.total = total;
         this.min = min;
@@ -53,19 +53,19 @@ public class MinMaxAvgRecorder
     
     
     @Override
-    public synchronized void record(long measurement) {
-        total+=measurement;
+    public synchronized void record(final long measurement) {
+        total += measurement;
         counter++;
         if (measurement < min) {
             min = measurement;
-        } 
+        }
         if (measurement > max) {
             max = measurement;
-        }       
+        }
     }
 
     @Override
-    public synchronized long[] getMeasurements(boolean reset) {
+    public synchronized long[] getMeasurements(final boolean reset) {
         long[] result = new long[] {counter, total, min, max};
         if (reset) {
             reset();
@@ -74,26 +74,28 @@ public class MinMaxAvgRecorder
     }
 
     @Override
-    public synchronized EntityMeasurements aggregate(EntityMeasurements mSource) {
+    public EntityMeasurements aggregate(final EntityMeasurements mSource) {
         MinMaxAvgRecorder other = (MinMaxAvgRecorder) mSource;
         long [] measurements = other.getMeasurements(false);
-        return new MinMaxAvgRecorder(this.info.getMeasuredEntity(), this.info.getUnitOfMeasurement(), 
-                counter + measurements[0], total + measurements[1], 
-                Math.min(min, measurements[2]), Math.max(max, measurements[3]) );
+        synchronized (this) {
+            return new MinMaxAvgRecorder(this.info.getMeasuredEntity(), this.info.getUnitOfMeasurement(),
+                counter + measurements[0], total + measurements[1],
+                Math.min(min, measurements[2]), Math.max(max, measurements[3]));
+        }
     }
 
     @Override
-    public synchronized EntityMeasurements createClone(boolean reset) {
+    public synchronized EntityMeasurements createClone(final boolean reset) {
         MinMaxAvgRecorder result = new MinMaxAvgRecorder(this.info.getMeasuredEntity(),
                 this.info.getUnitOfMeasurement(), counter, total , min, max);
         if (reset) {
-            reset();            
+            reset();
         }
         return result;
     }
 
     @Override
-    public EntityMeasurements createLike(Object entity) {
+    public EntityMeasurements createLike(final Object entity) {
         return new MinMaxAvgRecorder(entity, this.info.getUnitOfMeasurement());
     }
 

@@ -25,15 +25,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Object pool interface.
- * 
+ *
  * My goal is to create a simpler and better object pool interface and implementation.
- * 
- * 
+ *
+ *
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public interface ObjectPool<T>  extends Disposable {
-    
+public interface ObjectPool<T> extends Disposable {
+
     /**
      * block until a object is available and return it.
      *
@@ -41,64 +41,60 @@ public interface ObjectPool<T>  extends Disposable {
      * @throws ObjectCreationException
      * @throws ObjectBorrowException
      * @throws InterruptedException
-     * @throws TimeoutException 
+     * @throws TimeoutException
      */
-    
     @Nonnull
     T borrowObject() throws ObjectCreationException, ObjectBorrowException,
-        InterruptedException, TimeoutException;
-      
-    
+            InterruptedException, TimeoutException;
+
     /**
-     * return a object previously borrowed from the pool, 
-     * together with a optional exception in case one was encountered while using the object.
-     * passing an exception will case the object to be validated and potentially retired.
-     * 
+     * return a object previously borrowed from the pool,
+     * together with a optional exception in case one was encountered
+     * while using the object. passing an exception will cause the object
+     * to be validated and potentially retired from the pool.
+     *
      * @param object
      * @param e
      * @throws ObjectReturnException
-     * @throws ObjectDisposeException 
+     * @throws ObjectDisposeException
      */
-    void returnObject(T object, @Nullable Exception e)  
+    void returnObject(T object, @Nullable Exception e)
             throws ObjectReturnException, ObjectDisposeException;
-    
-        
-    public interface Hook<T, E extends Exception> {
-        
+
+    public interface Handler<T, E extends Exception> {
+        // CHECKSTYLE:OFF -- checkstyle does not seem to handle generic exceptions
         void handle(T object) throws E;
-        
+        // CHECKSTYLE:ON
     }
-    
+
     @ParametersAreNonnullByDefault
     public interface Factory<T> {
-    
+
         /**
          * create the object.
+         *
          * @return
-         * @throws ObjectCreationException 
+         * @throws ObjectCreationException
          */
         T create() throws ObjectCreationException;
-    
-        
+
         /**
          * Dispose the object.
+         *
          * @param object
-         * @throws ObjectDisposeException 
+         * @throws ObjectDisposeException
          */
         void dispose(T object) throws ObjectDisposeException;
-        
+
         /**
-         * Validate the object, return null if valid, a Exception with validation
-         * detail otherwise.
-         * 
+         * Validate the object, return null if valid, a Exception with validation detail otherwise.
+         *
          * @param object
          * @param e
-         * @return 
-         */ 
+         * @return
+         */
         @Nullable
         @CheckReturnValue
         Exception validate(T object, @Nullable Exception e);
-        
     }
-    
 }
