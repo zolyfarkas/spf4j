@@ -86,6 +86,20 @@ public final class Callables {
         
     }
     
+    /**
+     * Probably the more used retry use case.
+     * specifying a number of immediate retries
+     * and delayed retries.
+     * 
+     * @param <T>
+     * @param what
+     * @param nrImmediateRetries
+     * @param nrTotalRetries
+     * @param retryWaitMillis
+     * @return
+     * @throws InterruptedException 
+     */
+    
     public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
             final int nrTotalRetries, final int retryWaitMillis)
             throws InterruptedException {
@@ -102,12 +116,9 @@ public final class Callables {
      
     /**
      * Naive implementation of execution with retry logic.
-     * a callable will be executed and retry attempted in current thread,
-     * a number of immediate retries, and a number of delayed retries.
-     * the immediate retries should take advantage of redundancy of a particular service,
-     * while the delayed retries should deal with a temporary service outage.
-     * The reason why I call this implementation naive is because this can cause
-     * the current thread to sleep instead of doing other work.
+     * a callable will be executed and retry attempted in current thread if the result and exception predicates.
+     * before retry, a callable can be executed that can abort the retry
+     * and finish the function with the previous result.
      * 
      * @param what
      * @param doBeforeRetry
