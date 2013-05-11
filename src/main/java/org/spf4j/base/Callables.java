@@ -97,7 +97,7 @@ public final class Callables {
      * @param nrTotalRetries
      * @param retryWaitMillis
      * @return
-     * @throws InterruptedException 
+     * @throws InterruptedException
      */
     
     public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
