@@ -32,9 +32,10 @@ import java.util.Map;
  *
  * @author zoly
  */
-public class ColumnInfo {
-    private final long location;        
-    private long nextColumnInfo; 
+public final class ColumnInfo {
+    
+    private final long location;
+    private long nextColumnInfo;
     private long firstDataFragment;
     private long lastDataFragment;
     private final String groupName;
@@ -45,8 +46,9 @@ public class ColumnInfo {
     private final Map<String, Integer> nameToIndex;
     
 
-    ColumnInfo(String groupName, byte [] groupMetaData, String [] columnNames, byte [][] columnMetaData, 
-            int sampleTime, long location) {      
+    ColumnInfo(final String groupName, final byte [] groupMetaData,
+            final String [] columnNames, final byte [][] columnMetaData,
+            final int sampleTime, final long location) {
         this.location = location;
         this.nextColumnInfo = 0;
         this.firstDataFragment = 0;
@@ -56,13 +58,13 @@ public class ColumnInfo {
         this.groupMetaData = groupMetaData;
         this.columnNames = columnNames;
         this.columnMetaData = columnMetaData;
-        this.nameToIndex = new HashMap<String, Integer>(columnNames.length + columnNames.length/3);
-        for(int i=0; i< columnNames.length;i++) {
+        this.nameToIndex = new HashMap<String, Integer>(columnNames.length + columnNames.length / 3);
+        for (int i = 0; i < columnNames.length; i++) {
             this.nameToIndex.put(columnNames[i], i);
         }
     }
 
-    ColumnInfo(RandomAccessFile raf) throws IOException {
+    ColumnInfo(final RandomAccessFile raf) throws IOException {
         location = raf.getFilePointer();
         FileChannel ch = raf.getChannel();
         FileLock lock = ch.lock(location, 8, true);
@@ -77,14 +79,14 @@ public class ColumnInfo {
             raf.readFully(groupMetaData);
             int nrColumns = raf.readShort();
             columnNames = new String[nrColumns];
-            this.nameToIndex = new HashMap<String, Integer>(nrColumns+ nrColumns /3);
-            for (int i=0; i< columnNames.length; i++) {
+            this.nameToIndex = new HashMap<String, Integer>(nrColumns + nrColumns / 3);
+            for (int i = 0; i < columnNames.length; i++) {
                 String colName = raf.readUTF();
                 columnNames[i] = colName;
                 this.nameToIndex.put(colName, i);
             }
             columnMetaData = new byte[raf.readInt()][];
-            for (int i=0; i< columnMetaData.length; i++) {
+            for (int i = 0; i < columnMetaData.length; i++) {
                 int metaLength = raf.readInt();
                 byte [] colMetaData = new byte[metaLength];
                 raf.readFully(colMetaData);
@@ -96,7 +98,7 @@ public class ColumnInfo {
         }
     }
 
-    public void writeTo(DataOutput dos) throws IOException {        
+    void writeTo(final DataOutput dos) throws IOException {
         dos.writeLong(nextColumnInfo);
         dos.writeLong(firstDataFragment);
         dos.writeLong(lastDataFragment);
@@ -105,23 +107,23 @@ public class ColumnInfo {
         dos.writeInt(groupMetaData.length);
         dos.write(groupMetaData);
         dos.writeShort(columnNames.length);
-        for (String columnName: columnNames) {
+        for (String columnName : columnNames) {
             dos.writeUTF(columnName);
         }
         dos.writeInt(columnMetaData.length);
-        for (byte[] colMeta : columnMetaData) {        
+        for (byte[] colMeta : columnMetaData) {
             dos.writeInt(colMeta.length);
-            dos.write(colMeta);              
+            dos.write(colMeta);
         }
         
     }
     
-    public void writeTo(RandomAccessFile raf) throws IOException {        
+    void writeTo(final RandomAccessFile raf) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutput dos = new DataOutputStream(bos);
         writeTo(dos);
         FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(raf.getFilePointer(),8,false);
+        FileLock lock = ch.lock(raf.getFilePointer(), 8, false);
         try {
             raf.seek(location);
             raf.write(bos.toByteArray());
@@ -134,10 +136,10 @@ public class ColumnInfo {
         return columnNames.clone();
     }
 
-    public void setNextColumnInfo(long nextColumnInfo, RandomAccessFile raf) throws IOException {
-        this.nextColumnInfo = nextColumnInfo;
+    void setNextColumnInfo(final long pnextColumnInfo, final RandomAccessFile raf) throws IOException {
+        this.nextColumnInfo = pnextColumnInfo;
         FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(location,8,false);
+        FileLock lock = ch.lock(location, 8, false);
         try {
             raf.seek(location);
             raf.writeLong(nextColumnInfo);
@@ -146,12 +148,12 @@ public class ColumnInfo {
         }
     }
 
-    public void setFirstDataFragment(long firstDataFragment, RandomAccessFile raf) throws IOException {
-        this.firstDataFragment = firstDataFragment;
+    void setFirstDataFragment(final long pfirstDataFragment, final RandomAccessFile raf) throws IOException {
+        this.firstDataFragment = pfirstDataFragment;
         FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(location+8,8,false);
+        FileLock lock = ch.lock(location + 8, 8, false);
         try {
-            raf.seek(location+8);
+            raf.seek(location + 8);
             raf.writeLong(firstDataFragment);
         } finally {
             lock.release();
@@ -159,12 +161,12 @@ public class ColumnInfo {
     }
     
     
-    public void setLastDataFragment(long lastDataFragment, RandomAccessFile raf) throws IOException {
-        this.lastDataFragment = lastDataFragment;
+    void setLastDataFragment(final long plastDataFragment, final RandomAccessFile raf) throws IOException {
+        this.lastDataFragment = plastDataFragment;
         FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(raf.getFilePointer()+16,8,false);
+        FileLock lock = ch.lock(raf.getFilePointer() + 16, 8, false);
         try {
-            raf.seek(location+16);
+            raf.seek(location + 16);
             raf.writeLong(lastDataFragment);
         } finally {
             lock.release();
@@ -196,7 +198,7 @@ public class ColumnInfo {
         return columnMetaData.clone();
     }
     
-    public int getColumnIndex(String columnName) {
+    public int getColumnIndex(final String columnName) {
         Integer result = this.nameToIndex.get(columnName);
         if (result == null) {
             return -1;
@@ -217,13 +219,16 @@ public class ColumnInfo {
         return columnNames.length;
     }
     
-    public String getColumnName(int index) {
+    public String getColumnName(final int index) {
         return columnNames[index];
-    } 
+    }
 
     @Override
     public String toString() {
-        return "ColumnInfo{" + "location=" + location + ", nextColumnInfo=" + nextColumnInfo + ", firstDataFragment=" + firstDataFragment + ", lastDataFragment=" + lastDataFragment + ", groupName=" + groupName + ", sampleTime=" + sampleTime + ", columnNames=" + Arrays.toString(columnNames) + ", nameToIndex=" + nameToIndex + '}';
+        return "ColumnInfo{" + "location=" + location + ", nextColumnInfo=" + nextColumnInfo
+                + ", firstDataFragment=" + firstDataFragment + ", lastDataFragment="
+                + lastDataFragment + ", groupName=" + groupName + ", sampleTime=" + sampleTime
+                + ", columnNames=" + Arrays.toString(columnNames) + ", nameToIndex=" + nameToIndex + '}';
     }
  
     

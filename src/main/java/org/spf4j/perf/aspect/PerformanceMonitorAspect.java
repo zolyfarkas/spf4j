@@ -33,17 +33,15 @@ import org.slf4j.LoggerFactory;
  * @author zoly
  */
 @Aspect
-public class PerformanceMonitorAspect
-{
+public final class PerformanceMonitorAspect {
 
     private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitorAspect.class);
-    private static final LoadingCache<Class<? extends RecorderSourceInstance>, MeasurementRecorderSource> mrecSources =
+    private static final LoadingCache<Class<? extends RecorderSourceInstance>, MeasurementRecorderSource> REC_SOURCES =
             CacheBuilder.newBuilder().concurrencyLevel(8).
             build(new CacheLoader<Class<? extends RecorderSourceInstance>, MeasurementRecorderSource>()
     {
         @Override
-        public MeasurementRecorderSource load(Class<? extends RecorderSourceInstance> key) throws Exception
-        {
+        public MeasurementRecorderSource load(final Class<? extends RecorderSourceInstance> key) throws Exception {
             return (MeasurementRecorderSource) key.getField("INSTANCE").get(null);
         }
     });
@@ -51,28 +49,26 @@ public class PerformanceMonitorAspect
     
     
 
-    @Around(value="execution(@com.zoltran.perf.aspect.PerformanceMonitor * *(..)) && @annotation(annot)", argNames="pjp,annot")
-    public Object performanceMonitoredMethod(ProceedingJoinPoint pjp, PerformanceMonitor annot) throws Throwable
-    {
+    @Around(value = "execution(@org.spf4j.perf.aspect.PerformanceMonitor * *(..)) && @annotation(annot)",
+            argNames = "pjp,annot")
+    public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final PerformanceMonitor annot)
+            throws Throwable {
         final long start = System.currentTimeMillis();
         Object result = pjp.proceed();
         final long elapsed = System.currentTimeMillis() - start;
-        MeasurementRecorderSource mrs = mrecSources.getUnchecked(annot.recorderSource());
+        MeasurementRecorderSource mrs = REC_SOURCES.getUnchecked(annot.recorderSource());
         mrs.getRecorder(pjp.toLongString()).record(elapsed);
         if (elapsed > annot.warnThresholdMillis()) {
             if (elapsed > annot.errorThresholdMillis()) {
-                LOG.error("Execution time  {} ms for {} exceeds error threshold of {} ms, arguments {}", new Object[]{
-                            elapsed, pjp.toShortString(), annot.errorThresholdMillis(), pjp.getArgs()
-                        });
+                LOG.error("Execution time  {} ms for {} exceeds error threshold of {} ms, arguments {}",
+                            elapsed, pjp.toShortString(), annot.errorThresholdMillis(), pjp.getArgs());
             } else {
-                LOG.warn("Execution time  {} ms for {} exceeds warning threshold of {} ms, arguments {}", new Object[]{
-                            elapsed, pjp.toShortString(),annot.warnThresholdMillis(), pjp.getArgs()
-                        });
+                LOG.warn("Execution time  {} ms for {} exceeds warning threshold of {} ms, arguments {}",
+                            elapsed, pjp.toShortString(), annot.warnThresholdMillis(), pjp.getArgs());
             }
         } else {
-            LOG.debug("Execution time {} ms for {}, arguments {}", new Object[]{
-                        elapsed, pjp.toShortString(), pjp.getArgs()
-                    });
+            LOG.debug("Execution time {} ms for {}, arguments {}",
+                        elapsed, pjp.toShortString(), pjp.getArgs());
         }
         return result;
     }

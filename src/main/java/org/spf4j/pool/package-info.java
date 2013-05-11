@@ -15,29 +15,8 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.pool;
 
 /**
- *
- * @author zoly
+ * Experimental implementation.
  */
-public interface Scanable<T> {
-    
-    /**
-     * 
-     * @param handler
-     * @return false if scan operation aborted by handler.
-     */
-    boolean scan(ScanHandler<T> handler) throws Exception;
-            
-    interface ScanHandler<O> {
-        
-        /**
-         * method to handle object
-         * @param object
-         * @return true if scan operation is to continue
-         */
-        boolean handle(O object) throws Exception;
-    }
-    
-}
+package org.spf4j.pool;

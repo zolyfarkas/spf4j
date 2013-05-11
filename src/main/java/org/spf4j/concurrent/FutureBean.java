@@ -15,13 +15,14 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.base;
+package org.spf4j.concurrent;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.base.Pair;
 
 /**
  * bean like implementation of a future
@@ -32,37 +33,38 @@ public class FutureBean<T> implements Future<T> {
     private Pair<Object, ? extends ExecutionException> resultStore;
 
     @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
+    public final boolean cancel(final boolean mayInterruptIfRunning) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public boolean isCancelled() {
+    public final boolean isCancelled() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public synchronized boolean isDone() {
+    public final synchronized boolean isDone() {
         return resultStore != null;
     }
 
     @Override
-    public synchronized T get() throws InterruptedException, ExecutionException {
+    public final synchronized T get() throws InterruptedException, ExecutionException {
         while (resultStore == null) {
             this.wait();
-        }     
+        }
         return processResult(resultStore);
     }
 
     @Override
-    public synchronized T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public final synchronized T get(final long timeout, final TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
         while (resultStore == null) {
             this.wait(unit.toMillis(timeout));
-        } 
+        }
         return processResult(resultStore);
     }
 
-    private T processResult(Pair<Object, ? extends ExecutionException> result) throws ExecutionException {
+    private T processResult(final Pair<Object, ? extends ExecutionException> result) throws ExecutionException {
         ExecutionException e = result.getSecond();
         if (e != null) {
             throw e;
@@ -71,20 +73,19 @@ public class FutureBean<T> implements Future<T> {
         }
     }
 
-    public synchronized void setResult(Object result) {
+    public final synchronized void setResult(final Object result) {
         resultStore = Pair.of(result, (ExecutionException) null);
         done();
         this.notifyAll();
     }
 
-    public synchronized void setExceptionResult(ExecutionException result) {
+    public final synchronized void setExceptionResult(final ExecutionException result) {
         resultStore = Pair.of(null, (ExecutionException) result);
         done();
         this.notifyAll();
     }
     
     public void done() {
-        
     }
     
     

@@ -30,41 +30,41 @@ import java.util.Map;
  */
 public final class Converter {
     
-    private Converter() {}
+    private Converter() { }
     
-    public static ProtoSampleNodes.Method fromMethodToProto(Method m) {
+    public static ProtoSampleNodes.Method fromMethodToProto(final Method m) {
         return ProtoSampleNodes.Method.newBuilder().setMethodName(m.getMethodName())
                 .setDeclaringClass(m.getDeclaringClass()).build();
     }
     
-    public static ProtoSampleNodes.SampleNode fromSampleNodeToProto(SampleNode node) {
+    public static ProtoSampleNodes.SampleNode fromSampleNodeToProto(final SampleNode node) {
         
-        ProtoSampleNodes.SampleNode.Builder resultBuilder = ProtoSampleNodes.SampleNode.newBuilder().setCount(node.getSampleCount()); 
+        ProtoSampleNodes.SampleNode.Builder resultBuilder
+                = ProtoSampleNodes.SampleNode.newBuilder().setCount(node.getSampleCount());
         
-        Map<Method,SampleNode> subNodes = node.getSubNodes();
+        Map<Method, SampleNode> subNodes = node.getSubNodes();
         if (subNodes != null) {
-           for(Map.Entry<Method,SampleNode> entry : subNodes.entrySet()) {
-               resultBuilder.addSubNodes( 
+           for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
+               resultBuilder.addSubNodes(
                ProtoSampleNodes.SamplePair.newBuilder().setMethod(fromMethodToProto(entry.getKey())).
                         setNode(fromSampleNodeToProto(entry.getValue())).build());
            }
-            
-        }        
+        }
         return resultBuilder.build();
     }
     
     
     
-    public static SampleNode  fromProtoToSampleNode(ProtoSampleNodes.SampleNode node) {
+    public static SampleNode  fromProtoToSampleNode(final ProtoSampleNodes.SampleNode node) {
         
-        Map<Method,SampleNode> subNodes = null;
+        Map<Method, SampleNode> subNodes = null;
         
         List<ProtoSampleNodes.SamplePair> sns =  node.getSubNodesList();
         if (sns != null) {
             subNodes = new HashMap<Method, SampleNode>();
-            for ( ProtoSampleNodes.SamplePair pair : sns) {
-                subNodes.put(new Method(pair.getMethod().getMethodName(), pair.getMethod().getDeclaringClass() ),
-                        fromProtoToSampleNode(pair.getNode()) );
+            for (ProtoSampleNodes.SamplePair pair : sns) {
+                subNodes.put(new Method(pair.getMethod().getMethodName(), pair.getMethod().getDeclaringClass()),
+                        fromProtoToSampleNode(pair.getNode()));
             }
         }
         return new SampleNode(node.getCount(), subNodes);

@@ -26,33 +26,34 @@ import org.spf4j.perf.MeasurementRecorderSource;
  *
  * @author zoly
  */
-public class MeasuredInputStream  extends InputStream{
+public final class MeasuredInputStream  extends InputStream {
     private final InputStream is;
     private final Class<?> from;
     private final MeasurementRecorderSource recorderSource;
 
-    public MeasuredInputStream(InputStream is, Class<?> from, MeasurementRecorderSource recorderSource) {
+    public MeasuredInputStream(final InputStream is, final Class<?> from,
+            final MeasurementRecorderSource recorderSource) {
         this.is = is;
         this.from = from;
         this.recorderSource = recorderSource;
     }
 
     @Override
-    public int read(byte[] b) throws IOException {
+    public int read(final byte[] b) throws IOException {
         int result = is.read(b);
         recorderSource.getRecorder(from).record(result);
         return result;
     }
 
     @Override
-    public int read(byte[] b, int off, int len) throws IOException {
+    public int read(final byte[] b, final int off, final int len) throws IOException {
         int result = is.read(b, off, len);
         recorderSource.getRecorder(from).record(result);
         return result;
     }
 
     @Override
-    public long skip(long n) throws IOException {
+    public long skip(final long n) throws IOException {
         return is.skip(n);
     }
 
@@ -67,12 +68,12 @@ public class MeasuredInputStream  extends InputStream{
     }
 
     @Override
-    public synchronized void mark(int readlimit) {
+    public void mark(final int readlimit) {
         is.mark(readlimit);
     }
 
     @Override
-    public synchronized void reset() throws IOException {
+    public void reset() throws IOException {
         is.reset();
     }
 
@@ -84,7 +85,7 @@ public class MeasuredInputStream  extends InputStream{
     @Override
     public int read() throws IOException {
         int result = is.read();
-        if (result>=0) {
+        if (result >= 0) {
             recorderSource.getRecorder(from).record(1);
         }
         return result;

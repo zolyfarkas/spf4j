@@ -17,10 +17,8 @@
  */
 package org.spf4j.perf.impl.chart;
 
-import com.google.common.base.Charsets;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
@@ -36,7 +34,6 @@ import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.spf4j.base.Arrays;
 import org.spf4j.base.Pair;
-import org.spf4j.perf.tsdb.ColumnInfo;
 
 /**
  *
@@ -47,8 +44,10 @@ public final class Charts {
     private Charts() {
     }
 
-    public static JFreeChart createHeatJFreeChart(String[] dsNames, double[][] values, long startTimeMillis, long stepMillis, String uom, String chartName) {
-        final QuantizedXYZDatasetImpl dataSet = new QuantizedXYZDatasetImpl(dsNames, values, startTimeMillis, stepMillis);
+    public static JFreeChart createHeatJFreeChart(final String[] dsNames, final double[][] values,
+            final long startTimeMillis, final long stepMillis, final String uom, final String chartName) {
+        final QuantizedXYZDatasetImpl dataSet = new QuantizedXYZDatasetImpl(dsNames, values,
+                startTimeMillis, stepMillis);
         NumberAxis xAxis = new NumberAxis("Time");
         xAxis.setStandardTickUnits(dataSet.createXTickUnits());
         xAxis.setLowerMargin(0);
@@ -84,12 +83,9 @@ public final class Charts {
         chart.setBackgroundPaint(Color.white);
         return chart;
     }
-
-    
-    
-    
  
-    private static JFreeChart createJFreeChart(String chartName, String uom, TimeSeriesCollection timeseriescollection) {
+    private static JFreeChart createJFreeChart(final String chartName, final String uom,
+            final TimeSeriesCollection timeseriescollection) {
         JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(chartName,
                 "Time", uom, timeseriescollection, true, true, false);
         XYPlot xyplot = (XYPlot) jfreechart.getPlot();
@@ -102,13 +98,15 @@ public final class Charts {
         return jfreechart;
     }
 
-    public static BufferedImage createMinMaxAvgCountImg(String chartName, long[] timestamps,
-            double[] min, double[] max, double[] total, double[] count, String uom, int width, int height) {
+    public static BufferedImage createMinMaxAvgCountImg(final String chartName, final long[] timestamps,
+            final double[] min, final double[] max, final double[] total, final double[] count,
+            final String uom, final int width, final int height) {
 
         BufferedImage bi = Charts.createTimeSeriesJFreeChart(chartName, timestamps,
-                new String[]{"min", "max", "avg"}, uom, new double[][]{min, max, Arrays.divide(total, count)}).createBufferedImage(width, height - height / 3);
+                new String[]{"min", "max", "avg"}, uom,
+                new double[][]{min, max, Arrays.divide(total, count)}).createBufferedImage(width, height - height / 3);
         BufferedImage bi2 = Charts.createTimeSeriesJFreeChart(null, timestamps,
-                new String[]{"count"}, "count", new double[][]{count}).createBufferedImage( width, height / 3);
+                new String[]{"count"}, "count", new double[][]{count}).createBufferedImage(width, height / 3);
         BufferedImage combined = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         combined.getGraphics().drawImage(bi, 0, 0, null);
         combined.getGraphics().drawImage(bi2, 0, height - height / 3, null);
@@ -116,7 +114,8 @@ public final class Charts {
     }
 
     
-    private static TimeSeriesCollection createTimeSeriesCollection(String[] measurementNames, long[] timestamps, double[][] measurements) {
+    private static TimeSeriesCollection createTimeSeriesCollection(final String[] measurementNames,
+            final long[] timestamps, final double[][] measurements) {
         TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();
         for (int i = 0; i < measurementNames.length; i++) {
             TimeSeries tseries = new TimeSeries(measurementNames[i]);
@@ -132,14 +131,16 @@ public final class Charts {
     
  
     
-    public static JFreeChart createTimeSeriesJFreeChart(String chartName, long[] timestamps,
-            String[] measurementNames, String uom, double[][] measurements) {
-        TimeSeriesCollection timeseriescollection = createTimeSeriesCollection(measurementNames, timestamps, measurements);
+    public static JFreeChart createTimeSeriesJFreeChart(final String chartName, final long[] timestamps,
+            final String[] measurementNames, final String uom, final double[][] measurements) {
+        TimeSeriesCollection timeseriescollection =
+                createTimeSeriesCollection(measurementNames, timestamps, measurements);
         return createJFreeChart(chartName, uom, timeseriescollection);
     }
     
     
-    private static TimeSeriesCollection createTimeSeriesCollection(String[] measurementNames, long[][] timestamps, double[][] measurements) {
+    private static TimeSeriesCollection createTimeSeriesCollection(final String[] measurementNames,
+            final long[][] timestamps, final double[][] measurements) {
         TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();
         for (int i = 0; i < measurementNames.length; i++) {
             TimeSeries tseries = new TimeSeries(measurementNames[i]);
@@ -154,16 +155,18 @@ public final class Charts {
 
 
     
-    public static JFreeChart createTimeSeriesJFreeChart(String chartName, long[][] timestamps,
-            String[] measurementNames, String uom, double[][] measurements) {
-        TimeSeriesCollection timeseriescollection = createTimeSeriesCollection(measurementNames, timestamps, measurements);
+    public static JFreeChart createTimeSeriesJFreeChart(final String chartName, final long[][] timestamps,
+            final String[] measurementNames, final String uom, final double[][] measurements) {
+        TimeSeriesCollection timeseriescollection =
+                createTimeSeriesCollection(measurementNames, timestamps, measurements);
         return createJFreeChart(chartName, uom, timeseriescollection);
     }
     
    
     
     
-    public static Pair<long[], double[][]> fillGaps(long[] timestamps, long[][] data, int sampleTime, int nrColumns) {
+    public static Pair<long[], double[][]> fillGaps(final long[] timestamps,
+            final long[][] data, final int sampleTime, final int nrColumns) {
         long startTime = timestamps[0];
         int nrSamples = (int) ((timestamps[timestamps.length - 1] - startTime) / sampleTime);
         long[] lts = new long[nrSamples];

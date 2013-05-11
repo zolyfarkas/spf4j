@@ -22,7 +22,5 @@ package org.spf4j.perf;
  *
  * @author zoly
  */
-public interface MeasurementProcessor extends MeasurementRecorder, EntityMeasurements{
-    
-    
+public interface MeasurementProcessor extends MeasurementRecorder, EntityMeasurements {
 }

@@ -1,5 +1,5 @@
 
- /*
+/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -16,8 +16,6 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
- 
-
 package org.spf4j.pool.impl;
 
 import org.spf4j.pool.ObjectCreationException;
@@ -30,31 +28,28 @@ import java.util.Queue;
  *
  * @author zoly
  */
-
-
-public class ObjectHolderFactory<T> implements ObjectPool.Factory<ObjectHolder<T>> {
+public final class ObjectHolderFactory<T> implements ObjectPool.Factory<ObjectHolder<T>> {
 
     private final Queue<ObjectHolder<T>> objects;
     private final ObjectPool.Factory<T> factory;
-    
-    public ObjectHolderFactory (int precreateNumber, ObjectPool.Factory<T> factory) 
+
+    public ObjectHolderFactory(final int precreateNumber, final ObjectPool.Factory<T> factory)
             throws ObjectCreationException {
         objects = new LinkedList<ObjectHolder<T>>();
         this.factory = factory;
-        for(int i=0; i< precreateNumber;i++) {
+        for (int i = 0; i < precreateNumber; i++) {
             objects.add(new ObjectHolder<T>(factory, false));
         }
     }
-    
-    public ObjectHolderFactory (ObjectPool.Factory<T> factory) { 
+
+    public ObjectHolderFactory(final ObjectPool.Factory<T> factory) {
         objects = new LinkedList<ObjectHolder<T>>();
         this.factory = factory;
     }
-    
+
     @Override
-    public ObjectHolder<T> create() throws ObjectCreationException
-    {
-        if(objects.isEmpty()) {
+    public ObjectHolder<T> create() throws ObjectCreationException {
+        if (objects.isEmpty()) {
             return new ObjectHolder<T>(factory);
         } else {
             return objects.remove();
@@ -62,18 +57,14 @@ public class ObjectHolderFactory<T> implements ObjectPool.Factory<ObjectHolder<T
     }
 
     @Override
-    public void dispose(ObjectHolder<T> object) throws ObjectDisposeException
-    {
-       if (!object.disposeIfNotBorrowed()) {
-           throw new RuntimeException("Object from holder is borrowed " + object);
-       }
+    public void dispose(final ObjectHolder<T> object) throws ObjectDisposeException {
+        if (!object.disposeIfNotBorrowed()) {
+            throw new RuntimeException("Object from holder is borrowed " + object);
+        }
     }
 
     @Override
-    public Exception validate(ObjectHolder<T> object, Exception e)
-    {
+    public Exception validate(final ObjectHolder<T> object, final Exception e) {
         return null;
     }
-    
 }
-

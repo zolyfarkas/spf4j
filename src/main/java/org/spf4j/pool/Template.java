@@ -19,12 +19,12 @@
 package org.spf4j.pool;
 
 import org.spf4j.base.Callables;
-import org.spf4j.base.Exceptions;
+import org.spf4j.base.Throwables;
 import java.lang.reflect.ParameterizedType;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 
-public class Template<T, E extends Exception> {
+public final class Template<T, E extends Exception> {
 
     private final ObjectPool<T> pool;
     private final int nrImmediateRetries;
@@ -32,7 +32,8 @@ public class Template<T, E extends Exception> {
     private final int retryWaitMillis;
     private final Class<E> exceptionClasz;
 
-    public Template(ObjectPool<T> pool, int nrImmediateRetries, int nrTotalRetries, int retryWaitMillis) {
+    public Template(final ObjectPool<T> pool, final int nrImmediateRetries,
+            final int nrTotalRetries, final int retryWaitMillis) {
         this.pool = pool;
         this.nrImmediateRetries = nrImmediateRetries;
         this.nrTotalRetries = nrTotalRetries;
@@ -41,11 +42,14 @@ public class Template<T, E extends Exception> {
                 .getGenericSuperclass()).getActualTypeArguments()[0];
     }
 
-    public void doOnPooledObject(final ObjectPool.Hook<T, E> handler)
+    // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
+    public void doOnPooledObject(final ObjectPool.Handler<T, E> handler)
             throws ObjectCreationException, InterruptedException, TimeoutException {
         Callables.executeWithRetry(new Callable<Void>() {
             @Override
-            public Void call() throws Exception {
+            public Void call() throws ObjectReturnException, ObjectDisposeException,
+                    ObjectCreationException, ObjectBorrowException,
+                    InterruptedException, TimeoutException, E  {
                 doOnPooledObject(handler, pool, exceptionClasz);
                 return null;
             }
@@ -53,7 +57,8 @@ public class Template<T, E extends Exception> {
 
     }
 
-    public static <T, E extends Exception> void doOnPooledObject(ObjectPool.Hook<T, E> handler, ObjectPool<T> pool, Class<E> clasz)
+    public static <T, E extends Exception> void doOnPooledObject(final ObjectPool.Handler<T, E> handler,
+            final ObjectPool<T> pool, final Class<E> clasz)
             throws ObjectReturnException, ObjectDisposeException, ObjectCreationException,
             ObjectBorrowException, InterruptedException, TimeoutException, E {
         T object = pool.borrowObject();
@@ -63,9 +68,9 @@ public class Template<T, E extends Exception> {
             try {
                 pool.returnObject(object, e);
             } catch (ObjectReturnException ex) {
-                throw Exceptions.chain(ex, e);
+                throw Throwables.chain(ex, e);
             } catch (ObjectDisposeException ex) {
-                throw Exceptions.chain(ex, e);
+                throw Throwables.chain(ex, e);
             }
             if (e instanceof RuntimeException) {
                 throw (RuntimeException) e;
@@ -74,6 +79,5 @@ public class Template<T, E extends Exception> {
             }
         }
         pool.returnObject(object, null);
-
     }
 }

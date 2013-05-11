@@ -12,11 +12,11 @@ import org.apache.commons.pool.ObjectPool;
  *
  * @author zoly
  */
-public class TestCallableApache implements Callable<Integer> {
+public final class TestCallableApache implements Callable<Integer> {
     private final ObjectPool<ExpensiveTestObject> pool;
     private final int testNr;
 
-    public TestCallableApache(ObjectPool<ExpensiveTestObject> pool, int testNr) {
+    public TestCallableApache(final ObjectPool<ExpensiveTestObject> pool, final int testNr) {
         this.pool = pool;
         this.testNr = testNr;
     }

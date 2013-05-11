@@ -35,15 +35,15 @@ import java.util.List;
  *
  * @author zoly
  */
-class DataFragment {
-    private long location;        
-    private long nextDataFragment;  
+final class DataFragment {
+    private long location;
+    private long nextDataFragment;
     private final long startTimeMillis;
     private List<long[]> data;
     private TIntArrayList timestamps;
     
 
-    public DataFragment(long startTimeMillis) {      
+    public DataFragment(final long startTimeMillis) {
         this.location = 0;
         this.nextDataFragment = 0;
         this.startTimeMillis = startTimeMillis;
@@ -51,7 +51,7 @@ class DataFragment {
         timestamps = new TIntArrayList();
     }
 
-    public DataFragment(RandomAccessFile raf) throws IOException {
+    public DataFragment(final RandomAccessFile raf) throws IOException {
         location = raf.getFilePointer();
         FileChannel ch = raf.getChannel();
         FileLock lock = ch.lock(location, 8, true);
@@ -60,34 +60,34 @@ class DataFragment {
             this.startTimeMillis = raf.readLong();
             int nrSamples = raf.readInt();
             int samplesLength = raf.readInt();
-            int bufferSize = nrSamples * (samplesLength *8 + 4);
+            int bufferSize = nrSamples * (samplesLength * 8 + 4);
             byte [] buffer = new byte [bufferSize];
             raf.readFully(buffer);
-            loadData(nrSamples, samplesLength, new DataInputStream(new ByteArrayInputStream(buffer)));            
+            loadData(nrSamples, samplesLength, new DataInputStream(new ByteArrayInputStream(buffer)));
         } finally {
             lock.release();
         }
     }
 
-    public void writeTo(DataOutput dos) throws IOException {        
+    public void writeTo(final DataOutput dos) throws IOException {
         dos.writeLong(nextDataFragment);
         dos.writeLong(startTimeMillis);
         dos.writeInt(data.size());
         dos.writeInt(data.get(0).length);
-        for (int i=0; i< timestamps.size(); i++) {
+        for (int i = 0; i < timestamps.size(); i++) {
             dos.writeInt(timestamps.get(i));
-            for (long value: data.get(i)) {
+            for (long value : data.get(i)) {
                 dos.writeLong(value);
             }
-        }        
+        }
     }
     
-    public void writeTo(RandomAccessFile raf) throws IOException {        
+    public void writeTo(final RandomAccessFile raf) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutput dos = new DataOutputStream(bos);
         writeTo(dos);
         FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(raf.getFilePointer(),8,false);
+        FileLock lock = ch.lock(raf.getFilePointer(), 8, false);
         try {
             raf.seek(location);
             raf.write(bos.toByteArray());
@@ -97,21 +97,22 @@ class DataFragment {
     }
 
     
-    public void addData(long timestamp, long [] dataRow) {
+    public void addData(final long timestamp, final long [] dataRow) {
         data.add(dataRow);
-        timestamps.add( (int )(timestamp - startTimeMillis) );
+        timestamps.add((int) (timestamp - startTimeMillis));
     }
     
     
-    public void setNextDataFragment(long nextDataFragment, RandomAccessFile raf) throws IOException {
-        this.nextDataFragment = nextDataFragment;
+    public void setNextDataFragment(final long pnextDataFragment, final RandomAccessFile raf) throws IOException {
+        this.nextDataFragment = pnextDataFragment;
         setNextDataFragment(location, nextDataFragment, raf);
     }
     
     
-   public static void setNextDataFragment(long dataFragmentPosition, long nextDataFragment, RandomAccessFile raf) throws IOException {
+   public static void setNextDataFragment(final long dataFragmentPosition, final long nextDataFragment,
+           final RandomAccessFile raf) throws IOException {
         FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(dataFragmentPosition,8,false);
+        FileLock lock = ch.lock(dataFragmentPosition, 8, false);
         try {
             raf.seek(dataFragmentPosition);
             raf.writeLong(nextDataFragment);
@@ -128,15 +129,15 @@ class DataFragment {
         return location;
     }
 
-    private void loadData(int nrSamples, int samplesLength, DataInput raf) throws IOException {
+    private void loadData(final int nrSamples, final int samplesLength, final DataInput raf) throws IOException {
         data = new ArrayList(nrSamples);
         timestamps = new TIntArrayList(nrSamples);
-        for (int i=0; i< nrSamples;i++) {
+        for (int i = 0; i < nrSamples; i++) {
             timestamps.add(raf.readInt());
             long [] row = new long[samplesLength];
-            for(int j=0; j< samplesLength; j++) {
+            for (int j = 0; j < samplesLength; j++) {
                 row[j] = raf.readLong();
-            }                
+            }
             data.add(row);
         }
     }
@@ -157,7 +158,7 @@ class DataFragment {
         return timestamps;
     }
 
-    public void setLocation(long location) {
+    public void setLocation(final long location) {
         this.location = location;
     }
 
@@ -165,7 +166,8 @@ class DataFragment {
     
     @Override
     public String toString() {
-        return "DataFragment{" + "location=" + location + ", nextDataFragment=" + nextDataFragment + ", startTimeMillis=" + startTimeMillis + ", data=" + data + ", timestamps=" + timestamps + '}';
+        return "DataFragment{" + "location=" + location + ", nextDataFragment=" + nextDataFragment
+                + ", startTimeMillis=" + startTimeMillis + ", data=" + data + ", timestamps=" + timestamps + '}';
     }
     
     

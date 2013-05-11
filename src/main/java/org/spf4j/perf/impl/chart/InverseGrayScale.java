@@ -28,7 +28,7 @@ import org.jfree.util.PublicCloneable;
  *
  * @since 1.0.4
  */
-public class InverseGrayScale
+public final class InverseGrayScale
         implements PaintScale, PublicCloneable, Serializable {
 
     /** The lower bound. */
@@ -60,7 +60,7 @@ public class InverseGrayScale
      * @throws IllegalArgumentException if <code>lowerBound</code> is not
      *       less than <code>upperBound</code>.
      */
-    public InverseGrayScale(double lowerBound, double upperBound) {
+    public InverseGrayScale(final double lowerBound, final double upperBound) {
         this(lowerBound, upperBound, 255);
     }
 
@@ -77,10 +77,10 @@ public class InverseGrayScale
      *
      * @since 1.0.13
      */
-    public InverseGrayScale(double lowerBound, double upperBound, int alpha) {
+    public InverseGrayScale(final double lowerBound, final double upperBound, final int alpha) {
         if (lowerBound >= upperBound) {
             throw new IllegalArgumentException(
-                    "Requires " +lowerBound+" < " + upperBound +".");
+                    "Requires " + lowerBound + " < " + upperBound + ".");
         }
         if (alpha < 0 || alpha > 255) {
             throw new IllegalArgumentException(
@@ -136,17 +136,16 @@ public class InverseGrayScale
      * @return A paint for the specified value.
      */
     @Override
-    public Paint getPaint(double value) {
+    public Paint getPaint(final double value) {
         double v = Math.max(value, this.lowerBound);
         v = Math.min(v, this.upperBound);
         int g;
-        if (value>=1) {
+        if (value >= 1) {
             g = 240 -  (int) ((v - this.lowerBound) / (this.upperBound
                 - this.lowerBound) * 240.0);
-        }
-        else {
+        } else {
             g = 255 -  (int) ((v - this.lowerBound) / (this.upperBound
-                - this.lowerBound) * 15.0); 
+                - this.lowerBound) * 15.0);
         }
         // FIXME:  it probably makes sense to allocate an array of 256 Colors
         // and lazily populate this array...
@@ -155,7 +154,7 @@ public class InverseGrayScale
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }
@@ -178,8 +177,10 @@ public class InverseGrayScale
     @Override
     public int hashCode() {
         int hash = 3;
-        hash = 97 * hash + (int) (Double.doubleToLongBits(this.lowerBound) ^ (Double.doubleToLongBits(this.lowerBound) >>> 32));
-        hash = 97 * hash + (int) (Double.doubleToLongBits(this.upperBound) ^ (Double.doubleToLongBits(this.upperBound) >>> 32));
+        hash = 97 * hash
+                + (int) (Double.doubleToLongBits(this.lowerBound) ^ (Double.doubleToLongBits(this.lowerBound) >>> 32));
+        hash = 97 * hash
+                + (int) (Double.doubleToLongBits(this.upperBound) ^ (Double.doubleToLongBits(this.upperBound) >>> 32));
         hash = 97 * hash + this.alpha;
         return hash;
     }

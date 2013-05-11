@@ -26,18 +26,21 @@ import java.util.Map;
  *
  * @author zoly
  */
-public class StackVisualizer {
+public final class StackVisualizer {
 
     private StackVisualizer() {
     }
+    
     private static final String[] COLORS = {"#CCE01B",
         "#DDE01B", "#EEE01B", "#FFE01B", "#FFD01B",
         "#FFC01B", "#FFA01B", "#FF901B", "#FF801B",
         "#FF701B", "#FF601B", "#FF501B", "#FF401B"};
 
-    public static void generateHtmlTable(Writer writer, Method m, SampleNode node, int tableWidth, int maxDepth) throws IOException {
+    public static void generateHtmlTable(final Writer writer, final Method m,
+            final SampleNode node, final int tableWidth, final int maxDepth) throws IOException {
         Map<Method, SampleNode> subNodes = node.getSubNodes();
-        writer.append("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"overflow:hidden;table-layout:fixed;width:").
+        writer.append("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
+                + "style=\"overflow:hidden;table-layout:fixed;width:").
                 append(Integer.toString(tableWidth)).append("px\">\n");
         int totalSamples = node.getSampleCount();
 
@@ -45,7 +48,8 @@ public class StackVisualizer {
             writer.append("<tr style=\"height:1em\">");
             for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
                 int width = entry.getValue().getSampleCount() * tableWidth / totalSamples;
-                writer.append("<td style=\"vertical-align:bottom; width:").append(Integer.toString(width)).append("px\">");
+                writer.append("<td style=\"vertical-align:bottom; width:").
+                        append(Integer.toString(width)).append("px\">");
                 generateHtmlTable(writer, entry.getKey(), entry.getValue(), width, maxDepth - 1);
                 writer.append("</td>");
             }
@@ -70,11 +74,14 @@ public class StackVisualizer {
         writer.append("</table>\n");
     }
 
-    public static void generateSvg(Writer writer, Method m, SampleNode node, int x, int y, int width, int maxDepth, String idPfx) throws IOException {
+    public static void generateSvg(final Writer writer, final Method m,
+            final SampleNode node, final int x, final int y,
+            final int width, final int maxDepth, final String idPfx) throws IOException {
         if (width < 200) {
             throw new IllegalArgumentException("width must be greater than 200, it is " + width);
         }
-        writer.append("<svg width=\"" + width + "\" height= \"" + (15 * node.height() + 15) + "\" onload=\"" + idPfx + "init(evt)\" >\n");
+        writer.append("<svg width=\"" + width + "\" height= \"" + (15 * node.height() + 15) + "\" onload=\""
+                + idPfx + "init(evt)\" >\n");
         writer.append("<script type=\"text/ecmascript\">\n"
                 + "<![CDATA[\n"
                 + "var " + idPfx + "tooltip;\n"
@@ -114,11 +121,13 @@ public class StackVisualizer {
         writer.append("<rect fill=\"rgb(255,255,255)\" id=\"" + idPfx + "tooltip_bg\"\n"
                 + "      x=\"0\" y=\"0\" rx=\"4\" ry=\"4\"\n"
                 + "      width=\"55\" height=\"17\" visibility=\"hidden\"/>");
-        writer.append("<text font-size=\"12\" font-family=\"Verdana\" fill=\"rgb(0,0,0)\"  id=\"" + idPfx + "tooltip\" x=\"0\" y=\"0\" visibility=\"hidden\">Tooltip</text>");
+        writer.append("<text font-size=\"12\" font-family=\"Verdana\" fill=\"rgb(0,0,0)\"  id=\""
+                + idPfx + "tooltip\" x=\"0\" y=\"0\" visibility=\"hidden\">Tooltip</text>");
         writer.append("</svg>\n");
     }
 
-    public static void generateSubSvg(Writer writer, Method m, SampleNode node, int x, int y, int width, int maxDepth, String idPfx) throws IOException {
+    public static void generateSubSvg(final Writer writer, final Method m, final SampleNode node,
+            final int x, final int y, final int width, final int maxDepth, final String idPfx) throws IOException {
 
 
         Map<Method, SampleNode> subNodes = node.getSubNodes();
@@ -126,11 +135,14 @@ public class StackVisualizer {
         int totalSamples = node.getSampleCount();
         String id = idPfx + "ix" + x + "y" + y;
         String content = HtmlUtils.htmlEscape(m.toString() + ":" + Integer.toString(totalSamples));
-        writer.append("<g onmouseover=\"" + idPfx + "ss(evt,'" + content + "'," + x + ", " + y + " )\" onmouseout=\"" + idPfx + "hh()\">");
-        writer.append("<rect id=\"" + id + "\" x=\"" + x + "\" y=\"" + y + "\" width=\"" + width + "\" height=\"15\" fill=\""
+        writer.append("<g onmouseover=\"" + idPfx + "ss(evt,'" + content + "'," + x + ", "
+                + y + " )\" onmouseout=\"" + idPfx + "hh()\">");
+        writer.append("<rect id=\"" + id + "\" x=\"" + x + "\" y=\"" + y + "\" width=\"" + width
+                + "\" height=\"15\" fill=\""
                 + COLORS[(int) (Math.random() * COLORS.length)] + "\"  />");
 
-        writer.append("<text x=\"" + x + "\" y=\"" + (y + 13) + "\" font-size=\"12\" font-family=\"Verdana\" fill=\"rgb(0,0,0)\" "
+        writer.append("<text x=\"" + x + "\" y=\"" + (y + 13)
+                + "\" font-size=\"12\" font-family=\"Verdana\" fill=\"rgb(0,0,0)\" "
                 + " >");
         writer.append(content.substring(0, Math.min(width / 9, content.length())));
         writer.append("</text>\n");
@@ -139,7 +151,7 @@ public class StackVisualizer {
         if (subNodes != null && maxDepth > 0) {
             int rx = 0;
             for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
-                int cwidth = (int)(((long)entry.getValue().getSampleCount()) * width / totalSamples);
+                int cwidth = (int) (((long) entry.getValue().getSampleCount()) * width / totalSamples);
                 generateSubSvg(writer, entry.getKey(), entry.getValue(), rx + x, y + 15, cwidth, maxDepth - 1, idPfx);
                 rx += cwidth;
             }

@@ -20,6 +20,7 @@ package org.spf4j.stackmonitor;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
@@ -34,9 +35,9 @@ import org.slf4j.LoggerFactory;
  */
 public final class Monitor {
 
-    private Monitor() {}
+    private Monitor() { }
     
-    private static final Logger log = LoggerFactory.getLogger(Monitor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Monitor.class);
     
     private static class Options {
 
@@ -60,9 +61,9 @@ public final class Monitor {
     }
     private static volatile boolean generatedAndDisposed;
 
-    public static void main(String[] args) throws ClassNotFoundException, NoSuchMethodException,
-            IllegalAccessException, IllegalArgumentException, InvocationTargetException, IOException, 
-            MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, 
+    public static void main(final String[] args) throws ClassNotFoundException, NoSuchMethodException,
+            IllegalAccessException, InvocationTargetException, IOException,
+            MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException,
             NotCompliantMBeanException, InterruptedException {
 
         generatedAndDisposed = false;
@@ -108,7 +109,7 @@ public final class Monitor {
                     sampler.stop();
                     generateReportAndDispose(sampler, reportOut, chartWidth, maxDepth, svgReport);
                 } catch (Exception ex) {
-                    log.error("Exception while shutting down", ex);
+                    LOG.error("Exception while shutting down", ex);
                 }
             }
 
@@ -122,16 +123,17 @@ public final class Monitor {
     }
     
     private static void generateReportAndDispose(final Sampler sampler,
-            final String reportOut, final int chartWidth, final int maxDepth, boolean svgReport) throws IOException, InterruptedException {
+            final String reportOut, final int chartWidth,
+            final int maxDepth, final boolean svgReport) throws IOException,
+                InterruptedException, InstanceNotFoundException {
                 synchronized (Monitor.class) {
                     if (!generatedAndDisposed) {
                         if (svgReport) {
-                            sampler.generateSvgHtmlMonitorReport(reportOut, chartWidth, maxDepth);                         
-                        }
-                        else {
+                                sampler.generateSvgHtmlMonitorReport(reportOut, chartWidth, maxDepth);
+                        } else {
                             sampler.generateHtmlMonitorReport(reportOut, chartWidth, maxDepth);
                         }
-                        log.info("Sample report written to {}", reportOut);
+                        LOG.info("Sample report written to {}", reportOut);
                         sampler.dispose();
                         generatedAndDisposed = true;
                     }

@@ -15,6 +15,7 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+//CHECKSTYLE:OFF
 package org.spf4j.ui;
 
 import java.awt.Dimension;
@@ -42,7 +43,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
     /**
      * Creates new form TSDBViewJInternalFrame
      */
-    public TSDBViewJInternalFrame(String databaseFile) throws IOException {
+    public TSDBViewJInternalFrame(final String databaseFile) throws IOException {
         super(databaseFile);
         initComponents();
         tsDb = new TimeSeriesDatabase(databaseFile, null);

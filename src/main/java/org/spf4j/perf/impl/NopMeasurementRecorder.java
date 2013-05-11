@@ -23,20 +23,17 @@ package org.spf4j.perf.impl;
 import org.spf4j.perf.MeasurementRecorder;
 
 /**
- *
  * @author zoly
  */
 
 
-public class NopMeasurementRecorder implements MeasurementRecorder
-{
-    private NopMeasurementRecorder() {}
+public final class NopMeasurementRecorder implements MeasurementRecorder {
+    private NopMeasurementRecorder() { }
     
     public static final NopMeasurementRecorder INSTANCE = new NopMeasurementRecorder();
 
     @Override
-    public void record(long measurement)
-    {
+    public void record(final long measurement) {
         //NOP
     }
     

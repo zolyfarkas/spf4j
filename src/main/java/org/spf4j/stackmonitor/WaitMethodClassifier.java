@@ -27,7 +27,7 @@ import java.util.Set;
  */
 public final class WaitMethodClassifier implements Predicate<Method> {
 
-    private WaitMethodClassifier() {}
+    private WaitMethodClassifier() { }
     
     private static final Set<Method> WAIT_METHODS = new HashSet();
 
@@ -41,8 +41,8 @@ public final class WaitMethodClassifier implements Predicate<Method> {
 
    
     @Override
-    public boolean apply(Method input) {
-       return WAIT_METHODS.contains(input); 
+    public boolean apply(final Method input) {
+       return WAIT_METHODS.contains(input);
     }
     
     public static final WaitMethodClassifier INSTANCE = new WaitMethodClassifier();

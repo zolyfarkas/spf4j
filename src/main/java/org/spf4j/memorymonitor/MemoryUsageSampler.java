@@ -36,14 +36,16 @@ import java.util.concurrent.TimeUnit;
  * 
  * @author zoly
  */
-public class MemoryUsageSampler {
+public final class MemoryUsageSampler {
+    
+    private MemoryUsageSampler() { }
     
     private static final int AGG_INTERVAL = Integer.valueOf(System.getProperty("perf.memory.sampleTime", "600000"));
     
-    private static final MeasurementRecorder HEAP_COMMITED = RecorderFactory.createScalableMinMaxAvgRecorder("heap-commited", 
-            "bytes", AGG_INTERVAL);
-    private static final MeasurementRecorder HEAP_USED = RecorderFactory.createScalableMinMaxAvgRecorder("heap-used", 
-            "bytes", AGG_INTERVAL);
+    private static final MeasurementRecorder HEAP_COMMITED =
+            RecorderFactory.createScalableMinMaxAvgRecorder("heap-commited", "bytes", AGG_INTERVAL);
+    private static final MeasurementRecorder HEAP_USED =
+            RecorderFactory.createScalableMinMaxAvgRecorder("heap-used", "bytes", AGG_INTERVAL);
     
     private static final MemoryMXBean MBEAN = ManagementFactory.getMemoryMXBean();
     
@@ -59,7 +61,7 @@ public class MemoryUsageSampler {
         }, "shutdown-memory-sampler"));
     }
     
-    public synchronized static void startMemoryUsageSampling(long sampleTime) {
+    public static synchronized void startMemoryUsageSampling(final long sampleTime) {
         if (samplingFuture == null) {
             samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
 
@@ -73,7 +75,7 @@ public class MemoryUsageSampler {
         }
     }
     
-    public synchronized static void stopMemoryUsageSampling() {
+    public static synchronized void stopMemoryUsageSampling() {
          if (samplingFuture != null) {
              samplingFuture.cancel(false);
              samplingFuture = null;

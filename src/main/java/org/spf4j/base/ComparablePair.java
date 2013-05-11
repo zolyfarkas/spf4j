@@ -19,21 +19,23 @@
 package org.spf4j.base;
 
 import com.google.common.base.Objects;
+import java.io.Serializable;
 import java.util.List;
 
 /**
  *
  * @author zoly
  */
-public final class ComparablePair<A extends Comparable,B extends Comparable>
-    implements Comparable<ComparablePair<A,B>> {
+public final class ComparablePair<A extends Comparable & Serializable, B extends Comparable & Serializable>
+    implements Comparable<ComparablePair<A, B>>, Serializable {
 
-    public ComparablePair(A first, B second) {
+    public ComparablePair(final A first, final B second) {
         this.first = first;
         this.second = second;
     }
     
-    public static <A extends Comparable, B extends Comparable> ComparablePair<A,B> of (A first, B second) {
+    public static <A extends Comparable & Serializable, B extends Comparable & Serializable> ComparablePair<A, B>
+            of(final A first, final B second) {
         return new ComparablePair<A, B>(first, second);
     }
     
@@ -51,7 +53,7 @@ public final class ComparablePair<A extends Comparable,B extends Comparable>
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }
@@ -70,7 +72,7 @@ public final class ComparablePair<A extends Comparable,B extends Comparable>
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(first,second);
+        return Objects.hashCode(first, second);
     }
 
     @Override
@@ -79,11 +81,10 @@ public final class ComparablePair<A extends Comparable,B extends Comparable>
     }
 
     @Override
-    public int compareTo(ComparablePair<A, B> o) {
+    public int compareTo(final ComparablePair<A, B> o) {
         if (this.first.equals(o.first)) {
             return this.second.compareTo(o.second);
-        }
-        else {
+        } else {
             return this.first.compareTo(o.first);
         }
     }

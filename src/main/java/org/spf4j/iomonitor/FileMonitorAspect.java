@@ -30,62 +30,60 @@ import org.spf4j.perf.RecorderFactory;
  * @author zoly
  */
 @Aspect
-public class FileMonitorAspect {
+public final class FileMonitorAspect {
 
     private static final MeasurementRecorderSource RECORDER_READ =
             RecorderFactory.createScalableCountingRecorderSource("file-read", "bytes",
             Integer.valueOf(System.getProperty("perf.file.sampleTime", "300000")));
-    
     private static final MeasurementRecorderSource RECORDER_WRITE =
             RecorderFactory.createScalableCountingRecorderSource("file-write", "bytes",
             Integer.valueOf(System.getProperty("perf.file.sampleTime", "300000")));
-    
 
     @Around("call(long java.nio.channels.FileChannel.read(..))")
-    public Object nioReadLong(ProceedingJoinPoint pjp) throws Throwable {
+    public Object nioReadLong(final ProceedingJoinPoint pjp) throws Throwable {
         Long result = (Long) pjp.proceed();
         if (result >= 0) {
             RECORDER_READ.getRecorder(pjp.getSourceLocation().getWithinType()).record(result);
         }
         return result;
     }
-    
+
     @Around("call(int java.nio.channels.FileChannel.read(..))")
-    public Object nioReadInt(ProceedingJoinPoint pjp) throws Throwable {
+    public Object nioReadInt(final ProceedingJoinPoint pjp) throws Throwable {
         Integer result = (Integer) pjp.proceed();
         if (result >= 0) {
             RECORDER_READ.getRecorder(pjp.getSourceLocation().getWithinType()).record(result);
         }
         return result;
     }
-    
+
     @Around("call(long java.nio.channels.FileChannel.write(..))")
-    public Object nioWriteLong(ProceedingJoinPoint pjp) throws Throwable {
+    public Object nioWriteLong(final ProceedingJoinPoint pjp) throws Throwable {
         Long result = (Long) pjp.proceed();
         if (result >= 0) {
             RECORDER_WRITE.getRecorder(pjp.getSourceLocation().getWithinType()).record(result);
         }
         return result;
     }
-    
+
     @Around("call(int java.nio.channels.FileChannel.write(..))")
-    public Object nioWriteInt(ProceedingJoinPoint pjp) throws Throwable {
+    public Object nioWriteInt(final ProceedingJoinPoint pjp) throws Throwable {
         Integer result = (Integer) pjp.proceed();
         RECORDER_WRITE.getRecorder(pjp.getSourceLocation().getWithinType()).record(result);
         return result;
     }
-    
+
     @Around("call(java.io.FileInputStream.new(java.io.File))")
-    public Object fileIS(ProceedingJoinPoint pjp) throws Throwable {
+    public Object fileIS(final ProceedingJoinPoint pjp) throws Throwable {
         pjp.proceed();
-        return new MeasuredFileInputStream((File)pjp.getArgs()[0], pjp.getSourceLocation().getWithinType(), RECORDER_READ);
+        return new MeasuredFileInputStream((File) pjp.getArgs()[0],
+                pjp.getSourceLocation().getWithinType(), RECORDER_READ);
     }
-    
+
     @Around("call(java.io.FileOutputStream.new(java.io.File))")
-    public Object fileOS(ProceedingJoinPoint pjp) throws Throwable {
+    public Object fileOS(final ProceedingJoinPoint pjp) throws Throwable {
         pjp.proceed();
-        return new MeasuredFileOutputStream((File)pjp.getArgs()[0], pjp.getSourceLocation().getWithinType(), RECORDER_WRITE);
+        return new MeasuredFileOutputStream((File) pjp.getArgs()[0],
+                pjp.getSourceLocation().getWithinType(), RECORDER_WRITE);
     }
-    
-    
 }

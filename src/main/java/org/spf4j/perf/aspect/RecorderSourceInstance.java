@@ -22,48 +22,45 @@ import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.RecorderFactory;
 import org.spf4j.perf.impl.NopMeasurementRecorderSource;
 
-public abstract class RecorderSourceInstance
-{
+/**
+ * I am simulating a lazy enum.
+ * @author zoly
+ */
 
-    private RecorderSourceInstance()
-    {
+public abstract class RecorderSourceInstance {
+
+    private RecorderSourceInstance() {
     }
 
-    public static final class RsNop extends RecorderSourceInstance
-    {
+    public static final class RsNop extends RecorderSourceInstance {
 
-        public static final MeasurementRecorderSource INSTANCE =
-                NopMeasurementRecorderSource.INSTANCE;
+        public static final MeasurementRecorderSource INSTANCE = NopMeasurementRecorderSource.INSTANCE;
     }
-    
-    public static final class Rs5m extends RecorderSourceInstance
-    {
+
+    public static final class Rs5m extends RecorderSourceInstance {
 
         public static final MeasurementRecorderSource INSTANCE =
                 RecorderFactory.createScalableQuantizedRecorderSource(Rs5m.class,
                 "ms", 300000, 10, 0, 6, 10);
     }
 
-    public static final class Rs1m extends RecorderSourceInstance
-    {
+    public static final class Rs1m extends RecorderSourceInstance {
 
         public static final MeasurementRecorderSource INSTANCE =
                 RecorderFactory.createScalableQuantizedRecorderSource(Rs1m.class,
                 "ms", 60000, 10, 0, 6, 10);
     }
 
-    public static final class Rs15m extends RecorderSourceInstance
-    {
+    public static final class Rs15m extends RecorderSourceInstance {
 
         public static final MeasurementRecorderSource INSTANCE =
                 RecorderFactory.createScalableQuantizedRecorderSource(Rs15m.class,
                 "ms", 900000, 10, 0, 6, 10);
     }
 
-    public static final class Rs1h extends RecorderSourceInstance
-    {
+    public static final class Rs1h extends RecorderSourceInstance {
 
-        public static final MeasurementRecorderSource INSTANCE = 
+        public static final MeasurementRecorderSource INSTANCE =
                 RecorderFactory.createScalableQuantizedRecorderSource(Rs1h.class,
                 "ms", 3600000, 10, 0, 6, 10);
     }
