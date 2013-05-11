@@ -47,7 +47,7 @@ public final class Monitor {
         private String mainClass;
         @Option(name = "-si", usage = "the stack sampling interval in milliseconds")
         private int sampleInterval = 100;
-        @Option(name = "-di", usage = "the stack sampling interval in milliseconds")
+        @Option(name = "-di", usage = "the stack dump to file interval in milliseconds")
         private int dumpInterval = 3600000;
         @Option(name = "-w", usage = "flame chart width in pixels")
         private int chartWidth = 2000;
