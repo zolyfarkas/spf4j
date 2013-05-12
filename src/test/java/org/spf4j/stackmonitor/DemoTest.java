@@ -16,7 +16,6 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.stackmonitor;
 
 import java.io.File;
@@ -48,18 +47,22 @@ public final class DemoTest {
             }
         });
     }
-    
-    
+
+    public void testCommandLine() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
+            InvocationTargetException, IOException, MalformedObjectNameException, InstanceAlreadyExistsException,
+            MBeanRegistrationException, NotCompliantMBeanException, InterruptedException {
+        Monitor.main(new String[]{});
+    }
+
     @Test
     public void testJmx() throws ClassNotFoundException, NoSuchMethodException,
-    IllegalAccessException, InvocationTargetException,
-    IOException, CmdLineException, InterruptedException, MalformedObjectNameException,
-    InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
+            IllegalAccessException, InvocationTargetException,
+            IOException, CmdLineException, InterruptedException, MalformedObjectNameException,
+            InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
         String report = File.createTempFile("stackSampleDemo", ".html").getPath();
         Monitor.main(new String[]{"-f", report, "-ss", "-si", "1", "-w", "600", "-main", DemoTest.class.getName()});
         System.out.println(report);
     }
-    
     private static volatile boolean stopped;
 
     public static void main(final String[] args) throws InterruptedException {
@@ -67,7 +70,6 @@ public final class DemoTest {
         List<Thread> threads = new ArrayList<Thread>();
         for (int i = 0; i < 20; i++) {
             Thread t = new Thread(new Runnable() {
-
                 @Override
                 public void run() {
                     try {
@@ -84,11 +86,10 @@ public final class DemoTest {
                 private double doStuff() {
                     return getStuff(10) * getStuff(10) * getStuff(10) * getStuff(10);
                 }
-                
+
                 private double getStuff(final double nr) {
                     return Math.exp(nr);
                 }
-            
             }, "Thread" + i);
             t.start();
             threads.add(t);
@@ -98,6 +99,6 @@ public final class DemoTest {
         for (Thread t : threads) {
             t.join();
         }
-        
+
     }
 }
