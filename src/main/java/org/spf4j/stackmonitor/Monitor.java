@@ -55,7 +55,8 @@ public final class Monitor {
         private int maxDepth = Integer.MAX_VALUE;
         @Option(name = "-ss", usage = "start the stack sampling thread. (can also be done manually via jmx)")
         private boolean startSampler = false;
-        @Option(name = "-nosvg", usage = "stack visualization will be in svg format")
+        @Option(name = "-nosvg", usage = "stack visualization will be in html format with"
+                + " html tables and not svg")
         private boolean noSvgReport = false;
         
     }
