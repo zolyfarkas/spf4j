@@ -149,18 +149,18 @@ recorderSource.getRecorder(forWhat).record(measurement)
 
 5.Performance Profiling
 
-* 5.1.Why another profiling library?
+* 5.1. Why another profiling library?
 
  It all started with Brendan Gregg's blog: http://dtrace.org/blogs/brendan/2011/12/16/flame-graphs/ combined with a few hours of coding.
  However since than more monitoring capability has been added to spf4j.
  Aspects to monitor object allocation, network, file, memory usage have been added.
 
-* 5.2.When to profile your code?
+* 5.2. When to profile your code?
 
  I recommend to deploy your code with profiling turned on as much as you can.
  In my case I have profiling data collection turned on in test/qa environments all the time. (with 100ms sampling interval). If you can afford to do it in PROD do it.
 
-* 5.3.How to profile your code?
+* 5.3. How to profile your code?
 
  Add spf4j to your classpath and the following to your command line:
 
@@ -205,18 +205,21 @@ Usage:
  This thread uses Thread.getAllStackTraces() or the JVM MX beans (configurable) to get all stack traces for all threads.
  Each sample is added to a tree that aggregates the stack trace data.
 
-* 5.6.Monitoring memory allocations:
+* 5.6. Monitoring memory allocations:
 
  You will need to apply aspect org.spf4j.memorymonitor.AllocationMonitorAspect
  to the code you want to monitor object allocations. This aspect will intercept all new objects calls in your code
  and it will use performance monitoring described at chapter 4 to record the number and amount of allocations.
+ AspectJ load time weaving is not capable of intercepting allocations done inside rt.jar. You will have to apply your
+ aspect against rt.jar and create a new one and add it to the boot class path
+ in case you want to see all allocations.
 
  Getting access to the data is same as described in chapter 4, you can do it over jmx, 
  or opening the tsdb file in the embeded ui:
 
 [images/spf4j_allocations.png]
 
- Allocations will classified based on the class where they are done.
+ Allocations are classified based on the class where they are done. This allows you to quickly identify memory hogs.
  In the chart above you can see how memory allocations happened, both byteSize and allocation count and what class.
  Object size computation might be too much overhead, in that case you can disable it by system property setting:
 
@@ -225,15 +228,15 @@ Usage:
 +---------------------------------------------------
 
 
-* 5.7.Monitoring Network IO
+* 5.7. Monitoring Network IO
 
  The aspect org.spf4j.iomonitor.NetworkMonitorAspect will allow you to monitor you processes network traffic.
 
 [images/spf4j_io.png] network traffic
 
-6.High Performance Object Pool
+6. High Performance Object Pool
 
-* 6.1.Why another object pool implementation?
+* 6.1. Why another object pool implementation?
 
  In my(I am not alone) view current available object pool implementations are less than perfect. Beside the scalability issues and bugs, I don't like the following implementation choices found in other implementations:
 
@@ -262,11 +265,11 @@ Usage:
 
  The goal of this implementation is to be more reliable and faster than any of the implementations out there.
 
-* 6.2.Use case
+* 6.2. Use case
 
  The classical use case for an object pool is to pool your jdbc connections or any type of network connection.
 
-* 6.3.How to use the object pool
+* 6.3. How to use the object pool
 
  Creating a pool is simple:
 
@@ -288,7 +291,7 @@ Template.doOnPooledObject(new ObjectPool.Hook<PooledObject, SomeException>() {
 
  You can also use the borrow and return methods on the object pool to get and return an object to the pool.
 
-* 6.4.How does the pool work?
+* 6.4. How does the pool work?
 
  The architecture above biases object to threads, so a thread will most likely get the same object minimizing
  object contention (if pool size >= thread nr which is the recommended sizing). 
