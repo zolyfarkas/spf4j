@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Throwables.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Throwables.java</span></div><h1>Throwables.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.base;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.lang.reflect.Field;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import javax.annotation.ParametersAreNonnullByDefault;
+
+/**
+ * utility class for throwables.
+ *
+ * @author zoly
+ */
+@ParametersAreNonnullByDefault
+public final class Throwables {
+
+<span class="nc" id="L38">    private Throwables() { }</span>
+    
+    private static final Field CAUSE_FIELD;
+
+    static {
+        try {
+<span class="fc" id="L44">            CAUSE_FIELD = Throwable.class.getDeclaredField(&quot;cause&quot;);</span>
+<span class="nc" id="L45">        } catch (NoSuchFieldException ex) {</span>
+<span class="nc" id="L46">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L47">        } catch (SecurityException ex) {</span>
+<span class="nc" id="L48">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L49">        }</span>
+<span class="fc" id="L50">        AccessController.doPrivileged(new PrivilegedAction() {</span>
+            @Override
+            public Object run() {
+<span class="fc" id="L53">                CAUSE_FIELD.setAccessible(true);</span>
+<span class="fc" id="L54">                return null; // nothing to return</span>
+            }
+        });
+
+<span class="fc" id="L58">    }</span>
+
+    private static Throwable chain0(final Throwable t, final Throwable cause) {
+<span class="fc" id="L61">        final Throwable rc = com.google.common.base.Throwables.getRootCause(t);</span>
+        try {
+<span class="fc" id="L63">            AccessController.doPrivileged(new PrivilegedAction() {</span>
+                @Override
+                public Object run() {
+                    try {
+<span class="fc" id="L67">                        CAUSE_FIELD.set(rc, cause);</span>
+<span class="nc" id="L68">                    } catch (IllegalArgumentException ex) {</span>
+<span class="nc" id="L69">                        throw new RuntimeException(ex);</span>
+<span class="nc" id="L70">                    } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L71">                        throw new RuntimeException(ex);</span>
+<span class="fc" id="L72">                    }</span>
+<span class="fc" id="L73">                    return null; // nothing to return</span>
+                }
+            });
+
+<span class="nc" id="L77">        } catch (IllegalArgumentException ex) {</span>
+<span class="nc" id="L78">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L79">        }</span>
+<span class="fc" id="L80">        return t;</span>
+    }
+
+    /**
+     * This method will clone the exception t and will set a new root cause.
+     *
+     * @param &lt;T&gt;
+     * @param t
+     * @param newRootCause
+     * @return
+     */
+    public static &lt;T extends Throwable&gt; T chain(final T t, final Throwable newRootCause) {
+        try {
+<span class="fc" id="L93">            ByteArrayOutputStream bos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L94">            ObjectOutputStream out = new ObjectOutputStream(bos);</span>
+            try {
+<span class="fc" id="L96">                out.writeObject(t);</span>
+            } finally {
+<span class="pc" id="L98">                out.close();</span>
+<span class="fc" id="L99">            }</span>
+
+            T result;
+<span class="fc" id="L102">            ObjectInputStream in = new ObjectInputStream(</span>
+                    new ByteArrayInputStream(bos.toByteArray()));
+            try {
+<span class="fc" id="L105">                result = (T) in.readObject();</span>
+            } finally {
+<span class="pc" id="L107">                in.close();</span>
+<span class="fc" id="L108">            }</span>
+<span class="fc" id="L109">            chain0(result, newRootCause);</span>
+<span class="fc" id="L110">            return result;</span>
+<span class="nc" id="L111">        } catch (ClassNotFoundException ex) {</span>
+<span class="nc" id="L112">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L113">        } catch (IOException ex) {</span>
+<span class="nc" id="L114">            throw new RuntimeException(ex);</span>
+        }
+    }
+    /**
+     * Functionality equivalent for java 1.7 Throwable.addSuppressed.
+     * 
+     * @param &lt;T&gt;
+     * @param t
+     * @param newRootCause
+     * @return
+     */
+    public static &lt;T extends Throwable&gt; T suppress(final T t, final Throwable suppressed) {
+<span class="fc" id="L126">        return chain(t, new SuppressedThrowable(suppressed));</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

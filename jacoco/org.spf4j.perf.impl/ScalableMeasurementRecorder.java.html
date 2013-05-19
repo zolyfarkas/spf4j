@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ScalableMeasurementRecorder.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">ScalableMeasurementRecorder.java</span></div><h1>ScalableMeasurementRecorder.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.impl;
+
+import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.DefaultScheduler;
+import org.spf4j.perf.EntityMeasurements;
+import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementDatabase;
+import org.spf4j.perf.MeasurementProcessor;
+import org.spf4j.perf.MeasurementRecorder;
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
+import javax.annotation.concurrent.ThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ *
+ * @author zoly
+ */
+@ThreadSafe
+public final class ScalableMeasurementRecorder implements MeasurementRecorder, EntityMeasurements, Closeable {
+
+<span class="fc" id="L45">    private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);</span>
+    
+    private final Map&lt;Thread, MeasurementProcessor&gt; threadLocalRecorders;
+    private final ThreadLocal&lt;MeasurementProcessor&gt; threadLocalRecorder;
+    private final ScheduledFuture&lt;?&gt; samplingFuture;
+    private final MeasurementProcessor processorTemplate;
+
+    public ScalableMeasurementRecorder(final MeasurementProcessor processor, final int sampleTimeMillis,
+<span class="fc" id="L53">            final MeasurementDatabase database) {</span>
+<span class="fc" id="L54">        threadLocalRecorders = new HashMap&lt;Thread, MeasurementProcessor&gt;();</span>
+<span class="fc" id="L55">        processorTemplate = processor;</span>
+<span class="fc" id="L56">        threadLocalRecorder = new ThreadLocal&lt;MeasurementProcessor&gt;() {</span>
+
+            @Override
+            protected MeasurementProcessor initialValue() {
+<span class="fc" id="L60">                MeasurementProcessor result = (MeasurementProcessor) processor.createClone(false);</span>
+<span class="fc" id="L61">                synchronized (threadLocalRecorders) {</span>
+<span class="fc" id="L62">                    threadLocalRecorders.put(Thread.currentThread(), result);</span>
+<span class="pc" id="L63">                }</span>
+<span class="fc" id="L64">                return result;</span>
+            }
+        };
+        try {
+<span class="fc" id="L68">            database.alocateMeasurements(processor.getInfo(), sampleTimeMillis);</span>
+<span class="nc" id="L69">        } catch (IOException ex) {</span>
+<span class="nc" id="L70">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L71">        }</span>
+<span class="fc" id="L72">        samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(new AbstractRunnable(true) {</span>
+<span class="fc" id="L73">            private volatile long lastRun = 0;</span>
+            
+            @Override
+            public void doRun() throws IOException {
+<span class="fc" id="L77">                long currentTime = System.currentTimeMillis();</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">                if (currentTime &gt; lastRun) {</span>
+<span class="fc" id="L79">                    lastRun = currentTime;</span>
+<span class="fc" id="L80">                    database.saveMeasurements(ScalableMeasurementRecorder.this.getInfo(),</span>
+                            ScalableMeasurementRecorder.this.getMeasurements(true),
+                            currentTime, sampleTimeMillis);
+                } else {
+<span class="nc" id="L84">                    LOG.warn(&quot;Last measurement recording was at {} current run is {}, something is wrong&quot;,</span>
+                            lastRun, currentTime);
+                }
+<span class="fc" id="L87">            }</span>
+        }, sampleTimeMillis);
+
+        
+<span class="fc" id="L91">    }</span>
+
+    @Override
+    public void record(final long measurement) {
+<span class="fc" id="L95">        threadLocalRecorder.get().record(measurement);</span>
+<span class="fc" id="L96">    }</span>
+
+    @Override
+    public long [] getMeasurements(final boolean reset) {
+<span class="fc" id="L100">        EntityMeasurements result  = null;</span>
+<span class="fc" id="L101">        synchronized (threadLocalRecorders) {</span>
+<span class="fc" id="L102">            List&lt;Thread&gt; removeThreads = new ArrayList&lt;Thread&gt;();</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">            for (Map.Entry&lt;Thread, MeasurementProcessor&gt; entry : threadLocalRecorders.entrySet()) {</span>
+<span class="fc" id="L104">                Thread t = entry.getKey();</span>
+<span class="pc bpc" id="L105" title="3 of 4 branches missed.">                if (!t.isAlive() &amp;&amp; reset) {</span>
+<span class="nc" id="L106">                    removeThreads.add(t);</span>
+                }
+<span class="fc" id="L108">                EntityMeasurements measurements = entry.getValue().createClone(reset);</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">                if (result == null) {</span>
+<span class="fc" id="L110">                    result = measurements;</span>
+                } else {
+<span class="fc" id="L112">                    result = result.aggregate(measurements);</span>
+                }
+<span class="fc" id="L114">            }</span>
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">            for (Thread t : removeThreads) {</span>
+<span class="nc" id="L116">                threadLocalRecorders.remove(t);</span>
+            }
+<span class="pc" id="L118">        }</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">        return (result == null) ? processorTemplate.getMeasurements(false) : result.getMeasurements(false);</span>
+    }
+
+    @Override
+    public EntityMeasurements aggregate(final EntityMeasurements mSource) {
+<span class="nc" id="L124">        throw new UnsupportedOperationException(&quot;Aggregating Scalable Recorders not supported&quot;);</span>
+    }
+
+
+
+    @Override
+    public EntityMeasurements createClone(final boolean reset) {
+<span class="nc" id="L131">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+    }
+
+    @Override
+    public void close() {
+<span class="fc" id="L136">        samplingFuture.cancel(false);</span>
+<span class="fc" id="L137">    }</span>
+
+    @Override
+    protected void finalize() throws Throwable {
+        try {
+<span class="fc" id="L142">            super.finalize();</span>
+        } finally {
+<span class="pc" id="L144">            this.close();</span>
+<span class="fc" id="L145">        }</span>
+<span class="fc" id="L146">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L150">        return &quot;ScalableMeasurementRecorder{&quot; + &quot;threadLocalRecorders=&quot; + threadLocalRecorders</span>
+                + &quot;, processorTemplate=&quot; + processorTemplate + '}';
+    }
+
+    @Override
+    public EntityMeasurements createLike(final Object entity) {
+<span class="nc" id="L156">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+    }
+
+    @Override
+    public EntityMeasurementsInfo getInfo() {
+<span class="fc" id="L161">        return processorTemplate.getInfo();</span>
+    }
+
+    
+    
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

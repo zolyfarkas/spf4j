@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>CountingRecorder.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">CountingRecorder.java</span></div><h1>CountingRecorder.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.impl;
+
+import org.spf4j.perf.EntityMeasurements;
+import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementProcessor;
+
+/**
+ *
+ * @author zoly
+ */
+public final class CountingRecorder
+    implements MeasurementProcessor {
+
+    private long counter;
+    private long total;
+    private final EntityMeasurementsInfo info;
+    
+<span class="fc" id="L35">    private static final String [] MEASUREMENTS = {&quot;count&quot;, &quot;total&quot;};</span>
+    
+    private CountingRecorder(final Object measuredEntity, final String unitOfMeasurement,
+<span class="fc" id="L38">            final long counter, final long total) {</span>
+<span class="fc" id="L39">        this.info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement,</span>
+                MEASUREMENTS, new String [] {&quot;count&quot;, unitOfMeasurement});
+<span class="fc" id="L41">        this.counter = counter;</span>
+<span class="fc" id="L42">        this.total = total;</span>
+<span class="fc" id="L43">    }</span>
+
+    public CountingRecorder(final Object measuredEntity, final String unitOfMeasurement) {
+<span class="fc" id="L46">        this(measuredEntity, unitOfMeasurement, 0, 0);</span>
+<span class="fc" id="L47">    }</span>
+    
+    
+    
+    @Override
+    public synchronized void record(final long measurement) {
+<span class="fc" id="L53">        total += measurement;</span>
+<span class="fc" id="L54">        counter++;</span>
+<span class="fc" id="L55">    }</span>
+
+    @Override
+    public synchronized long[] getMeasurements(final boolean reset) {
+<span class="fc" id="L59">        long[] result = new long[] {counter, total};</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        if (reset) {</span>
+<span class="fc" id="L61">            counter = 0;</span>
+<span class="fc" id="L62">            total = 0;</span>
+        }
+<span class="fc" id="L64">        return result;</span>
+    }
+
+    @Override
+    public EntityMeasurements aggregate(final EntityMeasurements mSource) {
+<span class="fc" id="L69">        CountingRecorder other = (CountingRecorder) mSource;</span>
+<span class="fc" id="L70">        long [] measurements = other.getMeasurements(false);</span>
+<span class="fc" id="L71">        synchronized (this) {</span>
+<span class="fc" id="L72">            return new CountingRecorder(this.info.getMeasuredEntity(), this.info.getUnitOfMeasurement(),</span>
+                    counter + measurements[0], total + measurements[1]);
+<span class="nc" id="L74">        }</span>
+    }
+
+    @Override
+    public synchronized EntityMeasurements createClone(final boolean reset) {
+<span class="fc" id="L79">        CountingRecorder result = new CountingRecorder(this.info.getMeasuredEntity(),</span>
+                this.info.getUnitOfMeasurement(), counter, total);
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (reset) {</span>
+<span class="fc" id="L82">            counter = 0;</span>
+<span class="fc" id="L83">            total = 0;</span>
+        }
+<span class="fc" id="L85">        return result;</span>
+    }
+
+    @Override
+    public EntityMeasurements createLike(final Object entity) {
+<span class="fc" id="L90">        return new CountingRecorder(entity, this.info.getUnitOfMeasurement());</span>
+    }
+
+    @Override
+    public EntityMeasurementsInfo getInfo() {
+<span class="fc" id="L95">        return info;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

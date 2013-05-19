@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Sampler.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">Sampler.java</span></div><h1>Sampler.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.stackmonitor;
+
+import com.google.common.base.Charsets;
+import com.google.common.base.Function;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.lang.management.ManagementFactory;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+import javax.annotation.PreDestroy;
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+import org.spf4j.base.AbstractRunnable;
+import org.spf4j.stackmonitor.proto.Converter;
+
+/**
+ * Utility that allow you to sample what the application is doing. It generates
+ * a &quot;Flame Graph&quot; that allows you to quickly see you &quot;heavy&quot; operations.
+ *
+ * You can use JConsole to control the sampling while your application is
+ * running.
+ *
+ * By using a sampling approach you can choose your overhead. (sampling takes
+ * about 0.5 ms, so the default of 10Hz will give you 0.5% overhead)
+ *
+ * Collection is separated into CPU, WAIT and IO categories. I felt that most
+ * important is to see what hogs your CPU because that is where, you can most
+ * likely can do something about it.
+ *
+ * @author zoly
+ */
+@ThreadSafe
+public final class Sampler implements SamplerMBean {
+
+    private volatile boolean stopped;
+    private volatile long sampleTimeMillis;
+    private volatile long dumpTimeMillis;
+    private volatile boolean isJmxRegistered;
+    private final StackCollector stackCollector;
+    private final ObjectName name;
+<span class="fc" id="L72">    private long lastDumpTime = System.currentTimeMillis();</span>
+    
+    @GuardedBy(&quot;this&quot;)
+    private Thread samplingThread;
+<span class="fc" id="L76">    private final String filePrefix = System.getProperty(&quot;perf.db.folder&quot;,</span>
+            System.getProperty(&quot;java.io.tmpdir&quot;)) + File.separator
+            + System.getProperty(&quot;perf.db.name&quot;,
+            ManagementFactory.getRuntimeMXBean().getName());
+
+    public Sampler() {
+<span class="nc" id="L82">        this(100, 3600000, new MxStackCollector());</span>
+<span class="nc" id="L83">    }</span>
+
+    public Sampler(final long sampleTimeMillis) {
+<span class="fc" id="L86">        this(sampleTimeMillis, 3600000, new MxStackCollector());</span>
+<span class="fc" id="L87">    }</span>
+
+    public Sampler(final StackCollector collector) {
+<span class="nc" id="L90">        this(100, 3600000, collector);</span>
+<span class="nc" id="L91">    }</span>
+
+<span class="fc" id="L93">    public Sampler(final long sampleTimeMillis, final long dumpTimeMillis, final StackCollector collector) {</span>
+<span class="fc" id="L94">        stopped = true;</span>
+<span class="fc" id="L95">        this.sampleTimeMillis = sampleTimeMillis;</span>
+<span class="fc" id="L96">        this.dumpTimeMillis = dumpTimeMillis;</span>
+<span class="fc" id="L97">        this.stackCollector = collector;</span>
+        try {
+<span class="fc" id="L99">            this.name = new ObjectName(&quot;SPF4J:name=StackSampler&quot;);</span>
+<span class="nc" id="L100">        } catch (MalformedObjectNameException ex) {</span>
+<span class="nc" id="L101">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L102">        }</span>
+<span class="fc" id="L103">        this.isJmxRegistered = false;</span>
+<span class="fc" id="L104">    }</span>
+
+    public void registerJmx()
+            throws MalformedObjectNameException, InstanceAlreadyExistsException,
+            MBeanRegistrationException, NotCompliantMBeanException {
+<span class="fc" id="L109">        ManagementFactory.getPlatformMBeanServer().registerMBean(this, name);</span>
+<span class="fc" id="L110">        isJmxRegistered = true;</span>
+<span class="fc" id="L111">    }</span>
+
+    @Override
+    public synchronized void start() {
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">        if (stopped) {</span>
+<span class="fc" id="L116">            stopped = false;</span>
+<span class="fc" id="L117">            final long stMillis = sampleTimeMillis;</span>
+
+<span class="fc" id="L119">            final long dumpCount = dumpTimeMillis / sampleTimeMillis;</span>
+
+<span class="fc" id="L121">            samplingThread = new Thread(new AbstractRunnable() {</span>
+<span class="fc" id="L122">                private long dumpCounter = 0;</span>
+
+                @SuppressWarnings(&quot;SleepWhileInLoop&quot;)
+                @Override
+                public void doRun() throws IOException, InterruptedException {
+<span class="fc bfc" id="L127" title="All 2 branches covered.">                    while (!stopped) {</span>
+<span class="fc" id="L128">                        stackCollector.sample();</span>
+<span class="fc" id="L129">                        Thread.sleep(stMillis);</span>
+<span class="fc" id="L130">                        dumpCounter++;</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">                        if (dumpCounter &gt;= dumpCount) {</span>
+<span class="nc" id="L132">                            dumpCounter = 0;</span>
+<span class="nc" id="L133">                            dumpToFile();</span>
+<span class="nc" id="L134">                            lastDumpTime = System.currentTimeMillis();</span>
+<span class="nc" id="L135">                            clear();</span>
+                        }
+
+
+
+                    }
+<span class="fc" id="L141">                }</span>
+            }, &quot;Stack Sampling Thread&quot;);
+<span class="fc" id="L143">            samplingThread.start();</span>
+<span class="fc" id="L144">        } else {</span>
+<span class="nc" id="L145">            throw new IllegalStateException(&quot;Sampling can only be started once&quot;);</span>
+        }
+
+<span class="fc" id="L148">    }</span>
+<span class="fc" id="L149">    private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();</span>
+
+    public synchronized void dumpToFile() throws IOException {
+<span class="fc" id="L152">        final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePrefix + &quot;_&quot;</span>
+                + TS_FORMAT.print(lastDumpTime) + &quot;_&quot; + TS_FORMAT.print(System.currentTimeMillis()) + &quot;.ssdump&quot;));
+        try {
+<span class="fc" id="L155">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
+                @Override
+                public SampleNode apply(final SampleNode input) {
+                    try {
+<span class="fc" id="L159">                        Converter.fromSampleNodeToProto(input).writeTo(bos);</span>
+<span class="nc" id="L160">                    } catch (IOException ex) {</span>
+<span class="nc" id="L161">                        throw new RuntimeException(ex);</span>
+<span class="fc" id="L162">                    }</span>
+<span class="fc" id="L163">                    return input;</span>
+                }
+            });
+
+
+        } finally {
+<span class="pc" id="L169">            bos.close();</span>
+<span class="fc" id="L170">        }</span>
+<span class="fc" id="L171">        lastDumpTime = System.currentTimeMillis();</span>
+
+<span class="fc" id="L173">    }</span>
+
+    @Override
+    public synchronized void generateHtmlMonitorReport(final String fileName, final int chartWidth, final int maxDepth)
+            throws IOException {
+<span class="fc" id="L178">        dumpToFile();</span>
+<span class="fc" id="L179">        final Writer writer</span>
+                = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
+        try {
+<span class="fc" id="L182">            writer.append(&quot;&lt;html&gt;&quot;);</span>
+
+<span class="fc" id="L184">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
+                @Override
+                public SampleNode apply(final SampleNode input) {
+<span class="pc bpc" id="L187" title="1 of 2 branches missed.">                    if (input != null) {</span>
+<span class="fc" id="L188">                        SampleNode finput = input;</span>
+                        try {
+<span class="fc" id="L190">                            writer.append(&quot;&lt;h1&gt;Total stats&lt;/h1&gt;&quot;);</span>
+<span class="fc" id="L191">                            StackVisualizer.generateHtmlTable(writer, Method.ROOT, finput, chartWidth, maxDepth);</span>
+<span class="nc" id="L192">                        } catch (IOException ex) {</span>
+<span class="nc" id="L193">                            throw new RuntimeException(ex);</span>
+<span class="fc" id="L194">                        }</span>
+                    }
+<span class="fc" id="L196">                    return input;</span>
+                }
+            });
+
+
+<span class="fc" id="L201">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
+                @Override
+                public SampleNode apply(final SampleNode input) {
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">                    if (input != null) {</span>
+<span class="fc" id="L205">                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);</span>
+                        try {
+<span class="fc" id="L207">                            writer.append(&quot;&lt;h1&gt;CPU stats&lt;/h1&gt;&quot;);</span>
+<span class="fc" id="L208">                            StackVisualizer.generateHtmlTable(writer, Method.ROOT, finput, chartWidth, maxDepth);</span>
+<span class="nc" id="L209">                        } catch (IOException ex) {</span>
+<span class="nc" id="L210">                            throw new RuntimeException(ex);</span>
+<span class="fc" id="L211">                        }</span>
+                    }
+<span class="fc" id="L213">                    return input;</span>
+                }
+            });
+
+<span class="fc" id="L217">            writer.append(&quot;&lt;/html&gt;&quot;);</span>
+
+        } finally {
+<span class="pc" id="L220">            writer.close();</span>
+<span class="fc" id="L221">        }</span>
+
+<span class="fc" id="L223">    }</span>
+
+    @Override
+    public synchronized void stop() throws InterruptedException {
+<span class="fc" id="L227">        stopped = true;</span>
+<span class="fc" id="L228">        samplingThread.join();</span>
+<span class="fc" id="L229">    }</span>
+
+    @Override
+    public long getSampleTimeMillis() {
+<span class="nc" id="L233">        return sampleTimeMillis;</span>
+    }
+
+    @Override
+    public void setSampleTimeMillis(final long sampleTimeMillis) {
+<span class="nc" id="L238">        this.sampleTimeMillis = sampleTimeMillis;</span>
+<span class="nc" id="L239">    }</span>
+
+    @Override
+    public boolean isStopped() {
+<span class="nc" id="L243">        return stopped;</span>
+    }
+
+    @Override
+    public List&lt;String&gt; generate(final Properties props) throws IOException {
+<span class="nc" id="L248">        int width = Integer.valueOf(props.getProperty(&quot;width&quot;, &quot;1200&quot;));</span>
+<span class="nc" id="L249">        int maxDepth = Integer.valueOf(props.getProperty(&quot;maxDepth&quot;, &quot;1200&quot;));</span>
+<span class="nc" id="L250">        String fileName = File.createTempFile(&quot;stack&quot;, &quot;.html&quot;).getAbsolutePath();</span>
+<span class="nc" id="L251">        generateHtmlMonitorReport(fileName, width, maxDepth);</span>
+<span class="nc" id="L252">        return Arrays.asList(fileName);</span>
+    }
+
+    @Override
+    public List&lt;String&gt; getParameters() {
+<span class="nc" id="L257">        return Arrays.asList(&quot;width&quot;);</span>
+    }
+
+    @Override
+    public void clear() {
+<span class="nc" id="L262">        stackCollector.clear();</span>
+<span class="nc" id="L263">    }</span>
+
+    public StackCollector getStackCollector() {
+<span class="fc" id="L266">        return stackCollector;</span>
+    }
+
+    @PreDestroy
+    public void dispose() throws InterruptedException, InstanceNotFoundException {
+<span class="nc" id="L271">        stop();</span>
+        try {
+<span class="nc bnc" id="L273" title="All 2 branches missed.">            if (isJmxRegistered) {</span>
+<span class="nc" id="L274">                ManagementFactory.getPlatformMBeanServer().unregisterMBean(name);</span>
+            }
+<span class="nc" id="L276">        } catch (InstanceNotFoundException ex) {</span>
+<span class="nc" id="L277">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L278">        } catch (MBeanRegistrationException ex) {</span>
+<span class="nc" id="L279">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L280">        }</span>
+<span class="nc" id="L281">    }</span>
+
+    @Override
+    public void generateCpuSvg(final String fileName, final int chartWidth, final int maxDepth) throws IOException {
+<span class="nc" id="L285">        final Writer writer</span>
+                = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
+        try {
+
+<span class="nc" id="L289">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
+                @Override
+                public SampleNode apply(final SampleNode input) {
+<span class="nc bnc" id="L292" title="All 2 branches missed.">                    if (input != null) {</span>
+<span class="nc" id="L293">                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);</span>
+                        try {
+<span class="nc" id="L295">                            StackVisualizer.generateSvg(writer, Method.ROOT, finput, 0, 0, chartWidth, maxDepth, &quot;a&quot;);</span>
+<span class="nc" id="L296">                        } catch (IOException ex) {</span>
+<span class="nc" id="L297">                            throw new RuntimeException(ex);</span>
+<span class="nc" id="L298">                        }</span>
+                    }
+<span class="nc" id="L300">                    return input;</span>
+                }
+            });
+        } finally {
+<span class="nc" id="L304">            writer.close();</span>
+<span class="nc" id="L305">        }</span>
+<span class="nc" id="L306">    }</span>
+
+    @Override
+    public void generateTotalSvg(final String fileName, final int chartWidth, final int maxDepth) throws IOException {
+<span class="nc" id="L310">        final Writer writer</span>
+                = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
+        try {
+
+<span class="nc" id="L314">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
+                @Override
+                public SampleNode apply(final SampleNode input) {
+<span class="nc bnc" id="L317" title="All 2 branches missed.">                    if (input != null) {</span>
+
+                        try {
+<span class="nc" id="L320">                            StackVisualizer.generateSvg(writer, Method.ROOT, input, 0, 0, chartWidth, maxDepth, &quot;b&quot;);</span>
+<span class="nc" id="L321">                        } catch (IOException ex) {</span>
+<span class="nc" id="L322">                            throw new RuntimeException(ex);</span>
+<span class="nc" id="L323">                        }</span>
+                    }
+<span class="nc" id="L325">                    return input;</span>
+                }
+            });
+        } finally {
+<span class="nc" id="L329">            writer.close();</span>
+<span class="nc" id="L330">        }</span>
+<span class="nc" id="L331">    }</span>
+
+    @Override
+    public void generateSvgHtmlMonitorReport(final String fileName, final int chartWidth, final int maxDepth)
+            throws IOException {
+<span class="nc" id="L336">        dumpToFile();</span>
+<span class="nc" id="L337">        final Writer writer</span>
+                = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
+        try {
+<span class="nc" id="L340">            writer.append(&quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;UTF-8\&quot; standalone=\&quot;no\&quot;?&gt;\n&quot;</span>
+                    + &quot;&lt;!DOCTYPE svg PUBLIC \&quot;-//W3C//DTD SVG 1.0//EN\&quot;&quot;
+                    + &quot; \&quot;http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\&quot;&gt;\n&quot;);
+<span class="nc" id="L343">            writer.append(&quot;&lt;html&gt;&quot;);</span>
+
+
+<span class="nc" id="L346">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
+                @Override
+                public SampleNode apply(final SampleNode input) {
+<span class="nc bnc" id="L349" title="All 2 branches missed.">                    if (input != null) {</span>
+
+                        try {
+<span class="nc" id="L352">                            writer.append(&quot;&lt;h1&gt;Total stats&lt;/h1&gt;&quot;);</span>
+<span class="nc" id="L353">                            StackVisualizer.generateSvg(writer, Method.ROOT, input, 0, 0, chartWidth, maxDepth, &quot;a&quot;);</span>
+<span class="nc" id="L354">                        } catch (IOException ex) {</span>
+<span class="nc" id="L355">                            throw new RuntimeException(ex);</span>
+<span class="nc" id="L356">                        }</span>
+
+                    }
+<span class="nc" id="L359">                    return input;</span>
+                }
+            });
+
+
+<span class="nc" id="L364">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
+                @Override
+                public SampleNode apply(final SampleNode input) {
+<span class="nc bnc" id="L367" title="All 2 branches missed.">                    if (input != null) {</span>
+<span class="nc" id="L368">                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);</span>
+<span class="nc bnc" id="L369" title="All 2 branches missed.">                        if (finput != null) {</span>
+                            try {
+<span class="nc" id="L371">                                writer.append(&quot;&lt;h1&gt;CPU stats&lt;/h1&gt;&quot;);</span>
+<span class="nc" id="L372">                                StackVisualizer.generateSvg(writer, Method.ROOT,</span>
+                                        finput, 0, 0, chartWidth, maxDepth, &quot;b&quot;);
+<span class="nc" id="L374">                            } catch (IOException ex) {</span>
+<span class="nc" id="L375">                                throw new RuntimeException(ex);</span>
+<span class="nc" id="L376">                            }</span>
+                        }
+                    }
+<span class="nc" id="L379">                    return input;</span>
+                }
+            });
+
+
+<span class="nc" id="L384">            writer.append(&quot;&lt;/html&gt;&quot;);</span>
+
+        } finally {
+<span class="nc" id="L387">            writer.close();</span>
+<span class="nc" id="L388">        }</span>
+
+<span class="nc" id="L390">    }</span>
+
+    @Override
+    public long getDumpTimeMillis() {
+<span class="nc" id="L394">        return dumpTimeMillis;</span>
+    }
+
+    @Override
+    public void setDumpTimeMillis(final long dumpTimeMillis) {
+<span class="nc" id="L399">        this.dumpTimeMillis = dumpTimeMillis;</span>
+<span class="nc" id="L400">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

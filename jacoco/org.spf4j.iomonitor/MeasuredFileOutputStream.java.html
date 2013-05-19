@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>MeasuredFileOutputStream.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.iomonitor</a> &gt; <span class="el_source">MeasuredFileOutputStream.java</span></div><h1>MeasuredFileOutputStream.java</h1><pre class="source lang-java linenums">/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package org.spf4j.iomonitor;
+
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import org.spf4j.perf.MeasurementRecorderSource;
+
+/**
+ *
+ * @author zoly
+ */
+public final class MeasuredFileOutputStream extends FileOutputStream {
+
+    private final Class&lt;?&gt; from;
+    private final MeasurementRecorderSource recorderSource;
+
+    public MeasuredFileOutputStream(final String name, final Class&lt;?&gt; from,
+            final MeasurementRecorderSource recorderSource) throws FileNotFoundException {
+<span class="nc" id="L25">        super(name);</span>
+<span class="nc" id="L26">        this.from = from;</span>
+<span class="nc" id="L27">        this.recorderSource = recorderSource;</span>
+<span class="nc" id="L28">    }</span>
+
+    public MeasuredFileOutputStream(final String name, final boolean append,
+            final Class&lt;?&gt; from, final MeasurementRecorderSource recorderSource) throws FileNotFoundException {
+<span class="nc" id="L32">        super(name, append);</span>
+<span class="nc" id="L33">        this.from = from;</span>
+<span class="nc" id="L34">        this.recorderSource = recorderSource;</span>
+<span class="nc" id="L35">    }</span>
+
+    public MeasuredFileOutputStream(final File file, final Class&lt;?&gt; from,
+            final MeasurementRecorderSource recorderSource) throws FileNotFoundException {
+<span class="fc" id="L39">        super(file);</span>
+<span class="fc" id="L40">        this.from = from;</span>
+<span class="fc" id="L41">        this.recorderSource = recorderSource;</span>
+<span class="fc" id="L42">    }</span>
+
+    public MeasuredFileOutputStream(final File file, final boolean append, final Class&lt;?&gt; from,
+            final MeasurementRecorderSource recorderSource) throws FileNotFoundException {
+<span class="nc" id="L46">        super(file, append);</span>
+<span class="nc" id="L47">        this.from = from;</span>
+<span class="nc" id="L48">        this.recorderSource = recorderSource;</span>
+<span class="nc" id="L49">    }</span>
+
+    public MeasuredFileOutputStream(final FileDescriptor fdObj, final Class&lt;?&gt; from,
+            final MeasurementRecorderSource recorderSource) {
+<span class="nc" id="L53">        super(fdObj);</span>
+<span class="nc" id="L54">        this.from = from;</span>
+<span class="nc" id="L55">        this.recorderSource = recorderSource;</span>
+<span class="nc" id="L56">    }</span>
+
+    @Override
+    public void write(final int b) throws IOException {
+<span class="nc" id="L60">        super.write(b);</span>
+<span class="nc" id="L61">        recorderSource.getRecorder(from).record(1);</span>
+<span class="nc" id="L62">    }</span>
+
+    @Override
+    public void write(final byte[] b) throws IOException {
+<span class="nc" id="L66">        super.write(b);</span>
+<span class="nc" id="L67">        recorderSource.getRecorder(from).record(b.length);</span>
+<span class="nc" id="L68">    }</span>
+
+    @Override
+    public void write(final byte[] b, final int off, final int len) throws IOException {
+<span class="fc" id="L72">        super.write(b, off, len);</span>
+<span class="fc" id="L73">        recorderSource.getRecorder(from).record(len);</span>
+<span class="fc" id="L74">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

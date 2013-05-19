@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>PerformanceMonitorAspect.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.perf.aspect</a> &gt; <span class="el_source">PerformanceMonitorAspect.java</span></div><h1>PerformanceMonitorAspect.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.aspect;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import org.spf4j.perf.MeasurementRecorderSource;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ *
+ * @author zoly
+ */
+@Aspect
+<span class="nc" id="L36">public final class PerformanceMonitorAspect {</span>
+
+<span class="nc" id="L38">    private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitorAspect.class);</span>
+<span class="nc" id="L39">    private static final LoadingCache&lt;Class&lt;? extends RecorderSourceInstance&gt;, MeasurementRecorderSource&gt; REC_SOURCES =</span>
+            CacheBuilder.newBuilder().concurrencyLevel(8).
+            build(new CacheLoader&lt;Class&lt;? extends RecorderSourceInstance&gt;, MeasurementRecorderSource&gt;()
+<span class="fc" id="L42">    {</span>
+        @Override
+        public MeasurementRecorderSource load(final Class&lt;? extends RecorderSourceInstance&gt; key) throws Exception {
+<span class="fc" id="L45">            return (MeasurementRecorderSource) key.getField(&quot;INSTANCE&quot;).get(null);</span>
+        }
+    });
+    
+    
+    
+
+    @Around(value = &quot;execution(@org.spf4j.perf.aspect.PerformanceMonitor * *(..)) &amp;&amp; @annotation(annot)&quot;,
+            argNames = &quot;pjp,annot&quot;)
+    public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final PerformanceMonitor annot)
+            throws Throwable {
+<span class="nc" id="L56">        final long start = System.currentTimeMillis();</span>
+<span class="nc" id="L57">        Object result = pjp.proceed();</span>
+<span class="nc" id="L58">        final long elapsed = System.currentTimeMillis() - start;</span>
+<span class="nc" id="L59">        MeasurementRecorderSource mrs = REC_SOURCES.getUnchecked(annot.recorderSource());</span>
+<span class="nc" id="L60">        mrs.getRecorder(pjp.toLongString()).record(elapsed);</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (elapsed &gt; annot.warnThresholdMillis()) {</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            if (elapsed &gt; annot.errorThresholdMillis()) {</span>
+<span class="nc" id="L63">                LOG.error(&quot;Execution time  {} ms for {} exceeds error threshold of {} ms, arguments {}&quot;,</span>
+                            elapsed, pjp.toShortString(), annot.errorThresholdMillis(), pjp.getArgs());
+            } else {
+<span class="nc" id="L66">                LOG.warn(&quot;Execution time  {} ms for {} exceeds warning threshold of {} ms, arguments {}&quot;,</span>
+                            elapsed, pjp.toShortString(), annot.warnThresholdMillis(), pjp.getArgs());
+            }
+        } else {
+<span class="nc" id="L70">            LOG.debug(&quot;Execution time {} ms for {}, arguments {}&quot;,</span>
+                        elapsed, pjp.toShortString(), pjp.getArgs());
+        }
+<span class="nc" id="L73">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

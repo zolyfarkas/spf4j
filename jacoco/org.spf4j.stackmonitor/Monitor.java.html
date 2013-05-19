@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Monitor.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">Monitor.java</span></div><h1>Monitor.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.stackmonitor;
+
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @author zoly
+ */
+public final class Monitor {
+
+<span class="nc" id="L38">    private Monitor() { }</span>
+    
+<span class="fc" id="L40">    private static final Logger LOG = LoggerFactory.getLogger(Monitor.class);</span>
+    
+<span class="fc" id="L42">    private static class Options {</span>
+
+        @Option(name = &quot;-f&quot;, usage = &quot;output to this file the perf report, format is HTML&quot;)
+        private String reportOut;
+        @Option(name = &quot;-main&quot;, usage = &quot;the main class name&quot;, required = true)
+        private String mainClass;
+<span class="fc" id="L48">        @Option(name = &quot;-si&quot;, usage = &quot;the stack sampling interval in milliseconds&quot;)</span>
+        private int sampleInterval = 100;
+<span class="fc" id="L50">        @Option(name = &quot;-di&quot;, usage = &quot;the stack dump to file interval in milliseconds&quot;)</span>
+        private int dumpInterval = 3600000;
+<span class="fc" id="L52">        @Option(name = &quot;-w&quot;, usage = &quot;flame chart width in pixels&quot;)</span>
+        private int chartWidth = 2000;
+<span class="fc" id="L54">        @Option(name = &quot;-md&quot;, usage = &quot;maximum stack trace depth&quot;)</span>
+        private int maxDepth = Integer.MAX_VALUE;
+<span class="fc" id="L56">        @Option(name = &quot;-ss&quot;, usage = &quot;start the stack sampling thread. (can also be done manually via jmx)&quot;)</span>
+        private boolean startSampler = false;
+<span class="fc" id="L58">        @Option(name = &quot;-nosvg&quot;, usage = &quot;stack visualization will be in html format with&quot;</span>
+                + &quot; html tables and not svg&quot;)
+        private boolean noSvgReport = false;
+        
+    }
+    private static volatile boolean generatedAndDisposed;
+
+    public static void main(final String[] args) throws ClassNotFoundException, NoSuchMethodException,
+            IllegalAccessException, InvocationTargetException, IOException,
+            MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException,
+            NotCompliantMBeanException, InterruptedException {
+
+<span class="fc" id="L70">        generatedAndDisposed = false;</span>
+        
+<span class="fc" id="L72">        int sepPos = args.length;</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        for (int i = 0; i &lt; args.length; i++) {</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">            if (args[i].equals(&quot;--&quot;)) {</span>
+<span class="nc" id="L75">                sepPos = i;</span>
+<span class="nc" id="L76">                break;</span>
+            }
+        }
+        String[] newArgs;
+        String[] ownArgs;
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (sepPos == args.length) {</span>
+<span class="fc" id="L82">            newArgs = new String[0];</span>
+<span class="fc" id="L83">            ownArgs = args;</span>
+        } else {
+<span class="nc" id="L85">            newArgs = new String[args.length - sepPos - 1];</span>
+<span class="nc" id="L86">            ownArgs = new String[sepPos];</span>
+<span class="nc" id="L87">            System.arraycopy(args, sepPos + 1, newArgs, 0, newArgs.length);</span>
+<span class="nc" id="L88">            System.arraycopy(args, 0, ownArgs, 0, sepPos);</span>
+        }
+<span class="fc" id="L90">        Options options = new Options();</span>
+<span class="fc" id="L91">        CmdLineParser parser = new CmdLineParser(options);</span>
+        try {
+<span class="fc" id="L93">            parser.parseArgument(ownArgs);</span>
+<span class="nc" id="L94">        } catch (CmdLineException e) {</span>
+<span class="nc" id="L95">            System.err.println(&quot;Error: &quot; + e.getMessage() + &quot;\nUsage:&quot;);</span>
+<span class="nc" id="L96">            parser.printUsage(System.err);</span>
+<span class="nc" id="L97">            System.exit(1);</span>
+<span class="fc" id="L98">        }</span>
+<span class="fc" id="L99">        final String reportOut = options.reportOut;</span>
+<span class="fc" id="L100">        final int chartWidth = options.chartWidth;</span>
+<span class="fc" id="L101">        final int maxDepth = options.maxDepth;</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        final boolean svgReport = !options.noSvgReport;</span>
+
+<span class="fc" id="L104">        final Sampler sampler = new Sampler(options.sampleInterval, options.dumpInterval, new SimpleStackCollector());</span>
+<span class="fc" id="L105">        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {</span>
+
+            @Override
+            public void run() {
+                try {
+<span class="nc" id="L110">                    sampler.stop();</span>
+<span class="nc" id="L111">                    generateReportAndDispose(sampler, reportOut, chartWidth, maxDepth, svgReport);</span>
+<span class="nc" id="L112">                } catch (Exception ex) {</span>
+<span class="nc" id="L113">                    LOG.error(&quot;Exception while shutting down&quot;, ex);</span>
+<span class="nc" id="L114">                }</span>
+<span class="nc" id="L115">            }</span>
+
+        }, &quot;Sampling report&quot;));
+<span class="fc" id="L118">        sampler.registerJmx();</span>
+
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">        if (options.startSampler) {</span>
+<span class="fc" id="L121">            sampler.start();</span>
+        }
+<span class="fc" id="L123">        Class.forName(options.mainClass).getMethod(&quot;main&quot;, String[].class).invoke(null, (Object) newArgs);</span>
+<span class="fc" id="L124">    }</span>
+    
+    private static void generateReportAndDispose(final Sampler sampler,
+            final String reportOut, final int chartWidth,
+            final int maxDepth, final boolean svgReport) throws IOException,
+                InterruptedException, InstanceNotFoundException {
+<span class="fc" id="L130">                synchronized (Monitor.class) {</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">                    if (!generatedAndDisposed) {</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                        if (svgReport) {</span>
+<span class="nc" id="L133">                                sampler.generateSvgHtmlMonitorReport(reportOut, chartWidth, maxDepth);</span>
+                        } else {
+<span class="nc" id="L135">                            sampler.generateHtmlMonitorReport(reportOut, chartWidth, maxDepth);</span>
+                        }
+<span class="nc" id="L137">                        LOG.info(&quot;Sample report written to {}&quot;, reportOut);</span>
+<span class="nc" id="L138">                        sampler.dispose();</span>
+<span class="nc" id="L139">                        generatedAndDisposed = true;</span>
+                    }
+<span class="nc" id="L141">                }</span>
+<span class="nc" id="L142">    }</span>
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ObjectPoolWrapper.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.pool.impl</a> &gt; <span class="el_source">ObjectPoolWrapper.java</span></div><h1>ObjectPoolWrapper.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.pool.impl;
+
+import org.spf4j.base.Throwables;
+import org.spf4j.pool.ObjectBorrowException;
+import org.spf4j.pool.ObjectCreationException;
+import org.spf4j.pool.ObjectDisposeException;
+import org.spf4j.pool.ObjectPool;
+import org.spf4j.pool.ObjectReturnException;
+import org.spf4j.pool.Scanable;
+import java.util.concurrent.TimeoutException;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+
+/**
+ *
+ * @author zoly
+ */
+@ParametersAreNonnullByDefault
+public final class ObjectPoolWrapper&lt;T&gt; implements ObjectPool&lt;T&gt; , Scanable&lt;ObjectHolder&lt;T&gt;&gt; {
+
+    private final ObjectPool&lt;T&gt; pool;
+    
+    private final Handler&lt;T, ? extends Exception&gt; borrowHook;
+    
+    private final Handler&lt;T, ? extends Exception&gt; returnHook;
+
+    public ObjectPoolWrapper(final ObjectPool&lt;T&gt; pool,
+            @Nullable final Handler&lt;T, ? extends Exception&gt; borrowHook,
+<span class="nc" id="L46">            @Nullable final Handler&lt;T, ? extends Exception&gt; returnHook) {</span>
+<span class="nc" id="L47">        this.pool = pool;</span>
+<span class="nc" id="L48">        this.borrowHook = borrowHook;</span>
+<span class="nc" id="L49">        this.returnHook = returnHook;</span>
+<span class="nc bnc" id="L50" title="All 4 branches missed.">        if (borrowHook == null &amp;&amp; returnHook == null) {</span>
+<span class="nc" id="L51">            throw new IllegalArgumentException(&quot;Both hooks can't be null&quot;);</span>
+        }
+<span class="nc" id="L53">    }</span>
+    
+    
+    
+    
+    @Override
+    public T borrowObject()
+            throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
+<span class="nc" id="L61">        T result = pool.borrowObject();</span>
+        try {
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            if (borrowHook != null) {</span>
+<span class="nc" id="L64">                borrowHook.handle(result);</span>
+            }
+<span class="nc" id="L66">            return result;</span>
+<span class="nc" id="L67">        } catch (Exception e) {</span>
+            try {
+<span class="nc" id="L69">                pool.returnObject(result, e);</span>
+<span class="nc" id="L70">            } catch (ObjectReturnException ex) {</span>
+<span class="nc" id="L71">                throw Throwables.suppress(new RuntimeException(ex), e);</span>
+<span class="nc" id="L72">            } catch (ObjectDisposeException ex) {</span>
+<span class="nc" id="L73">                 throw Throwables.suppress(new RuntimeException(ex), e);</span>
+<span class="nc" id="L74">            }</span>
+<span class="nc" id="L75">            throw new ObjectBorrowException(&quot;Exception while executing borrow hook&quot;, e);</span>
+        }
+    }
+
+    @Override
+    public void returnObject(final T object, final Exception e) throws ObjectReturnException, ObjectDisposeException {
+        try {
+<span class="nc bnc" id="L82" title="All 2 branches missed.">            if (returnHook != null) {</span>
+<span class="nc" id="L83">                returnHook.handle(object);</span>
+            }
+<span class="nc" id="L85">        } catch (Exception ex) {</span>
+<span class="nc" id="L86">            throw new ObjectReturnException(&quot;Exception while executing return hook&quot;, e);</span>
+        } finally {
+<span class="nc" id="L88">            pool.returnObject(object, e);</span>
+<span class="nc" id="L89">        }</span>
+<span class="nc" id="L90">    }</span>
+
+    @Override
+    public void dispose() throws ObjectDisposeException {
+<span class="nc" id="L94">        pool.dispose();</span>
+<span class="nc" id="L95">    }</span>
+
+    @Override
+    public boolean scan(final ScanHandler&lt;ObjectHolder&lt;T&gt;&gt; handler) throws Exception {
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (pool instanceof Scanable) {</span>
+<span class="nc" id="L100">            return ((Scanable&lt;ObjectHolder&lt;T&gt;&gt;) pool).scan(handler);</span>
+        } else {
+<span class="nc" id="L102">            throw new RuntimeException(&quot;Wrapped pool is not scanable&quot;);</span>
+        }
+    }
+
+  
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

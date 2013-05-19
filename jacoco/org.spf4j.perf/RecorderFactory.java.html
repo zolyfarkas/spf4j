@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>RecorderFactory.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.perf</a> &gt; <span class="el_source">RecorderFactory.java</span></div><h1>RecorderFactory.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf;
+
+import org.spf4j.perf.impl.CountingRecorder;
+import org.spf4j.perf.impl.MinMaxAvgRecorder;
+import org.spf4j.perf.impl.QuantizedRecorder;
+import org.spf4j.perf.impl.ScalableMeasurementRecorder;
+import org.spf4j.perf.impl.ScalableMeasurementRecorderSource;
+import org.spf4j.perf.impl.mdb.tsdb.TSDBMeasurementDatabase;
+import java.io.File;
+import java.lang.management.ManagementFactory;
+
+/**
+ *
+ * @author zoly
+ */
+public final class RecorderFactory {
+    
+<span class="nc" id="L36">    private RecorderFactory() { }</span>
+    
+    public static final TSDBMeasurementDatabase TS_DATABASE;
+    
+    static {
+        try {
+<span class="fc" id="L42">            TS_DATABASE = new TSDBMeasurementDatabase(System.getProperty(&quot;perf.db.folder&quot;,</span>
+            System.getProperty(&quot;java.io.tmpdir&quot;)) + File.separator + System.getProperty(&quot;perf.db.name&quot;,
+                    ManagementFactory.getRuntimeMXBean().getName() + &quot;.tsdb&quot;));
+<span class="fc" id="L45">            TS_DATABASE.registerJmx();</span>
+<span class="fc" id="L46">            TS_DATABASE.flushEvery(600000);</span>
+<span class="fc" id="L47">            TS_DATABASE.closeOnShutdown();</span>
+<span class="nc" id="L48">        } catch (Exception ex) {</span>
+<span class="nc" id="L49">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L50">        }</span>
+<span class="fc" id="L51">    }</span>
+    
+    public static MeasurementRecorder createScalableQuantizedRecorder(
+            final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis,
+             final int factor, final int lowerMagnitude,
+            final int higherMagnitude, final int quantasPerMagnitude) {
+<span class="fc" id="L57">        return new ScalableMeasurementRecorder(new QuantizedRecorder(forWhat,</span>
+                unitOfMeasurement, factor, lowerMagnitude, higherMagnitude,
+                quantasPerMagnitude), sampleTimeMillis, TS_DATABASE);
+    }
+    
+    public static MeasurementRecorder createScalableCountingRecorder(
+            final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
+<span class="nc" id="L64">        return new ScalableMeasurementRecorder(new CountingRecorder(forWhat,</span>
+                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+    }
+    
+    
+        public static MeasurementRecorder createScalableMinMaxAvgRecorder(
+            final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
+<span class="fc" id="L71">        return new ScalableMeasurementRecorder(new MinMaxAvgRecorder(forWhat,</span>
+                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+    }
+    
+    
+    public static MeasurementRecorderSource createScalableQuantizedRecorderSource(
+            final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis,
+            final int factor, final int lowerMagnitude,
+            final int higherMagnitude, final int quantasPerMagnitude) {
+<span class="fc" id="L80">        return new ScalableMeasurementRecorderSource(new QuantizedRecorder(forWhat,</span>
+                unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude),
+                sampleTimeMillis, TS_DATABASE);
+    }
+    
+    
+    public static MeasurementRecorderSource createScalableCountingRecorderSource(
+            final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
+<span class="fc" id="L88">        return new ScalableMeasurementRecorderSource(new CountingRecorder(forWhat,</span>
+                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+    }
+    
+   public static MeasurementRecorderSource createScalableMinMaxAvgRecorderSource(
+            final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
+<span class="nc" id="L94">        return new ScalableMeasurementRecorderSource(new MinMaxAvgRecorder(forWhat,</span>
+                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+    }
+    
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

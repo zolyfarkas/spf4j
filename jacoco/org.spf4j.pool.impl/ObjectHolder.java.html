@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ObjectHolder.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.pool.impl</a> &gt; <span class="el_source">ObjectHolder.java</span></div><h1>ObjectHolder.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.pool.impl;
+
+import org.spf4j.pool.ObjectCreationException;
+import org.spf4j.pool.ObjectDisposeException;
+import org.spf4j.pool.ObjectPool;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * this is not a thread safe implementation.
+ *
+ * @author zoly
+ */
+@ParametersAreNonnullByDefault
+public final class ObjectHolder&lt;T&gt; {
+
+<span class="fc" id="L36">    private static final Logger LOG = LoggerFactory.getLogger(ObjectHolder.class);</span>
+    private T obj;
+    private boolean borrowed;
+    private final ObjectPool.Factory&lt;T&gt; factory;
+
+<span class="fc" id="L41">    public ObjectHolder(final ObjectPool.Factory&lt;T&gt; factory) {</span>
+<span class="fc" id="L42">        this.factory = factory;</span>
+<span class="fc" id="L43">        borrowed = false;</span>
+<span class="fc" id="L44">    }</span>
+
+    public ObjectHolder(final ObjectPool.Factory&lt;T&gt; factory, final boolean lazy) throws ObjectCreationException {
+<span class="nc" id="L47">        this(factory);</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (!lazy) {</span>
+<span class="nc" id="L49">            obj = factory.create();</span>
+        }
+<span class="nc" id="L51">    }</span>
+
+    public synchronized T borrowOrCreateObjectIfPossible() throws ObjectCreationException {
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        if (borrowed) {</span>
+<span class="nc" id="L55">            return null;</span>
+        }
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (obj == null) {</span>
+<span class="fc" id="L58">            obj = factory.create();</span>
+        }
+<span class="fc" id="L60">        borrowed = true;</span>
+<span class="fc" id="L61">        return obj;</span>
+    }
+
+    @Nullable
+    public synchronized T borrowObjectIfAvailable() {
+<span class="nc bnc" id="L66" title="All 4 branches missed.">        if (borrowed || obj == null) {</span>
+<span class="nc" id="L67">            return null;</span>
+        }
+<span class="nc" id="L69">        borrowed = true;</span>
+<span class="nc" id="L70">        return obj;</span>
+    }
+
+    public synchronized void returnObject(final T object, final Exception e) throws ObjectDisposeException {
+<span class="pc bpc" id="L74" title="2 of 4 branches missed.">        if (!borrowed || object != obj) {</span>
+<span class="nc" id="L75">            throw new IllegalStateException(&quot;Cannot return something that was &quot;</span>
+                    + &quot;not borrowed from here &quot; + object);
+        }
+<span class="fc" id="L78">        borrowed = false;</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        if (e != null) {</span>
+<span class="nc" id="L80">            Exception ex = safeValidate(e);</span>
+<span class="nc" id="L81">            LOG.debug(&quot;Object {} returned with exception {} validation failed&quot;, obj, e, ex);</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">            if (ex != null) {</span>
+<span class="nc" id="L83">                obj = null;</span>
+<span class="nc" id="L84">                factory.dispose(object);</span>
+            }
+        }
+<span class="fc" id="L87">    }</span>
+
+    public synchronized void validateObjectIfNotBorrowed() throws ObjectDisposeException {
+<span class="pc bpc" id="L90" title="1 of 4 branches missed.">        if (!borrowed &amp;&amp; obj != null) {</span>
+<span class="fc" id="L91">            Exception e = safeValidate(null);</span>
+<span class="fc" id="L92">            LOG.debug(&quot;Object {} validation failed&quot;, obj, e);</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">            if (e != null) {</span>
+<span class="nc" id="L94">                T object = obj;</span>
+<span class="nc" id="L95">                obj = null;</span>
+<span class="nc" id="L96">                factory.dispose(object);</span>
+            }
+        }
+<span class="fc" id="L99">    }</span>
+
+    public synchronized boolean disposeIfNotBorrowed() throws ObjectDisposeException {
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (borrowed) {</span>
+<span class="nc" id="L103">            return false;</span>
+        }
+<span class="fc bfc" id="L105" title="All 2 branches covered.">        if (obj != null) {</span>
+<span class="fc" id="L106">            factory.dispose(obj);</span>
+<span class="fc" id="L107">            obj = null;</span>
+        }
+<span class="fc" id="L109">        return true;</span>
+    }
+
+    @Override
+    public synchronized String toString() {
+<span class="fc" id="L114">        return &quot;ObjectHolder{&quot; + &quot;obj=&quot; + obj + &quot;, borrowed=&quot; + borrowed + &quot;, factory=&quot; + factory + '}';</span>
+    }
+
+    /**
+     * Protects against poor validation implementations.
+     *
+     * @return
+     * @throws RuntimeException
+     * @throws ObjectDisposeException
+     */
+    private Exception safeValidate(@Nullable final Exception exc)  {
+        Exception e;
+        try {
+<span class="fc" id="L127">            e = factory.validate(obj, exc);</span>
+<span class="nc" id="L128">        } catch (Exception ex) {</span>
+<span class="nc" id="L129">            e = ex;</span>
+<span class="fc" id="L130">        }</span>
+<span class="fc" id="L131">        return e;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

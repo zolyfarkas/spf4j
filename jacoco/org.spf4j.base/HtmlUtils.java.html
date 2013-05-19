@@ -1,0 +1,701 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>HtmlUtils.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">HtmlUtils.java</span></div><h1>HtmlUtils.java</h1><pre class="source lang-java linenums">package org.spf4j.base;
+//CHECKSTYLE:OFF
+/*
+ * Copyright 2002-2004 the original author or authors.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Utility class for HTML escaping. Escapes and unescapes based on the W3C HTML
+ * 4.01 recommendation.
+ *
+ * &lt;p&gt;Reference:
+ * &lt;a href=&quot;http://www.w3.org/TR/html4/charset.html&quot;&gt;
+ * http://www.w3.org/TR/html4/charset.html
+ * &lt;/a&gt;
+ *
+ * @author Chris Wilson
+ * @author Juergen Hoeller
+ * @since 01.03.2003
+ */
+public final class HtmlUtils {
+
+<span class="nc" id="L36">    private HtmlUtils() {</span>
+<span class="nc" id="L37">    }</span>
+    private static final String EMPTY_REFERENCE = &quot;&amp;;&quot;;
+    private static final String REFERENCE_START = &quot;&amp;#&quot;;
+    private static final String MALFORMED_REFERENCE = &quot;&amp;#;&quot;;
+<span class="fc" id="L41">    private static final Map ENTITIES = new HashMap();</span>
+
+    static {
+<span class="fc" id="L44">        ENTITIES.put(&quot;nbsp&quot;, 160);</span>
+<span class="fc" id="L45">        ENTITIES.put(&quot;iexcl&quot;, 161);</span>
+<span class="fc" id="L46">        ENTITIES.put(&quot;cent&quot;, 162);</span>
+<span class="fc" id="L47">        ENTITIES.put(&quot;pound&quot;, 163);</span>
+<span class="fc" id="L48">        ENTITIES.put(&quot;curren&quot;, 164);</span>
+<span class="fc" id="L49">        ENTITIES.put(&quot;yen&quot;, 165);</span>
+<span class="fc" id="L50">        ENTITIES.put(&quot;brvbar&quot;, 166);</span>
+<span class="fc" id="L51">        ENTITIES.put(&quot;sect&quot;, 167);</span>
+<span class="fc" id="L52">        ENTITIES.put(&quot;uml&quot;, 168);</span>
+<span class="fc" id="L53">        ENTITIES.put(&quot;copy&quot;, 169);</span>
+<span class="fc" id="L54">        ENTITIES.put(&quot;ordf&quot;, 170);</span>
+<span class="fc" id="L55">        ENTITIES.put(&quot;laquo&quot;, 171);</span>
+<span class="fc" id="L56">        ENTITIES.put(&quot;not&quot;, 172);</span>
+<span class="fc" id="L57">        ENTITIES.put(&quot;shy&quot;, 173);</span>
+<span class="fc" id="L58">        ENTITIES.put(&quot;reg&quot;, 174);</span>
+<span class="fc" id="L59">        ENTITIES.put(&quot;macr&quot;, 175);</span>
+<span class="fc" id="L60">        ENTITIES.put(&quot;deg&quot;, 176);</span>
+<span class="fc" id="L61">        ENTITIES.put(&quot;plusmn&quot;, 177);</span>
+<span class="fc" id="L62">        ENTITIES.put(&quot;sup2&quot;, 178);</span>
+<span class="fc" id="L63">        ENTITIES.put(&quot;sup3&quot;, 179);</span>
+<span class="fc" id="L64">        ENTITIES.put(&quot;acute&quot;, 180);</span>
+<span class="fc" id="L65">        ENTITIES.put(&quot;micro&quot;, 181);</span>
+<span class="fc" id="L66">        ENTITIES.put(&quot;para&quot;, 182);</span>
+<span class="fc" id="L67">        ENTITIES.put(&quot;middot&quot;, 183);</span>
+<span class="fc" id="L68">        ENTITIES.put(&quot;cedil&quot;, 184);</span>
+<span class="fc" id="L69">        ENTITIES.put(&quot;sup1&quot;, 185);</span>
+<span class="fc" id="L70">        ENTITIES.put(&quot;ordm&quot;, 186);</span>
+<span class="fc" id="L71">        ENTITIES.put(&quot;raquo&quot;, 187);</span>
+<span class="fc" id="L72">        ENTITIES.put(&quot;frac14&quot;, 188);</span>
+<span class="fc" id="L73">        ENTITIES.put(&quot;frac12&quot;, 189);</span>
+<span class="fc" id="L74">        ENTITIES.put(&quot;frac34&quot;, 190);</span>
+<span class="fc" id="L75">        ENTITIES.put(&quot;iquest&quot;, 191);</span>
+<span class="fc" id="L76">        ENTITIES.put(&quot;Agrave&quot;, 192);</span>
+<span class="fc" id="L77">        ENTITIES.put(&quot;Aacute&quot;, 193);</span>
+<span class="fc" id="L78">        ENTITIES.put(&quot;Acirc&quot;, 194);</span>
+<span class="fc" id="L79">        ENTITIES.put(&quot;Atilde&quot;, 195);</span>
+<span class="fc" id="L80">        ENTITIES.put(&quot;Auml&quot;, 196);</span>
+<span class="fc" id="L81">        ENTITIES.put(&quot;Aring&quot;, 197);</span>
+<span class="fc" id="L82">        ENTITIES.put(&quot;AElig&quot;, 198);</span>
+<span class="fc" id="L83">        ENTITIES.put(&quot;Ccedil&quot;, 199);</span>
+<span class="fc" id="L84">        ENTITIES.put(&quot;Egrave&quot;, 200);</span>
+<span class="fc" id="L85">        ENTITIES.put(&quot;Eacute&quot;, 201);</span>
+<span class="fc" id="L86">        ENTITIES.put(&quot;Ecirc&quot;, 202);</span>
+<span class="fc" id="L87">        ENTITIES.put(&quot;Euml&quot;, 203);</span>
+<span class="fc" id="L88">        ENTITIES.put(&quot;Igrave&quot;, 204);</span>
+<span class="fc" id="L89">        ENTITIES.put(&quot;Iacute&quot;, 205);</span>
+<span class="fc" id="L90">        ENTITIES.put(&quot;Icirc&quot;, 206);</span>
+<span class="fc" id="L91">        ENTITIES.put(&quot;Iuml&quot;, 207);</span>
+<span class="fc" id="L92">        ENTITIES.put(&quot;ETH&quot;, 208);</span>
+<span class="fc" id="L93">        ENTITIES.put(&quot;Ntilde&quot;, 209);</span>
+<span class="fc" id="L94">        ENTITIES.put(&quot;Ograve&quot;, 210);</span>
+<span class="fc" id="L95">        ENTITIES.put(&quot;Oacute&quot;, 211);</span>
+<span class="fc" id="L96">        ENTITIES.put(&quot;Ocirc&quot;, 212);</span>
+<span class="fc" id="L97">        ENTITIES.put(&quot;Otilde&quot;, 213);</span>
+<span class="fc" id="L98">        ENTITIES.put(&quot;Ouml&quot;, 214);</span>
+<span class="fc" id="L99">        ENTITIES.put(&quot;times&quot;, 215);</span>
+<span class="fc" id="L100">        ENTITIES.put(&quot;Oslash&quot;, 216);</span>
+<span class="fc" id="L101">        ENTITIES.put(&quot;Ugrave&quot;, 217);</span>
+<span class="fc" id="L102">        ENTITIES.put(&quot;Uacute&quot;, 218);</span>
+<span class="fc" id="L103">        ENTITIES.put(&quot;Ucirc&quot;, 219);</span>
+<span class="fc" id="L104">        ENTITIES.put(&quot;Uuml&quot;, 220);</span>
+<span class="fc" id="L105">        ENTITIES.put(&quot;Yacute&quot;, 221);</span>
+<span class="fc" id="L106">        ENTITIES.put(&quot;THORN&quot;, 222);</span>
+<span class="fc" id="L107">        ENTITIES.put(&quot;szlig&quot;, 223);</span>
+<span class="fc" id="L108">        ENTITIES.put(&quot;agrave&quot;, 224);</span>
+<span class="fc" id="L109">        ENTITIES.put(&quot;aacute&quot;, 225);</span>
+<span class="fc" id="L110">        ENTITIES.put(&quot;acirc&quot;, 226);</span>
+<span class="fc" id="L111">        ENTITIES.put(&quot;atilde&quot;, 227);</span>
+<span class="fc" id="L112">        ENTITIES.put(&quot;auml&quot;, 228);</span>
+<span class="fc" id="L113">        ENTITIES.put(&quot;aring&quot;, 229);</span>
+<span class="fc" id="L114">        ENTITIES.put(&quot;aelig&quot;, 230);</span>
+<span class="fc" id="L115">        ENTITIES.put(&quot;ccedil&quot;, 231);</span>
+<span class="fc" id="L116">        ENTITIES.put(&quot;egrave&quot;, 232);</span>
+<span class="fc" id="L117">        ENTITIES.put(&quot;eacute&quot;, 233);</span>
+<span class="fc" id="L118">        ENTITIES.put(&quot;ecirc&quot;, 234);</span>
+<span class="fc" id="L119">        ENTITIES.put(&quot;euml&quot;, 235);</span>
+<span class="fc" id="L120">        ENTITIES.put(&quot;igrave&quot;, 236);</span>
+<span class="fc" id="L121">        ENTITIES.put(&quot;iacute&quot;, 237);</span>
+<span class="fc" id="L122">        ENTITIES.put(&quot;icirc&quot;, 238);</span>
+<span class="fc" id="L123">        ENTITIES.put(&quot;iuml&quot;, 239);</span>
+<span class="fc" id="L124">        ENTITIES.put(&quot;eth&quot;, 240);</span>
+<span class="fc" id="L125">        ENTITIES.put(&quot;ntilde&quot;, 241);</span>
+<span class="fc" id="L126">        ENTITIES.put(&quot;ograve&quot;, 242);</span>
+<span class="fc" id="L127">        ENTITIES.put(&quot;oacute&quot;, 243);</span>
+<span class="fc" id="L128">        ENTITIES.put(&quot;ocirc&quot;, 244);</span>
+<span class="fc" id="L129">        ENTITIES.put(&quot;otilde&quot;, 245);</span>
+<span class="fc" id="L130">        ENTITIES.put(&quot;ouml&quot;, 246);</span>
+<span class="fc" id="L131">        ENTITIES.put(&quot;divide&quot;, 247);</span>
+<span class="fc" id="L132">        ENTITIES.put(&quot;oslash&quot;, 248);</span>
+<span class="fc" id="L133">        ENTITIES.put(&quot;ugrave&quot;, 249);</span>
+<span class="fc" id="L134">        ENTITIES.put(&quot;uacute&quot;, 250);</span>
+<span class="fc" id="L135">        ENTITIES.put(&quot;ucirc&quot;, 251);</span>
+<span class="fc" id="L136">        ENTITIES.put(&quot;uuml&quot;, 252);</span>
+<span class="fc" id="L137">        ENTITIES.put(&quot;yacute&quot;, 253);</span>
+<span class="fc" id="L138">        ENTITIES.put(&quot;thorn&quot;, 254);</span>
+<span class="fc" id="L139">        ENTITIES.put(&quot;yuml&quot;, 255);</span>
+<span class="fc" id="L140">        ENTITIES.put(&quot;fnof&quot;, 402);</span>
+<span class="fc" id="L141">        ENTITIES.put(&quot;Alpha&quot;, 913);</span>
+<span class="fc" id="L142">        ENTITIES.put(&quot;Beta&quot;, 914);</span>
+<span class="fc" id="L143">        ENTITIES.put(&quot;Gamma&quot;, 915);</span>
+<span class="fc" id="L144">        ENTITIES.put(&quot;Delta&quot;, 916);</span>
+<span class="fc" id="L145">        ENTITIES.put(&quot;Epsilon&quot;, 917);</span>
+<span class="fc" id="L146">        ENTITIES.put(&quot;Zeta&quot;, 918);</span>
+<span class="fc" id="L147">        ENTITIES.put(&quot;Eta&quot;, 919);</span>
+<span class="fc" id="L148">        ENTITIES.put(&quot;Theta&quot;, 920);</span>
+<span class="fc" id="L149">        ENTITIES.put(&quot;Iota&quot;, 921);</span>
+<span class="fc" id="L150">        ENTITIES.put(&quot;Kappa&quot;, 922);</span>
+<span class="fc" id="L151">        ENTITIES.put(&quot;Lambda&quot;, 923);</span>
+<span class="fc" id="L152">        ENTITIES.put(&quot;Mu&quot;, 924);</span>
+<span class="fc" id="L153">        ENTITIES.put(&quot;Nu&quot;, 925);</span>
+<span class="fc" id="L154">        ENTITIES.put(&quot;Xi&quot;, 926);</span>
+<span class="fc" id="L155">        ENTITIES.put(&quot;Omicron&quot;, 927);</span>
+<span class="fc" id="L156">        ENTITIES.put(&quot;Pi&quot;, 928);</span>
+<span class="fc" id="L157">        ENTITIES.put(&quot;Rho&quot;, 929);</span>
+<span class="fc" id="L158">        ENTITIES.put(&quot;Sigma&quot;, 931);</span>
+<span class="fc" id="L159">        ENTITIES.put(&quot;Tau&quot;, 932);</span>
+<span class="fc" id="L160">        ENTITIES.put(&quot;Upsilon&quot;, 933);</span>
+<span class="fc" id="L161">        ENTITIES.put(&quot;Phi&quot;, 934);</span>
+<span class="fc" id="L162">        ENTITIES.put(&quot;Chi&quot;, 935);</span>
+<span class="fc" id="L163">        ENTITIES.put(&quot;Psi&quot;, 936);</span>
+<span class="fc" id="L164">        ENTITIES.put(&quot;Omega&quot;, 937);</span>
+<span class="fc" id="L165">        ENTITIES.put(&quot;alpha&quot;, 945);</span>
+<span class="fc" id="L166">        ENTITIES.put(&quot;beta&quot;, 946);</span>
+<span class="fc" id="L167">        ENTITIES.put(&quot;gamma&quot;, 947);</span>
+<span class="fc" id="L168">        ENTITIES.put(&quot;delta&quot;, 948);</span>
+<span class="fc" id="L169">        ENTITIES.put(&quot;epsilon&quot;, 949);</span>
+<span class="fc" id="L170">        ENTITIES.put(&quot;zeta&quot;, 950);</span>
+<span class="fc" id="L171">        ENTITIES.put(&quot;eta&quot;, 951);</span>
+<span class="fc" id="L172">        ENTITIES.put(&quot;theta&quot;, 952);</span>
+<span class="fc" id="L173">        ENTITIES.put(&quot;iota&quot;, 953);</span>
+<span class="fc" id="L174">        ENTITIES.put(&quot;kappa&quot;, 954);</span>
+<span class="fc" id="L175">        ENTITIES.put(&quot;lambda&quot;, 955);</span>
+<span class="fc" id="L176">        ENTITIES.put(&quot;mu&quot;, 956);</span>
+<span class="fc" id="L177">        ENTITIES.put(&quot;nu&quot;, 957);</span>
+<span class="fc" id="L178">        ENTITIES.put(&quot;xi&quot;, 958);</span>
+<span class="fc" id="L179">        ENTITIES.put(&quot;omicron&quot;, 959);</span>
+<span class="fc" id="L180">        ENTITIES.put(&quot;pi&quot;, 960);</span>
+<span class="fc" id="L181">        ENTITIES.put(&quot;rho&quot;, 961);</span>
+<span class="fc" id="L182">        ENTITIES.put(&quot;sigmaf&quot;, 962);</span>
+<span class="fc" id="L183">        ENTITIES.put(&quot;sigma&quot;, 963);</span>
+<span class="fc" id="L184">        ENTITIES.put(&quot;tau&quot;, 964);</span>
+<span class="fc" id="L185">        ENTITIES.put(&quot;upsilon&quot;, 965);</span>
+<span class="fc" id="L186">        ENTITIES.put(&quot;phi&quot;, 966);</span>
+<span class="fc" id="L187">        ENTITIES.put(&quot;chi&quot;, 967);</span>
+<span class="fc" id="L188">        ENTITIES.put(&quot;psi&quot;, 968);</span>
+<span class="fc" id="L189">        ENTITIES.put(&quot;omega&quot;, 969);</span>
+<span class="fc" id="L190">        ENTITIES.put(&quot;thetasym&quot;, 977);</span>
+<span class="fc" id="L191">        ENTITIES.put(&quot;upsih&quot;, 978);</span>
+<span class="fc" id="L192">        ENTITIES.put(&quot;piv&quot;, 982);</span>
+<span class="fc" id="L193">        ENTITIES.put(&quot;bull&quot;, 8226);</span>
+<span class="fc" id="L194">        ENTITIES.put(&quot;hellip&quot;, 8230);</span>
+<span class="fc" id="L195">        ENTITIES.put(&quot;prime&quot;, 8242);</span>
+<span class="fc" id="L196">        ENTITIES.put(&quot;Prime&quot;, 8243);</span>
+<span class="fc" id="L197">        ENTITIES.put(&quot;oline&quot;, 8254);</span>
+<span class="fc" id="L198">        ENTITIES.put(&quot;frasl&quot;, 8260);</span>
+<span class="fc" id="L199">        ENTITIES.put(&quot;weierp&quot;, 8472);</span>
+<span class="fc" id="L200">        ENTITIES.put(&quot;image&quot;, 8465);</span>
+<span class="fc" id="L201">        ENTITIES.put(&quot;real&quot;, 8476);</span>
+<span class="fc" id="L202">        ENTITIES.put(&quot;trade&quot;, 8482);</span>
+<span class="fc" id="L203">        ENTITIES.put(&quot;alefsym&quot;, 8501);</span>
+<span class="fc" id="L204">        ENTITIES.put(&quot;larr&quot;, 8592);</span>
+<span class="fc" id="L205">        ENTITIES.put(&quot;uarr&quot;, 8593);</span>
+<span class="fc" id="L206">        ENTITIES.put(&quot;rarr&quot;, 8594);</span>
+<span class="fc" id="L207">        ENTITIES.put(&quot;darr&quot;, 8595);</span>
+<span class="fc" id="L208">        ENTITIES.put(&quot;harr&quot;, 8596);</span>
+<span class="fc" id="L209">        ENTITIES.put(&quot;crarr&quot;, 8629);</span>
+<span class="fc" id="L210">        ENTITIES.put(&quot;lArr&quot;, 8656);</span>
+<span class="fc" id="L211">        ENTITIES.put(&quot;uArr&quot;, 8657);</span>
+<span class="fc" id="L212">        ENTITIES.put(&quot;rArr&quot;, 8658);</span>
+<span class="fc" id="L213">        ENTITIES.put(&quot;dArr&quot;, 8659);</span>
+<span class="fc" id="L214">        ENTITIES.put(&quot;hArr&quot;, 8660);</span>
+<span class="fc" id="L215">        ENTITIES.put(&quot;forall&quot;, 8704);</span>
+<span class="fc" id="L216">        ENTITIES.put(&quot;part&quot;, 8706);</span>
+<span class="fc" id="L217">        ENTITIES.put(&quot;exist&quot;, 8707);</span>
+<span class="fc" id="L218">        ENTITIES.put(&quot;empty&quot;, 8709);</span>
+<span class="fc" id="L219">        ENTITIES.put(&quot;nabla&quot;, 8711);</span>
+<span class="fc" id="L220">        ENTITIES.put(&quot;isin&quot;, 8712);</span>
+<span class="fc" id="L221">        ENTITIES.put(&quot;notin&quot;, 8713);</span>
+<span class="fc" id="L222">        ENTITIES.put(&quot;ni&quot;, 8715);</span>
+<span class="fc" id="L223">        ENTITIES.put(&quot;prod&quot;, 8719);</span>
+<span class="fc" id="L224">        ENTITIES.put(&quot;sum&quot;, 8721);</span>
+<span class="fc" id="L225">        ENTITIES.put(&quot;minus&quot;, 8722);</span>
+<span class="fc" id="L226">        ENTITIES.put(&quot;lowast&quot;, 8727);</span>
+<span class="fc" id="L227">        ENTITIES.put(&quot;radic&quot;, 8730);</span>
+<span class="fc" id="L228">        ENTITIES.put(&quot;prop&quot;, 8733);</span>
+<span class="fc" id="L229">        ENTITIES.put(&quot;infin&quot;, 8734);</span>
+<span class="fc" id="L230">        ENTITIES.put(&quot;ang&quot;, 8736);</span>
+<span class="fc" id="L231">        ENTITIES.put(&quot;and&quot;, 8743);</span>
+<span class="fc" id="L232">        ENTITIES.put(&quot;or&quot;, 8744);</span>
+<span class="fc" id="L233">        ENTITIES.put(&quot;cap&quot;, 8745);</span>
+<span class="fc" id="L234">        ENTITIES.put(&quot;cup&quot;, 8746);</span>
+<span class="fc" id="L235">        ENTITIES.put(&quot;int&quot;, 8747);</span>
+<span class="fc" id="L236">        ENTITIES.put(&quot;there4&quot;, 8756);</span>
+<span class="fc" id="L237">        ENTITIES.put(&quot;sim&quot;, 8764);</span>
+<span class="fc" id="L238">        ENTITIES.put(&quot;cong&quot;, 8773);</span>
+<span class="fc" id="L239">        ENTITIES.put(&quot;asymp&quot;, 8776);</span>
+<span class="fc" id="L240">        ENTITIES.put(&quot;ne&quot;, 8800);</span>
+<span class="fc" id="L241">        ENTITIES.put(&quot;equiv&quot;, 8801);</span>
+<span class="fc" id="L242">        ENTITIES.put(&quot;le&quot;, 8804);</span>
+<span class="fc" id="L243">        ENTITIES.put(&quot;ge&quot;, 8805);</span>
+<span class="fc" id="L244">        ENTITIES.put(&quot;sub&quot;, 8834);</span>
+<span class="fc" id="L245">        ENTITIES.put(&quot;sup&quot;, 8835);</span>
+<span class="fc" id="L246">        ENTITIES.put(&quot;nsub&quot;, 8836);</span>
+<span class="fc" id="L247">        ENTITIES.put(&quot;sube&quot;, 8838);</span>
+<span class="fc" id="L248">        ENTITIES.put(&quot;supe&quot;, 8839);</span>
+<span class="fc" id="L249">        ENTITIES.put(&quot;oplus&quot;, 8853);</span>
+<span class="fc" id="L250">        ENTITIES.put(&quot;otimes&quot;, 8855);</span>
+<span class="fc" id="L251">        ENTITIES.put(&quot;perp&quot;, 8869);</span>
+<span class="fc" id="L252">        ENTITIES.put(&quot;sdot&quot;, 8901);</span>
+<span class="fc" id="L253">        ENTITIES.put(&quot;lceil&quot;, 8968);</span>
+<span class="fc" id="L254">        ENTITIES.put(&quot;rceil&quot;, 8969);</span>
+<span class="fc" id="L255">        ENTITIES.put(&quot;lfloor&quot;, 8970);</span>
+<span class="fc" id="L256">        ENTITIES.put(&quot;rfloor&quot;, 8971);</span>
+<span class="fc" id="L257">        ENTITIES.put(&quot;lang&quot;, 9001);</span>
+<span class="fc" id="L258">        ENTITIES.put(&quot;rang&quot;, 9002);</span>
+<span class="fc" id="L259">        ENTITIES.put(&quot;loz&quot;, 9674);</span>
+<span class="fc" id="L260">        ENTITIES.put(&quot;spades&quot;, 9824);</span>
+<span class="fc" id="L261">        ENTITIES.put(&quot;clubs&quot;, 9827);</span>
+<span class="fc" id="L262">        ENTITIES.put(&quot;hearts&quot;, 9829);</span>
+<span class="fc" id="L263">        ENTITIES.put(&quot;diams&quot;, 9830);</span>
+<span class="fc" id="L264">        ENTITIES.put(&quot;quot&quot;, 34);</span>
+<span class="fc" id="L265">        ENTITIES.put(&quot;amp&quot;, 38);</span>
+<span class="fc" id="L266">        ENTITIES.put(&quot;lt&quot;, 60);</span>
+<span class="fc" id="L267">        ENTITIES.put(&quot;gt&quot;, 62);</span>
+<span class="fc" id="L268">        ENTITIES.put(&quot;OElig&quot;, 338);</span>
+<span class="fc" id="L269">        ENTITIES.put(&quot;oelig&quot;, 339);</span>
+<span class="fc" id="L270">        ENTITIES.put(&quot;Scaron&quot;, 352);</span>
+<span class="fc" id="L271">        ENTITIES.put(&quot;scaron&quot;, 353);</span>
+<span class="fc" id="L272">        ENTITIES.put(&quot;Yuml&quot;, 376);</span>
+<span class="fc" id="L273">        ENTITIES.put(&quot;circ&quot;, 710);</span>
+<span class="fc" id="L274">        ENTITIES.put(&quot;tilde&quot;, 732);</span>
+<span class="fc" id="L275">        ENTITIES.put(&quot;ensp&quot;, 8194);</span>
+<span class="fc" id="L276">        ENTITIES.put(&quot;emsp&quot;, 8195);</span>
+<span class="fc" id="L277">        ENTITIES.put(&quot;thinsp&quot;, 8201);</span>
+<span class="fc" id="L278">        ENTITIES.put(&quot;zwnj&quot;, 8204);</span>
+<span class="fc" id="L279">        ENTITIES.put(&quot;zwj&quot;, 8205);</span>
+<span class="fc" id="L280">        ENTITIES.put(&quot;lrm&quot;, 8206);</span>
+<span class="fc" id="L281">        ENTITIES.put(&quot;rlm&quot;, 8207);</span>
+<span class="fc" id="L282">        ENTITIES.put(&quot;ndash&quot;, 8211);</span>
+<span class="fc" id="L283">        ENTITIES.put(&quot;mdash&quot;, 8212);</span>
+<span class="fc" id="L284">        ENTITIES.put(&quot;lsquo&quot;, 8216);</span>
+<span class="fc" id="L285">        ENTITIES.put(&quot;rsquo&quot;, 8217);</span>
+<span class="fc" id="L286">        ENTITIES.put(&quot;sbquo&quot;, 8218);</span>
+<span class="fc" id="L287">        ENTITIES.put(&quot;ldquo&quot;, 8220);</span>
+<span class="fc" id="L288">        ENTITIES.put(&quot;rdquo&quot;, 8221);</span>
+<span class="fc" id="L289">        ENTITIES.put(&quot;bdquo&quot;, 8222);</span>
+<span class="fc" id="L290">        ENTITIES.put(&quot;dagger&quot;, 8224);</span>
+<span class="fc" id="L291">        ENTITIES.put(&quot;Dagger&quot;, 8225);</span>
+<span class="fc" id="L292">        ENTITIES.put(&quot;permil&quot;, 8240);</span>
+<span class="fc" id="L293">        ENTITIES.put(&quot;lsaquo&quot;, 8249);</span>
+<span class="fc" id="L294">        ENTITIES.put(&quot;rsaquo&quot;, 8250);</span>
+<span class="fc" id="L295">        ENTITIES.put(&quot;euro&quot;, 8364);</span>
+<span class="fc" id="L296">    }</span>
+
+    /**
+     * Turn special characters into HTML character references. Handles complete
+     * character set defined in HTML 4.01 recommendation.
+     * &lt;p&gt;Escapes all special characters to their corresponding numerial
+     * reference in the decimal format: &amp;#&lt;i&gt;Decimal&lt;/i&gt;;
+     * &lt;p&gt;Reference:
+     * &lt;a href=&quot;http://www.w3.org/TR/html4/sgml/entities.html&quot;&gt;
+     * http://www.w3.org/TR/html4/sgml/entities.html
+     * &lt;/a&gt;
+     */
+    public static String htmlEscape(String s) {
+<span class="pc bpc" id="L309" title="1 of 2 branches missed.">        if (s == null) {</span>
+<span class="nc" id="L310">            return null;</span>
+        }
+
+<span class="fc" id="L313">        StringBuilder escaped = new StringBuilder(s.length());</span>
+<span class="fc bfc" id="L314" title="All 2 branches covered.">        for (int i = 0; i &lt; s.length(); i++) {</span>
+<span class="fc" id="L315">            char c = s.charAt(i);</span>
+            // handle non special ASCII chars first since they will be most common
+<span class="pc bpc" id="L317" title="7 of 18 branches missed.">            if ((c &gt;= 0 &amp;&amp; c &lt;= 33)</span>
+                    || (c &gt;= 35 &amp;&amp; c &lt;= 37)
+                    || (c &gt;= 39 &amp;&amp; c &lt;= 59)
+                    || (c == 61)
+                    || (c &gt;= 63 &amp;&amp; c &lt;= 159)) {
+<span class="fc" id="L322">                escaped.append(c);</span>
+<span class="fc" id="L323">                continue;</span>
+            }
+
+            // handle special chars
+<span class="nc bnc" id="L327" title="All 2 branches missed.">            if (c == 34) {</span>
+<span class="nc" id="L328">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L329">                continue;</span>
+            }
+<span class="nc bnc" id="L331" title="All 2 branches missed.">            if (c == 38) {</span>
+<span class="nc" id="L332">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L333">                continue;</span>
+            }
+<span class="nc bnc" id="L335" title="All 2 branches missed.">            if (c == 60) {</span>
+<span class="nc" id="L336">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L337">                continue;</span>
+            }
+<span class="nc bnc" id="L339" title="All 2 branches missed.">            if (c == 62) {</span>
+<span class="nc" id="L340">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L341">                continue;</span>
+            }
+<span class="nc bnc" id="L343" title="All 4 branches missed.">            if (c &gt;= 160 &amp;&amp; c &lt;= 255) {</span>
+<span class="nc" id="L344">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L345">                continue;</span>
+            }
+<span class="nc bnc" id="L347" title="All 4 branches missed.">            if (c &gt;= 338 &amp;&amp; c &lt;= 339) {</span>
+<span class="nc" id="L348">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L349">                continue;</span>
+            }
+<span class="nc bnc" id="L351" title="All 4 branches missed.">            if (c &gt;= 352 &amp;&amp; c &lt;= 353) {</span>
+<span class="nc" id="L352">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L353">                continue;</span>
+            }
+<span class="nc bnc" id="L355" title="All 2 branches missed.">            if (c == 376) {</span>
+<span class="nc" id="L356">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L357">                continue;</span>
+            }
+<span class="nc bnc" id="L359" title="All 2 branches missed.">            if (c == 402) {</span>
+<span class="nc" id="L360">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L361">                continue;</span>
+            }
+<span class="nc bnc" id="L363" title="All 2 branches missed.">            if (c == 710) {</span>
+<span class="nc" id="L364">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L365">                continue;</span>
+            }
+<span class="nc bnc" id="L367" title="All 2 branches missed.">            if (c == 732) {</span>
+<span class="nc" id="L368">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L369">                continue;</span>
+            }
+<span class="nc bnc" id="L371" title="All 4 branches missed.">            if (c &gt;= 913 &amp;&amp; c &lt;= 929) {</span>
+<span class="nc" id="L372">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L373">                continue;</span>
+            }
+<span class="nc bnc" id="L375" title="All 4 branches missed.">            if (c &gt;= 931 &amp;&amp; c &lt;= 937) {</span>
+<span class="nc" id="L376">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L377">                continue;</span>
+            }
+<span class="nc bnc" id="L379" title="All 4 branches missed.">            if (c &gt;= 945 &amp;&amp; c &lt;= 969) {</span>
+<span class="nc" id="L380">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L381">                continue;</span>
+            }
+<span class="nc bnc" id="L383" title="All 4 branches missed.">            if (c &gt;= 977 &amp;&amp; c &lt;= 978) {</span>
+<span class="nc" id="L384">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L385">                continue;</span>
+            }
+<span class="nc bnc" id="L387" title="All 2 branches missed.">            if (c == 982) {</span>
+<span class="nc" id="L388">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L389">                continue;</span>
+            }
+<span class="nc bnc" id="L391" title="All 4 branches missed.">            if (c &gt;= 8194 &amp;&amp; c &lt;= 8195) {</span>
+<span class="nc" id="L392">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L393">                continue;</span>
+            }
+<span class="nc bnc" id="L395" title="All 2 branches missed.">            if (c == 8201) {</span>
+<span class="nc" id="L396">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L397">                continue;</span>
+            }
+<span class="nc bnc" id="L399" title="All 4 branches missed.">            if (c &gt;= 8204 &amp;&amp; c &lt;= 8207) {</span>
+<span class="nc" id="L400">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L401">                continue;</span>
+            }
+<span class="nc bnc" id="L403" title="All 4 branches missed.">            if (c &gt;= 8211 &amp;&amp; c &lt;= 8212) {</span>
+<span class="nc" id="L404">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L405">                continue;</span>
+            }
+<span class="nc bnc" id="L407" title="All 4 branches missed.">            if (c &gt;= 8216 &amp;&amp; c &lt;= 8218) {</span>
+<span class="nc" id="L408">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L409">                continue;</span>
+            }
+<span class="nc bnc" id="L411" title="All 4 branches missed.">            if (c &gt;= 8220 &amp;&amp; c &lt;= 8222) {</span>
+<span class="nc" id="L412">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L413">                continue;</span>
+            }
+<span class="nc bnc" id="L415" title="All 4 branches missed.">            if (c &gt;= 8224 &amp;&amp; c &lt;= 8226) {</span>
+<span class="nc" id="L416">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L417">                continue;</span>
+            }
+<span class="nc bnc" id="L419" title="All 2 branches missed.">            if (c == 8230) {</span>
+<span class="nc" id="L420">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L421">                continue;</span>
+            }
+<span class="nc bnc" id="L423" title="All 2 branches missed.">            if (c == 8240) {</span>
+<span class="nc" id="L424">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L425">                continue;</span>
+            }
+<span class="nc bnc" id="L427" title="All 4 branches missed.">            if (c &gt;= 8242 &amp;&amp; c &lt;= 8243) {</span>
+<span class="nc" id="L428">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L429">                continue;</span>
+            }
+<span class="nc bnc" id="L431" title="All 4 branches missed.">            if (c &gt;= 8249 &amp;&amp; c &lt;= 8250) {</span>
+<span class="nc" id="L432">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L433">                continue;</span>
+            }
+<span class="nc bnc" id="L435" title="All 2 branches missed.">            if (c == 8254) {</span>
+<span class="nc" id="L436">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L437">                continue;</span>
+            }
+<span class="nc bnc" id="L439" title="All 2 branches missed.">            if (c == 8260) {</span>
+<span class="nc" id="L440">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L441">                continue;</span>
+            }
+<span class="nc bnc" id="L443" title="All 2 branches missed.">            if (c == 8364) {</span>
+<span class="nc" id="L444">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L445">                continue;</span>
+            }
+<span class="nc bnc" id="L447" title="All 2 branches missed.">            if (c == 8465) {</span>
+<span class="nc" id="L448">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L449">                continue;</span>
+            }
+<span class="nc bnc" id="L451" title="All 2 branches missed.">            if (c == 8472) {</span>
+<span class="nc" id="L452">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L453">                continue;</span>
+            }
+<span class="nc bnc" id="L455" title="All 2 branches missed.">            if (c == 8476) {</span>
+<span class="nc" id="L456">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L457">                continue;</span>
+            }
+<span class="nc bnc" id="L459" title="All 2 branches missed.">            if (c == 8482) {</span>
+<span class="nc" id="L460">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L461">                continue;</span>
+            }
+<span class="nc bnc" id="L463" title="All 2 branches missed.">            if (c == 8501) {</span>
+<span class="nc" id="L464">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L465">                continue;</span>
+            }
+<span class="nc bnc" id="L467" title="All 4 branches missed.">            if (c &gt;= 8592 &amp;&amp; c &lt;= 8596) {</span>
+<span class="nc" id="L468">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L469">                continue;</span>
+            }
+<span class="nc bnc" id="L471" title="All 2 branches missed.">            if (c == 8629) {</span>
+<span class="nc" id="L472">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L473">                continue;</span>
+            }
+<span class="nc bnc" id="L475" title="All 4 branches missed.">            if (c &gt;= 8656 &amp;&amp; c &lt;= 8660) {</span>
+<span class="nc" id="L476">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L477">                continue;</span>
+            }
+<span class="nc bnc" id="L479" title="All 2 branches missed.">            if (c == 8704) {</span>
+<span class="nc" id="L480">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L481">                continue;</span>
+            }
+<span class="nc bnc" id="L483" title="All 4 branches missed.">            if (c &gt;= 8706 &amp;&amp; c &lt;= 8707) {</span>
+<span class="nc" id="L484">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L485">                continue;</span>
+            }
+<span class="nc bnc" id="L487" title="All 2 branches missed.">            if (c == 8709) {</span>
+<span class="nc" id="L488">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L489">                continue;</span>
+            }
+<span class="nc bnc" id="L491" title="All 4 branches missed.">            if (c &gt;= 8711 &amp;&amp; c &lt;= 8713) {</span>
+<span class="nc" id="L492">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L493">                continue;</span>
+            }
+<span class="nc bnc" id="L495" title="All 2 branches missed.">            if (c == 8715) {</span>
+<span class="nc" id="L496">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L497">                continue;</span>
+            }
+<span class="nc bnc" id="L499" title="All 2 branches missed.">            if (c == 8719) {</span>
+<span class="nc" id="L500">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L501">                continue;</span>
+            }
+<span class="nc bnc" id="L503" title="All 4 branches missed.">            if (c &gt;= 8721 &amp;&amp; c &lt;= 8722) {</span>
+<span class="nc" id="L504">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L505">                continue;</span>
+            }
+<span class="nc bnc" id="L507" title="All 2 branches missed.">            if (c == 8727) {</span>
+<span class="nc" id="L508">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L509">                continue;</span>
+            }
+<span class="nc bnc" id="L511" title="All 2 branches missed.">            if (c == 8730) {</span>
+<span class="nc" id="L512">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L513">                continue;</span>
+            }
+<span class="nc bnc" id="L515" title="All 4 branches missed.">            if (c &gt;= 8733 &amp;&amp; c &lt;= 8734) {</span>
+<span class="nc" id="L516">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L517">                continue;</span>
+            }
+<span class="nc bnc" id="L519" title="All 2 branches missed.">            if (c == 8736) {</span>
+<span class="nc" id="L520">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L521">                continue;</span>
+            }
+<span class="nc bnc" id="L523" title="All 4 branches missed.">            if (c &gt;= 8743 &amp;&amp; c &lt;= 8747) {</span>
+<span class="nc" id="L524">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L525">                continue;</span>
+            }
+<span class="nc bnc" id="L527" title="All 2 branches missed.">            if (c == 8756) {</span>
+<span class="nc" id="L528">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L529">                continue;</span>
+            }
+<span class="nc bnc" id="L531" title="All 2 branches missed.">            if (c == 8764) {</span>
+<span class="nc" id="L532">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L533">                continue;</span>
+            }
+<span class="nc bnc" id="L535" title="All 2 branches missed.">            if (c == 8773) {</span>
+<span class="nc" id="L536">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L537">                continue;</span>
+            }
+<span class="nc bnc" id="L539" title="All 2 branches missed.">            if (c == 8776) {</span>
+<span class="nc" id="L540">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L541">                continue;</span>
+            }
+<span class="nc bnc" id="L543" title="All 4 branches missed.">            if (c &gt;= 8800 &amp;&amp; c &lt;= 8801) {</span>
+<span class="nc" id="L544">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L545">                continue;</span>
+            }
+<span class="nc bnc" id="L547" title="All 4 branches missed.">            if (c &gt;= 8804 &amp;&amp; c &lt;= 8805) {</span>
+<span class="nc" id="L548">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L549">                continue;</span>
+            }
+<span class="nc bnc" id="L551" title="All 4 branches missed.">            if (c &gt;= 8834 &amp;&amp; c &lt;= 8836) {</span>
+<span class="nc" id="L552">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L553">                continue;</span>
+            }
+<span class="nc bnc" id="L555" title="All 4 branches missed.">            if (c &gt;= 8838 &amp;&amp; c &lt;= 8839) {</span>
+<span class="nc" id="L556">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L557">                continue;</span>
+            }
+<span class="nc bnc" id="L559" title="All 2 branches missed.">            if (c == 8853) {</span>
+<span class="nc" id="L560">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L561">                continue;</span>
+            }
+<span class="nc bnc" id="L563" title="All 2 branches missed.">            if (c == 8855) {</span>
+<span class="nc" id="L564">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L565">                continue;</span>
+            }
+<span class="nc bnc" id="L567" title="All 2 branches missed.">            if (c == 8869) {</span>
+<span class="nc" id="L568">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L569">                continue;</span>
+            }
+<span class="nc bnc" id="L571" title="All 2 branches missed.">            if (c == 8901) {</span>
+<span class="nc" id="L572">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L573">                continue;</span>
+            }
+<span class="nc bnc" id="L575" title="All 4 branches missed.">            if (c &gt;= 8968 &amp;&amp; c &lt;= 8971) {</span>
+<span class="nc" id="L576">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L577">                continue;</span>
+            }
+<span class="nc bnc" id="L579" title="All 4 branches missed.">            if (c &gt;= 9001 &amp;&amp; c &lt;= 9002) {</span>
+<span class="nc" id="L580">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L581">                continue;</span>
+            }
+<span class="nc bnc" id="L583" title="All 2 branches missed.">            if (c == 9674) {</span>
+<span class="nc" id="L584">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L585">                continue;</span>
+            }
+<span class="nc bnc" id="L587" title="All 2 branches missed.">            if (c == 9824) {</span>
+<span class="nc" id="L588">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L589">                continue;</span>
+            }
+<span class="nc bnc" id="L591" title="All 2 branches missed.">            if (c == 9827) {</span>
+<span class="nc" id="L592">                writeDecimalReference(c, escaped);</span>
+<span class="nc" id="L593">                continue;</span>
+            }
+
+            // all other chars
+<span class="nc" id="L597">            escaped.append(c);</span>
+        }
+<span class="fc" id="L599">        return escaped.toString();</span>
+    }
+    private static final int MAX_ESCAPE_SEQ = 12;
+
+    /**
+     * Turn HTML character references into their plain text UNICODE equivalent.
+     * &lt;p&gt;Handles complete character set defined in HTML 4.01 recommendation and
+     * all reference types (decimal, hex, and entity).
+     * &lt;p&gt;Correctly converts the following formats:
+     * &lt;blockquote&gt;
+     * &amp;amp;#&lt;i&gt;Decimal&lt;/i&gt;; - &lt;i&gt;(Example: &amp;amp;#68;)&lt;/i&gt;&lt;br&gt;
+     * &amp;amp;#x&lt;i&gt;Hex&lt;/i&gt;; - &lt;i&gt;(Example: &amp;amp;#xE5;) case insensitive&lt;/i&gt;&lt;br&gt;
+     * &amp;amp;#&lt;i&gt;Entity&lt;/i&gt;; - &lt;i&gt;(Example: &amp;amp;amp;) case sensitive&lt;/i&gt;
+     * &lt;/blockquote&gt;
+     * Gracefully handles malformed character references by copying original
+     * characters as is when encountered.&lt;p&gt;
+     * &lt;p&gt;Reference:
+     * &lt;a href=&quot;http://www.w3.org/TR/html4/sgml/entities.html&quot;&gt;
+     * http://www.w3.org/TR/html4/sgml/entities.html
+     * &lt;/a&gt;
+     */
+    public static String htmlUnescape(final String s) {
+<span class="nc bnc" id="L621" title="All 2 branches missed.">        if (s == null) {</span>
+<span class="nc" id="L622">            return null;</span>
+        }
+
+<span class="nc" id="L625">        StringBuilder unescaped = new StringBuilder(s.length());</span>
+<span class="nc bnc" id="L626" title="All 2 branches missed.">        for (int i = 0; i &lt; s.length(); i++) {</span>
+<span class="nc" id="L627">            char c = s.charAt(i);</span>
+<span class="nc bnc" id="L628" title="All 2 branches missed.">            if (c == '&amp;') {</span>
+                // don't look more than 12 chars ahead as reference like strings
+                // should not be longer than 12 chars in length (including ';')
+                // prevents the entire string from being searched when an '&amp;'
+                // with no following ';' is an encountered
+<span class="nc" id="L633">                int start = Math.min(i + 1, s.length() - 1);</span>
+<span class="nc" id="L634">                int end = Math.min(s.length(), start + MAX_ESCAPE_SEQ);</span>
+
+<span class="nc" id="L636">                String reference = s.substring(start, end);</span>
+<span class="nc" id="L637">                int semi = reference.indexOf(';');</span>
+
+<span class="nc bnc" id="L639" title="All 2 branches missed.">                if (semi == -1) {</span>
+<span class="nc" id="L640">                    unescaped.append(c);</span>
+<span class="nc" id="L641">                    continue;</span>
+                }
+
+<span class="nc" id="L644">                reference = reference.substring(0, semi);</span>
+<span class="nc" id="L645">                i = start + semi;</span>
+
+                // try entity reference first
+<span class="nc" id="L648">                Integer iso = (Integer) ENTITIES.get(reference);</span>
+<span class="nc bnc" id="L649" title="All 2 branches missed.">                if (iso != null) {</span>
+<span class="nc" id="L650">                    unescaped.append((char) iso.intValue());</span>
+<span class="nc" id="L651">                    continue;</span>
+                }
+
+<span class="nc bnc" id="L654" title="All 2 branches missed.">                if (reference.length() == 0) {</span>
+<span class="nc" id="L655">                    unescaped.append(EMPTY_REFERENCE);</span>
+<span class="nc" id="L656">                    continue;</span>
+                }
+
+<span class="nc bnc" id="L659" title="All 2 branches missed.">                if (reference.charAt(0) == '#') {</span>
+<span class="nc bnc" id="L660" title="All 2 branches missed.">                    if (reference.length() &gt; 2) {</span>
+<span class="nc" id="L661">                        int index = 1;</span>
+<span class="nc bnc" id="L662" title="All 4 branches missed.">                        if (reference.charAt(1) == 'x' || reference.charAt(1) == 'X') {</span>
+<span class="nc" id="L663">                            index = 2;</span>
+                        }
+                        try {
+<span class="nc bnc" id="L666" title="All 2 branches missed.">                            unescaped.append(</span>
+                                    (char) Integer.parseInt(
+                                    reference.substring(index),
+                                    (index == 1) ? 10 : 16));
+<span class="nc" id="L670">                            continue;</span>
+<span class="nc" id="L671">                        } catch (NumberFormatException e) {</span>
+                            // wasn't hex or decimal, copy original chars
+<span class="nc" id="L673">                            unescaped.append('&amp;').append(reference).append(';');</span>
+<span class="nc" id="L674">                            continue;</span>
+                        }
+                    }
+<span class="nc" id="L677">                    unescaped.append(MALFORMED_REFERENCE);</span>
+<span class="nc" id="L678">                    continue;</span>
+                }
+
+                // may not be valid reference, forget it
+<span class="nc" id="L682">                i = start - 1;</span>
+            }
+<span class="nc" id="L684">            unescaped.append(c);</span>
+        }
+<span class="nc" id="L686">        return unescaped.toString();</span>
+    }
+
+    /**
+     * Write the given character as decimal reference.
+     *
+     * @param c the character to write
+     * @param buf the buffer to write into
+     */
+    private static void writeDecimalReference(final char c, final StringBuilder buf) {
+<span class="nc" id="L696">        buf.append(REFERENCE_START);</span>
+<span class="nc" id="L697">        buf.append((int) c);</span>
+<span class="nc" id="L698">        buf.append(';');</span>
+<span class="nc" id="L699">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

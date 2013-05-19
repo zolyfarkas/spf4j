@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>QuantizedRecorder.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">QuantizedRecorder.java</span></div><h1>QuantizedRecorder.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.impl;
+
+import com.google.common.math.IntMath;
+import org.spf4j.perf.EntityMeasurements;
+import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementProcessor;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
+
+/**
+ *
+ * @author zoly
+ */
+<span class="pc bpc" id="L33" title="1 of 2 branches missed.">@ThreadSafe</span>
+public final class QuantizedRecorder implements MeasurementProcessor {
+
+    private long minMeasurement;
+    private long maxMeasurement;
+    private long measurementCount;
+    private long measurementTotal;
+    private final int quantasPerMagnitude;
+    private final long[] magnitudes;
+    private final EntityMeasurementsInfo info;
+    private final int factor;
+    private final int lowerMagnitude;
+    private final int higherMagnitude;
+    /**
+     * (long.min - f ^ l), (f ^ l - f ^ (l+1)), ... (f ^(L-1) - f ^ L) (f^L -
+     * long.max)
+     *
+     * f = 10 m = 0 M = 5
+     *
+     */
+    private final long[] quatizedMeasurements;
+
+    public QuantizedRecorder(final Object measuredEntity, final String unitOfMeasurement,
+            final int factor, final int lowerMagnitude,
+<span class="fc" id="L57">            final int higherMagnitude, final int quantasPerMagnitude) {</span>
+<span class="pc bpc" id="L58" title="2 of 4 branches missed.">        assert (quantasPerMagnitude &lt;= factor);</span>
+<span class="pc bpc" id="L59" title="2 of 4 branches missed.">        assert (lowerMagnitude &lt; higherMagnitude);</span>
+<span class="pc bpc" id="L60" title="2 of 4 branches missed.">        assert (quantasPerMagnitude &gt; 0);</span>
+<span class="fc" id="L61">        this.factor = factor;</span>
+<span class="fc" id="L62">        this.lowerMagnitude = lowerMagnitude;</span>
+<span class="fc" id="L63">        this.higherMagnitude = higherMagnitude;</span>
+<span class="fc" id="L64">        minMeasurement = Long.MAX_VALUE;</span>
+<span class="fc" id="L65">        maxMeasurement = Long.MIN_VALUE;</span>
+<span class="fc" id="L66">        measurementCount = 0;</span>
+<span class="fc" id="L67">        measurementTotal = 0;</span>
+<span class="fc" id="L68">        this.quatizedMeasurements = new long[(higherMagnitude - lowerMagnitude) * quantasPerMagnitude + 2];</span>
+<span class="fc" id="L69">        this.quantasPerMagnitude = quantasPerMagnitude;</span>
+<span class="fc" id="L70">        magnitudes = new long[higherMagnitude - lowerMagnitude + 1];</span>
+
+<span class="fc" id="L72">        int idx = 0;</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (lowerMagnitude &lt; 0) {</span>
+<span class="fc" id="L74">            int toMagnitude = Math.min(-1, higherMagnitude);</span>
+<span class="fc" id="L75">            int toValue = -IntMath.pow(factor, -toMagnitude);</span>
+<span class="fc" id="L76">            idx =  toMagnitude - lowerMagnitude;</span>
+<span class="fc" id="L77">            int j = idx;</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">            while (j &gt;= 0) {</span>
+<span class="fc" id="L79">                magnitudes[j--] = toValue;</span>
+<span class="fc" id="L80">                toValue *= factor;</span>
+            }
+<span class="fc" id="L82">            idx++;</span>
+        }
+<span class="pc bpc" id="L84" title="2 of 4 branches missed.">        if (lowerMagnitude &lt;= 0 &amp;&amp; higherMagnitude &gt;= 0) {</span>
+<span class="fc" id="L85">            magnitudes[idx++] = 0;</span>
+        }
+
+<span class="fc" id="L88">        int fromMagnitude = Math.max(1, lowerMagnitude);</span>
+<span class="fc" id="L89">        int fromValue = IntMath.pow(factor, fromMagnitude);</span>
+<span class="fc" id="L90">        int j = idx;</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        while (j &lt; magnitudes.length) {</span>
+<span class="fc" id="L92">            magnitudes[j++] = fromValue;</span>
+<span class="fc" id="L93">            fromValue *= factor;</span>
+        }
+        
+<span class="fc" id="L96">        final List&lt;String&gt; uom = new ArrayList();</span>
+        
+<span class="fc" id="L98">        final List&lt;String&gt; result = new ArrayList();</span>
+<span class="fc" id="L99">        result.add(&quot;total&quot;); uom.add(unitOfMeasurement);</span>
+<span class="fc" id="L100">        result.add(&quot;count&quot;); uom.add(&quot;count&quot;);</span>
+<span class="fc" id="L101">        result.add(&quot;min&quot;); uom.add(unitOfMeasurement);</span>
+<span class="fc" id="L102">        result.add(&quot;max&quot;); uom.add(unitOfMeasurement);</span>
+<span class="fc" id="L103">        result.add(&quot;QNI_&quot; + magnitudes[0]); uom.add(&quot;count&quot;);</span>
+        
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">        if (magnitudes.length &gt; 0) {</span>
+<span class="fc" id="L106">            long prevVal = magnitudes[0];</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">            for (int i = 1; i &lt; magnitudes.length; i++) {</span>
+<span class="fc" id="L108">                long magVal = magnitudes[i];</span>
+<span class="fc" id="L109">                long intSize = magVal - prevVal;</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">                for (j = 0; j &lt; quantasPerMagnitude; j++) {</span>
+<span class="fc" id="L111">                    result.add(&quot;Q&quot; + (prevVal + intSize * j / quantasPerMagnitude)</span>
+                            + &quot;_&quot; + (prevVal + intSize * (j + 1) / quantasPerMagnitude));
+<span class="fc" id="L113">                    uom.add(&quot;count&quot;);</span>
+                }
+<span class="fc" id="L115">                prevVal = magVal;</span>
+            }
+<span class="fc" id="L117">            result.add(&quot;Q&quot; + prevVal</span>
+                    + &quot;_PI&quot;);
+<span class="fc" id="L119">            uom.add(&quot;count&quot;);</span>
+        }
+<span class="fc" id="L121">        info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement,</span>
+                result.toArray(new String [result.size()]), uom.toArray(new String [uom.size()]));
+
+<span class="fc" id="L124">    }</span>
+
+    //CHECKSTYLE:OFF
+    private QuantizedRecorder(final EntityMeasurementsInfo info, final int factor,
+            final int lowerMagnitude, final int higherMagnitude,
+            final long minMeasurement, final long maxMeasurement,
+            final long measurementCount, final long measurementTotal,
+<span class="fc" id="L131">            final int quantasPerMagnitude, final long[] magnitudes, final long[] quatizedMeasurements) {</span>
+        //CHECKSTYLE:ON
+<span class="pc bpc" id="L133" title="2 of 4 branches missed.">        assert (quantasPerMagnitude &lt;= factor);</span>
+<span class="pc bpc" id="L134" title="2 of 4 branches missed.">        assert (lowerMagnitude &lt; higherMagnitude);</span>
+<span class="pc bpc" id="L135" title="2 of 4 branches missed.">        assert (quantasPerMagnitude &gt; 0);</span>
+<span class="fc" id="L136">        this.factor = factor;</span>
+<span class="fc" id="L137">        this.lowerMagnitude = lowerMagnitude;</span>
+<span class="fc" id="L138">        this.higherMagnitude = higherMagnitude;</span>
+<span class="fc" id="L139">        this.minMeasurement = minMeasurement;</span>
+<span class="fc" id="L140">        this.maxMeasurement = maxMeasurement;</span>
+<span class="fc" id="L141">        this.measurementCount = measurementCount;</span>
+<span class="fc" id="L142">        this.measurementTotal = measurementTotal;</span>
+<span class="fc" id="L143">        this.quantasPerMagnitude = quantasPerMagnitude;</span>
+<span class="fc" id="L144">        this.magnitudes = magnitudes;</span>
+<span class="fc" id="L145">        this.quatizedMeasurements = quatizedMeasurements;</span>
+<span class="fc" id="L146">        this.info = info;</span>
+<span class="fc" id="L147">    }</span>
+
+    @Override
+    public synchronized void record(final long measurement) {
+<span class="fc" id="L151">        measurementCount++;</span>
+<span class="fc" id="L152">        measurementTotal += measurement;  // TODO: check for overflow</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">        if (measurement &lt; minMeasurement) {</span>
+<span class="fc" id="L154">            minMeasurement = measurement;</span>
+        }
+<span class="fc bfc" id="L156" title="All 2 branches covered.">        if (measurement &gt; maxMeasurement) {</span>
+<span class="fc" id="L157">            maxMeasurement = measurement;</span>
+        }
+<span class="fc" id="L159">        long m0 = magnitudes[0];</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">        if (m0 &gt; measurement) {</span>
+<span class="fc" id="L161">            quatizedMeasurements[0]++;</span>
+        } else {
+<span class="fc" id="L163">            long prevMag = m0;</span>
+<span class="fc" id="L164">            int i = 1;</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">            for (; i &lt; magnitudes.length; i++) {</span>
+<span class="fc" id="L166">                long mag = magnitudes[i];</span>
+<span class="fc bfc" id="L167" title="All 2 branches covered.">                if (mag &gt; measurement) {</span>
+<span class="fc" id="L168">                    int qidx = (i - 1) * quantasPerMagnitude + (int) (quantasPerMagnitude</span>
+                            * (((double) (measurement - prevMag)) / (mag - prevMag))) + 1;
+<span class="fc" id="L170">                    quatizedMeasurements[qidx]++;</span>
+<span class="fc" id="L171">                    break;</span>
+                }
+<span class="fc" id="L173">                prevMag = mag;</span>
+            }
+<span class="fc bfc" id="L175" title="All 2 branches covered.">            if (i == magnitudes.length) {</span>
+<span class="fc" id="L176">                quatizedMeasurements[quatizedMeasurements.length - 1]++;</span>
+            }
+
+
+        }
+
+<span class="fc" id="L182">    }</span>
+
+    @Override
+    public synchronized long[] getMeasurements(final boolean reset) {
+<span class="fc" id="L186">        long[] result = new long[info.getNumberOfMeasurements()];</span>
+<span class="fc" id="L187">        int i = 0;</span>
+<span class="fc" id="L188">        result[i++] = this.measurementTotal;</span>
+<span class="fc" id="L189">        result[i++] = this.measurementCount;</span>
+        
+<span class="fc" id="L191">        result[i++] = this.minMeasurement;</span>
+<span class="fc" id="L192">        result[i++] = this.maxMeasurement;</span>
+        
+<span class="fc bfc" id="L194" title="All 2 branches covered.">        for (int j = 0; j &lt; this.quatizedMeasurements.length; j++) {</span>
+<span class="fc" id="L195">            result[i++] = this.quatizedMeasurements[j];</span>
+        }
+<span class="fc bfc" id="L197" title="All 2 branches covered.">        if (reset) {</span>
+<span class="fc" id="L198">            reset();</span>
+        }
+<span class="fc" id="L200">        return result;</span>
+    }
+
+    @Override
+    public EntityMeasurementsInfo getInfo() {
+<span class="fc" id="L205">        return info;</span>
+    }
+
+    @Override
+    public EntityMeasurements aggregate(final EntityMeasurements mSource) {
+
+<span class="nc" id="L211">        QuantizedRecorder other = (QuantizedRecorder) mSource;</span>
+        long[] quantizedM;
+        long minMeasurementM;
+        long maxMeasurementM;
+        long measurementCountM;
+        long measurementTotalM;
+<span class="nc" id="L217">        synchronized (this) {</span>
+<span class="nc" id="L218">            quantizedM = quatizedMeasurements.clone();</span>
+<span class="nc" id="L219">            minMeasurementM = this.minMeasurement;</span>
+<span class="nc" id="L220">            maxMeasurementM = this.maxMeasurement;</span>
+<span class="nc" id="L221">            measurementCountM = this.measurementCount;</span>
+<span class="nc" id="L222">            measurementTotalM = this.measurementTotal;</span>
+<span class="nc" id="L223">        }</span>
+        
+<span class="nc" id="L225">        synchronized (other) {</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">            for (int i = 0; i &lt; quantizedM.length; i++) {</span>
+<span class="nc" id="L227">                quantizedM[i] += other.quatizedMeasurements[i];</span>
+            }
+<span class="nc" id="L229">            return new QuantizedRecorder(info, factor, lowerMagnitude, higherMagnitude,</span>
+                    Math.min(minMeasurementM, other.minMeasurement),
+                    Math.max(maxMeasurementM, other.maxMeasurement),
+                    measurementCountM + other.measurementCount,
+                    measurementTotalM + other.measurementTotal,
+                    quantasPerMagnitude, magnitudes, quantizedM);
+<span class="nc" id="L235">        }</span>
+
+
+    }
+
+    @Override
+    public synchronized MeasurementProcessor createClone(final boolean reset) {
+<span class="fc" id="L242">        QuantizedRecorder result = new QuantizedRecorder(info, factor, lowerMagnitude, higherMagnitude,</span>
+                minMeasurement, maxMeasurement, measurementCount, measurementTotal,
+                quantasPerMagnitude, magnitudes, quatizedMeasurements.clone());
+<span class="fc bfc" id="L245" title="All 2 branches covered.">        if (reset) {</span>
+<span class="fc" id="L246">            reset();</span>
+        }
+<span class="fc" id="L248">        return result;</span>
+    }
+
+    private void reset() {
+<span class="fc" id="L252">        this.minMeasurement = Long.MAX_VALUE;</span>
+<span class="fc" id="L253">        this.maxMeasurement = Long.MIN_VALUE;</span>
+<span class="fc" id="L254">        this.measurementCount = 0;</span>
+<span class="fc" id="L255">        this.measurementTotal = 0;</span>
+<span class="fc" id="L256">        Arrays.fill(this.quatizedMeasurements, 0L);</span>
+<span class="fc" id="L257">    }</span>
+
+    @Override
+    public String toString() {
+<span class="fc" id="L261">        return &quot;QuantizedRecorder{&quot; + &quot;info=&quot; + info + &quot;, minMeasurement=&quot; + minMeasurement + &quot;, maxMeasurement=&quot;</span>
+                + maxMeasurement + &quot;, measurementCount=&quot; + measurementCount + &quot;, measurementTotal=&quot;
+                + measurementTotal + &quot;, quantasPerMagnitude=&quot; + quantasPerMagnitude + &quot;, magnitudes=&quot;
+                + Arrays.toString(magnitudes) + &quot;, quatizedMeasurements=&quot;
+                + Arrays.toString(quatizedMeasurements) + '}';
+    }
+
+    public synchronized long getMaxMeasurement() {
+<span class="nc" id="L269">        return maxMeasurement;</span>
+    }
+
+    public synchronized long getMeasurementCount() {
+<span class="nc" id="L273">        return measurementCount;</span>
+    }
+
+    public synchronized long getMeasurementTotal() {
+<span class="nc" id="L277">        return measurementTotal;</span>
+    }
+
+    public synchronized long getMinMeasurement() {
+<span class="nc" id="L281">        return minMeasurement;</span>
+    }
+
+    public synchronized long[] getQuatizedMeasurements() {
+<span class="fc" id="L285">        return quatizedMeasurements.clone();</span>
+    }
+
+    @Override
+    public synchronized EntityMeasurements createLike(final Object entity) {
+<span class="fc" id="L290">        QuantizedRecorder result = new QuantizedRecorder(entity, info.getUnitOfMeasurement(),</span>
+                this.factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
+<span class="fc" id="L292">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>AbstractStackCollector.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">AbstractStackCollector.java</span></div><h1>AbstractStackCollector.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.stackmonitor;
+
+import com.google.common.base.Function;
+import javax.annotation.concurrent.GuardedBy;
+
+/**
+ *
+ * @author zoly
+ */
+<span class="fc" id="L27">public abstract class AbstractStackCollector implements StackCollector {</span>
+ 
+    
+<span class="fc" id="L30">    private final Object sampleSync = new Object();</span>
+    @GuardedBy(value = &quot;sampleSync&quot;)
+    private SampleNode samples;
+
+<span class="fc" id="L34">    private int nrNodes = 0;</span>
+    
+    @Override
+    public final SampleNode applyOnSamples(final Function&lt;SampleNode, SampleNode&gt; predicate) {
+<span class="fc" id="L38">        synchronized (sampleSync) {</span>
+<span class="fc" id="L39">            samples = predicate.apply(samples);</span>
+<span class="fc" id="L40">            return samples;</span>
+<span class="nc" id="L41">        }</span>
+    }
+
+
+    @Override
+    public final void clear() {
+<span class="nc" id="L47">        synchronized (sampleSync) {</span>
+<span class="nc" id="L48">            samples = null;</span>
+<span class="nc" id="L49">            nrNodes = 0;</span>
+<span class="nc" id="L50">        }</span>
+<span class="nc" id="L51">    }</span>
+    
+    public final void addSample(final StackTraceElement[] stackTrace) {
+<span class="fc" id="L54">        synchronized (sampleSync) {</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">            if (samples == null) {</span>
+<span class="fc" id="L56">                samples = new SampleNode(stackTrace, stackTrace.length - 1);</span>
+<span class="fc" id="L57">                nrNodes += stackTrace.length + 1;</span>
+            } else {
+<span class="fc" id="L59">                nrNodes += samples.addSample(stackTrace, stackTrace.length - 1);</span>
+            }
+<span class="pc" id="L61">        }</span>
+<span class="fc" id="L62">    }</span>
+
+    @Override
+    public final String toString() {
+<span class="fc" id="L66">        synchronized (sampleSync) {</span>
+<span class="fc" id="L67">            return &quot;AbstractStackCollector{&quot; + &quot;samples=&quot; + samples + &quot;, nrNodes=&quot; + nrNodes + '}';</span>
+<span class="nc" id="L68">        }</span>
+    }
+
+    public final int getNrNodes() {
+<span class="fc" id="L72">        synchronized (sampleSync) {</span>
+<span class="fc" id="L73">            return nrNodes;</span>
+<span class="nc" id="L74">        }</span>
+    }
+
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

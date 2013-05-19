@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>MeasuredInputStream.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.iomonitor</a> &gt; <span class="el_source">MeasuredInputStream.java</span></div><h1>MeasuredInputStream.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.iomonitor;
+
+import java.io.IOException;
+import java.io.InputStream;
+import org.spf4j.perf.MeasurementRecorderSource;
+
+/**
+ *
+ * @author zoly
+ */
+public final class MeasuredInputStream  extends InputStream {
+    private final InputStream is;
+    private final Class&lt;?&gt; from;
+    private final MeasurementRecorderSource recorderSource;
+
+    public MeasuredInputStream(final InputStream is, final Class&lt;?&gt; from,
+<span class="fc" id="L35">            final MeasurementRecorderSource recorderSource) {</span>
+<span class="fc" id="L36">        this.is = is;</span>
+<span class="fc" id="L37">        this.from = from;</span>
+<span class="fc" id="L38">        this.recorderSource = recorderSource;</span>
+<span class="fc" id="L39">    }</span>
+
+    @Override
+    public int read(final byte[] b) throws IOException {
+<span class="nc" id="L43">        int result = is.read(b);</span>
+<span class="nc" id="L44">        recorderSource.getRecorder(from).record(result);</span>
+<span class="nc" id="L45">        return result;</span>
+    }
+
+    @Override
+    public int read(final byte[] b, final int off, final int len) throws IOException {
+<span class="fc" id="L50">        int result = is.read(b, off, len);</span>
+<span class="fc" id="L51">        recorderSource.getRecorder(from).record(result);</span>
+<span class="fc" id="L52">        return result;</span>
+    }
+
+    @Override
+    public long skip(final long n) throws IOException {
+<span class="nc" id="L57">        return is.skip(n);</span>
+    }
+
+    @Override
+    public int available() throws IOException {
+<span class="fc" id="L62">        return is.available();</span>
+    }
+
+    @Override
+    public void close() throws IOException {
+<span class="fc" id="L67">        is.close();</span>
+<span class="fc" id="L68">    }</span>
+
+    @Override
+    public void mark(final int readlimit) {
+<span class="nc" id="L72">        is.mark(readlimit);</span>
+<span class="nc" id="L73">    }</span>
+
+    @Override
+    public void reset() throws IOException {
+<span class="nc" id="L77">        is.reset();</span>
+<span class="nc" id="L78">    }</span>
+
+    @Override
+    public boolean markSupported() {
+<span class="nc" id="L82">        return is.markSupported();</span>
+    }
+
+    @Override
+    public int read() throws IOException {
+<span class="nc" id="L87">        int result = is.read();</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (result &gt;= 0) {</span>
+<span class="nc" id="L89">            recorderSource.getRecorder(from).record(1);</span>
+        }
+<span class="nc" id="L91">        return result;</span>
+    }
+    
+    
+    
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

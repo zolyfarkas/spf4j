@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>MemoryUsageSampler.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.memorymonitor</a> &gt; <span class="el_source">MemoryUsageSampler.java</span></div><h1>MemoryUsageSampler.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.memorymonitor;
+
+import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.DefaultScheduler;
+import org.spf4j.perf.MeasurementRecorder;
+import org.spf4j.perf.RecorderFactory;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * This class allows you to poll and record to a file the heap commited and heap used
+ * for your java process.
+ *  start data recording by calling the startMemoryUsageSampling method,
+ *  stop the data recording by calling the method: startMemoryUsageSampling.
+ * 
+ * @author zoly
+ */
+public final class MemoryUsageSampler {
+    
+<span class="nc" id="L41">    private MemoryUsageSampler() { }</span>
+    
+<span class="fc" id="L43">    private static final int AGG_INTERVAL =</span>
+            Integer.valueOf(System.getProperty(&quot;perf.memory.sampleTimeMillis&quot;, &quot;600000&quot;));
+    
+<span class="fc" id="L46">    private static final MeasurementRecorder HEAP_COMMITED =</span>
+            RecorderFactory.createScalableMinMaxAvgRecorder(&quot;heap-commited&quot;, &quot;bytes&quot;, AGG_INTERVAL);
+<span class="fc" id="L48">    private static final MeasurementRecorder HEAP_USED =</span>
+            RecorderFactory.createScalableMinMaxAvgRecorder(&quot;heap-used&quot;, &quot;bytes&quot;, AGG_INTERVAL);
+    
+<span class="fc" id="L51">    private static final MemoryMXBean MBEAN = ManagementFactory.getMemoryMXBean();</span>
+    
+    private static ScheduledFuture&lt;?&gt; samplingFuture;
+    
+    
+    static {
+<span class="fc" id="L57">        java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {</span>
+            @Override
+            public void doRun() throws Exception {
+<span class="fc" id="L60">                stopMemoryUsageSampling();</span>
+<span class="fc" id="L61">            }</span>
+        }, &quot;shutdown-memory-sampler&quot;));
+<span class="fc" id="L63">    }</span>
+    
+    public static synchronized void startMemoryUsageSampling(final long sampleTime) {
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        if (samplingFuture == null) {</span>
+<span class="fc" id="L67">            samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {</span>
+
+                @Override
+                public void doRun() throws Exception {
+<span class="fc" id="L71">                    MemoryUsage usage = MBEAN.getHeapMemoryUsage();</span>
+<span class="fc" id="L72">                    HEAP_COMMITED.record(usage.getCommitted());</span>
+<span class="fc" id="L73">                    HEAP_USED.record(usage.getUsed());</span>
+<span class="fc" id="L74">                }</span>
+            }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
+        }
+<span class="fc" id="L77">    }</span>
+    
+    public static synchronized void stopMemoryUsageSampling() {
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">         if (samplingFuture != null) {</span>
+<span class="fc" id="L81">             samplingFuture.cancel(false);</span>
+<span class="fc" id="L82">             samplingFuture = null;</span>
+         }
+<span class="fc" id="L84">    }</span>
+    
+    
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

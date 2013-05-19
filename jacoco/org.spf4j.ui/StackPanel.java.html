@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>StackPanel.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j</a> &gt; <a href="index.html" class="el_package">org.spf4j.ui</a> &gt; <span class="el_source">StackPanel.java</span></div><h1>StackPanel.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.ui;
+
+import com.google.common.base.Predicate;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.Transparency;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.util.List;
+import java.util.Map;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.ToolTipManager;
+import org.spf4j.base.Pair;
+import org.spf4j.base.RTree;
+import org.spf4j.stackmonitor.Method;
+import org.spf4j.stackmonitor.SampleNode;
+
+/**
+ *
+ * @author zoly
+ */
+public final class StackPanel extends JPanel
+        implements ActionListener, MouseListener {
+
+    private SampleNode samples;
+<span class="nc" id="L55">    private RTree&lt;Pair&lt;Method, Integer&gt;&gt; tooltipDetail = new RTree&lt;Pair&lt;Method, Integer&gt;&gt;();</span>
+    private JPopupMenu menu;
+    private int xx;
+    private int yy;
+
+<span class="nc" id="L60">    public StackPanel(final SampleNode samples) {</span>
+<span class="nc" id="L61">        this.samples = samples;</span>
+<span class="nc" id="L62">        setPreferredSize(new Dimension(400, 20 * samples.height() + 10));</span>
+<span class="nc" id="L63">        ToolTipManager.sharedInstance().registerComponent(this);</span>
+<span class="nc" id="L64">        menu = buildPopupMenu();</span>
+<span class="nc" id="L65">        addMouseListener(this);</span>
+<span class="nc" id="L66">    }</span>
+
+    
+    
+    
+    private JPopupMenu buildPopupMenu() {
+<span class="nc" id="L72">        JPopupMenu result = new JPopupMenu(&quot;Actions&quot;);</span>
+<span class="nc" id="L73">        JMenuItem filter = new JMenuItem(&quot;Filter&quot;);</span>
+<span class="nc" id="L74">        filter.setActionCommand(&quot;FILTER&quot;);</span>
+<span class="nc" id="L75">        filter.addActionListener(this);</span>
+<span class="nc" id="L76">        result.add(filter);</span>
+<span class="nc" id="L77">        return result;</span>
+    }
+    
+
+    @Override
+    public String getToolTipText(final MouseEvent event) {
+<span class="nc" id="L83">        Point location = event.getPoint();</span>
+<span class="nc" id="L84">        List&lt;Pair&lt;Method, Integer&gt;&gt; tips = tooltipDetail.search(new float[]{location.x, location.y}, new float[]{0, 0});</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (tips.size() &gt;= 1) {</span>
+<span class="nc" id="L86">            return tips.get(0).getFirst().toString() + &quot;-&quot; + tips.get(0).getSecond();</span>
+        } else {
+<span class="nc" id="L88">            return null;</span>
+        }
+    }
+
+    @Override
+    protected void paintComponent(final Graphics g) {
+<span class="nc" id="L94">        super.paintComponent(g);</span>
+<span class="nc" id="L95">        Dimension size = getSize();</span>
+<span class="nc" id="L96">        Insets insets = getInsets();</span>
+<span class="nc" id="L97">        Rectangle2D available = new Rectangle2D.Double(insets.left, insets.top,</span>
+                size.getWidth() - insets.left - insets.right,
+                size.getHeight() - insets.top - insets.bottom);
+<span class="nc" id="L100">        Graphics2D g2 = (Graphics2D) g.create();</span>
+        try {
+<span class="nc" id="L102">            int rowHeight = (int) g2.getFont().getStringBounds(&quot;ROOT&quot;, g2.getFontRenderContext()).getHeight();</span>
+
+<span class="nc" id="L104">            GraphicsConfiguration gc = g2.getDeviceConfiguration();</span>
+<span class="nc" id="L105">            BufferedImage img = gc.createCompatibleImage(</span>
+                    (int) available.getWidth(), (int) available.getHeight(),
+                    Transparency.TRANSLUCENT);
+
+<span class="nc" id="L109">            int width = (int) available.getWidth();</span>
+<span class="nc" id="L110">            tooltipDetail.clear();</span>
+<span class="nc" id="L111">            Graphics2D gr = img.createGraphics();</span>
+<span class="nc" id="L112">            gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);</span>
+<span class="nc" id="L113">            int height = paintNode(Method.ROOT, samples, gr, 0, 0, width, rowHeight, 0);</span>
+<span class="nc" id="L114">            g2.drawImage(img, insets.left, insets.top, this);</span>
+<span class="nc" id="L115">            setPreferredSize(new Dimension((int) size.getWidth(), height + 10));</span>
+        } finally {
+<span class="nc" id="L117">            g2.dispose();</span>
+<span class="nc" id="L118">        }</span>
+<span class="nc" id="L119">    }</span>
+
+    private int paintNode(final Method method, final SampleNode node,
+            final Graphics2D g2, final int x, final int py, final int width, final int height, final int depth) {
+<span class="nc" id="L123">        int y = py;</span>
+<span class="nc" id="L124">        int sampleCount = node.getSampleCount();</span>
+<span class="nc" id="L125">        String val = method.toString() + &quot;-&quot; + sampleCount;</span>
+
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (depth % 2 == 0) {</span>
+<span class="nc" id="L128">            g2.setPaint(Color.YELLOW);</span>
+<span class="nc" id="L129">            g2.setBackground(Color.YELLOW);</span>
+        } else {
+<span class="nc" id="L131">            g2.setPaint(Color.ORANGE);</span>
+<span class="nc" id="L132">            g2.setBackground(Color.ORANGE);</span>
+        }
+<span class="nc" id="L134">        g2.setClip(x, y, width, height);</span>
+<span class="nc" id="L135">        g2.fillRect(x, y, width, height);</span>
+<span class="nc" id="L136">        tooltipDetail.insert(new float[]{x, y}, new float[]{width, height}, Pair.of(method, sampleCount));</span>
+<span class="nc" id="L137">        g2.setPaint(Color.BLACK);</span>
+<span class="nc" id="L138">        g2.drawString(val, x, y + height - 1);</span>
+<span class="nc" id="L139">        Map&lt;Method, SampleNode&gt; children = node.getSubNodes();</span>
+<span class="nc" id="L140">        int result = height;</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (children != null) {</span>
+<span class="nc" id="L142">            y += height;</span>
+<span class="nc" id="L143">            int relX = x;</span>
+<span class="nc" id="L144">            double scale = (double) width / sampleCount;</span>
+<span class="nc" id="L145">            int maxY = 0;</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">            for (Map.Entry&lt;Method, SampleNode&gt; entry : children.entrySet()) {</span>
+<span class="nc" id="L147">                SampleNode cnode = entry.getValue();</span>
+                // sampleCount -&gt; width
+                // childSampleCount -&gt; childWidth
+<span class="nc" id="L150">                int childWidth = (int) (scale * cnode.getSampleCount());</span>
+<span class="nc" id="L151">                maxY = Math.max(maxY, paintNode(entry.getKey(), cnode, g2, relX, y, childWidth, height, depth + 1));</span>
+<span class="nc" id="L152">                relX += childWidth;</span>
+<span class="nc" id="L153">            }</span>
+<span class="nc" id="L154">            result += maxY;</span>
+        }
+<span class="nc" id="L156">        return result;</span>
+    }
+
+    @Override
+    public void actionPerformed(final ActionEvent e) {
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (e.getActionCommand().equals(&quot;FILTER&quot;)) {</span>
+<span class="nc" id="L162">            List&lt;Pair&lt;Method, Integer&gt;&gt; tips = tooltipDetail.search(new float[]{xx, yy}, new float[]{0, 0});</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">            if (tips.size() &gt;= 1) {</span>
+<span class="nc" id="L164">                final Method value = tips.get(0).getFirst();</span>
+<span class="nc" id="L165">                samples = samples.filteredBy(new Predicate&lt;Method&gt;() {</span>
+
+                    @Override
+                    public boolean apply(final Method t) {
+<span class="nc" id="L169">                        return t.equals(value);</span>
+                    }
+                });
+<span class="nc" id="L172">                repaint();</span>
+            }
+        }
+<span class="nc" id="L175">    }</span>
+
+    @Override
+    public void mouseClicked(final MouseEvent e) {
+<span class="nc" id="L179">    }</span>
+
+    @Override
+    public void mousePressed(final MouseEvent e) {
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (e.isPopupTrigger()) {</span>
+<span class="nc" id="L184">            xx = e.getX();</span>
+<span class="nc" id="L185">            yy = e.getY();</span>
+<span class="nc" id="L186">            menu.show(this, e.getX(), e.getY());</span>
+        }
+<span class="nc" id="L188">    }</span>
+
+    @Override
+    public void mouseReleased(final MouseEvent e) {
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        if (e.isPopupTrigger()) {</span>
+<span class="nc" id="L193">            xx = e.getX();</span>
+<span class="nc" id="L194">            yy = e.getY();</span>
+<span class="nc" id="L195">            menu.show(this, e.getX(), e.getY());</span>
+        }
+<span class="nc" id="L197">    }</span>
+
+    @Override
+    public void mouseEntered(final MouseEvent e) {
+<span class="nc" id="L201">    }</span>
+
+    @Override
+    public void mouseExited(final MouseEvent e) {
+<span class="nc" id="L205">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>
