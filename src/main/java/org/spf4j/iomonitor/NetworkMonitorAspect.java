@@ -35,11 +35,11 @@ public final class NetworkMonitorAspect {
 
     private static final MeasurementRecorderSource RECORDER_READ =
             RecorderFactory.createScalableCountingRecorderSource("network-read", "bytes",
-            Integer.valueOf(System.getProperty("perf.network.sampleTime", "300000")));
+            Integer.valueOf(System.getProperty("perf.network.sampleTimeMillis", "300000")));
     
     private static final MeasurementRecorderSource RECORDER_WRITE =
             RecorderFactory.createScalableCountingRecorderSource("network-write", "bytes",
-            Integer.valueOf(System.getProperty("perf.network.sampleTime", "300000")));
+            Integer.valueOf(System.getProperty("perf.network.sampleTimeMillis", "300000")));
     
 
     @Around("call(long java.nio.channels.SocketChannel.read(..))")

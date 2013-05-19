@@ -44,7 +44,7 @@ public final class FileMonitorAspectTest {
      */
     @Test
     public void testFileIOMonitoring() throws Exception {
-        System.setProperty("perf.file.sampleTime", "1000");
+        System.setProperty("perf.file.sampleTimeMillis", "1000");
         File tempFile = File.createTempFile("test", ".tmp");
         tempFile.deleteOnExit();
         Writer fw = new OutputStreamWriter(new FileOutputStream(tempFile));

@@ -78,7 +78,7 @@ public final class NetworkMonitorAspectTest implements Runnable {
      */
     @Test
     public void testNetworkUsageRecording() throws Exception {
-        System.setProperty("perf.network.sampleTime", "1000");
+        System.setProperty("perf.network.sampleTimeMillis", "1000");
         Thread t = new Thread(this, "server");
         t.start();
 

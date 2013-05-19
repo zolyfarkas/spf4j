@@ -40,7 +40,8 @@ public final class MemoryUsageSampler {
     
     private MemoryUsageSampler() { }
     
-    private static final int AGG_INTERVAL = Integer.valueOf(System.getProperty("perf.memory.sampleTime", "600000"));
+    private static final int AGG_INTERVAL =
+            Integer.valueOf(System.getProperty("perf.memory.sampleTimeMillis", "600000"));
     
     private static final MeasurementRecorder HEAP_COMMITED =
             RecorderFactory.createScalableMinMaxAvgRecorder("heap-commited", "bytes", AGG_INTERVAL);

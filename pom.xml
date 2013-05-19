@@ -247,7 +247,7 @@
                 <configuration>
                     <skip>true</skip>
                     <forkMode>always</forkMode>
-                    <argLine>-javaagent:${project.build.directory}/lib/aspectjweaver-${aspectj.version}.jar -javaagent:${project.build.directory}/spf4j-${project.version}.jar</argLine>
+                    <argLine>${argLine} -javaagent:${project.build.directory}/lib/aspectjweaver-${aspectj.version}.jar -javaagent:${project.build.directory}/spf4j-${project.version}.jar</argLine>
                     <systemPropertyVariables>
                         <property>
                             <name>aj.weaving.verbose</name>
@@ -269,7 +269,42 @@
                 </executions>
             </plugin>
             
-          
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.6.2.201302030002</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <check>
+                                <classRatio>50</classRatio>
+                                <instructionRatio>50</instructionRatio>
+                                <methodRatio>50</methodRatio>
+                                <branchRatio>30</branchRatio>
+                                <complexityRatio>30</complexityRatio>
+                                <lineRatio>50</lineRatio>
+                            </check>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             
             
             <plugin>
@@ -346,13 +381,24 @@
                 </executions>
             </plugin>
             <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-site-plugin</artifactId>
-              <version>3.2</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.2</version>
             </plugin>
             
         </plugins>
     </build>
+    
+    
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.6.2.201302030002</version>
+            </plugin>
+        </plugins>
+    </reporting>
   
   
 </project>

@@ -41,10 +41,10 @@ public final class AllocationMonitorAspect {
    static {
        if (RECORD_OBJECT_SIZE) {
            RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "bytes",
-            Integer.valueOf(System.getProperty("perf.allocations.sampleTime", "300000")));
+            Integer.valueOf(System.getProperty("perf.allocations.sampleTimeMillis", "300000")));
        } else {
            RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "instances",
-            Integer.valueOf(System.getProperty("perf.allocations.sampleTime", "300000")));
+            Integer.valueOf(System.getProperty("perf.allocations.sampleTimeMillis", "300000")));
        }
    }
        

@@ -34,10 +34,10 @@ public final class FileMonitorAspect {
 
     private static final MeasurementRecorderSource RECORDER_READ =
             RecorderFactory.createScalableCountingRecorderSource("file-read", "bytes",
-            Integer.valueOf(System.getProperty("perf.file.sampleTime", "300000")));
+            Integer.valueOf(System.getProperty("perf.file.sampleTimeMillis", "300000")));
     private static final MeasurementRecorderSource RECORDER_WRITE =
             RecorderFactory.createScalableCountingRecorderSource("file-write", "bytes",
-            Integer.valueOf(System.getProperty("perf.file.sampleTime", "300000")));
+            Integer.valueOf(System.getProperty("perf.file.sampleTimeMillis", "300000")));
 
     @Around("call(long java.nio.channels.FileChannel.read(..))")
     public Object nioReadLong(final ProceedingJoinPoint pjp) throws Throwable {
