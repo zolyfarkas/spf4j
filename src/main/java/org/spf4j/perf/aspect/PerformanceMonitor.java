@@ -23,6 +23,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+
 /**
  *
  * @author zoly
@@ -30,6 +31,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface PerformanceMonitor {
+    boolean defaultInfoLog() default false;
     long warnThresholdMillis() default 10000;
     long errorThresholdMillis() default 60000;
     Class<? extends RecorderSourceInstance> recorderSource() default RecorderSourceInstance.RsNop.class;
