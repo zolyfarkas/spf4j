@@ -72,7 +72,7 @@ public final class PerformanceMonitorAspect {
                         elapsed, pjp.toShortString(), pjp.getArgs());
             } else {
                 LOG.debug("Execution time {} ms for {}, arguments {}",
-                        elapsed, pjp.toShortString(), pjp.getArgs());                
+                        elapsed, pjp.toShortString(), pjp.getArgs());
             }
         }
         return result;
