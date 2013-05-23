@@ -17,10 +17,17 @@
  */
 package org.spf4j.base;
 
-public class SuppressedThrowable extends Throwable {
+public final class SuppressedThrowable extends Throwable {
 
     public SuppressedThrowable(final Throwable t) {
         super(t);
     }
+
+    @Override
+    public synchronized Throwable fillInStackTrace() {
+        return this;
+    }
+    
+    
     
 }

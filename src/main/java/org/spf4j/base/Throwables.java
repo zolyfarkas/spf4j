@@ -25,7 +25,10 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * utility class for throwables.
@@ -36,6 +39,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public final class Throwables {
 
     private Throwables() { }
+    
+    private static final Logger LOG = LoggerFactory.getLogger(Throwables.class);
+    
+    private static final int MAX_THROWABLE_CHAIN =
+            Integer.parseInt(System.getProperty("throwables.max.chain", "200"));
     
     private static final Field CAUSE_FIELD;
 
@@ -89,6 +97,17 @@ public final class Throwables {
      * @return
      */
     public static <T extends Throwable> T chain(final T t, final Throwable newRootCause) {
+        int chainedExNr = com.google.common.base.Throwables.getCausalChain(t).size();
+        if (chainedExNr >= MAX_THROWABLE_CHAIN) {
+            LOG.warn("Trimming exception", newRootCause);
+            return t;
+        }
+        List<Throwable> newRootCauseChain = com.google.common.base.Throwables.getCausalChain(newRootCause);
+        int newChainIdx = 0;
+        if (chainedExNr + newRootCauseChain.size() > MAX_THROWABLE_CHAIN) {
+            newChainIdx = newRootCauseChain.size() - (MAX_THROWABLE_CHAIN - chainedExNr);
+            LOG.warn("Trimming exception at {} ", newChainIdx, newRootCause);
+        }
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutputStream out = new ObjectOutputStream(bos);
@@ -106,7 +125,7 @@ public final class Throwables {
             } finally {
                 in.close();
             }
-            chain0(result, newRootCause);
+            chain0(result, newRootCauseChain.get(newChainIdx));
             return result;
         } catch (ClassNotFoundException ex) {
             throw new RuntimeException(ex);
