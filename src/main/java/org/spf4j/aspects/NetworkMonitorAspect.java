@@ -23,8 +23,8 @@ import java.io.OutputStream;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.spf4j.iomonitor.MeasuredInputStream;
-import org.spf4j.iomonitor.MeasuredOutputStream;
+import org.spf4j.perf.io.MeasuredInputStream;
+import org.spf4j.perf.io.MeasuredOutputStream;
 import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.RecorderFactory;
 

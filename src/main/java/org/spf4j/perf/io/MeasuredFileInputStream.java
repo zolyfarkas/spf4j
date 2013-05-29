@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.spf4j.iomonitor;
+package org.spf4j.perf.io;
 
 import java.io.File;
 import java.io.FileDescriptor;

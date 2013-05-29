@@ -22,7 +22,7 @@ import com.google.common.base.Strings;
 import org.spf4j.perf.RecorderFactory;
 import java.io.IOException;
 import org.junit.Test;
-import org.spf4j.memorymonitor.MemoryUsageSampler;
+import org.spf4j.perf.memory.MemoryUsageSampler;
 import org.spf4j.memorymonitor.TestClass;
 
 /**

@@ -22,8 +22,8 @@ import java.io.File;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.spf4j.iomonitor.MeasuredFileInputStream;
-import org.spf4j.iomonitor.MeasuredFileOutputStream;
+import org.spf4j.perf.io.MeasuredFileInputStream;
+import org.spf4j.perf.io.MeasuredFileOutputStream;
 import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.RecorderFactory;
 
