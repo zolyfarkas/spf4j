@@ -1,0 +1,116 @@
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.spf4j</groupId>
+    <artifactId>spf4j-aspects</artifactId>
+    <packaging>jar</packaging>
+    <parent>
+        <groupId>org.spf4j</groupId>
+        <artifactId>spf4j</artifactId>
+        <version>5.0</version>
+    </parent>
+
+    <name>spf4j-aspects</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.spf4j</groupId>
+            <artifactId>spf4j-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+  
+    <build>
+        <plugins>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.5</version>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.aspectj</groupId>
+                                    <artifactId>aspectjweaver</artifactId>
+                                    <version>${aspectj.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.spf4j</groupId>
+                                    <artifactId>spf4j-core</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                                </artifactItem>                                
+                            </artifactItems>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                        </configuration>
+                    </execution>
+                </executions>
+
+            </plugin>
+
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12</version>
+                <configuration>
+                    <skip>true</skip>
+                    <forkMode>always</forkMode>
+                    <argLine>-javaagent:${project.build.directory}/lib/aspectjweaver-${aspectj.version}.jar -javaagent:${project.build.directory}/lib/spf4j-core-${project.version}.jar</argLine>
+                    <systemPropertyVariables>
+                        <property>
+                            <name>aj.weaving.verbose</name>
+                            <value>true</value>
+                        </property>
+                    </systemPropertyVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>surefire-it</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <skip>false</skip>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+                       
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+            </plugin>           
+            
+        </plugins>
+    </build>
+  
+  
+</project>
