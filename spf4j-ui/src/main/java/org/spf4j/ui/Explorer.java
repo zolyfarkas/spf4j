@@ -143,12 +143,16 @@ public class Explorer extends javax.swing.JFrame {
         System.exit(0);
     }//GEN-LAST:event_exitMenuItemActionPerformed
 
+    private File folder = null;
+    
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
         JFileChooser chooser = new JFileChooser();
         chooser.setFileFilter(new FileFilter() {
             @Override
             public boolean accept(File f) {
-                if (f.isFile()) {
+                if (f.isDirectory()) {
+                    return true;
+                } else if (f.isFile()) {
                     String name = f.getName();
                     if (name.endsWith("tsdb") || name.endsWith("ssdump")) {
                         return true;
@@ -165,11 +169,15 @@ public class Explorer extends javax.swing.JFrame {
                 return "spf4j dumps";
             }
         });
+        if (folder != null) {
+            chooser.setCurrentDirectory(folder);
+        }
+        
         int returnVal = chooser.showOpenDialog(this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
-
+            folder = file.getParentFile();
             String fileName = file.getName();
             JInternalFrame frame;
             if (fileName.endsWith("tsdb")) {

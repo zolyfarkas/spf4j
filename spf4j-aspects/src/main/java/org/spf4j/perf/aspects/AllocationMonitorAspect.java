@@ -33,7 +33,7 @@ import org.aspectj.lang.annotation.Aspect;
 public final class AllocationMonitorAspect {
 
     
-    private static final boolean RECORD_OBJECT_SIZE =
+   private static final boolean RECORD_OBJECT_SIZE =
             Boolean.valueOf(System.getProperty("perf.allocations.recordSize", "true"));
     
    private static final MeasurementRecorderSource RECORDER;

@@ -35,6 +35,29 @@ public final class Pair<A, B> {
     public static <A, B> Pair<A, B> of(final A first, final B second) {
         return new Pair<A, B>(first, second);
     }
+    
+    /**
+     * Creates a pair from a (str1,str2) pair.
+     * @param stringPair
+     * @return null if this is not a pair.
+     */
+    public static Pair<String, String> from(final String stringPair) {
+        if (!stringPair.startsWith("(") || !stringPair.endsWith(")")) {
+            return null;
+        }
+        int commaIdx = stringPair.indexOf(',');
+        if (commaIdx < 0) {
+            return null;
+        }
+        StringBuilder first = new StringBuilder();
+        int idx = Strings.readCsvElement(stringPair, 1, first);
+        if (stringPair.charAt(idx) != ',') {
+            return null;
+        }
+        StringBuilder second = new StringBuilder();
+        Strings.readCsvElement(stringPair, idx + 1, stringPair.length() - 1, second);
+        return Pair.of(first.toString(), second.toString());
+    }
         
     private final A first;
     
@@ -73,11 +96,13 @@ public final class Pair<A, B> {
 
     @Override
     public String toString() {
-        return "(" + first + "," + second + ')';
+        return "(" + Strings.toCsvElement(first.toString())
+                + "," + Strings.toCsvElement(second.toString()) + ')';
     }
     
     public List<Object> toList() {
         return java.util.Arrays.asList(first, second);
     }
+    
     
 }

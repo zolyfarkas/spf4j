@@ -21,6 +21,9 @@ package org.spf4j.ui;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -28,6 +31,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.spf4j.base.Pair;
 import org.spf4j.perf.impl.mdb.tsdb.TSDBMeasurementDatabase;
 import org.spf4j.perf.tsdb.ColumnInfo;
 import org.spf4j.perf.tsdb.TimeSeriesDatabase;
@@ -48,13 +52,33 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         initComponents();
         tsDb = new TimeSeriesDatabase(databaseFile, null);
         Collection<ColumnInfo> columnsInfo = tsDb.getColumnsInfo();
+        Map<String, DefaultMutableTreeNode> gNodes = new HashMap<String, DefaultMutableTreeNode>();
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(databaseFile);
         for (ColumnInfo info : columnsInfo) {
-            DefaultMutableTreeNode child = new DefaultMutableTreeNode(info.getGroupName());
-            for (String colName : info.getColumnNames()) {
-                child.add(new DefaultMutableTreeNode(colName));
+            String groupName = info.getGroupName();
+            Pair<String, String> pair = Pair.from(groupName);
+            if (pair == null) {
+                DefaultMutableTreeNode child = new DefaultMutableTreeNode(groupName);
+                for (String colName : info.getColumnNames()) {
+                    child.add(new DefaultMutableTreeNode(colName));
+                }
+                root.add(child);
+            } else {
+                 groupName = pair.getFirst();
+                 DefaultMutableTreeNode gNode = gNodes.get(groupName);
+                 if (gNode == null) {
+                     gNode = new DefaultMutableTreeNode(groupName);
+                     gNodes.put(groupName, gNode);
+                     root.add(gNode);
+                 }
+                 DefaultMutableTreeNode child = new DefaultMutableTreeNode(pair.getSecond());
+                 for (String colName : info.getColumnNames()) {
+                        child.add(new DefaultMutableTreeNode(colName));
+                 }
+                 gNode.add(child);
+
+                
             }
-            root.add(child);
         }
         measurementTree.setModel(new DefaultTreeModel(root));
         measurementTree.setVisible(true);
@@ -163,25 +187,20 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
                 if (pathArr.length < 2) {
                     continue;
                 }
-                ColumnInfo info = tsDb.getColumnInfo((String) ((DefaultMutableTreeNode) pathArr[1]).getUserObject());
-                if (TSDBMeasurementDatabase.canGenerateHeatChart(info)) {
-                    JFreeChart chart = tsDb.createHeatJFreeChart(info.getGroupName());
-                    ChartPanel pannel = new ChartPanel(chart);
-                    pannel.setPreferredSize(new Dimension(600, 1024));
-                    content.add(pannel);
-                }
-                if (TSDBMeasurementDatabase.canGenerateMinMaxAvgCount(info)) {
-                    JFreeChart chart = tsDb.createMinMaxAvgJFreeChart(info.getGroupName());
-                    ChartPanel pannel = new ChartPanel(chart);
-                    pannel.setPreferredSize(new Dimension(600, 1024));
-                    content.add(pannel);
-
-                }
-                if (TSDBMeasurementDatabase.canGenerateCount(info)) {
-                    JFreeChart chart = tsDb.createCountJFreeChart(info.getGroupName());
-                    ChartPanel pannel = new ChartPanel(chart);
-                    pannel.setPreferredSize(new Dimension(600, 1024));
-                    content.add(pannel);
+                DefaultMutableTreeNode colNode = (DefaultMutableTreeNode) pathArr[1];
+                int depth = colNode.getDepth();
+                String columnName;
+                if (depth == 1) {
+                    columnName = (String) colNode.getUserObject();
+                    addChartToPanel(columnName, content);
+                } else {
+                    Enumeration childEnum = colNode.children();
+                    while (childEnum.hasMoreElements()) {
+                        DefaultMutableTreeNode child = (DefaultMutableTreeNode) childEnum.nextElement();
+                        columnName =
+                                Pair.of((String) colNode.getUserObject(), (String) child.getUserObject()).toString();
+                        addChartToPanel(columnName, content);
+                    }
                 }
 
             }
@@ -201,4 +220,27 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
     private javax.swing.JTree measurementTree;
     private javax.swing.JPanel rightPanel;
     // End of variables declaration//GEN-END:variables
+
+    private void addChartToPanel(final String columnName, final JPanel content) throws IOException {
+        ColumnInfo info = tsDb.getColumnInfo(columnName);
+        if (TSDBMeasurementDatabase.canGenerateHeatChart(info)) {
+            JFreeChart chart = tsDb.createHeatJFreeChart(info.getGroupName());
+            ChartPanel pannel = new ChartPanel(chart);
+            pannel.setPreferredSize(new Dimension(600, 1024));
+            content.add(pannel);
+        }
+        if (TSDBMeasurementDatabase.canGenerateMinMaxAvgCount(info)) {
+            JFreeChart chart = tsDb.createMinMaxAvgJFreeChart(info.getGroupName());
+            ChartPanel pannel = new ChartPanel(chart);
+            pannel.setPreferredSize(new Dimension(600, 1024));
+            content.add(pannel);
+
+        }
+        if (TSDBMeasurementDatabase.canGenerateCount(info)) {
+            JFreeChart chart = tsDb.createCountJFreeChart(info.getGroupName());
+            ChartPanel pannel = new ChartPanel(chart);
+            pannel.setPreferredSize(new Dimension(600, 1024));
+            content.add(pannel);
+        }
+    }
 }
