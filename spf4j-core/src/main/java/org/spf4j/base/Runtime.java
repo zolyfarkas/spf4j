@@ -22,22 +22,21 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  *
  * @author zoly
  */
 public final class Runtime {
- 
-    private Runtime() { }
-    
+
+    private Runtime() {
+    }
     private static final Logger LOGGER = LoggerFactory.getLogger(Runtime.class);
 
-    
-    public static  void goDownWithError(final Throwable t, final int exitCode) {
+    public static void goDownWithError(final Throwable t, final int exitCode) {
         try {
             LOGGER.error("Unrecoverable Error, going down", t);
         } finally {
@@ -48,10 +47,9 @@ public final class Runtime {
             }
         }
     }
-    
     public static final int PID;
     public static final String OS_NAME;
-    
+
     static {
         String name = ManagementFactory.getRuntimeMXBean().getName();
         int atIdx = name.indexOf('@');
@@ -62,25 +60,13 @@ public final class Runtime {
         }
         OS_NAME = System.getProperty("os.name");
     }
-    
     public static final String MAC_OS_X_OS_NAME = "Mac OS X";
-    
+
     public static int getNrOpenFiles() throws IOException {
         if (OS_NAME.equals(MAC_OS_X_OS_NAME)) {
-            Process proc = java.lang.Runtime.getRuntime().exec("/usr/sbin/lsof -p " + PID);
-            InputStream is = proc.getInputStream();
-            int lineCount = 0;
-            try {
-              int c;
-              while ((c = is.read()) >= 0) {
-                if (c == '\n') {
-                    lineCount++;
-                }
-              }
-            } finally {
-                is.close();
-            }
-            return lineCount;
+            LineCountCharHandler handler = new LineCountCharHandler();
+            run("/usr/sbin/lsof -p " + PID, handler);
+            return handler.getLineCount() - 1;
         } else {
             File procFsFdFolder = new File("/proc/" + PID + "/fd");
             if (procFsFdFolder.exists()) {
@@ -90,5 +76,77 @@ public final class Runtime {
             }
         }
     }
-    
+
+    @Nullable
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings
+    public static String getLsofOutput() throws IOException {
+        File lsofFile = new File("/usr/sbin/lsof");
+        if (!lsofFile.exists()) {
+            lsofFile = new File("/usr/bin/lsof");
+            if (!lsofFile.exists()) {
+                lsofFile = new File("/usr/local/bin/lsof");
+                if (!lsofFile.exists()) {
+                    return null;
+                }
+            }
+        }
+        StringBuilderCharHandler handler = new StringBuilderCharHandler();
+        run(lsofFile.getAbsolutePath() + " -p " + PID, handler);
+        return handler.toString();
+    }
+
+    public interface CharHandler {
+
+        void handle(int character);
+    }
+
+    public static void run(final String command, final CharHandler handler) throws IOException {
+        Process proc = java.lang.Runtime.getRuntime().exec(command);
+        InputStream is = proc.getInputStream();
+        try {
+            int c;
+            while ((c = is.read()) >= 0) {
+                handler.handle(c);
+            }
+        } finally {
+            is.close();
+        }
+    }
+
+    private static class LineCountCharHandler implements CharHandler {
+
+        public LineCountCharHandler() {
+            lineCount = 0;
+        }
+        private int lineCount;
+
+        @Override
+        public void handle(final int c) {
+            if (c == '\n') {
+                lineCount++;
+            }
+        }
+
+        public int getLineCount() {
+            return lineCount;
+        }
+    }
+
+    private static class StringBuilderCharHandler implements CharHandler {
+
+        public StringBuilderCharHandler() {
+            builder = new StringBuilder();
+        }
+        private StringBuilder builder;
+
+        @Override
+        public void handle(final int c) {
+            builder.append((char) c);
+        }
+
+        @Override
+        public String toString() {
+            return builder.toString();
+        }
+    }
 }

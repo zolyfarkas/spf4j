@@ -61,12 +61,6 @@ public interface ObjectPool<T> extends Disposable {
     void returnObject(T object, @Nullable Exception e)
             throws ObjectReturnException, ObjectDisposeException;
 
-    public interface Handler<T, E extends Exception> {
-        // CHECKSTYLE:OFF -- checkstyle does not seem to handle generic exceptions
-        void handle(T object) throws E;
-        // CHECKSTYLE:ON
-    }
-
     @ParametersAreNonnullByDefault
     public interface Factory<T> {
 

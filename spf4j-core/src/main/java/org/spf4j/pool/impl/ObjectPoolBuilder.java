@@ -24,6 +24,7 @@ import org.spf4j.pool.ObjectPool;
 import org.spf4j.pool.Scanable;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.spf4j.base.Handler;
 
 /**
  *
@@ -37,8 +38,8 @@ public final class ObjectPoolBuilder<T, E extends Exception> {
     private boolean fair;
     private ScheduledExecutorService maintenanceExecutor;
     private long maintenanceIntervalMillis;
-    private ObjectPool.Handler<T, E> borrowHook;
-    private ObjectPool.Handler<T, E> returnHook;
+    private Handler<T, E> borrowHook;
+    private Handler<T, E> returnHook;
     private int initialSize;
     private boolean collectBorrowed;
 
@@ -73,12 +74,12 @@ public final class ObjectPoolBuilder<T, E extends Exception> {
         return this;
     }
 
-    public ObjectPoolBuilder<T, E> withBorrowHook(final ObjectPool.Handler<T, E> phook) {
+    public ObjectPoolBuilder<T, E> withBorrowHook(final Handler<T, E> phook) {
         this.borrowHook = phook;
         return this;
     }
 
-    public ObjectPoolBuilder<T, E> withReturnHook(final ObjectPool.Handler<T, E> phook) {
+    public ObjectPoolBuilder<T, E> withReturnHook(final Handler<T, E> phook) {
         this.returnHook = phook;
         return this;
     }

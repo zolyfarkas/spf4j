@@ -22,6 +22,7 @@ import com.google.common.base.Strings;
 import org.spf4j.perf.RecorderFactory;
 import java.io.IOException;
 import org.junit.Test;
+import org.spf4j.perf.io.OpenFilesSampler;
 import org.spf4j.perf.memory.MemoryUsageSampler;
 import org.spf4j.perf.memory.TestClass;
 
@@ -50,8 +51,10 @@ public final class AllocationMonitorAspectTest {
     @Test
     public void testAfterAllocation() throws InterruptedException, IOException {
         System.setProperty("perf.memory.sampleTimeMillis", "1000");
+        System.setProperty("perf.io.openFiles.sampleTimeMillis", "1000");
         System.setProperty("perf.allocations.sampleTimeMillis", "1000");
         MemoryUsageSampler.startMemoryUsageSampling(500);
+        OpenFilesSampler.startMemoryUsageSampling(500, 512, 1000);
         for (int i = 0; i < 1000; i++) {
             System.err.println("T" + i);
             if (i % 100 == 0) {

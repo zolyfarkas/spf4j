@@ -18,6 +18,7 @@
  */
 package org.spf4j.pool;
 
+import org.spf4j.base.Handler;
 import org.spf4j.base.Callables;
 import org.spf4j.base.Throwables;
 import java.lang.reflect.ParameterizedType;
@@ -43,7 +44,7 @@ public final class Template<T, E extends Exception> {
     }
 
     // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
-    public void doOnPooledObject(final ObjectPool.Handler<T, E> handler)
+    public void doOnPooledObject(final Handler<T, E> handler)
             throws ObjectCreationException, InterruptedException, TimeoutException {
         Callables.executeWithRetry(new Callable<Void>() {
             @Override
@@ -57,7 +58,7 @@ public final class Template<T, E extends Exception> {
 
     }
 
-    public static <T, E extends Exception> void doOnPooledObject(final ObjectPool.Handler<T, E> handler,
+    public static <T, E extends Exception> void doOnPooledObject(final Handler<T, E> handler,
             final ObjectPool<T> pool, final Class<E> clasz)
             throws ObjectReturnException, ObjectDisposeException, ObjectCreationException,
             ObjectBorrowException, InterruptedException, TimeoutException, E {

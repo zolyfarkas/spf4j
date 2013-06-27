@@ -13,6 +13,7 @@ import org.spf4j.pool.Template;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
+import org.spf4j.base.Handler;
 
 /**
  *
@@ -30,7 +31,7 @@ public final class TestCallable implements Callable<Integer> {
     @Override
     public Integer call() throws ObjectCreationException, ObjectBorrowException, InterruptedException,
             TimeoutException, ObjectReturnException, ObjectDisposeException, IOException {
-        Template.doOnPooledObject(new ObjectPool.Handler<ExpensiveTestObject, IOException>() {
+        Template.doOnPooledObject(new Handler<ExpensiveTestObject, IOException>() {
             @Override
             public void handle(final ExpensiveTestObject object) throws IOException {
                 object.doStuff();

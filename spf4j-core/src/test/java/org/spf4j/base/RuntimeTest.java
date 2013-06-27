@@ -38,5 +38,6 @@ public final class RuntimeTest {
         System.out.println(Runtime.PID);
         System.out.println(Runtime.OS_NAME);
         System.out.println(Runtime.getNrOpenFiles());
+        System.out.println(Runtime.getLsofOutput());
     }
 }

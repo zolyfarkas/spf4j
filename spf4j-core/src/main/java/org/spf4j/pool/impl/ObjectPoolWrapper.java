@@ -27,6 +27,7 @@ import org.spf4j.pool.Scanable;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.Handler;
 
 /**
  *
