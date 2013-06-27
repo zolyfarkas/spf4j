@@ -18,6 +18,10 @@
  */
 package org.spf4j.base;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.management.ManagementFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +45,48 @@ public final class Runtime {
                 t.printStackTrace();
             } finally {
                 System.exit(exitCode);
+            }
+        }
+    }
+    
+    public static final int PID;
+    public static final String OS_NAME;
+    
+    static {
+        String name = ManagementFactory.getRuntimeMXBean().getName();
+        int atIdx = name.indexOf('@');
+        if (atIdx < 0) {
+            PID = -1;
+        } else {
+            PID = Integer.valueOf(name.substring(0, atIdx));
+        }
+        OS_NAME = System.getProperty("os.name");
+    }
+    
+    public static final String MAC_OS_X_OS_NAME = "Mac OS X";
+    
+    public static int getNrOpenFiles() throws IOException {
+        if (OS_NAME.equals(MAC_OS_X_OS_NAME)) {
+            Process proc = java.lang.Runtime.getRuntime().exec("/usr/sbin/lsof -p " + PID);
+            InputStream is = proc.getInputStream();
+            int lineCount = 0;
+            try {
+              int c;
+              while ((c = is.read()) >= 0) {
+                if (c == '\n') {
+                    lineCount++;
+                }
+              }
+            } finally {
+                is.close();
+            }
+            return lineCount;
+        } else {
+            File procFsFdFolder = new File("/proc/" + PID + "/fd");
+            if (procFsFdFolder.exists()) {
+                return procFsFdFolder.list().length;
+            } else {
+                return -1;
             }
         }
     }
