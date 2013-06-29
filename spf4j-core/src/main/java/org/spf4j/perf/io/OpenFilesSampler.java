@@ -43,7 +43,7 @@ public final class OpenFilesSampler {
     private OpenFilesSampler() { }
     
     private static final int AGG_INTERVAL =
-            Integer.valueOf(System.getProperty("perf.io.openFiles.sampleTimeMillis", "600000"));
+            Integer.valueOf(System.getProperty("perf.io.openFiles.sampleAggMillis", "600000"));
     
  
     private static final MeasurementRecorder NR_OPEN_FILES =
@@ -60,12 +60,12 @@ public final class OpenFilesSampler {
         java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {
             @Override
             public void doRun() throws Exception {
-                stopMemoryUsageSampling();
+                stopFileUsageSampling();
             }
         }, "shutdown-memory-sampler"));
     }
     
-    public static synchronized void startMemoryUsageSampling(final long sampleTime,
+    public static synchronized void startFileUsageSampling(final long sampleTime,
             final int warnThreshold, final int errorThreshold) {
         if (samplingFuture == null) {
             samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
@@ -86,7 +86,7 @@ public final class OpenFilesSampler {
         }
     }
     
-    public static synchronized void stopMemoryUsageSampling() {
+    public static synchronized void stopFileUsageSampling() {
          if (samplingFuture != null) {
              samplingFuture.cancel(false);
              samplingFuture = null;

@@ -50,11 +50,11 @@ public final class AllocationMonitorAspectTest {
      */
     @Test
     public void testAfterAllocation() throws InterruptedException, IOException {
-        System.setProperty("perf.memory.sampleTimeMillis", "1000");
-        System.setProperty("perf.io.openFiles.sampleTimeMillis", "1000");
+        System.setProperty("perf.memory.sampleAggMillis", "1000");
+        System.setProperty("perf.io.openFiles.sampleAggMillis", "1000");
         System.setProperty("perf.allocations.sampleTimeMillis", "1000");
         MemoryUsageSampler.startMemoryUsageSampling(500);
-        OpenFilesSampler.startMemoryUsageSampling(500, 512, 1000);
+        OpenFilesSampler.startFileUsageSampling(500, 512, 1000);
         for (int i = 0; i < 1000; i++) {
             System.err.println("T" + i);
             if (i % 100 == 0) {

@@ -96,7 +96,7 @@ recorderSource.getRecorder(forWhat).record(measurement)
 +---------------------------------------------------
 <aspectj>
 <aspects>
-<aspect name="org.spf4j.perf.aspect.PerformanceMonitorAspect"/>
+<aspect name="org.spf4j.perf.aspects.PerformanceMonitorAspect"/>
 </aspects>
 <weaver options="-verbose">
 <include within="com.*..*"/>
@@ -233,6 +233,22 @@ Usage:
  The aspect org.spf4j.iomonitor.NetworkMonitorAspect will allow you to monitor you processes network traffic.
 
 [images/spf4j_io.png] network traffic
+
+* 5.8. Monitoring Memory Usage
+ 
+ By calling MemoryUsageSampler.startMemoryUsageSampling(sampleTime) memory usage will be sampled at the provided
+ interval. Sampled data ill be aggregated at the interval set by perf.memory.sampleAggMillis system property.
+ Data will be stored into a spf4j tsdb where data can be accessed via jmx or the sf4j ui.
+
+* 5.9. Monitoring File Usage
+ 
+ By calling OpenFilesSampler.startFileUsageSampling(sampleTime, warnThreshold, errorThreshold),
+ file usage will be sampled at the provided interval. This is usefull to see open files trend and detect file handle
+ leaks, which will cause in general outages of your application. The warn and error threshold numbers will long
+ details provided by lsof to help you troubleshoot what is going on.
+ Sampled data will be aggregated at the interval set by perf.io.openFiles.sampleAggMillis system property.
+ Data will be stored into a spf4j tsdb where data can be accessed via jmx or the sf4j ui.
+
 
 6. High Performance Object Pool
 
