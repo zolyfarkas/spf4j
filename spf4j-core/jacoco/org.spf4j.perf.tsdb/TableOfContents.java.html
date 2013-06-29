@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>TableOfContents.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.html" class="el_package">org.spf4j.perf.tsdb</a> &gt; <span class="el_source">TableOfContents.java</span></div><h1>TableOfContents.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.tsdb;
+
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+
+/**
+ *
+ * @author zoly
+ */
+final class TableOfContents {
+    private final long location;
+    private long lastColumnInfo;
+    private long firstColumnInfo;
+
+<span class="fc" id="L34">    public TableOfContents(final long location) {</span>
+<span class="fc" id="L35">        this.location = location;</span>
+<span class="fc" id="L36">        firstColumnInfo = 0;</span>
+<span class="fc" id="L37">        lastColumnInfo = 0;</span>
+<span class="fc" id="L38">    }</span>
+    
+<span class="fc" id="L40">    public TableOfContents(final RandomAccessFile raf) throws IOException {</span>
+<span class="fc" id="L41">        this.location = raf.getFilePointer();</span>
+<span class="fc" id="L42">        FileChannel ch = raf.getChannel();</span>
+<span class="fc" id="L43">        FileLock lock = ch.lock(this.location, 16, true);</span>
+        try {
+<span class="fc" id="L45">            this.firstColumnInfo = raf.readLong();</span>
+<span class="fc" id="L46">            this.lastColumnInfo = raf.readLong();</span>
+        } finally {
+<span class="pc" id="L48">            lock.release();</span>
+<span class="fc" id="L49">        }</span>
+<span class="fc" id="L50">    }</span>
+
+    public void writeTo(final RandomAccessFile raf) throws IOException {
+<span class="fc" id="L53">        FileChannel ch = raf.getChannel();</span>
+<span class="fc" id="L54">        FileLock lock = ch.lock(this.location, 16, false);</span>
+        try {
+<span class="fc" id="L56">            raf.seek(location);</span>
+<span class="fc" id="L57">            raf.writeLong(firstColumnInfo);</span>
+<span class="fc" id="L58">            raf.writeLong(lastColumnInfo);</span>
+        } finally {
+<span class="pc" id="L60">            lock.release();</span>
+<span class="fc" id="L61">        }</span>
+<span class="fc" id="L62">    }</span>
+
+    public long getLastColumnInfo() {
+<span class="nc" id="L65">        return lastColumnInfo;</span>
+    }
+
+
+    public long getFirstColumnInfo() {
+<span class="fc" id="L70">        return firstColumnInfo;</span>
+    }
+
+    
+    public void setLastColumnInfo(final long plastColumnInfo, final RandomAccessFile raf) throws IOException {
+<span class="fc" id="L75">        this.lastColumnInfo = plastColumnInfo;</span>
+<span class="fc" id="L76">        FileChannel ch = raf.getChannel();</span>
+<span class="fc" id="L77">        long loc = location + 8;</span>
+<span class="fc" id="L78">        FileLock lock = ch.lock(loc, 8, false);</span>
+        try {
+<span class="fc" id="L80">            raf.seek(loc);</span>
+<span class="fc" id="L81">            raf.writeLong(lastColumnInfo);</span>
+        } finally {
+<span class="pc" id="L83">            lock.release();</span>
+<span class="fc" id="L84">        }</span>
+<span class="fc" id="L85">    }</span>
+    
+    public void setFirstColumnInfo(final long pfirstColumnInfo, final RandomAccessFile raf) throws IOException {
+<span class="fc" id="L88">        this.firstColumnInfo = pfirstColumnInfo;</span>
+<span class="fc" id="L89">        FileChannel ch = raf.getChannel();</span>
+<span class="fc" id="L90">        FileLock lock = ch.lock(location, 8, false);</span>
+        try {
+<span class="fc" id="L92">            raf.seek(location);</span>
+<span class="fc" id="L93">            raf.writeLong(firstColumnInfo);</span>
+        } finally {
+<span class="pc" id="L95">            lock.release();</span>
+<span class="fc" id="L96">        }</span>
+<span class="fc" id="L97">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L101">        return &quot;TableOfContents{&quot; + &quot;location=&quot; + location + &quot;, lastColumnInfo=&quot; + lastColumnInfo</span>
+                + &quot;, firstColumnInfo=&quot; + firstColumnInfo + '}';
+    }
+    
+    
+    
+    
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

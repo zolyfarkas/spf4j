@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Callables.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Callables.java</span></div><h1>Callables.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+package org.spf4j.base;
+
+import com.google.common.base.Predicate;
+import java.util.concurrent.Callable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Utility class for executing stuff with retry logic.
+ * @author zoly
+ */
+@ParametersAreNonnullByDefault
+public final class Callables {
+
+<span class="nc" id="L34">    private Callables() { }</span>
+
+<span class="fc" id="L36">    private static final Logger LOG = LoggerFactory.getLogger(Callables.class);</span>
+
+<span class="fc" id="L38">    public static final Predicate&lt;Object&gt; NORETRY_FOR_RESULT = new Predicate&lt;Object&gt;() {</span>
+        @Override
+        public boolean apply(final Object input) {
+<span class="fc" id="L41">            return false;</span>
+        }
+    };
+
+<span class="fc" id="L45">    public static final Predicate&lt;?&gt; RETRY_FOR_NULL_RESULT = new Predicate&lt;Object&gt;() {</span>
+        @Override
+        public boolean apply(final Object input) {
+<span class="nc bnc" id="L48" title="All 2 branches missed.">            return (input != null);</span>
+        }
+    };
+
+<span class="fc" id="L52">   public static final Predicate&lt;Exception&gt; RETRY_FOR_ANY_EXCEPTION = new Predicate&lt;Exception&gt;() {</span>
+        @Override
+        public boolean apply(final Exception input) {
+<span class="fc" id="L55">            LOG.debug(&quot;Exception encountered, retrying...&quot;, input);</span>
+<span class="fc" id="L56">            return true;</span>
+        }
+    };
+
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">    public static final class RetryPause implements Callable&lt;Boolean&gt; {</span>
+
+        private final int nrImmediateRetries;
+        private final int nrTotalRetries;
+        private final int waitMillis;
+        private int count;
+
+        public RetryPause(final int nrImmediateRetries, final int nrTotalRetries, final int retryWaitMillis)
+<span class="fc" id="L68">        {</span>
+<span class="pc bpc" id="L69" title="2 of 4 branches missed.">            assert (nrImmediateRetries &lt; nrTotalRetries);</span>
+<span class="fc" id="L70">            this.nrImmediateRetries = nrImmediateRetries;</span>
+<span class="fc" id="L71">            this.nrTotalRetries = nrTotalRetries;</span>
+<span class="fc" id="L72">            this.waitMillis = retryWaitMillis;</span>
+<span class="fc" id="L73">        }</span>
+           
+        @Override
+        public Boolean call() throws Exception {
+<span class="fc bfc" id="L77" title="All 2 branches covered.">           if (count &gt; nrTotalRetries) {</span>
+<span class="fc" id="L78">               return false;</span>
+           }
+<span class="fc bfc" id="L80" title="All 2 branches covered.">           if (count &gt; nrImmediateRetries) {</span>
+<span class="fc" id="L81">               Thread.sleep(waitMillis);</span>
+           }
+<span class="fc" id="L83">           count++;</span>
+<span class="fc" id="L84">           return true;</span>
+        }
+        
+    }
+    
+    /**
+     * Probably the more used retry use case.
+     * specifying a number of immediate retries
+     * and delayed retries.
+     * 
+     * @param &lt;T&gt;
+     * @param what
+     * @param nrImmediateRetries
+     * @param nrTotalRetries
+     * @param retryWaitMillis
+     * @return
+     * @throws InterruptedException
+     */
+    
+    public static &lt;T&gt; T executeWithRetry(final Callable&lt;T&gt; what, final int nrImmediateRetries,
+            final int nrTotalRetries, final int retryWaitMillis)
+            throws InterruptedException {
+<span class="fc" id="L106">       return executeWithRetry(what, new RetryPause(nrImmediateRetries, nrTotalRetries, retryWaitMillis),</span>
+               NORETRY_FOR_RESULT, RETRY_FOR_ANY_EXCEPTION);
+    }
+    
+    public static &lt;T&gt; T executeWithRetry(final Callable&lt;T&gt; what, final int nrImmediateRetries,
+            final int nrTotalRetries, final int retryWaitMillis , final Predicate&lt;Exception&gt; retryOnException)
+            throws InterruptedException {
+<span class="nc" id="L113">       return executeWithRetry(what, new RetryPause(nrImmediateRetries, nrTotalRetries, retryWaitMillis),</span>
+               NORETRY_FOR_RESULT, retryOnException);
+    }
+     
+    /**
+     * Naive implementation of execution with retry logic.
+     * a callable will be executed and retry attempted in current thread if the result and exception predicates.
+     * before retry, a callable can be executed that can abort the retry
+     * and finish the function with the previous result.
+     * 
+     * @param what
+     * @param doBeforeRetry
+     * @param retryOnReturnVal
+     * @param retryOnException
+     * @return
+     * @throws InterruptedException
+     */
+    public static &lt;T&gt; T executeWithRetry(final Callable&lt;T&gt; what, final Callable&lt;Boolean&gt; doBeforeRetry,
+            final Predicate&lt;? super T&gt; retryOnReturnVal, final Predicate&lt;Exception&gt; retryOnException)
+            throws InterruptedException {
+<span class="fc" id="L133">        T result = null;</span>
+<span class="fc" id="L134">        Exception ex = null;</span>
+        try {
+<span class="fc" id="L136">            result = what.call();</span>
+<span class="nc" id="L137">        } catch (InterruptedException ex1) {</span>
+<span class="nc" id="L138">               throw ex1;</span>
+<span class="fc" id="L139">        } catch (Exception e) {</span>
+<span class="fc" id="L140">            ex = e;</span>
+<span class="fc" id="L141">        }</span>
+<span class="fc" id="L142">        Exception prevEx = ex;</span>
+<span class="pc bpc" id="L143" title="2 of 6 branches missed.">        while ((ex != null &amp;&amp; retryOnException.apply(ex)) || retryOnReturnVal.apply(result)) {</span>
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">            if (Thread.interrupted()) {</span>
+<span class="nc" id="L145">                throw new InterruptedException();</span>
+            }
+            try {
+<span class="fc" id="L148">                boolean retry = doBeforeRetry.call();</span>
+<span class="fc bfc" id="L149" title="All 2 branches covered.">                if (!retry) {</span>
+<span class="fc" id="L150">                    break;</span>
+                }
+<span class="nc" id="L152">            } catch (InterruptedException ex1) {</span>
+<span class="nc" id="L153">               throw ex1;</span>
+<span class="nc" id="L154">            }  catch (Exception ex1) {</span>
+<span class="nc" id="L155">                throw new RuntimeException(ex1);</span>
+<span class="fc" id="L156">            }</span>
+<span class="fc" id="L157">            ex = null;</span>
+<span class="fc" id="L158">            result = null;</span>
+            try {
+<span class="fc" id="L160">                result = what.call();</span>
+<span class="nc" id="L161">            } catch (InterruptedException ex1) {</span>
+<span class="nc" id="L162">               throw ex1;</span>
+<span class="fc" id="L163">            } catch (Exception e) {</span>
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">                if (prevEx != null) {</span>
+<span class="fc" id="L165">                    e = Throwables.suppress(e, prevEx);</span>
+<span class="fc" id="L166">                    prevEx = e;</span>
+                }
+<span class="fc" id="L168">                ex = e;</span>
+<span class="fc" id="L169">            }</span>
+        }
+<span class="fc bfc" id="L171" title="All 2 branches covered.">        if (ex != null) {</span>
+<span class="fc" id="L172">            throw new RuntimeException(ex);</span>
+        }
+<span class="fc" id="L174">        return result;</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

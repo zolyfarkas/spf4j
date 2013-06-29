@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>OpenFilesSampler.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.html" class="el_package">org.spf4j.perf.io</a> &gt; <span class="el_source">OpenFilesSampler.java</span></div><h1>OpenFilesSampler.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.io;
+
+import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.DefaultScheduler;
+import org.spf4j.perf.MeasurementRecorder;
+import org.spf4j.perf.RecorderFactory;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spf4j.base.Runtime;
+
+/**
+ * This class allows you to poll and record to a file the heap commited and heap used
+ * for your java process.
+ *  start data recording by calling the startMemoryUsageSampling method,
+ *  stop the data recording by calling the method: startMemoryUsageSampling.
+ * 
+ * @author zoly
+ */
+public final class OpenFilesSampler {
+    
+<span class="nc" id="L43">    private OpenFilesSampler() { }</span>
+    
+<span class="nc" id="L45">    private static final int AGG_INTERVAL =</span>
+            Integer.valueOf(System.getProperty(&quot;perf.io.openFiles.sampleAggMillis&quot;, &quot;600000&quot;));
+    
+ 
+<span class="nc" id="L49">    private static final MeasurementRecorder NR_OPEN_FILES =</span>
+            RecorderFactory.createScalableMinMaxAvgRecorder(&quot;nr-open-files&quot;, &quot;count&quot;, AGG_INTERVAL);
+    
+<span class="nc" id="L52">    private static final MemoryMXBean MBEAN = ManagementFactory.getMemoryMXBean();</span>
+    
+    private static ScheduledFuture&lt;?&gt; samplingFuture;
+    
+<span class="nc" id="L56">    private static final Logger LOG = LoggerFactory.getLogger(OpenFilesSampler.class);</span>
+    
+    
+    static {
+<span class="nc" id="L60">        java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {</span>
+            @Override
+            public void doRun() throws Exception {
+<span class="nc" id="L63">                stopFileUsageSampling();</span>
+<span class="nc" id="L64">            }</span>
+        }, &quot;shutdown-memory-sampler&quot;));
+<span class="nc" id="L66">    }</span>
+    
+    public static synchronized void startFileUsageSampling(final long sampleTime,
+            final int warnThreshold, final int errorThreshold) {
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (samplingFuture == null) {</span>
+<span class="nc" id="L71">            samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {</span>
+
+                @Override
+                public void doRun() throws Exception {
+<span class="nc" id="L75">                    int nrOpenFiles = Runtime.getNrOpenFiles();</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                    if (nrOpenFiles &gt; errorThreshold) {</span>
+<span class="nc" id="L77">                        LOG.error(&quot;Nr open files is {} and exceeds error threshold {}, detail:\n{}&quot;,</span>
+                                nrOpenFiles, errorThreshold, Runtime.getLsofOutput());
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                    } else if (nrOpenFiles &gt; warnThreshold) {</span>
+<span class="nc" id="L80">                        LOG.warn(&quot;Nr open files is {} and exceeds warn threshold {}, detail:\n{} &quot;,</span>
+                                nrOpenFiles, warnThreshold, Runtime.getLsofOutput());
+                    }
+<span class="nc" id="L83">                    NR_OPEN_FILES.record(nrOpenFiles);</span>
+<span class="nc" id="L84">                }</span>
+            }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
+        }
+<span class="nc" id="L87">    }</span>
+    
+    public static synchronized void stopFileUsageSampling() {
+<span class="nc bnc" id="L90" title="All 2 branches missed.">         if (samplingFuture != null) {</span>
+<span class="nc" id="L91">             samplingFuture.cancel(false);</span>
+<span class="nc" id="L92">             samplingFuture = null;</span>
+         }
+<span class="nc" id="L94">    }</span>
+    
+    
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

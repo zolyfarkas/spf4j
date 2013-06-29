@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>MinMaxAvgRecorder.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">MinMaxAvgRecorder.java</span></div><h1>MinMaxAvgRecorder.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.impl;
+
+import org.spf4j.perf.EntityMeasurements;
+import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementProcessor;
+
+/**
+ *
+ * @author zoly
+ */
+public final class MinMaxAvgRecorder
+    implements MeasurementProcessor {
+
+    private long counter;
+    private long total;
+    private long min;
+    private long max;
+    private final EntityMeasurementsInfo info;
+    
+<span class="nc" id="L37">    private static final String [] MEASUREMENTS = {&quot;count&quot;, &quot;total&quot;, &quot;min&quot;, &quot;max&quot;};</span>
+
+    private MinMaxAvgRecorder(final Object measuredEntity, final String unitOfMeasurement,
+<span class="nc" id="L40">            final long counter, final long total, final long min, final long max) {</span>
+<span class="nc" id="L41">        this.info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement,</span>
+                MEASUREMENTS, new String [] {&quot;count&quot;, unitOfMeasurement, unitOfMeasurement, unitOfMeasurement});
+<span class="nc" id="L43">        this.counter = counter;</span>
+<span class="nc" id="L44">        this.total = total;</span>
+<span class="nc" id="L45">        this.min = min;</span>
+<span class="nc" id="L46">        this.max = max;</span>
+<span class="nc" id="L47">    }</span>
+
+    public MinMaxAvgRecorder(final Object measuredEntity, final String unitOfMeasurement) {
+<span class="nc" id="L50">        this(measuredEntity, unitOfMeasurement, 0, 0, Long.MAX_VALUE, Long.MIN_VALUE);</span>
+<span class="nc" id="L51">    }</span>
+    
+    
+    
+    @Override
+    public synchronized void record(final long measurement) {
+<span class="nc" id="L57">        total += measurement;</span>
+<span class="nc" id="L58">        counter++;</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (measurement &lt; min) {</span>
+<span class="nc" id="L60">            min = measurement;</span>
+        }
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (measurement &gt; max) {</span>
+<span class="nc" id="L63">            max = measurement;</span>
+        }
+<span class="nc" id="L65">    }</span>
+
+    @Override
+    public synchronized long[] getMeasurements(final boolean reset) {
+<span class="nc" id="L69">        long[] result = new long[] {counter, total, min, max};</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (reset) {</span>
+<span class="nc" id="L71">            reset();</span>
+        }
+<span class="nc" id="L73">        return result;</span>
+    }
+
+    @Override
+    public EntityMeasurements aggregate(final EntityMeasurements mSource) {
+<span class="nc" id="L78">        MinMaxAvgRecorder other = (MinMaxAvgRecorder) mSource;</span>
+<span class="nc" id="L79">        long [] measurements = other.getMeasurements(false);</span>
+<span class="nc" id="L80">        synchronized (this) {</span>
+<span class="nc" id="L81">            return new MinMaxAvgRecorder(this.info.getMeasuredEntity(), this.info.getUnitOfMeasurement(),</span>
+                counter + measurements[0], total + measurements[1],
+                Math.min(min, measurements[2]), Math.max(max, measurements[3]));
+<span class="nc" id="L84">        }</span>
+    }
+
+    @Override
+    public synchronized EntityMeasurements createClone(final boolean reset) {
+<span class="nc" id="L89">        MinMaxAvgRecorder result = new MinMaxAvgRecorder(this.info.getMeasuredEntity(),</span>
+                this.info.getUnitOfMeasurement(), counter, total , min, max);
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        if (reset) {</span>
+<span class="nc" id="L92">            reset();</span>
+        }
+<span class="nc" id="L94">        return result;</span>
+    }
+
+    @Override
+    public EntityMeasurements createLike(final Object entity) {
+<span class="nc" id="L99">        return new MinMaxAvgRecorder(entity, this.info.getUnitOfMeasurement());</span>
+    }
+
+    @Override
+    public EntityMeasurementsInfo getInfo() {
+<span class="nc" id="L104">        return info;</span>
+    }
+
+    private void reset() {
+<span class="nc" id="L108">        counter = 0;</span>
+<span class="nc" id="L109">        total = 0;</span>
+<span class="nc" id="L110">        min = Long.MAX_VALUE;</span>
+<span class="nc" id="L111">        max = Long.MIN_VALUE;</span>
+<span class="nc" id="L112">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

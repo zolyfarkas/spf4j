@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Runtime.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Runtime.java</span></div><h1>Runtime.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.base;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.management.ManagementFactory;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ *
+ * @author zoly
+ */
+public final class Runtime {
+
+<span class="nc" id="L35">    private Runtime() {</span>
+<span class="nc" id="L36">    }</span>
+<span class="fc" id="L37">    private static final Logger LOGGER = LoggerFactory.getLogger(Runtime.class);</span>
+
+    public static void goDownWithError(final Throwable t, final int exitCode) {
+        try {
+<span class="nc" id="L41">            LOGGER.error(&quot;Unrecoverable Error, going down&quot;, t);</span>
+        } finally {
+<span class="nc" id="L43">            try {</span>
+<span class="nc" id="L44">                t.printStackTrace();</span>
+            } finally {
+<span class="nc" id="L46">                System.exit(exitCode);</span>
+<span class="nc" id="L47">            }</span>
+<span class="nc" id="L48">        }</span>
+<span class="nc" id="L49">    }</span>
+    public static final int PID;
+    public static final String OS_NAME;
+
+    static {
+<span class="fc" id="L54">        String name = ManagementFactory.getRuntimeMXBean().getName();</span>
+<span class="fc" id="L55">        int atIdx = name.indexOf('@');</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (atIdx &lt; 0) {</span>
+<span class="nc" id="L57">            PID = -1;</span>
+        } else {
+<span class="fc" id="L59">            PID = Integer.valueOf(name.substring(0, atIdx));</span>
+        }
+<span class="fc" id="L61">        OS_NAME = System.getProperty(&quot;os.name&quot;);</span>
+<span class="fc" id="L62">    }</span>
+    public static final String MAC_OS_X_OS_NAME = &quot;Mac OS X&quot;;
+
+    public static int getNrOpenFiles() throws IOException {
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        if (OS_NAME.equals(MAC_OS_X_OS_NAME)) {</span>
+<span class="fc" id="L67">            LineCountCharHandler handler = new LineCountCharHandler();</span>
+<span class="fc" id="L68">            run(&quot;/usr/sbin/lsof -p &quot; + PID, handler);</span>
+<span class="fc" id="L69">            return handler.getLineCount() - 1;</span>
+        } else {
+<span class="nc" id="L71">            File procFsFdFolder = new File(&quot;/proc/&quot; + PID + &quot;/fd&quot;);</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">            if (procFsFdFolder.exists()) {</span>
+<span class="nc" id="L73">                return procFsFdFolder.list().length;</span>
+            } else {
+<span class="nc" id="L75">                return -1;</span>
+            }
+        }
+    }
+
+    @Nullable
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings
+    public static String getLsofOutput() throws IOException {
+<span class="fc" id="L83">        File lsofFile = new File(&quot;/usr/sbin/lsof&quot;);</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (!lsofFile.exists()) {</span>
+<span class="nc" id="L85">            lsofFile = new File(&quot;/usr/bin/lsof&quot;);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (!lsofFile.exists()) {</span>
+<span class="nc" id="L87">                lsofFile = new File(&quot;/usr/local/bin/lsof&quot;);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">                if (!lsofFile.exists()) {</span>
+<span class="nc" id="L89">                    return null;</span>
+                }
+            }
+        }
+<span class="fc" id="L93">        StringBuilderCharHandler handler = new StringBuilderCharHandler();</span>
+<span class="fc" id="L94">        run(lsofFile.getAbsolutePath() + &quot; -p &quot; + PID, handler);</span>
+<span class="fc" id="L95">        return handler.toString();</span>
+    }
+
+    public interface CharHandler {
+
+        void handle(int character);
+    }
+
+    public static void run(final String command, final CharHandler handler) throws IOException {
+<span class="fc" id="L104">        Process proc = java.lang.Runtime.getRuntime().exec(command);</span>
+<span class="fc" id="L105">        InputStream is = proc.getInputStream();</span>
+        try {
+            int c;
+<span class="fc bfc" id="L108" title="All 2 branches covered.">            while ((c = is.read()) &gt;= 0) {</span>
+<span class="fc" id="L109">                handler.handle(c);</span>
+            }
+        } finally {
+<span class="pc" id="L112">            is.close();</span>
+<span class="fc" id="L113">        }</span>
+<span class="fc" id="L114">    }</span>
+
+    private static class LineCountCharHandler implements CharHandler {
+
+<span class="fc" id="L118">        public LineCountCharHandler() {</span>
+<span class="fc" id="L119">            lineCount = 0;</span>
+<span class="fc" id="L120">        }</span>
+        private int lineCount;
+
+        @Override
+        public void handle(final int c) {
+<span class="fc bfc" id="L125" title="All 2 branches covered.">            if (c == '\n') {</span>
+<span class="fc" id="L126">                lineCount++;</span>
+            }
+<span class="fc" id="L128">        }</span>
+
+        public int getLineCount() {
+<span class="fc" id="L131">            return lineCount;</span>
+        }
+    }
+
+    private static class StringBuilderCharHandler implements CharHandler {
+
+<span class="fc" id="L137">        public StringBuilderCharHandler() {</span>
+<span class="fc" id="L138">            builder = new StringBuilder();</span>
+<span class="fc" id="L139">        }</span>
+        private StringBuilder builder;
+
+        @Override
+        public void handle(final int c) {
+<span class="fc" id="L144">            builder.append((char) c);</span>
+<span class="fc" id="L145">        }</span>
+
+        @Override
+        public String toString() {
+<span class="fc" id="L149">            return builder.toString();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

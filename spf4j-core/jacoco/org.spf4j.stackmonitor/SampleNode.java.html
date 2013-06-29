@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SampleNode.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">SampleNode.java</span></div><h1>SampleNode.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.stackmonitor;
+
+import com.google.common.base.Predicate;
+import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+
+/**
+ * @author zoly
+ */
+@ParametersAreNonnullByDefault
+public final class SampleNode {
+    
+    private int sampleCount;
+    private Map&lt;Method, SampleNode&gt; subNodes;
+    
+<span class="fc" id="L35">    public SampleNode(final StackTraceElement[] stackTrace, final int from) {</span>
+<span class="fc" id="L36">        sampleCount = 1;</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (from &gt;= 0) {</span>
+<span class="fc" id="L38">            subNodes = new HashMap();</span>
+<span class="fc" id="L39">            subNodes.put(new Method(stackTrace[from]), new SampleNode(stackTrace, from - 1));</span>
+        }
+<span class="fc" id="L41">    }</span>
+
+<span class="fc" id="L43">    public SampleNode(final int count, @Nullable final Map&lt;Method, SampleNode&gt; subNodes) {</span>
+<span class="fc" id="L44">        this.sampleCount = count;</span>
+<span class="fc" id="L45">        this.subNodes = subNodes;</span>
+<span class="fc" id="L46">    }</span>
+    
+    
+    
+    public int addSample(final StackTraceElement[] stackTrace, final int from) {
+<span class="fc" id="L51">        sampleCount++;</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (from &gt;= 0) {</span>
+<span class="fc" id="L53">            Method method = new Method(stackTrace[from]);</span>
+<span class="fc" id="L54">            SampleNode subNode = null;</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">            if (subNodes == null) {</span>
+<span class="fc" id="L56">                subNodes = new HashMap();</span>
+            } else {
+<span class="fc" id="L58">                subNode = subNodes.get(method);</span>
+            }
+<span class="fc bfc" id="L60" title="All 2 branches covered.">            if (subNode == null) {</span>
+<span class="fc" id="L61">                subNodes.put(method, new SampleNode(stackTrace, from - 1));</span>
+<span class="fc" id="L62">                return from + 1;</span>
+            } else {
+<span class="fc" id="L64">                return subNode.addSample(stackTrace, from - 1);</span>
+            }
+        }
+<span class="fc" id="L67">        return 0;</span>
+    }
+
+    public int getSampleCount() {
+<span class="fc" id="L71">        return sampleCount;</span>
+    }
+
+    @Nullable
+    public Map&lt;Method, SampleNode&gt; getSubNodes() {
+<span class="fc" id="L76">        return subNodes;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="fc" id="L81">        return &quot;SampleNode{&quot; + &quot;count=&quot; + sampleCount + &quot;, subNodes=&quot; + subNodes + '}';</span>
+    }
+    
+    public int height() {
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (subNodes == null) {</span>
+<span class="nc" id="L86">            return 1;</span>
+        } else {
+<span class="nc" id="L88">            int subHeight = 0;</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            for (SampleNode node : subNodes.values()) {</span>
+<span class="nc" id="L90">                int nHeight = node.height();</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">                if (nHeight &gt; subHeight) {</span>
+<span class="nc" id="L92">                    subHeight = nHeight;</span>
+                }
+<span class="nc" id="L94">            }</span>
+<span class="nc" id="L95">            return subHeight + 1;</span>
+        }
+            
+    }
+    
+    @Nullable
+    public SampleNode filteredBy(final Predicate&lt;Method&gt; predicate) {
+        
+<span class="fc" id="L103">        int newCount = this.sampleCount;</span>
+        
+<span class="fc" id="L105">        Map&lt;Method, SampleNode&gt; sns = null;</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (this.subNodes != null) {</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">            for (Map.Entry&lt;Method, SampleNode&gt; entry :  this.subNodes.entrySet()) {</span>
+<span class="fc" id="L108">                Method method = entry.getKey();</span>
+<span class="fc" id="L109">                SampleNode sn = entry.getValue();</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">                if (predicate.apply(method))  {</span>
+<span class="nc" id="L111">                    newCount -= sn.getSampleCount();</span>
+                } else {
+<span class="fc bfc" id="L113" title="All 2 branches covered.">                    if (sns == null) {</span>
+<span class="fc" id="L114">                        sns = new HashMap&lt;Method, SampleNode&gt;();</span>
+                    }
+<span class="fc" id="L116">                    SampleNode sn2 = sn.filteredBy(predicate);</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">                    if (sn2 == null) {</span>
+<span class="nc" id="L118">                        newCount -= sn.getSampleCount();</span>
+                    } else {
+<span class="fc" id="L120">                        newCount -= sn.getSampleCount() - sn2.getSampleCount();</span>
+<span class="fc" id="L121">                        sns.put(method, sn2);</span>
+                    }
+                    
+                }
+<span class="fc" id="L125">            }</span>
+        }
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">        if (newCount == 0) {</span>
+<span class="nc" id="L128">            return null;</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        } else if  (newCount &lt; 0) {</span>
+<span class="nc" id="L130">            throw new IllegalStateException(&quot;child sample counts must be &lt;= parent sample count, detail: &quot; + this);</span>
+        } else {
+<span class="fc" id="L132">            return new SampleNode(newCount, sns);</span>
+        }
+    }
+    
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>
