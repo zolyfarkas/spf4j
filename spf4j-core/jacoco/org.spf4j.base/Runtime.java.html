@@ -34,45 +34,47 @@ public final class Runtime {
 
 <span class="nc" id="L35">    private Runtime() {</span>
 <span class="nc" id="L36">    }</span>
-<span class="fc" id="L37">    private static final Logger LOGGER = LoggerFactory.getLogger(Runtime.class);</span>
+    
+<span class="nc" id="L38">    private static final Logger LOGGER = LoggerFactory.getLogger(Runtime.class);</span>
 
     public static void goDownWithError(final Throwable t, final int exitCode) {
         try {
-<span class="nc" id="L41">            LOGGER.error(&quot;Unrecoverable Error, going down&quot;, t);</span>
+<span class="nc" id="L42">            LOGGER.error(&quot;Unrecoverable Error, going down&quot;, t);</span>
         } finally {
-<span class="nc" id="L43">            try {</span>
-<span class="nc" id="L44">                t.printStackTrace();</span>
+<span class="nc" id="L44">            try {</span>
+<span class="nc" id="L45">                t.printStackTrace();</span>
             } finally {
-<span class="nc" id="L46">                System.exit(exitCode);</span>
-<span class="nc" id="L47">            }</span>
-<span class="nc" id="L48">        }</span>
-<span class="nc" id="L49">    }</span>
+<span class="nc" id="L47">                System.exit(exitCode);</span>
+<span class="nc" id="L48">            }</span>
+<span class="nc" id="L49">        }</span>
+<span class="nc" id="L50">    }</span>
     public static final int PID;
     public static final String OS_NAME;
 
     static {
-<span class="fc" id="L54">        String name = ManagementFactory.getRuntimeMXBean().getName();</span>
-<span class="fc" id="L55">        int atIdx = name.indexOf('@');</span>
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (atIdx &lt; 0) {</span>
-<span class="nc" id="L57">            PID = -1;</span>
+<span class="nc" id="L55">        String name = ManagementFactory.getRuntimeMXBean().getName();</span>
+<span class="nc" id="L56">        int atIdx = name.indexOf('@');</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (atIdx &lt; 0) {</span>
+<span class="nc" id="L58">            PID = -1;</span>
         } else {
-<span class="fc" id="L59">            PID = Integer.valueOf(name.substring(0, atIdx));</span>
+<span class="nc" id="L60">            PID = Integer.valueOf(name.substring(0, atIdx));</span>
         }
-<span class="fc" id="L61">        OS_NAME = System.getProperty(&quot;os.name&quot;);</span>
-<span class="fc" id="L62">    }</span>
+<span class="nc" id="L62">        OS_NAME = System.getProperty(&quot;os.name&quot;);</span>
+    }
     public static final String MAC_OS_X_OS_NAME = &quot;Mac OS X&quot;;
 
+<span class="nc" id="L66">    private static final File  FD_FOLDER = new File(&quot;/proc/&quot; + PID + &quot;/fd&quot;);</span>
+    
     public static int getNrOpenFiles() throws IOException {
-<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        if (OS_NAME.equals(MAC_OS_X_OS_NAME)) {</span>
-<span class="fc" id="L67">            LineCountCharHandler handler = new LineCountCharHandler();</span>
-<span class="fc" id="L68">            run(&quot;/usr/sbin/lsof -p &quot; + PID, handler);</span>
-<span class="fc" id="L69">            return handler.getLineCount() - 1;</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (OS_NAME.equals(MAC_OS_X_OS_NAME)) {</span>
+<span class="nc" id="L70">            LineCountCharHandler handler = new LineCountCharHandler();</span>
+<span class="nc" id="L71">            run(&quot;/usr/sbin/lsof -p &quot; + PID, handler);</span>
+<span class="nc" id="L72">            return handler.getLineCount() - 1;</span>
         } else {
-<span class="nc" id="L71">            File procFsFdFolder = new File(&quot;/proc/&quot; + PID + &quot;/fd&quot;);</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">            if (procFsFdFolder.exists()) {</span>
-<span class="nc" id="L73">                return procFsFdFolder.list().length;</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">            if (FD_FOLDER.exists()) {</span>
+<span class="nc" id="L75">                return FD_FOLDER.list().length;</span>
             } else {
-<span class="nc" id="L75">                return -1;</span>
+<span class="nc" id="L77">                return -1;</span>
             }
         }
     }
@@ -80,19 +82,19 @@ public final class Runtime {
     @Nullable
     @edu.umd.cs.findbugs.annotations.SuppressWarnings
     public static String getLsofOutput() throws IOException {
-<span class="fc" id="L83">        File lsofFile = new File(&quot;/usr/sbin/lsof&quot;);</span>
-<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (!lsofFile.exists()) {</span>
-<span class="nc" id="L85">            lsofFile = new File(&quot;/usr/bin/lsof&quot;);</span>
-<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (!lsofFile.exists()) {</span>
-<span class="nc" id="L87">                lsofFile = new File(&quot;/usr/local/bin/lsof&quot;);</span>
-<span class="nc bnc" id="L88" title="All 2 branches missed.">                if (!lsofFile.exists()) {</span>
-<span class="nc" id="L89">                    return null;</span>
+<span class="nc" id="L85">        File lsofFile = new File(&quot;/usr/sbin/lsof&quot;);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (!lsofFile.exists()) {</span>
+<span class="nc" id="L87">            lsofFile = new File(&quot;/usr/bin/lsof&quot;);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">            if (!lsofFile.exists()) {</span>
+<span class="nc" id="L89">                lsofFile = new File(&quot;/usr/local/bin/lsof&quot;);</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">                if (!lsofFile.exists()) {</span>
+<span class="nc" id="L91">                    return null;</span>
                 }
             }
         }
-<span class="fc" id="L93">        StringBuilderCharHandler handler = new StringBuilderCharHandler();</span>
-<span class="fc" id="L94">        run(lsofFile.getAbsolutePath() + &quot; -p &quot; + PID, handler);</span>
-<span class="fc" id="L95">        return handler.toString();</span>
+<span class="nc" id="L95">        StringBuilderCharHandler handler = new StringBuilderCharHandler();</span>
+<span class="nc" id="L96">        run(lsofFile.getAbsolutePath() + &quot; -p &quot; + PID, handler);</span>
+<span class="nc" id="L97">        return handler.toString();</span>
     }
 
     public interface CharHandler {
@@ -101,52 +103,52 @@ public final class Runtime {
     }
 
     public static void run(final String command, final CharHandler handler) throws IOException {
-<span class="fc" id="L104">        Process proc = java.lang.Runtime.getRuntime().exec(command);</span>
-<span class="fc" id="L105">        InputStream is = proc.getInputStream();</span>
+<span class="nc" id="L106">        Process proc = java.lang.Runtime.getRuntime().exec(command);</span>
+<span class="nc" id="L107">        InputStream is = proc.getInputStream();</span>
         try {
             int c;
-<span class="fc bfc" id="L108" title="All 2 branches covered.">            while ((c = is.read()) &gt;= 0) {</span>
-<span class="fc" id="L109">                handler.handle(c);</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">            while ((c = is.read()) &gt;= 0) {</span>
+<span class="nc" id="L111">                handler.handle(c);</span>
             }
         } finally {
-<span class="pc" id="L112">            is.close();</span>
-<span class="fc" id="L113">        }</span>
-<span class="fc" id="L114">    }</span>
+<span class="nc" id="L114">            is.close();</span>
+<span class="nc" id="L115">        }</span>
+<span class="nc" id="L116">    }</span>
 
     private static class LineCountCharHandler implements CharHandler {
 
-<span class="fc" id="L118">        public LineCountCharHandler() {</span>
-<span class="fc" id="L119">            lineCount = 0;</span>
-<span class="fc" id="L120">        }</span>
+<span class="nc" id="L120">        public LineCountCharHandler() {</span>
+<span class="nc" id="L121">            lineCount = 0;</span>
+<span class="nc" id="L122">        }</span>
         private int lineCount;
 
         @Override
         public void handle(final int c) {
-<span class="fc bfc" id="L125" title="All 2 branches covered.">            if (c == '\n') {</span>
-<span class="fc" id="L126">                lineCount++;</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (c == '\n') {</span>
+<span class="nc" id="L128">                lineCount++;</span>
             }
-<span class="fc" id="L128">        }</span>
+<span class="nc" id="L130">        }</span>
 
         public int getLineCount() {
-<span class="fc" id="L131">            return lineCount;</span>
+<span class="nc" id="L133">            return lineCount;</span>
         }
     }
 
     private static class StringBuilderCharHandler implements CharHandler {
 
-<span class="fc" id="L137">        public StringBuilderCharHandler() {</span>
-<span class="fc" id="L138">            builder = new StringBuilder();</span>
-<span class="fc" id="L139">        }</span>
+<span class="nc" id="L139">        public StringBuilderCharHandler() {</span>
+<span class="nc" id="L140">            builder = new StringBuilder();</span>
+<span class="nc" id="L141">        }</span>
         private StringBuilder builder;
 
         @Override
         public void handle(final int c) {
-<span class="fc" id="L144">            builder.append((char) c);</span>
-<span class="fc" id="L145">        }</span>
+<span class="nc" id="L146">            builder.append((char) c);</span>
+<span class="nc" id="L147">        }</span>
 
         @Override
         public String toString() {
-<span class="fc" id="L149">            return builder.toString();</span>
+<span class="nc" id="L151">            return builder.toString();</span>
         }
     }
 }

@@ -18,81 +18,34 @@
  */
 package org.spf4j.base;
 
-import com.google.common.base.Objects;
 import java.io.Serializable;
-import java.util.List;
 
 /**
  *
  * @author zoly
  */
 public final class ComparablePair&lt;A extends Comparable &amp; Serializable, B extends Comparable &amp; Serializable&gt;
-    implements Comparable&lt;ComparablePair&lt;A, B&gt;&gt;, Serializable {
+    extends Pair&lt;A, B&gt;
+    implements Comparable&lt;ComparablePair&lt;A, B&gt;&gt;, Serializable  {
 
-<span class="fc" id="L32">    public ComparablePair(final A first, final B second) {</span>
-<span class="fc" id="L33">        this.first = first;</span>
-<span class="fc" id="L34">        this.second = second;</span>
-<span class="fc" id="L35">    }</span>
+    public ComparablePair(final A first, final B second) {
+<span class="fc" id="L32">        super(first, second);</span>
+<span class="fc" id="L33">    }</span>
     
     public static &lt;A extends Comparable &amp; Serializable, B extends Comparable &amp; Serializable&gt; ComparablePair&lt;A, B&gt;
             of(final A first, final B second) {
-<span class="fc" id="L39">        return new ComparablePair&lt;A, B&gt;(first, second);</span>
-    }
-    
-    
-    private final A first;
-    
-    private final B second;
-
-    public A getFirst() {
-<span class="fc" id="L48">        return first;</span>
-    }
-
-    public B getSecond() {
-<span class="fc" id="L52">        return second;</span>
+<span class="fc" id="L37">        return new ComparablePair&lt;A, B&gt;(first, second);</span>
     }
 
     @Override
-    public boolean equals(final Object obj) {
-<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L58">            return false;</span>
-        }
-<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L61">            return false;</span>
-        }
-<span class="nc" id="L63">        final ComparablePair&lt;A, B&gt; other = (ComparablePair&lt;A, B&gt;) obj;</span>
-<span class="nc bnc" id="L64" title="All 6 branches missed.">        if (this.first != other.first &amp;&amp; (this.first == null || !this.first.equals(other.first))) {</span>
-<span class="nc" id="L65">            return false;</span>
-        }
-<span class="nc bnc" id="L67" title="All 6 branches missed.">        if (this.second != other.second &amp;&amp; (this.second == null || !this.second.equals(other.second))) {</span>
-<span class="nc" id="L68">            return false;</span>
-        }
-<span class="nc" id="L70">        return true;</span>
-    }
-
-    @Override
-    public int hashCode() {
-<span class="nc" id="L75">        return Objects.hashCode(first, second);</span>
-    }
-
-    @Override
-    public String toString() {
-<span class="nc" id="L80">        return &quot;Pair{&quot; + &quot;first=&quot; + first + &quot;, second=&quot; + second + '}';</span>
-    }
-
-    @Override
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings
     public int compareTo(final ComparablePair&lt;A, B&gt; o) {
-<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (this.first.equals(o.first)) {</span>
-<span class="nc" id="L86">            return this.second.compareTo(o.second);</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">        if (this.first.equals(o.first)) {</span>
+<span class="nc" id="L44">            return this.second.compareTo(o.second);</span>
         } else {
-<span class="fc" id="L88">            return this.first.compareTo(o.first);</span>
+<span class="fc" id="L46">            return this.first.compareTo(o.first);</span>
         }
     }
-    
-    public List&lt;? extends Comparable&gt; toList() {
-<span class="nc" id="L93">        return java.util.Arrays.asList(first, second);</span>
-    }
-    
     
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

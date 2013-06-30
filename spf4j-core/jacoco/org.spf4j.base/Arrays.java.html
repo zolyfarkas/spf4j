@@ -18,7 +18,7 @@
 package org.spf4j.base;
 
 /**
- *
+ * Array utilities.
  * @author zoly
  */
 public final class Arrays {
