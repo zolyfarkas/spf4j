@@ -18,69 +18,27 @@
  */
 package org.spf4j.base;
 
-import com.google.common.base.Objects;
 import java.io.Serializable;
-import java.util.List;
 
 /**
  *
  * @author zoly
  */
 public final class ComparablePair<A extends Comparable & Serializable, B extends Comparable & Serializable>
-    implements Comparable<ComparablePair<A, B>>, Serializable {
+    extends Pair<A, B>
+    implements Comparable<ComparablePair<A, B>>, Serializable  {
 
     public ComparablePair(final A first, final B second) {
-        this.first = first;
-        this.second = second;
+        super(first, second);
     }
     
     public static <A extends Comparable & Serializable, B extends Comparable & Serializable> ComparablePair<A, B>
             of(final A first, final B second) {
         return new ComparablePair<A, B>(first, second);
     }
-    
-    
-    private final A first;
-    
-    private final B second;
-
-    public A getFirst() {
-        return first;
-    }
-
-    public B getSecond() {
-        return second;
-    }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final ComparablePair<A, B> other = (ComparablePair<A, B>) obj;
-        if (this.first != other.first && (this.first == null || !this.first.equals(other.first))) {
-            return false;
-        }
-        if (this.second != other.second && (this.second == null || !this.second.equals(other.second))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(first, second);
-    }
-
-    @Override
-    public String toString() {
-        return "Pair{" + "first=" + first + ", second=" + second + '}';
-    }
-
-    @Override
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings
     public int compareTo(final ComparablePair<A, B> o) {
         if (this.first.equals(o.first)) {
             return this.second.compareTo(o.second);
@@ -88,10 +46,5 @@ public final class ComparablePair<A extends Comparable & Serializable, B extends
             return this.first.compareTo(o.first);
         }
     }
-    
-    public List<? extends Comparable> toList() {
-        return java.util.Arrays.asList(first, second);
-    }
-    
     
 }

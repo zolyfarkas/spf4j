@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- *
+ * 
  * @author zoly
  */
 public abstract class AbstractRunnable implements Runnable {

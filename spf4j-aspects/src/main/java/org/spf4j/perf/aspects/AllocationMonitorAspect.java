@@ -26,7 +26,9 @@ import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 
 /**
- *
+ * Aspect that intercepts all memory allocations in your code.
+ * where and how much has been allocated is stored in a tsdb database.
+ * 
  * @author zoly
  */
 @Aspect

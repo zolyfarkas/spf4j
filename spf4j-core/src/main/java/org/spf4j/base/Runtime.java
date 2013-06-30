@@ -34,6 +34,7 @@ public final class Runtime {
 
     private Runtime() {
     }
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(Runtime.class);
 
     public static void goDownWithError(final Throwable t, final int exitCode) {
@@ -62,15 +63,16 @@ public final class Runtime {
     }
     public static final String MAC_OS_X_OS_NAME = "Mac OS X";
 
+    private static final File  FD_FOLDER = new File("/proc/" + PID + "/fd");
+    
     public static int getNrOpenFiles() throws IOException {
         if (OS_NAME.equals(MAC_OS_X_OS_NAME)) {
             LineCountCharHandler handler = new LineCountCharHandler();
             run("/usr/sbin/lsof -p " + PID, handler);
             return handler.getLineCount() - 1;
         } else {
-            File procFsFdFolder = new File("/proc/" + PID + "/fd");
-            if (procFsFdFolder.exists()) {
-                return procFsFdFolder.list().length;
+            if (FD_FOLDER.exists()) {
+                return FD_FOLDER.list().length;
             } else {
                 return -1;
             }

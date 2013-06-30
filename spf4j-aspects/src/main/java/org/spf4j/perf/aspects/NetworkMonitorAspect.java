@@ -29,7 +29,7 @@ import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.RecorderFactory;
 
 /**
- *
+ * Aspect that intercepts and records to a tsdb all network read/writes.
  * @author zoly
  */
 @Aspect

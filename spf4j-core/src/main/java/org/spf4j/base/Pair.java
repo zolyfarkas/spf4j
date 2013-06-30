@@ -25,7 +25,7 @@ import java.util.List;
  *
  * @author zoly
  */
-public final class Pair<A, B> {
+public class Pair<A, B> {
 
     public Pair(final A first, final B second) {
         this.first = first;
@@ -59,20 +59,22 @@ public final class Pair<A, B> {
         return Pair.of(first.toString(), second.toString());
     }
         
-    private final A first;
+    //CHECKSTYLE:OFF
+    protected final A first;
     
-    private final B second;
-
-    public A getFirst() {
+    protected final B second;
+    //CHECKSTYLE:ON
+    
+    public final A getFirst() {
         return first;
     }
 
-    public B getSecond() {
+    public final B getSecond() {
         return second;
     }
 
     @Override
-    public boolean equals(final Object obj) {
+    public final boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }
@@ -90,17 +92,17 @@ public final class Pair<A, B> {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return Objects.hashCode(first, second);
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         return "(" + Strings.toCsvElement(first.toString())
                 + "," + Strings.toCsvElement(second.toString()) + ')';
     }
     
-    public List<Object> toList() {
+    public final List<Object> toList() {
         return java.util.Arrays.asList(first, second);
     }
     

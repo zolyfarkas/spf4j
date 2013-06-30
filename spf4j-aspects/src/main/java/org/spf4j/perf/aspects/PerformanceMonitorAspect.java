@@ -31,7 +31,9 @@ import org.spf4j.perf.annotations.PerformanceMonitor;
 import org.spf4j.perf.annotations.RecorderSourceInstance;
 
 /**
- *
+ * Aspect that measures execution time and does performance logging
+ * for all methods annotated with: PerformanceMonitor annotation.
+ * 
  * @author zoly
  */
 @Aspect
