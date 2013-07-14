@@ -53,11 +53,11 @@ import static org.spf4j.perf.impl.chart.Charts.fillGaps;
 public final class TimeSeriesDatabase implements Closeable {
 
     public static final int VERSION = 1;
-    private final Map<String, ColumnInfo> groups;
+    private final Map<String, TSTable> groups;
     private final RandomAccessFile file;
     private final Header header;
     private final TableOfContents toc;
-    private ColumnInfo lastColumnInfo;
+    private TSTable lastColumnInfo;
     private final Map<String, DataFragment> writeDataFragments;
     private final String pathToDatabaseFile;
 
@@ -74,17 +74,17 @@ public final class TimeSeriesDatabase implements Closeable {
             this.header = new Header(file);
             this.toc = new TableOfContents(file);
         }
-        groups = new HashMap<String, ColumnInfo>();
+        groups = new HashMap<String, TSTable>();
         if (toc.getFirstColumnInfo() > 0) {
             file.seek(toc.getFirstColumnInfo());
-            ColumnInfo colInfo = new ColumnInfo(file);
-            groups.put(colInfo.getGroupName(), colInfo);
+            TSTable colInfo = new TSTable(file);
+            groups.put(colInfo.getTableName(), colInfo);
 
             lastColumnInfo = colInfo;
-            while (colInfo.getNextColumnInfo() > 0) {
-                file.seek(colInfo.getNextColumnInfo());
-                colInfo = new ColumnInfo(file);
-                groups.put(colInfo.getGroupName(), colInfo);
+            while (colInfo.getNextTSTable() > 0) {
+                file.seek(colInfo.getNextTSTable());
+                colInfo = new TSTable(file);
+                groups.put(colInfo.getTableName(), colInfo);
                 lastColumnInfo = colInfo;
             }
         }
@@ -100,21 +100,21 @@ public final class TimeSeriesDatabase implements Closeable {
         }
     }
 
-    public synchronized boolean hasColumnGroup(final String groupName) {
-        return groups.containsKey(groupName);
+    public synchronized boolean hasTSTable(final String tableName) {
+        return groups.containsKey(tableName);
     }
 
-    public synchronized void addColumnGroup(final String groupName,
-            final byte[] groupMetaData, final int sampleTime, final String[] columnNames,
-            final byte[][] metaData) throws IOException {
-        if (groups.containsKey(groupName)) {
-            throw new IllegalArgumentException("group already exists " + groupName);
+    public synchronized void addTSTable(final String tableName,
+            final byte[] tableMetaData, final int sampleTime, final String[] columnNames,
+            final byte[][] columnMetaData) throws IOException {
+        if (groups.containsKey(tableName)) {
+            throw new IllegalArgumentException("group already exists " + tableName);
         }
         //write column information at the end of the file.
         flush();
         file.seek(file.length());
-        ColumnInfo colInfo = new ColumnInfo(groupName, groupMetaData, columnNames,
-                metaData, sampleTime, file.getFilePointer());
+        TSTable colInfo = new TSTable(tableName, tableMetaData, columnNames,
+                columnMetaData, sampleTime, file.getFilePointer());
         colInfo.writeTo(file);
         //update refferences to this new ColumnInfo.
         if (lastColumnInfo != null) {
@@ -124,17 +124,17 @@ public final class TimeSeriesDatabase implements Closeable {
         }
         toc.setLastColumnInfo(colInfo.getLocation(), file);
         lastColumnInfo = colInfo;
-        groups.put(groupName, colInfo);
+        groups.put(tableName, colInfo);
     }
 
-    public synchronized void write(final long time, final String groupName, final long[] values) throws IOException {
-        if (!groups.containsKey(groupName)) {
-            throw new IllegalArgumentException("Unknown group name" + groupName);
+    public synchronized void write(final long time, final String tableName, final long[] values) throws IOException {
+        if (!groups.containsKey(tableName)) {
+            throw new IllegalArgumentException("Unknown group name" + tableName);
         }
-        DataFragment writeDataFragment = writeDataFragments.get(groupName);
+        DataFragment writeDataFragment = writeDataFragments.get(tableName);
         if (writeDataFragment == null) {
             writeDataFragment = new DataFragment(time);
-            writeDataFragments.put(groupName, writeDataFragment);
+            writeDataFragments.put(tableName, writeDataFragment);
         }
         writeDataFragment.addData(time, values);
     }
@@ -146,7 +146,7 @@ public final class TimeSeriesDatabase implements Closeable {
             file.seek(file.length());
             writeDataFragment.setLocation(file.getFilePointer());
             writeDataFragment.writeTo(file);
-            ColumnInfo colInfo = groups.get(groupName);
+            TSTable colInfo = groups.get(groupName);
             if (colInfo.getLastDataFragment() != 0) {
                 DataFragment.setNextDataFragment(colInfo.getLastDataFragment(), writeDataFragment.getLocation(), file);
             } else {
@@ -158,27 +158,27 @@ public final class TimeSeriesDatabase implements Closeable {
         sync();
     }
 
-    public synchronized String[] getColumnNames(final String groupName) {
-        return groups.get(groupName).getColumnNames();
+    public synchronized String[] getColumnNames(final String tableName) {
+        return groups.get(tableName).getColumnNames();
     }
 
-    public synchronized ColumnInfo getColumnInfo(final String groupName) {
-        return groups.get(groupName);
+    public synchronized TSTable getTSTable(final String tableName) {
+        return groups.get(tableName);
     }
 
-    public synchronized Collection<ColumnInfo> getColumnsInfo() {
+    public synchronized Collection<TSTable> getTSTables() {
         return groups.values();
     }
 
-    public synchronized Pair<long[], long[][]> readAll(final String groupName) throws IOException {
-        return read(groupName, 0, Long.MAX_VALUE);
+    public synchronized Pair<long[], long[][]> readAll(final String tableName) throws IOException {
+        return read(tableName, 0, Long.MAX_VALUE);
     }
 
-    public synchronized Pair<long[], long[][]> read(final String groupName,
+    public synchronized Pair<long[], long[][]> read(final String tableName,
             final long startTime, final long endTime) throws IOException {
         TLongArrayList timeStamps = new TLongArrayList();
         List<long[]> data = new ArrayList<long[]>();
-        ColumnInfo info = groups.get(groupName);
+        TSTable info = groups.get(tableName);
 
         if (info.getFirstDataFragment() > 0) {
             DataFragment frag;
@@ -213,7 +213,7 @@ public final class TimeSeriesDatabase implements Closeable {
         return Pair.of(timeStamps.toArray(), data.toArray(new long[data.size()][]));
     }
 
-    public synchronized void sync() throws IOException {
+    private synchronized void sync() throws IOException {
         file.getFD().sync();
     }
 
@@ -222,35 +222,35 @@ public final class TimeSeriesDatabase implements Closeable {
     }
 
     public JFreeChart createHeatJFreeChart(final String groupName) throws IOException {
-        ColumnInfo info = this.getColumnInfo(groupName);
+        TSTable info = this.getTSTable(groupName);
         Pair<long[], long[][]> data = this.readAll(groupName);
         return createHeatJFreeChart(data, info);
     }
 
     public JFreeChart createMinMaxAvgJFreeChart(final String groupName) throws IOException {
-        ColumnInfo info = this.getColumnInfo(groupName);
+        TSTable info = this.getTSTable(groupName);
         Pair<long[], long[][]> data = this.readAll(groupName);
         return createMinMaxAvgJFreeChart(data, info);
     }
 
     public JFreeChart createCountJFreeChart(final String groupName) throws IOException {
-        ColumnInfo info = this.getColumnInfo(groupName);
+        TSTable info = this.getTSTable(groupName);
         Pair<long[], long[][]> data = this.readAll(groupName);
         return createCountJFreeChart(data, info);
     }
     
 
-    public static JFreeChart createHeatJFreeChart(final Pair<long[], long[][]> data, final ColumnInfo info) {
+    public static JFreeChart createHeatJFreeChart(final Pair<long[], long[][]> data, final TSTable info) {
         Pair<long[], double[][]> mData = fillGaps(data.getFirst(), data.getSecond(),
                 info.getSampleTime(), info.getColumnNames().length);
         JFreeChart chart = Charts.createHeatJFreeChart(info.getColumnNames(),
                 mData.getSecond(), data.getFirst()[0], info.getSampleTime(),
-                new String(info.getGroupMetaData(), Charsets.UTF_8), "Measurements distribution for "
-                + info.getGroupName() + " generated by spf4j");
+                new String(info.getTableMetaData(), Charsets.UTF_8), "Measurements distribution for "
+                + info.getTableName() + " generated by spf4j");
         return chart;
     }
 
-    public static JFreeChart createMinMaxAvgJFreeChart(final Pair<long[], long[][]> data, final ColumnInfo info) {
+    public static JFreeChart createMinMaxAvgJFreeChart(final Pair<long[], long[][]> data, final TSTable info) {
         long[][] vals = data.getSecond();
         double[] min = Arrays.getColumnAsDoubles(vals, info.getColumnIndex("min"));
         double[] max = Arrays.getColumnAsDoubles(vals, info.getColumnIndex("max"));
@@ -264,18 +264,18 @@ public final class TimeSeriesDatabase implements Closeable {
         }
         long[] timestamps = data.getFirst();
         return Charts.createTimeSeriesJFreeChart("Min,Max,Avg chart for "
-                + info.getGroupName() + " generated by spf4j", timestamps,
-                new String[]{"min", "max", "avg"}, new String(info.getGroupMetaData(), Charsets.UTF_8),
+                + info.getTableName() + " generated by spf4j", timestamps,
+                new String[]{"min", "max", "avg"}, new String(info.getTableMetaData(), Charsets.UTF_8),
                 new double[][]{min, max, Arrays.divide(total, count)});
     }
     
     
-    public static JFreeChart createCountJFreeChart(final Pair<long[], long[][]> data, final ColumnInfo info) {
+    public static JFreeChart createCountJFreeChart(final Pair<long[], long[][]> data, final TSTable info) {
         long[][] vals = data.getSecond();
         double[] count = Arrays.getColumnAsDoubles(vals, info.getColumnIndex("count"));
         long[] timestamps = data.getFirst();
         return Charts.createTimeSeriesJFreeChart("count chart for "
-                + info.getGroupName() + " generated by spf4j", timestamps,
+                + info.getTableName() + " generated by spf4j", timestamps,
                 new String[]{"count"}, "count", new double[][]{count});
     }
     

@@ -32,30 +32,30 @@ import java.util.Map;
  *
  * @author zoly
  */
-public final class ColumnInfo {
+public final class TSTable {
     
     private final long location;
     private long nextColumnInfo;
     private long firstDataFragment;
     private long lastDataFragment;
-    private final String groupName;
+    private final String tableName;
     private final int sampleTime;
-    private final byte[] groupMetaData;
+    private final byte[] tableMetaData;
     private final String [] columnNames;
     private final byte [][] columnMetaData;
     private final Map<String, Integer> nameToIndex;
     
 
-    ColumnInfo(final String groupName, final byte [] groupMetaData,
+    TSTable(final String tableName, final byte [] tableMetaData,
             final String [] columnNames, final byte [][] columnMetaData,
             final int sampleTime, final long location) {
         this.location = location;
         this.nextColumnInfo = 0;
         this.firstDataFragment = 0;
         this.lastDataFragment = 0;
-        this.groupName = groupName;
+        this.tableName = tableName;
         this.sampleTime = sampleTime;
-        this.groupMetaData = groupMetaData;
+        this.tableMetaData = tableMetaData;
         this.columnNames = columnNames;
         this.columnMetaData = columnMetaData;
         this.nameToIndex = new HashMap<String, Integer>(columnNames.length + columnNames.length / 3);
@@ -64,7 +64,7 @@ public final class ColumnInfo {
         }
     }
 
-    ColumnInfo(final RandomAccessFile raf) throws IOException {
+    TSTable(final RandomAccessFile raf) throws IOException {
         location = raf.getFilePointer();
         FileChannel ch = raf.getChannel();
         FileLock lock = ch.lock(location, 8, true);
@@ -72,11 +72,11 @@ public final class ColumnInfo {
             this.nextColumnInfo = raf.readLong();
             this.firstDataFragment = raf.readLong();
             this.lastDataFragment = raf.readLong();
-            this.groupName = raf.readUTF();
+            this.tableName = raf.readUTF();
             this.sampleTime = raf.readInt();
             int grMetaSize = raf.readInt();
-            this.groupMetaData = new byte [grMetaSize];
-            raf.readFully(groupMetaData);
+            this.tableMetaData = new byte [grMetaSize];
+            raf.readFully(tableMetaData);
             int nrColumns = raf.readShort();
             columnNames = new String[nrColumns];
             this.nameToIndex = new HashMap<String, Integer>(nrColumns + nrColumns / 3);
@@ -102,10 +102,10 @@ public final class ColumnInfo {
         dos.writeLong(nextColumnInfo);
         dos.writeLong(firstDataFragment);
         dos.writeLong(lastDataFragment);
-        dos.writeUTF(groupName);
+        dos.writeUTF(tableName);
         dos.writeInt(sampleTime);
-        dos.writeInt(groupMetaData.length);
-        dos.write(groupMetaData);
+        dos.writeInt(tableMetaData.length);
+        dos.write(tableMetaData);
         dos.writeShort(columnNames.length);
         for (String columnName : columnNames) {
             dos.writeUTF(columnName);
@@ -174,7 +174,7 @@ public final class ColumnInfo {
     }
     
     
-    public long getNextColumnInfo() {
+    public long getNextTSTable() {
         return nextColumnInfo;
     }
 
@@ -182,8 +182,8 @@ public final class ColumnInfo {
         return location;
     }
 
-    public String getGroupName() {
-        return groupName;
+    public String getTableName() {
+        return tableName;
     }
 
     public long getFirstDataFragment() {
@@ -211,8 +211,8 @@ public final class ColumnInfo {
         return sampleTime;
     }
 
-    public byte[] getGroupMetaData() {
-        return groupMetaData.clone();
+    public byte[] getTableMetaData() {
+        return tableMetaData.clone();
     }
     
     public int getColumnNumber() {
@@ -225,9 +225,9 @@ public final class ColumnInfo {
 
     @Override
     public String toString() {
-        return "ColumnInfo{" + "location=" + location + ", nextColumnInfo=" + nextColumnInfo
+        return "TSTable{" + "location=" + location + ", nextColumnInfo=" + nextColumnInfo
                 + ", firstDataFragment=" + firstDataFragment + ", lastDataFragment="
-                + lastDataFragment + ", groupName=" + groupName + ", sampleTime=" + sampleTime
+                + lastDataFragment + ", groupName=" + tableName + ", sampleTime=" + sampleTime
                 + ", columnNames=" + Arrays.toString(columnNames) + ", nameToIndex=" + nameToIndex + '}';
     }
  

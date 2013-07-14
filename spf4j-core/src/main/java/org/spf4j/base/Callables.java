@@ -75,13 +75,13 @@ public final class Callables {
         @Override
         public Boolean call() throws Exception {
            if (count > nrTotalRetries) {
-               return false;
+               return Boolean.FALSE;
            }
            if (count > nrImmediateRetries) {
                Thread.sleep(waitMillis);
            }
            count++;
-           return true;
+           return Boolean.TRUE;
         }
         
     }

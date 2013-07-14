@@ -33,7 +33,7 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.spf4j.base.Pair;
 import org.spf4j.perf.impl.mdb.tsdb.TSDBMeasurementDatabase;
-import org.spf4j.perf.tsdb.ColumnInfo;
+import org.spf4j.perf.tsdb.TSTable;
 import org.spf4j.perf.tsdb.TimeSeriesDatabase;
 
 /**
@@ -51,11 +51,11 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         super(databaseFile);
         initComponents();
         tsDb = new TimeSeriesDatabase(databaseFile, null);
-        Collection<ColumnInfo> columnsInfo = tsDb.getColumnsInfo();
+        Collection<TSTable> columnsInfo = tsDb.getTSTables();
         Map<String, DefaultMutableTreeNode> gNodes = new HashMap<String, DefaultMutableTreeNode>();
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(databaseFile);
-        for (ColumnInfo info : columnsInfo) {
-            String groupName = info.getGroupName();
+        for (TSTable info : columnsInfo) {
+            String groupName = info.getTableName();
             Pair<String, String> pair = Pair.from(groupName);
             if (pair == null) {
                 DefaultMutableTreeNode child = new DefaultMutableTreeNode(groupName);
@@ -222,22 +222,22 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
     // End of variables declaration//GEN-END:variables
 
     private void addChartToPanel(final String columnName, final JPanel content) throws IOException {
-        ColumnInfo info = tsDb.getColumnInfo(columnName);
+        TSTable info = tsDb.getTSTable(columnName);
         if (TSDBMeasurementDatabase.canGenerateHeatChart(info)) {
-            JFreeChart chart = tsDb.createHeatJFreeChart(info.getGroupName());
+            JFreeChart chart = tsDb.createHeatJFreeChart(info.getTableName());
             ChartPanel pannel = new ChartPanel(chart);
             pannel.setPreferredSize(new Dimension(600, 1024));
             content.add(pannel);
         }
         if (TSDBMeasurementDatabase.canGenerateMinMaxAvgCount(info)) {
-            JFreeChart chart = tsDb.createMinMaxAvgJFreeChart(info.getGroupName());
+            JFreeChart chart = tsDb.createMinMaxAvgJFreeChart(info.getTableName());
             ChartPanel pannel = new ChartPanel(chart);
             pannel.setPreferredSize(new Dimension(600, 1024));
             content.add(pannel);
 
         }
         if (TSDBMeasurementDatabase.canGenerateCount(info)) {
-            JFreeChart chart = tsDb.createCountJFreeChart(info.getGroupName());
+            JFreeChart chart = tsDb.createCountJFreeChart(info.getTableName());
             ChartPanel pannel = new ChartPanel(chart);
             pannel.setPreferredSize(new Dimension(600, 1024));
             content.add(pannel);

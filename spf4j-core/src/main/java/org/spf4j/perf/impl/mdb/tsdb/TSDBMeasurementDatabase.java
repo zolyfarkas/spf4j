@@ -27,7 +27,7 @@ import org.spf4j.base.Pair;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementDatabase;
 import org.spf4j.perf.impl.chart.Charts;
-import org.spf4j.perf.tsdb.ColumnInfo;
+import org.spf4j.perf.tsdb.TSTable;
 import org.spf4j.perf.tsdb.TimeSeriesDatabase;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
@@ -107,7 +107,7 @@ public final class TSDBMeasurementDatabase
     private void alocateMeasurements(final String groupName, final EntityMeasurementsInfo measurement,
             final int sampleTimeMillis) throws IOException {
         synchronized (database) {
-            if (!database.hasColumnGroup(groupName)) {
+            if (!database.hasTSTable(groupName)) {
                 String[] measurementNames = measurement.getMeasurementNames();
                 byte[] uom = measurement.getUnitOfMeasurement().getBytes(Charsets.UTF_8);
                 byte[][] metaData = new byte[measurementNames.length][];
@@ -115,7 +115,7 @@ public final class TSDBMeasurementDatabase
                 for (int i = 0; i < metaData.length; i++) {
                     metaData[i] = uoms[i].getBytes(Charsets.UTF_8);
                 }
-                database.addColumnGroup(groupName, uom, sampleTimeMillis, measurementNames,
+                database.addTSTable(groupName, uom, sampleTimeMillis, measurementNames,
                         metaData);
             }
         }
@@ -175,9 +175,9 @@ public final class TSDBMeasurementDatabase
         try {
             database.flush();
             List<String> result = new ArrayList<String>();
-            Collection<ColumnInfo> columnsInfo = database.getColumnsInfo();
-            for (ColumnInfo info : columnsInfo) {
-                Pair<long[], long[][]> data = database.read(info.getGroupName(), startTimeMillis, endTimeMillis);
+            Collection<TSTable> columnsInfo = database.getTSTables();
+            for (TSTable info : columnsInfo) {
+                Pair<long[], long[][]> data = database.read(info.getTableName(), startTimeMillis, endTimeMillis);
                 if (data.getFirst().length > 0) {
                     if (canGenerateMinMaxAvgCount(info)) {
                         result.add(generateMinMaxAvgCountChart(info, data, width, height));
@@ -187,8 +187,8 @@ public final class TSDBMeasurementDatabase
                     }
                 }
             }
-            Multimap<String, ColumnInfo> counters = getCounters(columnsInfo);
-            for (Map.Entry<String, Collection<ColumnInfo>> entry : counters.asMap().entrySet()) {
+            Multimap<String, TSTable> counters = getCounters(columnsInfo);
+            for (Map.Entry<String, Collection<TSTable>> entry : counters.asMap().entrySet()) {
                 long[][] timestamps = new long[entry.getValue().size()][];
                 double[][] cdata = new double[entry.getValue().size()][];
                 double[][] cdata2 = new double[entry.getValue().size()][];
@@ -197,14 +197,14 @@ public final class TSDBMeasurementDatabase
                 String[] measurementNames2 = new String[cdata2.length];
                 String uom1 = "count";
                 String uom2 = "";
-                for (ColumnInfo colInfo : entry.getValue()) {
-                    Pair<long[], long[][]> data = database.read(colInfo.getGroupName(), startTimeMillis, endTimeMillis);
+                for (TSTable colInfo : entry.getValue()) {
+                    Pair<long[], long[][]> data = database.read(colInfo.getTableName(), startTimeMillis, endTimeMillis);
                     timestamps[i] = data.getFirst();
                     cdata[i] = Arrays.getColumnAsDoubles(data.getSecond(), colInfo.getColumnIndex("count"));
                     cdata2[i] = Arrays.getColumnAsDoubles(data.getSecond(), colInfo.getColumnIndex("total"));
-                    measurementNames[i] = colInfo.getGroupName() + ".count";
-                    measurementNames2[i] = colInfo.getGroupName() + ".total";
-                    uom2 = new String(colInfo.getGroupMetaData(), Charsets.UTF_8);
+                    measurementNames[i] = colInfo.getTableName() + ".count";
+                    measurementNames2[i] = colInfo.getTableName() + ".total";
+                    uom2 = new String(colInfo.getTableMetaData(), Charsets.UTF_8);
                     i++;
                 }
                 result.add(generateCountChart(entry.getKey(), timestamps, measurementNames,
@@ -221,11 +221,11 @@ public final class TSDBMeasurementDatabase
         }
     }
 
-    private static Multimap<String, ColumnInfo> getCounters(final Collection<ColumnInfo> columnInfos) {
-        Multimap<String, ColumnInfo> result = HashMultimap.create();
-        for (ColumnInfo info : columnInfos) {
+    private static Multimap<String, TSTable> getCounters(final Collection<TSTable> columnInfos) {
+        Multimap<String, TSTable> result = HashMultimap.create();
+        for (TSTable info : columnInfos) {
             if (isCounterOnly(info)) {
-                String groupName = info.getGroupName();
+                String groupName = info.getTableName();
                 if (groupName.startsWith("(")) {
                     int cidx = groupName.indexOf(',');
                     if (cidx > 0) {
@@ -238,25 +238,25 @@ public final class TSDBMeasurementDatabase
         return result;
     }
 
-    public static boolean isCounterOnly(final ColumnInfo info) {
+    public static boolean isCounterOnly(final TSTable info) {
         String[] columns = info.getColumnNames();
         return columns.length == 2 && columns[0].equals("count")
                 && columns[1].equals("total");
     }
 
-    public static boolean canGenerateMinMaxAvgCount(final ColumnInfo info) {
+    public static boolean canGenerateMinMaxAvgCount(final TSTable info) {
         return ((info.getColumnIndex("min") >= 0)
                 && (info.getColumnIndex("max") >= 0)
                 && (info.getColumnIndex("total") >= 0)
                 && (info.getColumnIndex("count") >= 0));
     }
 
-    public static boolean canGenerateCount(final ColumnInfo info) {
+    public static boolean canGenerateCount(final TSTable info) {
         return ((info.getColumnIndex("count") >= 0));
     }
     
     
-    public static boolean canGenerateHeatChart(final ColumnInfo info) {
+    public static boolean canGenerateHeatChart(final TSTable info) {
         for (String mname : info.getColumnNames()) {
             if (mname.startsWith("Q") && mname.contains("_")) {
                 return true;
@@ -266,7 +266,7 @@ public final class TSDBMeasurementDatabase
     }
 
     private String generateMinMaxAvgCountChart(
-            final ColumnInfo info, final Pair<long[], long[][]> data,
+            final TSTable info, final Pair<long[], long[][]> data,
             final int width, final int height) throws IOException {
         long[][] vals = data.getSecond();
         double[] min = Arrays.getColumnAsDoubles(vals, info.getColumnIndex("min"));
@@ -281,10 +281,10 @@ public final class TSDBMeasurementDatabase
         }
         long[] timestamps = data.getFirst();
         BufferedImage combined = Charts.createMinMaxAvgCountImg("Measurements for "
-                + info.getGroupName() + " generated by spf4j",
-                timestamps, min, max, total, count, new String(info.getGroupMetaData(), Charsets.UTF_8), width, height);
+                + info.getTableName() + " generated by spf4j",
+                timestamps, min, max, total, count, new String(info.getTableMetaData(), Charsets.UTF_8), width, height);
         File dbFile = new File(database.getDBFilePath());
-        File graphicFile = File.createTempFile(dbFile.getName() + "_" + fixName(info.getGroupName()), ".mmac.png",
+        File graphicFile = File.createTempFile(dbFile.getName() + "_" + fixName(info.getTableName()), ".mmac.png",
                 dbFile.getParentFile());
         ImageIO.write(combined, "png", graphicFile);
         return graphicFile.getPath();
@@ -316,12 +316,12 @@ public final class TSDBMeasurementDatabase
     }
 
 
-    private String generateHeatChart(final ColumnInfo info, final Pair<long[], long[][]> data,
+    private String generateHeatChart(final TSTable info, final Pair<long[], long[][]> data,
             final int width, final int height) throws IOException {
         JFreeChart chart = TimeSeriesDatabase.createHeatJFreeChart(data, info);
         BufferedImage img = chart.createBufferedImage(width, height);
         File dbFile = new File(database.getDBFilePath());
-        File graphicFile = File.createTempFile(dbFile.getName() + "_" + fixName(info.getGroupName()), ".dist.png",
+        File graphicFile = File.createTempFile(dbFile.getName() + "_" + fixName(info.getTableName()), ".dist.png",
                 dbFile.getParentFile());
         ImageIO.write(img, "png", graphicFile);
         return graphicFile.getAbsolutePath();

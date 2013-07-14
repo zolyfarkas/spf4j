@@ -50,14 +50,15 @@ public final class Runtime {
     }
     public static final int PID;
     public static final String OS_NAME;
+    public static final String PROCESS_NAME;
 
     static {
-        String name = ManagementFactory.getRuntimeMXBean().getName();
-        int atIdx = name.indexOf('@');
+        PROCESS_NAME = ManagementFactory.getRuntimeMXBean().getName();
+        int atIdx = PROCESS_NAME.indexOf('@');
         if (atIdx < 0) {
             PID = -1;
         } else {
-            PID = Integer.valueOf(name.substring(0, atIdx));
+            PID = Integer.valueOf(PROCESS_NAME.substring(0, atIdx));
         }
         OS_NAME = System.getProperty("os.name");
     }
