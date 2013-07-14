@@ -245,8 +245,8 @@ public final class Sampler implements SamplerMBean {
 
     @Override
     public List<String> generate(final Properties props) throws IOException {
-        int width = Integer.valueOf(props.getProperty("width", "1200"));
-        int maxDepth = Integer.valueOf(props.getProperty("maxDepth", "1200"));
+        int width = Integer.parseInt(props.getProperty("width", "1200"));
+        int maxDepth = Integer.parseInt(props.getProperty("maxDepth", "1200"));
         String fileName = File.createTempFile("stack", ".html").getAbsolutePath();
         generateHtmlMonitorReport(fileName, width, maxDepth);
         return Arrays.asList(fileName);
