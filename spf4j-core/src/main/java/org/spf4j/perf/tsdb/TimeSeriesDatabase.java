@@ -174,6 +174,7 @@ public final class TimeSeriesDatabase implements Closeable {
         return read(tableName, 0, Long.MAX_VALUE);
     }
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("LII_LIST_INDEXED_ITERATING")
     public synchronized Pair<long[], long[][]> read(final String tableName,
             final long startTime, final long endTime) throws IOException {
         TLongArrayList timeStamps = new TLongArrayList();

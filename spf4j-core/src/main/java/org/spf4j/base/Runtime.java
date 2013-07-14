@@ -58,7 +58,7 @@ public final class Runtime {
         if (atIdx < 0) {
             PID = -1;
         } else {
-            PID = Integer.valueOf(PROCESS_NAME.substring(0, atIdx));
+            PID = Integer.parseInt(PROCESS_NAME.substring(0, atIdx));
         }
         OS_NAME = System.getProperty("os.name");
     }

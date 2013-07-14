@@ -43,7 +43,7 @@ public final class OpenFilesSampler {
     private OpenFilesSampler() { }
     
     private static final int AGG_INTERVAL =
-            Integer.valueOf(System.getProperty("perf.io.openFiles.sampleAggMillis", "600000"));
+            Integer.parseInt(System.getProperty("perf.io.openFiles.sampleAggMillis", "600000"));
     
  
     private static final MeasurementRecorder NR_OPEN_FILES =

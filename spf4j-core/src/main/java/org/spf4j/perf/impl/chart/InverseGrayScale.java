@@ -32,17 +32,17 @@ public final class InverseGrayScale
         implements PaintScale, PublicCloneable, Serializable {
 
     /** The lower bound. */
-    private double lowerBound;
+    private final double lowerBound;
 
     /** The upper bound. */
-    private double upperBound;
+    private final double upperBound;
 
     /**
      * The alpha transparency (0-255).
      *
      * @since 1.0.13
      */
-    private int alpha;
+    private final int alpha;
 
     /**
      * Creates a new <code>GrayPaintScale</code> instance with default values.
@@ -181,8 +181,7 @@ public final class InverseGrayScale
                 + (int) (Double.doubleToLongBits(this.lowerBound) ^ (Double.doubleToLongBits(this.lowerBound) >>> 32));
         hash = 97 * hash
                 + (int) (Double.doubleToLongBits(this.upperBound) ^ (Double.doubleToLongBits(this.upperBound) >>> 32));
-        hash = 97 * hash + this.alpha;
-        return hash;
+        return  97 * hash + this.alpha;
     }
 
 
@@ -196,8 +195,8 @@ public final class InverseGrayScale
      *     instance.
      */
     @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    public InverseGrayScale clone() throws CloneNotSupportedException {
+        return (InverseGrayScale) super.clone();
     }
 
 }
