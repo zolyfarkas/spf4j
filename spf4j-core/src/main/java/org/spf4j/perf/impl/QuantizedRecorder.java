@@ -44,8 +44,7 @@ public final class QuantizedRecorder implements MeasurementProcessor {
     private final int lowerMagnitude;
     private final int higherMagnitude;
     /**
-     * (long.min - f ^ l), (f ^ l - f ^ (l+1)), ... (f ^(L-1) - f ^ L) (f^L -
-     * long.max)
+     * (long.min - f ^ l), (f ^ l - f ^ (l+1)), ... (f ^(L-1) - f ^ L) (f^L - long.max)
      *
      * f = 10 m = 0 M = 5
      *
@@ -73,7 +72,7 @@ public final class QuantizedRecorder implements MeasurementProcessor {
         if (lowerMagnitude < 0) {
             int toMagnitude = Math.min(-1, higherMagnitude);
             int toValue = -IntMath.pow(factor, -toMagnitude);
-            idx =  toMagnitude - lowerMagnitude;
+            idx = toMagnitude - lowerMagnitude;
             int j = idx;
             while (j >= 0) {
                 magnitudes[j--] = toValue;
@@ -92,16 +91,21 @@ public final class QuantizedRecorder implements MeasurementProcessor {
             magnitudes[j++] = fromValue;
             fromValue *= factor;
         }
-        
+
         final List<String> uom = new ArrayList();
-        
+
         final List<String> result = new ArrayList();
-        result.add("total"); uom.add(unitOfMeasurement);
-        result.add("count"); uom.add("count");
-        result.add("min"); uom.add(unitOfMeasurement);
-        result.add("max"); uom.add(unitOfMeasurement);
-        result.add("QNI_" + magnitudes[0]); uom.add("count");
-        
+        result.add("total");
+        uom.add(unitOfMeasurement);
+        result.add("count");
+        uom.add("count");
+        result.add("min");
+        uom.add(unitOfMeasurement);
+        result.add("max");
+        uom.add(unitOfMeasurement);
+        result.add("QNI_" + magnitudes[0]);
+        uom.add("count");
+
         if (magnitudes.length > 0) {
             long prevVal = magnitudes[0];
             for (int i = 1; i < magnitudes.length; i++) {
@@ -119,7 +123,7 @@ public final class QuantizedRecorder implements MeasurementProcessor {
             uom.add("count");
         }
         info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement,
-                result.toArray(new String [result.size()]), uom.toArray(new String [uom.size()]));
+                result.toArray(new String[result.size()]), uom.toArray(new String[uom.size()]));
 
     }
 
@@ -187,10 +191,10 @@ public final class QuantizedRecorder implements MeasurementProcessor {
         int i = 0;
         result[i++] = this.measurementTotal;
         result[i++] = this.measurementCount;
-        
+
         result[i++] = this.minMeasurement;
         result[i++] = this.maxMeasurement;
-        
+
         for (int j = 0; j < this.quatizedMeasurements.length; j++) {
             result[i++] = this.quatizedMeasurements[j];
         }
@@ -221,18 +225,18 @@ public final class QuantizedRecorder implements MeasurementProcessor {
             measurementCountM = this.measurementCount;
             measurementTotalM = this.measurementTotal;
         }
-        
-        synchronized (other) {
-            for (int i = 0; i < quantizedM.length; i++) {
-                quantizedM[i] += other.quatizedMeasurements[i];
-            }
-            return new QuantizedRecorder(info, factor, lowerMagnitude, higherMagnitude,
-                    Math.min(minMeasurementM, other.minMeasurement),
-                    Math.max(maxMeasurementM, other.maxMeasurement),
-                    measurementCountM + other.measurementCount,
-                    measurementTotalM + other.measurementTotal,
-                    quantasPerMagnitude, magnitudes, quantizedM);
+        QuantizedRecorder otherClone = (QuantizedRecorder) other.createClone(false);
+        final long[] lQuatizedMeas = otherClone.getQuatizedMeasurements();
+        for (int i = 0; i < quantizedM.length; i++) {
+
+            quantizedM[i] += lQuatizedMeas[i];
         }
+        return new QuantizedRecorder(info, factor, lowerMagnitude, higherMagnitude,
+                Math.min(minMeasurementM, otherClone.getMinMeasurement()),
+                Math.max(maxMeasurementM, otherClone.getMaxMeasurement()),
+                measurementCountM + otherClone.getMeasurementCount(),
+                measurementTotalM + otherClone.getMeasurementTotal(),
+                quantasPerMagnitude, magnitudes, quantizedM);
 
 
     }
@@ -287,8 +291,7 @@ public final class QuantizedRecorder implements MeasurementProcessor {
 
     @Override
     public synchronized EntityMeasurements createLike(final Object entity) {
-        QuantizedRecorder result = new QuantizedRecorder(entity, info.getUnitOfMeasurement(),
+        return new QuantizedRecorder(entity, info.getUnitOfMeasurement(),
                 this.factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
-        return result;
     }
 }

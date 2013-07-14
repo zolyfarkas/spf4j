@@ -221,21 +221,21 @@ public final class TimeSeriesDatabase implements Closeable {
         return pathToDatabaseFile;
     }
 
-    public JFreeChart createHeatJFreeChart(final String groupName) throws IOException {
-        TSTable info = this.getTSTable(groupName);
-        Pair<long[], long[][]> data = this.readAll(groupName);
+    public JFreeChart createHeatJFreeChart(final String tableName) throws IOException {
+        TSTable info = this.getTSTable(tableName);
+        Pair<long[], long[][]> data = this.readAll(tableName);
         return createHeatJFreeChart(data, info);
     }
 
-    public JFreeChart createMinMaxAvgJFreeChart(final String groupName) throws IOException {
-        TSTable info = this.getTSTable(groupName);
-        Pair<long[], long[][]> data = this.readAll(groupName);
+    public JFreeChart createMinMaxAvgJFreeChart(final String tableName) throws IOException {
+        TSTable info = this.getTSTable(tableName);
+        Pair<long[], long[][]> data = this.readAll(tableName);
         return createMinMaxAvgJFreeChart(data, info);
     }
 
-    public JFreeChart createCountJFreeChart(final String groupName) throws IOException {
-        TSTable info = this.getTSTable(groupName);
-        Pair<long[], long[][]> data = this.readAll(groupName);
+    public JFreeChart createCountJFreeChart(final String tableName) throws IOException {
+        TSTable info = this.getTSTable(tableName);
+        Pair<long[], long[][]> data = this.readAll(tableName);
         return createCountJFreeChart(data, info);
     }
     

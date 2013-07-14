@@ -44,12 +44,12 @@ public final class Quanta implements Comparable<Quanta>, Serializable {
         if (startStr.equals("NI")) {
             this.intervalStart = Long.MIN_VALUE;
         } else {
-            this.intervalStart = Long.valueOf(startStr);
+            this.intervalStart = Long.parseLong(startStr);
         }
         if (endStr.equals("PI")) {
             this.intervalEnd = Long.MAX_VALUE;
         } else {
-            this.intervalEnd = Long.valueOf(endStr);
+            this.intervalEnd = Long.parseLong(endStr);
         }
     }
 
@@ -92,8 +92,7 @@ public final class Quanta implements Comparable<Quanta>, Serializable {
     public int hashCode() {
         int hash = 7;
         hash = 89 * hash + (int) (this.intervalStart ^ (this.intervalStart >>> 32));
-        hash = 89 * hash + (int) (this.intervalEnd ^ (this.intervalEnd >>> 32));
-        return hash;
+        return 89 * hash + (int) (this.intervalEnd ^ (this.intervalEnd >>> 32));
     }
 
     @Override
