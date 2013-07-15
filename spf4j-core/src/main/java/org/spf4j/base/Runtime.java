@@ -37,6 +37,7 @@ public final class Runtime {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(Runtime.class);
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
     public static void goDownWithError(final Throwable t, final int exitCode) {
         try {
             LOGGER.error("Unrecoverable Error, going down", t);

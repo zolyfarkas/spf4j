@@ -77,8 +77,7 @@ public final class Method {
     public int hashCode() {
         int hash = 5;
         hash = 67 * hash + (this.declaringClass != null ? this.declaringClass.hashCode() : 0);
-        hash = 67 * hash + (this.methodName != null ? this.methodName.hashCode() : 0);
-        return hash;
+        return 67 * hash + (this.methodName != null ? this.methodName.hashCode() : 0);
     }
     
     
