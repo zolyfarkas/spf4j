@@ -73,10 +73,7 @@ public final class Sampler implements SamplerMBean {
     
     @GuardedBy("this")
     private Thread samplingThread;
-    private final String filePrefix = System.getProperty("perf.db.folder",
-            System.getProperty("java.io.tmpdir")) + File.separator
-            + System.getProperty("perf.db.name",
-            ManagementFactory.getRuntimeMXBean().getName());
+    private final String filePrefix;
 
     public Sampler() {
         this(100, 3600000, new MxStackCollector());
@@ -89,8 +86,15 @@ public final class Sampler implements SamplerMBean {
     public Sampler(final StackCollector collector) {
         this(100, 3600000, collector);
     }
-
+    
     public Sampler(final long sampleTimeMillis, final long dumpTimeMillis, final StackCollector collector) {
+        this(sampleTimeMillis, dumpTimeMillis, collector,
+                System.getProperty("perf.db.folder", System.getProperty("java.io.tmpdir")),
+                System.getProperty("perf.db.name", ManagementFactory.getRuntimeMXBean().getName()));
+    }
+
+    public Sampler(final long sampleTimeMillis, final long dumpTimeMillis, final StackCollector collector,
+            final String dumpFolder, final String dumpFilePrefix) {
         stopped = true;
         this.sampleTimeMillis = sampleTimeMillis;
         this.dumpTimeMillis = dumpTimeMillis;
@@ -101,6 +105,7 @@ public final class Sampler implements SamplerMBean {
             throw new RuntimeException(ex);
         }
         this.isJmxRegistered = false;
+        this.filePrefix = dumpFolder + File.separator + dumpFilePrefix;
     }
 
     public void registerJmx()

@@ -18,6 +18,7 @@
 package org.spf4j.stackmonitor;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
@@ -43,18 +44,32 @@ public final class Monitor {
 
         @Option(name = "-f", usage = "output to this file the perf report, format is HTML")
         private String reportOut;
+        
+        @Option(name = "-df", usage = "dump folder")
+        private String dumpFolder = System.getProperty("perf.db.folder", System.getProperty("java.io.tmpdir"));
+        
+        @Option(name = "-dp", usage = "dump file prefix")
+        private String dumpFilePrefix =
+                System.getProperty("perf.db.name", ManagementFactory.getRuntimeMXBean().getName());
+
         @Option(name = "-main", usage = "the main class name", required = true)
         private String mainClass;
+        
         @Option(name = "-si", usage = "the stack sampling interval in milliseconds")
         private int sampleInterval = 100;
+        
         @Option(name = "-di", usage = "the stack dump to file interval in milliseconds")
         private int dumpInterval = 3600000;
+        
         @Option(name = "-w", usage = "flame chart width in pixels")
         private int chartWidth = 2000;
+        
         @Option(name = "-md", usage = "maximum stack trace depth")
         private int maxDepth = Integer.MAX_VALUE;
+        
         @Option(name = "-ss", usage = "start the stack sampling thread. (can also be done manually via jmx)")
         private boolean startSampler = false;
+        
         @Option(name = "-nosvg", usage = "stack visualization will be in html format with"
                 + " html tables and not svg")
         private boolean noSvgReport = false;
@@ -101,14 +116,17 @@ public final class Monitor {
         final int maxDepth = options.maxDepth;
         final boolean svgReport = !options.noSvgReport;
 
-        final Sampler sampler = new Sampler(options.sampleInterval, options.dumpInterval, new SimpleStackCollector());
+        final Sampler sampler = new Sampler(options.sampleInterval, options.dumpInterval, new SimpleStackCollector(),
+                options.dumpFolder, options.dumpFilePrefix);
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
             public void run() {
                 try {
                     sampler.stop();
-                    generateReportAndDispose(sampler, reportOut, chartWidth, maxDepth, svgReport);
+                    if (reportOut != null) {
+                        generateReportAndDispose(sampler, reportOut, chartWidth, maxDepth, svgReport);
+                    }
                 } catch (Exception ex) {
                     LOG.error("Exception while shutting down", ex);
                 }

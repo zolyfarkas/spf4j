@@ -329,11 +329,11 @@ public final class TSDBMeasurementDatabase
 
     @Override
     public List<String> generate(final Properties props) throws IOException {
-        int width = Integer.valueOf(props.getProperty("width", "1200"));
-        int height = Integer.valueOf(props.getProperty("height", "800"));
-        long startTime = Long.valueOf(props.getProperty("startTime",
+        int width = Integer.parseInt(props.getProperty("width", "1200"));
+        int height = Integer.parseInt(props.getProperty("height", "800"));
+        long startTime = Long.parseLong(props.getProperty("startTime",
                 Long.toString(new LocalDate().withDayOfWeek(DateTimeConstants.MONDAY).toDate().getTime())));
-        long endTime = Long.valueOf(props.getProperty("endTime", Long.toString(System.currentTimeMillis())));
+        long endTime = Long.parseLong(props.getProperty("endTime", Long.toString(System.currentTimeMillis())));
         return generateCharts(startTime, endTime, width, height);
     }
 
