@@ -121,7 +121,7 @@ public final class Sampler implements SamplerMBean {
             stopped = false;
             final long stMillis = sampleTimeMillis;
 
-            final long dumpCount = dumpTimeMillis / sampleTimeMillis;
+            final long dumpCount = dumpTimeMillis / stMillis;
 
             samplingThread = new Thread(new AbstractRunnable() {
                 private long dumpCounter = 0;
