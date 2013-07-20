@@ -55,7 +55,7 @@ public final class Converter {
     
     
     
-    public static SampleNode  fromProtoToSampleNode(final ProtoSampleNodes.SampleNode node) {
+    public static SampleNode  fromProtoToSampleNode(final ProtoSampleNodes.SampleNodeOrBuilder node) {
         
         Map<Method, SampleNode> subNodes = null;
         

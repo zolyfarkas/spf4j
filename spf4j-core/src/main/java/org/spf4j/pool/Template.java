@@ -58,6 +58,8 @@ public final class Template<T, E extends Exception> {
 
     }
 
+    //findbugs does not know about supress in spf4j
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
     public static <T, E extends Exception> void doOnPooledObject(final Handler<T, E> handler,
             final ObjectPool<T> pool, final Class<E> clasz)
             throws ObjectReturnException, ObjectDisposeException, ObjectCreationException,

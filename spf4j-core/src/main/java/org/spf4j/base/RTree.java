@@ -6,6 +6,7 @@
 package org.spf4j.base;
 
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,6 +23,8 @@ import java.util.Set;
  *
  * @param <T> the type of entry to store in this RTree.
  */
+
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
 public final class RTree<T> {
 
     public enum SeedPicker {
@@ -484,7 +487,7 @@ public final class RTree<T> {
      * @param cc the children to be divided between the new nodes, one item will
      * be removed from this list.
      */
-    private Node lPickNext(final LinkedList<Node> cc) {
+    private Node lPickNext(final Deque<Node> cc) {
         return cc.pop();
     }
 

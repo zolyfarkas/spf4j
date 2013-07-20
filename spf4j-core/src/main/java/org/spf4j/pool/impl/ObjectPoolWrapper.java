@@ -55,7 +55,7 @@ public final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<Obje
     
     
     
-    
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("LEST_LOST_EXCEPTION_STACK_TRACE") 
     @Override
     public T borrowObject()
             throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
@@ -72,6 +72,8 @@ public final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<Obje
                 throw Throwables.suppress(new RuntimeException(ex), e);
             } catch (ObjectDisposeException ex) {
                  throw Throwables.suppress(new RuntimeException(ex), e);
+            } catch (RuntimeException ex) {
+                throw Throwables.suppress(new RuntimeException(ex), e);
             }
             throw new ObjectBorrowException("Exception while executing borrow hook", e);
         }

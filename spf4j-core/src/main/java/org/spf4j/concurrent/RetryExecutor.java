@@ -141,8 +141,7 @@ public class RetryExecutor<T> implements ExecutorService {
         @Override
         public int hashCode() {
             int hash = 7;
-            hash = 53 * hash + (this.callable != null ? this.callable.hashCode() : 0);
-            return hash;
+            return 53 * hash + (this.callable != null ? this.callable.hashCode() : 0);
         }
 
         
