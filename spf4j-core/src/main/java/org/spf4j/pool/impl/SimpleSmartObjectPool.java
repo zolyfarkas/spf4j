@@ -199,31 +199,43 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         return result;
     }
 
+    
     @Override
     public boolean scan(final ScanHandler<T> handler) throws Exception {
         lock.lock();
+        Exception resEx = null;
         try {
             for (ObjectBorower<T> objectBorower : borrowedObjects.keySet()) {
                 try {
                     if (!objectBorower.scan(handler)) {
                         return false;
                     }
-                } finally {
-                    Collection<T> returned = objectBorower.returnObjectsIfNotNeeded();
-                    if (returned != null) {
-                        for (T ro : returned) {
-                            if (!borrowedObjects.remove(objectBorower, ro)) {
-                                throw new IllegalStateException("Object returned hasn't been borrowed" + ro);
-                            }
-                            availableObjects.add(ro);
+                } catch (Exception e) {
+                    resEx = Throwables.suppress(e, resEx);
+                }
+
+                Collection<T> returned = objectBorower.returnObjectsIfNotNeeded();
+                if (returned != null) {
+                    for (T ro : returned) {
+                        if (!borrowedObjects.remove(objectBorower, ro)) {
+                            throw new IllegalStateException("Object returned hasn't been borrowed" + ro);
                         }
+                        availableObjects.add(ro);
                     }
                 }
+
             }
             for (T object : availableObjects) {
-                if (!handler.handle(object)) {
-                    return false;
+                try {
+                    if (!handler.handle(object)) {
+                        return false;
+                    }
+                } catch (Exception e) {
+                   resEx = Throwables.suppress(e, resEx); 
                 }
+            }
+            if (resEx != null) {
+                throw resEx;
             }
             return true;
         } finally {

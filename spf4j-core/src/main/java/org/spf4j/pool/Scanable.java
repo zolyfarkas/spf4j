@@ -24,9 +24,12 @@ package org.spf4j.pool;
 public interface Scanable<T> {
     
     /**
-     * 
+     * Scan through  objects and call handler...
+     * if handler throws exception scan is not aborted.
+     * scan is aborted only if handler returns false.
      * @param handler
-     * @return false if scan operation aborted by handler.
+     * @return
+     * @throws Exception 
      */
     boolean scan(ScanHandler<T> handler) throws Exception;
             
