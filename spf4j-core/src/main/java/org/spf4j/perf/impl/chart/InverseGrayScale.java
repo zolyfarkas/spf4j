@@ -20,6 +20,8 @@ package org.spf4j.perf.impl.chart;
 import java.awt.Color;
 import java.awt.Paint;
 import java.io.Serializable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.util.PublicCloneable;
 
@@ -195,8 +197,12 @@ public final class InverseGrayScale
      *     instance.
      */
     @Override
-    public InverseGrayScale clone() throws CloneNotSupportedException {
-        return (InverseGrayScale) super.clone();
+    public InverseGrayScale clone() {
+        try {
+            return (InverseGrayScale) super.clone();
+        } catch (CloneNotSupportedException ex) {
+           throw new RuntimeException(ex);
+        }
     }
 
 }

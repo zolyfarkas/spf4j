@@ -286,8 +286,7 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
             int hash = 7;
             hash = 89 * hash + java.util.Arrays.hashCode(this.timestamps);
             hash = 89 * hash + (int) (this.stepMillis ^ (this.stepMillis >>> 32));
-            hash = 89 * hash + (this.formatter != null ? this.formatter.hashCode() : 0);
-            return hash;
+            return 89 * hash + (this.formatter != null ? this.formatter.hashCode() : 0);
         }
 
         @Override

@@ -32,6 +32,7 @@ import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.data.time.FixedMillisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.data.xy.XYDataset;
 import org.spf4j.base.Arrays;
 import org.spf4j.base.Pair;
 
@@ -85,7 +86,7 @@ public final class Charts {
     }
  
     private static JFreeChart createJFreeChart(final String chartName, final String uom,
-            final TimeSeriesCollection timeseriescollection) {
+            final XYDataset timeseriescollection) {
         JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(chartName,
                 "Time", uom, timeseriescollection, true, true, false);
         XYPlot xyplot = (XYPlot) jfreechart.getPlot();
