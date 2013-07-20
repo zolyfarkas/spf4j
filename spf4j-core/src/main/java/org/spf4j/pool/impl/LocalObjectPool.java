@@ -78,7 +78,7 @@ public final class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<Ob
     }
 
     @Override
-    public void returnObject(final T object, final Exception e) throws ObjectReturnException, ObjectDisposeException {
+    public void returnObject(final T object, final Exception e) {
         lock.lock();
         try {
             ObjectHolder holder = borrowedObjects.remove(object);

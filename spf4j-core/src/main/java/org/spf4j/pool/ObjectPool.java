@@ -55,11 +55,8 @@ public interface ObjectPool<T> extends Disposable {
      *
      * @param object
      * @param e
-     * @throws ObjectReturnException
-     * @throws ObjectDisposeException
      */
-    void returnObject(T object, @Nullable Exception e)
-            throws ObjectReturnException, ObjectDisposeException;
+    void returnObject(T object, @Nullable Exception e);
 
     @ParametersAreNonnullByDefault
     public interface Factory<T> {

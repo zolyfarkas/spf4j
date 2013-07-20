@@ -17,6 +17,7 @@
  */
 package org.spf4j.pool.impl;
 
+import java.util.logging.Level;
 import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectDisposeException;
 import org.spf4j.pool.ObjectPool;
@@ -70,7 +71,7 @@ public final class ObjectHolder<T> {
         return obj;
     }
 
-    public synchronized void returnObject(final T object, final Exception e) throws ObjectDisposeException {
+    public synchronized void returnObject(final T object, final Exception e) {
         if (!borrowed || object != obj) {
             throw new IllegalStateException("Cannot return something that was "
                     + "not borrowed from here " + object);
@@ -78,10 +79,16 @@ public final class ObjectHolder<T> {
         borrowed = false;
         if (e != null) {
             Exception ex = safeValidate(e);
-            LOG.debug("Object {} returned with exception {} validation failed", obj, e, ex);
+            LOG.warn("Object {} returned with exception {} validation failed", obj, e, ex);
             if (ex != null) {
                 obj = null;
-                factory.dispose(object);
+                try {
+                    factory.dispose(object);
+                } catch (ObjectDisposeException ex1) {
+                    LOG.warn("Failed to dispose {}", object, ex1);
+                } catch (RuntimeException ex1) {
+                    LOG.error("Failed to dispose {}", object, ex1);
+                }
             }
         }
     }

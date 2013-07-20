@@ -27,6 +27,8 @@ import org.spf4j.pool.Scanable;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.Handler;
 
 /**
@@ -41,6 +43,8 @@ public final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<Obje
     private final Handler<T, ? extends Exception> borrowHook;
     
     private final Handler<T, ? extends Exception> returnHook;
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ObjectPoolWrapper.class);
 
     public ObjectPoolWrapper(final ObjectPool<T> pool,
             @Nullable final Handler<T, ? extends Exception> borrowHook,
@@ -68,10 +72,6 @@ public final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<Obje
         } catch (Exception e) {
             try {
                 pool.returnObject(result, e);
-            } catch (ObjectReturnException ex) {
-                throw Throwables.suppress(new RuntimeException(ex), e);
-            } catch (ObjectDisposeException ex) {
-                 throw Throwables.suppress(new RuntimeException(ex), e);
             } catch (RuntimeException ex) {
                 throw Throwables.suppress(new RuntimeException(ex), e);
             }
@@ -80,13 +80,13 @@ public final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<Obje
     }
 
     @Override
-    public void returnObject(final T object, final Exception e) throws ObjectReturnException, ObjectDisposeException {
+    public void returnObject(final T object, final Exception e) {
         try {
             if (returnHook != null) {
                 returnHook.handle(object);
             }
         } catch (Exception ex) {
-            throw new ObjectReturnException("Exception while executing return hook", e);
+            LOG.error("Error while handling object {} ", object, ex);
         } finally {
             pool.returnObject(object, e);
         }

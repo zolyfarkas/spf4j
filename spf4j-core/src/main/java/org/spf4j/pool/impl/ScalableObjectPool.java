@@ -55,7 +55,7 @@ public final class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<Obj
     }
 
     @Override
-    public void returnObject(final T object, final Exception e) throws ObjectReturnException, ObjectDisposeException {
+    public void returnObject(final T object, final Exception e) {
         localPool.get().returnObject(object, e);
     }
 

@@ -62,7 +62,7 @@ public final class Template<T, E extends Exception> {
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
     public static <T, E extends Exception> void doOnPooledObject(final Handler<T, E> handler,
             final ObjectPool<T> pool, final Class<E> clasz)
-            throws ObjectReturnException, ObjectDisposeException, ObjectCreationException,
+            throws ObjectReturnException, ObjectCreationException,
             ObjectBorrowException, InterruptedException, TimeoutException, E {
         T object = pool.borrowObject();
         try {
@@ -70,17 +70,13 @@ public final class Template<T, E extends Exception> {
         } catch (Exception e) {
             try {
                 pool.returnObject(object, e);
-            } catch (ObjectReturnException ex) {
-                throw Throwables.suppress(ex, e);
-            } catch (ObjectDisposeException ex) {
-                throw Throwables.suppress(ex, e);
             } catch (RuntimeException ex) {
                 throw Throwables.suppress(ex, e);
             }
             if (e instanceof RuntimeException) {
                 throw (RuntimeException) e;
             } else {
-                throw new RuntimeException(e);
+                throw (E) e;
             }
         }
         pool.returnObject(object, null);
