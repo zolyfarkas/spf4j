@@ -134,11 +134,12 @@ public final class ObjectPoolBuilderTest {
         RetryExecutor<Integer> exec
                 = new RetryExecutor<Integer>(execService, 8, 16, 5000, Callables.RETRY_FOR_ANY_EXCEPTION,
                  completionQueue);
-        for (int i = 0; i < 1000; i++) {
+        int nrTests = 1000;        
+        for (int i = 0; i < nrTests; i++) {
             exec.submit(new TestCallable(pool, i));
             Thread.sleep(sleepBetweenSubmit);
         }
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < nrTests; i++) {
             System.out.println("Task " + completionQueue.take().get() + " finished ");
         }
         monitor.interrupt();
