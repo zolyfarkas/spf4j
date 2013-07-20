@@ -12,7 +12,7 @@ import org.junit.Test;
  *
  * @author zoly
  */
-public class RTreeTest {
+public final class RTreeTest {
     
     /**
      * Test of search method, of class RTree.

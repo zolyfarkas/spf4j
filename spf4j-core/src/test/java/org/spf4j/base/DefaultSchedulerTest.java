@@ -6,7 +6,6 @@ package org.spf4j.base;
 
 import java.util.concurrent.ScheduledFuture;
 import org.bouncycastle.crypto.RuntimeCryptoException;
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -47,8 +46,8 @@ public final class DefaultSchedulerTest {
                 if (first) {
                     try {
                         Thread.sleep(2000);
-                    } catch (InterruptedException ex) {
-                        throw new RuntimeException(ex);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
                     first = false;
                 }
