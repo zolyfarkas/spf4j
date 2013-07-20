@@ -27,7 +27,9 @@ public final class TimeSeriesDatabaseTest {
     @Test
     public void testWriteTSDB() throws Exception {
         System.out.println("testWriteTSDB");
-        new File(FILE_NAME).delete();
+        if (new File(FILE_NAME).delete()) {
+            System.out.println("existing tsdb file deleted");
+        }
         TimeSeriesDatabase instance = new TimeSeriesDatabase(FILE_NAME, new byte[] {});
         instance.addTSTable("gr1", new byte []{}, 5, new String[]{"a", "b"}, new byte [][] {});
         instance.write(System.currentTimeMillis(), "gr1", new long[] {0, 1});

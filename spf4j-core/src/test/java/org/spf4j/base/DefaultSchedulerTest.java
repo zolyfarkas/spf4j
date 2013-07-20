@@ -5,6 +5,8 @@
 package org.spf4j.base;
 
 import java.util.concurrent.ScheduledFuture;
+import org.bouncycastle.crypto.RuntimeCryptoException;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -13,9 +15,8 @@ import org.junit.Test;
  */
 public final class DefaultSchedulerTest {
 
-    public DefaultSchedulerTest() {
-    }
-
+    
+    private volatile RuntimeException ex;
     /**
      * Test of scheduleAllignedAtFixedRateMillis method, of class DefaultScheduler.
      */
@@ -31,13 +32,18 @@ public final class DefaultSchedulerTest {
         System.out.println(100.123456789012345
                 + 0.123456789012345678
                 + 0.123456789012345678);
+        
 
         Runnable command = new Runnable() {
             private boolean first = true;
 
             @Override
             public void run() {
-                System.out.println(System.currentTimeMillis());
+                long time = System.currentTimeMillis();
+                if (!(time % 1000 < 10)) {
+                    ex = new RuntimeCryptoException("Schedule needs to be alligned");
+                }
+                System.out.println(time);
                 if (first) {
                     try {
                         Thread.sleep(2000);
@@ -49,9 +55,11 @@ public final class DefaultSchedulerTest {
             }
         };
         long millisInterval = 1000L;
-        ScheduledFuture expResult = null;
         ScheduledFuture result = DefaultScheduler.scheduleAllignedAtFixedRateMillis(command, millisInterval);
-        //assertEquals(expResult, result);
         Thread.sleep(10000);
+        result.cancel(true);
+        if (ex != null) {
+            throw ex;
+        }
     }
 }

@@ -72,6 +72,8 @@ public final class Template<T, E extends Exception> {
                 throw Throwables.suppress(ex, e);
             } catch (ObjectDisposeException ex) {
                 throw Throwables.suppress(ex, e);
+            } catch (RuntimeException ex) {
+                throw Throwables.suppress(ex, e);
             }
             if (e instanceof RuntimeException) {
                 throw (RuntimeException) e;

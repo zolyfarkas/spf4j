@@ -103,7 +103,10 @@ public final class ObjectPoolBuilderTest {
         }
     }
 
+    private volatile boolean isDeadlock = false;
+    
     private Thread startDeadlockMonitor(final long deadlockTimeout) {
+        isDeadlock = false;
         Thread monitor = new Thread(new Runnable() {
 
             @Override
@@ -112,7 +115,7 @@ public final class ObjectPoolBuilderTest {
                     Thread.sleep(deadlockTimeout);
                     ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
                     System.err.println(Arrays.toString(threadMX.dumpAllThreads(true, true)));
-                    Assert.fail("Test needs to finish in " + deadlockTimeout + " ms, Stack Traces");
+                    isDeadlock = true;
                 } catch (InterruptedException ex) {
                     // terminating monitor
                     return;
@@ -142,6 +145,9 @@ public final class ObjectPoolBuilderTest {
         monitor.join();
         Thread.sleep(100);
         Assert.assertEquals(0, completionQueue.size());
+        if (isDeadlock) {
+            Assert.fail("deadlock detected");
+        }
     }
    
   

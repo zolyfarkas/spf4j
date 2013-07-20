@@ -23,9 +23,10 @@ import java.io.Writer;
 import java.util.Map;
 
 /**
- *
+ * utility class to generate svg and html out of stack samples.
  * @author zoly
  */
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("CBX_CUSTOM_BUILT_XML")
 public final class StackVisualizer {
 
     private StackVisualizer() {
@@ -92,8 +93,8 @@ public final class StackVisualizer {
                 + "    {\n"
                 + "      svgDocument = evt.target.ownerDocument;\n"
                 + "    }\n"
-                + "    " + idPfx + "tooltip = svgDocument.getElementById('" + idPfx + "tooltip');"
-                + "" + idPfx + "tooltip_bg = svgDocument.getElementById('" + idPfx + "tooltip_bg');"
+                + "    " + idPfx + "tooltip = svgDocument.getElementById('" + idPfx + "tooltip'); "
+                + idPfx + "tooltip_bg = svgDocument.getElementById('" + idPfx + "tooltip_bg');"
                 + "  }\n"
                 + "function " + idPfx + "ss(evt, mouseovertext, xx, yy)\n"
                 + "{\n"
@@ -102,16 +103,16 @@ public final class StackVisualizer {
                 + "  " + idPfx + "tooltip.firstChild.data = mouseovertext;\n"
                 + "  " + idPfx + "tooltip.setAttributeNS(null,\"visibility\",\"visible\");\n"
                 + "length = " + idPfx + "tooltip.getComputedTextLength();\n"
-                + "" + idPfx + "tooltip_bg.setAttributeNS(null,\"width\",length+8);\n"
-                + " " + idPfx + "tooltip_bg.setAttributeNS(null,\"x\",xx);\n"
-                + "" + idPfx + "tooltip_bg.setAttributeNS(null,\"y\",yy);\n"
-                + "" + idPfx + "tooltip_bg.setAttributeNS(null,\"visibility\",\"visibile\");"
+                + idPfx + "tooltip_bg.setAttributeNS(null,\"width\",length+8);\n"
+                + idPfx + "tooltip_bg.setAttributeNS(null,\"x\",xx);\n"
+                +  idPfx + "tooltip_bg.setAttributeNS(null,\"y\",yy);\n"
+                +  idPfx + "tooltip_bg.setAttributeNS(null,\"visibility\",\"visibile\");"
                 + "}"
                 + "\n"
                 + "function " + idPfx + "hh()\n"
                 + "{\n"
                 + "  " + idPfx + "tooltip.setAttributeNS(null,\"visibility\",\"hidden\");\n"
-                + "" + idPfx + "tooltip_bg.setAttributeNS(null,\"visibility\",\"hidden\");\n"
+                + idPfx + "tooltip_bg.setAttributeNS(null,\"visibility\",\"hidden\");\n"
                 + "}"
                 + "]]>"
                 + "</script>");
