@@ -155,7 +155,7 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
 
     @Override
     public EntityMeasurements reset() {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override

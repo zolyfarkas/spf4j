@@ -238,6 +238,7 @@ public final class TSDBMeasurementDatabase
         return result;
     }
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
     public static boolean isCounterOnly(final TSTable info) {
         String[] columns = info.getColumnNames();
         return columns.length == 2 && columns[0].equals("count")

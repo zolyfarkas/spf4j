@@ -103,7 +103,7 @@ public final class ScalableMeasurementRecorderSource implements
     }
 
     @Override
-    public Map<Object, EntityMeasurements> getEntitiesMeasurements() {        
+    public Map<Object, EntityMeasurements> getEntitiesMeasurements() {
         Map<Object, EntityMeasurements> result = new HashMap<Object, EntityMeasurements>();
         
         synchronized (measurementProcessorMap) {

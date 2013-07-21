@@ -20,8 +20,6 @@ package org.spf4j.perf.impl.chart;
 import java.awt.Color;
 import java.awt.Paint;
 import java.io.Serializable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.util.PublicCloneable;
 

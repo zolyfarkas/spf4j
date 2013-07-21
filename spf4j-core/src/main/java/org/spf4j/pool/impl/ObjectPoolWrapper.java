@@ -22,7 +22,6 @@ import org.spf4j.pool.ObjectBorrowException;
 import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectDisposeException;
 import org.spf4j.pool.ObjectPool;
-import org.spf4j.pool.ObjectReturnException;
 import org.spf4j.pool.Scanable;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
@@ -59,7 +58,7 @@ public final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<Obje
     
     
     
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("LEST_LOST_EXCEPTION_STACK_TRACE") 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
     @Override
     public T borrowObject()
             throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {

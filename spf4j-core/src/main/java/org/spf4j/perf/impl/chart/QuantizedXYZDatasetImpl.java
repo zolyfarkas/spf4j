@@ -250,7 +250,8 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
         return tu;
     }
 
-
+    
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("NFF_NON_FUNCTIONAL_FIELD")
     private static class NumberTickUnitImpl extends NumberTickUnit {
 
         private static final long serialVersionUID = 0L;

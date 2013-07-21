@@ -23,7 +23,6 @@ import org.spf4j.pool.ObjectBorower;
 import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectDisposeException;
 import org.spf4j.pool.ObjectPool;
-import org.spf4j.pool.ObjectReturnException;
 import org.spf4j.pool.SmartObjectPool;
 import java.util.Collection;
 import java.util.HashMap;

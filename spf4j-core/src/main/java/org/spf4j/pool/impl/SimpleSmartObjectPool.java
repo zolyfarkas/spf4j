@@ -199,6 +199,7 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         return result;
     }
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
     @Override
     public boolean scan(final ScanHandler<T> handler) throws Exception {
         lock.lock();

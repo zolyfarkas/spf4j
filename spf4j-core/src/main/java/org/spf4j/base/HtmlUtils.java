@@ -15,12 +15,14 @@ package org.spf4j.base;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import gnu.trove.set.TCharSet;
+import gnu.trove.set.hash.TCharHashSet;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Utility class for HTML escaping. Escapes and unescapes based on the W3C HTML
- * 4.01 recommendation.
+ * Utility class for HTML escaping. Escapes and unescapes based on the W3C HTML 4.01 recommendation.
  *
  * <p>Reference:
  * <a href="http://www.w3.org/TR/html4/charset.html">
@@ -31,6 +33,7 @@ import java.util.Map;
  * @author Juergen Hoeller
  * @since 01.03.2003
  */
+@edu.umd.cs.findbugs.annotations.SuppressWarnings
 public final class HtmlUtils {
 
     private HtmlUtils() {
@@ -294,12 +297,68 @@ public final class HtmlUtils {
         ENTITIES.put("rsaquo", 8250);
         ENTITIES.put("euro", 8364);
     }
+    private static final TCharSet TO_ESCAPE = new TCharHashSet();
+
+    static {
+        TO_ESCAPE.add((char)34);
+        TO_ESCAPE.add((char) 38);
+        TO_ESCAPE.add((char) 60);
+        TO_ESCAPE.add((char) 62);
+
+        TO_ESCAPE.add((char) 376);
+        TO_ESCAPE.add((char) 402);
+        TO_ESCAPE.add((char) 710);
+        TO_ESCAPE.add((char) 732);
+        
+        TO_ESCAPE.add((char) 982);
+        TO_ESCAPE.add((char) 8201);
+        TO_ESCAPE.add((char) 8230);
+        TO_ESCAPE.add((char) 8240);
+
+
+        TO_ESCAPE.add((char) 8254);
+        TO_ESCAPE.add((char) 8260);
+        TO_ESCAPE.add((char) 8364);
+        TO_ESCAPE.add((char) 8465);
+
+        TO_ESCAPE.add((char) 8472);
+        TO_ESCAPE.add((char) 8476);
+        TO_ESCAPE.add((char) 8482);
+        TO_ESCAPE.add((char) 8501);
+        
+        TO_ESCAPE.add((char) 8629);
+        TO_ESCAPE.add((char) 8704);
+        TO_ESCAPE.add((char) 8709);
+        TO_ESCAPE.add((char) 8715);
+        TO_ESCAPE.add((char) 8719);
+
+        TO_ESCAPE.add((char) 8727);
+        TO_ESCAPE.add((char) 8730);
+        TO_ESCAPE.add((char) 8736);
+
+        TO_ESCAPE.add((char) 8756);
+        TO_ESCAPE.add((char) 8764);
+        TO_ESCAPE.add((char) 8773);
+        TO_ESCAPE.add((char) 8776);
+
+        TO_ESCAPE.add((char) 8853);
+        TO_ESCAPE.add((char) 8855);
+        TO_ESCAPE.add((char) 8869);
+        TO_ESCAPE.add((char) 8901);
+ 
+        TO_ESCAPE.add((char) 9674);
+        TO_ESCAPE.add((char) 9824);
+        TO_ESCAPE.add((char) 9827);       
+    }
+    
+    
+    
 
     /**
-     * Turn special characters into HTML character references. Handles complete
-     * character set defined in HTML 4.01 recommendation.
-     * <p>Escapes all special characters to their corresponding numerial
-     * reference in the decimal format: &#<i>Decimal</i>;
+     * Turn special characters into HTML character references. Handles complete character set defined in HTML 4.01
+     * recommendation.
+     * <p>Escapes all special characters to their corresponding numerial reference in the decimal format:
+     * &#<i>Decimal</i>;
      * <p>Reference:
      * <a href="http://www.w3.org/TR/html4/sgml/entities.html">
      * http://www.w3.org/TR/html4/sgml/entities.html
@@ -323,23 +382,12 @@ public final class HtmlUtils {
                 continue;
             }
 
-            // handle special chars
-            if (c == 34) {
+
+            if (TO_ESCAPE.contains(c)) {
                 writeDecimalReference(c, escaped);
                 continue;
             }
-            if (c == 38) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 60) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 62) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
+
             if (c >= 160 && c <= 255) {
                 writeDecimalReference(c, escaped);
                 continue;
@@ -352,22 +400,7 @@ public final class HtmlUtils {
                 writeDecimalReference(c, escaped);
                 continue;
             }
-            if (c == 376) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 402) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 710) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 732) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
+
             if (c >= 913 && c <= 929) {
                 writeDecimalReference(c, escaped);
                 continue;
@@ -384,15 +417,8 @@ public final class HtmlUtils {
                 writeDecimalReference(c, escaped);
                 continue;
             }
-            if (c == 982) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
+
             if (c >= 8194 && c <= 8195) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8201) {
                 writeDecimalReference(c, escaped);
                 continue;
             }
@@ -416,14 +442,6 @@ public final class HtmlUtils {
                 writeDecimalReference(c, escaped);
                 continue;
             }
-            if (c == 8230) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8240) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
             if (c >= 8242 && c <= 8243) {
                 writeDecimalReference(c, escaped);
                 continue;
@@ -432,43 +450,7 @@ public final class HtmlUtils {
                 writeDecimalReference(c, escaped);
                 continue;
             }
-            if (c == 8254) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8260) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8364) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8465) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8472) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8476) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8482) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8501) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
             if (c >= 8592 && c <= 8596) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8629) {
                 writeDecimalReference(c, escaped);
                 continue;
             }
@@ -476,27 +458,13 @@ public final class HtmlUtils {
                 writeDecimalReference(c, escaped);
                 continue;
             }
-            if (c == 8704) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
+
             if (c >= 8706 && c <= 8707) {
                 writeDecimalReference(c, escaped);
                 continue;
             }
-            if (c == 8709) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
+
             if (c >= 8711 && c <= 8713) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8715) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8719) {
                 writeDecimalReference(c, escaped);
                 continue;
             }
@@ -504,39 +472,11 @@ public final class HtmlUtils {
                 writeDecimalReference(c, escaped);
                 continue;
             }
-            if (c == 8727) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8730) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
             if (c >= 8733 && c <= 8734) {
                 writeDecimalReference(c, escaped);
                 continue;
             }
-            if (c == 8736) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
             if (c >= 8743 && c <= 8747) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8756) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8764) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8773) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8776) {
                 writeDecimalReference(c, escaped);
                 continue;
             }
@@ -556,22 +496,6 @@ public final class HtmlUtils {
                 writeDecimalReference(c, escaped);
                 continue;
             }
-            if (c == 8853) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8855) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8869) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 8901) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
             if (c >= 8968 && c <= 8971) {
                 writeDecimalReference(c, escaped);
                 continue;
@@ -580,19 +504,6 @@ public final class HtmlUtils {
                 writeDecimalReference(c, escaped);
                 continue;
             }
-            if (c == 9674) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 9824) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-            if (c == 9827) {
-                writeDecimalReference(c, escaped);
-                continue;
-            }
-
             // all other chars
             escaped.append(c);
         }
@@ -602,16 +513,15 @@ public final class HtmlUtils {
 
     /**
      * Turn HTML character references into their plain text UNICODE equivalent.
-     * <p>Handles complete character set defined in HTML 4.01 recommendation and
-     * all reference types (decimal, hex, and entity).
+     * <p>Handles complete character set defined in HTML 4.01 recommendation and all reference types (decimal, hex, and
+     * entity).
      * <p>Correctly converts the following formats:
      * <blockquote>
      * &amp;#<i>Decimal</i>; - <i>(Example: &amp;#68;)</i><br>
      * &amp;#x<i>Hex</i>; - <i>(Example: &amp;#xE5;) case insensitive</i><br>
      * &amp;#<i>Entity</i>; - <i>(Example: &amp;amp;) case sensitive</i>
      * </blockquote>
-     * Gracefully handles malformed character references by copying original
-     * characters as is when encountered.<p>
+     * Gracefully handles malformed character references by copying original characters as is when encountered.<p>
      * <p>Reference:
      * <a href="http://www.w3.org/TR/html4/sgml/entities.html">
      * http://www.w3.org/TR/html4/sgml/entities.html

@@ -82,6 +82,11 @@ public final class RTree<T> {
     public RTree() {
         this(50, 2, 2, SeedPicker.LINEAR);
     }
+    
+    public RTree(final int numDimensions) {
+        this(50, 2, numDimensions, SeedPicker.LINEAR);
+    }
+    
 
     /**
      * @return the maximum number of entries per node

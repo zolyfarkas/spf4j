@@ -20,7 +20,6 @@ package org.spf4j.pool.impl;
 import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectDisposeException;
 import org.spf4j.pool.ObjectPool;
-import org.spf4j.pool.ObjectReturnException;
 import org.spf4j.pool.Scanable;
 import java.util.concurrent.TimeoutException;
 

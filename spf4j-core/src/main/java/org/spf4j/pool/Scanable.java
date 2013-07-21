@@ -29,7 +29,7 @@ public interface Scanable<T> {
      * scan is aborted only if handler returns false.
      * @param handler
      * @return
-     * @throws Exception 
+     * @throws Exception
      */
     boolean scan(ScanHandler<T> handler) throws Exception;
             

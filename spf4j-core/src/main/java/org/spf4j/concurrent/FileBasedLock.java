@@ -61,7 +61,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
         jvmLock.lock();
         try {
             fileLock = file.getChannel().lock();
-            file.write(org.spf4j.base.Runtime.PROCESS_NAME.getBytes(Charsets.UTF_8));
+            writeHolderInfo();
         } catch (IOException ex) {
             jvmLock.unlock();
             throw new RuntimeException(ex);
@@ -71,6 +71,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
         }
     }
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
     @Override
     public void lockInterruptibly() throws InterruptedException {
         jvmLock.lockInterruptibly();
@@ -81,7 +82,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
                 //CHECKSTYLE:ON
                 Thread.sleep(1);
             }
-            file.write(org.spf4j.base.Runtime.PROCESS_NAME.getBytes(Charsets.UTF_8));
+            writeHolderInfo();
         } catch (IOException ex) {
             jvmLock.unlock();
             throw new RuntimeException(ex);
@@ -97,7 +98,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
             try {
                 fileLock = file.getChannel().tryLock();
                 if (fileLock != null) {
-                    file.write(org.spf4j.base.Runtime.PROCESS_NAME.getBytes(Charsets.UTF_8));
+                    writeHolderInfo();
                     return true;
                 } else {
                     return false;
@@ -114,6 +115,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
         }
     }
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
     @Override
     public boolean tryLock(final long time, final TimeUnit unit) throws InterruptedException {
         if (jvmLock.tryLock()) {
@@ -129,7 +131,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
                     waitTime++;
                 }
                 if (fileLock != null) {
-                    file.write(org.spf4j.base.Runtime.PROCESS_NAME.getBytes(Charsets.UTF_8));
+                    writeHolderInfo();
                     return true;
                 } else {
                     return false;
@@ -177,5 +179,12 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
         } finally {
             jvmLock.unlock();
         }
+    }
+
+    private void writeHolderInfo() throws IOException {
+        file.seek(0);
+        byte [] data = org.spf4j.base.Runtime.PROCESS_NAME.getBytes(Charsets.UTF_8);
+        file.write(data);
+        file.setLength(data.length);
     }
 }
