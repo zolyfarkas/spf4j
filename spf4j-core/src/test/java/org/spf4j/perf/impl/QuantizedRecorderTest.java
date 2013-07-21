@@ -79,7 +79,7 @@ public final class QuantizedRecorderTest {
         instance.record(15000);
         assertArrayEquals(new long[] {0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4}, instance.getQuatizedMeasurements());
         System.out.println(instance);
-        long[] result = instance.getMeasurements(false);
+        long[] result = instance.getMeasurements();
         System.out.println(Arrays.toString(result));
     }
   
@@ -102,7 +102,7 @@ public final class QuantizedRecorderTest {
         assertArrayEquals(new long[] {1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4},
                 instance.getQuatizedMeasurements());
         System.out.println(instance);
-        long[] result = instance.getMeasurements(false);
+        long[] result = instance.getMeasurements();
         System.out.println(Arrays.toString(result));
     }
 

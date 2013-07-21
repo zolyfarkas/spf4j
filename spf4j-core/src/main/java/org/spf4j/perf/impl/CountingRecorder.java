@@ -26,18 +26,17 @@ import org.spf4j.perf.MeasurementProcessor;
  * @author zoly
  */
 public final class CountingRecorder
-    implements MeasurementProcessor {
+        implements MeasurementProcessor {
 
     private long counter;
     private long total;
     private final EntityMeasurementsInfo info;
-    
-    private static final String [] MEASUREMENTS = {"count", "total"};
-    
+    private static final String[] MEASUREMENTS = {"count", "total"};
+
     private CountingRecorder(final Object measuredEntity, final String unitOfMeasurement,
             final long counter, final long total) {
         this.info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement,
-                MEASUREMENTS, new String [] {"count", unitOfMeasurement});
+                MEASUREMENTS, new String[]{"count", unitOfMeasurement});
         this.counter = counter;
         this.total = total;
     }
@@ -45,9 +44,7 @@ public final class CountingRecorder
     public CountingRecorder(final Object measuredEntity, final String unitOfMeasurement) {
         this(measuredEntity, unitOfMeasurement, 0, 0);
     }
-    
-    
-    
+
     @Override
     public synchronized void record(final long measurement) {
         total += measurement;
@@ -55,19 +52,15 @@ public final class CountingRecorder
     }
 
     @Override
-    public synchronized long[] getMeasurements(final boolean reset) {
-        long[] result = new long[] {counter, total};
-        if (reset) {
-            counter = 0;
-            total = 0;
-        }
-        return result;
+    public synchronized long[] getMeasurements() {
+        return new long[]{counter, total};
     }
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
     @Override
     public EntityMeasurements aggregate(final EntityMeasurements mSource) {
         CountingRecorder other = (CountingRecorder) mSource;
-        long [] measurements = other.getMeasurements(false);
+        long[] measurements = other.getMeasurements();
         synchronized (this) {
             return new CountingRecorder(this.info.getMeasuredEntity(), this.info.getUnitOfMeasurement(),
                     counter + measurements[0], total + measurements[1]);
@@ -75,23 +68,31 @@ public final class CountingRecorder
     }
 
     @Override
-    public synchronized EntityMeasurements createClone(final boolean reset) {
-        CountingRecorder result = new CountingRecorder(this.info.getMeasuredEntity(),
+    public synchronized CountingRecorder createClone() {
+        return new CountingRecorder(this.info.getMeasuredEntity(),
                 this.info.getUnitOfMeasurement(), counter, total);
-        if (reset) {
-            counter = 0;
-            total = 0;
-        }
-        return result;
     }
 
     @Override
-    public EntityMeasurements createLike(final Object entity) {
+    public CountingRecorder createLike(final Object entity) {
         return new CountingRecorder(entity, this.info.getUnitOfMeasurement());
     }
 
     @Override
     public EntityMeasurementsInfo getInfo() {
         return info;
+    }
+
+    @Override
+    public synchronized EntityMeasurements reset() {
+        EntityMeasurements result = this.createClone();
+        counter = 0;
+        total = 0;
+        return result;
+    }
+
+    @Override
+    public long[] getMeasurementsAndReset() {
+        return reset().getMeasurements();
     }
 }

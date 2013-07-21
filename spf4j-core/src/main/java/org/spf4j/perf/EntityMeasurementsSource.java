@@ -25,6 +25,8 @@ import java.util.Map;
  */
 public interface EntityMeasurementsSource {
  
-    Map<Object, EntityMeasurements> getEntitiesMeasurements(boolean reset);
+    Map<Object, EntityMeasurements> getEntitiesMeasurements();
+    
+     Map<Object, EntityMeasurements> getEntitiesMeasurementsAndReset();
 
 }

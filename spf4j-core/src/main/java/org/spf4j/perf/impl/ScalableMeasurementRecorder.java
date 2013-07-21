@@ -57,7 +57,7 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
 
             @Override
             protected MeasurementProcessor initialValue() {
-                MeasurementProcessor result = (MeasurementProcessor) processor.createClone(false);
+                MeasurementProcessor result = (MeasurementProcessor) processor.createClone();
                 synchronized (threadLocalRecorders) {
                     threadLocalRecorders.put(Thread.currentThread(), result);
                 }
@@ -78,7 +78,7 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
                 if (currentTime > lastRun) {
                     lastRun = currentTime;
                     database.saveMeasurements(ScalableMeasurementRecorder.this.getInfo(),
-                            ScalableMeasurementRecorder.this.getMeasurements(true),
+                            ScalableMeasurementRecorder.this.getMeasurementsAndReset(),
                             currentTime, sampleTimeMillis);
                 } else {
                     LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
@@ -96,27 +96,19 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
     }
 
     @Override
-    public long [] getMeasurements(final boolean reset) {
+    public long [] getMeasurements() {
         EntityMeasurements result  = null;
         synchronized (threadLocalRecorders) {
-            List<Thread> removeThreads = new ArrayList<Thread>();
             for (Map.Entry<Thread, MeasurementProcessor> entry : threadLocalRecorders.entrySet()) {
-                Thread t = entry.getKey();
-                if (!t.isAlive() && reset) {
-                    removeThreads.add(t);
-                }
-                EntityMeasurements measurements = entry.getValue().createClone(reset);
+                EntityMeasurements measurements = entry.getValue().createClone();
                 if (result == null) {
                     result = measurements;
                 } else {
                     result = result.aggregate(measurements);
                 }
             }
-            for (Thread t : removeThreads) {
-                threadLocalRecorders.remove(t);
-            }
         }
-        return (result == null) ? processorTemplate.getMeasurements(false) : result.getMeasurements(false);
+        return (result == null) ? processorTemplate.getMeasurements() : result.getMeasurements();
     }
 
     @Override
@@ -127,7 +119,7 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
 
 
     @Override
-    public EntityMeasurements createClone(final boolean reset) {
+    public EntityMeasurements createClone() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -161,7 +153,33 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
         return processorTemplate.getInfo();
     }
 
-    
-    
+    @Override
+    public EntityMeasurements reset() {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
+
+    @Override
+    public long[] getMeasurementsAndReset() {
+        EntityMeasurements result  = null;
+        synchronized (threadLocalRecorders) {
+            List<Thread> removeThreads = new ArrayList<Thread>();
+            for (Map.Entry<Thread, MeasurementProcessor> entry : threadLocalRecorders.entrySet()) {
+                Thread t = entry.getKey();
+                if (!t.isAlive()) {
+                    removeThreads.add(t);
+                }
+                EntityMeasurements measurements = entry.getValue().reset();
+                if (result == null) {
+                    result = measurements;
+                } else {
+                    result = result.aggregate(measurements);
+                }
+            }
+            for (Thread t : removeThreads) {
+                threadLocalRecorders.remove(t);
+            }
+        }
+        return (result == null) ? processorTemplate.getMeasurements() : result.getMeasurements();
+    }
     
 }

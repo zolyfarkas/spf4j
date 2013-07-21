@@ -30,13 +30,23 @@ import javax.annotation.Nonnull;
 public interface EntityMeasurements {
     
     @Nonnull
-    long [] getMeasurements(boolean reset);
+    long [] getMeasurements();
+    
+    @Nonnull
+    long [] getMeasurementsAndReset();
     
     @Nonnull
     EntityMeasurements  aggregate(@Nonnull EntityMeasurements mSource);
     
     @Nonnull
-    EntityMeasurements createClone(boolean reset);
+    EntityMeasurements createClone();
+  
+    /**
+     * reset this entity.
+     * @return a clone of the object prior to reset.
+     */
+    @Nonnull
+    EntityMeasurements reset();
     
     @Nonnull
     EntityMeasurements createLike(Object entity);

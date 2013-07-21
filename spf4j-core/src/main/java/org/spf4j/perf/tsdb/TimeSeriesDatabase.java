@@ -279,6 +279,10 @@ public final class TimeSeriesDatabase implements Closeable {
                 new String[]{"count"}, "count", new double[][]{count});
     }
     
+    public byte [] getMetaData() {
+        return header.getMetaData().clone();
+    }
+    
     
     @Override
     public String toString() {

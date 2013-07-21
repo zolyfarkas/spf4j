@@ -199,7 +199,6 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         return result;
     }
 
-    
     @Override
     public boolean scan(final ScanHandler<T> handler) throws Exception {
         lock.lock();
@@ -211,7 +210,11 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                         return false;
                     }
                 } catch (Exception e) {
-                    resEx = Throwables.suppress(e, resEx);
+                    if (resEx == null) {
+                        resEx = e;
+                    } else {
+                        resEx = Throwables.suppress(e, resEx);
+                    }
                 }
 
                 Collection<T> returned = objectBorower.returnObjectsIfNotNeeded();
@@ -231,7 +234,11 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                         return false;
                     }
                 } catch (Exception e) {
-                   resEx = Throwables.suppress(e, resEx); 
+                    if (resEx == null) {
+                        resEx = e;
+                    } else {
+                        resEx = Throwables.suppress(e, resEx);
+                    }
                 }
             }
             if (resEx != null) {

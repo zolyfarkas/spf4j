@@ -65,18 +65,15 @@ public final class MinMaxAvgRecorder
     }
 
     @Override
-    public synchronized long[] getMeasurements(final boolean reset) {
-        long[] result = new long[] {counter, total, min, max};
-        if (reset) {
-            reset();
-        }
-        return result;
+    public synchronized long[] getMeasurements() {
+        return new long[] {counter, total, min, max};
     }
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
     @Override
     public EntityMeasurements aggregate(final EntityMeasurements mSource) {
         MinMaxAvgRecorder other = (MinMaxAvgRecorder) mSource;
-        long [] measurements = other.getMeasurements(false);
+        long [] measurements = other.getMeasurements();
         synchronized (this) {
             return new MinMaxAvgRecorder(this.info.getMeasuredEntity(), this.info.getUnitOfMeasurement(),
                 counter + measurements[0], total + measurements[1],
@@ -85,13 +82,9 @@ public final class MinMaxAvgRecorder
     }
 
     @Override
-    public synchronized EntityMeasurements createClone(final boolean reset) {
-        MinMaxAvgRecorder result = new MinMaxAvgRecorder(this.info.getMeasuredEntity(),
+    public synchronized MinMaxAvgRecorder createClone() {
+        return new MinMaxAvgRecorder(this.info.getMeasuredEntity(),
                 this.info.getUnitOfMeasurement(), counter, total , min, max);
-        if (reset) {
-            reset();
-        }
-        return result;
     }
 
     @Override
@@ -104,10 +97,18 @@ public final class MinMaxAvgRecorder
         return info;
     }
 
-    private void reset() {
+    @Override
+    public synchronized MinMaxAvgRecorder reset() {
+        MinMaxAvgRecorder result = createClone();
         counter = 0;
         total = 0;
         min = Long.MAX_VALUE;
         max = Long.MIN_VALUE;
+        return result;
+    }
+
+    @Override
+    public long[] getMeasurementsAndReset() {
+        return reset().getMeasurements();
     }
 }

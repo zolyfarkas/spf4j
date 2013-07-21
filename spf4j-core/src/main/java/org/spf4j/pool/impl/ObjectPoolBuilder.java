@@ -87,11 +87,12 @@ public final class ObjectPoolBuilder<T, E extends Exception> {
     public ObjectPool<T> build() throws ObjectCreationException {
         final ScalableObjectPool<T> underlyingPool =
                 new ScalableObjectPool<T>(initialSize, maxSize, factory, timeoutMillis, fair);
-        ObjectPool<T> pool = underlyingPool;
+        final ObjectPool<T> pool;
         if (borrowHook != null || returnHook != null) {
-            pool = new ObjectPoolWrapper<T>(pool, borrowHook, returnHook);
+            pool = new ObjectPoolWrapper<T>(underlyingPool, borrowHook, returnHook);
+        } else {
+            pool = underlyingPool;
         }
-        final Scanable<ObjectHolder<T>> scanable = (Scanable<ObjectHolder<T>>) pool;
         if (maintenanceExecutor != null) {
             maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnable(true) {
                 @Override
@@ -99,7 +100,7 @@ public final class ObjectPoolBuilder<T, E extends Exception> {
                         if (ObjectPoolBuilder.this.collectBorrowed) {
                             underlyingPool.requestReturnFromBorrowersIfNotInUse();
                         }
-                        scanable.scan(new Scanable.ScanHandler<ObjectHolder<T>>() {
+                        ((Scanable<ObjectHolder<T>>) pool).scan(new Scanable.ScanHandler<ObjectHolder<T>>() {
                             @Override
                             public boolean handle(final ObjectHolder<T> object) throws ObjectDisposeException {
                                 object.validateObjectIfNotBorrowed();

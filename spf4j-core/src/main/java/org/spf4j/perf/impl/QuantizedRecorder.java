@@ -179,14 +179,11 @@ public final class QuantizedRecorder implements MeasurementProcessor {
             if (i == magnitudes.length) {
                 quatizedMeasurements[quatizedMeasurements.length - 1]++;
             }
-
-
         }
-
     }
 
     @Override
-    public synchronized long[] getMeasurements(final boolean reset) {
+    public synchronized long[] getMeasurements() {
         long[] result = new long[info.getNumberOfMeasurements()];
         int i = 0;
         result[i++] = this.measurementTotal;
@@ -197,9 +194,6 @@ public final class QuantizedRecorder implements MeasurementProcessor {
 
         for (int j = 0; j < this.quatizedMeasurements.length; j++) {
             result[i++] = this.quatizedMeasurements[j];
-        }
-        if (reset) {
-            reset();
         }
         return result;
     }
@@ -225,7 +219,7 @@ public final class QuantizedRecorder implements MeasurementProcessor {
             measurementCountM = this.measurementCount;
             measurementTotalM = this.measurementTotal;
         }
-        QuantizedRecorder otherClone = (QuantizedRecorder) other.createClone(false);
+        QuantizedRecorder otherClone =  other.createClone();
         final long[] lQuatizedMeas = otherClone.getQuatizedMeasurements();
         for (int i = 0; i < quantizedM.length; i++) {
 
@@ -242,26 +236,25 @@ public final class QuantizedRecorder implements MeasurementProcessor {
     }
 
     @Override
-    public synchronized MeasurementProcessor createClone(final boolean reset) {
-        QuantizedRecorder result = new QuantizedRecorder(info, factor, lowerMagnitude, higherMagnitude,
+    public synchronized QuantizedRecorder createClone() {
+        return new QuantizedRecorder(info, factor, lowerMagnitude, higherMagnitude,
                 minMeasurement, maxMeasurement, measurementCount, measurementTotal,
                 quantasPerMagnitude, magnitudes, quatizedMeasurements.clone());
-        if (reset) {
-            reset();
-        }
-        return result;
     }
 
-    private void reset() {
+    @Override
+    public synchronized QuantizedRecorder reset() {
+        QuantizedRecorder result = createClone();
         this.minMeasurement = Long.MAX_VALUE;
         this.maxMeasurement = Long.MIN_VALUE;
         this.measurementCount = 0;
         this.measurementTotal = 0;
         Arrays.fill(this.quatizedMeasurements, 0L);
+        return result;
     }
 
     @Override
-    public String toString() {
+    public synchronized String toString() {
         return "QuantizedRecorder{" + "info=" + info + ", minMeasurement=" + minMeasurement + ", maxMeasurement="
                 + maxMeasurement + ", measurementCount=" + measurementCount + ", measurementTotal="
                 + measurementTotal + ", quantasPerMagnitude=" + quantasPerMagnitude + ", magnitudes="
@@ -293,5 +286,10 @@ public final class QuantizedRecorder implements MeasurementProcessor {
     public synchronized EntityMeasurements createLike(final Object entity) {
         return new QuantizedRecorder(entity, info.getUnitOfMeasurement(),
                 this.factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
+    }
+
+    @Override
+    public long[] getMeasurementsAndReset() {
+        return reset().getMeasurements();
     }
 }

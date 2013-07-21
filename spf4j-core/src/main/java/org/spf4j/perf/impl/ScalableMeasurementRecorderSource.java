@@ -39,7 +39,7 @@ import org.spf4j.perf.MeasurementRecorderSource;
 public final class ScalableMeasurementRecorderSource implements
         MeasurementRecorderSource, EntityMeasurementsSource, Closeable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorderSource.class);
 
     
     private final Map<Thread, Map<Object, MeasurementProcessor>> measurementProcessorMap;
@@ -76,8 +76,9 @@ public final class ScalableMeasurementRecorderSource implements
                 if (currentTime > lastRun) {
                     lastRun = currentTime;
                     for (EntityMeasurements m
-                            : ScalableMeasurementRecorderSource.this.getEntitiesMeasurements(true).values()) {
-                        database.saveMeasurements(m.getInfo(), m.getMeasurements(true), currentTime, sampleTimeMillis);
+                            : ScalableMeasurementRecorderSource.this.getEntitiesMeasurementsAndReset().values()) {
+                        database.saveMeasurements(
+                                m.getInfo(), m.getMeasurementsAndReset(), currentTime, sampleTimeMillis);
                     }
                 } else {
                     LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
@@ -102,8 +103,7 @@ public final class ScalableMeasurementRecorderSource implements
     }
 
     @Override
-    public Map<Object, EntityMeasurements> getEntitiesMeasurements(final boolean reset) {
-        
+    public Map<Object, EntityMeasurements> getEntitiesMeasurements() {        
         Map<Object, EntityMeasurements> result = new HashMap<Object, EntityMeasurements>();
         
         synchronized (measurementProcessorMap) {
@@ -116,9 +116,9 @@ public final class ScalableMeasurementRecorderSource implements
                         Object what = lentry.getKey();
                         EntityMeasurements existingMeasurement = result.get(what);
                         if (existingMeasurement == null) {
-                            existingMeasurement = lentry.getValue().createClone(reset);
+                            existingMeasurement = lentry.getValue().createClone();
                         } else {
-                            existingMeasurement = existingMeasurement.aggregate(lentry.getValue().createClone(reset));
+                            existingMeasurement = existingMeasurement.aggregate(lentry.getValue().createClone());
                         }
                         result.put(what, existingMeasurement);
                     }
@@ -126,9 +126,35 @@ public final class ScalableMeasurementRecorderSource implements
             }
         }
         return result;
-        
-        
     }
+
+    @Override
+    public Map<Object, EntityMeasurements> getEntitiesMeasurementsAndReset() {
+        Map<Object, EntityMeasurements> result = new HashMap<Object, EntityMeasurements>();
+        
+        synchronized (measurementProcessorMap) {
+            for (Map.Entry<Thread, Map<Object, MeasurementProcessor>> entry : measurementProcessorMap.entrySet()) {
+                
+                Map<Object, MeasurementProcessor> measurements = entry.getValue();
+                synchronized (measurements) {
+                    for (Map.Entry<Object, MeasurementProcessor> lentry : measurements.entrySet()) {
+
+                        Object what = lentry.getKey();
+                        EntityMeasurements existingMeasurement = result.get(what);
+                        if (existingMeasurement == null) {
+                            existingMeasurement = lentry.getValue().reset();
+                        } else {
+                            existingMeasurement = existingMeasurement.aggregate(lentry.getValue().reset());
+                        }
+                        result.put(what, existingMeasurement);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+    
+    
     
     @Override
     public void close() {
