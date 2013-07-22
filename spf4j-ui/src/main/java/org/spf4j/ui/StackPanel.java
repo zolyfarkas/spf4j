@@ -48,6 +48,7 @@ import org.spf4j.stackmonitor.SampleNode;
  *
  * @author zoly
  */
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("FCBL_FIELD_COULD_BE_LOCAL")
 public final class StackPanel extends JPanel
         implements ActionListener, MouseListener {
 
@@ -66,8 +67,8 @@ public final class StackPanel extends JPanel
     }
 
     
-    
-    
+    // disable finbugs since I don't care about internationalization for now.
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings
     private JPopupMenu buildPopupMenu() {
         JPopupMenu result = new JPopupMenu("Actions");
         JMenuItem filter = new JMenuItem("Filter");
