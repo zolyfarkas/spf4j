@@ -3,7 +3,7 @@
  * LGPL License details here: http://www.gnu.org/licenses/lgpl-3.0.txt
  * 
  */
-package org.spf4j.base;
+package org.spf4j.ds;
 
 import java.util.Arrays;
 import java.util.Deque;

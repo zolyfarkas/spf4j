@@ -4,6 +4,7 @@
  */
 package org.spf4j.base;
 
+import org.spf4j.ds.RTree;
 import java.util.List;
 import junit.framework.Assert;
 import org.junit.Test;

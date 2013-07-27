@@ -48,7 +48,7 @@ import org.spf4j.stackmonitor.SampleNode;
  *
  * @author zoly
  */
-public final class StackPanel extends JPanel
+public final class StackPanelPro extends JPanel
         implements ActionListener, MouseListener {
 
     private SampleNode samples;
@@ -57,7 +57,7 @@ public final class StackPanel extends JPanel
     private int xx;
     private int yy;
 
-    public StackPanel(final SampleNode samples) {
+    public StackPanelPro(final SampleNode samples) {
         this.samples = samples;
         setPreferredSize(new Dimension(400, 20 * samples.height() + 10));
         ToolTipManager.sharedInstance().registerComponent(this);
