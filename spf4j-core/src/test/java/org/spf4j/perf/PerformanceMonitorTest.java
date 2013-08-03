@@ -20,7 +20,6 @@ package org.spf4j.perf;
 import java.util.concurrent.Callable;
 import org.junit.Assert;
 import org.junit.Test;
-import org.spf4j.perf.annotations.RecorderSourceInstance;
 
 /**
  *
@@ -32,7 +31,7 @@ public final class PerformanceMonitorTest {
 
     @Test
     public void testSomeMethod() throws Exception {
-        String result = PerformanceMonitor.callAndMonitor(RecorderSourceInstance.RsNop.INSTANCE,
+        String result = PerformanceMonitor.callAndMonitor(
                 1, 2, new Callable<String>() {
 
             @Override
@@ -41,7 +40,13 @@ public final class PerformanceMonitorTest {
                 Thread.sleep(3);
                 return "test";
             }
-        }, "test callable");
+
+            @Override
+            public String toString() {
+                return "test";
+            }
+            
+        });
         Assert.assertEquals("test", result);
     }
 }
