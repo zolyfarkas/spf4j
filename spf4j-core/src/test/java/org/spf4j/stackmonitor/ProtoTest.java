@@ -25,6 +25,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Map;
+import java.util.Set;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
@@ -32,6 +34,8 @@ import javax.management.NotCompliantMBeanException;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.spf4j.ds.DepthFirstTraversal;
+import org.spf4j.ds.Graph;
 import org.spf4j.stackmonitor.proto.Converter;
 import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
 
@@ -79,16 +83,23 @@ public final class ProtoTest {
         FileInputStream fis = new FileInputStream(serializedFile);
         try {
             final CodedInputStream is = CodedInputStream.newInstance(fis);
-            is.setRecursionLimit(1024);
+            is.setRecursionLimit(Short.MAX_VALUE);
+            final SampleNode samples = Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));
             anotherOne.getStackCollector().applyOnSamples(new Function<SampleNode, SampleNode>() {
                 @Override
                 public SampleNode apply(final SampleNode f) {
-                    try {
-                        return Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
+                    return samples;
                 }
+            });
+            Graph<Method, SampleNode.InvocationCount> graph = SampleNode.toGraph(samples);
+            DepthFirstTraversal.traverse(graph, Method.ROOT,
+                    new DepthFirstTraversal.TraversalCallback<Method, SampleNode.InvocationCount>() {
+
+                @Override
+                public void handle(final Method vertex, final Map<SampleNode.InvocationCount, Method> edges) {
+                    System.out.println("Method: " + vertex + " from " + edges );
+                }
+                
             });
         } finally {
             fis.close();
