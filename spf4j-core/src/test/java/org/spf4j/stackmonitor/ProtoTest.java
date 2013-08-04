@@ -34,7 +34,7 @@ import javax.management.NotCompliantMBeanException;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.spf4j.ds.DepthFirstTraversal;
+import org.spf4j.ds.CustomDepthFirstTraversal;
 import org.spf4j.ds.Graph;
 import org.spf4j.stackmonitor.proto.Converter;
 import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
@@ -92,8 +92,8 @@ public final class ProtoTest {
                 }
             });
             Graph<Method, SampleNode.InvocationCount> graph = SampleNode.toGraph(samples);
-            DepthFirstTraversal.traverse(graph, Method.ROOT,
-                    new DepthFirstTraversal.TraversalCallback<Method, SampleNode.InvocationCount>() {
+            CustomDepthFirstTraversal.traverse(graph, Method.ROOT,
+                    new CustomDepthFirstTraversal.TraversalCallback<Method, SampleNode.InvocationCount>() {
 
                 @Override
                 public void handle(final Method vertex, final Map<SampleNode.InvocationCount, Method> edges) {

@@ -19,19 +19,24 @@ package org.spf4j.stackmonitor;
 
 import com.google.common.base.Predicate;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.ds.Graph;
+import org.spf4j.ds.HashMapGraph;
+import org.spf4j.ds.VertexEdges;
 
 /**
  * @author zoly
  */
 @ParametersAreNonnullByDefault
 public final class SampleNode {
-    
+
     private int sampleCount;
     private Map<Method, SampleNode> subNodes;
-    
+
     public SampleNode(final StackTraceElement[] stackTrace, final int from) {
         sampleCount = 1;
         if (from >= 0) {
@@ -44,9 +49,7 @@ public final class SampleNode {
         this.sampleCount = count;
         this.subNodes = subNodes;
     }
-    
-    
-    
+
     public int addSample(final StackTraceElement[] stackTrace, final int from) {
         sampleCount++;
         if (from >= 0) {
@@ -80,7 +83,7 @@ public final class SampleNode {
     public String toString() {
         return "SampleNode{" + "count=" + sampleCount + ", subNodes=" + subNodes + '}';
     }
-    
+
     public int height() {
         if (subNodes == null) {
             return 1;
@@ -94,20 +97,20 @@ public final class SampleNode {
             }
             return subHeight + 1;
         }
-            
+
     }
-    
+
     @Nullable
     public SampleNode filteredBy(final Predicate<Method> predicate) {
-        
+
         int newCount = this.sampleCount;
-        
+
         Map<Method, SampleNode> sns = null;
         if (this.subNodes != null) {
-            for (Map.Entry<Method, SampleNode> entry :  this.subNodes.entrySet()) {
+            for (Map.Entry<Method, SampleNode> entry : this.subNodes.entrySet()) {
                 Method method = entry.getKey();
                 SampleNode sn = entry.getValue();
-                if (predicate.apply(method))  {
+                if (predicate.apply(method)) {
                     newCount -= sn.getSampleCount();
                 } else {
                     if (sns == null) {
@@ -120,18 +123,87 @@ public final class SampleNode {
                         newCount -= sn.getSampleCount() - sn2.getSampleCount();
                         sns.put(method, sn2);
                     }
-                    
+
                 }
             }
         }
         if (newCount == 0) {
             return null;
-        } else if  (newCount < 0) {
+        } else if (newCount < 0) {
             throw new IllegalStateException("child sample counts must be <= parent sample count, detail: " + this);
         } else {
             return new SampleNode(newCount, sns);
         }
     }
-    
-    
+
+    public interface InvocationHandler {
+
+        void handle(Method from, Method to, int count, Set<Method> ancestors);
+    }
+
+    public void forEach(final InvocationHandler handler, final Method from,
+            final Method to, final Set<Method> ancestors) {
+        handler.handle(from, to, sampleCount, ancestors);
+        if (subNodes != null) {
+            ancestors.add(from);
+            for (Map.Entry<Method, SampleNode> subs : subNodes.entrySet()) {
+                subs.getValue().forEach(handler, to, subs.getKey(), ancestors);
+            }
+            ancestors.remove(from);
+        }
+    }
+
+    public static final class InvocationCount {
+
+        private int value;
+
+        public InvocationCount(final int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public void setValue(final int value) {
+            this.value = value;
+        }
+ 
+        @Override
+        public String toString() {
+            return "InvocationCount{" + "value=" + value + '}';
+        }
+    }
+
+    public static Graph<Method, InvocationCount> toGraph(final SampleNode rootNode) {
+        final HashMapGraph<Method, InvocationCount> result = new HashMapGraph<Method, InvocationCount>();
+
+        rootNode.forEach(new InvocationHandler() {
+            @Override
+            public void handle(final Method from, final Method to, final int count, final Set<Method> ancestors) {
+            
+                if(from.equals(to) || ancestors.contains(to)) {
+                    //recursive ivocations will not be added to the graph for now...
+                    return;
+                }
+                    
+                VertexEdges<Method, InvocationCount> edges = result.getEdges(from);
+                if (edges != null) {
+                    // If same invocation exists, count will be incremented.
+                    Map<InvocationCount, Method> outgoing = edges.getOutgoing();
+                    for (Map.Entry<InvocationCount, Method> entry : outgoing.entrySet()) {
+                        if (entry.getValue().equals(to)) {
+                            InvocationCount exic = entry.getKey();
+                            exic.setValue(exic.getValue() + count);
+                            return;
+                        }
+                    }
+                }
+                result.add(new InvocationCount(count), from, to);
+            }
+        }, Method.ROOT, Method.ROOT, new HashSet<Method>());
+
+        return result;
+
+    }
 }
