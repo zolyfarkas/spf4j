@@ -17,6 +17,7 @@
  */
 package org.spf4j.ui;
 
+import com.google.common.base.Predicate;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -61,10 +62,12 @@ public final class StackPanelPro extends JPanel
     private JPopupMenu menu;
     private int xx;
     private int yy;
+    private SampleNode samples;
 
     public StackPanelPro(final SampleNode samples) {
-        graph = null;
+        this.samples = samples;
         completeGraph = SampleNode.toGraph(samples);
+        graph = null;
         setPreferredSize(new Dimension(400, 20 * samples.height() + 10));
         ToolTipManager.sharedInstance().registerComponent(this);
         menu = buildPopupMenu();
@@ -273,8 +276,15 @@ public final class StackPanelPro extends JPanel
         if (e.getActionCommand().equals("FILTER")) {
             List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{xx, yy}, new float[]{0, 0});
             if (tips.size() >= 1) {
-                final Method value = tips.get(0).getFirst();
-                graph.remove(value);
+                final Method value = tips.get(0).getFirst().withId(0);
+                samples = samples.filteredBy(new Predicate<Method>() {
+
+                    @Override
+                    public boolean apply(final Method t) {
+                        return t.equals(value);
+                    }
+                });
+                this.completeGraph = SampleNode.toGraph(samples);
                 repaint();
             }
         }
