@@ -35,7 +35,13 @@ public final class HashMapGraph<V, E> implements Graph<V, E> {
         edgeNodes = new HashMap<E, Pair<V, V>>();
         vertices = new HashMap<V, VertexEdges>();
     }
-    
+
+    private HashMapGraph(final Map<E, Pair<V, V>> edgeNodes,
+            final Map<V, VertexEdges> vertices) {
+        this.edgeNodes = edgeNodes;
+        this.vertices = vertices;
+    }
+       
     public void add(final V vertex) {
         if (!vertices.containsKey(vertex)) {
             vertices.put(vertex, null);
@@ -74,5 +80,41 @@ public final class HashMapGraph<V, E> implements Graph<V, E> {
     public Set<V> getVertices() {
         return vertices.keySet();
     }
+
+    @Override
+    public void remove(final V vertice) {
+        VertexEdges<V, E> remove = vertices.remove(vertice);
+        if (remove == null) {
+            return;
+        }
+        for (E edge : remove.getIncomming().keySet()) {
+            V fromVertex = edgeNodes.remove(edge).getFirst();
+            vertices.get(fromVertex).getOutgoing().remove(edge);
+            
+        }
+        for (E edge : remove.getOutgoing().keySet()) {
+            V toVertex = edgeNodes.remove(edge).getSecond();
+            vertices.get(toVertex).getIncomming().remove(edge);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "HashMapGraph{" + "edgeNodes=" + edgeNodes + ", vertices=" + vertices + '}';
+    }
+
+    @Override
+    public Graph<V, E> copy() {
+        HashMap<V, VertexEdges> hashMap = new HashMap<V, VertexEdges>(vertices);
+        for (Map.Entry<V, VertexEdges> entry : hashMap.entrySet()) {
+            V v = entry.getKey();
+            VertexEdges vertexEdges = entry.getValue();
+            hashMap.put(v, vertexEdges.copy());
+        }
+        return new HashMapGraph<V, E>(new HashMap<E, Pair<V, V>>(edgeNodes),
+                hashMap);
+    }
+    
+    
     
 }

@@ -123,14 +123,7 @@ public final class StackPanel extends JPanel
         int y = py;
         int sampleCount = node.getSampleCount();
         String val = method.toString() + "-" + sampleCount;
-
-        if (depth % 2 == 0) {
-            g2.setPaint(Color.YELLOW);
-            g2.setBackground(Color.YELLOW);
-        } else {
-            g2.setPaint(Color.ORANGE);
-            g2.setBackground(Color.ORANGE);
-        }
+        setElementColor(depth, g2);
         g2.setClip(x, y, width, height);
         g2.fillRect(x, y, width, height);
         tooltipDetail.insert(new float[]{x, y}, new float[]{width, height}, Pair.of(method, sampleCount));
@@ -148,8 +141,10 @@ public final class StackPanel extends JPanel
                 // sampleCount -> width
                 // childSampleCount -> childWidth
                 int childWidth = (int) (scale * cnode.getSampleCount());
-                maxY = Math.max(maxY, paintNode(entry.getKey(), cnode, g2, relX, y, childWidth, height, depth + 1));
-                relX += childWidth;
+                if (childWidth > 0) {
+                    maxY = Math.max(maxY, paintNode(entry.getKey(), cnode, g2, relX, y, childWidth, height, depth + 1));
+                    relX += childWidth;
+                }
             }
             result += maxY;
         }
@@ -202,5 +197,15 @@ public final class StackPanel extends JPanel
 
     @Override
     public void mouseExited(final MouseEvent e) {
+    }
+
+    public static void setElementColor(final int depth, final Graphics2D g2) {
+        if (depth % 2 == 0) {
+            g2.setPaint(Color.YELLOW);
+            g2.setBackground(Color.YELLOW);
+        } else {
+            g2.setPaint(Color.ORANGE);
+            g2.setBackground(Color.ORANGE);
+        }
     }
 }

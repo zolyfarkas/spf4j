@@ -143,13 +143,21 @@ public final class SampleNode {
 
     public void forEach(final InvocationHandler handler, final Method from,
             final Method to, final Set<Method> ancestors) {
+
+
         handler.handle(from, to, sampleCount, ancestors);
+
         if (subNodes != null) {
-            ancestors.add(from);
+            ancestors.add(to);
             for (Map.Entry<Method, SampleNode> subs : subNodes.entrySet()) {
-                subs.getValue().forEach(handler, to, subs.getKey(), ancestors);
+                Method toKey = subs.getKey();
+                while (ancestors.contains(toKey)) {
+                    toKey = toKey.withNewId();
+                }
+                
+                subs.getValue().forEach(handler, to, toKey, ancestors);
             }
-            ancestors.remove(from);
+            ancestors.remove(to);
         }
     }
 
@@ -168,7 +176,7 @@ public final class SampleNode {
         public void setValue(final int value) {
             this.value = value;
         }
- 
+
         @Override
         public String toString() {
             return "InvocationCount{" + "value=" + value + '}';
@@ -181,12 +189,7 @@ public final class SampleNode {
         rootNode.forEach(new InvocationHandler() {
             @Override
             public void handle(final Method from, final Method to, final int count, final Set<Method> ancestors) {
-            
-                if(from.equals(to) || ancestors.contains(to)) {
-                    //recursive ivocations will not be added to the graph for now...
-                    return;
-                }
-                    
+
                 VertexEdges<Method, InvocationCount> edges = result.getEdges(from);
                 if (edges != null) {
                     // If same invocation exists, count will be incremented.

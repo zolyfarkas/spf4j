@@ -38,7 +38,7 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     /**
      * Creates new form StackDumpJInternalFrame
      */
-    public StackDumpJInternalFrame(final String sampleFile) throws IOException {
+    public StackDumpJInternalFrame(final String sampleFile, final boolean isPro) throws IOException {
         super(sampleFile);
         initComponents();
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sampleFile));
@@ -49,7 +49,11 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
         } finally {
             bis.close();
         }
-        ssScrollPanel.setViewportView(new StackPanel(samples));
+        if (isPro) {
+            ssScrollPanel.setViewportView(new StackPanelPro(samples));
+        } else {
+            ssScrollPanel.setViewportView(new StackPanel(samples));            
+        }
         ssScrollPanel.setVisible(true);
         pack();
 
@@ -67,6 +71,7 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
         ssScrollPanel = new javax.swing.JScrollPane();
 
         setClosable(true);
+        setIconifiable(true);
         setMaximizable(true);
         setResizable(true);
 

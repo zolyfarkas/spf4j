@@ -32,4 +32,8 @@ public interface Graph<V, E> {
     
     Set<V> getVertices();
     
+    void remove(V vertice);
+    
+    Graph<V, E> copy();
+    
 }

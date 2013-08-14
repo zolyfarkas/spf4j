@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
+import javax.annotation.Nonnull;
 
 /**
  * Implementation of an arbitrary-dimension RTree. Based on R-Trees: A Dynamic
@@ -126,6 +127,7 @@ public final class RTree<T> {
      * @return a list of objects whose rectangles overlap with the given
      * rectangle.
      */
+    @Nonnull
     public List<T> search(final float[] coords, final float[] dimensions) {
         assert (coords.length == numDims);
         assert (dimensions.length == numDims);

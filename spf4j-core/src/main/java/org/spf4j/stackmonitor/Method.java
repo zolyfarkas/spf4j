@@ -30,21 +30,32 @@ import javax.annotation.concurrent.Immutable;
 public final class Method {
     private final String declaringClass;
     private final String methodName;
+    private final int id;
 
     public Method(final StackTraceElement elem) {
         this.declaringClass = elem.getClassName();
         this.methodName = elem.getMethodName();
+        this.id = 0;
     }
     
     public Method(final Class<?> clasz, final String methodName) {
         this.declaringClass = clasz.getName();
         this.methodName = methodName;
+        this.id = 0;
     }
     
     public Method(final String declaringClass, final String methodName) {
         this.declaringClass = declaringClass;
         this.methodName = methodName;
+        this.id = 0;
     }
+    
+    public Method(final String declaringClass, final String methodName, final int id) {
+        this.declaringClass = declaringClass;
+        this.methodName = methodName;
+        this.id = id;
+    }
+    
 
     public String getDeclaringClass() {
         return declaringClass;
@@ -52,6 +63,14 @@ public final class Method {
 
     public String getMethodName() {
         return methodName;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 59 * hash + (this.declaringClass != null ? this.declaringClass.hashCode() : 0);
+        hash = 59 * hash + (this.methodName != null ? this.methodName.hashCode() : 0);
+        return 59 * hash + this.id;
     }
 
     @Override
@@ -70,15 +89,13 @@ public final class Method {
         if ((this.methodName == null) ? (other.methodName != null) : !this.methodName.equals(other.methodName)) {
             return false;
         }
+        if (this.id != other.id) {
+            return false;
+        }
         return true;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 5;
-        hash = 67 * hash + (this.declaringClass != null ? this.declaringClass.hashCode() : 0);
-        return 67 * hash + (this.methodName != null ? this.methodName.hashCode() : 0);
-    }
+ 
     
     
     @Override
@@ -97,5 +114,13 @@ public final class Method {
     }
         
     public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), "ROOT");
+    
+    public Method withId(final int pid) {
+        return new Method(declaringClass, methodName, pid);
+    }
+    
+    public Method withNewId() {
+        return new Method(declaringClass, methodName, id + 1);
+    }
     
 }

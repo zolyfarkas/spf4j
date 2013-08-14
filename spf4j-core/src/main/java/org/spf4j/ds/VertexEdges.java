@@ -30,7 +30,7 @@ import org.spf4j.base.Pair;
 @ParametersAreNonnullByDefault
 public final class VertexEdges<V, E> extends Pair<Map<E, V>, Map<E, V>> {
 
-    public VertexEdges(final Map<E, V> first, final Map<E, V> second) {
+    VertexEdges(final Map<E, V> first, final Map<E, V> second) {
         super(first, second);
     }
     
@@ -47,6 +47,10 @@ public final class VertexEdges<V, E> extends Pair<Map<E, V>, Map<E, V>> {
     @Nonnull
     public Map<E, V> getOutgoing() {
         return second;
+    }
+    
+    public VertexEdges copy() {
+        return new VertexEdges(new HashMap<E, V>(first), new HashMap<E, V>(second));
     }
 
     
