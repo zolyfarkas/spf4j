@@ -114,6 +114,11 @@ public final class HashMapGraph<V, E> implements Graph<V, E> {
         return new HashMapGraph<V, E>(new HashMap<E, Pair<V, V>>(edgeNodes),
                 hashMap);
     }
+
+    @Override
+    public boolean contains(final V vertice) {
+        return vertices.containsKey(vertice);
+    }
     
     
     

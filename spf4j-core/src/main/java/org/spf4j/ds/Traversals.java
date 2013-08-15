@@ -18,17 +18,21 @@
 package org.spf4j.ds;
 
 import com.google.common.collect.Sets;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import org.spf4j.stackmonitor.Method;
 
 
 /**
  *
  * @author zoly
  */
-public final class CustomDepthFirstTraversal {
+public final class Traversals {
 
-    private CustomDepthFirstTraversal() {
+    private Traversals() {
     }
 
     public interface TraversalCallback<V, E> {
@@ -54,7 +58,9 @@ public final class CustomDepthFirstTraversal {
 
     private static <V, E> void traverse(final Graph<V, E> graph, final V node, final E from, final V fromNode,
             final TraversalCallback<V, E> handler, final Map<V, VertexEdges> visitationRecords) {
-
+                if (((Method) node).getMethodName().equals("flushBuffer")) {
+                    System.out.println();
+                }
         VertexEdges visitInfo = visitationRecords.get(node);
         if (visitInfo == null) {
             visitInfo = new VertexEdges();
@@ -66,8 +72,11 @@ public final class CustomDepthFirstTraversal {
             Map<E, V> incoming = edges.getIncomming();
             if (visitInfo.getIncomming().keySet().containsAll(incoming.keySet())) {
                 handler.handle(node, incoming);
-                for (E edge : Sets.difference(edges.getOutgoing().keySet(), visitInfo.getOutgoing().keySet())) {
+                Set<E> edgeDiff = new HashSet<E>(
+                        Sets.difference(edges.getOutgoing().keySet(), visitInfo.getOutgoing().keySet()));
+                for (E edge : edgeDiff) {
                     V toNode = graph.getVertices(edge).getSecond();
+                    
                     visitInfo.getOutgoing().put(edge, toNode);
                     traverse(graph, toNode, edge, node, handler, visitationRecords);
                 }
@@ -80,7 +89,9 @@ public final class CustomDepthFirstTraversal {
                     traverse(graph, toNode, edge, node, handler, visitationRecords);
                 }
             } else {
-                for (E edge : Sets.intersection(edges.getOutgoing().keySet(), edges.getIncomming().keySet())) {
+                Set<E> intersect = new HashSet<E>(
+                        Sets.intersection(edges.getOutgoing().keySet(), edges.getIncomming().keySet()));
+                for (E edge : intersect) {
                     V toNode = graph.getVertices(edge).getSecond();
                     visitInfo.getOutgoing().put(edge, toNode);
                     traverse(graph, toNode, edge, node, handler, visitationRecords);
@@ -89,4 +100,32 @@ public final class CustomDepthFirstTraversal {
         }
 
     }
+    
+    public static <V, E> boolean isPathTo(final Graph<V, E> graph, final V node, final V ancestor,
+            final Set<V> visited) {
+        if (!graph.contains(node)) {
+            return false;
+        }
+        if (node.equals(ancestor)) {
+            return true;
+        }
+        if (visited.contains(node)) {
+            return false;
+        }
+        Collection<V> values = graph.getEdges(node).getIncomming().values();
+        if (values.contains(ancestor)) {
+            return true;
+        } else {
+            visited.add(node);
+            for (V anc : values) {
+                if (isPathTo(graph, anc, ancestor, visited)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+    }
+    
+    
 }

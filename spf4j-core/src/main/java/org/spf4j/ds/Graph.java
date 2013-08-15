@@ -34,6 +34,8 @@ public interface Graph<V, E> {
     
     void remove(V vertice);
     
+    boolean contains(V vertice);
+    
     Graph<V, E> copy();
     
 }

@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.ds.Traversals;
 import org.spf4j.ds.Graph;
 import org.spf4j.ds.HashMapGraph;
 import org.spf4j.ds.VertexEdges;
@@ -189,7 +190,6 @@ public final class SampleNode {
         rootNode.forEach(new InvocationHandler() {
             @Override
             public void handle(final Method from, final Method to, final int count, final Set<Method> ancestors) {
-
                 VertexEdges<Method, InvocationCount> edges = result.getEdges(from);
                 if (edges != null) {
                     // If same invocation exists, count will be incremented.
@@ -202,7 +202,12 @@ public final class SampleNode {
                         }
                     }
                 }
-                result.add(new InvocationCount(count), from, to);
+                if (!Traversals.isPathTo(result, from, to, new HashSet<Method>())) {
+                    // make sure we do not create cycles
+                    result.add(new InvocationCount(count), from, to);
+                } else {
+                    result.add(new InvocationCount(count), from, to.withNewId());
+                }
             }
         }, Method.ROOT, Method.ROOT, new HashSet<Method>());
 
