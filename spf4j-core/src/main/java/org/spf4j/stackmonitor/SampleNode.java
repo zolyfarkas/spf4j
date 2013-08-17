@@ -19,15 +19,11 @@ package org.spf4j.stackmonitor;
 
 import com.google.common.base.Predicate;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.spf4j.ds.Traversals;
 import org.spf4j.ds.Graph;
 import org.spf4j.ds.HashMapGraph;
-import org.spf4j.ds.VertexEdges;
 
 /**
  * @author zoly
@@ -139,26 +135,33 @@ public final class SampleNode {
 
     public interface InvocationHandler {
 
-        void handle(Method from, Method to, int count, Set<Method> ancestors);
+        void handle(Method from, Method to, int count, final Map<Method, Integer> ancestors);
     }
 
     public void forEach(final InvocationHandler handler, final Method from,
-            final Method to, final Set<Method> ancestors) {
-
+            final Method to, final Map<Method, Integer> ancestors) {
 
         handler.handle(from, to, sampleCount, ancestors);
 
         if (subNodes != null) {
-            ancestors.add(to);
+            Integer val = ancestors.get(to);
+            if (val != null) {
+                val++;
+            } else {
+                val = 1;
+            }
+            ancestors.put(to, val);
             for (Map.Entry<Method, SampleNode> subs : subNodes.entrySet()) {
                 Method toKey = subs.getKey();
-                while (ancestors.contains(toKey)) {
-                    toKey = toKey.withNewId();
-                }
-                
                 subs.getValue().forEach(handler, to, toKey, ancestors);
             }
-            ancestors.remove(to);
+            val = ancestors.get(to);
+            if (val == 1) {
+                ancestors.remove(to);
+            } else {
+                val = val - 1;
+                ancestors.put(to, val);
+            }
         }
     }
 
@@ -189,27 +192,37 @@ public final class SampleNode {
 
         rootNode.forEach(new InvocationHandler() {
             @Override
-            public void handle(final Method from, final Method to, final int count, final Set<Method> ancestors) {
-                VertexEdges<Method, InvocationCount> edges = result.getEdges(from);
-                if (edges != null) {
-                    // If same invocation exists, count will be incremented.
-                    Map<InvocationCount, Method> outgoing = edges.getOutgoing();
-                    for (Map.Entry<InvocationCount, Method> entry : outgoing.entrySet()) {
-                        if (entry.getValue().equals(to)) {
-                            InvocationCount exic = entry.getKey();
-                            exic.setValue(exic.getValue() + count);
-                            return;
-                        }
-                    }
+            public void handle(final Method pfrom, final Method pto, final int count,
+                    final Map<Method, Integer> ancestors) {
+
+                if (pto.getMethodName().equals("write")
+                        && pto.getDeclaringClass().endsWith("TeeOutputStream")) {
+                    System.out.println();
                 }
-                if (!Traversals.isPathTo(result, from, to, new HashSet<Method>())) {
-                    // make sure we do not create cycles
+
+                Method from = pfrom;
+                Method to = pto;
+                Integer val = ancestors.get(from);
+                if (val != null) {
+                    from = from.withId(val - 1);
+                }
+                val = ancestors.get(to);
+                if (val != null) {
+                    to = to.withId(val);
+                }
+
+
+                InvocationCount ic = result.getEdge(from, to);
+
+                if (ic == null) {
                     result.add(new InvocationCount(count), from, to);
                 } else {
-                    result.add(new InvocationCount(count), from, to.withNewId());
+                    ic.setValue(count + ic.getValue());
                 }
+
+
             }
-        }, Method.ROOT, Method.ROOT, new HashSet<Method>());
+        }, Method.ROOT, Method.ROOT, new HashMap<Method, Integer>());
 
         return result;
 

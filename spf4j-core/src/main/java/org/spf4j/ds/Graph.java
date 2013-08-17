@@ -18,6 +18,7 @@
 package org.spf4j.ds;
 
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.spf4j.base.Pair;
 
 /**
@@ -30,6 +31,10 @@ public interface Graph<V, E> {
         
     Pair<V, V> getVertices(E edge);
     
+    @Nullable
+    E getEdge(V from, V to);
+    
+    @Nullable
     Set<V> getVertices();
     
     void remove(V vertice);

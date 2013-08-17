@@ -28,34 +28,39 @@ import javax.annotation.concurrent.Immutable;
  */
 @Immutable
 public final class Method {
+
     private final String declaringClass;
     private final String methodName;
+    private final int lineNumber;
     private final int id;
 
     public Method(final StackTraceElement elem) {
         this.declaringClass = elem.getClassName();
         this.methodName = elem.getMethodName();
         this.id = 0;
+        this.lineNumber = elem.getLineNumber();
     }
-    
-    public Method(final Class<?> clasz, final String methodName) {
+
+    public Method(final Class<?> clasz, final String methodName, final int lineNumber) {
         this.declaringClass = clasz.getName();
         this.methodName = methodName;
+        this.lineNumber = lineNumber;
         this.id = 0;
     }
-    
-    public Method(final String declaringClass, final String methodName) {
+
+    public Method(final String declaringClass, final String methodName, final int lineNumber) {
         this.declaringClass = declaringClass;
         this.methodName = methodName;
         this.id = 0;
+        this.lineNumber = lineNumber;
     }
-    
-    public Method(final String declaringClass, final String methodName, final int id) {
+
+    private Method(final String declaringClass, final String methodName, final int id, final int lineNumber) {
         this.declaringClass = declaringClass;
         this.methodName = methodName;
         this.id = id;
+        this.lineNumber = lineNumber;
     }
-    
 
     public String getDeclaringClass() {
         return declaringClass;
@@ -65,12 +70,17 @@ public final class Method {
         return methodName;
     }
 
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 59 * hash + (this.declaringClass != null ? this.declaringClass.hashCode() : 0);
-        hash = 59 * hash + (this.methodName != null ? this.methodName.hashCode() : 0);
-        return 59 * hash + this.id;
+        int hash = 3;
+        hash = 47 * hash + (this.declaringClass != null ? this.declaringClass.hashCode() : 0);
+        hash = 47 * hash + (this.methodName != null ? this.methodName.hashCode() : 0);
+        hash = 47 * hash + this.lineNumber;
+        return 47 * hash + this.id;
     }
 
     @Override
@@ -89,38 +99,35 @@ public final class Method {
         if ((this.methodName == null) ? (other.methodName != null) : !this.methodName.equals(other.methodName)) {
             return false;
         }
+        if (this.lineNumber != other.lineNumber) {
+            return false;
+        }
         if (this.id != other.id) {
             return false;
         }
         return true;
     }
 
- 
-    
-    
     @Override
     public String toString() {
         return methodName + "@" + declaringClass;
     }
-    
-    
+
     public void toWriter(final Writer w) throws IOException {
         w.append(methodName).append("@").append(declaringClass);
     }
-    
+
     public void toHtmlWriter(final Writer w) throws IOException {
         w.append(HtmlUtils.htmlEscape(methodName)).append(HtmlUtils.htmlEscape("@")).
                 append(HtmlUtils.htmlEscape(declaringClass));
     }
-        
-    public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), "ROOT");
-    
+    public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), "ROOT", 0);
+
     public Method withId(final int pid) {
-        return new Method(declaringClass, methodName, pid);
+        return new Method(declaringClass, methodName, pid, lineNumber);
     }
-    
+
     public Method withNewId() {
-        return new Method(declaringClass, methodName, id + 1);
+        return new Method(declaringClass, methodName, id + 1, lineNumber);
     }
-    
 }

@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Map;
-import java.util.Set;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
@@ -92,12 +91,12 @@ public final class ProtoTest {
                 }
             });
             Graph<Method, SampleNode.InvocationCount> graph = SampleNode.toGraph(samples);
-            Traversals.traverse(graph, Method.ROOT,
+            Traversals.breadthTraverse(graph, Method.ROOT,
                     new Traversals.TraversalCallback<Method, SampleNode.InvocationCount>() {
 
                 @Override
                 public void handle(final Method vertex, final Map<SampleNode.InvocationCount, Method> edges) {
-                    System.out.println("Method: " + vertex + " from " + edges );
+                    System.out.println("Method: " + vertex + " from " + edges);
                 }
                 
             });

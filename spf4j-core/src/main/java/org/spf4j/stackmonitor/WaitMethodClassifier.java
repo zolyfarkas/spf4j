@@ -20,6 +20,7 @@ package org.spf4j.stackmonitor;
 import com.google.common.base.Predicate;
 import java.util.HashSet;
 import java.util.Set;
+import org.spf4j.base.Pair;
 
 /**
  *
@@ -29,20 +30,20 @@ public final class WaitMethodClassifier implements Predicate<Method> {
 
     private WaitMethodClassifier() { }
     
-    private static final Set<Method> WAIT_METHODS = new HashSet();
+    private static final Set<Pair<String, String>> WAIT_METHODS = new HashSet();
 
     static {
-        WAIT_METHODS.add(new Method(sun.misc.Unsafe.class, "park"));
-        WAIT_METHODS.add(new Method(java.lang.Object.class, "wait"));
-        WAIT_METHODS.add(new Method(java.lang.Thread.class, "sleep"));
-        WAIT_METHODS.add(new Method("java.net.PlainSocketImpl", "socketAccept"));
-        WAIT_METHODS.add(new Method("java.net.PlainSocketImpl", "socketConnect"));
+        WAIT_METHODS.add(Pair.of(sun.misc.Unsafe.class.getName(), "park"));
+        WAIT_METHODS.add(Pair.of(java.lang.Object.class.getName(), "wait"));
+        WAIT_METHODS.add(Pair.of(java.lang.Thread.class.getName(), "sleep"));
+        WAIT_METHODS.add(Pair.of("java.net.PlainSocketImpl", "socketAccept"));
+        WAIT_METHODS.add(Pair.of("java.net.PlainSocketImpl", "socketConnect"));
     }
 
    
     @Override
     public boolean apply(final Method input) {
-       return WAIT_METHODS.contains(input);
+       return WAIT_METHODS.contains(Pair.of(input.getDeclaringClass(), input.getMethodName()));
     }
     
     public static final WaitMethodClassifier INSTANCE = new WaitMethodClassifier();

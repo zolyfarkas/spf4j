@@ -30,7 +30,7 @@ public final class HashMapGraph<V, E> implements Graph<V, E> {
 
     private Map<E, Pair<V, V>> edgeNodes;
     private Map<V, VertexEdges> vertices;
-    
+
     public HashMapGraph() {
         edgeNodes = new HashMap<E, Pair<V, V>>();
         vertices = new HashMap<V, VertexEdges>();
@@ -41,13 +41,13 @@ public final class HashMapGraph<V, E> implements Graph<V, E> {
         this.edgeNodes = edgeNodes;
         this.vertices = vertices;
     }
-       
+
     public void add(final V vertex) {
         if (!vertices.containsKey(vertex)) {
             vertices.put(vertex, null);
         }
     }
-    
+
     public void add(final E edge, final V fromVertex, final V toVertex) {
         edgeNodes.put(edge, new Pair<V, V>(fromVertex, toVertex));
         VertexEdges fromV = vertices.get(fromVertex);
@@ -56,7 +56,7 @@ public final class HashMapGraph<V, E> implements Graph<V, E> {
             vertices.put(fromVertex, fromV);
         }
         fromV.getOutgoing().put(edge, toVertex);
-        
+
         VertexEdges toV = vertices.get(toVertex);
         if (toV == null) {
             toV = new VertexEdges();
@@ -64,7 +64,6 @@ public final class HashMapGraph<V, E> implements Graph<V, E> {
         }
         toV.getIncomming().put(edge, fromVertex);
     }
-    
 
     @Override
     public Pair<V, V> getVertices(final E edge) {
@@ -90,7 +89,7 @@ public final class HashMapGraph<V, E> implements Graph<V, E> {
         for (E edge : remove.getIncomming().keySet()) {
             V fromVertex = edgeNodes.remove(edge).getFirst();
             vertices.get(fromVertex).getOutgoing().remove(edge);
-            
+
         }
         for (E edge : remove.getOutgoing().keySet()) {
             V toVertex = edgeNodes.remove(edge).getSecond();
@@ -119,7 +118,18 @@ public final class HashMapGraph<V, E> implements Graph<V, E> {
     public boolean contains(final V vertice) {
         return vertices.containsKey(vertice);
     }
-    
-    
-    
+
+    @Override
+    public E getEdge(final V from, final V to) {
+        VertexEdges<V, E> edges = vertices.get(from);
+        if (edges != null) {
+            Map<E, V> outgoing = edges.getOutgoing();
+            for (Map.Entry<E, V> entry : outgoing.entrySet()) {
+                if (entry.getValue().equals(to)) {
+                    return entry.getKey();
+                }
+            }
+        }
+        return null;
+    }
 }
