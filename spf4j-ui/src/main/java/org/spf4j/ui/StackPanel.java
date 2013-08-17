@@ -61,23 +61,11 @@ public final class StackPanel extends JPanel
         this.samples = samples;
         setPreferredSize(new Dimension(400, 20 * samples.height() + 10));
         ToolTipManager.sharedInstance().registerComponent(this);
-        menu = buildPopupMenu();
+        menu = StackPanelPro.buildPopupMenu(this);
         addMouseListener(this);
     }
 
-    
-    // disable finbugs since I don't care about internationalization for now.
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings
-    private JPopupMenu buildPopupMenu() {
-        JPopupMenu result = new JPopupMenu("Actions");
-        JMenuItem filter = new JMenuItem("Filter");
-        filter.setActionCommand("FILTER");
-        filter.addActionListener(this);
-        result.add(filter);
-        return result;
-    }
-    
-
+   
     @Override
     public String getToolTipText(final MouseEvent event) {
         Point location = event.getPoint();
@@ -112,7 +100,10 @@ public final class StackPanel extends JPanel
             gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             int height = paintNode(Method.ROOT, samples, gr, 0, 0, width, rowHeight, 0);
             g2.drawImage(img, insets.left, insets.top, this);
-            setPreferredSize(new Dimension((int) size.getWidth(), height + 10));
+            final Dimension dimension = new Dimension((int) size.getWidth(), height + 10);
+            setPreferredSize(dimension);
+            setSize(dimension);
+            
         } finally {
             g2.dispose();
         }
@@ -129,6 +120,8 @@ public final class StackPanel extends JPanel
         tooltipDetail.insert(new float[]{x, y}, new float[]{width, height}, Pair.of(method, sampleCount));
         g2.setPaint(Color.BLACK);
         g2.drawString(val, x, y + height - 1);
+        g2.setClip(null);
+        g2.drawRect(x, y, width, height);
         Map<Method, SampleNode> children = node.getSubNodes();
         int result = height;
         if (children != null) {
