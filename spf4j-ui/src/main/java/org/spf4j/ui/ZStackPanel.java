@@ -92,7 +92,7 @@ public final class ZStackPanel extends StackPanelBase {
                         }
                         if (!existingMethodsHaveSameParent) {
                             renderMethodLinked(edges, vertex);
-                        } else {                          
+                        } else {
                             int nrSamples = fromEntry.getKey().getValue();
                             double width = nrSamples * pps;
                             double newX = fromRect.getX();
