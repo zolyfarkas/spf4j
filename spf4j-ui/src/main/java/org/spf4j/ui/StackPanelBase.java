@@ -160,9 +160,7 @@ public abstract class StackPanelBase extends JPanel
         }
     }
 
-    @Override
-    public  void mouseClicked(final MouseEvent e) {
-    }
+
 
     @Override
     public final void mousePressed(final MouseEvent e) {
@@ -181,12 +179,19 @@ public abstract class StackPanelBase extends JPanel
             menu.show(this, e.getX(), e.getY());
         }
     }
+    
+    @Override
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings
+    public  void mouseClicked(final MouseEvent e) {
+    }
 
     @Override
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings
     public void mouseEntered(final MouseEvent e) {
     }
 
     @Override
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings
     public void mouseExited(final MouseEvent e) {
     }
 
