@@ -77,13 +77,11 @@ public final class ZStackPanel extends StackPanelBase {
                         Map.Entry<SampleNode.InvocationCount, Method> fromEntry =
                                 edges.entrySet().iterator().next();
                         int nrSamples = fromEntry.getKey().getValue();
-                        double width = nrSamples * pps;
                         Method fromMethod = fromEntry.getValue();
                         Rectangle2D fromRect = methodLocations.get(fromMethod);
                         List<Pair<Method, Integer>> methods = tooltipDetail.search(
                                 new float[]{(float) fromRect.getX() + 0.1f, (float) fromRect.getY() + rowHeight + 0.1f},
                                 new float[]{(float) fromRect.getWidth() - 0.2f, (float) rowHeight - 0.2f});
-                        double newX = fromRect.getX();
                         int drawedSamples = 0;
                         boolean existingMethodsHaveSameParent = true;
                         for (Pair<Method, Integer> method : methods) {
@@ -96,6 +94,8 @@ public final class ZStackPanel extends StackPanelBase {
                         if (!existingMethodsHaveSameParent) {
                             renderMethodLinked(edges, vertex);
                         } else {
+                            double width = nrSamples * pps;
+                            double newX = fromRect.getX();
                             newX += drawedSamples * pps;
                             drawMethod(vertex, nrSamples, newX, (fromRect.getY() + rowHeight),
                                     width, rowHeight);
@@ -201,8 +201,9 @@ public final class ZStackPanel extends StackPanelBase {
         if (tips.size() >= 1) {
             final Pair<Method, Integer> node = tips.get(0);
             final Map<SampleNode.InvocationCount, Method> incomming = graph.getEdges(node.getFirst()).getIncomming();
-            StringBuilder sb = new StringBuilder(node.getFirst().toString() + "-" + node.getSecond()
-                    + "\n invoked from: ");
+            StringBuilder sb = new StringBuilder();
+            sb.append(node.getFirst().toString()).append('-').append(node.getSecond())
+              .append("\n invoked from: ");
             for (Map.Entry<SampleNode.InvocationCount, Method> entry : incomming.entrySet()) {
                 int ic = entry.getKey().getValue();
                 Method method = entry.getValue();
