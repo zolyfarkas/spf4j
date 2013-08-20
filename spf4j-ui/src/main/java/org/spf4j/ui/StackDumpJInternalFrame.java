@@ -50,9 +50,9 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
             bis.close();
         }
         if (isPro) {
-            ssScrollPanel.setViewportView(new StackPanelPro(samples));
+            ssScrollPanel.setViewportView(new ZStackPanel(samples));
         } else {
-            ssScrollPanel.setViewportView(new StackPanel(samples));            
+            ssScrollPanel.setViewportView(new FlameStackPanel(samples));            
         }
         ssScrollPanel.setVisible(true);
         pack();

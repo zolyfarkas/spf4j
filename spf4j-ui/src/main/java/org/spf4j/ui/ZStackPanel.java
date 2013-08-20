@@ -19,38 +19,16 @@ package org.spf4j.ui;
 
 import com.google.common.base.Predicate;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.Insets;
 import java.awt.Point;
-import java.awt.RenderingHints;
-import java.awt.Transparency;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.ClipboardOwner;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.ToolTipManager;
 import org.spf4j.base.Pair;
 import org.spf4j.ds.Traversals;
 import org.spf4j.ds.Graph;
-import org.spf4j.ds.RTree;
 import org.spf4j.stackmonitor.Method;
 import org.spf4j.stackmonitor.SampleNode;
 
@@ -58,85 +36,27 @@ import org.spf4j.stackmonitor.SampleNode;
  *
  * @author zoly
  */
-public final class StackPanelPro extends JPanel
-        implements ActionListener, MouseListener {
+public final class ZStackPanel extends StackPanelBase {
 
     private Graph<Method, SampleNode.InvocationCount> graph;
     private Graph<Method, SampleNode.InvocationCount> completeGraph;
     private Map<Method, Rectangle2D> methodLocations;
-    private RTree<Pair<Method, Integer>> tooltipDetail = new RTree<Pair<Method, Integer>>();
-    private JPopupMenu menu;
-    private int xx;
-    private int yy;
-    private SampleNode samples;
-
-    public StackPanelPro(final SampleNode samples) {
-        this.samples = samples;
-        completeGraph = SampleNode.toGraph(samples);
-        graph = null;
-        setPreferredSize(new Dimension(400, 20 * samples.height() + 10));
-        final ToolTipManager sharedInstance = ToolTipManager.sharedInstance();
-        sharedInstance.registerComponent(this);
-        ToolTipManager.sharedInstance().setDismissDelay(30000);
-        menu = buildPopupMenu(this);
-        addMouseListener(this);
-    }
-
-    // disable finbugs since I don't care about internationalization for now.
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings
-    public static JPopupMenu buildPopupMenu(final ActionListener listener) {
-        JPopupMenu result = new JPopupMenu("Actions");
-        JMenuItem filter = new JMenuItem("Filter");
-        filter.setActionCommand("FILTER");
-        filter.addActionListener(listener);
-        result.add(filter);
-        JMenuItem copy = new JMenuItem("Copy");
-        copy.setActionCommand("COPY");
-        copy.addActionListener(listener);
-        result.add(copy);
-        return result;
-    }
-
-    @Override
-    public String getToolTipText(final MouseEvent event) {
-        Point location = event.getPoint();
-        return getDetail(location);
-    }
-
-    @Override
-    protected void paintComponent(final Graphics g) {
-        super.paintComponent(g);
-        Dimension size = getSize();
-        Insets insets = getInsets();
-        Rectangle2D available = new Rectangle2D.Double(insets.left, insets.top,
-                size.getWidth() - insets.left - insets.right,
-                size.getHeight() - insets.top - insets.bottom);
-        Graphics2D g2 = (Graphics2D) g.create();
-        try {
-            int rowHeight = (int) g2.getFont().getStringBounds("ROOT", g2.getFontRenderContext()).getHeight();
-
-            GraphicsConfiguration gc = g2.getDeviceConfiguration();
-            BufferedImage img = gc.createCompatibleImage(
-                    (int) available.getWidth(), (int) available.getHeight(),
-                    Transparency.TRANSLUCENT);
-
-            int width = (int) available.getWidth();
-            tooltipDetail.clear();
-            Graphics2D gr = img.createGraphics();
-            gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            paintGraph(Method.ROOT, gr, 0, 0, width, rowHeight, 0);
-            g2.drawImage(img, insets.left, insets.top, this);
-            Dimension dim = new Dimension((int) size.getWidth(), (int) totalHeight);
-            setPreferredSize(dim);
-            setSize(dim);
-        } finally {
-            g2.dispose();
-        }
-    }
     private double totalHeight = 0;
 
+    public ZStackPanel(final SampleNode samples) {
+        super(samples);
+        completeGraph = SampleNode.toGraph(samples);
+        graph = null;
+    }
+
+    @Override
+    public int paint(final Graphics2D gr, final double width, final double rowHeight) {
+        paintGraph(Method.ROOT, gr, 0, 0, (int) width, (int) rowHeight);
+        return (int) totalHeight;
+    }
+
     private void paintGraph(final Method method,
-            final Graphics2D g2, final int x, final int y, final int areaWidth, final int rowHeight, final int depth) {
+            final Graphics2D g2, final int x, final int y, final int areaWidth, final int rowHeight) {
 
         graph = completeGraph.copy();
         int rootSamples = graph.getEdges(Method.ROOT).getIncomming().keySet().iterator().next().getValue();
@@ -177,7 +97,7 @@ public final class StackPanelPro extends JPanel
                             renderMethodLinked(edges, vertex);
                         } else {
                             newX += drawedSamples * pps;
-                            drawMethod(vertex, nrSamples,  newX, (fromRect.getY() + rowHeight),
+                            drawMethod(vertex, nrSamples, newX, (fromRect.getY() + rowHeight),
                                     width, rowHeight);
                         }
 
@@ -191,7 +111,7 @@ public final class StackPanelPro extends JPanel
 
             private void drawMethod(final Method vertex, final int nrSamples,
                     final double x, final double y, final double width, final double height,
-                    final Point ... fromLinks) {
+                    final Point... fromLinks) {
                 Rectangle2D.Double location = new Rectangle2D.Double(x, y, width, height);
                 methodLocations.put(vertex, location);
                 tooltipDetail.insert(new float[]{(float) x, (float) y}, new float[]{(float) width, (float) height},
@@ -203,7 +123,7 @@ public final class StackPanelPro extends JPanel
                 if (totalHeight < newHeight) {
                     totalHeight = newHeight;
                 }
-                StackPanel.setElementColor(counter++, g2);
+                FlameStackPanel.setElementColor(counter++, g2);
                 g2.setClip((int) x, (int) y, (int) width, (int) height);
                 g2.fillRect((int) x, (int) y, (int) width, (int) height);
                 String val = vertex.toString() + "-" + nrSamples;
@@ -267,7 +187,7 @@ public final class StackPanelPro extends JPanel
                             new float[]{(float) newWidth, Float.MAX_VALUE});
                 }
                 drawMethod(vertex, nrSamples, newXBase, newYBase,
-                         newWidth, rowHeight, fromPoints.toArray(new Point[fromPoints.size()]));
+                        newWidth, rowHeight, fromPoints.toArray(new Point[fromPoints.size()]));
             }
         };
 
@@ -276,77 +196,7 @@ public final class StackPanelPro extends JPanel
     }
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
-        if (e.getActionCommand().equals("FILTER")) {
-            List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{xx, yy}, new float[]{0, 0});
-            if (tips.size() >= 1) {
-                final Method value = tips.get(0).getFirst().withId(0);
-                samples = samples.filteredBy(new Predicate<Method>() {
-                    @Override
-                    public boolean apply(final Method t) {
-                        return t.equals(value);
-                    }
-                });
-                this.completeGraph = SampleNode.toGraph(samples);
-                repaint();
-            }
-        } else if (e.getActionCommand().equals("COPY")) {
-            final String detail = getDetail(new Point(xx, yy));
-            java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().setContents(
-                    new Transferable() {
-                @Override
-                public DataFlavor[] getTransferDataFlavors() {
-                    return new DataFlavor[]{DataFlavor.stringFlavor};
-                }
-
-                @Override
-                public boolean isDataFlavorSupported(final DataFlavor flavor) {
-                    return flavor.equals(DataFlavor.stringFlavor);
-                }
-
-                @Override
-                public Object getTransferData(final DataFlavor flavor) throws UnsupportedFlavorException, IOException {
-                    return detail;
-                }
-            }, new ClipboardOwner() {
-                @Override
-                public void lostOwnership(final Clipboard clipboard, final Transferable contents) {
-                }
-            });
-        }
-    }
-
-    @Override
-    public void mouseClicked(final MouseEvent e) {
-    }
-
-    @Override
-    public void mousePressed(final MouseEvent e) {
-        if (e.isPopupTrigger()) {
-            xx = e.getX();
-            yy = e.getY();
-            menu.show(this, e.getX(), e.getY());
-        }
-    }
-
-    @Override
-    public void mouseReleased(final MouseEvent e) {
-        if (e.isPopupTrigger()) {
-            xx = e.getX();
-            yy = e.getY();
-            menu.show(this, e.getX(), e.getY());
-        }
-    }
-
-    @Override
-    public void mouseEntered(final MouseEvent e) {
-    }
-
-    @Override
-    public void mouseExited(final MouseEvent e) {
-    }
-
-    private String getDetail(final Point location) {
+    public String getDetail(final Point location) {
         List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{location.x, location.y}, new float[]{0, 0});
         if (tips.size() >= 1) {
             final Pair<Method, Integer> node = tips.get(0);
@@ -361,6 +211,22 @@ public final class StackPanelPro extends JPanel
             return sb.toString();
         } else {
             return null;
+        }
+    }
+
+    @Override
+    public void filter() {
+        List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{xx, yy}, new float[]{0, 0});
+        if (tips.size() >= 1) {
+            final Method value = tips.get(0).getFirst().withId(0);
+            samples = samples.filteredBy(new Predicate<Method>() {
+                @Override
+                public boolean apply(final Method t) {
+                    return t.equals(value);
+                }
+            });
+            this.completeGraph = SampleNode.toGraph(samples);
+            repaint();
         }
     }
 }
