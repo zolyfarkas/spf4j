@@ -17,10 +17,11 @@
  */
 package org.spf4j.ds;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 
 /**
@@ -37,37 +38,51 @@ public final class Traversals {
         void handle(V vertex, Map<E, V> edges);
     }
 
-    public static <V, E> void breadthTraverse(final Graph<V, E> graph, final V startNode,
-            final TraversalCallback<V, E> handler) {
+    public static <V, E> void traverse(final Graph<V, E> graph, final V startNode,
+            final TraversalCallback<V, E> handler, final boolean isBreadth) {
         Set<V> traversedNodes = new HashSet<V>();
-        Queue<V> traversalQueue = new ArrayDeque<V>();
+        Deque<V> traversalQueue = new ArrayDeque<V>();
         traversalQueue.add(startNode);
-        boolean first = true;
-        while (!traversalQueue.isEmpty()) {
-            V node = traversalQueue.remove();
-            VertexEdges<V, E> edges = graph.getEdges(node);
-            if (traversedNodes.contains(node)) {
-                continue;
-            }
-            Map<E, V> incomming = edges.getIncomming();
-            boolean hasIncomingBeenTraversed = true;
-            for (V val : incomming.values()) {
-                if (!traversedNodes.contains(val)) {
-                    hasIncomingBeenTraversed = false;
-                    break;
+        boolean done = false;
+        do {
+            boolean first = true;
+            while (!traversalQueue.isEmpty()) {
+                V node;
+                if (isBreadth) {
+                    node = traversalQueue.removeFirst();
+                } else {
+                    node = traversalQueue.removeLast();
+                }
+                VertexEdges<V, E> edges = graph.getEdges(node);
+                if (traversedNodes.contains(node)) {
+                    continue;
+                }
+                Map<E, V> incomming = edges.getIncomming();
+                boolean hasIncomingBeenTraversed = true;
+                for (V val : incomming.values()) {
+                    if (!traversedNodes.contains(val)) {
+                        hasIncomingBeenTraversed = false;
+                        break;
+                    }
+                }
+                if (!first && !hasIncomingBeenTraversed) {
+                    continue;
+                }
+                handler.handle(node, incomming);
+                traversedNodes.add(node);
+                first = false;
+                Map<E, V> outgoing = edges.getOutgoing();
+                for (V next : outgoing.values()) {
+                    traversalQueue.add(next);
                 }
             }
-            if (!first && !hasIncomingBeenTraversed) {
-                continue;
-            }
-            handler.handle(node, incomming);
-            traversedNodes.add(node);
-            first = false;
-            Map<E, V> outgoing = edges.getOutgoing();
-            for (V next : outgoing.values()) {
-                traversalQueue.add(next);
-            }
-        }
-    }
 
+            Set<V> leftNodes = Sets.difference(graph.getVertices(), traversedNodes);
+            if (leftNodes.isEmpty()) {
+                done = true;
+            } else {
+                traversalQueue.add(leftNodes.iterator().next());
+            }
+        } while (!done);
+    }
 }

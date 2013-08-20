@@ -110,7 +110,11 @@ public final class Method {
 
     @Override
     public String toString() {
-        return methodName + "@" + declaringClass;
+        if (lineNumber > 0) {
+             return methodName + "@" + declaringClass + ":" + lineNumber;
+        } else {
+            return methodName + "@" + declaringClass;
+        }
     }
 
     public void toWriter(final Writer w) throws IOException {

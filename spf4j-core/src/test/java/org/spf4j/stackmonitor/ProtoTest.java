@@ -91,7 +91,7 @@ public final class ProtoTest {
                 }
             });
             Graph<Method, SampleNode.InvocationCount> graph = SampleNode.toGraph(samples);
-            Traversals.breadthTraverse(graph, Method.ROOT,
+            Traversals.traverse(graph, Method.ROOT,
                     new Traversals.TraversalCallback<Method, SampleNode.InvocationCount>() {
 
                 @Override
@@ -99,7 +99,7 @@ public final class ProtoTest {
                     System.out.println("Method: " + vertex + " from " + edges);
                 }
                 
-            });
+            }, true);
         } finally {
             fis.close();
         }

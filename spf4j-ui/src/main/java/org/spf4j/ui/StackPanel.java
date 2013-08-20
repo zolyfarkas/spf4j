@@ -27,12 +27,18 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JMenuItem;
@@ -69,12 +75,7 @@ public final class StackPanel extends JPanel
     @Override
     public String getToolTipText(final MouseEvent event) {
         Point location = event.getPoint();
-        List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{location.x, location.y}, new float[]{0, 0});
-        if (tips.size() >= 1) {
-            return tips.get(0).getFirst().toString() + "-" + tips.get(0).getSecond();
-        } else {
-            return null;
-        }
+        return getDetail(location);
     }
 
     @Override
@@ -159,6 +160,29 @@ public final class StackPanel extends JPanel
                 });
                 repaint();
             }
+        } else if (e.getActionCommand().equals("COPY")) {
+            final String detail = getDetail(new Point(xx, yy));
+            java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().setContents(
+                    new Transferable() {
+                @Override
+                public DataFlavor[] getTransferDataFlavors() {
+                    return new DataFlavor[]{DataFlavor.stringFlavor};
+                }
+
+                @Override
+                public boolean isDataFlavorSupported(final DataFlavor flavor) {
+                    return flavor.equals(DataFlavor.stringFlavor);
+                }
+
+                @Override
+                public Object getTransferData(final DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+                    return detail;
+                }
+            }, new ClipboardOwner() {
+                @Override
+                public void lostOwnership(final Clipboard clipboard, final Transferable contents) {
+                }
+            });
         }
     }
 
@@ -199,6 +223,15 @@ public final class StackPanel extends JPanel
         } else {
             g2.setPaint(Color.ORANGE);
             g2.setBackground(Color.ORANGE);
+        }
+    }
+
+    private String getDetail(Point location) {
+        List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{location.x, location.y}, new float[]{0, 0});
+        if (tips.size() >= 1) {
+            return tips.get(0).getFirst().toString() + "-" + tips.get(0).getSecond();
+        } else {
+            return null;
         }
     }
 }

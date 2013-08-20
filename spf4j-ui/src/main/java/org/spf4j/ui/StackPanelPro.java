@@ -126,14 +126,14 @@ public final class StackPanelPro extends JPanel
             gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             paintGraph(Method.ROOT, gr, 0, 0, width, rowHeight, 0);
             g2.drawImage(img, insets.left, insets.top, this);
-            Dimension dim = new Dimension((int) size.getWidth(), totalHeight);
+            Dimension dim = new Dimension((int) size.getWidth(), (int) totalHeight);
             setPreferredSize(dim);
             setSize(dim);
         } finally {
             g2.dispose();
         }
     }
-    private int totalHeight = 0;
+    private double totalHeight = 0;
 
     private void paintGraph(final Method method,
             final Graphics2D g2, final int x, final int y, final int areaWidth, final int rowHeight, final int depth) {
@@ -151,12 +151,13 @@ public final class StackPanelPro extends JPanel
                 if (edges.size() == 1) {
                     if (vertex.equals(Method.ROOT)) {
                         int nrSamples = edges.keySet().iterator().next().getValue();
-                        drawMethod(vertex, nrSamples, x, y, areaWidth, rowHeight, edges);
+                        drawMethod(vertex, nrSamples, (double) x, (double) y, (double) areaWidth,
+                                (double) rowHeight);
                     } else {
                         Map.Entry<SampleNode.InvocationCount, Method> fromEntry =
                                 edges.entrySet().iterator().next();
                         int nrSamples = fromEntry.getKey().getValue();
-                        int width = (int) (nrSamples * pps);
+                        double width = nrSamples * pps;
                         Method fromMethod = fromEntry.getValue();
                         Rectangle2D fromRect = methodLocations.get(fromMethod);
                         List<Pair<Method, Integer>> methods = tooltipDetail.search(
@@ -176,8 +177,8 @@ public final class StackPanelPro extends JPanel
                             renderMethodLinked(edges, vertex);
                         } else {
                             newX += drawedSamples * pps;
-                            drawMethod(vertex, nrSamples, (int) newX, (int) (fromRect.getY() + rowHeight),
-                                    width, rowHeight, edges);
+                            drawMethod(vertex, nrSamples,  newX, (fromRect.getY() + rowHeight),
+                                    width, rowHeight);
                         }
 
                     }
@@ -189,39 +190,32 @@ public final class StackPanelPro extends JPanel
             }
 
             private void drawMethod(final Method vertex, final int nrSamples,
-                    final int x, final int y, final int width, final int height,
-                    final Map<SampleNode.InvocationCount, Method> edges) {
-                drawMethod(vertex, nrSamples, x, y, width, height,
-                        edges, new Point[]{});
-            }
-
-            private void drawMethod(final Method vertex, final int nrSamples,
-                    final int x, final int y, final int width, final int height,
-                    final Map<SampleNode.InvocationCount, Method> edges, final Point[] fromLinks) {
-                Rectangle2D.Float location = new Rectangle2D.Float(x, y, width, height);
+                    final double x, final double y, final double width, final double height,
+                    final Point ... fromLinks) {
+                Rectangle2D.Double location = new Rectangle2D.Double(x, y, width, height);
                 methodLocations.put(vertex, location);
-                tooltipDetail.insert(new float[]{x, y}, new float[]{width, height},
+                tooltipDetail.insert(new float[]{(float) x, (float) y}, new float[]{(float) width, (float) height},
                         Pair.of(vertex, nrSamples));
                 if (width <= 0) {
                     return;
                 }
-                int newHeight = y + height;
+                double newHeight = y + height;
                 if (totalHeight < newHeight) {
                     totalHeight = newHeight;
                 }
                 StackPanel.setElementColor(counter++, g2);
-                g2.setClip(x, y, width, height);
-                g2.fillRect(x, y, width, height);
+                g2.setClip((int) x, (int) y, (int) width, (int) height);
+                g2.fillRect((int) x, (int) y, (int) width, (int) height);
                 String val = vertex.toString() + "-" + nrSamples;
 
                 g2.setPaint(Color.BLACK);
-                g2.drawString(val, x, y + height - 1);
+                g2.drawString(val, (int) x, (int) (y + height - 1));
                 g2.setClip(null);
                 for (Point divLoc : fromLinks) {
                     g2.drawLine((int) divLoc.getX(), (int) divLoc.getY(),
-                            x + width / 2, y);
+                            (int) (x + width / 2), (int) y);
                 }
-                g2.drawRect(x, y, width, height);
+                g2.drawRect((int) x, (int) y, (int) width, (int) height);
             }
 
             private void renderMethodLinked(final Map<SampleNode.InvocationCount, Method> edges, final Method vertex) {
@@ -229,6 +223,7 @@ public final class StackPanelPro extends JPanel
                 double newYBase = 0;
                 double newXBase = Double.MAX_VALUE;
                 double newWidth = 0;
+                double maxX = Double.MIN_VALUE;
                 int i = 0;
                 int nrSamples = 0;
                 for (Map.Entry<SampleNode.InvocationCount, Method> fromEntry : edges.entrySet()) {
@@ -242,6 +237,10 @@ public final class StackPanelPro extends JPanel
                     if (fromX < newXBase) {
                         newXBase = fromX;
                     }
+                    double mx = fromRect.getMaxX();
+                    if (mx > maxX) {
+                        maxX = mx;
+                    }
                     double newY = fromRect.getMaxY() + rowHeight;
                     if (newY > newYBase) {
                         newYBase = newY;
@@ -250,10 +249,11 @@ public final class StackPanelPro extends JPanel
                     fromPoints.add(i, new Point((int) fromRect.getCenterX(), (int) fromRect.getMaxY()));
                     i++;
                 }
+                newXBase = newXBase + (maxX - newXBase) / 2 - newWidth / 2;
                 // now find the new Y base
                 List<Pair<Method, Integer>> methods = tooltipDetail.search(
                         new float[]{(float) newXBase, (float) newYBase},
-                        new float[]{(float) newWidth, Float.MAX_VALUE / 10});
+                        new float[]{(float) newWidth, Float.MAX_VALUE});
                 while (!methods.isEmpty()) {
                     for (Pair<Method, Integer> intersected : methods) {
                         Rectangle2D fromRect = methodLocations.get(intersected.getFirst());
@@ -264,14 +264,14 @@ public final class StackPanelPro extends JPanel
                     }
                     methods = tooltipDetail.search(
                             new float[]{(float) newXBase, (float) newYBase},
-                            new float[]{(float) newWidth, Float.MAX_VALUE / 10});
+                            new float[]{(float) newWidth, Float.MAX_VALUE});
                 }
-                drawMethod(vertex, nrSamples, (int) newXBase, (int) newYBase,
-                        (int) newWidth, rowHeight, edges, fromPoints.toArray(new Point[fromPoints.size()]));
+                drawMethod(vertex, nrSamples, newXBase, newYBase,
+                         newWidth, rowHeight, fromPoints.toArray(new Point[fromPoints.size()]));
             }
         };
 
-        Traversals.breadthTraverse(graph, Method.ROOT, traversalCallback);
+        Traversals.traverse(graph, Method.ROOT, traversalCallback, false);
 
     }
 
