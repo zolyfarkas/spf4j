@@ -20,6 +20,7 @@ package org.spf4j.stackmonitor;
 import com.google.common.base.Predicate;
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.spf4j.base.Pair;
 
 /**
@@ -43,6 +44,9 @@ public final class WaitMethodClassifier implements Predicate<Method> {
    
     @Override
     public boolean apply(final Method input) {
+       if (input == null) {
+           throw new NullPointerException();
+       }
        return WAIT_METHODS.contains(Pair.of(input.getDeclaringClass(), input.getMethodName()));
     }
     
