@@ -30,6 +30,7 @@ import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -69,7 +70,7 @@ public final class Sampler implements SamplerMBean {
     private volatile boolean isJmxRegistered;
     private final StackCollector stackCollector;
     private final ObjectName name;
-    private long lastDumpTime = System.currentTimeMillis();
+    private volatile long lastDumpTime = System.currentTimeMillis();
     
     @GuardedBy("this")
     private Thread samplingThread;
@@ -124,25 +125,25 @@ public final class Sampler implements SamplerMBean {
             final long dumpCount = dumpTimeMillis / stMillis;
 
             samplingThread = new Thread(new AbstractRunnable() {
-                private long dumpCounter = 0;
-
+                
                 @SuppressWarnings("SleepWhileInLoop")
                 @Override
                 public void doRun() throws IOException, InterruptedException {
+                    long dumpCounter = 0;
                     while (!stopped) {
                         stackCollector.sample();
                         Thread.sleep(stMillis);
                         dumpCounter++;
                         if (dumpCounter >= dumpCount) {
-                            dumpCounter = 0;
-                            dumpToFile();
-                            lastDumpTime = System.currentTimeMillis();
-                            clear();
+                            long timeSinceLastDump = System.currentTimeMillis() - lastDumpTime;
+                            if (timeSinceLastDump >= dumpTimeMillis) {
+                                dumpCounter = 0;
+                                dumpToFile();
+                            } else {
+                                dumpCounter -= (dumpTimeMillis - timeSinceLastDump) / stMillis;
+                            }
                         }
-
-
-
-                    }
+                   }
                 }
             }, "Stack Sampling Thread");
             samplingThread.start();
@@ -153,8 +154,20 @@ public final class Sampler implements SamplerMBean {
     }
     private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();
 
-    public synchronized void dumpToFile() throws IOException {
-        final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePrefix + "_"
+    public void dumpToFile() throws IOException {
+        dumpToFile(null);
+    }
+    
+    /**
+     * Dumps the sampled stacks to file.
+     * the collected samples are reset
+     * @param id - id will be added to file name
+     * @throws IOException
+     */
+    
+    public synchronized void dumpToFile(@Nullable final String id) throws IOException {
+        final BufferedOutputStream bos = new BufferedOutputStream(
+                new FileOutputStream(filePrefix + "_" + ((id == null) ? "" : id + "_")
                 + TS_FORMAT.print(lastDumpTime) + "_" + TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump"));
         try {
             stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
@@ -165,10 +178,9 @@ public final class Sampler implements SamplerMBean {
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
                     }
-                    return input;
+                    return null;
                 }
             });
-
 
         } finally {
             bos.close();
