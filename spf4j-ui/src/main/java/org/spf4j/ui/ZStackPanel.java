@@ -76,7 +76,6 @@ public final class ZStackPanel extends StackPanelBase {
                     } else {
                         Map.Entry<SampleNode.InvocationCount, Method> fromEntry =
                                 edges.entrySet().iterator().next();
-                        int nrSamples = fromEntry.getKey().getValue();
                         Method fromMethod = fromEntry.getValue();
                         Rectangle2D fromRect = methodLocations.get(fromMethod);
                         List<Pair<Method, Integer>> methods = tooltipDetail.search(
@@ -93,7 +92,8 @@ public final class ZStackPanel extends StackPanelBase {
                         }
                         if (!existingMethodsHaveSameParent) {
                             renderMethodLinked(edges, vertex);
-                        } else {
+                        } else {                          
+                            int nrSamples = fromEntry.getKey().getValue();
                             double width = nrSamples * pps;
                             double newX = fromRect.getX();
                             newX += drawedSamples * pps;
