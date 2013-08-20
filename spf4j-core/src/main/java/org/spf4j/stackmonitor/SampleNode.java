@@ -47,7 +47,7 @@ public final class SampleNode {
         this.subNodes = subNodes;
     }
 
-    public int addSample(final StackTraceElement[] stackTrace, final int from) {
+    public void addSample(final StackTraceElement[] stackTrace, final int from) {
         sampleCount++;
         if (from >= 0) {
             Method method = new Method(stackTrace[from]);
@@ -59,12 +59,10 @@ public final class SampleNode {
             }
             if (subNode == null) {
                 subNodes.put(method, new SampleNode(stackTrace, from - 1));
-                return from + 1;
             } else {
-                return subNode.addSample(stackTrace, from - 1);
+                subNode.addSample(stackTrace, from - 1);
             }
         }
-        return 0;
     }
 
     public int getSampleCount() {
@@ -95,6 +93,19 @@ public final class SampleNode {
             return subHeight + 1;
         }
 
+    }
+    
+    
+    public int getNrNodes() {
+        if (subNodes == null) {
+            return 1;
+        } else {
+            int nrNodes = 0;
+            for (SampleNode node : subNodes.values()) {
+                nrNodes += node.getNrNodes();
+            }
+            return nrNodes + 1;
+        }
     }
 
     @Nullable
