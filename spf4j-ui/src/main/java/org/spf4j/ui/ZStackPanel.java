@@ -51,21 +51,20 @@ public final class ZStackPanel extends StackPanelBase {
 
     @Override
     public int paint(final Graphics2D gr, final double width, final double rowHeight) {
-        paintGraph(Method.ROOT, gr, 0, 0, (int) width, (int) rowHeight);
+        paintGraph(Method.ROOT, gr, 0, 0, (int) width, rowHeight);
         return (int) totalHeight;
     }
 
     private void paintGraph(final Method method,
-            final Graphics2D g2, final int x, final int y, final int areaWidth, final int rowHeight) {
+            final Graphics2D g2, final int x, final int y, final double areaWidth, final double rowHeight) {
 
         graph = completeGraph.copy();
         int rootSamples = graph.getEdges(Method.ROOT).getIncomming().keySet().iterator().next().getValue();
-        final double pps = ((double) areaWidth) / rootSamples;
+        final double pps = areaWidth / rootSamples;
         methodLocations = new HashMap<Method, Rectangle2D>();
         final Traversals.TraversalCallback<Method, SampleNode.InvocationCount> traversalCallback =
                 new Traversals.TraversalCallback<Method, SampleNode.InvocationCount>() {
             private int counter = 0;
-
             @Override
             public void handle(final Method vertex, final Map<SampleNode.InvocationCount, Method> edges) {
                 if (edges.size() == 1) {
@@ -79,8 +78,9 @@ public final class ZStackPanel extends StackPanelBase {
                         Method fromMethod = fromEntry.getValue();
                         Rectangle2D fromRect = methodLocations.get(fromMethod);
                         List<Pair<Method, Integer>> methods = tooltipDetail.search(
-                                new float[]{(float) fromRect.getX() + 0.1f, (float) fromRect.getY() + rowHeight + 0.1f},
-                                new float[]{(float) fromRect.getWidth() - 0.2f, (float) rowHeight - 0.2f});
+                                new float[]{(float) fromRect.getX() + 0.5f,
+                                    (float) fromRect.getY() + (float) rowHeight + 0.1f},
+                                new float[]{(float) fromRect.getWidth() - 1f, (float) rowHeight - 0.2f});
                         int drawedSamples = 0;
                         boolean existingMethodsHaveSameParent = true;
                         for (Pair<Method, Integer> method : methods) {
@@ -169,25 +169,37 @@ public final class ZStackPanel extends StackPanelBase {
                     fromPoints.add(i, new Point((int) fromRect.getCenterX(), (int) fromRect.getMaxY()));
                     i++;
                 }
-                newXBase = newXBase + (maxX - newXBase) / 2 - newWidth / 2;
-                // now find the new Y base
-                List<Pair<Method, Integer>> methods = tooltipDetail.search(
+                
+                Pair<List<Pair<Method, Integer>>, Double> result = findEmptySpace(newXBase, newYBase, newWidth, maxX);
+                while (!result.getFirst().isEmpty()) {
+                    // TODO: optimize this to increment with a better value
+                    newYBase += rowHeight;
+                    result = findEmptySpace(newXBase, newYBase, newWidth, maxX);
+                }
+                drawMethod(vertex, nrSamples, result.getSecond(), newYBase,
+                        newWidth, rowHeight, fromPoints.toArray(new Point[fromPoints.size()]));
+            }
+
+            private Pair<List<Pair<Method, Integer>>, Double> findEmptySpace(
+                    final double newXBase, final double newYBase,
+                    final double newWidth, final double maxX) {
+                double tryx = newXBase + (maxX - newXBase) / 2 - newWidth / 2;
+                List<Pair<Method, Integer>>  methods = tooltipDetail.search(
+                        new float[]{(float) tryx, (float) newYBase},
+                        new float[]{(float) newWidth, Float.MAX_VALUE});
+                if (!methods.isEmpty()) {
+                    tryx = newXBase;
+                    methods = tooltipDetail.search(
                         new float[]{(float) newXBase, (float) newYBase},
                         new float[]{(float) newWidth, Float.MAX_VALUE});
-                while (!methods.isEmpty()) {
-                    for (Pair<Method, Integer> intersected : methods) {
-                        Rectangle2D fromRect = methodLocations.get(intersected.getFirst());
-                        double ny = fromRect.getMaxY() + rowHeight;
-                        if (newYBase < ny) {
-                            newYBase = ny;
-                        }
-                    }
-                    methods = tooltipDetail.search(
-                            new float[]{(float) newXBase, (float) newYBase},
-                            new float[]{(float) newWidth, Float.MAX_VALUE});
                 }
-                drawMethod(vertex, nrSamples, newXBase, newYBase,
-                        newWidth, rowHeight, fromPoints.toArray(new Point[fromPoints.size()]));
+                if (!methods.isEmpty()) {
+                    tryx = maxX - newWidth;
+                    methods = tooltipDetail.search(
+                        new float[]{(float) tryx, (float) newYBase},
+                        new float[]{(float) newWidth, Float.MAX_VALUE});
+                }
+                return Pair.of(methods, tryx);
             }
         };
 
