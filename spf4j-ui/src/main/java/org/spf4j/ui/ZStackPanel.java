@@ -31,6 +31,7 @@ import org.spf4j.ds.Traversals;
 import org.spf4j.ds.Graph;
 import org.spf4j.stackmonitor.Method;
 import org.spf4j.stackmonitor.SampleNode;
+import static org.spf4j.ui.StackPanelBase.LINK_COLOR;
 
 /**
  *
@@ -65,6 +66,7 @@ public final class ZStackPanel extends StackPanelBase {
         final Traversals.TraversalCallback<Method, SampleNode.InvocationCount> traversalCallback =
                 new Traversals.TraversalCallback<Method, SampleNode.InvocationCount>() {
             private int counter = 0;
+
             @Override
             public void handle(final Method vertex, final Map<SampleNode.InvocationCount, Method> edges) {
                 if (edges.size() == 1) {
@@ -76,31 +78,22 @@ public final class ZStackPanel extends StackPanelBase {
                         Map.Entry<SampleNode.InvocationCount, Method> fromEntry =
                                 edges.entrySet().iterator().next();
                         Method fromMethod = fromEntry.getValue();
-                        Rectangle2D fromRect = methodLocations.get(fromMethod);
-                        List<Pair<Method, Integer>> methods = tooltipDetail.search(
-                                new float[]{(float) fromRect.getX() + 0.5f,
-                                    (float) fromRect.getY() + (float) rowHeight + 0.1f},
-                                new float[]{(float) fromRect.getWidth() - 1f, (float) rowHeight - 0.2f});
-                        int drawedSamples = 0;
-                        boolean existingMethodsHaveSameParent = true;
-                        for (Pair<Method, Integer> method : methods) {
-                            drawedSamples += method.getSecond();
-                            if (!graph.getEdges(method.getFirst()).getIncomming().containsValue(fromEntry.getValue())) {
-                                existingMethodsHaveSameParent = false;
-                                break;
+                        Rectangle2D fromMethodLocation = methodLocations.get(fromMethod);
+                        int relativeSamples = 0;
+                        for (Map.Entry<SampleNode.InvocationCount, Method> ens
+                                : graph.getEdges(fromMethod).getOutgoing().entrySet()) {
+                            Method slm = ens.getValue();
+                            if (methodLocations.containsKey(slm) && graph.getEdges(slm).getIncomming().size() == 1
+                                    && !fromMethod.equals(slm)) {
+                                relativeSamples += ens.getKey().getValue();
                             }
                         }
-                        if (!existingMethodsHaveSameParent) {
-                            renderMethodLinked(edges, vertex);
-                        } else {
-                            int nrSamples = fromEntry.getKey().getValue();
-                            double width = nrSamples * pps;
-                            double newX = fromRect.getX();
-                            newX += drawedSamples * pps;
-                            drawMethod(vertex, nrSamples, newX, (fromRect.getY() + rowHeight),
-                                    width, rowHeight);
-                        }
 
+                        int nrSamples = fromEntry.getKey().getValue();
+                        double width = nrSamples * pps;
+                        double newX = fromMethodLocation.getX() + relativeSamples * pps;
+                        drawMethod(vertex, nrSamples, newX, (fromMethodLocation.getY() + rowHeight),
+                                width, rowHeight);
                     }
                 } else if (edges.size() > 1) {
                     renderMethodLinked(edges, vertex);
@@ -131,6 +124,7 @@ public final class ZStackPanel extends StackPanelBase {
                 g2.setPaint(Color.BLACK);
                 g2.drawString(val, (int) x, (int) (y + height - 1));
                 g2.setClip(null);
+                g2.setPaint(LINK_COLOR);
                 for (Point divLoc : fromLinks) {
                     g2.drawLine((int) divLoc.getX(), (int) divLoc.getY(),
                             (int) (x + width / 2), (int) y);
@@ -165,11 +159,9 @@ public final class ZStackPanel extends StackPanelBase {
                     if (newY > newYBase) {
                         newYBase = newY;
                     }
-
-                    fromPoints.add(i, new Point((int) fromRect.getCenterX(), (int) fromRect.getMaxY()));
-                    i++;
+                    fromPoints.add(new Point((int) fromRect.getCenterX(), (int) fromRect.getMaxY()));
                 }
-                
+
                 Pair<List<Pair<Method, Integer>>, Double> result = findEmptySpace(newXBase, newYBase, newWidth, maxX);
                 while (!result.getFirst().isEmpty()) {
                     // TODO: optimize this to increment with a better value
@@ -184,20 +176,20 @@ public final class ZStackPanel extends StackPanelBase {
                     final double newXBase, final double newYBase,
                     final double newWidth, final double maxX) {
                 double tryx = newXBase + (maxX - newXBase) / 2 - newWidth / 2;
-                List<Pair<Method, Integer>>  methods = tooltipDetail.search(
+                List<Pair<Method, Integer>> methods = tooltipDetail.search(
                         new float[]{(float) tryx, (float) newYBase},
                         new float[]{(float) newWidth, Float.MAX_VALUE});
                 if (!methods.isEmpty()) {
                     tryx = newXBase;
                     methods = tooltipDetail.search(
-                        new float[]{(float) newXBase, (float) newYBase},
-                        new float[]{(float) newWidth, Float.MAX_VALUE});
+                            new float[]{(float) tryx, (float) newYBase},
+                            new float[]{(float) newWidth, Float.MAX_VALUE});
                 }
                 if (!methods.isEmpty()) {
                     tryx = maxX - newWidth;
                     methods = tooltipDetail.search(
-                        new float[]{(float) tryx, (float) newYBase},
-                        new float[]{(float) newWidth, Float.MAX_VALUE});
+                            new float[]{(float) tryx, (float) newYBase},
+                            new float[]{(float) newWidth, Float.MAX_VALUE});
                 }
                 return Pair.of(methods, tryx);
             }
@@ -215,7 +207,7 @@ public final class ZStackPanel extends StackPanelBase {
             final Map<SampleNode.InvocationCount, Method> incomming = graph.getEdges(node.getFirst()).getIncomming();
             StringBuilder sb = new StringBuilder();
             sb.append(node.getFirst().toString()).append('-').append(node.getSecond())
-              .append("\n invoked from: ");
+                    .append("\n invoked from: ");
             for (Map.Entry<SampleNode.InvocationCount, Method> entry : incomming.entrySet()) {
                 int ic = entry.getKey().getValue();
                 Method method = entry.getValue();

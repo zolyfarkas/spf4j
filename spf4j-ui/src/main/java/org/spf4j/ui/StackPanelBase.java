@@ -61,7 +61,8 @@ public abstract class StackPanelBase extends JPanel
     //CHECKSTYLE:ON
     private JPopupMenu menu;
 
-
+    public static final Color LINK_COLOR = new Color(128, 128, 128, 128);
+    
     public StackPanelBase(final SampleNode samples) {
         this.samples = samples;
         setPreferredSize(new Dimension(400, 20 * samples.height() + 10));

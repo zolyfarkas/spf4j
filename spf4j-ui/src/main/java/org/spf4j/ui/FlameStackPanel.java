@@ -55,6 +55,7 @@ public final class FlameStackPanel extends StackPanelBase {
         g2.setPaint(Color.BLACK);
         g2.drawString(val, x, y + height - 1);
         g2.setClip(null);
+        g2.setPaint(LINK_COLOR);
         g2.drawRect(x, y, width, height);
         Map<Method, SampleNode> children = node.getSubNodes();
         int result = height;
