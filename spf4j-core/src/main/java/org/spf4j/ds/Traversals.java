@@ -19,6 +19,7 @@ package org.spf4j.ds;
 
 import com.google.common.collect.Sets;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Map;
@@ -81,7 +82,20 @@ public final class Traversals {
             if (leftNodes.isEmpty()) {
                 done = true;
             } else {
-                traversalQueue.add(leftNodes.iterator().next());
+                boolean added = false;
+                for (V node : leftNodes) {
+                    Collection<V> incomingNodes = graph.getEdges(node).getIncomming().values();
+                    for (V incoming : incomingNodes) {
+                        if (traversedNodes.contains(incoming)) {
+                            traversalQueue.add(node);
+                            added = true;
+                            break;
+                        }
+                    }
+                    if (added) {
+                        break;
+                    }
+                }
             }
         } while (!done);
     }

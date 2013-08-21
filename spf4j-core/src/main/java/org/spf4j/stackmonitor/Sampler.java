@@ -241,8 +241,10 @@ public final class Sampler implements SamplerMBean {
 
     @Override
     public synchronized void stop() throws InterruptedException {
-        stopped = true;
-        samplingThread.join();
+        if (!stopped) {
+            stopped = true;
+            samplingThread.join();
+        }
     }
 
     @Override
