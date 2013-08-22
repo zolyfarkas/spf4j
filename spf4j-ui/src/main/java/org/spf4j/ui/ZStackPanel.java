@@ -195,7 +195,7 @@ public final class ZStackPanel extends StackPanelBase {
             }
         };
 
-        Traversals.traverse(graph, Method.ROOT, traversalCallback, false);
+        Traversals.customTraverse(graph, Method.ROOT, traversalCallback);
 
     }
 
