@@ -35,7 +35,6 @@ public final class Converter {
     public static ProtoSampleNodes.Method fromMethodToProto(final Method m) {
         return ProtoSampleNodes.Method.newBuilder().setMethodName(m.getMethodName())
                 .setDeclaringClass(m.getDeclaringClass())
-                .setLineNumber(m.getLineNumber())
                 .build();
     }
     
@@ -67,7 +66,7 @@ public final class Converter {
             for (ProtoSampleNodes.SamplePair pair : sns) {
                 final ProtoSampleNodes.Method method = pair.getMethod();
                 subNodes.put(new Method(pair.getMethod().getDeclaringClass(),
-                        method.getMethodName(), method.getLineNumber()),
+                        method.getMethodName()),
                         fromProtoToSampleNode(pair.getNode()));
             }
         }

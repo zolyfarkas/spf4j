@@ -20,7 +20,6 @@ package org.spf4j.ds;
 import com.google.common.collect.Sets;
 import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Map;
@@ -104,22 +103,51 @@ public final class Traversals {
     }
     
     
+    public static final class VertexHolder<V> implements Comparable<VertexHolder<V>> {
+
+        private final V vertex;
+        
+        private final int order;
+        
+        private final int nrImcoming;
+
+        public VertexHolder(final V vertex, final int order, final int nrImcoming) {
+            this.vertex = vertex;
+            this.order = order;
+            this.nrImcoming = nrImcoming;
+        }
+           
+        @Override
+        public int compareTo(final VertexHolder<V> o) {
+            int result = this.nrImcoming - o.nrImcoming;
+            if (result == 0) {
+                return  this.order - o.order;
+            } else {
+                return result;
+            }
+        }
+
+        public V getVertex() {
+            return vertex;
+        }
+        
+        
+        
+        
+    }
+    
+    
     public static <V, E> void customTraverse(final Graph<V, E> graph, final V startNode,
             final TraversalCallback<V, E> handler) {
         Set<V> traversedNodes = new HashSet<V>();
-        Queue<V> traversalQueue = new PriorityQueue<V>(16, new Comparator<V> () {
-            @Override
-            public int compare(final V o1, final V o2) {
-                return graph.getEdges(o1).getIncomming().size()
-                        - graph.getEdges(o2).getIncomming().size();
-            }
-        });
-        traversalQueue.add(startNode);
+        Queue<VertexHolder<V>> traversalQueue = new PriorityQueue<VertexHolder<V>>(16);
+        int counter = 0;
+        traversalQueue.add(new VertexHolder<V>(startNode, counter++, 0));
         boolean done = false;
         do {
             boolean first = true;
             while (!traversalQueue.isEmpty()) {
-                V node = traversalQueue.remove();
+                V node = traversalQueue.remove().getVertex();
                 VertexEdges<V, E> edges = graph.getEdges(node);
                 if (traversedNodes.contains(node)) {
                     continue;
@@ -140,7 +168,8 @@ public final class Traversals {
                 first = false;
                 Map<E, V> outgoing = edges.getOutgoing();
                 for (V next : outgoing.values()) {
-                    traversalQueue.add(next);
+                    traversalQueue.add(
+                            new VertexHolder<V>(next, counter++, graph.getEdges(next).getIncomming().size()));
                 }
             }
 
@@ -153,7 +182,7 @@ public final class Traversals {
                     Collection<V> incomingNodes = graph.getEdges(node).getIncomming().values();
                     for (V incoming : incomingNodes) {
                         if (traversedNodes.contains(incoming)) {
-                            traversalQueue.add(node);
+                            traversalQueue.add(new VertexHolder<V>(node, counter++, 0));
                             added = true;
                             break;
                         }
