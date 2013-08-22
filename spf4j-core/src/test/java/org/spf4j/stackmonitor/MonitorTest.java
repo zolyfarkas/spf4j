@@ -133,6 +133,9 @@ public final class MonitorTest {
 
                 private double doStuff3(final double rnd) throws InterruptedException {
                     Thread.sleep(1);
+                    if (rnd > 0.8) {
+                        doStuff2(rnd);
+                    }
                     return rnd * Math.pow(2, 10000);
                 }
 
