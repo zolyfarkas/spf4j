@@ -176,22 +176,34 @@ public final class ZStackPanel extends StackPanelBase {
                     final double newXBase, final double newYBase,
                     final double newWidth, final double maxX) {
                 double tryx = newXBase + (maxX - newXBase) / 2 - newWidth / 2;
+                tryx = fitToViewableArea(tryx, newWidth);
                 List<Pair<Method, Integer>> methods = tooltipDetail.search(
                         new float[]{(float) tryx, (float) newYBase},
                         new float[]{(float) newWidth, Float.MAX_VALUE});
                 if (!methods.isEmpty()) {
                     tryx = newXBase;
+                    tryx = fitToViewableArea(tryx, newWidth);
                     methods = tooltipDetail.search(
                             new float[]{(float) tryx, (float) newYBase},
                             new float[]{(float) newWidth, Float.MAX_VALUE});
-                }
-                if (!methods.isEmpty()) {
-                    tryx = maxX - newWidth;
-                    methods = tooltipDetail.search(
-                            new float[]{(float) tryx, (float) newYBase},
-                            new float[]{(float) newWidth, Float.MAX_VALUE});
+                    if (!methods.isEmpty()) {
+                        tryx = maxX - newWidth;
+                        tryx = fitToViewableArea(tryx, newWidth);
+                        methods = tooltipDetail.search(
+                                new float[]{(float) tryx, (float) newYBase},
+                                new float[]{(float) newWidth, Float.MAX_VALUE});
+                    }
                 }
                 return Pair.of(methods, tryx);
+            }
+
+            private double fitToViewableArea(double tryx, final double newWidth) {
+                if (tryx < 0) {
+                    tryx = 0;
+                } else if (tryx > areaWidth - newWidth) {
+                    tryx = areaWidth - newWidth;
+                }
+                return tryx;
             }
         };
 
