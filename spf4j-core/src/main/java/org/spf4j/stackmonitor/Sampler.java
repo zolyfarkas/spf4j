@@ -43,6 +43,7 @@ import javax.management.ObjectName;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.Holder;
 import org.spf4j.stackmonitor.proto.Converter;
 
 /**
@@ -162,31 +163,38 @@ public final class Sampler implements SamplerMBean {
      * Dumps the sampled stacks to file.
      * the collected samples are reset
      * @param id - id will be added to file name
+     * returns the name of the file.
      * @throws IOException
      */
     
-    public synchronized void dumpToFile(@Nullable final String id) throws IOException {
-        final BufferedOutputStream bos = new BufferedOutputStream(
-                new FileOutputStream(filePrefix + "_" + ((id == null) ? "" : id + "_")
-                + TS_FORMAT.print(lastDumpTime) + "_" + TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump"));
-        try {
-            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
-                @Override
-                public SampleNode apply(final SampleNode input) {
-                    try {
-                        Converter.fromSampleNodeToProto(input).writeTo(bos);
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
+    public synchronized String dumpToFile(@Nullable final String id) throws IOException {
+        final Holder<String> result = new Holder<String>();
+        stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
+            @Override
+            public SampleNode apply(final SampleNode input) {
+                try {
+                    if (input != null) {
+                        String fileName = filePrefix + "_" + ((id == null) ? "" : id + "_")
+                                + TS_FORMAT.print(lastDumpTime) + "_"
+                                + TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump";
+                        final BufferedOutputStream bos = new BufferedOutputStream(
+                                new FileOutputStream(fileName));
+                        try {
+                            Converter.fromSampleNodeToProto(input).writeTo(bos);
+                            lastDumpTime = System.currentTimeMillis();
+                            result.setValue(fileName);
+                        } finally {
+                            bos.close();
+                        }
                     }
-                    return null;
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
                 }
-            });
+                return null;
+            }
+        });
 
-        } finally {
-            bos.close();
-        }
-        lastDumpTime = System.currentTimeMillis();
-
+        return result.getValue();
     }
 
     @Override

@@ -22,10 +22,25 @@ package org.spf4j.base;
  *
  * @author zoly
  */
-public interface Handler<T, E extends Exception> {
+public final  class Holder<T> {
+    
+    private T value;
 
-    // CHECKSTYLE:OFF -- checkstyle does not seem to handle generic exceptions
-    void handle(T object) throws E;
-    // CHECKSTYLE:ON
+    public Holder(final T value) {
+        this.value = value;
+    }
+
+    public Holder() {
+        this.value = null;
+    }
+
+    public T getValue() {
+        return value;
+    }
+
+    public void setValue(final T value) {
+        this.value = value;
+    }
+    
     
 }
