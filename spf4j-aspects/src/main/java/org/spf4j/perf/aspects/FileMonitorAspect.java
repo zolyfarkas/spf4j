@@ -33,13 +33,15 @@ import org.spf4j.perf.RecorderFactory;
  */
 @Aspect
 public final class FileMonitorAspect {
+    
+    public static final int SAMPLE_TIME = Integer.parseInt(System.getProperty("perf.file.sampleTimeMillis", "300000"));
 
     private static final MeasurementRecorderSource RECORDER_READ =
             RecorderFactory.createScalableCountingRecorderSource("file-read", "bytes",
-            Integer.valueOf(System.getProperty("perf.file.sampleTimeMillis", "300000")));
+            SAMPLE_TIME);
     private static final MeasurementRecorderSource RECORDER_WRITE =
             RecorderFactory.createScalableCountingRecorderSource("file-write", "bytes",
-            Integer.valueOf(System.getProperty("perf.file.sampleTimeMillis", "300000")));
+            SAMPLE_TIME);
 
     @Around("call(long java.nio.channels.FileChannel.read(..))")
     public Object nioReadLong(final ProceedingJoinPoint pjp) throws Throwable {

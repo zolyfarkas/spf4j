@@ -36,17 +36,18 @@ public final class AllocationMonitorAspect {
 
     
    private static final boolean RECORD_OBJECT_SIZE =
-            Boolean.valueOf(System.getProperty("perf.allocations.recordSize", "true"));
+            Boolean.parseBoolean(System.getProperty("perf.allocations.recordSize", "true"));
     
    private static final MeasurementRecorderSource RECORDER;
    
    static {
+       int sampleTime = Integer.parseInt(System.getProperty("perf.allocations.sampleTimeMillis", "300000"));
        if (RECORD_OBJECT_SIZE) {
            RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "bytes",
-            Integer.valueOf(System.getProperty("perf.allocations.sampleTimeMillis", "300000")));
+            sampleTime);
        } else {
            RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "instances",
-            Integer.valueOf(System.getProperty("perf.allocations.sampleTimeMillis", "300000")));
+            sampleTime);
        }
    }
        

@@ -35,13 +35,16 @@ import org.spf4j.perf.RecorderFactory;
 @Aspect
 public final class NetworkMonitorAspect {
 
+    public static final int SAMPLE_TIME =
+            Integer.parseInt(System.getProperty("perf.network.sampleTimeMillis", "300000"));
+    
     private static final MeasurementRecorderSource RECORDER_READ =
             RecorderFactory.createScalableCountingRecorderSource("network-read", "bytes",
-            Integer.valueOf(System.getProperty("perf.network.sampleTimeMillis", "300000")));
+            SAMPLE_TIME);
     
     private static final MeasurementRecorderSource RECORDER_WRITE =
             RecorderFactory.createScalableCountingRecorderSource("network-write", "bytes",
-            Integer.valueOf(System.getProperty("perf.network.sampleTimeMillis", "300000")));
+            SAMPLE_TIME);
     
 
     @Around("call(long java.nio.channels.SocketChannel.read(..))")
