@@ -161,7 +161,8 @@ Callable<?> monitoredCallable =
 * 5.1. Why another profiling library?
 
  It all started with Brendan Gregg's blog: http://dtrace.org/blogs/brendan/2011/12/16/flame-graphs/ combined with a few hours of coding.
- However since than more monitoring capability has been added to spf4j.
+ However since than more monitoring capability has been added to spf4j. Flame-graph visualization has been improved 
+ to better see hot function calls. 
  Aspects to monitor object allocation, network, file, memory usage have been added.
 
 * 5.2. When to profile your code?
@@ -201,8 +202,14 @@ Usage:
  After the program finishes it will write the data to the {{{./stackSample.html}stackSample.html}} file
 
  If you have a server application running and you started it with stack sampling, by default every 1 hour
- the collected stack data is dumped to the temp folder. You can load and visualize this data with the 
- library embeded ui.
+ the collected stack data is dumped to the temp folder. You can also invoke Sampler.dumpToFile to dum the stack samples 
+ at any time in your program allowing you to separate out samples at relevant times in your application.
+ You can load and visualize this data with the library embeded ui:
+
+[images/spf4j-flame-graph.png]
+
+ The classic flame graph visualization remains available. The explorer ui can be used to visualize the measurements 
+ stored in the tsdb files.
 
 [images/explorer-ui.png]
 
