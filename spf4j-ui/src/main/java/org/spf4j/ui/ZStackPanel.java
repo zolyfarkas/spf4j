@@ -109,9 +109,6 @@ public final class ZStackPanel extends StackPanelBase {
                 methodLocations.put(vertex, location);
                 tooltipDetail.insert(new float[]{(float) x, (float) y}, new float[]{(float) width, (float) height},
                         Pair.of(vertex, nrSamples));
-                if (width <= 0) {
-                    return;
-                }
                 double newHeight = y + height;
                 if (totalHeight < newHeight) {
                     totalHeight = newHeight;
@@ -138,7 +135,6 @@ public final class ZStackPanel extends StackPanelBase {
                 double newXBase = Double.MAX_VALUE;
                 double newWidth = 0;
                 double maxX = Double.MIN_VALUE;
-                int i = 0;
                 int nrSamples = 0;
                 for (Map.Entry<SampleNode.InvocationCount, Method> fromEntry : edges.entrySet()) {
                     Rectangle2D fromRect = methodLocations.get(fromEntry.getValue());
@@ -197,7 +193,8 @@ public final class ZStackPanel extends StackPanelBase {
                 return Pair.of(methods, tryx);
             }
 
-            private double fitToViewableArea(double tryx, final double newWidth) {
+            private double fitToViewableArea(final double ptryx, final double newWidth) {
+                double tryx = ptryx;
                 if (tryx < 0) {
                     tryx = 0;
                 } else if (tryx > areaWidth - newWidth) {
