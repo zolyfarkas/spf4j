@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.List;
@@ -117,13 +118,17 @@ public final class Sampler implements SamplerMBean {
         isJmxRegistered = true;
     }
 
+    private static final StackTraceElement [] GC_FAKE_STACK = new StackTraceElement[] {
+        new StackTraceElement("java.lang.System", "gc", "System.java", -1)
+    };
+    
     @Override
     public synchronized void start() {
         if (stopped) {
             stopped = false;
             final int stMillis = sampleTimeMillis;
             final int dumpCount = dumpTimeMillis / stMillis;
-
+            final List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
             samplingThread = new Thread(new AbstractRunnable() {
                 
                 @SuppressWarnings("SleepWhileInLoop")
@@ -132,16 +137,24 @@ public final class Sampler implements SamplerMBean {
                     final Thread samplerThread = Thread.currentThread();
                     int dumpCounter = 0;
                     int coarseCounter = 0;
-                    int coarseCount = 1000 / stMillis;
+                    int coarseCount = 2000 / stMillis;
                     boolean lstopped = stopped;
+                    long prevGcTime = 0;
                     while (!lstopped) {
                         stackCollector.sample(samplerThread);
-                        Thread.sleep(stMillis);
                         dumpCounter++;
                         coarseCounter++;
                         if (coarseCounter >= coarseCount) {
                             coarseCounter = 0;
                             lstopped = stopped;
+                            long gcTime = getGCTime(gcBeans);
+                            if (gcTime > prevGcTime) {
+                                int fakeSamples = (int) ((gcTime - prevGcTime)) / stMillis;
+                                for (int i = 0; i < fakeSamples; i++) {
+                                    stackCollector.addSample(GC_FAKE_STACK);
+                                }
+                                prevGcTime = gcTime;
+                            }
                         }
                         if (dumpCounter >= dumpCount) {
                             long timeSinceLastDump = System.currentTimeMillis() - lastDumpTime;
@@ -152,6 +165,7 @@ public final class Sampler implements SamplerMBean {
                                 dumpCounter -= (dumpTimeMillis - timeSinceLastDump) / stMillis;
                             }
                         }
+                        Thread.sleep(stMillis);
                    }
                 }
             }, "Stack Sampling Thread");
@@ -432,5 +446,13 @@ public final class Sampler implements SamplerMBean {
     @Override
     public void setDumpTimeMillis(final int dumpTimeMillis) {
         this.dumpTimeMillis = dumpTimeMillis;
+    }
+
+    private static long getGCTime(final List<GarbageCollectorMXBean> gcBeans) {
+        long gcTime = 0;
+        for (GarbageCollectorMXBean gcBean: gcBeans) {
+            gcTime += gcBean.getCollectionTime();
+        }
+        return gcTime;
     }
 }

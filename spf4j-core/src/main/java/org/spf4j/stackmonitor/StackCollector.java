@@ -31,4 +31,6 @@ public interface StackCollector {
 
     void sample(Thread ignore);
     
+    void addSample(StackTraceElement[] stackTrace);
+    
 }

@@ -48,6 +48,7 @@ public abstract class AbstractStackCollector implements StackCollector {
         }
     }
     
+    @Override
     public final void addSample(final StackTraceElement[] stackTrace) {
         synchronized (sampleSync) {
             if (samples == null) {
