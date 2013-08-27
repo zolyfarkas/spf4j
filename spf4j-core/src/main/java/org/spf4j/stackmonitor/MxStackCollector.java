@@ -30,15 +30,15 @@ public final class MxStackCollector extends AbstractStackCollector {
     private final ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
 
     @Override
-    public void sample() {
+    public void sample(final Thread ignore) {
         ThreadInfo[] stackDump = threadMX.dumpAllThreads(true, true);
-        recordStackDump(stackDump);
+        recordStackDump(stackDump, ignore);
     }
 
-    private void recordStackDump(final ThreadInfo[] stackDump) {
+    private void recordStackDump(final ThreadInfo[] stackDump, final Thread ignore) {
         for (ThreadInfo entry : stackDump) {
             StackTraceElement[] stackTrace = entry.getStackTrace();
-            if (stackTrace.length > 0 && !(entry.getThreadId() == Thread.currentThread().getId())) {
+            if (stackTrace.length > 0 && !(entry.getThreadId() == ignore.getId())) {
                 addSample(stackTrace);
             }
         }

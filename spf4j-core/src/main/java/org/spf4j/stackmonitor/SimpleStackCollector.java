@@ -26,15 +26,15 @@ import java.util.Map;
 public final class SimpleStackCollector extends AbstractStackCollector {
 
     @Override
-    public void sample() {
+    public void sample(final Thread ignore) {
         Map<Thread, StackTraceElement[]> stackDump = Thread.getAllStackTraces();
+        stackDump.remove(ignore);
         recordStackDump(stackDump);
     }
 
     private void recordStackDump(final Map<Thread, StackTraceElement[]> stackDump) {
-        for (Map.Entry<Thread, StackTraceElement[]> entry : stackDump.entrySet()) {
-            StackTraceElement[] stackTrace = entry.getValue();
-            if (stackTrace.length > 0 && !entry.getKey().equals(Thread.currentThread())) {
+        for (StackTraceElement[] stackTrace : stackDump.values()) {
+            if (stackTrace.length > 0) {
                 addSample(stackTrace);
             }
         }

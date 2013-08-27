@@ -129,12 +129,13 @@ public final class Sampler implements SamplerMBean {
                 @SuppressWarnings("SleepWhileInLoop")
                 @Override
                 public void doRun() throws IOException, InterruptedException {
+                    final Thread samplerThread = Thread.currentThread();
                     int dumpCounter = 0;
                     int coarseCounter = 0;
                     int coarseCount = 1000 / stMillis;
                     boolean lstopped = stopped;
                     while (!lstopped) {
-                        stackCollector.sample();
+                        stackCollector.sample(samplerThread);
                         Thread.sleep(stMillis);
                         dumpCounter++;
                         coarseCounter++;

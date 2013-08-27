@@ -29,6 +29,6 @@ public interface StackCollector {
 
     void clear();
 
-    void sample();
+    void sample(Thread ignore);
     
 }
