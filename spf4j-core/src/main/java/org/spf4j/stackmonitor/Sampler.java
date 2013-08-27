@@ -450,7 +450,7 @@ public final class Sampler implements SamplerMBean {
 
     private static long getGCTime(final List<GarbageCollectorMXBean> gcBeans) {
         long gcTime = 0;
-        for (GarbageCollectorMXBean gcBean: gcBeans) {
+        for (GarbageCollectorMXBean gcBean : gcBeans) {
             gcTime += gcBean.getCollectionTime();
         }
         return gcTime;
