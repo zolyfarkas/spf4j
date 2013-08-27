@@ -66,8 +66,8 @@ import org.spf4j.stackmonitor.proto.Converter;
 public final class Sampler implements SamplerMBean {
 
     private volatile boolean stopped;
-    private volatile long sampleTimeMillis;
-    private volatile long dumpTimeMillis;
+    private volatile int sampleTimeMillis;
+    private volatile int dumpTimeMillis;
     private volatile boolean isJmxRegistered;
     private final StackCollector stackCollector;
     private final ObjectName name;
@@ -81,7 +81,7 @@ public final class Sampler implements SamplerMBean {
         this(100, 3600000, new MxStackCollector());
     }
 
-    public Sampler(final long sampleTimeMillis) {
+    public Sampler(final int sampleTimeMillis) {
         this(sampleTimeMillis, 3600000, new MxStackCollector());
     }
 
@@ -89,13 +89,13 @@ public final class Sampler implements SamplerMBean {
         this(100, 3600000, collector);
     }
     
-    public Sampler(final long sampleTimeMillis, final long dumpTimeMillis, final StackCollector collector) {
+    public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final StackCollector collector) {
         this(sampleTimeMillis, dumpTimeMillis, collector,
                 System.getProperty("perf.db.folder", System.getProperty("java.io.tmpdir")),
                 System.getProperty("perf.db.name", ManagementFactory.getRuntimeMXBean().getName()));
     }
 
-    public Sampler(final long sampleTimeMillis, final long dumpTimeMillis, final StackCollector collector,
+    public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final StackCollector collector,
             final String dumpFolder, final String dumpFilePrefix) {
         stopped = true;
         this.sampleTimeMillis = sampleTimeMillis;
@@ -121,20 +121,27 @@ public final class Sampler implements SamplerMBean {
     public synchronized void start() {
         if (stopped) {
             stopped = false;
-            final long stMillis = sampleTimeMillis;
-
-            final long dumpCount = dumpTimeMillis / stMillis;
+            final int stMillis = sampleTimeMillis;
+            final int dumpCount = dumpTimeMillis / stMillis;
 
             samplingThread = new Thread(new AbstractRunnable() {
                 
                 @SuppressWarnings("SleepWhileInLoop")
                 @Override
                 public void doRun() throws IOException, InterruptedException {
-                    long dumpCounter = 0;
-                    while (!stopped) {
+                    int dumpCounter = 0;
+                    int coarseCounter = 0;
+                    int coarseCount = 1000 / stMillis;
+                    boolean lstopped = stopped;
+                    while (!lstopped) {
                         stackCollector.sample();
                         Thread.sleep(stMillis);
                         dumpCounter++;
+                        coarseCounter++;
+                        if (coarseCounter >= coarseCount) {
+                            coarseCounter = 0;
+                            lstopped = stopped;
+                        }
                         if (dumpCounter >= dumpCount) {
                             long timeSinceLastDump = System.currentTimeMillis() - lastDumpTime;
                             if (timeSinceLastDump >= dumpTimeMillis) {
@@ -261,7 +268,7 @@ public final class Sampler implements SamplerMBean {
     }
 
     @Override
-    public void setSampleTimeMillis(final long sampleTimeMillis) {
+    public void setSampleTimeMillis(final int sampleTimeMillis) {
         this.sampleTimeMillis = sampleTimeMillis;
     }
 
@@ -422,7 +429,7 @@ public final class Sampler implements SamplerMBean {
     }
 
     @Override
-    public void setDumpTimeMillis(final long dumpTimeMillis) {
+    public void setDumpTimeMillis(final int dumpTimeMillis) {
         this.dumpTimeMillis = dumpTimeMillis;
     }
 }
