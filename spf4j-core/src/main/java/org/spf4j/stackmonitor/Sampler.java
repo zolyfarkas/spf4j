@@ -278,7 +278,7 @@ public final class Sampler implements SamplerMBean {
     }
 
     @Override
-    public long getSampleTimeMillis() {
+    public int getSampleTimeMillis() {
         return sampleTimeMillis;
     }
 
@@ -439,7 +439,7 @@ public final class Sampler implements SamplerMBean {
     }
 
     @Override
-    public long getDumpTimeMillis() {
+    public int getDumpTimeMillis() {
         return dumpTimeMillis;
     }
 
