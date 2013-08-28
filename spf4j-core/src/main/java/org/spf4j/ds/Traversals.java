@@ -136,8 +136,7 @@ public final class Traversals {
             int hash = 7;
             hash = 29 * hash + (this.vertex != null ? this.vertex.hashCode() : 0);
             hash = 29 * hash + this.order;
-            hash = 29 * hash + this.nrImcoming;
-            return hash;
+            return 29 * hash + this.nrImcoming;
         }
 
         @Override
