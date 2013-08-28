@@ -28,6 +28,7 @@ public final class DirectRecorder implements MeasurementRecorder {
     }
 
     @Override
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
     public void record(final long measurement) {
         try {
             database.saveMeasurements(info, new long [] {measurement}, measurement, 0);
