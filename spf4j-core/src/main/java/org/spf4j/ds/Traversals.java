@@ -130,6 +130,27 @@ public final class Traversals {
         public V getVertex() {
             return vertex;
         }
+
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 29 * hash + (this.vertex != null ? this.vertex.hashCode() : 0);
+            hash = 29 * hash + this.order;
+            hash = 29 * hash + this.nrImcoming;
+            return hash;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final VertexHolder<V> other = (VertexHolder<V>) obj;
+            return (this.compareTo(other) == 0);
+        }
         
         
         
