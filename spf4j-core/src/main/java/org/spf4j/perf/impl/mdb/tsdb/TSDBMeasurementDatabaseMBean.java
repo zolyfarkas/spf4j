@@ -34,5 +34,7 @@ public interface TSDBMeasurementDatabaseMBean {
 
     List<String> getParameters();
     
+    void flush()  throws IOException;
+    
 }
 

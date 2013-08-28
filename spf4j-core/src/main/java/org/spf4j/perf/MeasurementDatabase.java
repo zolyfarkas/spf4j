@@ -29,7 +29,7 @@ public interface MeasurementDatabase extends ReportGenerator {
     void alocateMeasurements(EntityMeasurementsInfo measurement, int sampleTimeMillis)
             throws IOException;
     
-    void saveMeasurements(EntityMeasurementsInfo measurementInfo, long []measurements,
+    void saveMeasurements(EntityMeasurementsInfo measurementInfo, long [] measurements,
             long timeStampMillis, int sampleTimeMillis)
             throws IOException;
     

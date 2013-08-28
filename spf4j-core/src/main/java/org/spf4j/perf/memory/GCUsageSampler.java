@@ -18,71 +18,64 @@
  */
 package org.spf4j.perf.memory;
 
+import java.lang.management.GarbageCollectorMXBean;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.DefaultScheduler;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.RecorderFactory;
 import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.lang.management.MemoryUsage;
+import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * This class allows you to poll and record to a file the heap commited and heap used
- * for your java process.
- *  start data recording by calling the startMemoryUsageSampling method,
- *  stop the data recording by calling the method: startMemoryUsageSampling.
- * 
+ * This class allows you to poll and record to a file the heap commited and heap used for your java process. start data
+ * recording by calling the startMemoryUsageSampling method, stop the data recording by calling the method:
+ * startMemoryUsageSampling.
+ *
  * @author zoly
  */
-public final class MemoryUsageSampler {
-    
-    private MemoryUsageSampler() { }
-    
-    private static final int AGG_INTERVAL =
-            Integer.parseInt(System.getProperty("perf.memory.sampleAggMillis", "300000"));
-    
-    private static final MeasurementRecorder HEAP_COMMITED =
-            RecorderFactory.createScalableMinMaxAvgRecorder("heap-commited", "bytes", AGG_INTERVAL);
-    private static final MeasurementRecorder HEAP_USED =
-            RecorderFactory.createScalableMinMaxAvgRecorder("heap-used", "bytes", AGG_INTERVAL);
-    
-    private static final MemoryMXBean MBEAN = ManagementFactory.getMemoryMXBean();
-    
+public final class GCUsageSampler {
+
+    private GCUsageSampler() {
+    }
+    private static final MeasurementRecorder GC_USAGE =
+            RecorderFactory.createDirectRecorder("gc-time", "ms");
+    private static final List<GarbageCollectorMXBean> MBEANS = ManagementFactory.getGarbageCollectorMXBeans();
     private static ScheduledFuture<?> samplingFuture;
-    
-    
+
     static {
         java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {
             @Override
             public void doRun() throws Exception {
-                stopMemoryUsageSampling();
+                stopGCUsageSampling();
             }
         }, "shutdown-memory-sampler"));
     }
-    
-    public static synchronized void startMemoryUsageSampling(final long sampleTime) {
+
+    public static synchronized void startGCUsageSampling(final long sampleTime) {
         if (samplingFuture == null) {
             samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
-
                 @Override
                 public void doRun() throws Exception {
-                    MemoryUsage usage = MBEAN.getHeapMemoryUsage();
-                    HEAP_COMMITED.record(usage.getCommitted());
-                    HEAP_USED.record(usage.getUsed());
+                    GC_USAGE.record(getGCTime(MBEANS));
                 }
             }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
         }
     }
-    
-    public static synchronized void stopMemoryUsageSampling() {
-         if (samplingFuture != null) {
-             samplingFuture.cancel(false);
-             samplingFuture = null;
-         }
+
+    public static synchronized void stopGCUsageSampling() {
+        if (samplingFuture != null) {
+            samplingFuture.cancel(false);
+            samplingFuture = null;
+        }
     }
-    
-    
-    
+
+    public static long getGCTime(final List<GarbageCollectorMXBean> gcBeans) {
+        long gcTime = 0;
+        for (GarbageCollectorMXBean gcBean : gcBeans) {
+            gcTime += gcBean.getCollectionTime();
+        }
+        return gcTime;
+    }
 }

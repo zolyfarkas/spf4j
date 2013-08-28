@@ -343,4 +343,9 @@ public final class TSDBMeasurementDatabase
         return java.util.Arrays.asList("width", "height", "startTime", "endTime");
     }
 
+    @Override
+    public void flush() throws IOException {
+        database.flush();
+    }
+
 }

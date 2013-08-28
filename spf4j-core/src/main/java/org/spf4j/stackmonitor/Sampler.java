@@ -45,22 +45,13 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.Holder;
+import org.spf4j.perf.memory.GCUsageSampler;
 import org.spf4j.stackmonitor.proto.Converter;
 
 /**
- * Utility that allow you to sample what the application is doing. It generates
- * a "Flame Graph" that allows you to quickly see you "heavy" operations.
- *
- * You can use JConsole to control the sampling while your application is
- * running.
- *
- * By using a sampling approach you can choose your overhead. (sampling takes
- * about 0.5 ms, so the default of 10Hz will give you 0.5% overhead)
- *
- * Collection is separated into CPU, WAIT and IO categories. I felt that most
- * important is to see what hogs your CPU because that is where, you can most
- * likely can do something about it.
- *
+ * Utility to sample stack traces.
+ * Stack traces can be persisted for later analysis.
+ * 
  * @author zoly
  */
 @ThreadSafe
@@ -147,7 +138,7 @@ public final class Sampler implements SamplerMBean {
                         if (coarseCounter >= coarseCount) {
                             coarseCounter = 0;
                             lstopped = stopped;
-                            long gcTime = getGCTime(gcBeans);
+                            long gcTime = GCUsageSampler.getGCTime(gcBeans);
                             if (gcTime > prevGcTime) {
                                 int fakeSamples = (int) ((gcTime - prevGcTime)) / stMillis;
                                 for (int i = 0; i < fakeSamples; i++) {
@@ -448,11 +439,4 @@ public final class Sampler implements SamplerMBean {
         this.dumpTimeMillis = dumpTimeMillis;
     }
 
-    private static long getGCTime(final List<GarbageCollectorMXBean> gcBeans) {
-        long gcTime = 0;
-        for (GarbageCollectorMXBean gcBean : gcBeans) {
-            gcTime += gcBean.getCollectionTime();
-        }
-        return gcTime;
-    }
 }

@@ -26,6 +26,7 @@ import org.spf4j.perf.impl.ScalableMeasurementRecorderSource;
 import org.spf4j.perf.impl.mdb.tsdb.TSDBMeasurementDatabase;
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import org.spf4j.perf.impl.DirectRecorder;
 
 /**
  *
@@ -93,7 +94,12 @@ public final class RecorderFactory {
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
         return new ScalableMeasurementRecorderSource(new MinMaxAvgRecorder(forWhat,
                 unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
-    }
+   }
+   
+   
+   public static MeasurementRecorder createDirectRecorder(final Object forWhat, final String unitOfMeasurement) {
+       return new DirectRecorder(forWhat, unitOfMeasurement, TS_DATABASE);
+   }
     
     
 }
