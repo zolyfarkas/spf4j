@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -243,6 +244,13 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
             ChartPanel pannel = new ChartPanel(chart);
             pannel.setPreferredSize(new Dimension(600, 1024));
             content.add(pannel);
+        } else {
+            List<JFreeChart> createJFreeCharts = tsDb.createJFreeCharts(info.getTableName());
+            for (JFreeChart chart : createJFreeCharts) {
+                ChartPanel pannel = new ChartPanel(chart);
+                pannel.setPreferredSize(new Dimension(600, 1024));
+                content.add(pannel);
+            }
         }
     }
 }

@@ -18,6 +18,7 @@
 
 package org.spf4j.perf.impl;
 
+import java.io.IOException;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
 
@@ -36,6 +37,10 @@ public final class NopMeasurementRecorderSource implements MeasurementRecorderSo
     @Override
     public MeasurementRecorder getRecorder(final Object forWhat) {
        return NopMeasurementRecorder.INSTANCE;
+    }
+
+    @Override
+    public void close() throws IOException {
     }
     
 }

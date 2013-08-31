@@ -16,15 +16,29 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.perf;
+package org.spf4j.perf.memory;
 
+import org.junit.Test;
 
 /**
  *
  * @author zoly
  */
-public interface MeasurementRecorder {
+public final class GCUsageSamplerTest {
     
-    void record(long measurement);
-    
+    public GCUsageSamplerTest() {
+    }
+
+    @Test
+    public void testSomeMethod() throws InterruptedException {
+        System.setProperty("perf.memory.sampleAggMillis", "1000");
+        GCUsageSampler.startGCUsageSampling(100);
+        MemoryUsageSampler.startMemoryUsageSampling(100);
+        for (int i = 0; i < 100000; i++) {
+            String str = Integer.toString(i);
+        }
+        Thread.sleep(1000);
+        MemoryUsageSampler.stopMemoryUsageSampling();
+        GCUsageSampler.stopGCUsageSampling();
+    }
 }

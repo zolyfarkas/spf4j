@@ -39,8 +39,6 @@ public final class GCUsageSampler {
 
     private GCUsageSampler() {
     }
-    private static final MeasurementRecorder GC_USAGE =
-            RecorderFactory.createDirectRecorder("gc-time", "ms");
     private static final List<GarbageCollectorMXBean> MBEANS = ManagementFactory.getGarbageCollectorMXBeans();
     private static ScheduledFuture<?> samplingFuture;
 
@@ -53,12 +51,14 @@ public final class GCUsageSampler {
         }, "shutdown-memory-sampler"));
     }
 
-    public static synchronized void startGCUsageSampling(final long sampleTime) {
+    public static synchronized void startGCUsageSampling(final int sampleTime) {
+        final MeasurementRecorder gcUsage =
+            RecorderFactory.createDirectRecorder("gc-time", "ms", sampleTime);
         if (samplingFuture == null) {
             samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
                 @Override
                 public void doRun() throws Exception {
-                    GC_USAGE.record(getGCTime(MBEANS));
+                    gcUsage.record(getGCTime(MBEANS));
                 }
             }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
         }

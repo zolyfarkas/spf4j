@@ -24,41 +24,42 @@ import org.spf4j.perf.RecorderFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
+import org.spf4j.base.MutableInteger;
+import org.spf4j.stackmonitor.StackTrace;
 
 /**
  * Aspect that intercepts all memory allocations in your code.
  * where and how much has been allocated is stored in a tsdb database.
  * this class needs to remain object allocation free to work!
+ * this aspect will record details about every x allocations done in a particular thread...
  * 
  * @author zoly
  */
 @Aspect
-public final class AllocationMonitorAspect {
+public final class SamplingAllocationMonitorAspect {
 
-    
-   private static final boolean RECORD_OBJECT_SIZE =
-            Boolean.parseBoolean(System.getProperty("perf.allocations.recordSize", "true"));
-    
    private static final MeasurementRecorderSource RECORDER;
+   
+   private static final int SAMPLE_COUNT = Integer.parseInt(System.getProperty("perf.allocations.sampleTimeMillis",
+           "100"));
      
    static {
        int sampleTime = Integer.parseInt(System.getProperty("perf.allocations.sampleTimeMillis", "300000"));
-       if (RECORD_OBJECT_SIZE) {
-           RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "bytes",
-            sampleTime);
-       } else {
-           RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "instances",
-            sampleTime);
-       }
+       RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "bytes", sampleTime);
+       
    }
        
     @AfterReturning(pointcut = "call(*.new(..))", returning = "obj", argNames = "jp,obj")
     public void afterAllocation(final JoinPoint jp, final Object obj) {
-        if (RECORD_OBJECT_SIZE) {
-            RECORDER.getRecorder(jp.getSourceLocation().getWithinType()).
-                    record(InstrumentationHelper.getObjectSize(obj));
+        MutableInteger counter = Counter.SAMPLING_COUNTER.get();
+        int value = counter.getValue();
+        if (value < SAMPLE_COUNT) {
+            counter.setValue(value + 1);
         } else {
-            RECORDER.getRecorder(jp.getSourceLocation().getWithinType()).record(1);
+            // the stack trace get and the object size method are expensive to be done at every allocation...
+            counter.setValue(0);
+            StackTrace st = StackTrace.from(Thread.currentThread().getStackTrace(), 2);
+            RECORDER.getRecorder(st).record(InstrumentationHelper.getObjectSize(obj));
         }
     }
 }

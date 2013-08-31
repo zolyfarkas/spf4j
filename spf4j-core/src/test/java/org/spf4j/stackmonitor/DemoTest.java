@@ -48,20 +48,19 @@ public final class DemoTest {
         });
     }
 
-    public void testCommandLine() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException, IOException, MalformedObjectNameException, InstanceAlreadyExistsException,
-            MBeanRegistrationException, NotCompliantMBeanException, InterruptedException {
-        Monitor.main(new String[]{});
-    }
 
     @Test
     public void testJmx() throws ClassNotFoundException, NoSuchMethodException,
             IllegalAccessException, InvocationTargetException,
             IOException, CmdLineException, InterruptedException, MalformedObjectNameException,
             InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
-        String report = File.createTempFile("stackSampleDemo", ".html").getPath();
-        Monitor.main(new String[]{"-f", report, "-ss", "-si", "1", "-w", "600", "-main", DemoTest.class.getName()});
-        System.out.println(report);
+        String report = File.createTempFile("stackSample", ".html").getPath();
+        Sampler sampler = new Sampler(new SimpleStackCollector());
+        sampler.start();
+        main(new String [] {});
+        sampler.generateSvgHtmlMonitorReport(report, 1000, 100);
+        sampler.generateHtmlMonitorReport(report, 1000, 100);
+        sampler.stop();
     }
     private static volatile boolean stopped;
 

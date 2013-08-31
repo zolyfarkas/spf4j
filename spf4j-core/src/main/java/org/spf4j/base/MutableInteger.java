@@ -16,15 +16,46 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.perf;
-
+package org.spf4j.base;
 
 /**
  *
  * @author zoly
  */
-public interface MeasurementRecorder {
-    
-    void record(long measurement);
-    
+public final class MutableInteger {
+   
+    private int value;
+
+    public MutableInteger(final int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public void setValue(final int value) {
+        this.value = value;
+    }
+
+    @Override
+    public int hashCode() {
+        return value;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final MutableInteger other = (MutableInteger) obj;
+        if (this.value != other.value) {
+            return false;
+        }
+        return true;
+    }
+  
 }

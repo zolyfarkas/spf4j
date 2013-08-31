@@ -16,10 +16,9 @@ package org.spf4j.base;
  * limitations under the License.
  */
 
+import gnu.trove.map.hash.TObjectIntHashMap;
 import gnu.trove.set.TCharSet;
 import gnu.trove.set.hash.TCharHashSet;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Utility class for HTML escaping. Escapes and unescapes based on the W3C HTML 4.01 recommendation.
@@ -41,7 +40,7 @@ public final class HtmlUtils {
     private static final String EMPTY_REFERENCE = "&;";
     private static final String REFERENCE_START = "&#";
     private static final String MALFORMED_REFERENCE = "&#;";
-    private static final Map ENTITIES = new HashMap();
+    private static final gnu.trove.map.TObjectIntMap<String> ENTITIES = new  TObjectIntHashMap<String>();
 
     static {
         ENTITIES.put("nbsp", 160);

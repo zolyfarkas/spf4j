@@ -110,13 +110,8 @@ public final class TSDBMeasurementDatabase
             if (!database.hasTSTable(groupName)) {
                 String[] measurementNames = measurement.getMeasurementNames();
                 byte[] uom = measurement.getUnitOfMeasurement().getBytes(Charsets.UTF_8);
-                byte[][] metaData = new byte[measurementNames.length][];
                 String [] uoms = measurement.getMeasurementUnits();
-                for (int i = 0; i < metaData.length; i++) {
-                    metaData[i] = uoms[i].getBytes(Charsets.UTF_8);
-                }
-                database.addTSTable(groupName, uom, sampleTimeMillis, measurementNames,
-                        metaData);
+                database.addTSTable(groupName, uom, sampleTimeMillis, measurementNames, uoms);
             }
         }
     }

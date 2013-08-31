@@ -17,6 +17,7 @@
  */
 package org.spf4j.perf.tsdb;
 
+import com.google.common.base.Charsets;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
@@ -196,6 +197,14 @@ public final class TSTable {
 
     public byte[][] getColumnMetaData() {
         return columnMetaData.clone();
+    }
+    
+    public String[] getColumnMetaDataAsStrings() {
+        String [] result = new String [columnMetaData.length];
+        for (int i = 0; i < columnMetaData.length; i++) {
+            result[i] = new String(columnMetaData[i], Charsets.UTF_8);
+        }
+        return result;
     }
     
     public int getColumnIndex(final String columnName) {

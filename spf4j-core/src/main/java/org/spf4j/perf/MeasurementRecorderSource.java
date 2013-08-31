@@ -17,11 +17,13 @@
  */
 package org.spf4j.perf;
 
+import java.io.Closeable;
+
 /**
  *
  * @author zoly
  */
-public interface MeasurementRecorderSource {
+public interface MeasurementRecorderSource extends Closeable {
     
     /**
      * do not hold onto the returned recorder.

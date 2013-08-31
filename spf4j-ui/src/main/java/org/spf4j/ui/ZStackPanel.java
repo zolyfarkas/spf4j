@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import org.spf4j.base.Pair;
 import org.spf4j.ds.Traversals;
 import org.spf4j.ds.Graph;
@@ -213,15 +214,16 @@ public final class ZStackPanel extends StackPanelBase {
         List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{location.x, location.y}, new float[]{0, 0});
         if (tips.size() >= 1) {
             final Pair<Method, Integer> node = tips.get(0);
-            final Map<SampleNode.InvocationCount, Method> incomming = graph.getEdges(node.getFirst()).getIncomming();
+            final Map<SampleNode.InvocationCount, Method> incomming =
+                    graph.getEdges(node.getFirst()).getIncomming();
             StringBuilder sb = new StringBuilder();
             sb.append(node.getFirst().toString()).append('-').append(node.getSecond())
                     .append("\n invoked from: ");
-            for (Map.Entry<SampleNode.InvocationCount, Method> entry : incomming.entrySet()) {
-                int ic = entry.getKey().getValue();
-                Method method = entry.getValue();
-                sb.append(method).append('-').append(ic).append("; ");
-            }
+            appendEdgeInfo(incomming, sb);
+            sb.append("\n invoking: ");
+            final Map<SampleNode.InvocationCount, Method> outgoing =
+                    graph.getEdges(node.getFirst()).getOutgoing();
+            appendEdgeInfo(outgoing, sb);
             return sb.toString();
         } else {
             return null;
@@ -241,6 +243,14 @@ public final class ZStackPanel extends StackPanelBase {
             });
             this.completeGraph = SampleNode.toGraph(samples);
             repaint();
+        }
+    }
+
+    private void appendEdgeInfo(final Map<SampleNode.InvocationCount, Method> incomming, final StringBuilder sb) {
+        for (Map.Entry<SampleNode.InvocationCount, Method> entry : incomming.entrySet()) {
+            int ic = entry.getKey().getValue();
+            Method method = entry.getValue();
+            sb.append(method).append('-').append(ic).append("; ");
         }
     }
 }
