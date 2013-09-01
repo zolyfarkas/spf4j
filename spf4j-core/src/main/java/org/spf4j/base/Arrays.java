@@ -17,9 +17,6 @@
  */
 package org.spf4j.base;
 
-import static java.util.Arrays.deepEquals;
-import static java.util.Arrays.equals;
-
 /**
  * Array utilities.
  *

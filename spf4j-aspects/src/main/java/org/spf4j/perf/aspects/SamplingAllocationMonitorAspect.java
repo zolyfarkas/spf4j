@@ -40,7 +40,7 @@ public final class SamplingAllocationMonitorAspect {
 
    private static final MeasurementRecorderSource RECORDER;
    
-   private static final int SAMPLE_COUNT = Integer.parseInt(System.getProperty("perf.allocations.sampleTimeMillis",
+   private static final int SAMPLE_COUNT = Integer.parseInt(System.getProperty("perf.allocations.sampleCount",
            "100"));
      
    static {

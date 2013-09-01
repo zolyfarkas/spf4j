@@ -52,9 +52,9 @@ public final class GCUsageSampler {
     }
 
     public static synchronized void startGCUsageSampling(final int sampleTime) {
-        final MeasurementRecorder gcUsage =
-            RecorderFactory.createDirectRecorder("gc-time", "ms", sampleTime);
         if (samplingFuture == null) {
+            final MeasurementRecorder gcUsage =
+                RecorderFactory.createDirectRecorder("gc-time", "ms", sampleTime);
             samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
                 @Override
                 public void doRun() throws Exception {
