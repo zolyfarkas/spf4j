@@ -69,9 +69,9 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
-        samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(new AbstractRunnable(true) {
+        final AbstractRunnable persister = new AbstractRunnable(true) {
             private volatile long lastRun = 0;
-            
+
             @Override
             public void doRun() throws IOException {
                 long currentTime = System.currentTimeMillis();
@@ -85,9 +85,9 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
                             lastRun, currentTime);
                 }
             }
-        }, sampleTimeMillis);
-
-        
+        };
+        samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);
+        org.spf4j.base.Runtime.addHookAtBeginning(persister);
     }
 
     @Override

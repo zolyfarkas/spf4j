@@ -146,6 +146,7 @@ public class Explorer extends javax.swing.JFrame {
 
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
         JFileChooser chooser = new JFileChooser();
+        chooser.setDialogType(JFileChooser.OPEN_DIALOG);
         chooser.setFileFilter(new FileFilter() {
             @Override
             public boolean accept(File f) {

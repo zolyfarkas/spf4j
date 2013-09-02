@@ -26,6 +26,7 @@ import org.spf4j.perf.impl.ScalableMeasurementRecorderSource;
 import org.spf4j.perf.impl.mdb.tsdb.TSDBMeasurementDatabase;
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import org.spf4j.base.AbstractRunnable;
 import org.spf4j.perf.impl.DirectRecorder;
 
 /**
@@ -45,7 +46,13 @@ public final class RecorderFactory {
                     ManagementFactory.getRuntimeMXBean().getName() + ".tsdb"));
             TS_DATABASE.registerJmx();
             TS_DATABASE.flushEvery(600000);
-            TS_DATABASE.closeOnShutdown();
+            org.spf4j.base.Runtime.addHookAtEnd(new AbstractRunnable() {
+
+                @Override
+                public void doRun() throws Exception {
+                    TS_DATABASE.close();
+                }
+            });
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

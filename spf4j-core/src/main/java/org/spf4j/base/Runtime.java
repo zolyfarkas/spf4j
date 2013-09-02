@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
+import java.util.LinkedList;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,4 +156,41 @@ public final class Runtime {
             return builder.toString();
         }
     }
+    
+    private static final LinkedList<Runnable> SHUTDOWN_HOOKS = new LinkedList<Runnable>();
+ 
+    
+    static {
+        java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(false) {
+            @Override
+            public void doRun() throws Exception {
+                synchronized (SHUTDOWN_HOOKS) {
+                    for (Runnable runnable : SHUTDOWN_HOOKS) {
+                        try {
+                            runnable.run();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }, "tsdb shutdown"));
+    }
+       
+    public static void addHookAtBeginning(final Runnable runnable) {
+        synchronized (SHUTDOWN_HOOKS) {
+            SHUTDOWN_HOOKS.addFirst(runnable);
+        }
+    }
+    
+    public static void addHookAtEnd(final Runnable runnable) {
+        synchronized (SHUTDOWN_HOOKS) {
+            SHUTDOWN_HOOKS.addLast(runnable);
+        }
+    }
+    
+    
+    
+    
+    
 }

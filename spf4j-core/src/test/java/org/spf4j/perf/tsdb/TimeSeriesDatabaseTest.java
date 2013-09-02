@@ -59,7 +59,8 @@ public final class TimeSeriesDatabaseTest {
         
         System.out.println(instanceRead.getTSTables());
         Assert.assertEquals(3, instanceRead.getTSTables().size());
-        
+        instanceRead.writeCsvTable("gr1", File.createTempFile("test", ".csv"));
+        instanceRead.writeCsvTables(Arrays.asList("gr1", "gr2", "gr3"), File.createTempFile("testAll", ".csv"));
         
     }
     

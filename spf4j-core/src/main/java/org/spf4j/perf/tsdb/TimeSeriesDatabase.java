@@ -21,28 +21,35 @@ import com.google.common.base.Charsets;
 import org.spf4j.base.Pair;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
+import java.io.BufferedWriter;
 import java.io.Closeable;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jfree.chart.JFreeChart;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.Arrays;
+import org.spf4j.base.Strings;
 import org.spf4j.perf.impl.chart.Charts;
 import static org.spf4j.perf.impl.chart.Charts.fillGaps;
 
 /**
- * Yet another time series database. Why? because all the other ts databases had
- * various constraints that restrict the functionality I can add to spf4j.
+ * Yet another time series database. Why? because all the other ts databases had various constraints that restrict the
+ * functionality I can add to spf4j.
  *
  * Initial Features:
  *
- * 1. measurements can be added dynamically anytime to a database. 2. long
- * measurement names. 3. the stored interval is not known from the beginning. 4.
- * implementation biased towards write performance.
+ * 1. measurements can be added dynamically anytime to a database. 2. long measurement names. 3. the stored interval is
+ * not known from the beginning. 4. implementation biased towards write performance.
  *
  * Future thoughts:
  *
@@ -51,7 +58,7 @@ import static org.spf4j.perf.impl.chart.Charts.fillGaps;
  * @author zoly
  */
 public final class TimeSeriesDatabase implements Closeable {
-
+    
     public static final int VERSION = 1;
     private final Map<String, TSTable> groups;
     private final RandomAccessFile file;
@@ -60,7 +67,7 @@ public final class TimeSeriesDatabase implements Closeable {
     private TSTable lastColumnInfo;
     private final Map<String, DataFragment> writeDataFragments;
     private final String pathToDatabaseFile;
-
+    
     public TimeSeriesDatabase(final String pathToDatabaseFile, final byte[] metaData) throws IOException {
         this.pathToDatabaseFile = pathToDatabaseFile;
         file = new RandomAccessFile(pathToDatabaseFile, "rw");
@@ -79,7 +86,7 @@ public final class TimeSeriesDatabase implements Closeable {
             file.seek(toc.getFirstColumnInfo());
             TSTable colInfo = new TSTable(file);
             groups.put(colInfo.getTableName(), colInfo);
-
+            
             lastColumnInfo = colInfo;
             while (colInfo.getNextTSTable() > 0) {
                 file.seek(colInfo.getNextTSTable());
@@ -90,7 +97,7 @@ public final class TimeSeriesDatabase implements Closeable {
         }
         writeDataFragments = new HashMap<String, DataFragment>();
     }
-
+    
     @Override
     public synchronized void close() throws IOException {
         try {
@@ -99,7 +106,7 @@ public final class TimeSeriesDatabase implements Closeable {
             file.close();
         }
     }
-
+    
     public synchronized boolean hasTSTable(final String tableName) {
         return groups.containsKey(tableName);
     }
@@ -107,13 +114,13 @@ public final class TimeSeriesDatabase implements Closeable {
     public void addTSTable(final String tableName,
             final byte[] tableMetaData, final int sampleTime, final String[] columnNames,
             final String[] columnMetaData) throws IOException {
-        byte[][] metadata = new byte [columnMetaData.length][];
+        byte[][] metadata = new byte[columnMetaData.length][];
         for (int i = 0; i < columnMetaData.length; i++) {
             metadata[i] = columnMetaData[i].getBytes(Charsets.UTF_8);
         }
         addTSTable(tableName, tableMetaData, sampleTime, columnNames, metadata);
     }
-
+    
     public synchronized void addTSTable(final String tableName,
             final byte[] tableMetaData, final int sampleTime, final String[] columnNames,
             final byte[][] columnMetaData) throws IOException {
@@ -136,7 +143,7 @@ public final class TimeSeriesDatabase implements Closeable {
         lastColumnInfo = colInfo;
         groups.put(tableName, colInfo);
     }
-
+    
     public synchronized void write(final long time, final String tableName, final long[] values) throws IOException {
         if (!groups.containsKey(tableName)) {
             throw new IllegalArgumentException("Unknown group name" + tableName);
@@ -148,7 +155,7 @@ public final class TimeSeriesDatabase implements Closeable {
         }
         writeDataFragment.addData(time, values);
     }
-
+    
     public synchronized void flush() throws IOException {
         for (Map.Entry<String, DataFragment> entry : writeDataFragments.entrySet()) {
             DataFragment writeDataFragment = entry.getValue();
@@ -167,30 +174,30 @@ public final class TimeSeriesDatabase implements Closeable {
         writeDataFragments.clear();
         sync();
     }
-
+    
     public synchronized String[] getColumnNames(final String tableName) {
         return groups.get(tableName).getColumnNames();
     }
-
+    
     public synchronized TSTable getTSTable(final String tableName) {
         return groups.get(tableName);
     }
-
+    
     public synchronized Collection<TSTable> getTSTables() {
         return groups.values();
     }
-
+    
     public synchronized Pair<long[], long[][]> readAll(final String tableName) throws IOException {
         return read(tableName, 0, Long.MAX_VALUE);
     }
-
+    
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("LII_LIST_INDEXED_ITERATING")
     public synchronized Pair<long[], long[][]> read(final String tableName,
             final long startTime, final long endTime) throws IOException {
         TLongArrayList timeStamps = new TLongArrayList();
         List<long[]> data = new ArrayList<long[]>();
         TSTable info = groups.get(tableName);
-
+        
         if (info.getFirstDataFragment() > 0) {
             DataFragment frag;
             long nextFragmentLocation = info.getFirstDataFragment();
@@ -223,27 +230,27 @@ public final class TimeSeriesDatabase implements Closeable {
         }
         return Pair.of(timeStamps.toArray(), data.toArray(new long[data.size()][]));
     }
-
+    
     private synchronized void sync() throws IOException {
         file.getFD().sync();
     }
-
+    
     public String getDBFilePath() {
         return pathToDatabaseFile;
     }
-
+    
     public JFreeChart createHeatJFreeChart(final String tableName) throws IOException {
         TSTable info = this.getTSTable(tableName);
         Pair<long[], long[][]> data = this.readAll(tableName);
         return createHeatJFreeChart(data, info);
     }
-
+    
     public JFreeChart createMinMaxAvgJFreeChart(final String tableName) throws IOException {
         TSTable info = this.getTSTable(tableName);
         Pair<long[], long[][]> data = this.readAll(tableName);
         return createMinMaxAvgJFreeChart(data, info);
     }
-
+    
     public JFreeChart createCountJFreeChart(final String tableName) throws IOException {
         TSTable info = this.getTSTable(tableName);
         Pair<long[], long[][]> data = this.readAll(tableName);
@@ -256,7 +263,6 @@ public final class TimeSeriesDatabase implements Closeable {
         return createJFreeCharts(data, info);
     }
     
-
     public static JFreeChart createHeatJFreeChart(final Pair<long[], long[][]> data, final TSTable info) {
         Pair<long[], double[][]> mData = fillGaps(data.getFirst(), data.getSecond(),
                 info.getSampleTime(), info.getColumnNames().length);
@@ -265,7 +271,7 @@ public final class TimeSeriesDatabase implements Closeable {
                 new String(info.getTableMetaData(), Charsets.UTF_8), "Measurements distribution for "
                 + info.getTableName() + ", sampleTime " + info.getSampleTime() + "ms, generated by spf4j");
     }
-
+    
     public static JFreeChart createMinMaxAvgJFreeChart(final Pair<long[], long[][]> data, final TSTable info) {
         long[][] vals = data.getSecond();
         double[] min = Arrays.getColumnAsDoubles(vals, info.getColumnIndex("min"));
@@ -285,7 +291,6 @@ public final class TimeSeriesDatabase implements Closeable {
                 new double[][]{min, max, Arrays.divide(total, count)});
     }
     
-    
     public static JFreeChart createCountJFreeChart(final Pair<long[], long[][]> data, final TSTable info) {
         long[][] vals = data.getSecond();
         double[] count = Arrays.getColumnAsDoubles(vals, info.getColumnIndex("count"));
@@ -295,42 +300,105 @@ public final class TimeSeriesDatabase implements Closeable {
                 new String[]{"count"}, "count", new double[][]{count});
     }
     
-    
-    
     public static List<JFreeChart> createJFreeCharts(final Pair<long[], long[][]> data, final TSTable info) {
         long[][] vals = data.getSecond();
         List<JFreeChart> result = new ArrayList<JFreeChart>();
-        Map<String, Pair<List<String>, List<double []>>> measurementsByUom =
-                new HashMap<String, Pair<List<String>, List<double []>>>();
-        String [] columnMetaData = info.getColumnMetaDataAsStrings();
+        Map<String, Pair<List<String>, List<double[]>>> measurementsByUom =
+                new HashMap<String, Pair<List<String>, List<double[]>>>();
+        String[] columnMetaData = info.getColumnMetaDataAsStrings();
         for (int i = 0; i < info.getColumnNumber(); i++) {
             String uom = columnMetaData[i];
-            Pair<List<String>, List<double []>> meas = measurementsByUom.get(uom);
+            Pair<List<String>, List<double[]>> meas = measurementsByUom.get(uom);
             if (meas == null) {
-                meas = Pair.of((List<String>) new ArrayList<String>(), (List<double []>) new ArrayList<double[]>());
+                meas = Pair.of((List<String>) new ArrayList<String>(), (List<double[]>) new ArrayList<double[]>());
                 measurementsByUom.put(uom, meas);
             }
             meas.getFirst().add(info.getColumnName(i));
             meas.getSecond().add(Arrays.getColumnAsDoubles(vals, i));
         }
         long[] timestamps = data.getFirst();
-        for (Map.Entry<String, Pair<List<String>, List<double []>>> entry : measurementsByUom.entrySet()) {
-            Pair<List<String>, List<double []>> p = entry.getValue();
+        for (Map.Entry<String, Pair<List<String>, List<double[]>>> entry : measurementsByUom.entrySet()) {
+            Pair<List<String>, List<double[]>> p = entry.getValue();
             result.add(Charts.createTimeSeriesJFreeChart("chart for "
-                + info.getTableName() + ", sampleTime " + info.getSampleTime() + " ms, generated by spf4j", timestamps,
-                p.getFirst().toArray(new String [p.getFirst().size()]), entry.getKey(),
-                p.getSecond().toArray(new double [p.getSecond().size()][])));
+                    + info.getTableName() + ", sampleTime " + info.getSampleTime()
+                    + " ms, generated by spf4j", timestamps,
+                    p.getFirst().toArray(new String[p.getFirst().size()]), entry.getKey(),
+                    p.getSecond().toArray(new double[p.getSecond().size()][])));
         }
         return result;
     }
     
-    public byte [] getMetaData() {
+    public byte[] getMetaData() {
         return header.getMetaData().clone();
     }
+    
+    public void writeCsvTable(final String tableName, final File output) throws IOException {
+        TSTable table = getTSTable(tableName);
+        Pair<long[], long[][]> data = readAll(tableName);
+        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8));
+        DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
+        try {
+            Strings.writeCsvElement("timestamp", writer);
+            for (String colName : table.getColumnNames()) {
+                writer.append(',');
+                Strings.writeCsvElement(colName, writer);
+            }
+            writer.write('\n');
+            long[] timestamps = data.getFirst();
+            long[][] values = data.getSecond();
+            for (int i = 0; i < timestamps.length; i++)  {
+                Strings.writeCsvElement(formatter.print(timestamps[i]), writer);
+                for (long val : values[i]) {
+                    writer.append(',');
+                    Strings.writeCsvElement(Long.toString(val), writer);
+                }
+                writer.write('\n');
+            }
+        } finally {
+            writer.close();
+        }
+    }
+
+    
+    public void writeCsvTables(final List<String> tableNames, final File output) throws IOException {
+        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8));
+        DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
+        try {
+            String firstTable = tableNames.get(0);
+            TSTable table = getTSTable(firstTable);
+            Strings.writeCsvElement("table", writer);
+            writer.append(',');
+            Strings.writeCsvElement("timestamp", writer);
+            for (String colName : table.getColumnNames()) {
+                writer.append(',');
+                Strings.writeCsvElement(colName, writer);
+            }
+            writer.write('\n');
+            
+            for (String tableName : tableNames) {
+                Pair<long[], long[][]> data = readAll(tableName);
+                long[] timestamps = data.getFirst();
+                long[][] values = data.getSecond();
+                for (int i = 0; i < timestamps.length; i++)  {
+                    Strings.writeCsvElement(tableName, writer);
+                    writer.append(',');
+                    Strings.writeCsvElement(formatter.print(timestamps[i]), writer);
+                    for (long val : values[i]) {
+                        writer.append(',');
+                        Strings.writeCsvElement(Long.toString(val), writer);
+                    }
+                    writer.write('\n');
+                }
+            }
+        } finally {
+            writer.close();
+        }
+    }
+    
+    
     
     @Override
     public String toString() {
         return "TimeSeriesDatabase{" + "groups=" + groups + ", pathToDatabaseFile=" + pathToDatabaseFile + '}';
     }
-    
 }
