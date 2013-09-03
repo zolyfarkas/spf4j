@@ -38,7 +38,7 @@ public final class SampleNode {
         sampleCount = 1;
         if (from >= 0) {
             subNodes = new HashMap();
-            subNodes.put(new Method(stackTrace[from]), new SampleNode(stackTrace, from - 1));
+            subNodes.put(Method.getMethod(stackTrace[from]), new SampleNode(stackTrace, from - 1));
         }
     }
     
@@ -51,7 +51,7 @@ public final class SampleNode {
                 prevResult.subNodes = new HashMap<Method, SampleNode>();
             }
             SampleNode node = new SampleNode(1, null);
-            prevResult.subNodes.put(new Method(elem), node);
+            prevResult.subNodes.put(Method.getMethod(elem), node);
             prevResult = node;
         }
         return result;
@@ -63,7 +63,7 @@ public final class SampleNode {
         prevResult.sampleCount++;
         for (int i = stackTrace.length - 1; i >= 0; i--) {
             StackTraceElement elem = stackTrace[i];
-            final Method method = new Method(elem);
+            final Method method = Method.getMethod(elem);
             SampleNode nNode;
             if (prevResult.subNodes == null) {
                 prevResult.subNodes = new HashMap<Method, SampleNode>();
@@ -90,7 +90,7 @@ public final class SampleNode {
     public void addSample(final StackTraceElement[] stackTrace, final int from) {
         sampleCount++;
         if (from >= 0) {
-            Method method = new Method(stackTrace[from]);
+            Method method = Method.getMethod(stackTrace[from]);
             SampleNode subNode = null;
             if (subNodes == null) {
                 subNodes = new HashMap();

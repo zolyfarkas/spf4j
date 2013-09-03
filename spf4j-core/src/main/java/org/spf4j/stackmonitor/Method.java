@@ -21,6 +21,8 @@ import org.spf4j.base.HtmlUtils;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
+import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -32,6 +34,7 @@ public final class Method {
     private final String declaringClass;
     private final String methodName;
     private final int id;
+    private int hash;
 
     public Method(final StackTraceElement elem) {
         this.declaringClass = elem.getClassName();
@@ -67,14 +70,21 @@ public final class Method {
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 47 * hash + (this.declaringClass != null ? this.declaringClass.hashCode() : 0);
-        hash = 47 * hash + (this.methodName != null ? this.methodName.hashCode() : 0);
-        return 47 * hash + this.id;
+        if (hash == 0) {
+            int nhash = 3;
+            nhash = 47 * nhash + (this.declaringClass != null ? this.declaringClass.hashCode() : 0);
+            nhash = 47 * nhash + (this.methodName != null ? this.methodName.hashCode() : 0);
+            nhash = 47 * nhash + this.id;
+            hash = nhash;
+        }
+        return hash;
     }
 
     @Override
     public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj == null) {
             return false;
         }
@@ -117,4 +127,33 @@ public final class Method {
     public Method withNewId() {
         return new Method(declaringClass, methodName, id + 1);
     }
+    
+    
+    private static final Map<String, Map<String, Method>> INSTANCE_REPO =
+            new HashMap<String, Map<String, Method>>(1024);
+    
+
+    public static Method getMethod(final StackTraceElement elem) {
+        return getMethod(elem.getClassName(), elem.getMethodName());
+    }
+    
+    public static Method getMethod(final String className, final String methodName) {
+        Map<String, Method> mtom = INSTANCE_REPO.get(className);
+        Method result;
+        if (mtom == null) {
+            mtom = new HashMap<String, Method>();
+            result = new Method(className, methodName);
+            mtom.put(methodName, result);
+            INSTANCE_REPO.put(className, mtom);
+        } else {
+            result = mtom.get(methodName);
+            if (result == null) {
+                result = new Method(className, methodName);
+                mtom.put(methodName, result);
+            }
+        }
+        return result;
+    }
+    
+    
 }

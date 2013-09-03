@@ -61,6 +61,39 @@ public final class SimpleStackCollectorTest {
         instance.addSample(st4);
 
         System.out.println(instance);
-
+        
+        Assert.assertTrue(Thread.currentThread().getStackTrace()[0].getClassName()
+                == Thread.currentThread().getStackTrace()[0].getClassName());
+        Assert.assertTrue(Thread.currentThread().getStackTrace()[0].getMethodName()
+                == Thread.currentThread().getStackTrace()[0].getMethodName());
+        
     }
+    
+    public void testPerformance() throws InterruptedException {
+        SimpleStackCollector simple = new SimpleStackCollector();
+        MxStackCollector mx = new MxStackCollector();
+        testPerf(simple, 10000);
+        testPerf(mx, 10000);
+        System.gc();
+        Thread.sleep(1000);
+        long mxTime = testPerf(mx, 50000);
+        long simpleTime = testPerf(simple, 50000);
+
+        System.out.println("mx = " + mxTime);
+        System.out.println("simple = " + simpleTime);
+        double relativeDiff = Math.abs(1 - (double) mxTime / simpleTime);
+        System.out.println("relDiff = " + relativeDiff);
+        Assert.assertTrue(relativeDiff < 0.5);
+    }
+    
+    private static long testPerf(final StackCollector collector, final int count)  {
+        long startTime = System.currentTimeMillis();
+        Thread current = Thread.currentThread();
+        for (int i = 0; i < count; i++) {
+            collector.sample(current);
+        }
+        return System.currentTimeMillis() - startTime;
+    }
+    
+    
 }

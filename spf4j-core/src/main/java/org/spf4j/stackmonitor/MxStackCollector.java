@@ -27,11 +27,11 @@ import java.lang.management.ThreadMXBean;
  */
 public final class MxStackCollector extends AbstractStackCollector {
 
-    private final ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
+    private static final ThreadMXBean THREAD_MX = ManagementFactory.getThreadMXBean();
 
     @Override
     public void sample(final Thread ignore) {
-        ThreadInfo[] stackDump = threadMX.dumpAllThreads(true, true);
+        ThreadInfo[] stackDump = THREAD_MX.dumpAllThreads(false, false);
         recordStackDump(stackDump, ignore);
     }
 
