@@ -137,6 +137,12 @@ public final class Method {
         return getMethod(elem.getClassName(), elem.getMethodName());
     }
     
+    /*
+     * this function is to allow reuse of Method instances.
+     * not thread safe, use with care, see description for suppressed findbugs bug for more detail.
+     */
+    
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_POSSIBLE_MEMORY")
     public static Method getMethod(final String className, final String methodName) {
         Map<String, Method> mtom = INSTANCE_REPO.get(className);
         Method result;
