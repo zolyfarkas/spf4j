@@ -52,9 +52,9 @@ public abstract class AbstractStackCollector implements StackCollector {
     public final void addSample(final StackTraceElement[] stackTrace) {
         synchronized (sampleSync) {
             if (samples == null) {
-                samples = new SampleNode(stackTrace, stackTrace.length - 1);
+                samples = SampleNode.createSampleNode(stackTrace);
             } else {
-                samples.addSample(stackTrace, stackTrace.length - 1);
+                SampleNode.addToSampleNode(samples, stackTrace);
             }
         }
     }

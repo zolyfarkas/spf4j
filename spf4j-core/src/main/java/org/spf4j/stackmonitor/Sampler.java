@@ -213,7 +213,6 @@ public final class Sampler implements SamplerMBean {
     @Override
     public synchronized void generateHtmlMonitorReport(final String fileName, final int chartWidth, final int maxDepth)
             throws IOException {
-        dumpToFile();
         final Writer writer
                 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
@@ -373,7 +372,6 @@ public final class Sampler implements SamplerMBean {
     @Override
     public void generateSvgHtmlMonitorReport(final String fileName, final int chartWidth, final int maxDepth)
             throws IOException {
-        dumpToFile();
         final Writer writer
                 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {

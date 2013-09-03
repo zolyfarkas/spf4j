@@ -41,6 +41,46 @@ public final class SampleNode {
             subNodes.put(new Method(stackTrace[from]), new SampleNode(stackTrace, from - 1));
         }
     }
+    
+    public static SampleNode createSampleNode(final StackTraceElement[] stackTrace) {
+        SampleNode result = new SampleNode(1, null);
+        SampleNode prevResult = result;
+        for (int i = stackTrace.length - 1; i >= 0; i--) {
+            StackTraceElement elem = stackTrace[i];
+            if (prevResult.subNodes == null) {
+                prevResult.subNodes = new HashMap<Method, SampleNode>();
+            }
+            SampleNode node = new SampleNode(1, null);
+            prevResult.subNodes.put(new Method(elem), node);
+            prevResult = node;
+        }
+        return result;
+    }
+    
+    
+    public static void addToSampleNode(final SampleNode node, final StackTraceElement[] stackTrace) {
+        SampleNode prevResult = node;
+        prevResult.sampleCount++;
+        for (int i = stackTrace.length - 1; i >= 0; i--) {
+            StackTraceElement elem = stackTrace[i];
+            final Method method = new Method(elem);
+            SampleNode nNode;
+            if (prevResult.subNodes == null) {
+                prevResult.subNodes = new HashMap<Method, SampleNode>();
+                nNode = new SampleNode(1, null);
+                prevResult.subNodes.put(method, nNode);
+            } else {
+                nNode = prevResult.subNodes.get(method);
+                if (nNode != null) {
+                    nNode.sampleCount++;
+                } else {
+                    nNode = new SampleNode(1, null);
+                    prevResult.subNodes.put(method, nNode);
+                }
+            }
+            prevResult = nNode;
+        }
+    }
 
     public SampleNode(final int count, @Nullable final Map<Method, SampleNode> subNodes) {
         this.sampleCount = count;

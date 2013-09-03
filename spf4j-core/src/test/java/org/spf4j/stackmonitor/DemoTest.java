@@ -54,12 +54,13 @@ public final class DemoTest {
             IllegalAccessException, InvocationTargetException,
             IOException, CmdLineException, InterruptedException, MalformedObjectNameException,
             InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
-        String report = File.createTempFile("stackSample", ".html").getPath();
+        String report1 = File.createTempFile("stackSample", ".html").getPath();
+        String report2 = File.createTempFile("stackSample", ".html").getPath();
         Sampler sampler = new Sampler(new SimpleStackCollector());
         sampler.start();
         main(new String [] {});
-        sampler.generateSvgHtmlMonitorReport(report, 1000, 100);
-        sampler.generateHtmlMonitorReport(report, 1000, 100);
+        sampler.generateSvgHtmlMonitorReport(report1, 1000, 100);
+        sampler.generateHtmlMonitorReport(report2, 1000, 100);
         sampler.stop();
     }
     private static volatile boolean stopped;
