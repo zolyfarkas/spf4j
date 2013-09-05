@@ -17,6 +17,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -69,21 +70,25 @@ public final class SimpleStackCollectorTest {
         
     }
     
+    @Test
     public void testPerformance() throws InterruptedException {
+        List<Thread> startTestThreads = DemoTest.startTestThreads(50);
         SimpleStackCollector simple = new SimpleStackCollector();
-        MxStackCollector mx = new MxStackCollector();
+        FastStackCollector mx = new FastStackCollector();
         testPerf(simple, 10000);
         testPerf(mx, 10000);
         System.gc();
         Thread.sleep(1000);
-        long mxTime = testPerf(mx, 50000);
-        long simpleTime = testPerf(simple, 50000);
+        long mxTime = testPerf(mx, 20000);
+        long simpleTime = testPerf(simple, 20000);
 
         System.out.println("mx = " + mxTime);
         System.out.println("simple = " + simpleTime);
+        Assert.assertTrue(mxTime < simpleTime);
         double relativeDiff = Math.abs(1 - (double) mxTime / simpleTime);
         System.out.println("relDiff = " + relativeDiff);
-        Assert.assertTrue(relativeDiff < 0.5);
+        Assert.assertTrue(relativeDiff > 0.05); // should be at least a 5% improovement
+        DemoTest.stopTestThreads(startTestThreads);
     }
     
     private static long testPerf(final StackCollector collector, final int count)  {

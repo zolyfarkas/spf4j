@@ -70,7 +70,7 @@ public final class Sampler implements SamplerMBean {
     private final String filePrefix;
 
     public Sampler() {
-        this(100, 3600000, new MxStackCollector());
+        this(100, 3600000, new FastStackCollector());
     }
 
     public Sampler(final int sampleTimeMillis) {

@@ -48,7 +48,6 @@ public final class DemoTest {
         });
     }
 
-
     @Test
     public void testJmx() throws ClassNotFoundException, NoSuchMethodException,
             IllegalAccessException, InvocationTargetException,
@@ -58,7 +57,7 @@ public final class DemoTest {
         String report2 = File.createTempFile("stackSample", ".html").getPath();
         Sampler sampler = new Sampler(new SimpleStackCollector());
         sampler.start();
-        main(new String [] {});
+        main(new String[]{});
         sampler.generateSvgHtmlMonitorReport(report1, 1000, 100);
         sampler.generateHtmlMonitorReport(report2, 1000, 100);
         sampler.stop();
@@ -66,9 +65,23 @@ public final class DemoTest {
     private static volatile boolean stopped;
 
     public static void main(final String[] args) throws InterruptedException {
+        List<Thread> threads = startTestThreads(20);
+        Thread.sleep(5000);
+        stopTestThreads(threads);
+
+    }
+
+    public static void stopTestThreads(final List<Thread> threads) throws InterruptedException {
+        stopped = true;
+        for (Thread t : threads) {
+            t.join();
+        }
+    }
+
+    public static List<Thread> startTestThreads(final int nrThreads) {
         stopped = false;
         List<Thread> threads = new ArrayList<Thread>();
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < nrThreads; i++) {
             Thread t = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -77,7 +90,8 @@ public final class DemoTest {
                             doStuff();
                             Thread.sleep(1);
                         }
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e) {
                         throw new RuntimeException(e);
                     }
 
@@ -94,11 +108,7 @@ public final class DemoTest {
             t.start();
             threads.add(t);
         }
-        Thread.sleep(5000);
-        stopped = true;
-        for (Thread t : threads) {
-            t.join();
-        }
+        return threads;
 
     }
 }
