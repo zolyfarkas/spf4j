@@ -87,30 +87,31 @@ public final class ObjectPoolBuilder&lt;T, E extends Exception&gt; {
     public ObjectPool&lt;T&gt; build() throws ObjectCreationException {
 <span class="fc" id="L88">        final ScalableObjectPool&lt;T&gt; underlyingPool =</span>
                 new ScalableObjectPool&lt;T&gt;(initialSize, maxSize, factory, timeoutMillis, fair);
-<span class="fc" id="L90">        ObjectPool&lt;T&gt; pool = underlyingPool;</span>
+        final ObjectPool&lt;T&gt; pool;
 <span class="pc bpc" id="L91" title="2 of 4 branches missed.">        if (borrowHook != null || returnHook != null) {</span>
-<span class="nc" id="L92">            pool = new ObjectPoolWrapper&lt;T&gt;(pool, borrowHook, returnHook);</span>
+<span class="nc" id="L92">            pool = new ObjectPoolWrapper&lt;T&gt;(underlyingPool, borrowHook, returnHook);</span>
+        } else {
+<span class="fc" id="L94">            pool = underlyingPool;</span>
         }
-<span class="fc" id="L94">        final Scanable&lt;ObjectHolder&lt;T&gt;&gt; scanable = (Scanable&lt;ObjectHolder&lt;T&gt;&gt;) pool;</span>
-<span class="fc bfc" id="L95" title="All 2 branches covered.">        if (maintenanceExecutor != null) {</span>
-<span class="fc" id="L96">            maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnable(true) {</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">        if (maintenanceExecutor != null) {</span>
+<span class="fc" id="L97">            maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnable(true) {</span>
                 @Override
                 public void doRun() throws Exception {
-<span class="pc bpc" id="L99" title="1 of 2 branches missed.">                        if (ObjectPoolBuilder.this.collectBorrowed) {</span>
-<span class="fc" id="L100">                            underlyingPool.requestReturnFromBorrowersIfNotInUse();</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">                        if (ObjectPoolBuilder.this.collectBorrowed) {</span>
+<span class="fc" id="L101">                            underlyingPool.requestReturnFromBorrowersIfNotInUse();</span>
                         }
-<span class="fc" id="L102">                        scanable.scan(new Scanable.ScanHandler&lt;ObjectHolder&lt;T&gt;&gt;() {</span>
+<span class="fc" id="L103">                        ((Scanable&lt;ObjectHolder&lt;T&gt;&gt;) pool).scan(new Scanable.ScanHandler&lt;ObjectHolder&lt;T&gt;&gt;() {</span>
                             @Override
                             public boolean handle(final ObjectHolder&lt;T&gt; object) throws ObjectDisposeException {
-<span class="fc" id="L105">                                object.validateObjectIfNotBorrowed();</span>
-<span class="fc" id="L106">                                return true;</span>
+<span class="fc" id="L106">                                object.validateObjectIfNotBorrowed();</span>
+<span class="fc" id="L107">                                return true;</span>
                             }
                         });
                    
-<span class="fc" id="L110">                }</span>
+<span class="fc" id="L111">                }</span>
             }, maintenanceIntervalMillis, maintenanceIntervalMillis, TimeUnit.MILLISECONDS);
         }
-<span class="fc" id="L113">        return pool;</span>
+<span class="fc" id="L114">        return pool;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

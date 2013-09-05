@@ -70,48 +70,54 @@ public final class ObjectHolder&lt;T&gt; {
 <span class="nc" id="L70">        return obj;</span>
     }
 
-    public synchronized void returnObject(final T object, final Exception e) throws ObjectDisposeException {
+    public synchronized void returnObject(final T object, final Exception e) {
 <span class="pc bpc" id="L74" title="2 of 4 branches missed.">        if (!borrowed || object != obj) {</span>
 <span class="nc" id="L75">            throw new IllegalStateException(&quot;Cannot return something that was &quot;</span>
                     + &quot;not borrowed from here &quot; + object);
         }
 <span class="fc" id="L78">        borrowed = false;</span>
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        if (e != null) {</span>
-<span class="nc" id="L80">            Exception ex = safeValidate(e);</span>
-<span class="nc" id="L81">            LOG.debug(&quot;Object {} returned with exception {} validation failed&quot;, obj, e, ex);</span>
-<span class="nc bnc" id="L82" title="All 2 branches missed.">            if (ex != null) {</span>
-<span class="nc" id="L83">                obj = null;</span>
-<span class="nc" id="L84">                factory.dispose(object);</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        if (e != null) {</span>
+<span class="fc" id="L80">            Exception ex = safeValidate(e);</span>
+<span class="fc" id="L81">            LOG.warn(&quot;Object {} returned with exception {} validation failed&quot;, obj, e, ex);</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">            if (ex != null) {</span>
+<span class="fc" id="L83">                obj = null;</span>
+                try {
+<span class="nc" id="L85">                    factory.dispose(object);</span>
+<span class="nc" id="L86">                } catch (ObjectDisposeException ex1) {</span>
+<span class="nc" id="L87">                    LOG.warn(&quot;Failed to dispose {}&quot;, object, ex1);</span>
+<span class="fc" id="L88">                } catch (RuntimeException ex1) {</span>
+<span class="fc" id="L89">                    LOG.error(&quot;Failed to dispose {}&quot;, object, ex1);</span>
+<span class="nc" id="L90">                }</span>
             }
         }
-<span class="fc" id="L87">    }</span>
+<span class="fc" id="L93">    }</span>
 
     public synchronized void validateObjectIfNotBorrowed() throws ObjectDisposeException {
-<span class="pc bpc" id="L90" title="1 of 4 branches missed.">        if (!borrowed &amp;&amp; obj != null) {</span>
-<span class="fc" id="L91">            Exception e = safeValidate(null);</span>
-<span class="fc" id="L92">            LOG.debug(&quot;Object {} validation failed&quot;, obj, e);</span>
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">            if (e != null) {</span>
-<span class="nc" id="L94">                T object = obj;</span>
-<span class="nc" id="L95">                obj = null;</span>
-<span class="nc" id="L96">                factory.dispose(object);</span>
+<span class="pc bpc" id="L96" title="1 of 4 branches missed.">        if (!borrowed &amp;&amp; obj != null) {</span>
+<span class="fc" id="L97">            Exception e = safeValidate(null);</span>
+<span class="fc" id="L98">            LOG.debug(&quot;Object {} validation failed&quot;, obj, e);</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">            if (e != null) {</span>
+<span class="nc" id="L100">                T object = obj;</span>
+<span class="nc" id="L101">                obj = null;</span>
+<span class="nc" id="L102">                factory.dispose(object);</span>
             }
         }
-<span class="fc" id="L99">    }</span>
+<span class="fc" id="L105">    }</span>
 
     public synchronized boolean disposeIfNotBorrowed() throws ObjectDisposeException {
-<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (borrowed) {</span>
-<span class="nc" id="L103">            return false;</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        if (borrowed) {</span>
+<span class="nc" id="L109">            return false;</span>
         }
-<span class="fc bfc" id="L105" title="All 2 branches covered.">        if (obj != null) {</span>
-<span class="fc" id="L106">            factory.dispose(obj);</span>
-<span class="fc" id="L107">            obj = null;</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (obj != null) {</span>
+<span class="fc" id="L112">            factory.dispose(obj);</span>
+<span class="fc" id="L113">            obj = null;</span>
         }
-<span class="fc" id="L109">        return true;</span>
+<span class="fc" id="L115">        return true;</span>
     }
 
     @Override
     public synchronized String toString() {
-<span class="fc" id="L114">        return &quot;ObjectHolder{&quot; + &quot;obj=&quot; + obj + &quot;, borrowed=&quot; + borrowed + &quot;, factory=&quot; + factory + '}';</span>
+<span class="fc" id="L120">        return &quot;ObjectHolder{&quot; + &quot;obj=&quot; + obj + &quot;, borrowed=&quot; + borrowed + &quot;, factory=&quot; + factory + '}';</span>
     }
 
     /**
@@ -124,11 +130,11 @@ public final class ObjectHolder&lt;T&gt; {
     private Exception safeValidate(@Nullable final Exception exc)  {
         Exception e;
         try {
-<span class="fc" id="L127">            e = factory.validate(obj, exc);</span>
-<span class="nc" id="L128">        } catch (Exception ex) {</span>
-<span class="nc" id="L129">            e = ex;</span>
-<span class="fc" id="L130">        }</span>
-<span class="fc" id="L131">        return e;</span>
+<span class="fc" id="L133">            e = factory.validate(obj, exc);</span>
+<span class="nc" id="L134">        } catch (Exception ex) {</span>
+<span class="nc" id="L135">            e = ex;</span>
+<span class="fc" id="L136">        }</span>
+<span class="fc" id="L137">        return e;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

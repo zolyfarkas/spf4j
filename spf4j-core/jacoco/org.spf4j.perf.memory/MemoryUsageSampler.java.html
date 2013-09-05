@@ -40,48 +40,48 @@ public final class MemoryUsageSampler {
     
 <span class="nc" id="L41">    private MemoryUsageSampler() { }</span>
     
-<span class="nc" id="L43">    private static final int AGG_INTERVAL =</span>
-            Integer.valueOf(System.getProperty(&quot;perf.memory.sampleAggMillis&quot;, &quot;600000&quot;));
+<span class="fc" id="L43">    private static final int AGG_INTERVAL =</span>
+            Integer.parseInt(System.getProperty(&quot;perf.memory.sampleAggMillis&quot;, &quot;300000&quot;));
     
-<span class="nc" id="L46">    private static final MeasurementRecorder HEAP_COMMITED =</span>
+<span class="fc" id="L46">    private static final MeasurementRecorder HEAP_COMMITED =</span>
             RecorderFactory.createScalableMinMaxAvgRecorder(&quot;heap-commited&quot;, &quot;bytes&quot;, AGG_INTERVAL);
-<span class="nc" id="L48">    private static final MeasurementRecorder HEAP_USED =</span>
+<span class="fc" id="L48">    private static final MeasurementRecorder HEAP_USED =</span>
             RecorderFactory.createScalableMinMaxAvgRecorder(&quot;heap-used&quot;, &quot;bytes&quot;, AGG_INTERVAL);
     
-<span class="nc" id="L51">    private static final MemoryMXBean MBEAN = ManagementFactory.getMemoryMXBean();</span>
+<span class="fc" id="L51">    private static final MemoryMXBean MBEAN = ManagementFactory.getMemoryMXBean();</span>
     
     private static ScheduledFuture&lt;?&gt; samplingFuture;
     
     
     static {
-<span class="nc" id="L57">        java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {</span>
+<span class="fc" id="L57">        java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {</span>
             @Override
             public void doRun() throws Exception {
-<span class="nc" id="L60">                stopMemoryUsageSampling();</span>
-<span class="nc" id="L61">            }</span>
+<span class="fc" id="L60">                stopMemoryUsageSampling();</span>
+<span class="fc" id="L61">            }</span>
         }, &quot;shutdown-memory-sampler&quot;));
-<span class="nc" id="L63">    }</span>
+<span class="fc" id="L63">    }</span>
     
     public static synchronized void startMemoryUsageSampling(final long sampleTime) {
-<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (samplingFuture == null) {</span>
-<span class="nc" id="L67">            samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        if (samplingFuture == null) {</span>
+<span class="fc" id="L67">            samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {</span>
 
                 @Override
                 public void doRun() throws Exception {
-<span class="nc" id="L71">                    MemoryUsage usage = MBEAN.getHeapMemoryUsage();</span>
-<span class="nc" id="L72">                    HEAP_COMMITED.record(usage.getCommitted());</span>
-<span class="nc" id="L73">                    HEAP_USED.record(usage.getUsed());</span>
-<span class="nc" id="L74">                }</span>
+<span class="fc" id="L71">                    MemoryUsage usage = MBEAN.getHeapMemoryUsage();</span>
+<span class="fc" id="L72">                    HEAP_COMMITED.record(usage.getCommitted());</span>
+<span class="fc" id="L73">                    HEAP_USED.record(usage.getUsed());</span>
+<span class="fc" id="L74">                }</span>
             }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
         }
-<span class="nc" id="L77">    }</span>
+<span class="fc" id="L77">    }</span>
     
     public static synchronized void stopMemoryUsageSampling() {
-<span class="nc bnc" id="L80" title="All 2 branches missed.">         if (samplingFuture != null) {</span>
-<span class="nc" id="L81">             samplingFuture.cancel(false);</span>
-<span class="nc" id="L82">             samplingFuture = null;</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">         if (samplingFuture != null) {</span>
+<span class="fc" id="L81">             samplingFuture.cancel(false);</span>
+<span class="fc" id="L82">             samplingFuture = null;</span>
          }
-<span class="nc" id="L84">    }</span>
+<span class="fc" id="L84">    }</span>
     
     
     

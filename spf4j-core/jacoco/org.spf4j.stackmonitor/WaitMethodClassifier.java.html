@@ -20,6 +20,7 @@ package org.spf4j.stackmonitor;
 import com.google.common.base.Predicate;
 import java.util.HashSet;
 import java.util.Set;
+import org.spf4j.base.Pair;
 
 /**
  *
@@ -27,24 +28,27 @@ import java.util.Set;
  */
 public final class WaitMethodClassifier implements Predicate&lt;Method&gt; {
 
-<span class="fc" id="L30">    private WaitMethodClassifier() { }</span>
+<span class="fc" id="L31">    private WaitMethodClassifier() { }</span>
     
-<span class="fc" id="L32">    private static final Set&lt;Method&gt; WAIT_METHODS = new HashSet();</span>
+<span class="fc" id="L33">    private static final Set&lt;Pair&lt;String, String&gt;&gt; WAIT_METHODS = new HashSet();</span>
 
     static {
-<span class="fc" id="L35">        WAIT_METHODS.add(new Method(sun.misc.Unsafe.class, &quot;park&quot;));</span>
-<span class="fc" id="L36">        WAIT_METHODS.add(new Method(java.lang.Object.class, &quot;wait&quot;));</span>
-<span class="fc" id="L37">        WAIT_METHODS.add(new Method(java.lang.Thread.class, &quot;sleep&quot;));</span>
-<span class="fc" id="L38">        WAIT_METHODS.add(new Method(&quot;java.net.PlainSocketImpl&quot;, &quot;socketAccept&quot;));</span>
-<span class="fc" id="L39">        WAIT_METHODS.add(new Method(&quot;java.net.PlainSocketImpl&quot;, &quot;socketConnect&quot;));</span>
+<span class="fc" id="L36">        WAIT_METHODS.add(Pair.of(sun.misc.Unsafe.class.getName(), &quot;park&quot;));</span>
+<span class="fc" id="L37">        WAIT_METHODS.add(Pair.of(java.lang.Object.class.getName(), &quot;wait&quot;));</span>
+<span class="fc" id="L38">        WAIT_METHODS.add(Pair.of(java.lang.Thread.class.getName(), &quot;sleep&quot;));</span>
+<span class="fc" id="L39">        WAIT_METHODS.add(Pair.of(&quot;java.net.PlainSocketImpl&quot;, &quot;socketAccept&quot;));</span>
+<span class="fc" id="L40">        WAIT_METHODS.add(Pair.of(&quot;java.net.PlainSocketImpl&quot;, &quot;socketConnect&quot;));</span>
     }
 
    
     @Override
     public boolean apply(final Method input) {
-<span class="fc" id="L45">       return WAIT_METHODS.contains(input);</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">       if (input == null) {</span>
+<span class="nc" id="L47">           return false;</span>
+       }
+<span class="fc" id="L49">       return WAIT_METHODS.contains(Pair.of(input.getDeclaringClass(), input.getMethodName()));</span>
     }
     
-<span class="fc" id="L48">    public static final WaitMethodClassifier INSTANCE = new WaitMethodClassifier();</span>
+<span class="fc" id="L52">    public static final WaitMethodClassifier INSTANCE = new WaitMethodClassifier();</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

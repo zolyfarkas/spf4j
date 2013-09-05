@@ -22,11 +22,12 @@ import org.spf4j.pool.ObjectBorrowException;
 import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectDisposeException;
 import org.spf4j.pool.ObjectPool;
-import org.spf4j.pool.ObjectReturnException;
 import org.spf4j.pool.Scanable;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.Handler;
 
 /**
@@ -41,66 +42,66 @@ public final class ObjectPoolWrapper&lt;T&gt; implements ObjectPool&lt;T&gt; , S
     private final Handler&lt;T, ? extends Exception&gt; borrowHook;
     
     private final Handler&lt;T, ? extends Exception&gt; returnHook;
+    
+<span class="nc" id="L46">    private static final Logger LOG = LoggerFactory.getLogger(ObjectPoolWrapper.class);</span>
 
     public ObjectPoolWrapper(final ObjectPool&lt;T&gt; pool,
             @Nullable final Handler&lt;T, ? extends Exception&gt; borrowHook,
-<span class="nc" id="L47">            @Nullable final Handler&lt;T, ? extends Exception&gt; returnHook) {</span>
-<span class="nc" id="L48">        this.pool = pool;</span>
-<span class="nc" id="L49">        this.borrowHook = borrowHook;</span>
-<span class="nc" id="L50">        this.returnHook = returnHook;</span>
-<span class="nc bnc" id="L51" title="All 4 branches missed.">        if (borrowHook == null &amp;&amp; returnHook == null) {</span>
-<span class="nc" id="L52">            throw new IllegalArgumentException(&quot;Both hooks can't be null&quot;);</span>
+<span class="nc" id="L50">            @Nullable final Handler&lt;T, ? extends Exception&gt; returnHook) {</span>
+<span class="nc" id="L51">        this.pool = pool;</span>
+<span class="nc" id="L52">        this.borrowHook = borrowHook;</span>
+<span class="nc" id="L53">        this.returnHook = returnHook;</span>
+<span class="nc bnc" id="L54" title="All 4 branches missed.">        if (borrowHook == null &amp;&amp; returnHook == null) {</span>
+<span class="nc" id="L55">            throw new IllegalArgumentException(&quot;Both hooks can't be null&quot;);</span>
         }
-<span class="nc" id="L54">    }</span>
+<span class="nc" id="L57">    }</span>
     
     
     
-    
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;LEST_LOST_EXCEPTION_STACK_TRACE&quot;)
     @Override
     public T borrowObject()
             throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
-<span class="nc" id="L62">        T result = pool.borrowObject();</span>
+<span class="nc" id="L65">        T result = pool.borrowObject();</span>
         try {
-<span class="nc bnc" id="L64" title="All 2 branches missed.">            if (borrowHook != null) {</span>
-<span class="nc" id="L65">                borrowHook.handle(result);</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            if (borrowHook != null) {</span>
+<span class="nc" id="L68">                borrowHook.handle(result);</span>
             }
-<span class="nc" id="L67">            return result;</span>
-<span class="nc" id="L68">        } catch (Exception e) {</span>
+<span class="nc" id="L70">            return result;</span>
+<span class="nc" id="L71">        } catch (Exception e) {</span>
             try {
-<span class="nc" id="L70">                pool.returnObject(result, e);</span>
-<span class="nc" id="L71">            } catch (ObjectReturnException ex) {</span>
-<span class="nc" id="L72">                throw Throwables.suppress(new RuntimeException(ex), e);</span>
-<span class="nc" id="L73">            } catch (ObjectDisposeException ex) {</span>
-<span class="nc" id="L74">                 throw Throwables.suppress(new RuntimeException(ex), e);</span>
-<span class="nc" id="L75">            }</span>
-<span class="nc" id="L76">            throw new ObjectBorrowException(&quot;Exception while executing borrow hook&quot;, e);</span>
+<span class="nc" id="L73">                pool.returnObject(result, e);</span>
+<span class="nc" id="L74">            } catch (RuntimeException ex) {</span>
+<span class="nc" id="L75">                throw Throwables.suppress(new RuntimeException(ex), e);</span>
+<span class="nc" id="L76">            }</span>
+<span class="nc" id="L77">            throw new ObjectBorrowException(&quot;Exception while executing borrow hook&quot;, e);</span>
         }
     }
 
     @Override
-    public void returnObject(final T object, final Exception e) throws ObjectReturnException, ObjectDisposeException {
+    public void returnObject(final T object, final Exception e) {
         try {
-<span class="nc bnc" id="L83" title="All 2 branches missed.">            if (returnHook != null) {</span>
-<span class="nc" id="L84">                returnHook.handle(object);</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (returnHook != null) {</span>
+<span class="nc" id="L85">                returnHook.handle(object);</span>
             }
-<span class="nc" id="L86">        } catch (Exception ex) {</span>
-<span class="nc" id="L87">            throw new ObjectReturnException(&quot;Exception while executing return hook&quot;, e);</span>
+<span class="nc" id="L87">        } catch (Exception ex) {</span>
+<span class="nc" id="L88">            LOG.error(&quot;Error while handling object {} &quot;, object, ex);</span>
         } finally {
-<span class="nc" id="L89">            pool.returnObject(object, e);</span>
-<span class="nc" id="L90">        }</span>
-<span class="nc" id="L91">    }</span>
+<span class="nc" id="L90">            pool.returnObject(object, e);</span>
+<span class="nc" id="L91">        }</span>
+<span class="nc" id="L92">    }</span>
 
     @Override
     public void dispose() throws ObjectDisposeException {
-<span class="nc" id="L95">        pool.dispose();</span>
-<span class="nc" id="L96">    }</span>
+<span class="nc" id="L96">        pool.dispose();</span>
+<span class="nc" id="L97">    }</span>
 
     @Override
     public boolean scan(final ScanHandler&lt;ObjectHolder&lt;T&gt;&gt; handler) throws Exception {
-<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (pool instanceof Scanable) {</span>
-<span class="nc" id="L101">            return ((Scanable&lt;ObjectHolder&lt;T&gt;&gt;) pool).scan(handler);</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (pool instanceof Scanable) {</span>
+<span class="nc" id="L102">            return ((Scanable&lt;ObjectHolder&lt;T&gt;&gt;) pool).scan(handler);</span>
         } else {
-<span class="nc" id="L103">            throw new RuntimeException(&quot;Wrapped pool is not scanable&quot;);</span>
+<span class="nc" id="L104">            throw new RuntimeException(&quot;Wrapped pool is not scanable&quot;);</span>
         }
     }
 

@@ -58,25 +58,25 @@ public final class Template&lt;T, E extends Exception&gt; {
 
 <span class="nc" id="L59">    }</span>
 
+    //findbugs does not know about supress in spf4j
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;LEST_LOST_EXCEPTION_STACK_TRACE&quot;)
     public static &lt;T, E extends Exception&gt; void doOnPooledObject(final Handler&lt;T, E&gt; handler,
             final ObjectPool&lt;T&gt; pool, final Class&lt;E&gt; clasz)
-            throws ObjectReturnException, ObjectDisposeException, ObjectCreationException,
+            throws ObjectReturnException, ObjectCreationException,
             ObjectBorrowException, InterruptedException, TimeoutException, E {
-<span class="fc" id="L65">        T object = pool.borrowObject();</span>
+<span class="fc" id="L67">        T object = pool.borrowObject();</span>
         try {
-<span class="fc" id="L67">            handler.handle(object);</span>
-<span class="fc" id="L68">        } catch (Exception e) {</span>
+<span class="fc" id="L69">            handler.handle(object);</span>
+<span class="fc" id="L70">        } catch (Exception e) {</span>
             try {
-<span class="nc" id="L70">                pool.returnObject(object, e);</span>
-<span class="nc" id="L71">            } catch (ObjectReturnException ex) {</span>
-<span class="nc" id="L72">                throw Throwables.suppress(ex, e);</span>
-<span class="nc" id="L73">            } catch (ObjectDisposeException ex) {</span>
+<span class="fc" id="L72">                pool.returnObject(object, e);</span>
+<span class="nc" id="L73">            } catch (RuntimeException ex) {</span>
 <span class="nc" id="L74">                throw Throwables.suppress(ex, e);</span>
-<span class="nc" id="L75">            }</span>
-<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (e instanceof RuntimeException) {</span>
+<span class="fc" id="L75">            }</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">            if (e instanceof RuntimeException) {</span>
 <span class="nc" id="L77">                throw (RuntimeException) e;</span>
             } else {
-<span class="nc" id="L79">                throw new RuntimeException(e);</span>
+<span class="fc" id="L79">                throw (E) e;</span>
             }
 <span class="fc" id="L81">        }</span>
 <span class="fc" id="L82">        pool.returnObject(object, null);</span>

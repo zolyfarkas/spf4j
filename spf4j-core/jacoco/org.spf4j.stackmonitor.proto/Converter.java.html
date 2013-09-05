@@ -34,40 +34,43 @@ public final class Converter {
     
     public static ProtoSampleNodes.Method fromMethodToProto(final Method m) {
 <span class="fc" id="L36">        return ProtoSampleNodes.Method.newBuilder().setMethodName(m.getMethodName())</span>
-                .setDeclaringClass(m.getDeclaringClass()).build();
+                .setDeclaringClass(m.getDeclaringClass())
+                .build();
     }
     
     public static ProtoSampleNodes.SampleNode fromSampleNodeToProto(final SampleNode node) {
         
-<span class="fc" id="L42">        ProtoSampleNodes.SampleNode.Builder resultBuilder</span>
+<span class="fc" id="L43">        ProtoSampleNodes.SampleNode.Builder resultBuilder</span>
                 = ProtoSampleNodes.SampleNode.newBuilder().setCount(node.getSampleCount());
         
-<span class="fc" id="L45">        Map&lt;Method, SampleNode&gt; subNodes = node.getSubNodes();</span>
-<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (subNodes != null) {</span>
-<span class="fc bfc" id="L47" title="All 2 branches covered.">           for (Map.Entry&lt;Method, SampleNode&gt; entry : subNodes.entrySet()) {</span>
-<span class="fc" id="L48">               resultBuilder.addSubNodes(</span>
+<span class="fc" id="L46">        Map&lt;Method, SampleNode&gt; subNodes = node.getSubNodes();</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        if (subNodes != null) {</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">           for (Map.Entry&lt;Method, SampleNode&gt; entry : subNodes.entrySet()) {</span>
+<span class="fc" id="L49">               resultBuilder.addSubNodes(</span>
                ProtoSampleNodes.SamplePair.newBuilder().setMethod(fromMethodToProto(entry.getKey())).
                         setNode(fromSampleNodeToProto(entry.getValue())).build());
            }
         }
-<span class="fc" id="L53">        return resultBuilder.build();</span>
+<span class="fc" id="L54">        return resultBuilder.build();</span>
     }
     
     
     
-    public static SampleNode  fromProtoToSampleNode(final ProtoSampleNodes.SampleNode node) {
+    public static SampleNode  fromProtoToSampleNode(final ProtoSampleNodes.SampleNodeOrBuilder node) {
         
-<span class="fc" id="L60">        Map&lt;Method, SampleNode&gt; subNodes = null;</span>
+<span class="fc" id="L61">        Map&lt;Method, SampleNode&gt; subNodes = null;</span>
         
-<span class="fc" id="L62">        List&lt;ProtoSampleNodes.SamplePair&gt; sns =  node.getSubNodesList();</span>
-<span class="pc bpc" id="L63" title="1 of 2 branches missed.">        if (sns != null) {</span>
-<span class="fc" id="L64">            subNodes = new HashMap&lt;Method, SampleNode&gt;();</span>
-<span class="fc bfc" id="L65" title="All 2 branches covered.">            for (ProtoSampleNodes.SamplePair pair : sns) {</span>
-<span class="fc" id="L66">                subNodes.put(new Method(pair.getMethod().getMethodName(), pair.getMethod().getDeclaringClass()),</span>
+<span class="fc" id="L63">        List&lt;ProtoSampleNodes.SamplePair&gt; sns =  node.getSubNodesList();</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">        if (sns != null) {</span>
+<span class="fc" id="L65">            subNodes = new HashMap&lt;Method, SampleNode&gt;();</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">            for (ProtoSampleNodes.SamplePair pair : sns) {</span>
+<span class="fc" id="L67">                final ProtoSampleNodes.Method method = pair.getMethod();</span>
+<span class="fc" id="L68">                subNodes.put(new Method(pair.getMethod().getDeclaringClass(),</span>
+                        method.getMethodName()),
                         fromProtoToSampleNode(pair.getNode()));
-            }
+<span class="fc" id="L71">            }</span>
         }
-<span class="fc" id="L70">        return new SampleNode(node.getCount(), subNodes);</span>
+<span class="fc" id="L73">        return new SampleNode(node.getCount(), subNodes);</span>
         
         
     }

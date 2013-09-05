@@ -32,6 +32,7 @@ import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.data.time.FixedMillisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.data.xy.XYDataset;
 import org.spf4j.base.Arrays;
 import org.spf4j.base.Pair;
 
@@ -41,91 +42,91 @@ import org.spf4j.base.Pair;
  */
 public final class Charts {
 
-<span class="nc" id="L44">    private Charts() {</span>
-<span class="nc" id="L45">    }</span>
+<span class="nc" id="L45">    private Charts() {</span>
+<span class="nc" id="L46">    }</span>
 
     public static JFreeChart createHeatJFreeChart(final String[] dsNames, final double[][] values,
             final long startTimeMillis, final long stepMillis, final String uom, final String chartName) {
-<span class="fc" id="L49">        final QuantizedXYZDatasetImpl dataSet = new QuantizedXYZDatasetImpl(dsNames, values,</span>
+<span class="fc" id="L50">        final QuantizedXYZDatasetImpl dataSet = new QuantizedXYZDatasetImpl(dsNames, values,</span>
                 startTimeMillis, stepMillis);
-<span class="fc" id="L51">        NumberAxis xAxis = new NumberAxis(&quot;Time&quot;);</span>
-<span class="fc" id="L52">        xAxis.setStandardTickUnits(dataSet.createXTickUnits());</span>
-<span class="fc" id="L53">        xAxis.setLowerMargin(0);</span>
-<span class="fc" id="L54">        xAxis.setUpperMargin(0);</span>
-<span class="fc" id="L55">        NumberAxis yAxis = new NumberAxis(uom);</span>
-<span class="fc" id="L56">        yAxis.setStandardTickUnits(dataSet.createYTickUnits());</span>
-<span class="fc" id="L57">        yAxis.setLowerMargin(0);</span>
-<span class="fc" id="L58">        yAxis.setUpperMargin(0);</span>
-<span class="fc" id="L59">        XYBlockRenderer renderer = new XYBlockRenderer();</span>
+<span class="fc" id="L52">        NumberAxis xAxis = new NumberAxis(&quot;Time&quot;);</span>
+<span class="fc" id="L53">        xAxis.setStandardTickUnits(dataSet.createXTickUnits());</span>
+<span class="fc" id="L54">        xAxis.setLowerMargin(0);</span>
+<span class="fc" id="L55">        xAxis.setUpperMargin(0);</span>
+<span class="fc" id="L56">        NumberAxis yAxis = new NumberAxis(uom);</span>
+<span class="fc" id="L57">        yAxis.setStandardTickUnits(dataSet.createYTickUnits());</span>
+<span class="fc" id="L58">        yAxis.setLowerMargin(0);</span>
+<span class="fc" id="L59">        yAxis.setUpperMargin(0);</span>
+<span class="fc" id="L60">        XYBlockRenderer renderer = new XYBlockRenderer();</span>
         PaintScale scale;
-<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        if (dataSet.getMinValue() &gt;= dataSet.getMaxValue()) {</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">            if (dataSet.getMinValue() == Double.POSITIVE_INFINITY) {</span>
-<span class="nc" id="L63">                scale = new InverseGrayScale(0, 1);</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        if (dataSet.getMinValue() &gt;= dataSet.getMaxValue()) {</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            if (dataSet.getMinValue() == Double.POSITIVE_INFINITY) {</span>
+<span class="nc" id="L64">                scale = new InverseGrayScale(0, 1);</span>
             } else {
-<span class="nc" id="L65">                scale = new InverseGrayScale(dataSet.getMinValue(), dataSet.getMaxValue() + 1);</span>
+<span class="nc" id="L66">                scale = new InverseGrayScale(dataSet.getMinValue(), dataSet.getMaxValue() + 1);</span>
             }
         } else {
-<span class="fc" id="L68">            scale = new InverseGrayScale(dataSet.getMinValue(), dataSet.getMaxValue());</span>
+<span class="fc" id="L69">            scale = new InverseGrayScale(dataSet.getMinValue(), dataSet.getMaxValue());</span>
         }
-<span class="fc" id="L70">        renderer.setPaintScale(scale);</span>
-<span class="fc" id="L71">        renderer.setBlockWidth(1);</span>
-<span class="fc" id="L72">        renderer.setBlockHeight(1);</span>
-<span class="fc" id="L73">        XYPlot plot = new XYPlot(dataSet, xAxis, yAxis, renderer);</span>
-<span class="fc" id="L74">        plot.setBackgroundPaint(Color.white);</span>
-<span class="fc" id="L75">        plot.setDomainGridlinesVisible(false);</span>
-<span class="fc" id="L76">        plot.setRangeGridlinesVisible(false);</span>
-<span class="fc" id="L77">        plot.setRangeMinorGridlinesVisible(false);</span>
-<span class="fc" id="L78">        JFreeChart chart = new JFreeChart(chartName, plot);</span>
-<span class="fc" id="L79">        PaintScaleLegend legend = new PaintScaleLegend(scale, new NumberAxis(&quot;Count&quot;));</span>
-<span class="fc" id="L80">        legend.setMargin(0, 5, 0, 5);</span>
-<span class="fc" id="L81">        chart.addSubtitle(legend);</span>
-<span class="fc" id="L82">        chart.removeLegend();</span>
-<span class="fc" id="L83">        chart.setBackgroundPaint(Color.white);</span>
-<span class="fc" id="L84">        return chart;</span>
+<span class="fc" id="L71">        renderer.setPaintScale(scale);</span>
+<span class="fc" id="L72">        renderer.setBlockWidth(1);</span>
+<span class="fc" id="L73">        renderer.setBlockHeight(1);</span>
+<span class="fc" id="L74">        XYPlot plot = new XYPlot(dataSet, xAxis, yAxis, renderer);</span>
+<span class="fc" id="L75">        plot.setBackgroundPaint(Color.white);</span>
+<span class="fc" id="L76">        plot.setDomainGridlinesVisible(false);</span>
+<span class="fc" id="L77">        plot.setRangeGridlinesVisible(false);</span>
+<span class="fc" id="L78">        plot.setRangeMinorGridlinesVisible(false);</span>
+<span class="fc" id="L79">        JFreeChart chart = new JFreeChart(chartName, plot);</span>
+<span class="fc" id="L80">        PaintScaleLegend legend = new PaintScaleLegend(scale, new NumberAxis(&quot;Count&quot;));</span>
+<span class="fc" id="L81">        legend.setMargin(0, 5, 0, 5);</span>
+<span class="fc" id="L82">        chart.addSubtitle(legend);</span>
+<span class="fc" id="L83">        chart.removeLegend();</span>
+<span class="fc" id="L84">        chart.setBackgroundPaint(Color.white);</span>
+<span class="fc" id="L85">        return chart;</span>
     }
  
     private static JFreeChart createJFreeChart(final String chartName, final String uom,
-            final TimeSeriesCollection timeseriescollection) {
-<span class="fc" id="L89">        JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(chartName,</span>
+            final XYDataset timeseriescollection) {
+<span class="fc" id="L90">        JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(chartName,</span>
                 &quot;Time&quot;, uom, timeseriescollection, true, true, false);
-<span class="fc" id="L91">        XYPlot xyplot = (XYPlot) jfreechart.getPlot();</span>
-<span class="fc" id="L92">        DateAxis dateaxis = (DateAxis) xyplot.getDomainAxis();</span>
-<span class="fc" id="L93">        dateaxis.setVerticalTickLabels(true);</span>
-<span class="fc" id="L94">        XYLineAndShapeRenderer xylineandshaperenderer = (XYLineAndShapeRenderer) xyplot.getRenderer();</span>
-<span class="fc" id="L95">        xylineandshaperenderer.setBaseShapesVisible(true);</span>
-<span class="fc" id="L96">        xylineandshaperenderer.setUseFillPaint(true);</span>
-<span class="fc" id="L97">        xylineandshaperenderer.setLegendItemToolTipGenerator(new StandardXYSeriesLabelGenerator(&quot;Tooltip {0}&quot;));</span>
-<span class="fc" id="L98">        return jfreechart;</span>
+<span class="fc" id="L92">        XYPlot xyplot = (XYPlot) jfreechart.getPlot();</span>
+<span class="fc" id="L93">        DateAxis dateaxis = (DateAxis) xyplot.getDomainAxis();</span>
+<span class="fc" id="L94">        dateaxis.setVerticalTickLabels(true);</span>
+<span class="fc" id="L95">        XYLineAndShapeRenderer xylineandshaperenderer = (XYLineAndShapeRenderer) xyplot.getRenderer();</span>
+<span class="fc" id="L96">        xylineandshaperenderer.setBaseShapesVisible(true);</span>
+<span class="fc" id="L97">        xylineandshaperenderer.setUseFillPaint(true);</span>
+<span class="fc" id="L98">        xylineandshaperenderer.setLegendItemToolTipGenerator(new StandardXYSeriesLabelGenerator(&quot;Tooltip {0}&quot;));</span>
+<span class="fc" id="L99">        return jfreechart;</span>
     }
 
     public static BufferedImage createMinMaxAvgCountImg(final String chartName, final long[] timestamps,
             final double[] min, final double[] max, final double[] total, final double[] count,
             final String uom, final int width, final int height) {
 
-<span class="fc" id="L105">        BufferedImage bi = Charts.createTimeSeriesJFreeChart(chartName, timestamps,</span>
+<span class="fc" id="L106">        BufferedImage bi = Charts.createTimeSeriesJFreeChart(chartName, timestamps,</span>
                 new String[]{&quot;min&quot;, &quot;max&quot;, &quot;avg&quot;}, uom,
                 new double[][]{min, max, Arrays.divide(total, count)}).createBufferedImage(width, height - height / 3);
-<span class="fc" id="L108">        BufferedImage bi2 = Charts.createTimeSeriesJFreeChart(null, timestamps,</span>
+<span class="fc" id="L109">        BufferedImage bi2 = Charts.createTimeSeriesJFreeChart(null, timestamps,</span>
                 new String[]{&quot;count&quot;}, &quot;count&quot;, new double[][]{count}).createBufferedImage(width, height / 3);
-<span class="fc" id="L110">        BufferedImage combined = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);</span>
-<span class="fc" id="L111">        combined.getGraphics().drawImage(bi, 0, 0, null);</span>
-<span class="fc" id="L112">        combined.getGraphics().drawImage(bi2, 0, height - height / 3, null);</span>
-<span class="fc" id="L113">        return combined;</span>
+<span class="fc" id="L111">        BufferedImage combined = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);</span>
+<span class="fc" id="L112">        combined.getGraphics().drawImage(bi, 0, 0, null);</span>
+<span class="fc" id="L113">        combined.getGraphics().drawImage(bi2, 0, height - height / 3, null);</span>
+<span class="fc" id="L114">        return combined;</span>
     }
 
     
     private static TimeSeriesCollection createTimeSeriesCollection(final String[] measurementNames,
             final long[] timestamps, final double[][] measurements) {
-<span class="fc" id="L119">        TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();</span>
-<span class="fc bfc" id="L120" title="All 2 branches covered.">        for (int i = 0; i &lt; measurementNames.length; i++) {</span>
-<span class="fc" id="L121">            TimeSeries tseries = new TimeSeries(measurementNames[i]);</span>
-<span class="fc bfc" id="L122" title="All 2 branches covered.">            for (int j = 0; j &lt; timestamps.length; j++) {</span>
-<span class="fc" id="L123">                FixedMillisecond ts = new FixedMillisecond(timestamps[j]);</span>
-<span class="fc" id="L124">                tseries.add(ts, measurements[i][j]);</span>
+<span class="fc" id="L120">        TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        for (int i = 0; i &lt; measurementNames.length; i++) {</span>
+<span class="fc" id="L122">            TimeSeries tseries = new TimeSeries(measurementNames[i]);</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">            for (int j = 0; j &lt; timestamps.length; j++) {</span>
+<span class="fc" id="L124">                FixedMillisecond ts = new FixedMillisecond(timestamps[j]);</span>
+<span class="fc" id="L125">                tseries.add(ts, measurements[i][j]);</span>
             }
-<span class="fc" id="L126">            timeseriescollection.addSeries(tseries);</span>
+<span class="fc" id="L127">            timeseriescollection.addSeries(tseries);</span>
         }
-<span class="fc" id="L128">        return timeseriescollection;</span>
+<span class="fc" id="L129">        return timeseriescollection;</span>
     }
     
     
@@ -133,33 +134,33 @@ public final class Charts {
     
     public static JFreeChart createTimeSeriesJFreeChart(final String chartName, final long[] timestamps,
             final String[] measurementNames, final String uom, final double[][] measurements) {
-<span class="fc" id="L136">        TimeSeriesCollection timeseriescollection =</span>
+<span class="fc" id="L137">        TimeSeriesCollection timeseriescollection =</span>
                 createTimeSeriesCollection(measurementNames, timestamps, measurements);
-<span class="fc" id="L138">        return createJFreeChart(chartName, uom, timeseriescollection);</span>
+<span class="fc" id="L139">        return createJFreeChart(chartName, uom, timeseriescollection);</span>
     }
     
     
     private static TimeSeriesCollection createTimeSeriesCollection(final String[] measurementNames,
             final long[][] timestamps, final double[][] measurements) {
-<span class="fc" id="L144">        TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();</span>
-<span class="fc bfc" id="L145" title="All 2 branches covered.">        for (int i = 0; i &lt; measurementNames.length; i++) {</span>
-<span class="fc" id="L146">            TimeSeries tseries = new TimeSeries(measurementNames[i]);</span>
-<span class="fc bfc" id="L147" title="All 2 branches covered.">            for (int j = 0; j &lt; timestamps[i].length; j++) {</span>
-<span class="fc" id="L148">                FixedMillisecond ts = new FixedMillisecond(timestamps[i][j]);</span>
-<span class="fc" id="L149">                tseries.add(ts, measurements[i][j]);</span>
+<span class="fc" id="L145">        TimeSeriesCollection timeseriescollection = new TimeSeriesCollection();</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">        for (int i = 0; i &lt; measurementNames.length; i++) {</span>
+<span class="fc" id="L147">            TimeSeries tseries = new TimeSeries(measurementNames[i]);</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">            for (int j = 0; j &lt; timestamps[i].length; j++) {</span>
+<span class="fc" id="L149">                FixedMillisecond ts = new FixedMillisecond(timestamps[i][j]);</span>
+<span class="fc" id="L150">                tseries.add(ts, measurements[i][j]);</span>
             }
-<span class="fc" id="L151">            timeseriescollection.addSeries(tseries);</span>
+<span class="fc" id="L152">            timeseriescollection.addSeries(tseries);</span>
         }
-<span class="fc" id="L153">        return timeseriescollection;</span>
+<span class="fc" id="L154">        return timeseriescollection;</span>
     }
 
 
     
     public static JFreeChart createTimeSeriesJFreeChart(final String chartName, final long[][] timestamps,
             final String[] measurementNames, final String uom, final double[][] measurements) {
-<span class="fc" id="L160">        TimeSeriesCollection timeseriescollection =</span>
+<span class="fc" id="L161">        TimeSeriesCollection timeseriescollection =</span>
                 createTimeSeriesCollection(measurementNames, timestamps, measurements);
-<span class="fc" id="L162">        return createJFreeChart(chartName, uom, timeseriescollection);</span>
+<span class="fc" id="L163">        return createJFreeChart(chartName, uom, timeseriescollection);</span>
     }
     
    
@@ -167,29 +168,29 @@ public final class Charts {
     
     public static Pair&lt;long[], double[][]&gt; fillGaps(final long[] timestamps,
             final long[][] data, final int sampleTime, final int nrColumns) {
-<span class="fc" id="L170">        long startTime = timestamps[0];</span>
-<span class="fc" id="L171">        int nrSamples = (int) ((timestamps[timestamps.length - 1] - startTime) / sampleTime);</span>
-<span class="fc" id="L172">        long[] lts = new long[nrSamples];</span>
-<span class="fc" id="L173">        double[][] dr = new double[nrSamples][];</span>
-<span class="fc" id="L174">        long nextTime = startTime;</span>
-<span class="fc" id="L175">        int j = 0;</span>
-<span class="fc" id="L176">        int maxDeviation = sampleTime / 2;</span>
-<span class="fc" id="L177">        double[] nodata = new double[nrColumns];</span>
-<span class="fc bfc" id="L178" title="All 2 branches covered.">        for (int i = 0; i &lt; nrColumns; i++) {</span>
-<span class="fc" id="L179">            nodata[i] = Double.NaN;</span>
+<span class="fc" id="L171">        long startTime = timestamps[0];</span>
+<span class="fc" id="L172">        int nrSamples = (int) ((timestamps[timestamps.length - 1] - startTime) / sampleTime);</span>
+<span class="fc" id="L173">        long[] lts = new long[nrSamples];</span>
+<span class="fc" id="L174">        double[][] dr = new double[nrSamples][];</span>
+<span class="fc" id="L175">        long nextTime = startTime;</span>
+<span class="fc" id="L176">        int j = 0;</span>
+<span class="fc" id="L177">        int maxDeviation = sampleTime / 2;</span>
+<span class="fc" id="L178">        double[] nodata = new double[nrColumns];</span>
+<span class="fc bfc" id="L179" title="All 2 branches covered.">        for (int i = 0; i &lt; nrColumns; i++) {</span>
+<span class="fc" id="L180">            nodata[i] = Double.NaN;</span>
         }
-<span class="fc bfc" id="L181" title="All 2 branches covered.">        for (int i = 0; i &lt; nrSamples; i++) {</span>
-<span class="fc" id="L182">            lts[i] = nextTime;</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">        for (int i = 0; i &lt; nrSamples; i++) {</span>
+<span class="fc" id="L183">            lts[i] = nextTime;</span>
 
-<span class="pc bpc" id="L184" title="1 of 2 branches missed.">            if (Math.abs(timestamps[j] - nextTime) &lt; maxDeviation) {</span>
-<span class="fc" id="L185">                dr[i] = Arrays.toDoubleArray(data[j]);</span>
-<span class="fc" id="L186">                j++;</span>
+<span class="pc bpc" id="L185" title="1 of 2 branches missed.">            if (Math.abs(timestamps[j] - nextTime) &lt; maxDeviation) {</span>
+<span class="fc" id="L186">                dr[i] = Arrays.toDoubleArray(data[j]);</span>
+<span class="fc" id="L187">                j++;</span>
             } else {
-<span class="nc" id="L188">                dr[i] = nodata;</span>
+<span class="nc" id="L189">                dr[i] = nodata;</span>
             }
-<span class="fc" id="L190">            nextTime += sampleTime;</span>
+<span class="fc" id="L191">            nextTime += sampleTime;</span>
         }
-<span class="fc" id="L192">        return Pair.of(lts, dr);</span>
+<span class="fc" id="L193">        return Pair.of(lts, dr);</span>
     }
     
 

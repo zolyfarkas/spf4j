@@ -22,117 +22,261 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.ds.Graph;
+import org.spf4j.ds.HashMapGraph;
 
 /**
  * @author zoly
  */
 @ParametersAreNonnullByDefault
 public final class SampleNode {
-    
+
     private int sampleCount;
     private Map&lt;Method, SampleNode&gt; subNodes;
-    
-<span class="fc" id="L35">    public SampleNode(final StackTraceElement[] stackTrace, final int from) {</span>
-<span class="fc" id="L36">        sampleCount = 1;</span>
-<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (from &gt;= 0) {</span>
-<span class="fc" id="L38">            subNodes = new HashMap();</span>
-<span class="fc" id="L39">            subNodes.put(new Method(stackTrace[from]), new SampleNode(stackTrace, from - 1));</span>
-        }
-<span class="fc" id="L41">    }</span>
 
-<span class="fc" id="L43">    public SampleNode(final int count, @Nullable final Map&lt;Method, SampleNode&gt; subNodes) {</span>
-<span class="fc" id="L44">        this.sampleCount = count;</span>
-<span class="fc" id="L45">        this.subNodes = subNodes;</span>
-<span class="fc" id="L46">    }</span>
+<span class="fc" id="L37">    public SampleNode(final StackTraceElement[] stackTrace, final int from) {</span>
+<span class="fc" id="L38">        sampleCount = 1;</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        if (from &gt;= 0) {</span>
+<span class="fc" id="L40">            subNodes = new HashMap();</span>
+<span class="fc" id="L41">            subNodes.put(Method.getMethod(stackTrace[from]), new SampleNode(stackTrace, from - 1));</span>
+        }
+<span class="fc" id="L43">    }</span>
     
-    
-    
-    public int addSample(final StackTraceElement[] stackTrace, final int from) {
-<span class="fc" id="L51">        sampleCount++;</span>
-<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (from &gt;= 0) {</span>
-<span class="fc" id="L53">            Method method = new Method(stackTrace[from]);</span>
-<span class="fc" id="L54">            SampleNode subNode = null;</span>
-<span class="fc bfc" id="L55" title="All 2 branches covered.">            if (subNodes == null) {</span>
-<span class="fc" id="L56">                subNodes = new HashMap();</span>
-            } else {
-<span class="fc" id="L58">                subNode = subNodes.get(method);</span>
+    public static SampleNode createSampleNode(final StackTraceElement[] stackTrace) {
+<span class="fc" id="L46">        SampleNode result = new SampleNode(1, null);</span>
+<span class="fc" id="L47">        SampleNode prevResult = result;</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        for (int i = stackTrace.length - 1; i &gt;= 0; i--) {</span>
+<span class="fc" id="L49">            StackTraceElement elem = stackTrace[i];</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">            if (prevResult.subNodes == null) {</span>
+<span class="fc" id="L51">                prevResult.subNodes = new HashMap&lt;Method, SampleNode&gt;();</span>
             }
-<span class="fc bfc" id="L60" title="All 2 branches covered.">            if (subNode == null) {</span>
-<span class="fc" id="L61">                subNodes.put(method, new SampleNode(stackTrace, from - 1));</span>
-<span class="fc" id="L62">                return from + 1;</span>
+<span class="fc" id="L53">            SampleNode node = new SampleNode(1, null);</span>
+<span class="fc" id="L54">            prevResult.subNodes.put(Method.getMethod(elem), node);</span>
+<span class="fc" id="L55">            prevResult = node;</span>
+        }
+<span class="fc" id="L57">        return result;</span>
+    }
+    
+    
+    public static void addToSampleNode(final SampleNode node, final StackTraceElement[] stackTrace) {
+<span class="fc" id="L62">        SampleNode prevResult = node;</span>
+<span class="fc" id="L63">        prevResult.sampleCount++;</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">        for (int i = stackTrace.length - 1; i &gt;= 0; i--) {</span>
+<span class="fc" id="L65">            StackTraceElement elem = stackTrace[i];</span>
+<span class="fc" id="L66">            final Method method = Method.getMethod(elem);</span>
+            SampleNode nNode;
+<span class="fc bfc" id="L68" title="All 2 branches covered.">            if (prevResult.subNodes == null) {</span>
+<span class="fc" id="L69">                prevResult.subNodes = new HashMap&lt;Method, SampleNode&gt;();</span>
+<span class="fc" id="L70">                nNode = new SampleNode(1, null);</span>
+<span class="fc" id="L71">                prevResult.subNodes.put(method, nNode);</span>
             } else {
-<span class="fc" id="L64">                return subNode.addSample(stackTrace, from - 1);</span>
+<span class="fc" id="L73">                nNode = prevResult.subNodes.get(method);</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">                if (nNode != null) {</span>
+<span class="fc" id="L75">                    nNode.sampleCount++;</span>
+                } else {
+<span class="fc" id="L77">                    nNode = new SampleNode(1, null);</span>
+<span class="fc" id="L78">                    prevResult.subNodes.put(method, nNode);</span>
+                }
+            }
+<span class="fc" id="L81">            prevResult = nNode;</span>
+        }
+<span class="fc" id="L83">    }</span>
+
+<span class="fc" id="L85">    public SampleNode(final int count, @Nullable final Map&lt;Method, SampleNode&gt; subNodes) {</span>
+<span class="fc" id="L86">        this.sampleCount = count;</span>
+<span class="fc" id="L87">        this.subNodes = subNodes;</span>
+<span class="fc" id="L88">    }</span>
+
+    public void addSample(final StackTraceElement[] stackTrace, final int from) {
+<span class="fc" id="L91">        sampleCount++;</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (from &gt;= 0) {</span>
+<span class="fc" id="L93">            Method method = Method.getMethod(stackTrace[from]);</span>
+<span class="fc" id="L94">            SampleNode subNode = null;</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">            if (subNodes == null) {</span>
+<span class="nc" id="L96">                subNodes = new HashMap();</span>
+            } else {
+<span class="fc" id="L98">                subNode = subNodes.get(method);</span>
+            }
+<span class="fc bfc" id="L100" title="All 2 branches covered.">            if (subNode == null) {</span>
+<span class="fc" id="L101">                subNodes.put(method, new SampleNode(stackTrace, from - 1));</span>
+            } else {
+<span class="fc" id="L103">                subNode.addSample(stackTrace, from - 1);</span>
             }
         }
-<span class="fc" id="L67">        return 0;</span>
-    }
+<span class="fc" id="L106">    }</span>
 
     public int getSampleCount() {
-<span class="fc" id="L71">        return sampleCount;</span>
+<span class="fc" id="L109">        return sampleCount;</span>
     }
 
     @Nullable
     public Map&lt;Method, SampleNode&gt; getSubNodes() {
-<span class="fc" id="L76">        return subNodes;</span>
+<span class="fc" id="L114">        return subNodes;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L81">        return &quot;SampleNode{&quot; + &quot;count=&quot; + sampleCount + &quot;, subNodes=&quot; + subNodes + '}';</span>
+<span class="fc" id="L119">        return &quot;SampleNode{&quot; + &quot;count=&quot; + sampleCount + &quot;, subNodes=&quot; + subNodes + '}';</span>
     }
-    
+
     public int height() {
-<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (subNodes == null) {</span>
-<span class="nc" id="L86">            return 1;</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">        if (subNodes == null) {</span>
+<span class="fc" id="L124">            return 1;</span>
         } else {
-<span class="nc" id="L88">            int subHeight = 0;</span>
-<span class="nc bnc" id="L89" title="All 2 branches missed.">            for (SampleNode node : subNodes.values()) {</span>
-<span class="nc" id="L90">                int nHeight = node.height();</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">                if (nHeight &gt; subHeight) {</span>
-<span class="nc" id="L92">                    subHeight = nHeight;</span>
+<span class="fc" id="L126">            int subHeight = 0;</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">            for (SampleNode node : subNodes.values()) {</span>
+<span class="fc" id="L128">                int nHeight = node.height();</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">                if (nHeight &gt; subHeight) {</span>
+<span class="fc" id="L130">                    subHeight = nHeight;</span>
                 }
-<span class="nc" id="L94">            }</span>
-<span class="nc" id="L95">            return subHeight + 1;</span>
+<span class="fc" id="L132">            }</span>
+<span class="fc" id="L133">            return subHeight + 1;</span>
         }
-            
+
     }
     
+    
+    public int getNrNodes() {
+<span class="fc bfc" id="L140" title="All 2 branches covered.">        if (subNodes == null) {</span>
+<span class="fc" id="L141">            return 1;</span>
+        } else {
+<span class="fc" id="L143">            int nrNodes = 0;</span>
+<span class="fc bfc" id="L144" title="All 2 branches covered.">            for (SampleNode node : subNodes.values()) {</span>
+<span class="fc" id="L145">                nrNodes += node.getNrNodes();</span>
+            }
+<span class="fc" id="L147">            return nrNodes + 1;</span>
+        }
+    }
+
     @Nullable
     public SampleNode filteredBy(final Predicate&lt;Method&gt; predicate) {
-        
-<span class="fc" id="L103">        int newCount = this.sampleCount;</span>
-        
-<span class="fc" id="L105">        Map&lt;Method, SampleNode&gt; sns = null;</span>
-<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (this.subNodes != null) {</span>
-<span class="fc bfc" id="L107" title="All 2 branches covered.">            for (Map.Entry&lt;Method, SampleNode&gt; entry :  this.subNodes.entrySet()) {</span>
-<span class="fc" id="L108">                Method method = entry.getKey();</span>
-<span class="fc" id="L109">                SampleNode sn = entry.getValue();</span>
-<span class="pc bpc" id="L110" title="1 of 2 branches missed.">                if (predicate.apply(method))  {</span>
-<span class="nc" id="L111">                    newCount -= sn.getSampleCount();</span>
+
+<span class="fc" id="L154">        int newCount = this.sampleCount;</span>
+
+<span class="fc" id="L156">        Map&lt;Method, SampleNode&gt; sns = null;</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">        if (this.subNodes != null) {</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">            for (Map.Entry&lt;Method, SampleNode&gt; entry : this.subNodes.entrySet()) {</span>
+<span class="fc" id="L159">                Method method = entry.getKey();</span>
+<span class="fc" id="L160">                SampleNode sn = entry.getValue();</span>
+<span class="fc bfc" id="L161" title="All 2 branches covered.">                if (predicate.apply(method)) {</span>
+<span class="fc" id="L162">                    newCount -= sn.getSampleCount();</span>
                 } else {
-<span class="fc bfc" id="L113" title="All 2 branches covered.">                    if (sns == null) {</span>
-<span class="fc" id="L114">                        sns = new HashMap&lt;Method, SampleNode&gt;();</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">                    if (sns == null) {</span>
+<span class="fc" id="L165">                        sns = new HashMap&lt;Method, SampleNode&gt;();</span>
                     }
-<span class="fc" id="L116">                    SampleNode sn2 = sn.filteredBy(predicate);</span>
-<span class="pc bpc" id="L117" title="1 of 2 branches missed.">                    if (sn2 == null) {</span>
-<span class="nc" id="L118">                        newCount -= sn.getSampleCount();</span>
+<span class="fc" id="L167">                    SampleNode sn2 = sn.filteredBy(predicate);</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">                    if (sn2 == null) {</span>
+<span class="fc" id="L169">                        newCount -= sn.getSampleCount();</span>
                     } else {
-<span class="fc" id="L120">                        newCount -= sn.getSampleCount() - sn2.getSampleCount();</span>
-<span class="fc" id="L121">                        sns.put(method, sn2);</span>
+<span class="fc" id="L171">                        newCount -= sn.getSampleCount() - sn2.getSampleCount();</span>
+<span class="fc" id="L172">                        sns.put(method, sn2);</span>
                     }
-                    
+
                 }
-<span class="fc" id="L125">            }</span>
+<span class="fc" id="L176">            }</span>
         }
-<span class="pc bpc" id="L127" title="1 of 2 branches missed.">        if (newCount == 0) {</span>
-<span class="nc" id="L128">            return null;</span>
-<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        } else if  (newCount &lt; 0) {</span>
-<span class="nc" id="L130">            throw new IllegalStateException(&quot;child sample counts must be &lt;= parent sample count, detail: &quot; + this);</span>
+<span class="fc bfc" id="L178" title="All 2 branches covered.">        if (newCount == 0) {</span>
+<span class="fc" id="L179">            return null;</span>
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">        } else if (newCount &lt; 0) {</span>
+<span class="nc" id="L181">            throw new IllegalStateException(&quot;child sample counts must be &lt;= parent sample count, detail: &quot; + this);</span>
         } else {
-<span class="fc" id="L132">            return new SampleNode(newCount, sns);</span>
+<span class="fc" id="L183">            return new SampleNode(newCount, sns);</span>
         }
     }
-    
-    
+
+    public interface InvocationHandler {
+
+        void handle(Method from, Method to, int count, final Map&lt;Method, Integer&gt; ancestors);
+    }
+
+    public void forEach(final InvocationHandler handler, final Method from,
+            final Method to, final Map&lt;Method, Integer&gt; ancestors) {
+
+<span class="fc" id="L195">        handler.handle(from, to, sampleCount, ancestors);</span>
+
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">        if (subNodes != null) {</span>
+<span class="fc" id="L198">            Integer val = ancestors.get(to);</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">            if (val != null) {</span>
+<span class="fc" id="L200">                val++;</span>
+            } else {
+<span class="fc" id="L202">                val = 1;</span>
+            }
+<span class="fc" id="L204">            ancestors.put(to, val);</span>
+<span class="fc bfc" id="L205" title="All 2 branches covered.">            for (Map.Entry&lt;Method, SampleNode&gt; subs : subNodes.entrySet()) {</span>
+<span class="fc" id="L206">                Method toKey = subs.getKey();</span>
+<span class="fc" id="L207">                subs.getValue().forEach(handler, to, toKey, ancestors);</span>
+<span class="fc" id="L208">            }</span>
+<span class="fc" id="L209">            val = ancestors.get(to);</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">            if (val == 1) {</span>
+<span class="fc" id="L211">                ancestors.remove(to);</span>
+            } else {
+<span class="fc" id="L213">                val = val - 1;</span>
+<span class="fc" id="L214">                ancestors.put(to, val);</span>
+            }
+        }
+<span class="fc" id="L217">    }</span>
+
+    public static final class InvocationCount {
+
+        private int value;
+
+<span class="fc" id="L223">        public InvocationCount(final int value) {</span>
+<span class="fc" id="L224">            this.value = value;</span>
+<span class="fc" id="L225">        }</span>
+
+        public int getValue() {
+<span class="fc" id="L228">            return value;</span>
+        }
+
+        public void setValue(final int value) {
+<span class="fc" id="L232">            this.value = value;</span>
+<span class="fc" id="L233">        }</span>
+
+        @Override
+        public String toString() {
+<span class="fc" id="L237">            return &quot;InvocationCount{&quot; + &quot;value=&quot; + value + '}';</span>
+        }
+    }
+
+    public static Graph&lt;Method, InvocationCount&gt; toGraph(final SampleNode rootNode) {
+<span class="fc" id="L242">        final HashMapGraph&lt;Method, InvocationCount&gt; result = new HashMapGraph&lt;Method, InvocationCount&gt;();</span>
+
+<span class="fc" id="L244">        rootNode.forEach(new InvocationHandler() {</span>
+            @Override
+            public void handle(final Method pfrom, final Method pto, final int count,
+                    final Map&lt;Method, Integer&gt; ancestors) {
+
+<span class="pc bpc" id="L249" title="1 of 4 branches missed.">                if (pto.getMethodName().equals(&quot;write&quot;)</span>
+                        &amp;&amp; pto.getDeclaringClass().endsWith(&quot;TeeOutputStream&quot;)) {
+<span class="nc" id="L251">                    System.out.println();</span>
+                }
+
+<span class="fc" id="L254">                Method from = pfrom;</span>
+<span class="fc" id="L255">                Method to = pto;</span>
+<span class="fc" id="L256">                Integer val = ancestors.get(from);</span>
+<span class="fc bfc" id="L257" title="All 2 branches covered.">                if (val != null) {</span>
+<span class="fc" id="L258">                    from = from.withId(val - 1);</span>
+                }
+<span class="fc" id="L260">                val = ancestors.get(to);</span>
+<span class="fc bfc" id="L261" title="All 2 branches covered.">                if (val != null) {</span>
+<span class="fc" id="L262">                    to = to.withId(val);</span>
+                }
+
+
+<span class="fc" id="L266">                InvocationCount ic = result.getEdge(from, to);</span>
+
+<span class="fc bfc" id="L268" title="All 2 branches covered.">                if (ic == null) {</span>
+<span class="fc" id="L269">                    result.add(new InvocationCount(count), from, to);</span>
+                } else {
+<span class="fc" id="L271">                    ic.setValue(count + ic.getValue());</span>
+                }
+
+
+<span class="fc" id="L275">            }</span>
+        }, Method.ROOT, Method.ROOT, new HashMap&lt;Method, Integer&gt;());
+
+<span class="fc" id="L278">        return result;</span>
+
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

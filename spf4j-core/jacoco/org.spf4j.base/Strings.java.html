@@ -4,76 +4,99 @@
  */
 package org.spf4j.base;
 
+import java.io.IOException;
+import java.io.Writer;
+
 /**
  *
  * @author zoly
  */
 public final class Strings {
     
-<span class="nc" id="L13">    private Strings() { }</span>
+<span class="nc" id="L16">    private Strings() { }</span>
     
-    public static String toCsvElement(final String elem) {
-<span class="fc bfc" id="L16" title="All 2 branches covered.">        if (elem.contains(&quot;,&quot;)) {</span>
-<span class="fc" id="L17">            int length = elem.length();</span>
-<span class="fc" id="L18">            StringBuilder builder = new StringBuilder(length + 2);</span>
-<span class="fc" id="L19">            builder.append('&quot;');</span>
-<span class="fc bfc" id="L20" title="All 2 branches covered.">            for (int i = 0; i &lt; length; i++) {</span>
-<span class="fc" id="L21">                char c = elem.charAt(i);</span>
-<span class="fc bfc" id="L22" title="All 2 branches covered.">                if (c == '&quot;') {</span>
-<span class="fc" id="L23">                    builder.append(&quot;\&quot;\&quot;&quot;);</span>
+    
+    public static void writeCsvElement(final String elem, final Writer writer) throws IOException {
+<span class="pc bpc" id="L20" title="1 of 2 branches missed.">        if (elem.contains(&quot;,&quot;)) {</span>
+<span class="nc" id="L21">            int length = elem.length();</span>
+<span class="nc" id="L22">            writer.write('&quot;');</span>
+<span class="nc bnc" id="L23" title="All 2 branches missed.">            for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc" id="L24">                char c = elem.charAt(i);</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">                if (c == '&quot;') {</span>
+<span class="nc" id="L26">                    writer.write(&quot;\&quot;\&quot;&quot;);</span>
                 } else {
-<span class="fc" id="L25">                    builder.append(c);</span>
+<span class="nc" id="L28">                    writer.write(c);</span>
                 }
             }
-<span class="fc" id="L28">            builder.append('&quot;');</span>
-<span class="fc" id="L29">            return builder.toString();</span>
+<span class="nc" id="L31">            writer.write('&quot;');</span>
+<span class="nc" id="L32">        } else {</span>
+<span class="fc" id="L33">            writer.write(elem);</span>
+        }
+<span class="fc" id="L35">    }</span>
+    
+    
+    public static String toCsvElement(final String elem) {
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        if (elem.contains(&quot;,&quot;)) {</span>
+<span class="fc" id="L40">            int length = elem.length();</span>
+<span class="fc" id="L41">            StringBuilder builder = new StringBuilder(length + 2);</span>
+<span class="fc" id="L42">            builder.append('&quot;');</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">            for (int i = 0; i &lt; length; i++) {</span>
+<span class="fc" id="L44">                char c = elem.charAt(i);</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">                if (c == '&quot;') {</span>
+<span class="fc" id="L46">                    builder.append(&quot;\&quot;\&quot;&quot;);</span>
+                } else {
+<span class="fc" id="L48">                    builder.append(c);</span>
+                }
+            }
+<span class="fc" id="L51">            builder.append('&quot;');</span>
+<span class="fc" id="L52">            return builder.toString();</span>
             
         } else {
-<span class="fc" id="L32">            return elem;</span>
+<span class="fc" id="L55">            return elem;</span>
         }
     }
     
     public static int readCsvElement(final String fromStr, final int fromIdx,
             final StringBuilder addElemTo) {
-<span class="fc" id="L38">        return readCsvElement(fromStr, fromIdx, fromStr.length(), addElemTo);</span>
+<span class="fc" id="L61">        return readCsvElement(fromStr, fromIdx, fromStr.length(), addElemTo);</span>
     }
     
     public static int readCsvElement(final String fromStr, final int fromIdx,
             final int maxIdx, final StringBuilder addElemTo) {
-<span class="fc" id="L43">        int i = fromIdx;</span>
-<span class="fc" id="L44">        char c = fromStr.charAt(i);</span>
-<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (c == '&quot;') {</span>
-<span class="fc" id="L46">            i++;</span>
-<span class="pc bpc" id="L47" title="1 of 2 branches missed.">            while (i &lt; maxIdx) {</span>
-<span class="fc" id="L48">                c = fromStr.charAt(i);</span>
-<span class="fc bfc" id="L49" title="All 2 branches covered.">                if (c == '&quot;') {</span>
-<span class="fc" id="L50">                    int nxtIdx = i + 1;</span>
-<span class="fc bfc" id="L51" title="All 2 branches covered.">                    if (nxtIdx &lt; maxIdx) {</span>
-<span class="pc bpc" id="L52" title="1 of 2 branches missed.">                        if (fromStr.charAt(nxtIdx) == '&quot;') {</span>
-<span class="fc" id="L53">                            addElemTo.append(c);</span>
-<span class="fc" id="L54">                            i = nxtIdx;</span>
+<span class="fc" id="L66">        int i = fromIdx;</span>
+<span class="fc" id="L67">        char c = fromStr.charAt(i);</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (c == '&quot;') {</span>
+<span class="fc" id="L69">            i++;</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">            while (i &lt; maxIdx) {</span>
+<span class="fc" id="L71">                c = fromStr.charAt(i);</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">                if (c == '&quot;') {</span>
+<span class="fc" id="L73">                    int nxtIdx = i + 1;</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">                    if (nxtIdx &lt; maxIdx) {</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">                        if (fromStr.charAt(nxtIdx) == '&quot;') {</span>
+<span class="fc" id="L76">                            addElemTo.append(c);</span>
+<span class="fc" id="L77">                            i = nxtIdx;</span>
                         } else {
                             break;
                         }
                     } else {
                         break;
                     }
-<span class="fc" id="L61">                } else {</span>
-<span class="fc" id="L62">                    addElemTo.append(c);</span>
+<span class="fc" id="L84">                } else {</span>
+<span class="fc" id="L85">                    addElemTo.append(c);</span>
                 }
-<span class="fc" id="L64">                i++;</span>
+<span class="fc" id="L87">                i++;</span>
             }
         } else {
-<span class="fc bfc" id="L67" title="All 2 branches covered.">            while (c != ',') {</span>
-<span class="fc" id="L68">                addElemTo.append(c);</span>
-<span class="fc" id="L69">                i++;</span>
-<span class="pc bpc" id="L70" title="1 of 2 branches missed.">                if (i &gt;= maxIdx) {</span>
-<span class="nc" id="L71">                    break;</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">            while (c != ',') {</span>
+<span class="fc" id="L91">                addElemTo.append(c);</span>
+<span class="fc" id="L92">                i++;</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">                if (i &gt;= maxIdx) {</span>
+<span class="nc" id="L94">                    break;</span>
                 }
-<span class="fc" id="L73">                c = fromStr.charAt(i);</span>
+<span class="fc" id="L96">                c = fromStr.charAt(i);</span>
             }
         }
-<span class="fc" id="L76">        return i;</span>
+<span class="fc" id="L99">        return i;</span>
     }
     
     

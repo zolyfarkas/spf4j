@@ -57,7 +57,7 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
 
             @Override
             protected MeasurementProcessor initialValue() {
-<span class="fc" id="L60">                MeasurementProcessor result = (MeasurementProcessor) processor.createClone(false);</span>
+<span class="fc" id="L60">                MeasurementProcessor result = (MeasurementProcessor) processor.createClone();</span>
 <span class="fc" id="L61">                synchronized (threadLocalRecorders) {</span>
 <span class="fc" id="L62">                    threadLocalRecorders.put(Thread.currentThread(), result);</span>
 <span class="pc" id="L63">                }</span>
@@ -69,25 +69,25 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
 <span class="nc" id="L69">        } catch (IOException ex) {</span>
 <span class="nc" id="L70">            throw new RuntimeException(ex);</span>
 <span class="fc" id="L71">        }</span>
-<span class="fc" id="L72">        samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(new AbstractRunnable(true) {</span>
+<span class="fc" id="L72">        final AbstractRunnable persister = new AbstractRunnable(true) {</span>
 <span class="fc" id="L73">            private volatile long lastRun = 0;</span>
-            
+
             @Override
             public void doRun() throws IOException {
 <span class="fc" id="L77">                long currentTime = System.currentTimeMillis();</span>
 <span class="pc bpc" id="L78" title="1 of 2 branches missed.">                if (currentTime &gt; lastRun) {</span>
 <span class="fc" id="L79">                    lastRun = currentTime;</span>
 <span class="fc" id="L80">                    database.saveMeasurements(ScalableMeasurementRecorder.this.getInfo(),</span>
-                            ScalableMeasurementRecorder.this.getMeasurements(true),
+                            ScalableMeasurementRecorder.this.getMeasurementsAndReset(),
                             currentTime, sampleTimeMillis);
                 } else {
 <span class="nc" id="L84">                    LOG.warn(&quot;Last measurement recording was at {} current run is {}, something is wrong&quot;,</span>
                             lastRun, currentTime);
                 }
 <span class="fc" id="L87">            }</span>
-        }, sampleTimeMillis);
-
-        
+        };
+<span class="fc" id="L89">        samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);</span>
+<span class="fc" id="L90">        org.spf4j.base.Runtime.addHookAtBeginning(persister);</span>
 <span class="fc" id="L91">    }</span>
 
     @Override
@@ -96,73 +96,91 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
 <span class="fc" id="L96">    }</span>
 
     @Override
-    public long [] getMeasurements(final boolean reset) {
-<span class="fc" id="L100">        EntityMeasurements result  = null;</span>
-<span class="fc" id="L101">        synchronized (threadLocalRecorders) {</span>
-<span class="fc" id="L102">            List&lt;Thread&gt; removeThreads = new ArrayList&lt;Thread&gt;();</span>
-<span class="fc bfc" id="L103" title="All 2 branches covered.">            for (Map.Entry&lt;Thread, MeasurementProcessor&gt; entry : threadLocalRecorders.entrySet()) {</span>
-<span class="fc" id="L104">                Thread t = entry.getKey();</span>
-<span class="pc bpc" id="L105" title="3 of 4 branches missed.">                if (!t.isAlive() &amp;&amp; reset) {</span>
-<span class="nc" id="L106">                    removeThreads.add(t);</span>
-                }
-<span class="fc" id="L108">                EntityMeasurements measurements = entry.getValue().createClone(reset);</span>
-<span class="pc bpc" id="L109" title="1 of 2 branches missed.">                if (result == null) {</span>
-<span class="fc" id="L110">                    result = measurements;</span>
+    public long [] getMeasurements() {
+<span class="nc" id="L100">        EntityMeasurements result  = null;</span>
+<span class="nc" id="L101">        synchronized (threadLocalRecorders) {</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            for (Map.Entry&lt;Thread, MeasurementProcessor&gt; entry : threadLocalRecorders.entrySet()) {</span>
+<span class="nc" id="L103">                EntityMeasurements measurements = entry.getValue().createClone();</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                if (result == null) {</span>
+<span class="nc" id="L105">                    result = measurements;</span>
                 } else {
-<span class="nc" id="L112">                    result = result.aggregate(measurements);</span>
+<span class="nc" id="L107">                    result = result.aggregate(measurements);</span>
                 }
-<span class="fc" id="L114">            }</span>
-<span class="pc bpc" id="L115" title="1 of 2 branches missed.">            for (Thread t : removeThreads) {</span>
-<span class="nc" id="L116">                threadLocalRecorders.remove(t);</span>
-            }
-<span class="pc" id="L118">        }</span>
-<span class="pc bpc" id="L119" title="1 of 2 branches missed.">        return (result == null) ? processorTemplate.getMeasurements(false) : result.getMeasurements(false);</span>
+<span class="nc" id="L109">            }</span>
+<span class="nc" id="L110">        }</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        return (result == null) ? processorTemplate.getMeasurements() : result.getMeasurements();</span>
     }
 
     @Override
     public EntityMeasurements aggregate(final EntityMeasurements mSource) {
-<span class="nc" id="L124">        throw new UnsupportedOperationException(&quot;Aggregating Scalable Recorders not supported&quot;);</span>
+<span class="nc" id="L116">        throw new UnsupportedOperationException(&quot;Aggregating Scalable Recorders not supported&quot;);</span>
     }
 
 
 
     @Override
-    public EntityMeasurements createClone(final boolean reset) {
-<span class="nc" id="L131">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+    public EntityMeasurements createClone() {
+<span class="nc" id="L123">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public void close() {
-<span class="fc" id="L136">        samplingFuture.cancel(false);</span>
-<span class="fc" id="L137">    }</span>
+<span class="fc" id="L128">        samplingFuture.cancel(false);</span>
+<span class="fc" id="L129">    }</span>
 
     @Override
     protected void finalize() throws Throwable {
         try {
-<span class="fc" id="L142">            super.finalize();</span>
+<span class="nc" id="L134">            super.finalize();</span>
         } finally {
-<span class="pc" id="L144">            this.close();</span>
-<span class="fc" id="L145">        }</span>
-<span class="fc" id="L146">    }</span>
+<span class="nc" id="L136">            this.close();</span>
+<span class="nc" id="L137">        }</span>
+<span class="nc" id="L138">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L150">        return &quot;ScalableMeasurementRecorder{&quot; + &quot;threadLocalRecorders=&quot; + threadLocalRecorders</span>
+<span class="nc" id="L142">        return &quot;ScalableMeasurementRecorder{&quot; + &quot;threadLocalRecorders=&quot; + threadLocalRecorders</span>
                 + &quot;, processorTemplate=&quot; + processorTemplate + '}';
     }
 
     @Override
     public EntityMeasurements createLike(final Object entity) {
-<span class="nc" id="L156">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L148">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public EntityMeasurementsInfo getInfo() {
-<span class="fc" id="L161">        return processorTemplate.getInfo();</span>
+<span class="fc" id="L153">        return processorTemplate.getInfo();</span>
     }
 
-    
-    
+    @Override
+    public EntityMeasurements reset() {
+<span class="nc" id="L158">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+    }
+
+    @Override
+    public long[] getMeasurementsAndReset() {
+<span class="fc" id="L163">        EntityMeasurements result  = null;</span>
+<span class="fc" id="L164">        synchronized (threadLocalRecorders) {</span>
+<span class="fc" id="L165">            List&lt;Thread&gt; removeThreads = new ArrayList&lt;Thread&gt;();</span>
+<span class="fc bfc" id="L166" title="All 2 branches covered.">            for (Map.Entry&lt;Thread, MeasurementProcessor&gt; entry : threadLocalRecorders.entrySet()) {</span>
+<span class="fc" id="L167">                Thread t = entry.getKey();</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">                if (!t.isAlive()) {</span>
+<span class="fc" id="L169">                    removeThreads.add(t);</span>
+                }
+<span class="fc" id="L171">                EntityMeasurements measurements = entry.getValue().reset();</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">                if (result == null) {</span>
+<span class="fc" id="L173">                    result = measurements;</span>
+                } else {
+<span class="fc" id="L175">                    result = result.aggregate(measurements);</span>
+                }
+<span class="fc" id="L177">            }</span>
+<span class="fc bfc" id="L178" title="All 2 branches covered.">            for (Thread t : removeThreads) {</span>
+<span class="fc" id="L179">                threadLocalRecorders.remove(t);</span>
+            }
+<span class="pc" id="L181">        }</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">        return (result == null) ? processorTemplate.getMeasurements() : result.getMeasurements();</span>
+    }
     
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

@@ -250,7 +250,8 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
 <span class="fc" id="L250">        return tu;</span>
     }
 
-
+    
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;NFF_NON_FUNCTIONAL_FIELD&quot;)
     private static class NumberTickUnitImpl extends NumberTickUnit {
 
         private static final long serialVersionUID = 0L;
@@ -261,33 +262,32 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
 
         public NumberTickUnitImpl(final double size, final long[] timestamps,
                 final long stepMillis, final DateTimeFormatter formatter) {
-<span class="fc" id="L264">            super(size);</span>
-<span class="fc" id="L265">            this.timestamps = timestamps;</span>
-<span class="fc" id="L266">            this.formatter = formatter;</span>
-<span class="fc" id="L267">            this.stepMillis = stepMillis;</span>
-<span class="fc" id="L268">        }</span>
+<span class="fc" id="L265">            super(size);</span>
+<span class="fc" id="L266">            this.timestamps = timestamps;</span>
+<span class="fc" id="L267">            this.formatter = formatter;</span>
+<span class="fc" id="L268">            this.stepMillis = stepMillis;</span>
+<span class="fc" id="L269">        }</span>
 
         @Override
         public String valueToString(final double value) {
-<span class="fc" id="L272">            int ival = (int) Math.round(value);</span>
+<span class="fc" id="L273">            int ival = (int) Math.round(value);</span>
             long val;
-<span class="pc bpc" id="L274" title="1 of 2 branches missed.">            if (ival &gt;= timestamps.length) {</span>
-<span class="nc" id="L275">                val = timestamps[timestamps.length - 1] + stepMillis * (ival - timestamps.length + 1);</span>
-<span class="pc bpc" id="L276" title="1 of 2 branches missed.">            } else if (ival &lt; 0) {</span>
-<span class="nc" id="L277">                val = timestamps[0] + ival * stepMillis;</span>
+<span class="pc bpc" id="L275" title="1 of 2 branches missed.">            if (ival &gt;= timestamps.length) {</span>
+<span class="nc" id="L276">                val = timestamps[timestamps.length - 1] + stepMillis * (ival - timestamps.length + 1);</span>
+<span class="pc bpc" id="L277" title="1 of 2 branches missed.">            } else if (ival &lt; 0) {</span>
+<span class="nc" id="L278">                val = timestamps[0] + ival * stepMillis;</span>
             } else {
-<span class="fc" id="L279">                val = timestamps[ival];</span>
+<span class="fc" id="L280">                val = timestamps[ival];</span>
             }
-<span class="fc" id="L281">            return formatter.print(val);</span>
+<span class="fc" id="L282">            return formatter.print(val);</span>
         }
 
         @Override
         public int hashCode() {
-<span class="nc" id="L286">            int hash = 7;</span>
-<span class="nc" id="L287">            hash = 89 * hash + java.util.Arrays.hashCode(this.timestamps);</span>
-<span class="nc" id="L288">            hash = 89 * hash + (int) (this.stepMillis ^ (this.stepMillis &gt;&gt;&gt; 32));</span>
-<span class="nc bnc" id="L289" title="All 2 branches missed.">            hash = 89 * hash + (this.formatter != null ? this.formatter.hashCode() : 0);</span>
-<span class="nc" id="L290">            return hash;</span>
+<span class="nc" id="L287">            int hash = 7;</span>
+<span class="nc" id="L288">            hash = 89 * hash + java.util.Arrays.hashCode(this.timestamps);</span>
+<span class="nc" id="L289">            hash = 89 * hash + (int) (this.stepMillis ^ (this.stepMillis &gt;&gt;&gt; 32));</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">            return 89 * hash + (this.formatter != null ? this.formatter.hashCode() : 0);</span>
         }
 
         @Override

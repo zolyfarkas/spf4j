@@ -32,17 +32,17 @@ public final class InverseGrayScale
         implements PaintScale, PublicCloneable, Serializable {
 
     /** The lower bound. */
-    private double lowerBound;
+    private final double lowerBound;
 
     /** The upper bound. */
-    private double upperBound;
+    private final double upperBound;
 
     /**
      * The alpha transparency (0-255).
      *
      * @since 1.0.13
      */
-    private int alpha;
+    private final int alpha;
 
     /**
      * Creates a new &lt;code&gt;GrayPaintScale&lt;/code&gt; instance with default values.
@@ -181,8 +181,7 @@ public final class InverseGrayScale
                 + (int) (Double.doubleToLongBits(this.lowerBound) ^ (Double.doubleToLongBits(this.lowerBound) &gt;&gt;&gt; 32));
 <span class="nc" id="L182">        hash = 97 * hash</span>
                 + (int) (Double.doubleToLongBits(this.upperBound) ^ (Double.doubleToLongBits(this.upperBound) &gt;&gt;&gt; 32));
-<span class="nc" id="L184">        hash = 97 * hash + this.alpha;</span>
-<span class="nc" id="L185">        return hash;</span>
+<span class="nc" id="L184">        return  97 * hash + this.alpha;</span>
     }
 
 
@@ -196,8 +195,12 @@ public final class InverseGrayScale
      *     instance.
      */
     @Override
-    public Object clone() throws CloneNotSupportedException {
-<span class="nc" id="L200">        return super.clone();</span>
+    public InverseGrayScale clone() {
+        try {
+<span class="nc" id="L200">            return (InverseGrayScale) super.clone();</span>
+<span class="nc" id="L201">        } catch (CloneNotSupportedException ex) {</span>
+<span class="nc" id="L202">           throw new RuntimeException(ex);</span>
+        }
     }
 
 }

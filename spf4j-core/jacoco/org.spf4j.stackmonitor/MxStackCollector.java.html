@@ -27,21 +27,22 @@ import java.lang.management.ThreadMXBean;
  */
 <span class="fc" id="L28">public final class MxStackCollector extends AbstractStackCollector {</span>
 
-<span class="fc" id="L30">    private final ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();</span>
+<span class="fc" id="L30">    private static final ThreadMXBean THREAD_MX = ManagementFactory.getThreadMXBean();</span>
 
     @Override
-    public void sample() {
-<span class="fc" id="L34">        ThreadInfo[] stackDump = threadMX.dumpAllThreads(true, true);</span>
-<span class="fc" id="L35">        recordStackDump(stackDump);</span>
+    public void sample(final Thread ignore) {
+<span class="fc" id="L34">        ThreadInfo[] stackDump = THREAD_MX.dumpAllThreads(false, false);</span>
+<span class="fc" id="L35">        recordStackDump(stackDump, ignore);</span>
 <span class="fc" id="L36">    }</span>
 
-    private void recordStackDump(final ThreadInfo[] stackDump) {
-<span class="fc bfc" id="L39" title="All 2 branches covered.">        for (ThreadInfo entry : stackDump) {</span>
-<span class="fc" id="L40">            StackTraceElement[] stackTrace = entry.getStackTrace();</span>
-<span class="fc bfc" id="L41" title="All 4 branches covered.">            if (stackTrace.length &gt; 0 &amp;&amp; !(entry.getThreadId() == Thread.currentThread().getId())) {</span>
-<span class="fc" id="L42">                addSample(stackTrace);</span>
+    private void recordStackDump(final ThreadInfo[] stackDump, final Thread ignore) {
+<span class="fc" id="L39">        final long id = ignore.getId();</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        for (ThreadInfo entry : stackDump) {</span>
+<span class="fc" id="L41">            StackTraceElement[] stackTrace = entry.getStackTrace();</span>
+<span class="fc bfc" id="L42" title="All 4 branches covered.">            if (stackTrace.length &gt; 0 &amp;&amp; !(entry.getThreadId() == id)) {</span>
+<span class="fc" id="L43">                addSample(stackTrace);</span>
             }
         }
-<span class="fc" id="L45">    }</span>
+<span class="fc" id="L46">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>

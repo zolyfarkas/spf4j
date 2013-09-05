@@ -31,47 +31,49 @@ import javax.annotation.concurrent.GuardedBy;
     @GuardedBy(value = &quot;sampleSync&quot;)
     private SampleNode samples;
 
-<span class="fc" id="L34">    private int nrNodes = 0;</span>
     
     @Override
     public final SampleNode applyOnSamples(final Function&lt;SampleNode, SampleNode&gt; predicate) {
-<span class="fc" id="L38">        synchronized (sampleSync) {</span>
-<span class="fc" id="L39">            samples = predicate.apply(samples);</span>
-<span class="fc" id="L40">            return samples;</span>
-<span class="nc" id="L41">        }</span>
+<span class="fc" id="L37">        synchronized (sampleSync) {</span>
+<span class="fc" id="L38">            samples = predicate.apply(samples);</span>
+<span class="fc" id="L39">            return samples;</span>
+<span class="nc" id="L40">        }</span>
     }
 
 
     @Override
     public final void clear() {
-<span class="nc" id="L47">        synchronized (sampleSync) {</span>
-<span class="nc" id="L48">            samples = null;</span>
-<span class="nc" id="L49">            nrNodes = 0;</span>
-<span class="nc" id="L50">        }</span>
-<span class="nc" id="L51">    }</span>
+<span class="nc" id="L46">        synchronized (sampleSync) {</span>
+<span class="nc" id="L47">            samples = null;</span>
+<span class="nc" id="L48">        }</span>
+<span class="nc" id="L49">    }</span>
     
+    @Override
     public final void addSample(final StackTraceElement[] stackTrace) {
-<span class="fc" id="L54">        synchronized (sampleSync) {</span>
-<span class="fc bfc" id="L55" title="All 2 branches covered.">            if (samples == null) {</span>
-<span class="fc" id="L56">                samples = new SampleNode(stackTrace, stackTrace.length - 1);</span>
-<span class="fc" id="L57">                nrNodes += stackTrace.length + 1;</span>
+<span class="fc" id="L53">        synchronized (sampleSync) {</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">            if (samples == null) {</span>
+<span class="fc" id="L55">                samples = SampleNode.createSampleNode(stackTrace);</span>
             } else {
-<span class="fc" id="L59">                nrNodes += samples.addSample(stackTrace, stackTrace.length - 1);</span>
+<span class="fc" id="L57">                SampleNode.addToSampleNode(samples, stackTrace);</span>
             }
-<span class="pc" id="L61">        }</span>
-<span class="fc" id="L62">    }</span>
+<span class="pc" id="L59">        }</span>
+<span class="fc" id="L60">    }</span>
 
     @Override
     public final String toString() {
-<span class="fc" id="L66">        synchronized (sampleSync) {</span>
-<span class="fc" id="L67">            return &quot;AbstractStackCollector{&quot; + &quot;samples=&quot; + samples + &quot;, nrNodes=&quot; + nrNodes + '}';</span>
-<span class="nc" id="L68">        }</span>
+<span class="fc" id="L64">        synchronized (sampleSync) {</span>
+<span class="fc" id="L65">            return &quot;AbstractStackCollector{&quot; + &quot;samples=&quot; + samples  + '}';</span>
+<span class="nc" id="L66">        }</span>
     }
 
     public final int getNrNodes() {
-<span class="fc" id="L72">        synchronized (sampleSync) {</span>
-<span class="fc" id="L73">            return nrNodes;</span>
-<span class="nc" id="L74">        }</span>
+<span class="fc" id="L70">        synchronized (sampleSync) {</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">            if (samples == null) {</span>
+<span class="nc" id="L72">                return 0;</span>
+            } else {
+<span class="fc" id="L74">                return samples.getNrNodes();</span>
+            }
+<span class="nc" id="L76">        }</span>
     }
 
     

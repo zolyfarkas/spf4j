@@ -199,69 +199,89 @@ public final class SimpleSmartObjectPool&lt;T&gt; implements SmartObjectPool&lt;
 <span class="fc" id="L199">        return result;</span>
     }
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;EXS_EXCEPTION_SOFTENING_HAS_CHECKED&quot;)
     @Override
     public boolean scan(final ScanHandler&lt;T&gt; handler) throws Exception {
-<span class="fc" id="L204">        lock.lock();</span>
+<span class="fc" id="L205">        lock.lock();</span>
+<span class="fc" id="L206">        Exception resEx = null;</span>
         try {
-<span class="fc bfc" id="L206" title="All 2 branches covered.">            for (ObjectBorower&lt;T&gt; objectBorower : borrowedObjects.keySet()) {</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">            for (ObjectBorower&lt;T&gt; objectBorower : borrowedObjects.keySet()) {</span>
                 try {
-<span class="pc bpc" id="L208" title="1 of 2 branches missed.">                    if (!objectBorower.scan(handler)) {</span>
-<span class="nc" id="L209">                        return false;</span>
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">                    if (!objectBorower.scan(handler)) {</span>
+<span class="nc" id="L211">                        return false;</span>
                     }
-                } finally {
-<span class="pc" id="L212">                    Collection&lt;T&gt; returned = objectBorower.returnObjectsIfNotNeeded();</span>
-<span class="pc bpc" id="L213" title="4 of 6 branches missed.">                    if (returned != null) {</span>
-<span class="nc bnc" id="L214" title="All 6 branches missed.">                        for (T ro : returned) {</span>
-<span class="nc bnc" id="L215" title="All 6 branches missed.">                            if (!borrowedObjects.remove(objectBorower, ro)) {</span>
-<span class="nc" id="L216">                                throw new IllegalStateException(&quot;Object returned hasn't been borrowed&quot; + ro);</span>
-                            }
-<span class="nc" id="L218">                            availableObjects.add(ro);</span>
+<span class="fc" id="L213">                } catch (Exception e) {</span>
+<span class="pc bpc" id="L214" title="1 of 2 branches missed.">                    if (resEx == null) {</span>
+<span class="fc" id="L215">                        resEx = e;</span>
+                    } else {
+<span class="nc" id="L217">                        resEx = Throwables.suppress(e, resEx);</span>
+                    }
+<span class="fc" id="L219">                }</span>
+
+<span class="fc" id="L221">                Collection&lt;T&gt; returned = objectBorower.returnObjectsIfNotNeeded();</span>
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">                if (returned != null) {</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">                    for (T ro : returned) {</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">                        if (!borrowedObjects.remove(objectBorower, ro)) {</span>
+<span class="nc" id="L225">                            throw new IllegalStateException(&quot;Object returned hasn't been borrowed&quot; + ro);</span>
                         }
+<span class="nc" id="L227">                        availableObjects.add(ro);</span>
                     }
-<span class="fc" id="L221">                }</span>
-            }
-<span class="fc bfc" id="L223" title="All 2 branches covered.">            for (T object : availableObjects) {</span>
-<span class="pc bpc" id="L224" title="1 of 2 branches missed.">                if (!handler.handle(object)) {</span>
-<span class="nc" id="L225">                    return false;</span>
                 }
+
+<span class="fc" id="L231">            }</span>
+<span class="fc bfc" id="L232" title="All 2 branches covered.">            for (T object : availableObjects) {</span>
+                try {
+<span class="pc bpc" id="L234" title="1 of 2 branches missed.">                    if (!handler.handle(object)) {</span>
+<span class="nc" id="L235">                        return false;</span>
+                    }
+<span class="fc" id="L237">                } catch (Exception e) {</span>
+<span class="fc bfc" id="L238" title="All 2 branches covered.">                    if (resEx == null) {</span>
+<span class="fc" id="L239">                        resEx = e;</span>
+                    } else {
+<span class="fc" id="L241">                        resEx = Throwables.suppress(e, resEx);</span>
+                    }
+<span class="fc" id="L243">                }</span>
             }
-<span class="fc" id="L228">            return true;</span>
+<span class="fc bfc" id="L245" title="All 2 branches covered.">            if (resEx != null) {</span>
+<span class="fc" id="L246">                throw resEx;</span>
+            }
+<span class="fc" id="L248">            return true;</span>
         } finally {
-<span class="pc" id="L230">            lock.unlock();</span>
+<span class="pc" id="L250">            lock.unlock();</span>
         }
     }
 
     public void requestReturnFromBorrowersIfNotInUse() {
-<span class="fc" id="L235">        lock.lock();</span>
+<span class="fc" id="L255">        lock.lock();</span>
         try {
-<span class="fc" id="L237">            List&lt;Pair&lt;ObjectBorower&lt;T&gt;, T&gt;&gt; returnedObjects = new ArrayList&lt;Pair&lt;ObjectBorower&lt;T&gt;, T&gt;&gt;();</span>
-<span class="fc bfc" id="L238" title="All 2 branches covered.">            for (ObjectBorower&lt;T&gt; b : borrowedObjects.keySet()) {</span>
-<span class="fc" id="L239">                Collection&lt;T&gt; objects = b.returnObjectsIfNotInUse();</span>
-<span class="fc bfc" id="L240" title="All 2 branches covered.">                if (objects != null) {</span>
-<span class="fc bfc" id="L241" title="All 2 branches covered.">                    for (T object : objects) {</span>
-<span class="fc" id="L242">                        returnedObjects.add(Pair.of(b, object));</span>
+<span class="fc" id="L257">            List&lt;Pair&lt;ObjectBorower&lt;T&gt;, T&gt;&gt; returnedObjects = new ArrayList&lt;Pair&lt;ObjectBorower&lt;T&gt;, T&gt;&gt;();</span>
+<span class="fc bfc" id="L258" title="All 2 branches covered.">            for (ObjectBorower&lt;T&gt; b : borrowedObjects.keySet()) {</span>
+<span class="fc" id="L259">                Collection&lt;T&gt; objects = b.returnObjectsIfNotInUse();</span>
+<span class="fc bfc" id="L260" title="All 2 branches covered.">                if (objects != null) {</span>
+<span class="fc bfc" id="L261" title="All 2 branches covered.">                    for (T object : objects) {</span>
+<span class="fc" id="L262">                        returnedObjects.add(Pair.of(b, object));</span>
                     }
                 }
-<span class="fc" id="L245">            }</span>
-<span class="fc bfc" id="L246" title="All 2 branches covered.">            for (Pair&lt;ObjectBorower&lt;T&gt;, T&gt; ro : returnedObjects) {</span>
-<span class="fc" id="L247">                T object = ro.getSecond();</span>
-<span class="fc" id="L248">                borrowedObjects.remove(ro.getFirst(), object);</span>
-<span class="fc" id="L249">                availableObjects.add(object);</span>
-<span class="fc" id="L250">            }</span>
+<span class="fc" id="L265">            }</span>
+<span class="fc bfc" id="L266" title="All 2 branches covered.">            for (Pair&lt;ObjectBorower&lt;T&gt;, T&gt; ro : returnedObjects) {</span>
+<span class="fc" id="L267">                T object = ro.getSecond();</span>
+<span class="fc" id="L268">                borrowedObjects.remove(ro.getFirst(), object);</span>
+<span class="fc" id="L269">                availableObjects.add(object);</span>
+<span class="fc" id="L270">            }</span>
         } finally {
-<span class="pc" id="L252">            lock.unlock();</span>
-<span class="fc" id="L253">        }</span>
-<span class="fc" id="L254">    }</span>
+<span class="pc" id="L272">            lock.unlock();</span>
+<span class="fc" id="L273">        }</span>
+<span class="fc" id="L274">    }</span>
 
     @Override
     public String toString() {
-<span class="fc" id="L258">        lock.lock();</span>
+<span class="fc" id="L278">        lock.lock();</span>
         try {
-<span class="fc" id="L260">            return &quot;SimpleSmartObjectPool{&quot; + &quot;maxSize=&quot; + maxSize + &quot;, borrowedObjects=&quot;</span>
+<span class="fc" id="L280">            return &quot;SimpleSmartObjectPool{&quot; + &quot;maxSize=&quot; + maxSize + &quot;, borrowedObjects=&quot;</span>
                     + borrowedObjects.values() + &quot;, returnedObjects=&quot; + availableObjects
                     + &quot;, factory=&quot; + factory + &quot;, timeoutMillis=&quot; + timeoutMillis + '}';
         } finally {
-<span class="pc" id="L264">            lock.unlock();</span>
+<span class="pc" id="L284">            lock.unlock();</span>
         }
     }
 }
