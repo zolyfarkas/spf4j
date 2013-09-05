@@ -64,16 +64,22 @@ public final class FastStackCollector extends AbstractStackCollector {
     public void sample(final Thread ignore) {
         try {
             Thread[] threads = (Thread[]) GET_THREADS.invoke(null);
-            for (int i = 0; i < threads.length; i++) {
+            final int nrThreads = threads.length;
+            int currThreadPos = -1;
+            for (int i = 0; i < nrThreads; i++) {
                 if (ignore == threads[i]) { // not interested in the sampler's stack trace
                     threads[i] = null;
+                    currThreadPos = i;
                     break;
                 }
             }
             StackTraceElement[][] stackDump = (StackTraceElement[][]) DUMP_THREADS.invoke(null, (Object) threads);
-            for (StackTraceElement[] stackTrace : stackDump) {
-                if (stackTrace != null && stackTrace.length > 0) {
-                    addSample(stackTrace);
+            for (int i = 0; i < nrThreads; i++) {
+                if (i != currThreadPos) {
+                    StackTraceElement[] stackTrace = stackDump[i];
+                    if (stackTrace.length > 0) {
+                        addSample(stackTrace);
+                    }
                 }
             }
         } catch (IllegalAccessException ex) {
