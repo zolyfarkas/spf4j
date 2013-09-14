@@ -21,6 +21,7 @@ package org.spf4j.base;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.util.LinkedList;
 import javax.annotation.Nullable;
@@ -102,25 +103,41 @@ public final class Runtime {
         return handler.toString();
     }
 
-    public interface CharHandler {
+    public interface ProcOutputHandler {
 
-        void handle(int character);
+        void handleStdOut(int character);
+        
+        void handleStdErr(int character);
     }
 
-    public static void run(final String command, final CharHandler handler) throws IOException {
+    public static void run(final String command, final ProcOutputHandler handler) throws IOException {
         Process proc = java.lang.Runtime.getRuntime().exec(command);
-        InputStream is = proc.getInputStream();
+        InputStream pos = proc.getInputStream();
         try {
-            int c;
-            while ((c = is.read()) >= 0) {
-                handler.handle(c);
+            InputStream pes = proc.getErrorStream();
+            try {
+                OutputStream pis = proc.getOutputStream();
+                try {
+                    int cos;
+                    while ((cos = pos.read()) >= 0) {
+                        handler.handleStdOut(cos);
+                    }
+                    int eos;
+                    while ((eos = pes.read()) >= 0) {
+                        handler.handleStdErr(eos);
+                    }
+                } finally {
+                    pis.close();
+                }
+            } finally {
+                pos.close();
             }
         } finally {
-            is.close();
+            pos.close();
         }
     }
 
-    private static class LineCountCharHandler implements CharHandler {
+    private static class LineCountCharHandler implements ProcOutputHandler {
 
         public LineCountCharHandler() {
             lineCount = 0;
@@ -128,7 +145,7 @@ public final class Runtime {
         private int lineCount;
 
         @Override
-        public void handle(final int c) {
+        public void handleStdOut(final int c) {
             if (c == '\n') {
                 lineCount++;
             }
@@ -137,9 +154,13 @@ public final class Runtime {
         public int getLineCount() {
             return lineCount;
         }
+
+        @Override
+        public void handleStdErr(final int character) {
+        }
     }
 
-    private static class StringBuilderCharHandler implements CharHandler {
+    private static class StringBuilderCharHandler implements ProcOutputHandler {
 
         public StringBuilderCharHandler() {
             builder = new StringBuilder();
@@ -147,13 +168,18 @@ public final class Runtime {
         private StringBuilder builder;
 
         @Override
-        public void handle(final int c) {
+        public void handleStdOut(final int c) {
             builder.append((char) c);
         }
 
         @Override
         public String toString() {
             return builder.toString();
+        }
+
+        @Override
+        public void handleStdErr(final int c) {
+            builder.append(c);
         }
     }
     
