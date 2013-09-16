@@ -24,6 +24,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.util.LinkedList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +38,6 @@ public final class Runtime {
 
     private Runtime() {
     }
-    
     private static final Logger LOGGER = LoggerFactory.getLogger(Runtime.class);
 
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
@@ -51,7 +52,6 @@ public final class Runtime {
             }
         }
     }
-    
     public static final String TMP_FOLDER = System.getProperty("java.io.tmpdir");
     public static final int PID;
     public static final String OS_NAME;
@@ -68,10 +68,9 @@ public final class Runtime {
         OS_NAME = System.getProperty("os.name");
     }
     public static final String MAC_OS_X_OS_NAME = "Mac OS X";
+    private static final File FD_FOLDER = new File("/proc/" + PID + "/fd");
 
-    private static final File  FD_FOLDER = new File("/proc/" + PID + "/fd");
-    
-    public static int getNrOpenFiles() throws IOException {
+    public static int getNrOpenFiles() throws IOException, InterruptedException, ExecutionException {
         if (OS_NAME.equals(MAC_OS_X_OS_NAME)) {
             LineCountCharHandler handler = new LineCountCharHandler();
             run("/usr/sbin/lsof -p " + PID, handler);
@@ -87,7 +86,7 @@ public final class Runtime {
 
     @Nullable
     @edu.umd.cs.findbugs.annotations.SuppressWarnings
-    public static String getLsofOutput() throws IOException {
+    public static String getLsofOutput() throws IOException, InterruptedException, ExecutionException {
         File lsofFile = new File("/usr/sbin/lsof");
         if (!lsofFile.exists()) {
             lsofFile = new File("/usr/bin/lsof");
@@ -106,26 +105,34 @@ public final class Runtime {
     public interface ProcOutputHandler {
 
         void handleStdOut(int character);
-        
+
         void handleStdErr(int character);
     }
 
-    public static void run(final String command, final ProcOutputHandler handler) throws IOException {
+    public static int run(final String command, final ProcOutputHandler handler)
+            throws IOException, InterruptedException, ExecutionException {
         Process proc = java.lang.Runtime.getRuntime().exec(command);
         InputStream pos = proc.getInputStream();
         try {
-            InputStream pes = proc.getErrorStream();
+            final InputStream pes = proc.getErrorStream();
             try {
                 OutputStream pis = proc.getOutputStream();
                 try {
+                    Future<?> esh = DefaultExecutor.INSTANCE.submit(new AbstractRunnable() {
+                                           @Override
+                                           public void doRun() throws Exception {
+                                               int eos;
+                                               while ((eos = pes.read()) >= 0) {
+                                                   handler.handleStdErr(eos);
+                                               }
+                                           }
+                                       });
                     int cos;
                     while ((cos = pos.read()) >= 0) {
                         handler.handleStdOut(cos);
                     }
-                    int eos;
-                    while ((eos = pes.read()) >= 0) {
-                        handler.handleStdErr(eos);
-                    }
+                    esh.get();
+                    
                 } finally {
                     pis.close();
                 }
@@ -135,6 +142,7 @@ public final class Runtime {
         } finally {
             pos.close();
         }
+        return proc.exitValue();
     }
 
     private static class LineCountCharHandler implements ProcOutputHandler {
@@ -182,10 +190,8 @@ public final class Runtime {
             builder.append(c);
         }
     }
-    
     private static final LinkedList<Runnable> SHUTDOWN_HOOKS = new LinkedList<Runnable>();
- 
-    
+
     static {
         java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(false) {
             @Override
@@ -202,21 +208,16 @@ public final class Runtime {
             }
         }, "tsdb shutdown"));
     }
-       
+
     public static void addHookAtBeginning(final Runnable runnable) {
         synchronized (SHUTDOWN_HOOKS) {
             SHUTDOWN_HOOKS.addFirst(runnable);
         }
     }
-    
+
     public static void addHookAtEnd(final Runnable runnable) {
         synchronized (SHUTDOWN_HOOKS) {
             SHUTDOWN_HOOKS.addLast(runnable);
         }
     }
-    
-    
-    
-    
-    
 }

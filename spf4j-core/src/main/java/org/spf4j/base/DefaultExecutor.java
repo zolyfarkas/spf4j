@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
@@ -18,27 +17,24 @@
  */
 package org.spf4j.base;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import org.junit.Test;
+import com.google.common.util.concurrent.MoreExecutors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
  * @author zoly
  */
-public final class RuntimeTest {
-    
-    public RuntimeTest() {
-    }
+public final class DefaultExecutor {
 
-    /**
-     * Test of goDownWithError method, of class Runtime.
-     */
-    @Test
-    public void testGoDownWithError() throws IOException, InterruptedException, ExecutionException {
-        System.out.println(Runtime.PID);
-        System.out.println(Runtime.OS_NAME);
-        System.out.println(Runtime.getNrOpenFiles());
-        System.out.println(Runtime.getLsofOutput());
+    private DefaultExecutor() {
     }
+    
+    public static final ExecutorService INSTANCE = MoreExecutors.getExitingExecutorService(
+            new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+            60L, TimeUnit.SECONDS,
+            new SynchronousQueue<Runnable>(),
+            new CustomThreadFactory("DefaultScheduler", false)));
 }
