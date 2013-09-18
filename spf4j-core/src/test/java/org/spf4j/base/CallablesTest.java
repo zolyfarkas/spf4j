@@ -17,6 +17,7 @@
  */
 package org.spf4j.base;
 
+import com.google.common.base.Predicate;
 import java.util.concurrent.Callable;
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,8 +28,6 @@ import org.junit.Test;
  */
 public final class CallablesTest {
 
-    public CallablesTest() {
-    }
 
     /**
      * Test of executeWithRetry method, of class Callables.
@@ -73,17 +72,64 @@ public final class CallablesTest {
     /**
      * Test of executeWithRetry method, of class Callables.
      */
-    @Test(expected = RuntimeException.class)
     public void testExecuteWithRetry4args3() throws Exception {
         System.out.println("executeWithRetry");
-        Callables.executeWithRetry(new Callable<Integer>() {
-            private int count;
+        final CallableImpl callableImpl = new CallableImpl();
+        try {
+            Callables.executeWithRetry(callableImpl, 3, 10, 10);
+            Assert.fail("this should throw a exception");
+        } catch (Exception e) {
+            Assert.assertEquals(11, callableImpl.getCount());
+            System.out.println("Exception as expected " + e);
+        }
+    }
+    
+    
+    public void testExecuteWithRetry5args3() throws Exception {
+        System.out.println("executeWithRetry");
+        final CallableImpl2 callableImpl = new CallableImpl2();
+        Callables.executeWithRetry(callableImpl, 2, 3, 10, new Predicate<Integer>() {
 
             @Override
-            public Integer call() throws Exception {
-                count++;
-                throw new RuntimeException("Aaaaaaaaaaa" + count);
+            public boolean apply(final Integer t) {
+                return t > 0;
             }
-        }, 3, 10, 10);
+        },
+                Callables.RETRY_FOR_ANY_EXCEPTION);
+        Assert.assertEquals(4, callableImpl.getCount());
     }
+
+    private static class CallableImpl implements Callable<Integer> {
+
+
+        private int count;
+        @Override
+        public Integer call() throws Exception {
+            count++;
+            throw new RuntimeException("Aaaaaaaaaaa" + count);
+        }
+
+        public int getCount() {
+            return count;
+        }
+        
+    }
+    
+    private static class CallableImpl2 implements Callable<Integer> {
+
+        
+        private int count;
+        @Override
+        public Integer call() throws Exception {
+            count++;
+            return count;
+        }
+
+        public int getCount() {
+            return count;
+        }
+        
+    }
+    
+    
 }

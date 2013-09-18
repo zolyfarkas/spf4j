@@ -74,10 +74,10 @@ public final class Callables {
            
         @Override
         public Boolean call() throws Exception {
-           if (count > nrTotalRetries) {
+           if (count >= nrTotalRetries) {
                return Boolean.FALSE;
            }
-           if (count > nrImmediateRetries) {
+           if (count >= nrImmediateRetries) {
                Thread.sleep(waitMillis);
            }
            count++;
@@ -113,6 +113,15 @@ public final class Callables {
        return executeWithRetry(what, new RetryPause(nrImmediateRetries, nrTotalRetries, retryWaitMillis),
                NORETRY_FOR_RESULT, retryOnException);
     }
+    
+   public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
+            final int nrTotalRetries, final int retryWaitMillis, final Predicate<? super T> retryOnReturnVal,
+            final Predicate<Exception> retryOnException)
+            throws InterruptedException {
+       return executeWithRetry(what, new RetryPause(nrImmediateRetries, nrTotalRetries, retryWaitMillis),
+               retryOnReturnVal, retryOnException);
+    }
+    
      
     /**
      * Naive implementation of execution with retry logic.
