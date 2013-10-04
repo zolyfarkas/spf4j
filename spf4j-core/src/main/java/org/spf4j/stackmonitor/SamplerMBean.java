@@ -51,9 +51,9 @@ public interface SamplerMBean extends ReportGenerator {
     
     boolean isStopped();
     
-    public String dumpToFile() throws IOException;
+    String dumpToFile() throws IOException;
     
-    public String dumpToFile(@Nullable final String id) throws IOException;
+    String dumpToFile(@Nullable final String id) throws IOException;
     
     
 }

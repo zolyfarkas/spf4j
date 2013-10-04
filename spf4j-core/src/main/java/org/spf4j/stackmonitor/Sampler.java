@@ -168,6 +168,7 @@ public final class Sampler implements SamplerMBean {
     }
     private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();
 
+    @Override
     public String dumpToFile() throws IOException {
         return dumpToFile(null);
     }
@@ -180,6 +181,7 @@ public final class Sampler implements SamplerMBean {
      * @throws IOException
      */
     
+    @Override
     public synchronized String dumpToFile(@Nullable final String id) throws IOException {
         final Holder<String> result = new Holder<String>();
         stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
