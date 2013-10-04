@@ -168,8 +168,8 @@ public final class Sampler implements SamplerMBean {
     }
     private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();
 
-    public void dumpToFile() throws IOException {
-        dumpToFile(null);
+    public String dumpToFile() throws IOException {
+        return dumpToFile(null);
     }
     
     /**

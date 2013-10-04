@@ -19,6 +19,7 @@ package org.spf4j.stackmonitor;
 
 import org.spf4j.base.ReportGenerator;
 import java.io.IOException;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -49,5 +50,10 @@ public interface SamplerMBean extends ReportGenerator {
     void setDumpTimeMillis(int dumpTimeMillis);
     
     boolean isStopped();
+    
+    public String dumpToFile() throws IOException;
+    
+    public String dumpToFile(@Nullable final String id) throws IOException;
+    
     
 }
