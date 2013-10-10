@@ -34,6 +34,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.jfree.chart.JFreeChart;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -60,7 +62,7 @@ import static org.spf4j.perf.impl.chart.Charts.fillGaps;
 public final class TimeSeriesDatabase implements Closeable {
     
     public static final int VERSION = 1;
-    private final Map<String, TSTable> groups;
+    private final ConcurrentMap<String, TSTable> groups;
     private final RandomAccessFile file;
     private final Header header;
     private final TableOfContents toc;
@@ -81,7 +83,7 @@ public final class TimeSeriesDatabase implements Closeable {
             this.header = new Header(file);
             this.toc = new TableOfContents(file);
         }
-        groups = new HashMap<String, TSTable>();
+        groups = new ConcurrentHashMap<String, TSTable>();
         if (toc.getFirstColumnInfo() > 0) {
             file.seek(toc.getFirstColumnInfo());
             TSTable colInfo = new TSTable(file);
@@ -144,20 +146,31 @@ public final class TimeSeriesDatabase implements Closeable {
         groups.put(tableName, colInfo);
     }
     
-    public synchronized void write(final long time, final String tableName, final long[] values) throws IOException {
+    public void write(final long time, final String tableName, final long[] values) throws IOException {
         if (!groups.containsKey(tableName)) {
             throw new IllegalArgumentException("Unknown group name" + tableName);
         }
-        DataFragment writeDataFragment = writeDataFragments.get(tableName);
-        if (writeDataFragment == null) {
-            writeDataFragment = new DataFragment(time);
-            writeDataFragments.put(tableName, writeDataFragment);
+        synchronized (writeDataFragments) {
+            DataFragment writeDataFragment = writeDataFragments.get(tableName);
+            if (writeDataFragment == null) {
+                writeDataFragment = new DataFragment(time);
+                writeDataFragments.put(tableName, writeDataFragment);
+            }
+            writeDataFragment.addData(time, values);
         }
-        writeDataFragment.addData(time, values);
     }
     
     public synchronized void flush() throws IOException {
-        for (Map.Entry<String, DataFragment> entry : writeDataFragments.entrySet()) {
+        List<Map.Entry<String, DataFragment>> lwriteDataFragments;
+        synchronized (writeDataFragments) {
+            lwriteDataFragments = new ArrayList<Map.Entry<String, DataFragment>>(writeDataFragments.size());
+            for (Map.Entry<String, DataFragment> entry : writeDataFragments.entrySet()) {
+                lwriteDataFragments.add(entry);
+            }
+            writeDataFragments.clear();
+        }
+
+        for (Map.Entry<String, DataFragment> entry : lwriteDataFragments) {
             DataFragment writeDataFragment = entry.getValue();
             String groupName = entry.getKey();
             file.seek(file.length());
@@ -165,13 +178,13 @@ public final class TimeSeriesDatabase implements Closeable {
             writeDataFragment.writeTo(file);
             TSTable colInfo = groups.get(groupName);
             if (colInfo.getLastDataFragment() != 0) {
-                DataFragment.setNextDataFragment(colInfo.getLastDataFragment(), writeDataFragment.getLocation(), file);
+                DataFragment.setNextDataFragment(
+                        colInfo.getLastDataFragment(), writeDataFragment.getLocation(), file);
             } else {
                 colInfo.setFirstDataFragment(writeDataFragment.getLocation(), file);
             }
             colInfo.setLastDataFragment(writeDataFragment.getLocation(), file);
         }
-        writeDataFragments.clear();
         sync();
     }
     
@@ -231,7 +244,7 @@ public final class TimeSeriesDatabase implements Closeable {
         return Pair.of(timeStamps.toArray(), data.toArray(new long[data.size()][]));
     }
     
-    private synchronized void sync() throws IOException {
+    private void sync() throws IOException {
         file.getFD().sync();
     }
     

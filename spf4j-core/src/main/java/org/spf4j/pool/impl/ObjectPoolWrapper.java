@@ -35,7 +35,7 @@ import org.spf4j.base.Handler;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<ObjectHolder<T>> {
+final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<ObjectHolder<T>> {
 
     private final ObjectPool<T> pool;
     

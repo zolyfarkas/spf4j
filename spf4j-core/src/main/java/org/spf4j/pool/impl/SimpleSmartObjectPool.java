@@ -38,7 +38,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author zoly
  */
-public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
+final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
 
     private int maxSize;
     private final LinkedHashMultimap<ObjectBorower<T>, T> borrowedObjects = LinkedHashMultimap.create();
@@ -82,7 +82,7 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                 }
                 for (ObjectBorower<T> b : borrowedObjects.keySet()) {
                     if (borower != b) {
-                        T object = b.returnObjectIfNotInUse();
+                        T object = b.tryReturnObjectIfNotInUse();
                         if (object != null) {
                             if (!borrowedObjects.remove(b, object)) {
                                 throw new IllegalStateException("Returned Object hasn't been borrowed " + object);
@@ -104,7 +104,7 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                                 + "max number of pool objects");
                     }
                     do {
-                        object = b.requestReturnObject();
+                        object = b.tryRequestReturnObject();
                         if (object != null && object != ObjectBorower.REQUEST_MADE) {
                             if (!borrowedObjects.remove(b, object)) {
                                 throw new IllegalStateException("Returned Object hasn't been borrowed " + object);
@@ -153,7 +153,7 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
             maxSize = 0;
             List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>, T>>();
             for (ObjectBorower<T> b : borrowedObjects.keySet()) {
-                T object = (T) b.requestReturnObject();
+                T object = (T) b.tryRequestReturnObject();
                 if (object != null) {
                     returnedObjects.add(Pair.of(b, object));
                 }
@@ -218,7 +218,7 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                     }
                 }
 
-                Collection<T> returned = objectBorower.returnObjectsIfNotNeeded();
+                Collection<T> returned = objectBorower.tryReturnObjectsIfNotNeededAnymore();
                 if (returned != null) {
                     for (T ro : returned) {
                         if (!borrowedObjects.remove(objectBorower, ro)) {
@@ -256,7 +256,7 @@ public final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         try {
             List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>, T>>();
             for (ObjectBorower<T> b : borrowedObjects.keySet()) {
-                Collection<T> objects = b.returnObjectsIfNotInUse();
+                Collection<T> objects = b.tryReturnObjectsIfNotInUse();
                 if (objects != null) {
                     for (T object : objects) {
                         returnedObjects.add(Pair.of(b, object));

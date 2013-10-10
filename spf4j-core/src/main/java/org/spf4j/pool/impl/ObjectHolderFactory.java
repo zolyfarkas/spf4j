@@ -67,4 +67,9 @@ public final class ObjectHolderFactory<T> implements ObjectPool.Factory<ObjectHo
     public Exception validate(final ObjectHolder<T> object, final Exception e) {
         return null;
     }
+
+    @Override
+    public void setPool(final ObjectPool<ObjectHolder<T>> pool) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

@@ -94,23 +94,37 @@ public final class ObjectPoolBuilder<T, E extends Exception> {
             pool = underlyingPool;
         }
         if (maintenanceExecutor != null) {
-            maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnable(true) {
-                @Override
-                public void doRun() throws Exception {
-                        if (ObjectPoolBuilder.this.collectBorrowed) {
-                            underlyingPool.requestReturnFromBorrowersIfNotInUse();
-                        }
-                        ((Scanable<ObjectHolder<T>>) pool).scan(new Scanable.ScanHandler<ObjectHolder<T>>() {
-                            @Override
-                            public boolean handle(final ObjectHolder<T> object) throws ObjectDisposeException {
-                                object.validateObjectIfNotBorrowed();
-                                return true;
-                            }
-                        });
-                   
-                }
-            }, maintenanceIntervalMillis, maintenanceIntervalMillis, TimeUnit.MILLISECONDS);
+            maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnableImpl<T>(underlyingPool, collectBorrowed),
+                    maintenanceIntervalMillis, maintenanceIntervalMillis, TimeUnit.MILLISECONDS);
         }
+        factory.setPool(pool);
         return pool;
+    }
+
+    public static final class AbstractRunnableImpl<T> extends AbstractRunnable {
+
+        private final ScalableObjectPool<T> underlyingPool;
+        private final boolean collectBorrowed;
+
+        public AbstractRunnableImpl(final ScalableObjectPool<T> underlyingPool, final boolean collectBorrowed) {
+            super(true);
+            this.underlyingPool = underlyingPool;
+            this.collectBorrowed = collectBorrowed;
+        }
+
+        @Override
+        public void doRun() throws Exception {
+                if (collectBorrowed) {
+                    underlyingPool.requestReturnFromBorrowersIfNotInUse();
+                }
+                underlyingPool.scan(new Scanable.ScanHandler<ObjectHolder<T>>() {
+                    @Override
+                    public boolean handle(final ObjectHolder<T> object) throws ObjectDisposeException {
+                        object.validateObjectIfNotBorrowed();
+                        return true;
+                    }
+                });
+           
+        }
     }
 }

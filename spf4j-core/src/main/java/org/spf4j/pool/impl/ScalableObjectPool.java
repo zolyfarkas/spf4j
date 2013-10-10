@@ -27,7 +27,7 @@ import java.util.concurrent.TimeoutException;
  *
  * @author zoly
  */
-public final class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<ObjectHolder<T>> {
+final class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<ObjectHolder<T>> {
 
     private final SimpleSmartObjectPool<ObjectHolder<T>> globalPool;
     

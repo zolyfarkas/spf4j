@@ -36,7 +36,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author zoly
  */
-public final class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHolder<T>> {
+final class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHolder<T>> {
 
     private final Queue<ObjectHolder<T>> localObjects;
     private final Map<T, ObjectHolder<T>> borrowedObjects;
@@ -121,11 +121,11 @@ public final class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<Ob
     }
 
     @Override
-    public Object requestReturnObject() {
+    public Object tryRequestReturnObject() {
         boolean acquired = lock.tryLock();
         if (acquired) {
             try {
-                ObjectHolder<T> objectHolder = returnObjectIfNotInUse();
+                ObjectHolder<T> objectHolder = tryReturnObjectIfNotInUse();
                 if (objectHolder != null) {
                     return objectHolder;
                 } else {
@@ -141,7 +141,7 @@ public final class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<Ob
     }
 
     @Override
-    public ObjectHolder<T> returnObjectIfNotInUse() {
+    public ObjectHolder<T> tryReturnObjectIfNotInUse() {
         boolean acquired = lock.tryLock();
         if (acquired) {
             try {
@@ -160,7 +160,7 @@ public final class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<Ob
     
     
     @Override
-    public Collection<ObjectHolder<T>> returnObjectsIfNotInUse() {
+    public Collection<ObjectHolder<T>> tryReturnObjectsIfNotInUse() {
         boolean acquired = lock.tryLock();
         if (acquired) {
             try {
@@ -181,7 +181,7 @@ public final class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<Ob
     
 
     @Override
-    public Collection<ObjectHolder<T>> returnObjectsIfNotNeeded() {
+    public Collection<ObjectHolder<T>> tryReturnObjectsIfNotNeededAnymore() {
         boolean acquired = lock.tryLock();
         if (acquired) {
             try {

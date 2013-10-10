@@ -35,7 +35,7 @@ public interface ObjectBorower<T> extends Scanable<T> {
      * Object.
      */
     @Nullable
-    Object requestReturnObject();
+    Object tryRequestReturnObject();
 
     /**
      * Non Blocking method.
@@ -44,7 +44,7 @@ public interface ObjectBorower<T> extends Scanable<T> {
      * @throws InterruptedException
      */
     @Nullable
-    T returnObjectIfNotInUse();
+    T tryReturnObjectIfNotInUse();
 
     
     /**
@@ -52,7 +52,7 @@ public interface ObjectBorower<T> extends Scanable<T> {
      */
     
     @Nullable
-    Collection<T> returnObjectsIfNotInUse();
+    Collection<T> tryReturnObjectsIfNotInUse();
     
     /**
      * This method is a cleanup method. The purpose is to recover all borrowed objects before once this borrower will
@@ -61,5 +61,5 @@ public interface ObjectBorower<T> extends Scanable<T> {
      * @return all objects borrowed
      */
     @Nullable
-    Collection<T> returnObjectsIfNotNeeded();
+    Collection<T> tryReturnObjectsIfNotNeededAnymore();
 }

@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class ObjectHolder<T> {
+final class ObjectHolder<T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ObjectHolder.class);
     private T obj;

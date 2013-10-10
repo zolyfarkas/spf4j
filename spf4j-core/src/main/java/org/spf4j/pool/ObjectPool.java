@@ -87,5 +87,12 @@ public interface ObjectPool<T> extends Disposable {
         @Nullable
         @CheckReturnValue
         Exception validate(T object, @Nullable Exception e);
+        
+        /**
+         * This method will be invoked after pool created.
+         * @param pool 
+         */
+        void setPool(ObjectPool<T> pool);
+        
     }
 }
