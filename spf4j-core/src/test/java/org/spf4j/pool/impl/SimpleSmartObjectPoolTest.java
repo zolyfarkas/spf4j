@@ -51,11 +51,15 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
             public Exception validate(final TestObject object, final Exception e) {
                 return new UnsupportedOperationException("Not supported yet.");
             }
+
+            @Override
+            public void setPool(final ObjectPool<TestObject> pool) {
+            }
         }, 10000, true);
     }
 
     @Override
-    public TestObject requestReturnObject() {
+    public TestObject tryRequestReturnObject() {
         if (borowedObject != null) {
             try {
                 Thread.sleep(1000);
@@ -68,7 +72,7 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
     }
 
     @Override
-    public TestObject returnObjectIfNotInUse() {
+    public TestObject tryReturnObjectIfNotInUse() {
         return borowedObject;
     }
 
@@ -78,12 +82,12 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
     }
 
     @Override
-    public Collection<TestObject> returnObjectsIfNotNeeded() {
+    public Collection<TestObject> tryReturnObjectsIfNotNeededAnymore() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public Collection<TestObject> returnObjectsIfNotInUse() {
+    public Collection<TestObject> tryReturnObjectsIfNotInUse() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

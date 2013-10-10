@@ -74,6 +74,10 @@ public final class ExpensiveTestObjectFactory implements ObjectPool.Factory<Expe
             }
        }
     }
+
+    @Override
+    public void setPool(final ObjectPool<ExpensiveTestObject> pool) {
+    }
     
  
 }
