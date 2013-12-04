@@ -62,7 +62,7 @@ public final class ThrowablesTest {
     public void testChain3() {
         Exception e = new RuntimeException();
         for (int i = 0; i < 100; i++) {
-            e = Throwables.suppress(e, e);
+            e = Throwables.suppress(e, new RuntimeException());
         }
         Assert.assertEquals(200, com.google.common.base.Throwables.getCausalChain(e).size());
     
