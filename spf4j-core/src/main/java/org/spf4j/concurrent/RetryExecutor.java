@@ -243,8 +243,12 @@ public class RetryExecutor<T> implements ExecutorService {
                         if (attemptsInfo == null) {
                             attemptsInfo = Pair.of(1, event.getException());
                         } else {
-                            attemptsInfo = Pair.of(attemptsInfo.getFirst() + 1,
+                            if (attemptsInfo.getSecond() == null) {
+                                attemptsInfo = Pair.of(attemptsInfo.getFirst() + 1, event.getException());
+                            } else { 
+                                attemptsInfo = Pair.of(attemptsInfo.getFirst() + 1,
                                     Throwables.suppress(event.getException(), attemptsInfo.getSecond()));
+                            }
                         }
                         int nrAttempts = attemptsInfo.getFirst();
                         if (nrAttempts > nrTotalRetries) {
