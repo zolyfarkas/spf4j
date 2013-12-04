@@ -53,14 +53,11 @@ public final class PooledDataSource implements DataSource {
             return pool.borrowObject();
         } catch (InterruptedException ex) {
             throw new SQLException(ex);
-        }
-        catch (TimeoutException ex) {
+        } catch (TimeoutException ex) {
             throw new SQLException(ex);
-        }
-        catch (ObjectBorrowException ex) {
+        } catch (ObjectBorrowException ex) {
             throw new SQLException(ex);
-        }
-        catch (ObjectCreationException ex) {
+        } catch (ObjectCreationException ex) {
             throw new SQLException(ex);
         }
     }

@@ -55,11 +55,9 @@ public final class Throwables {
     static {
         try {
             CAUSE_FIELD = Throwable.class.getDeclaredField("cause");
-        }
-        catch (NoSuchFieldException ex) {
+        } catch (NoSuchFieldException ex) {
             throw new RuntimeException(ex);
-        }
-        catch (SecurityException ex) {
+        } catch (SecurityException ex) {
             throw new RuntimeException(ex);
         }
         AccessController.doPrivileged(new PrivilegedAction() {
@@ -100,19 +98,16 @@ public final class Throwables {
                 public Object run() {
                     try {
                         CAUSE_FIELD.set(rc, cause);
-                    }
-                    catch (IllegalArgumentException ex) {
+                    } catch (IllegalArgumentException ex) {
                         throw new RuntimeException(ex);
-                    }
-                    catch (IllegalAccessException ex) {
+                    } catch (IllegalAccessException ex) {
                         throw new RuntimeException(ex);
                     }
                     return null; // nothing to return
                 }
             });
 
-        }
-        catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ex) {
             throw new RuntimeException(ex);
         }
         return t;
@@ -143,8 +138,7 @@ public final class Throwables {
             ObjectOutputStream out = new ObjectOutputStream(bos);
             try {
                 out.writeObject(t);
-            }
-            finally {
+            } finally {
                 out.close();
             }
 
@@ -153,17 +147,14 @@ public final class Throwables {
                     new ByteArrayInputStream(bos.toByteArray()));
             try {
                 result = (T) in.readObject();
-            }
-            finally {
+            } finally {
                 in.close();
             }
             chain0(result, newRootCauseChain.get(newChainIdx));
             return result;
-        }
-        catch (ClassNotFoundException ex) {
+        } catch (ClassNotFoundException ex) {
             throw new RuntimeException(ex);
-        }
-        catch (IOException ex) {
+        } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -181,14 +172,11 @@ public final class Throwables {
             try {
                 ADD_SUPPRESSED.invoke(t, suppressed);
                 return t;
-            }
-            catch (IllegalAccessException ex) {
+            } catch (IllegalAccessException ex) {
                 throw new RuntimeException(ex);
-            }
-            catch (IllegalArgumentException ex) {
+            } catch (IllegalArgumentException ex) {
                 throw new RuntimeException(ex);
-            }
-            catch (InvocationTargetException ex) {
+            } catch (InvocationTargetException ex) {
                 throw new RuntimeException(ex);
             }
         } else {
