@@ -21,8 +21,10 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
+import org.spf4j.pool.ObjectBorrowException;
 import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectPool;
 import org.spf4j.pool.impl.ObjectPoolBuilder;
@@ -49,7 +51,16 @@ public final class PooledDataSource implements DataSource {
     public Connection getConnection() throws SQLException {
         try {
             return pool.borrowObject();
-        } catch (Exception ex) {
+        } catch (InterruptedException ex) {
+            throw new SQLException(ex);
+        }
+        catch (TimeoutException ex) {
+            throw new SQLException(ex);
+        }
+        catch (ObjectBorrowException ex) {
+            throw new SQLException(ex);
+        }
+        catch (ObjectCreationException ex) {
             throw new SQLException(ex);
         }
     }
@@ -90,15 +101,11 @@ public final class PooledDataSource implements DataSource {
 
     @Override
     public boolean isWrapperFor(final Class<?> iface) throws SQLException {
-        if (iface.equals(DataSource.class) || iface.equals(PooledDataSource.class)) {
-            return true;
-        } else {
-            return false;
-        }
+        return iface.equals(DataSource.class) || iface.equals(PooledDataSource.class);
     }
 
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
 }
