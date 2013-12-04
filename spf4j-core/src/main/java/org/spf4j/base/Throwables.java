@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.List;
@@ -38,21 +40,26 @@ import org.slf4j.LoggerFactory;
 @ParametersAreNonnullByDefault
 public final class Throwables {
 
-    private Throwables() { }
-    
+    private Throwables() {
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(Throwables.class);
-    
-    private static final int MAX_THROWABLE_CHAIN =
-            Integer.parseInt(System.getProperty("throwables.max.chain", "200"));
-    
+
+    private static final int MAX_THROWABLE_CHAIN
+            = Integer.parseInt(System.getProperty("throwables.max.chain", "200"));
+
     private static final Field CAUSE_FIELD;
+
+    private static final Method ADD_SUPPRESSED;
 
     static {
         try {
             CAUSE_FIELD = Throwable.class.getDeclaredField("cause");
-        } catch (NoSuchFieldException ex) {
+        }
+        catch (NoSuchFieldException ex) {
             throw new RuntimeException(ex);
-        } catch (SecurityException ex) {
+        }
+        catch (SecurityException ex) {
             throw new RuntimeException(ex);
         }
         AccessController.doPrivileged(new PrivilegedAction() {
@@ -62,6 +69,26 @@ public final class Throwables {
                 return null; // nothing to return
             }
         });
+    }
+    static {
+        Method m;
+        try {
+            m = Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class);
+        } catch (NoSuchMethodException ex) {
+            m = null;
+        } catch (SecurityException ex) {
+            m = null;
+        }
+        ADD_SUPPRESSED = m;
+        if (ADD_SUPPRESSED != null) {
+            AccessController.doPrivileged(new PrivilegedAction() {
+                @Override
+                public Object run() {
+                    ADD_SUPPRESSED.setAccessible(true);
+                    return null; // nothing to return
+                }
+            });
+        }
 
     }
 
@@ -73,16 +100,19 @@ public final class Throwables {
                 public Object run() {
                     try {
                         CAUSE_FIELD.set(rc, cause);
-                    } catch (IllegalArgumentException ex) {
+                    }
+                    catch (IllegalArgumentException ex) {
                         throw new RuntimeException(ex);
-                    } catch (IllegalAccessException ex) {
+                    }
+                    catch (IllegalAccessException ex) {
                         throw new RuntimeException(ex);
                     }
                     return null; // nothing to return
                 }
             });
 
-        } catch (IllegalArgumentException ex) {
+        }
+        catch (IllegalArgumentException ex) {
             throw new RuntimeException(ex);
         }
         return t;
@@ -113,7 +143,8 @@ public final class Throwables {
             ObjectOutputStream out = new ObjectOutputStream(bos);
             try {
                 out.writeObject(t);
-            } finally {
+            }
+            finally {
                 out.close();
             }
 
@@ -122,27 +153,52 @@ public final class Throwables {
                     new ByteArrayInputStream(bos.toByteArray()));
             try {
                 result = (T) in.readObject();
-            } finally {
+            }
+            finally {
                 in.close();
             }
             chain0(result, newRootCauseChain.get(newChainIdx));
             return result;
-        } catch (ClassNotFoundException ex) {
+        }
+        catch (ClassNotFoundException ex) {
             throw new RuntimeException(ex);
-        } catch (IOException ex) {
+        }
+        catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
+
     /**
      * Functionality equivalent for java 1.7 Throwable.addSuppressed.
-     * 
+     *
      * @param <T>
      * @param t
-     * @param newRootCause
+     * @param suppressed
      * @return
      */
     public static <T extends Throwable> T suppress(final T t, final Throwable suppressed) {
-        return chain(t, new SuppressedThrowable(suppressed));
+        if (ADD_SUPPRESSED != null) {
+            try {
+                return (T) ADD_SUPPRESSED.invoke(t, suppressed);
+            }
+            catch (IllegalAccessException ex) {
+                throw new RuntimeException(ex);
+            }
+            catch (IllegalArgumentException ex) {
+                throw new RuntimeException(ex);
+            }
+            catch (InvocationTargetException ex) {
+                throw new RuntimeException(ex);
+            }
+        } else {
+            if (suppressed == null) {
+                throw new IllegalArgumentException("Cannot suppress null exception");
+            }
+            if (t == suppressed) {
+                throw new IllegalArgumentException("Self suppression not permitted");
+            }
+            return chain(t, new SuppressedThrowable(suppressed));
+        }
     }
-    
+
 }
