@@ -42,7 +42,7 @@ public final class JdbcConnectionFactory  implements ObjectPool.Factory<Connecti
         }
         this.url = url;
         this.password = password;
-        this.user = user;       
+        this.user = user;
     }
     
     private final String url;
