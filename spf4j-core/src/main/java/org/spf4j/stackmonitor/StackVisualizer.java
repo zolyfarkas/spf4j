@@ -17,7 +17,7 @@
  */
 package org.spf4j.stackmonitor;
 
-import org.spf4j.base.HtmlUtils;
+import com.google.common.html.HtmlEscapers;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
@@ -135,7 +135,7 @@ public final class StackVisualizer {
 
         int totalSamples = node.getSampleCount();
         String id = idPfx + "ix" + x + "y" + y;
-        String content = HtmlUtils.htmlEscape(m.toString() + ":" + Integer.toString(totalSamples));
+        String content = HtmlEscapers.htmlEscaper().escape(m.toString() + ":" + Integer.toString(totalSamples));
         writer.append("<g onmouseover=\"" + idPfx + "ss(evt,'" + content + "'," + x + ", "
                 + y + " )\" onmouseout=\"" + idPfx + "hh()\">");
         writer.append("<rect id=\"" + id + "\" x=\"" + x + "\" y=\"" + y + "\" width=\"" + width

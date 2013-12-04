@@ -17,7 +17,8 @@
  */
 package org.spf4j.stackmonitor;
 
-import org.spf4j.base.HtmlUtils;
+import com.google.common.escape.Escaper;
+import com.google.common.html.HtmlEscapers;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
@@ -115,8 +116,9 @@ public final class Method {
     }
 
     public void toHtmlWriter(final Writer w) throws IOException {
-        w.append(HtmlUtils.htmlEscape(methodName)).append(HtmlUtils.htmlEscape("@")).
-                append(HtmlUtils.htmlEscape(declaringClass));
+        Escaper htmlEscaper = HtmlEscapers.htmlEscaper();
+        w.append(htmlEscaper.escape(methodName)).append(htmlEscaper.escape("@")).
+                append(htmlEscaper.escape(declaringClass));
     }
     public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), "ROOT", 0);
 
