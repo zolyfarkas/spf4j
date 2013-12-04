@@ -245,7 +245,7 @@ public class RetryExecutor<T> implements ExecutorService {
                         } else {
                             if (attemptsInfo.getSecond() == null) {
                                 attemptsInfo = Pair.of(attemptsInfo.getFirst() + 1, event.getException());
-                            } else { 
+                            } else {
                                 attemptsInfo = Pair.of(attemptsInfo.getFirst() + 1,
                                     Throwables.suppress(event.getException(), attemptsInfo.getSecond()));
                             }

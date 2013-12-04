@@ -64,7 +64,7 @@ public final class PooledDataSource implements DataSource {
 
     @Override
     public Connection getConnection(final String username, final String password) throws SQLException {
-        throw new UnsupportedOperationException("Unsupported operation"); 
+        throw new UnsupportedOperationException("Unsupported operation");
     }
 
     @Override

@@ -90,7 +90,7 @@ public interface ObjectPool<T> extends Disposable {
         
         /**
          * This method will be invoked after pool created.
-         * @param pool 
+         * @param pool
          */
         void setPool(ObjectPool<T> pool);
         
