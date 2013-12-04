@@ -179,7 +179,8 @@ public final class Throwables {
     public static <T extends Throwable> T suppress(final T t, final Throwable suppressed) {
         if (ADD_SUPPRESSED != null) {
             try {
-                return (T) ADD_SUPPRESSED.invoke(t, suppressed);
+                ADD_SUPPRESSED.invoke(t, suppressed);
+                return t;
             }
             catch (IllegalAccessException ex) {
                 throw new RuntimeException(ex);

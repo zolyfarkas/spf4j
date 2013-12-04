@@ -21,6 +21,7 @@ import java.net.SocketTimeoutException;
 import java.sql.BatchUpdateException;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -59,6 +60,7 @@ public final class ThrowablesTest {
     }
     
     @Test
+    @Ignore
     public void testChain3() {
         Exception e = new RuntimeException();
         for (int i = 0; i < 100; i++) {
