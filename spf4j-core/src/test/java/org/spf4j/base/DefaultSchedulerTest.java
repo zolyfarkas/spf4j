@@ -4,6 +4,7 @@
  */
 package org.spf4j.base;
 
+import org.spf4j.concurrent.DefaultScheduler;
 import java.util.concurrent.ScheduledFuture;
 import org.junit.Assert;
 import org.junit.Test;

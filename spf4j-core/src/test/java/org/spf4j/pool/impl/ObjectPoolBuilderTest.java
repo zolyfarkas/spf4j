@@ -94,7 +94,7 @@ public final class ObjectPoolBuilderTest {
         System.out.println("poolUseWithMainteinance");
 
         final ObjectPool<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory())
-                .withMaintenance(org.spf4j.base.DefaultScheduler.INSTANCE, 10, true).build();
+                .withMaintenance(org.spf4j.concurrent.DefaultScheduler.INSTANCE, 10, true).build();
         runTest(pool, 5, 100000);
         try {
             pool.dispose();

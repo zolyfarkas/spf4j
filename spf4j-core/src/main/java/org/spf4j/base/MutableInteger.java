@@ -52,10 +52,7 @@ public final class MutableInteger {
             return false;
         }
         final MutableInteger other = (MutableInteger) obj;
-        if (this.value != other.value) {
-            return false;
-        }
-        return true;
+        return this.value == other.value;
     }
   
 }

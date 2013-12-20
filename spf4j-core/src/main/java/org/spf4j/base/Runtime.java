@@ -18,6 +18,7 @@
  */
 package org.spf4j.base;
 
+import org.spf4j.concurrent.DefaultExecutor;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

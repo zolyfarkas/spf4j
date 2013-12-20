@@ -22,7 +22,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.Arrays;
-import org.spf4j.base.DefaultScheduler;
+import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.base.Pair;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementDatabase;

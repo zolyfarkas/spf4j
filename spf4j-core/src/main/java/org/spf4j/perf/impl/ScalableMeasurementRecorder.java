@@ -18,7 +18,7 @@
 package org.spf4j.perf.impl;
 
 import org.spf4j.base.AbstractRunnable;
-import org.spf4j.base.DefaultScheduler;
+import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.perf.EntityMeasurements;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementDatabase;

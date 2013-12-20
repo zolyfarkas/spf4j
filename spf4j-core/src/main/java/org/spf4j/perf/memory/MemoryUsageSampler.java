@@ -19,7 +19,7 @@
 package org.spf4j.perf.memory;
 
 import org.spf4j.base.AbstractRunnable;
-import org.spf4j.base.DefaultScheduler;
+import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.RecorderFactory;
 import java.lang.management.ManagementFactory;
