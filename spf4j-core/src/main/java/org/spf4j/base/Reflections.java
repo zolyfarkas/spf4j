@@ -1,6 +1,6 @@
 package org.spf4j.base;
 
-import com.google.common.cache.CacheBuilder;
+import org.spf4j.concurrent.UnboundedLoadingCache;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.lang.reflect.Method;
@@ -94,9 +94,13 @@ public final class Reflections {
 
         @Override
         public int hashCode() {
-            int hash = 3;
-            return hash;
+            int hash = 7;
+            hash = 67 * hash + (this.clasz != null ? this.clasz.hashCode() : 0);
+            hash = 67 * hash + (this.name != null ? this.name.hashCode() : 0);
+            return 67 * hash + Arrays.deepHashCode(this.paramTypes);
         }
+
+
 
         @Override
         public boolean equals(final Object obj) {
@@ -124,19 +128,22 @@ public final class Reflections {
 
     }
 
-    private static final LoadingCache<MethodDesc, Method> CACHE = CacheBuilder.newBuilder()
-            .build(new CacheLoader<MethodDesc, Method>() {
 
-                @Override
-                public Method load(final MethodDesc k) throws Exception {
-                    return getCompatibleMethod(k.getClasz(), k.getName(), k.getParamTypes());
-                }
-            });
+    private static final LoadingCache<MethodDesc, Method> CACHE_FAST
+            = new UnboundedLoadingCache<MethodDesc, Method>(64,
+                    new CacheLoader<MethodDesc, Method>() {
+                        @Override
+                        public Method load(final MethodDesc k) throws Exception {
+                            return getCompatibleMethod(k.getClasz(), k.getName(), k.getParamTypes());
+                        }
+                    });
+
 
     public static Method getCompatibleMethodCached(final Class<?> c,
             final String methodName,
             final Class<?>... paramTypes) {
-        return CACHE.getUnchecked(new MethodDesc(c, methodName, paramTypes));
+        return CACHE_FAST.getUnchecked(new MethodDesc(c, methodName, paramTypes));
     }
+    
 
 }

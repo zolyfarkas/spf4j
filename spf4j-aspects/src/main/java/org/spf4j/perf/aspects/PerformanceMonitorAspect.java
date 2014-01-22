@@ -27,6 +27,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.concurrent.UnboundedLoadingCache;
 import org.spf4j.perf.annotations.PerformanceMonitor;
 import org.spf4j.perf.annotations.RecorderSourceInstance;
 
@@ -41,17 +42,13 @@ public final class PerformanceMonitorAspect {
 
     private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitorAspect.class);
     private static final LoadingCache<Class<? extends RecorderSourceInstance>, MeasurementRecorderSource> REC_SOURCES =
-            CacheBuilder.newBuilder().concurrencyLevel(8).
-            build(new CacheLoader<Class<? extends RecorderSourceInstance>, MeasurementRecorderSource>()
-    {
+            new UnboundedLoadingCache<Class<? extends RecorderSourceInstance>, MeasurementRecorderSource>(
+                    32, new CacheLoader<Class<? extends RecorderSourceInstance>, MeasurementRecorderSource>() {
         @Override
         public MeasurementRecorderSource load(final Class<? extends RecorderSourceInstance> key) throws Exception {
             return (MeasurementRecorderSource) key.getField("INSTANCE").get(null);
         }
     });
-    
-    
-    
 
     @Around(value = "execution(@org.spf4j.perf.annotations.PerformanceMonitor * *(..)) && @annotation(annot)",
             argNames = "pjp,annot")
