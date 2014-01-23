@@ -27,45 +27,35 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.spf4j.base.MemorizedCallable;
 
 /**
- * 
+ *
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
+public final class UnboundedRacyLoadingCache<K, V> implements LoadingCache<K, V> {
 
-    private final ConcurrentMap<K, MemorizedCallable<? extends V>> map;
+    private final ConcurrentMap<K, V> map;
 
     private final CacheLoader<K, V> loader;
 
-    public UnboundedLoadingCache(final int initialSize, final CacheLoader<K, V> loader) {
-        this.map = new ConcurrentHashMap<K, MemorizedCallable<? extends V>>(initialSize);
+    public UnboundedRacyLoadingCache(final int initialSize, final CacheLoader<K, V> loader) {
+        this.map = new ConcurrentHashMap<K, V>(initialSize);
         this.loader = loader;
     }
 
     @Override
     public V get(final K key) throws ExecutionException {
-        MemorizedCallable<? extends V> existingValHolder = map.get(key);
-        if (existingValHolder == null) {
-            MemorizedCallable<? extends V> newHolder = new MemorizedCallable(new Callable<V>() {
-                @Override
-                public V call() throws Exception {
-                    return loader.load(key);
-                }
-            });
-            existingValHolder = map.putIfAbsent(key, newHolder);
-            if (existingValHolder == null) {
-                existingValHolder = newHolder;
+        V val = map.get(key);
+        if (val == null) {
+            try {
+                val = loader.load(key);
+            } catch (Exception ex) {
+               throw new ExecutionException(ex);
             }
+            map.put(key, val);
         }
-        try {
-            return existingValHolder.call();
-        } catch (Exception ex) {
-            throw new ExecutionException(ex);
-        }
-
+        return val;
     }
 
     @Override
@@ -107,33 +97,21 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
 
     @Override
     public V getIfPresent(final Object key) {
-        MemorizedCallable<? extends V> existingValHolder = map.get(key);
-        if (existingValHolder != null) {
-            try {
-                return existingValHolder.call();
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            }
-        } else {
-            return null;
-        }
+        return map.get(key);
     }
 
     @Override
     public V get(final K key, final Callable<? extends V> valueLoader) throws ExecutionException {
-        MemorizedCallable<? extends V> existingValHolder = map.get(key);
-        if (existingValHolder == null) {
-            MemorizedCallable<? extends V> newHolder = new MemorizedCallable(valueLoader);
-            existingValHolder = map.putIfAbsent(key, newHolder);
-            if (existingValHolder == null) {
-                existingValHolder = newHolder;
+        V val = map.get(key);
+        if (val == null) {
+            try {
+                val = valueLoader.call();
+            } catch (Exception ex) {
+                throw new ExecutionException(ex);
             }
+            map.put(key, val);
         }
-        try {
-            return existingValHolder.call();
-        } catch (Exception ex) {
-            throw new ExecutionException(ex);
-        }
+        return val;
     }
 
     @Override
@@ -150,13 +128,7 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
 
     @Override
     public void put(final K key, final V value) {
-        map.put(key, new MemorizedCallable<V>(new Callable<V>() {
-
-            @Override
-            public V call() throws Exception {
-                return value;
-            }
-        }));
+        map.put(key, value);
     }
 
     @Override
