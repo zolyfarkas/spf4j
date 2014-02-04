@@ -24,7 +24,7 @@ public final class SuppressedThrowable extends Throwable {
     }
 
     @Override
-    public synchronized Throwable fillInStackTrace() {
+    public Throwable fillInStackTrace() {
         return this;
     }
     
