@@ -18,7 +18,6 @@
  */
 package org.spf4j.perf.aspects;
 
-import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.spf4j.perf.MeasurementRecorderSource;
