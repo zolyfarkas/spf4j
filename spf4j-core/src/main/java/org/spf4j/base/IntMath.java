@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
@@ -22,25 +21,15 @@ package org.spf4j.base;
  *
  * @author zoly
  */
-public final  class Holder<T> {
+public final class IntMath {
+
+    private IntMath() { }
     
-    private final T value;
-
-    public Holder(final T value) {
-        this.value = value;
+    public static int closestPowerOf2(final int number) {
+        int capacity = 1;
+        while (capacity < number) {
+            capacity <<= 1;
+        }
+        return capacity;
     }
-
-    public Holder() {
-        this.value = null;
-    }
-
-    public T getValue() {
-        return value;
-    }
-
-    @Override
-    public String toString() {
-        return "Holder{" + "value=" + value + '}';
-    }
-    
 }

@@ -44,7 +44,7 @@ import javax.management.ObjectName;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.AbstractRunnable;
-import org.spf4j.base.Holder;
+import org.spf4j.base.MutableHolder;
 import org.spf4j.perf.memory.GCUsageSampler;
 import org.spf4j.stackmonitor.proto.Converter;
 
@@ -183,7 +183,7 @@ public final class Sampler implements SamplerMBean {
     
     @Override
     public synchronized String dumpToFile(@Nullable final String id) throws IOException {
-        final Holder<String> result = new Holder<String>();
+        final MutableHolder<String> result = new MutableHolder<String>();
         stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
             @Override
             public SampleNode apply(final SampleNode input) {

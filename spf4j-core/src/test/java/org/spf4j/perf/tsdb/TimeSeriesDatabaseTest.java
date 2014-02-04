@@ -67,8 +67,8 @@ public final class TimeSeriesDatabaseTest {
     @Test(expected = IllegalArgumentException.class)
     public void testWriteBadTSDB() throws Exception {
         System.out.println("testWriteBadTSDB");
-        TimeSeriesDatabase instance = new TimeSeriesDatabase(System.getProperty("java.io.tmpdir")
-                + "/testdb.tsdb", new byte[] {});
+        TimeSeriesDatabase instance = new TimeSeriesDatabase(FILE_NAME, new byte[] {});
+        instance.addTSTable("gr1", new byte []{}, 5, new String[]{"a", "b"}, new byte [][] {});
         instance.addTSTable("gr1", new byte []{}, 5, new String[]{"a", "b"}, new byte [][] {});
         instance.close();
     }

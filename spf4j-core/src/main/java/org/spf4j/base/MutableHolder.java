@@ -22,15 +22,15 @@ package org.spf4j.base;
  *
  * @author zoly
  */
-public final  class Holder<T> {
+public final  class MutableHolder<T> {
     
-    private final T value;
+    private T value;
 
-    public Holder(final T value) {
+    public MutableHolder(final T value) {
         this.value = value;
     }
 
-    public Holder() {
+    public MutableHolder() {
         this.value = null;
     }
 
@@ -38,9 +38,13 @@ public final  class Holder<T> {
         return value;
     }
 
+    public void setValue(final T value) {
+        this.value = value;
+    }
+
     @Override
     public String toString() {
-        return "Holder{" + "value=" + value + '}';
+        return "MutableHolder{" + "value=" + value + '}';
     }
     
 }
