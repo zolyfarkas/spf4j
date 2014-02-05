@@ -1,0 +1,574 @@
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+/**
+ * Parts of the code (token definitions ...) are based on samples from:
+ * https://javacc.dev.java.net/servlets/ProjectDocumentList?folderID=110&expandFolder=110&folderID=109
+ */
+
+options {
+    FORCE_LA_CHECK=true;
+    JAVA_UNICODE_ESCAPE = true;
+    CACHE_TOKENS=true;
+    STATIC=false;
+}
+
+PARSER_BEGIN(ZCompiler)
+
+package org.spf4j.zel.vm;
+
+import java.util.*;
+import java.math.*;
+
+public class ZCompiler
+{
+
+    private StackedMap symbolTable = new StackedMap();
+
+
+    public static void compile(String xpr, ParsingContext context, String[] varNames) throws ParseException
+    {
+        ZCompiler parser = new ZCompiler(new java.io.ByteArrayInputStream(xpr.getBytes()));
+        if (varNames != null)
+        {
+            for (int i=0 ; i<varNames.length; i++)
+                parser.symbolTable.put(varNames[i], i);
+        }
+        parser.program(context);
+    }
+
+    public static Object getConstant(String constant) throws ParseException
+    {
+        ZCompiler parser = new ZCompiler(new java.io.ByteArrayInputStream(constant.getBytes()));
+        ConstantParsingContext ctx = new ConstantParsingContext();
+        parser.constant(ctx);
+        return ctx.getConstant();
+    }
+
+
+}
+PARSER_END(ZCompiler)
+
+SKIP :
+{
+    " "
+  | "\r"
+  | "\t"
+  | "\n"
+}
+
+TOKEN : /* OPERATORS & KEYWORDS*/
+{
+	< PLUS: "+" >
+  |	< MINUS: "-" >
+  |	< MULTIPLY: "*" >
+  |	< DIVIDE: "/" >
+  |	< MOD: "%" >
+  |	< POW: "**" >
+  |	< AND: "&&" >
+  |	< OR: "||" >
+  |	< GT: ">" >
+  |	< LT: "<" >
+  |	< LE: "<=" >
+  |	< GE: ">=" >
+  |	< EQ: "==" >
+  |	< NEQ: "!=" >
+  |	< XOR: "^" >
+  |	< NOT: "!" >
+  |	< CONDITION: "?" >
+  |	< CLM: ":" >
+  |	< EQUAL: "=" >
+  |	< SCL: ";">
+  |	< LPAREN: "(" >
+  |	< RPAREN: ")" >
+  |	< LBRACE: "{" >
+  |	< RBRACE: "}" >
+  |	< LBRACKET: "[" >
+  |	< RBRACKET: "]" >
+  |	< COMMA: "," >
+  |	< DOT: "." >
+  |	< CONTEXT: "context">
+  |	< RETURN: "return">
+  |	< GLOBAL: "global">
+  |	< FUNCTION: "function">
+  |	< DETERMINISTIC: "deterministic">
+  |	< ARG: "arg">
+  |	< TRUE: "true" >
+  |	< FALSE: "false" >
+  |	< NULL: ("null" | "nill") >
+}
+
+TOKEN : /* string constants */
+{
+ < INTEGER:
+        <DECIMAL_LITERAL> (["l","L"])?
+      | <HEX_LITERAL> (["l","L"])?
+      | <OCTAL_LITERAL> (["l","L"])?
+  >
+|
+  < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])* >
+|
+  < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
+|
+  < #OCTAL_LITERAL: "0" (["0"-"7"])* >
+|
+  < FLOATING_POINT:
+        (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? (["f","F","d","D"])?
+      | "." (["0"-"9"])+ (<EXPONENT>)? (["f","F","d","D"])?
+      | (["0"-"9"])+ <EXPONENT> (["f","F","d","D"])?
+      | (["0"-"9"])+ (<EXPONENT>)? ["f","F","d","D"]
+  >
+|
+  < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
+|
+  < CHARACTER:
+      "'"
+      (   (~["'","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )
+      "'"
+  >
+|
+  < STRING:
+      ("\"" | "'")
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      ("\"" | "'")
+  >
+|
+  < MATCHEXP:
+      "`"
+      (   (~["`","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","`","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "`"
+  >
+
+}
+
+
+TOKEN : /* Identifier */
+{
+  < ID: <LETTER> (<LETTER>|<DIGIT>)* >
+|
+  < #LETTER:
+      [
+       "\u0024",
+       "\u0041"-"\u005a",
+       "\u005f",
+       "\u0061"-"\u007a",
+       "\u00c0"-"\u00d6",
+       "\u00d8"-"\u00f6",
+       "\u00f8"-"\u00ff",
+       "\u0100"-"\u1fff",
+       "\u3040"-"\u318f",
+       "\u3300"-"\u337f",
+       "\u3400"-"\u3d2d",
+       "\u4e00"-"\u9fff",
+       "\uf900"-"\ufaff"
+      ]
+  >
+|
+  < #DIGIT:
+      [
+       "\u0030"-"\u0039",
+       "\u0660"-"\u0669",
+       "\u06f0"-"\u06f9",
+       "\u0966"-"\u096f",
+       "\u09e6"-"\u09ef",
+       "\u0a66"-"\u0a6f",
+       "\u0ae6"-"\u0aef",
+       "\u0b66"-"\u0b6f",
+       "\u0be7"-"\u0bef",
+       "\u0c66"-"\u0c6f",
+       "\u0ce6"-"\u0cef",
+       "\u0d66"-"\u0d6f",
+       "\u0e50"-"\u0e59",
+       "\u0ed0"-"\u0ed9",
+       "\u1040"-"\u1049"
+      ]
+  >
+
+}
+
+
+void program(ParsingContext context) :
+{
+}
+{
+  ( LOOKAHEAD(assignement(context))
+  (assignement(context) <SCL>) 
+  | (expression(context) <SCL>)
+  | (zreturn(context) <SCL>)
+  | programBlock(context)
+  ) +
+ {context.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);}
+}
+
+void programBlock(ParsingContext context) :
+{
+}
+{
+  <LBRACE> ( program(context) ) + <RBRACE>
+}
+
+/**
+ * return
+ */
+
+void zreturn(ParsingContext context) :
+{
+}
+{
+  ((<RETURN>)?
+  expression(context))
+}
+
+void assignement(ParsingContext context) :
+{
+}
+{
+    assignableExpression(context) <EQUAL> expression(context)
+   {
+    context.generateCode(org.spf4j.zel.instr.MOV.INSTANCE);
+   }
+}
+
+
+void assignableExpression(ParsingContext context) :
+{
+String name;
+}
+{
+    (<ID> {name = token.image; 
+            context.generateCode(org.spf4j.zel.instr.LODAX.INSTANCE);
+            context.generateCode(name);
+       })
+    ( LOOKAHEAD( 2 )
+        ( <LPAREN>
+        {context.generateCode(EndParamMarker.INSTANCE);}
+        (expression(context) (<COMMA> expression(context))*)?
+         <RPAREN> {context.generateCode(org.spf4j.zel.vm.FuncMarker.INSTANCE);} )
+	| (<DOT> <ID> {name = token.image; context.generateCode(name);} ) 
+        | (<LBRACKET> expression(context) <RBRACKET>)
+	{
+             context.generateCode(org.spf4j.zel.instr.REF.INSTANCE);
+	}
+    )* 
+}
+
+
+
+void expression(ParsingContext context) :
+{}
+{
+    ternary(context)
+}
+
+
+void ternary(ParsingContext context) :
+{Token x;
+ int jmp1;
+ int jmp2;
+}
+{
+    logical(context)
+(
+	( x = <CONDITION> )
+
+        {   jmp1=context.getAddress()+1;
+            context.generateCode(org.spf4j.zel.instr.COND.INSTANCE, null);}
+
+        ternary(context)
+
+        {   jmp2 = context.getAddress()+1;
+            context.generateCode(org.spf4j.zel.instr.JMP.INSTANCE, null);
+            context.generateCodeAt(jmp1, context.getAddress());}
+
+        <CLM>
+        ternary(context)
+
+        {context.generateCodeAt(jmp2, context.getAddress());}
+)?
+}
+
+
+
+void logical(ParsingContext context) :
+{Token x;}
+{
+    compare(context) (
+	( x = <AND> | x = <OR> | x = <XOR> )  compare(context)
+	{
+	    switch (x.kind) {
+		case AND:
+                    context.generateCode(org.spf4j.zel.instr.AND.INSTANCE);
+		    break;
+		case OR:
+                    context.generateCode(org.spf4j.zel.instr.OR.INSTANCE);
+		    break;
+		case XOR:
+                    context.generateCode(org.spf4j.zel.instr.XOR.INSTANCE);
+		    break;
+	    }
+	}
+
+    )*
+}
+
+
+
+void compare(ParsingContext context) :
+{Token x;}
+{
+    sum(context) (
+	( x = <GT> | x = <LT> | x = <GE> | x = <LE> | x = <EQ> | x = <NEQ> )  sum(context)
+	{
+	    switch (x.kind) {
+		case GT:
+                    context.generateCode(org.spf4j.zel.instr.GT.INSTANCE);
+		    break;
+		case LT:
+                    context.generateCode(org.spf4j.zel.instr.LT.INSTANCE);
+		    break;
+		case GE:
+                    context.generateCode(org.spf4j.zel.instr.GE.INSTANCE);
+		    break;
+		case LE:
+                    context.generateCode(org.spf4j.zel.instr.LE.INSTANCE);
+		    break;
+		case EQ:
+                    context.generateCode(org.spf4j.zel.instr.EQ.INSTANCE);
+		    break;
+		case NEQ:
+                    context.generateCode(org.spf4j.zel.instr.NEQ.INSTANCE);
+		    break;
+
+	    }
+	}
+
+    )*
+}
+
+
+void sum(ParsingContext context) :
+{Token x;}
+{
+    term(context) (
+	( x = <PLUS> | x = <MINUS> ) term(context)
+	{
+	    if ( x.kind == PLUS )
+                    context.generateCode(org.spf4j.zel.instr.ADD.INSTANCE);
+	    else
+                    context.generateCode(org.spf4j.zel.instr.SUB.INSTANCE);
+	}
+
+    )*
+}
+
+void term(ParsingContext context) :
+{Token x;}
+{
+    exponent(context) (
+	( x = <MULTIPLY> | x = <DIVIDE> | x = <MOD> ) exponent(context)
+	{
+	    if ( x.kind == MULTIPLY )
+                    context.generateCode(org.spf4j.zel.instr.MUL.INSTANCE);
+	    else if ( x.kind == DIVIDE )
+                    context.generateCode(org.spf4j.zel.instr.DIV.INSTANCE);
+        else context.generateCode(org.spf4j.zel.instr.MOD.INSTANCE);
+	}
+
+    )*
+}
+
+void exponent(ParsingContext context) :
+{ }
+{
+    unaryPost(context) ( LOOKAHEAD( <POW> )
+	<POW> unaryPost(context)
+	{
+             context.generateCode(org.spf4j.zel.instr.POW.INSTANCE);
+	}
+    )*
+}
+
+void unaryPost(ParsingContext context) :
+{Token x;}
+{
+     unary(context, true)
+     (LOOKAHEAD(2)
+      ( <LPAREN>
+        {context.generateCode(EndParamMarker.INSTANCE);}
+        (expression(context) (<COMMA> expression(context))*)?
+      <RPAREN> {context.generateCode(org.spf4j.zel.instr.CALL.INSTANCE);})
+      | 
+	(((<DOT> unary(context, false) ) |
+        (<LBRACKET> expression(context) <RBRACKET>))
+	{
+             context.generateCode(org.spf4j.zel.instr.DEREF.INSTANCE);
+	})
+     ) *
+}
+
+
+void unary(ParsingContext context, boolean left) :
+{Token x;}
+{
+    ((x =<MINUS> | x=<NOT> ) element(context, left)
+	{
+            if ( x.kind == MINUS )
+            {
+                context.generateCode(-1);
+                context.generateCode(org.spf4j.zel.instr.MUL.INSTANCE);
+            }
+            else
+            {
+                context.generateCode(org.spf4j.zel.instr.NOT.INSTANCE);
+            }
+	})
+   | element(context, left)
+
+}
+
+
+
+void element(ParsingContext context, boolean left) :
+{
+    String name;
+}
+{
+(    constant(context)
+    | 
+        (  <ID> {
+            name = token.image; 
+            if (left) {
+                context.generateCode(org.spf4j.zel.instr.LODX.INSTANCE);
+            }
+            context.generateCode(name);} )
+    | sysFunction(context)
+    |  <LPAREN> expression(context) <RPAREN>
+  )
+}
+
+void constant(ParsingContext context) :
+{
+}
+{
+   (
+     <FLOATING_POINT>
+          {   try {
+                if (token.image.endsWith("f") || token.image.endsWith("F")) {
+                    context.generateCode(Float.parseFloat(token.image));
+                } else if (token.image.endsWith("d") || token.image.endsWith("D")) {
+                    context.generateCode(Double.parseDouble(token.image));
+                } else {
+                    context.generateCode(new BigDecimal(token.image));
+                }
+              } catch (NumberFormatException ee) {
+                  throw new ParseException(ee.toString());
+              }
+          }
+    |  <INTEGER>
+      {context.generateCode(parseInteger(token.image));}
+    |   <TRUE>
+	  {context.generateCode(Boolean.valueOf(true));}
+    |   <FALSE>
+	  {context.generateCode(Boolean.valueOf(false));}
+    |  <CHARACTER>
+      {context.generateCode(token.image.substring(1, token.image.length()-1));}
+    |  <NULL>
+      {context.generateCode(null);}
+    |  <STRING>
+      {context.generateCode(token.image.substring(1, token.image.length()-1));}
+    |  <MATCHEXP>
+    {  String rExp = token.image.substring(1, token.image.length()-1);
+       context.process(new WildCardMatcher(rExp));
+       context.generateCode(new WildCardMatcher(rExp));}
+    )
+}
+
+JAVACODE
+Number parseInteger(String intStr)
+{
+       Number obj;
+       if (intStr.endsWith("l") || intStr.endsWith("L")) {
+             try {
+                obj= Long.decode(intStr);
+             } catch(NumberFormatException  ex2) {
+                obj= new BigInteger(intStr);
+             }
+       } else {
+           try {
+             obj = Integer.decode(intStr);
+           } catch(NumberFormatException  e) {
+             try {
+                obj = Long.decode(intStr);
+             } catch(NumberFormatException  ex2) {
+                obj = new BigInteger(intStr);
+             }
+           }
+       }
+       return obj;
+}
+
+
+
+
+void sysFunction(ParsingContext context) :
+{
+    int count = 0;
+    List parameterNames = new ArrayList();
+    Program.Type pType = Program.Type.NONDETERMINISTIC;
+}
+{
+(
+ (<FUNCTION> (<DETERMINISTIC> {pType = Program.Type.DETERMINISTIC;})?
+ (<LPAREN>
+ <ID> {parameterNames.add(token.image);}
+ (<COMMA> <ID> {parameterNames.add(token.image);} )*
+ <RPAREN>)?)
+   {ParsingContext pc = (ParsingContext) context.createSubContext();}
+   programBlock(pc)
+   {ProgramBuilder p=pc.getProgramBuilder();
+    p.setType(pType);
+    context.generateCode(p.toProgram(parameterNames));}
+)
+}
+
+
+
+
+
+

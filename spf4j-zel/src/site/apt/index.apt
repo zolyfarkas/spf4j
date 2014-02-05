@@ -1,0 +1,57 @@
+The Z Expression Language
+
+ Author: zoly
+
+ Scope: A simple but easy to extend language for doing expression evalutions and calculations in java
+ Designed to be a generic and simple to use java component.
+
+ Now there are a few other components out there that do a similar job, here is what it's different (or not :-) ) about this particular implementation:
+
+  1. Implemented using javaCC
+
+  2. Asynchronous programming (all function calls are executed asynchronously)
+
+  3. Expressions are compiled providing decent execution performance
+
+  4. Integer mathematical operations do not overflow. Real number representation can be used seamlessly floating point or fixed point.
+
+  5. Everything is an object, numbers, strings, functions.....you can apply operators across any object if the operation is undefined you will get an exception...
+
+  6. There is only one type of variable:  reference to object,
+     you declare a variable by assigning an object to it, all variables are global (this will probably change).
+   
+  7. ZEL uses the last value out principle, expressions will return the last evaluated expression.There is a return keyword that can be used, but it is optional.
+
+  8. Support for deterministic functions, (aka memorization) executions will be cached for deterministic functions
+
+  10. LGPL license
+
+ Here is how you would use the evaluator in your java code:
+
++-----------------------------------------------------------------------
+EX1:
+
+        Program prog = Program.compile("1+5*4/(1+1);");
+        Number result = (Number) prog.execute();
+        assertEquals(11, result.intValue());
+
+EX2:
+
+        Program prog = Program.compile("a.toString().substring(0, 1 + 1);", "a");
+        String result = (String) prog.execute(Integer.valueOf(100));
+        assertEquals("100".substring(0, 2), result);
+
+EX3:
+
+        String program =
+                  "fib = function deterministic (x) { fib(x-1) + fib(x-2); };\n"
+                + "fib(0) = 0;\n"
+                + "fib(1) = 1;\n"
+                + "fib(200);\n"
+
+        Program compiledProgram = Program.compile(program);
+        Number result = (Number) compiledProgram.execute();
+        Assert.assertEquals(new BigInteger("280571172992510140037611932413038677189525"), result);
+
++-----------------------------------------------------------------------
+  
