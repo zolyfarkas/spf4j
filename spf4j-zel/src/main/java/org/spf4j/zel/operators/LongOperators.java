@@ -10,15 +10,16 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import static org.spf4j.zel.operators.Operator.MATH_CONTEXT;
 
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("NS_DANGEROUS_NON_SHORT_CIRCUIT")
 public final class LongOperators {
     
     private LongOperators() {
     }
 
-    public static final class Add implements Operator<Long, Number> {
+    public static final class Add implements Operator<Long, Number, Number> {
 
         @Override
-        public Object op(final Long a, final Number b) {
+        public Number op(final Long a, final Number b) {
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
@@ -43,10 +44,10 @@ public final class LongOperators {
         }
     }
 
-    public static final class Sub implements Operator<Long, Number> {
+    public static final class Sub implements Operator<Long, Number, Number> {
 
         @Override
-        public Object op(final Long a, final Number b) {
+        public Number op(final Long a, final Number b) {
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
@@ -71,10 +72,10 @@ public final class LongOperators {
         }
     }
 
-    public static final class Mul implements Operator<Long, Number> {
+    public static final class Mul implements Operator<Long, Number, Number> {
 
         @Override
-        public Object op(final Long a, final Number b) {
+        public Number op(final Long a, final Number b) {
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
@@ -96,7 +97,7 @@ public final class LongOperators {
                 if (!(a == 0 || result / a == bb)) {
                     return BigInteger.valueOf(a).multiply(BigInteger.valueOf(bb));
                 }
-                return result;                                       
+                return result;
             } else if (claszB.equals(Double.class)) {
                 return (double) a * ((Double) b);
             } else if (claszB.equals(Float.class)) {
@@ -111,10 +112,10 @@ public final class LongOperators {
         }
     }
 
-    public static final class Div implements Operator<Long, Number> {
+    public static final class Div implements Operator<Long, Number, Number> {
 
         @Override
-        public Object op(final Long a, final Number b) {
+        public Number op(final Long a, final Number b) {
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
@@ -133,10 +134,10 @@ public final class LongOperators {
         }
     }
 
-    public static final class Mod implements Operator<Long, Number> {
+    public static final class Mod implements Operator<Long, Number, Number> {
 
         @Override
-        public Object op(final Long a, final Number b) {
+        public Number op(final Long a, final Number b) {
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
@@ -155,10 +156,10 @@ public final class LongOperators {
         }
     }
 
-    public static final class Pow implements Operator<Long, Number> {
+    public static final class Pow implements Operator<Long, Number, Number> {
 
         @Override
-        public Object op(final Long a, final Number b) {
+        public Number op(final Long a, final Number b) {
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
@@ -183,7 +184,7 @@ public final class LongOperators {
         }
     }
 
-    private static Object powLongInt(final Long a, final Number b) {
+    private static Number powLongInt(final Long a, final Number b) {
         long result;
         try {
             result = LongMath.checkedPow(a, b.intValue());

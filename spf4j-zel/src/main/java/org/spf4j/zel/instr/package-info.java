@@ -15,27 +15,5 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.zel.operators;
-
-import java.math.MathContext;
-
-/**
- *
- * @author zoly
- */
-public interface Operator<A, B, C> {
-    
-    enum Enum { Add, Sub, Div, Mul, Mod, Pow }
-    
-    C op(A a, B b);
-    
-    ThreadLocal<MathContext> MATH_CONTEXT = new ThreadLocal<MathContext>() {
-
-        @Override
-        protected MathContext initialValue() {
-            return MathContext.DECIMAL128;
-        }
-            
-    };
-        
-}
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
+package org.spf4j.zel.instr;

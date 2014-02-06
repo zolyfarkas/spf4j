@@ -32,7 +32,7 @@ public final class Memory extends HashMap {
      * get a value from memory
      */
     public Object getValue(final String name)
-            throws ParseException, ZExecutionException, InterruptedException, ExecutionException {
+            throws CompileException, ZExecutionException, InterruptedException, ExecutionException {
         return Program.getValue(this, name);
     }
 
@@ -44,7 +44,7 @@ public final class Memory extends HashMap {
      * @throws Exception
      */
     public void addValue(final String name, final Object value)
-            throws ParseException, ZExecutionException, InterruptedException, ExecutionException {
+            throws CompileException, ZExecutionException, InterruptedException, ExecutionException {
         Program.addValue(this, name, value);
     }
 

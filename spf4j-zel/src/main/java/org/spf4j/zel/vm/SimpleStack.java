@@ -262,22 +262,21 @@ public final class SimpleStack<T>
     public int hashCode() {
         int hash = 7;
         hash = 37 * hash + Arrays.deepHashCode(this.elems);
-        hash = 37 * hash + this.top;
-        return hash;
+        return 37 * hash + this.top;
     }
 
     @Override
-    public boolean addAll(int index, Collection<? extends T> c) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean addAll(final int index, final Collection<? extends T> c) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public T get(int index) {
+    public T get(final int index) {
         return elems[index];
     }
 
     @Override
-    public T set(int index, T element) {
+    public T set(final int index, final T element) {
         ensureCapacity(index);
         T result = elems[index];
         elems[index] = element;
@@ -285,37 +284,37 @@ public final class SimpleStack<T>
     }
 
     @Override
-    public void add(int index, T element) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void add(final int index, final T element) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public T remove(int index) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public T remove(final int index) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public int indexOf(Object o) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public int indexOf(final Object o) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public int lastIndexOf(Object o) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public int lastIndexOf(final Object o) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public ListIterator<T> listIterator() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public ListIterator<T> listIterator(int index) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public List<T> subList(int fromIndex, int toIndex) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

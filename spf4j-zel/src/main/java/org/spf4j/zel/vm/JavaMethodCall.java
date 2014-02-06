@@ -2,6 +2,7 @@ package org.spf4j.zel.vm;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import org.spf4j.base.Reflections;
 
 /**
  *
@@ -13,13 +14,13 @@ public final class JavaMethodCall implements Method {
     private final Class<?> objectClass;
     private final Object object;
 
-    public JavaMethodCall(final Object object, final String methodName) throws NoSuchMethodException {
+    public JavaMethodCall(final Object object, final String methodName) {
         this.name = methodName;
         this.objectClass = object.getClass();
         this.object = object;
     }
     
-    public JavaMethodCall(final Class<?> objectClass, final String methodName) throws NoSuchMethodException {
+    public JavaMethodCall(final Class<?> objectClass, final String methodName) {
         this.name = methodName;
         this.objectClass = objectClass;
         this.object = null;
@@ -38,7 +39,7 @@ public final class JavaMethodCall implements Method {
             params[i] = obj;
             i--;
         }
-        return ReflectionUtil.getCompatibleMethodCached(objectClass, name, classes)
+        return Reflections.getCompatibleMethodCached(objectClass, name, classes)
                 .invoke(object, params);
     }
 

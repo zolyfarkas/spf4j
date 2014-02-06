@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.vm;
 
+import com.google.common.base.Charsets;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +40,9 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.instr.var.OUT;
+import org.spf4j.zel.vm.gen.ParseException;
+import org.spf4j.zel.vm.gen.TokenMgrError;
+import org.spf4j.zel.vm.gen.ZCompiler;
 
 
 /**
@@ -130,17 +134,15 @@ public final class Program implements Serializable {
      * @return Program
      */
     public static Program compile(@Nonnull final String zExpr, @Nonnull final String... varNames)
-            throws ParseException {
+            throws CompileException {
 
         CompileContext cc = new CompileContext();
         try {
-            ZCompiler.compile(zExpr, cc, varNames);
-        } // transform TokenMgrError to ParseException, Errors are bad and
-        // I like to reserve them for non-recoverable faults
-        catch (TokenMgrError err) {
-            ParseException te = new ParseException(err.getMessage());
-            te.setStackTrace(err.getStackTrace());
-            throw te;
+            ZCompiler.compile(zExpr, cc);
+        } catch (TokenMgrError err) {
+            throw new CompileException(err);
+        } catch (ParseException ex) {
+            throw new CompileException(ex);
         }
         return cc.getProgramBuilder().toProgram(varNames);
 
@@ -160,7 +162,8 @@ public final class Program implements Serializable {
      * @param memory Map
      * @return Object
      */
-    public Object execute(@Nonnull java.util.Map memory, Object... args) throws ZExecutionException, InterruptedException, ExecutionException {
+    public Object execute(@Nonnull java.util.Map memory, Object... args)
+            throws ZExecutionException, InterruptedException, ExecutionException {
         return execute(memory, System.in, System.out, System.err, args);
     }
     
@@ -269,7 +272,7 @@ private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(1, 16,
      * @return Object
      */
     public static Object getValue(@Nonnull final java.util.Map mem, @Nonnull final String name)
-            throws ParseException, ZExecutionException, InterruptedException, ExecutionException {
+            throws CompileException, ZExecutionException, InterruptedException, ExecutionException {
         return Program.compile(name + ";").execute(mem);
     }
 
@@ -285,7 +288,7 @@ private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(1, 16,
      */
     public static void addValue(@Nonnull final java.util.Map mem, @Nonnull final String name,
             final Object value) 
-            throws ParseException, ZExecutionException, InterruptedException, ExecutionException {
+            throws CompileException, ZExecutionException, InterruptedException, ExecutionException {
         Program.compile(name + "=" + value + ";").execute(mem);
     }
 
@@ -340,24 +343,27 @@ private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(1, 16,
      *
      * @param args
      */
-    public static void main(final String[] args) throws IOException, ZExecutionException, InterruptedException {
+    public static void main(final String[] args)
+            throws IOException, ZExecutionException, InterruptedException {
         System.out.println("ZEL Shell");
         boolean terminated = false;
         Memory mem = new Memory();
-        InputStreamReader inp = new InputStreamReader(System.in);
+        InputStreamReader inp = new InputStreamReader(System.in, Charsets.UTF_8);
         BufferedReader br = new BufferedReader(inp);
         while (!terminated) {
             System.out.print("zel>");
             String line = br.readLine();
-            if (line.toUpperCase().startsWith("QUIT")) {
-                terminated = true;
-            } else {
-                try {
-                    Program.compile(line).execute(mem, System.in, System.out, System.err);
-                } catch (ParseException ex) {
-                    System.out.println("Syntax Error: " + ex.getMessage());
-                } catch (ZExecutionException ex) {
-                    System.out.println("Execution Error: " + ex.getMessage());
+            if (line != null) {
+                if (line.toUpperCase().startsWith("QUIT")) {
+                    terminated = true;
+                } else {
+                    try {
+                        Program.compile(line).execute(mem, System.in, System.out, System.err);
+                    } catch (CompileException ex) {
+                        System.out.println("Syntax Error: " + ex.getMessage());
+                    } catch (ZExecutionException ex) {
+                        System.out.println("Execution Error: " + ex.getMessage());
+                    }
                 }
             }
         }

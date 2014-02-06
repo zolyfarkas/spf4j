@@ -1,7 +1,19 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 package org.spf4j.zel.operators;
@@ -25,12 +37,12 @@ public final class Operators {
     {IntegerOperators.class, DoubleOperators.class, LongOperators.class,
         BigIntegerOperators.class, BigDecimalOperators.class};
     
-    private static final Map<Class<?>, Operator<Object, Object>> [] OPS =
+    private static final Map<Class<?>, Operator<Object, Object, Object>> [] OPS =
             new Map[Operator.Enum.values().length];
    
     static {
         for (int i = 0; i < OPS.length; i++) {
-            OPS[i] = new HashMap<Class<?>, Operator<Object, Object>>();
+            OPS[i] = new HashMap<Class<?>, Operator<Object, Object, Object>>();
         }
         Set<String> ops = new HashSet<String>(Operator.Enum.values().length);
         for (Operator.Enum en : Operator.Enum.values()) {
@@ -49,9 +61,9 @@ public final class Operators {
                       } else {
                           throw new RuntimeException("Operators class improperly implemented");
                       }
-                      Operator<?, ?> op = (Operator<?, ?>) subClasz.newInstance();
+                      Operator<?, ?, ?> op = (Operator<?, ?, ?>) subClasz.newInstance();
                       Operator.Enum ope = Operator.Enum.valueOf(claszName);
-                      OPS[ope.ordinal()].put(leftOClasz, (Operator<Object, Object>) op);
+                      OPS[ope.ordinal()].put(leftOClasz, (Operator<Object, Object, Object>) op);
                   } catch (InstantiationException ex) {
                       throw new RuntimeException(ex);
                   } catch (IllegalAccessException ex) {

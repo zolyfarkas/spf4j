@@ -41,6 +41,7 @@ public final class CALL extends Instruction {
     }
 
     @Override
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public void execute(final ExecutionContext context)
             throws ZExecutionException, InterruptedException, VMExecutor.SuspendedException {
         List<Object> parameters = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);

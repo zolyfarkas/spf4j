@@ -15,27 +15,24 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.zel.operators;
-
-import java.math.MathContext;
+package org.spf4j.zel.vm;
 
 /**
  *
  * @author zoly
  */
-public interface Operator<A, B, C> {
-    
-    enum Enum { Add, Sub, Div, Mul, Mod, Pow }
-    
-    C op(A a, B b);
-    
-    ThreadLocal<MathContext> MATH_CONTEXT = new ThreadLocal<MathContext>() {
+public class CompileException extends Exception {
 
-        @Override
-        protected MathContext initialValue() {
-            return MathContext.DECIMAL128;
-        }
-            
-    };
-        
+    public CompileException(String message) {
+        super(message);
+    }
+
+    public CompileException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public CompileException(Throwable cause) {
+        super(cause);
+    }
+    
 }

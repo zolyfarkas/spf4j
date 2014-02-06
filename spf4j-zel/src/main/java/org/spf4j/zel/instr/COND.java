@@ -37,11 +37,10 @@ public final class COND extends Instruction {
             throws ZExecutionException, VMExecutor.SuspendedException {
 
         boolean cond = (java.lang.Boolean) context.popSyncStackVal();
-        int address = ((Number) context.code.get(++context.ip)).intValue();
         if (!cond) {
-            context.ip = address;
+            context.ip = ((Number) context.code.get(++context.ip)).intValue();
         } else {
-            context.ip++;
+            context.ip += 2;
         }
     }
     /**

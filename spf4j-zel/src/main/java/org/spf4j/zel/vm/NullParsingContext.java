@@ -14,7 +14,7 @@ public final class NullParsingContext implements ParsingContext {
     }
 
     @Override
-    public void generateCode(Object... args) {
+    public void generateCode(final Object... args) {
     }
 
     /**
@@ -28,7 +28,7 @@ public final class NullParsingContext implements ParsingContext {
     }
 
     @Override
-    public void process(Object obj) {
+    public void process(final Object obj) {
     }
 
     @Override
@@ -37,7 +37,7 @@ public final class NullParsingContext implements ParsingContext {
     }
 
     @Override
-    public void generateCodeAll(ParsingContext parsingContext) {
+    public void generateCodeAll(final ParsingContext parsingContext) {
     }
 
     @Override
@@ -45,11 +45,11 @@ public final class NullParsingContext implements ParsingContext {
         return INSTANCE;
     }
 
-    public static NullParsingContext INSTANCE = new NullParsingContext();
+    public static final NullParsingContext INSTANCE = new NullParsingContext();
 
 
     @Override
-    public void generateCodeAt(int address, Object... args) {
+    public void generateCodeAt(final int address, final Object... args) {
     }
 
 }

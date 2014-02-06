@@ -30,25 +30,18 @@ options {
 
 PARSER_BEGIN(ZCompiler)
 
-package org.spf4j.zel.vm;
+package org.spf4j.zel.vm.gen;
 
 import java.util.*;
 import java.math.*;
+import org.spf4j.zel.vm.*;
 
 public class ZCompiler
 {
 
-    private StackedMap symbolTable = new StackedMap();
-
-
-    public static void compile(String xpr, ParsingContext context, String[] varNames) throws ParseException
+    public static void compile(String xpr, ParsingContext context) throws ParseException
     {
         ZCompiler parser = new ZCompiler(new java.io.ByteArrayInputStream(xpr.getBytes()));
-        if (varNames != null)
-        {
-            for (int i=0 ; i<varNames.length; i++)
-                parser.symbolTable.put(varNames[i], i);
-        }
         parser.program(context);
     }
 
@@ -298,14 +291,14 @@ void expression(ParsingContext context) :
 
 
 void ternary(ParsingContext context) :
-{Token x;
+{
  int jmp1;
  int jmp2;
 }
 {
     logical(context)
 (
-	( x = <CONDITION> )
+	( <CONDITION> )
 
         {   jmp1=context.getAddress()+1;
             context.generateCode(org.spf4j.zel.instr.COND.INSTANCE, null);}
@@ -341,6 +334,8 @@ void logical(ParsingContext context) :
 		case XOR:
                     context.generateCode(org.spf4j.zel.instr.XOR.INSTANCE);
 		    break;
+                default:
+                    throw new RuntimeException("Unsupported token type " + x);
 	    }
 	}
 
@@ -374,6 +369,8 @@ void compare(ParsingContext context) :
 		case NEQ:
                     context.generateCode(org.spf4j.zel.instr.NEQ.INSTANCE);
 		    break;
+                default:
+                    throw new RuntimeException("Unsupported token type " + x);
 
 	    }
 	}

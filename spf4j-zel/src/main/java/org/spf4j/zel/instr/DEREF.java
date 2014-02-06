@@ -48,11 +48,7 @@ public final class DEREF extends Instruction {
        if (relativeTo instanceof Map) {
            context.push(((Map) relativeTo).get(ref));
        } else {
-           try {
-               context.push(new JavaMethodCall(relativeTo, (String) ref));
-           } catch (NoSuchMethodException ex) {
-               throw new ZExecutionException("invalid method " + ref + " for object " + relativeTo);
-           }
+           context.push(new JavaMethodCall(relativeTo, (String) ref));
        }
        context.ip++;
     }
