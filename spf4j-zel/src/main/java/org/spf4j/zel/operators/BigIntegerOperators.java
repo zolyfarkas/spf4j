@@ -78,7 +78,7 @@ public final class BigIntegerOperators {
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
            
-               return a.multiply(BigInteger.valueOf(b.longValue()));                                      
+               return a.multiply(BigInteger.valueOf(b.longValue()));
             } else if (claszB.equals(Double.class)) {
                 return a.doubleValue() * ((Double) b);
             } else if (claszB.equals(Float.class)) {

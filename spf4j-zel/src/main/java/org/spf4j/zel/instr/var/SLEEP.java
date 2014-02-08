@@ -17,9 +17,11 @@
  */
 package org.spf4j.zel.instr.var;
 
+import java.util.List;
 import org.spf4j.zel.instr.Instruction;
+import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
@@ -36,11 +38,10 @@ public final class SLEEP extends Instruction {
 
     @Override
     public void execute(final ExecutionContext context)
-            throws ZExecutionException, VMExecutor.SuspendedException {
+            throws ZExecutionException, SuspendedException {
         try {
-            final long val = ((Number) context.popSyncStackVal()).longValue();
-            context.pop();
-            Thread.sleep(val);
+            List<Object> params = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
+            Thread.sleep(((Number) params.get(0)).longValue());
             context.ip++;
         } catch (InterruptedException ex) {
             throw new ZExecutionException("sleeping interrupted", ex, context);

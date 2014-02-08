@@ -30,7 +30,7 @@ public final class NOP extends Instruction {
     /**
      * does nothing, my favorite instruction
      */
-    public void execute(ExecutionContext context) throws ZExecutionException {
+    public void execute(final ExecutionContext context) throws ZExecutionException {
         // Do nothing, guaranteed no bugs
     }
     /**

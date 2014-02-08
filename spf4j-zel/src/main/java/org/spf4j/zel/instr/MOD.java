@@ -20,7 +20,7 @@ package org.spf4j.zel.instr;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 
 
 
@@ -39,7 +39,7 @@ public final class MOD extends Instruction {
      * @throws VMException
      */
     @Override
-    public void execute(final ExecutionContext context) throws VMExecutor.SuspendedException {
+    public void execute(final ExecutionContext context) throws SuspendedException {
         Object [] vals = context.popSyncStackVals(2);
         context.push(Operators.apply(Operator.Enum.Mod, vals[1], vals[0]));
         context.ip++;

@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 /**
@@ -40,7 +40,7 @@ public final class REF extends Instruction {
      */
     @Override
     public void execute(final ExecutionContext context)
-            throws ZExecutionException, VMExecutor.SuspendedException {
+            throws ZExecutionException, SuspendedException {
        Object [] vals = context.popSyncStackVals(2);
        final Object ref = vals[0];
        final Object relTo = vals[1];

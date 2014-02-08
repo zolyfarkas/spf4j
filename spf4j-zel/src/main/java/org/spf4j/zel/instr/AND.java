@@ -18,7 +18,7 @@
 package org.spf4j.zel.instr;
 
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 
 
 public final class AND extends Instruction {
@@ -34,7 +34,7 @@ public final class AND extends Instruction {
      */
     @Override
     public void execute(final ExecutionContext context)
-            throws VMExecutor.SuspendedException {
+            throws SuspendedException {
         Object [] vals = context.popSyncStackVals(2);
         context.push(((java.lang.Boolean) vals[0]) && ((java.lang.Boolean) vals[1]));
         context.ip++;

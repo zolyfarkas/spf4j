@@ -21,7 +21,7 @@ import java.util.List;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 
 
 
@@ -38,7 +38,7 @@ public final class DECODE extends Instruction {
 
     @Override
     public void execute(final ExecutionContext context)
-            throws VMExecutor.SuspendedException {
+            throws SuspendedException {
         Object param;
         Object result = null;
 

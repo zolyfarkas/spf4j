@@ -35,7 +35,7 @@ public final class DUP extends Instruction {
      * @param context ExecutionContext
      * @throws VMException
      */
-    public void execute(ExecutionContext context) {
+    public void execute(final ExecutionContext context) {
         context.push(context.peek());
         context.ip++;
     }

@@ -19,40 +19,28 @@ package org.spf4j.zel.instr.var;
 
 import java.util.List;
 import java.util.ListIterator;
-import org.spf4j.zel.instr.Instruction;
-import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
-import org.spf4j.zel.vm.VMExecutor;
-import org.spf4j.zel.vm.ZExecutionException;
 
-public final class OUT extends Instruction implements Method {
+public final class OUT implements Method {
 
     private static final long serialVersionUID = -1902851538294062563L;
 
     private OUT() {
     }
-
-    @Override
-    public void execute(final ExecutionContext context)
-            throws ZExecutionException, VMExecutor.SuspendedException {
-        List<Object> params = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
-        for (Object obj : params) {
-            context.out.print(obj);
-        }
-        context.ip++;
-    }
     /**
      * instance
      */
-    public static final Instruction INSTANCE = new OUT();
+    public static final Method INSTANCE = new OUT();
 
     @Override
-    public Object invokeInverseParamOrder(final List<Object> parameters) throws Exception {
+    public Object invokeInverseParamOrder(final ExecutionContext context, final List<Object> parameters)
+            throws Exception {
         ListIterator<Object> listIterator = parameters.listIterator(parameters.size());
-
         while (listIterator.hasPrevious()) {
-            System.out.println(listIterator.previous());
+            if (context.out != null) {
+                context.out.println(listIterator.previous());
+            }
         }
         return null;
     }

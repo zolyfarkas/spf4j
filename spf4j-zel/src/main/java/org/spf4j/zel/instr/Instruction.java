@@ -21,7 +21,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import javax.annotation.Nullable;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 /**
@@ -42,7 +42,7 @@ public abstract class Instruction implements Serializable {
      * @throws java.lang.InterruptedException
      */
     public abstract void execute(ExecutionContext context)
-            throws ZExecutionException, InterruptedException, VMExecutor.SuspendedException;
+            throws ZExecutionException, InterruptedException, SuspendedException;
 
     /**
      * Outputs Instruction Name - use for debug purposes ...

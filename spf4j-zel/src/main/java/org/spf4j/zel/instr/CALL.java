@@ -25,7 +25,7 @@ import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.SimpleStack;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
@@ -43,7 +43,7 @@ public final class CALL extends Instruction {
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public void execute(final ExecutionContext context)
-            throws ZExecutionException, InterruptedException, VMExecutor.SuspendedException {
+            throws ZExecutionException, InterruptedException, SuspendedException {
         List<Object> parameters = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
         Object function = context.pop();
 
@@ -75,7 +75,7 @@ public final class CALL extends Instruction {
             context.push(obj);
         } else if (function instanceof Method) {
             try {
-                context.push(((Method) function).invokeInverseParamOrder(parameters));
+                context.push(((Method) function).invokeInverseParamOrder(context, parameters));
             } catch (IllegalAccessException ex) {
                 throw new ZExecutionException("cannot invoke " + function, ex);
             } catch (InvocationTargetException ex) {

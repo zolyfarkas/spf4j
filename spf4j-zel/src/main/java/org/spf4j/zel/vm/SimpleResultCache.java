@@ -19,32 +19,40 @@ package org.spf4j.zel.vm;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * simple implementation for resultcache.
  *
  * @author zoly
  */
-@NotThreadSafe
-public class SimpleResultCache implements ResultCache {
+@ThreadSafe
+public final class SimpleResultCache implements ResultCache {
 
-    private final Map<Object, Object> permanentCache;
-    
+    private final ConcurrentMap<Object, Object> permanentCache;
+
     private final Cache<Object, Object> transientCache;
-    
+
     public SimpleResultCache() {
+        this(100000);
+    }
+
+    public SimpleResultCache(final int maxSize) {
         permanentCache = new ConcurrentHashMap<Object, Object>();
-        transientCache = CacheBuilder.newBuilder().maximumSize(100000).build();
+        transientCache = CacheBuilder.newBuilder().maximumSize(maxSize).build();
     }
 
     @Override
     public void putPermanentResult(final Object key, final Object result) {
-        permanentCache.put(key, result);
+        if (result == null) {
+            permanentCache.put(key, ResultCache.NULL);
+        } else {
+            permanentCache.put(key, result);
+        }
     }
 
     @Override
@@ -57,14 +65,28 @@ public class SimpleResultCache implements ResultCache {
     }
 
     @Override
-    public Object getResult(final Object key, final Callable<Object> compute) throws ZExecutionException {
+    public Object getResult(final Object key, final Callable<Object> compute)
+            throws ZExecutionException {
         Object result = permanentCache.get(key);
         if (result == null) {
             try {
-                result = transientCache.get(key, compute);
+                result = transientCache.get(key, new Callable<Object>() {
+                    @Override
+                    public Object call() throws Exception {
+                        Object result = compute.call();
+                        if (result == null) {
+                            return ResultCache.NULL;
+                        } else {
+                            return result;
+                        }
+                    }
+                });
             } catch (ExecutionException ex) {
-               throw new ZExecutionException(ex);
+                throw new ZExecutionException(ex);
             }
+        }
+        if (result == ResultCache.NULL) {
+            result = null;
         }
         return result;
     }
@@ -74,6 +96,4 @@ public class SimpleResultCache implements ResultCache {
         return "SimpleResultCache{" + "permanentCache=" + permanentCache + ", transientCache=" + transientCache + '}';
     }
 
-    
-    
 }

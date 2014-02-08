@@ -20,7 +20,7 @@ package org.spf4j.zel.instr.var;
 
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
@@ -34,7 +34,7 @@ public final class LOG10 extends Instruction {
 
     @Override
     public void execute(final ExecutionContext context)
-            throws ZExecutionException, VMExecutor.SuspendedException {
+            throws ZExecutionException, SuspendedException {
         final Number val = (Number) context.popSyncStackVal();
         context.pop(); // TODO unclean endparma marker expectation
         context.push(Math.log(val.doubleValue()) / Math.log(10));

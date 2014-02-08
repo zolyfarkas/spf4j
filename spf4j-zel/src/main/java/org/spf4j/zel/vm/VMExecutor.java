@@ -16,36 +16,18 @@ import org.spf4j.concurrent.FutureBean;
  *
  * @author zoly
  */
-public class VMExecutor {
-
-    public static class SuspendedException extends Exception {
-
-        private final FutureBean<Object> suspendedAt;
-
-        public SuspendedException(FutureBean<Object> suspendedAt) {
-            this.suspendedAt = suspendedAt;
-        }
-
-        public FutureBean<Object> getSuspendedAt() {
-            return suspendedAt;
-        }
-
-        @Override
-        public Throwable fillInStackTrace() {
-            return this;
-        }
-
-    }
+public final class VMExecutor {
 
     public interface Suspendable<T> extends Callable<T> {
 
+        @Override
         T call() throws SuspendedException, ZExecutionException, InterruptedException;
 
     }
 
     private final Executor exec;
 
-    public VMExecutor(Executor exec) {
+    public VMExecutor(final Executor exec) {
         this.exec = exec;
     }
 

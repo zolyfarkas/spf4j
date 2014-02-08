@@ -23,15 +23,15 @@ package org.spf4j.zel.vm;
  */
 public class CompileException extends Exception {
 
-    public CompileException(String message) {
+    public CompileException(final String message) {
         super(message);
     }
 
-    public CompileException(String message, Throwable cause) {
+    public CompileException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public CompileException(Throwable cause) {
+    public CompileException(final Throwable cause) {
         super(cause);
     }
     

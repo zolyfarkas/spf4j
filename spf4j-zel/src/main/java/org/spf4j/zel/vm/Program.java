@@ -152,7 +152,7 @@ public final class Program implements Serializable {
         return execute(newMem(), System.in, System.out, System.err);
     }
 
-    public Object execute(Object... args) throws ZExecutionException, InterruptedException {
+    public Object execute(final Object... args) throws ZExecutionException, InterruptedException {
         return execute(newMem(), System.in, System.out, System.err, args);
     }
 
@@ -162,7 +162,7 @@ public final class Program implements Serializable {
      * @param memory Map
      * @return Object
      */
-    public Object execute(@Nonnull java.util.Map memory, Object... args)
+    public Object execute(@Nonnull final java.util.Map memory, final Object... args)
             throws ZExecutionException, InterruptedException, ExecutionException {
         return execute(memory, System.in, System.out, System.err, args);
     }
@@ -170,7 +170,7 @@ public final class Program implements Serializable {
     private static final HierarchicalMap BUILTINS = new HierarchicalMap(new HashMap<Object, Object>());
     
     static {
-        BUILTINS.put("out", OUT.INSTANCE);             
+        BUILTINS.put("out", OUT.INSTANCE);
     }
     
     
@@ -187,8 +187,9 @@ public final class Program implements Serializable {
      * @return Object
      * @throws com.zoltran.z.vm.ExecutionException
      */
-    public Object execute(@Nonnull final java.util.Map memory, @Nonnull final InputStream in,
-            @Nonnull final PrintStream out, @Nonnull final PrintStream err, ThreadPoolExecutor execService, Object... args)
+    public Object execute(@Nonnull final java.util.Map memory, @Nullable final InputStream in,
+            @Nullable final PrintStream out, @Nullable final PrintStream err,
+            final ThreadPoolExecutor execService, final Object... args)
             throws ZExecutionException, InterruptedException {
         HierarchicalMap map = new HierarchicalMap(BUILTINS, memory);
         final ExecutionContext ectx = new ExecutionContext(this, map, in, out, err, execService);
@@ -204,7 +205,8 @@ public final class Program implements Serializable {
         return new VMExecutor.Suspendable<Object>() {
 
             @Override
-            public synchronized Object call() throws ZExecutionException, InterruptedException, VMExecutor.SuspendedException {
+            public synchronized Object call()
+                    throws ZExecutionException, InterruptedException, SuspendedException {
                 while (!ectx.terminated) {
                     Object code = ectx.code.instructions[ectx.ip];
                     if (code instanceof Instruction) {
@@ -247,10 +249,10 @@ public final class Program implements Serializable {
 
 private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(1, 16,
                                       0L, TimeUnit.MILLISECONDS,
-                                      new LinkedBlockingQueue<Runnable>());    
+                                      new LinkedBlockingQueue<Runnable>());
     
     public Object execute(@Nonnull final java.util.Map memory, @Nonnull final InputStream in,
-            @Nonnull final PrintStream out, @Nonnull final PrintStream err, Object... args)
+            @Nonnull final PrintStream out, @Nonnull final PrintStream err, final Object... args)
             throws ZExecutionException, InterruptedException {
         return execute(memory, in, out, err, DEF_EXEC, args);
     }
@@ -287,7 +289,7 @@ private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(1, 16,
      * @throws java.lang.InterruptedException
      */
     public static void addValue(@Nonnull final java.util.Map mem, @Nonnull final String name,
-            final Object value) 
+            final Object value)
             throws CompileException, ZExecutionException, InterruptedException, ExecutionException {
         Program.compile(name + "=" + value + ";").execute(mem);
     }

@@ -20,7 +20,7 @@ package org.spf4j.zel.instr;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 
 
 /**
@@ -42,7 +42,8 @@ public final class ADD extends Instruction {
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context) throws VMExecutor.SuspendedException {
+    public void execute(final ExecutionContext context)
+            throws SuspendedException {
         final Object[] vals = context.popSyncStackVals(2);
         context.push(Operators.apply(Operator.Enum.Add, vals[0], vals[1]));
         context.ip++;

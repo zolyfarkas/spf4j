@@ -18,7 +18,7 @@
 package org.spf4j.zel.instr;
 
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 
 /**
  *
@@ -32,7 +32,7 @@ public final class GE extends Instruction {
     }
 
     @Override
-    public void execute(final ExecutionContext context) throws VMExecutor.SuspendedException {
+    public void execute(final ExecutionContext context) throws SuspendedException {
         Object [] vals = context.popSyncStackVals(2);
         context.push(Boolean.valueOf(((Comparable) vals[0]).
                 compareTo(vals[1]) <= 0));

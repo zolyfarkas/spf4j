@@ -36,7 +36,7 @@ public final class HALT extends Instruction {
      * @param context ExecutionContext
      * @throws ZExecutionException
      */
-    public void execute(ExecutionContext context) throws ZExecutionException {
+    public void execute(final ExecutionContext context) throws ZExecutionException {
         context.terminated = true;
     }
     /**

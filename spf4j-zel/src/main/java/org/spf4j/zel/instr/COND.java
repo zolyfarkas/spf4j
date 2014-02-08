@@ -18,7 +18,7 @@
 package org.spf4j.zel.instr;
 
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 /**
@@ -33,9 +33,8 @@ public final class COND extends Instruction {
     }
 
     @Override
-    public void execute(ExecutionContext context)
-            throws ZExecutionException, VMExecutor.SuspendedException {
-
+    public void execute(final ExecutionContext context)
+            throws ZExecutionException, SuspendedException {
         boolean cond = (java.lang.Boolean) context.popSyncStackVal();
         if (!cond) {
             context.ip = ((Number) context.code.get(++context.ip)).intValue();

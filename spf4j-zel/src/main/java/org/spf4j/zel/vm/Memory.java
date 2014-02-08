@@ -50,7 +50,6 @@ public final class Memory extends HashMap {
 
     /**
      * dump the core for this memory
-     * @return 
      */
     public String dumpCore() {
         return Program.dumpCore("[root]", this, 1, -1);
@@ -59,7 +58,6 @@ public final class Memory extends HashMap {
     /**
      * dump the core for this maxLevel
      * @param maxLevel
-     * @return 
      */
     public String dumpCore(final int maxLevel) {
         return Program.dumpCore("[root]", this, 1, maxLevel + 1);
@@ -67,7 +65,6 @@ public final class Memory extends HashMap {
 
     /**
      * to string for debug purposes, limited to descend max 2 levels
-     * @return 
      */
     @Override
     public String toString() {

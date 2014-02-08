@@ -21,7 +21,7 @@ import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 
 
 
@@ -37,7 +37,7 @@ public final class EXP extends Instruction {
     }
 
     @Override
-    public final void execute(final ExecutionContext context) throws VMExecutor.SuspendedException {
+    public void execute(final ExecutionContext context) throws SuspendedException {
         final Number val = ((Number) context.popSyncStackVal()).doubleValue();
         context.pop();
         context.push(Operators.apply(Operator.Enum.Pow, Math.E, val));

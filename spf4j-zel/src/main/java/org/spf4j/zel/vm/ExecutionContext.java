@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.concurrent.FutureBean;
 
 /**
@@ -32,8 +34,10 @@ import org.spf4j.concurrent.FutureBean;
  *
  * @author zoly
  */
+@ParametersAreNonnullByDefault
 public final class ExecutionContext {
 
+    //CHECKSTYLE:OFF
     public final VMExecutor execService;
 
     public final ResultCache resultCache;
@@ -66,22 +70,27 @@ public final class ExecutionContext {
     /**
      * Standard Input
      */
-    public InputStream in = null;
+    public final InputStream in;
 
     /**
      * Standard Output
      */
-    public PrintStream out = null;
+    public final PrintStream out;
 
     /**
      * Standard Error Output
      */
-    public PrintStream err = null;
+    public final PrintStream err;
 
+    
+    //CHECKSTYLE:ON
+    
     /**
      * The parent Execution Context
      */
-    public final ExecutionContext parent;
+    private final ExecutionContext parent;
+    
+    
 
     private ExecutionContext(final ExecutionContext parent, final VMExecutor service, final Program program) {
         this.in = parent.in;
@@ -105,7 +114,8 @@ public final class ExecutionContext {
      * @param err
      */
     public ExecutionContext(final Program program, final java.util.Map memory,
-            final InputStream in, final PrintStream out, final PrintStream err, final ExecutorService execService) {
+            @Nullable final InputStream in, @Nullable final PrintStream out, @Nullable final PrintStream err,
+            final ExecutorService execService) {
         this.code = program;
         this.memory = new HierarchicalMap(memory);
         this.in = in;
@@ -123,7 +133,7 @@ public final class ExecutionContext {
      *
      * @return Object
      */
-    public Object popSyncStackVal() throws VMExecutor.SuspendedException {
+    public Object popSyncStackVal() throws SuspendedException {
         Object result = this.stack.pop();
         if (result instanceof FutureBean<?>) {
             try {
@@ -132,7 +142,7 @@ public final class ExecutionContext {
                     return (resFut).get();
                 } else {
                     this.stack.push(result);
-                    throw new VMExecutor.SuspendedException(resFut);
+                    throw new SuspendedException(resFut);
                 }
             } catch (InterruptedException ex) {
                 throw new RuntimeException(ex);
@@ -144,7 +154,7 @@ public final class ExecutionContext {
         }
     }
 
-    public Object[] popSyncStackVals(int nvals) throws VMExecutor.SuspendedException {
+    public Object[] popSyncStackVals(final int nvals) throws SuspendedException {
         Object[] result = new Object[nvals];
         for (int i = 0; i < nvals; i++) {
             result[i] = stack.pop();
@@ -160,7 +170,7 @@ public final class ExecutionContext {
                         for (int j = nvals - 1; j >= 0; j--) {
                             stack.push(result[j]);
                         }
-                        throw new VMExecutor.SuspendedException(resFut);
+                        throw new SuspendedException(resFut);
                     }
                 } catch (InterruptedException ex) {
                     throw new RuntimeException(ex);
@@ -172,7 +182,7 @@ public final class ExecutionContext {
         return result;
     }
     
-    public List<Object> popSyncStackValsUntil(final Object until) throws VMExecutor.SuspendedException {
+    public List<Object> popSyncStackValsUntil(final Object until) throws SuspendedException {
         List<Object> result = new ArrayList<Object>();
         Object param;
         while (((param = stack.pop()) != until)) {
@@ -191,7 +201,7 @@ public final class ExecutionContext {
                         for (int j = l - 1; j >= 0; j--) {
                             stack.push(result.get(j));
                         }
-                        throw new VMExecutor.SuspendedException(resFut);
+                        throw new SuspendedException(resFut);
                     }
                 } catch (InterruptedException ex) {
                     throw new RuntimeException(ex);
@@ -209,7 +219,7 @@ public final class ExecutionContext {
         return this.stack.pop();
     }
 
-    public void push(final Object obj) {
+    public void push(@Nullable final Object obj) {
         this.stack.push(obj);
     }
 

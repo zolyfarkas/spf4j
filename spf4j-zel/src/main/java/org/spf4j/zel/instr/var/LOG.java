@@ -19,7 +19,7 @@ package org.spf4j.zel.instr.var;
 
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
@@ -32,8 +32,8 @@ public final class LOG extends Instruction {
     }
     
     @Override
-    public final void execute(final ExecutionContext context)
-            throws ZExecutionException, VMExecutor.SuspendedException {
+    public void execute(final ExecutionContext context)
+            throws ZExecutionException, SuspendedException {
         final Number val = (Number) context.popSyncStackVal();
         context.pop(); // TODO End param Marker Expectation
         context.push(Math.log(val.doubleValue()));

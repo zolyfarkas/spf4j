@@ -15,7 +15,6 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.zel.vm;
 
 import org.spf4j.zel.instr.Instruction;
@@ -24,63 +23,56 @@ import org.spf4j.zel.instr.Instruction;
  *
  * @author zoly
  */
-public final class ConstantParsingContext implements ParsingContext
-{
+public final class ConstantParsingContext implements ParsingContext {
+
     private Object obj;
 
-
     @Override
-    public void generateCode(Object... args)
-    {
-      for (Object o : args)
-      if (!(o instanceof Instruction))
-            obj=o;
+    public void generateCode(final Object... args) {
+        for (Object o : args) {
+            if (!(o instanceof Instruction)) {
+                obj = o;
+            }
+        }
 
     }
 
     /**
      * return the current code address
+     *
      * @return
      */
     @Override
-    public int getAddress()
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-
-    @Override
-    public void process(Object obj)
-    {
+    public int getAddress() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public ProgramBuilder getProgramBuilder()
-    {
+    public void process(final Object p) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public void generateCodeAll(ParsingContext parsingContext)
-    {
+    public ProgramBuilder getProgramBuilder() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public ConstantParsingContext createSubContext()
-    {
+    public void generateCodeAll(final ParsingContext parsingContext) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public ConstantParsingContext createSubContext() {
         return this;
     }
 
-    public Object getConstant()
-    {
+    public Object getConstant() {
         return obj;
     }
 
     @Override
-    public void generateCodeAt(int address, Object... args)
-    {
+    public void generateCodeAt(final int address, final Object... args) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 }

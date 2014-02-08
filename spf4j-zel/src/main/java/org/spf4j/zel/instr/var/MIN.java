@@ -23,7 +23,7 @@ import java.util.List;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 public final class MIN extends Instruction {
@@ -35,7 +35,7 @@ public final class MIN extends Instruction {
 
     @Override
     public void execute(final ExecutionContext context)
-            throws ZExecutionException, VMExecutor.SuspendedException {
+            throws ZExecutionException, SuspendedException {
         List<Object> params = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
         Iterator<Object> it = params.iterator();
         Comparable min = (Comparable) it.next();

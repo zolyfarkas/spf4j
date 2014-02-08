@@ -14,9 +14,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public final class ProgramBuilder {
 
-    private static final int defaultSize = 32;
+    private static final int DEFAULT_SIZE = 16;
 
-    private static final int maxGrowthSize = 512;
 
     private Object[] instructions;
 
@@ -24,16 +23,16 @@ public final class ProgramBuilder {
 
     private Program.Type type;
 
-    private static final AtomicInteger counter = new AtomicInteger();
+    private static final AtomicInteger COUNTER = new AtomicInteger();
 
-    public static final synchronized int generateID() {
-        return counter.getAndIncrement();
+    public static int generateID() {
+        return COUNTER.getAndIncrement();
     }
     /**
      * initializes the program
      */
     public ProgramBuilder() {
-        instructions = new Object[defaultSize];
+        instructions = new Object[DEFAULT_SIZE];
         instrNumber = 0;
         type = Program.Type.NONDETERMINISTIC;
     }
@@ -59,34 +58,34 @@ public final class ProgramBuilder {
     /**
      * @param type the type to set
      */
-    public void setType(Program.Type type) {
+    public void setType(final Program.Type type) {
         this.type = type;
     }
 
-    public void add(Object object) {
+    public void add(final Object object) {
         ensureCapacity(instrNumber + 1);
         instructions[instrNumber++] = object;
     }
 
-    public void set(int idx, Object object) {
+    public void set(final int idx, final Object object) {
         ensureCapacity(idx + 1);
         instructions[idx] = object;
         instrNumber = Math.max(idx + 1, instrNumber);
     }
 
-    public void addAll(Object[] objects) {
+    public void addAll(final Object[] objects) {
         ensureCapacity(instrNumber + objects.length);
         System.arraycopy(objects, 0, instructions, instrNumber, objects.length);
         instrNumber += objects.length;
     }
 
-    public void setAll(int idx, Object[] objects) {
+    public void setAll(final int idx, final Object[] objects) {
         ensureCapacity(idx + objects.length);
         System.arraycopy(objects, 0, instructions, idx, objects.length);
         instrNumber = Math.max(objects.length + idx, instrNumber);
     }
 
-    public void addAll(ProgramBuilder opb) {
+    public void addAll(final ProgramBuilder opb) {
         ensureCapacity(instrNumber + opb.instrNumber);
         System.arraycopy(opb.instructions, 0, instructions, instrNumber, opb.instrNumber);
         instrNumber += opb.instrNumber;
@@ -101,13 +100,7 @@ public final class ProgramBuilder {
     public void ensureCapacity(final int minCapacity) {
         int oldCapacity = instructions.length;
         if (minCapacity > oldCapacity) {
-            int newCapacity = 0;
-            if (oldCapacity > maxGrowthSize) {
-                newCapacity = oldCapacity + maxGrowthSize;
-            } else {
-                newCapacity = oldCapacity << 1;
-            }
-
+            int newCapacity = (oldCapacity * 3) / 2 + 1;
             if (newCapacity < minCapacity) {
                 newCapacity = minCapacity;
             }

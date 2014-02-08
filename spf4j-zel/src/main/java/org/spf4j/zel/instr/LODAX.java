@@ -41,7 +41,7 @@ public final class LODAX extends Instruction {
         context.push(new AssignableValue() {
 
             @Override
-            public void assign(Object object) {
+            public void assign(final Object object) {
                 context.memory.put(ref, object);
             }
 

@@ -20,7 +20,7 @@ package org.spf4j.zel.instr;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
@@ -40,7 +40,7 @@ public final class MUL extends Instruction {
      */
     @Override
     public void execute(final ExecutionContext context)
-            throws ZExecutionException, VMExecutor.SuspendedException {
+            throws ZExecutionException, SuspendedException {
         Object[] vals = context.popSyncStackVals(2);
         context.push(Operators.apply(Operator.Enum.Mul, vals[0], vals[1]));
         context.ip++;

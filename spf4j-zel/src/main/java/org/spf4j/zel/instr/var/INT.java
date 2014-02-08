@@ -18,10 +18,10 @@
 package org.spf4j.zel.instr.var;
 
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
 import org.spf4j.zel.instr.Instruction;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 /**
@@ -48,7 +48,7 @@ public final class INT extends Instruction {
      */
     @Override
     public void execute(final ExecutionContext context)
-            throws ZExecutionException, VMExecutor.SuspendedException {
+            throws ZExecutionException, SuspendedException {
         Number val = (Number) context.popSyncStackVal();
         context.pop();
         if (val instanceof Integer || val instanceof Short || val instanceof Byte) {

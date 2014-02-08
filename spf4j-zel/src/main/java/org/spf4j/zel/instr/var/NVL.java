@@ -21,7 +21,7 @@ import java.util.List;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
@@ -35,7 +35,7 @@ public final class NVL extends Instruction {
 
     @Override
     public void execute(final ExecutionContext context)
-            throws ZExecutionException, VMExecutor.SuspendedException {
+            throws ZExecutionException, SuspendedException {
         List<Object> vals = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
         final Object expression = vals.get(1);
         if (expression == null) {

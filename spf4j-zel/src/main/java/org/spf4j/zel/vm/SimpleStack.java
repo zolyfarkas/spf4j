@@ -193,7 +193,7 @@ public final class SimpleStack<T>
     }
 
     @Override
-    public boolean contains(Object o) {
+    public boolean contains(final Object o) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -208,38 +208,38 @@ public final class SimpleStack<T>
     }
 
     @Override
-    public <T> T[] toArray(T[] a) {
+    public <T> T[] toArray(final T[] a) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public boolean add(T e) {
+    public boolean add(final T e) {
         push(e);
         return true;
     }
 
     @Override
-    public boolean remove(Object o) {
+    public boolean remove(final Object o) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public boolean containsAll(Collection<?> c) {
+    public boolean containsAll(final Collection<?> c) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public boolean addAll(Collection<? extends T> c) {
+    public boolean addAll(final Collection<? extends T> c) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public boolean removeAll(Collection<?> c) {
+    public boolean removeAll(final Collection<?> c) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public boolean retainAll(Collection<?> c) {
+    public boolean retainAll(final Collection<?> c) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -309,12 +309,12 @@ public final class SimpleStack<T>
     }
 
     @Override
-    public ListIterator<T> listIterator(int index) {
+    public ListIterator<T> listIterator(final int index) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public List<T> subList(int fromIndex, int toIndex) {
+    public List<T> subList(final int fromIndex, final int toIndex) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 }
