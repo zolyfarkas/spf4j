@@ -163,7 +163,7 @@ public final class Program implements Serializable {
      * @return Object
      */
     public Object execute(@Nonnull final java.util.Map memory, final Object... args)
-            throws ZExecutionException, InterruptedException, ExecutionException {
+            throws ZExecutionException, InterruptedException {
         return execute(memory, System.in, System.out, System.err, args);
     }
     
@@ -334,7 +334,7 @@ private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(1, 16,
                 result.append(dumpCore(elem.getKey().toString(), elem.getValue(), indent + 1, maxIndent));
             }
         } else {
-            result.append(strIndent(indent)).append(name).append('=').append(mem.toString()).append('\n');
+            result.append(strIndent(indent)).append(name).append('=').append(mem).append('\n');
         }
         return result.toString();
     }

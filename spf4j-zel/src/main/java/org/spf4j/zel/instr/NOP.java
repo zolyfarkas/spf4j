@@ -18,7 +18,6 @@
 package org.spf4j.zel.instr;
 
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.ZExecutionException;
 
 public final class NOP extends Instruction {
 
@@ -30,7 +29,8 @@ public final class NOP extends Instruction {
     /**
      * does nothing, my favorite instruction
      */
-    public void execute(final ExecutionContext context) throws ZExecutionException {
+    @Override
+    public void execute(final ExecutionContext context) {
         // Do nothing, guaranteed no bugs
     }
     /**

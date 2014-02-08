@@ -158,7 +158,7 @@ public final class SimpleStack<T>
     public T getFromPtr(final int ptr) {
         if (ptr < 0 || ptr >= top) {
             throw new IndexOutOfBoundsException(
-                    "Trying to get from invalid index: " + ptr + " from: " + this.toString());
+                    "Trying to get from invalid index: " + ptr + " from: " + this);
         }
         return elems[ptr];
     }
@@ -174,7 +174,7 @@ public final class SimpleStack<T>
             return "";
         }
         final StringBuilder result = new StringBuilder(32);
-        result.append(elems[0].toString());
+        result.append(elems[0]);
         for (int i = 1; i < top; i++) {
             result.append(separator);
             result.append(elems[i]);

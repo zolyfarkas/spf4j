@@ -18,7 +18,6 @@
 package org.spf4j.zel.instr;
 
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.ZExecutionException;
 
 /**
  * @author zoly
@@ -36,7 +35,8 @@ public final class HALT extends Instruction {
      * @param context ExecutionContext
      * @throws ZExecutionException
      */
-    public void execute(final ExecutionContext context) throws ZExecutionException {
+    @Override
+    public void execute(final ExecutionContext context) {
         context.terminated = true;
     }
     /**
