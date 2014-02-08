@@ -40,7 +40,7 @@ public final class NopMeasurementRecorderSource implements MeasurementRecorderSo
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
     }
     
 }

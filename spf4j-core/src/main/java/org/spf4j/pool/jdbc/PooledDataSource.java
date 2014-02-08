@@ -63,27 +63,27 @@ public final class PooledDataSource implements DataSource {
     }
 
     @Override
-    public Connection getConnection(final String username, final String password) throws SQLException {
+    public Connection getConnection(final String username, final String password) {
         throw new UnsupportedOperationException("Unsupported operation");
     }
 
     @Override
-    public PrintWriter getLogWriter() throws SQLException {
+    public PrintWriter getLogWriter() {
         throw new UnsupportedOperationException("Unsupported operation");
     }
 
     @Override
-    public void setLogWriter(final PrintWriter out) throws SQLException {
+    public void setLogWriter(final PrintWriter out) {
         throw new UnsupportedOperationException("Unsupported operation");
     }
 
     @Override
-    public void setLoginTimeout(final int seconds) throws SQLException {
+    public void setLoginTimeout(final int seconds) {
         throw new UnsupportedOperationException("Unsupported operation");
     }
 
     @Override
-    public int getLoginTimeout() throws SQLException {
+    public int getLoginTimeout() {
         throw new UnsupportedOperationException("Unsupported operation");
     }
 
@@ -97,7 +97,7 @@ public final class PooledDataSource implements DataSource {
     }
 
     @Override
-    public boolean isWrapperFor(final Class<?> iface) throws SQLException {
+    public boolean isWrapperFor(final Class<?> iface) {
         return iface.equals(DataSource.class) || iface.equals(PooledDataSource.class);
     }
 

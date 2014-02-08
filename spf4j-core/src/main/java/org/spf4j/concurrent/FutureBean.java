@@ -58,8 +58,15 @@ public class FutureBean<T> implements Future<T> {
     @Override
     public final synchronized T get(final long timeout, final TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
-        while (resultStore == null) {
-            this.wait(unit.toMillis(timeout));
+        long timeoutMillis = unit.toMillis(timeout);
+        long toWait = timeoutMillis;
+        long startTime = System.currentTimeMillis();
+        do {
+            this.wait(toWait);
+            toWait = timeoutMillis - (System.currentTimeMillis() - startTime);
+        } while (toWait > 0);
+        if (resultStore == null) {
+            throw new TimeoutException();
         }
         return processResult(resultStore);
     }

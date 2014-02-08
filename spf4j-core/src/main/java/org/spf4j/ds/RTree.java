@@ -668,7 +668,7 @@ public final class RTree<T> {
         pw.printf("<div style=\"position:absolute; left: %d; top: %d; width: %d; height: %d; border: 1px dashed\">%n",
                 x0, y0, w, h);
         pw.println("<pre>");
-        pw.println("Node: " + n.toString() + " (root==" + (n == root) + ") \n");
+        pw.println("Node: " + n + " (root==" + (n == root) + ") \n");
         pw.println("Coords: " + Arrays.toString(n.coords) + "\n");
         pw.println("Dimensions: " + Arrays.toString(n.dimensions) + "\n");
         pw.println("# Children: " + ((n.children == null) ? 0 : n.children.size()) + "\n");
