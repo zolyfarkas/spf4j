@@ -22,7 +22,6 @@ import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
-
 /**
  *
  * @author zoly
@@ -36,8 +35,7 @@ public final class ZelTest {
         Number result = (Number) prog.execute();
         assertEquals(11, result.intValue());
     }
-    
-    
+
     @Test
     public void testJavaExec()
             throws CompileException, ZExecutionException, InterruptedException {
@@ -72,6 +70,64 @@ public final class ZelTest {
         Number result = (Number) compiledProgram.execute();
         Assert.assertEquals(new BigInteger("280571172992510140037611932413038677189525"), result);
         System.out.println(result);
+    }
+
+    public BigInteger fibB(final int i) {
+        if (i <= 1) {
+            return BigInteger.valueOf(i);
+        } else {
+            return fibB(i - 1).add(fibB(i - 2));
+        }
+    }
+
+    public long fib(final long i) {
+        if (i <= 1) {
+            return i;
+        } else {
+            return fib(i - 1) + fib(i - 2);
+        }
+    }
+
+    public BigInteger fibBNr(final int i) {
+        if (i <= 1) {
+            return BigInteger.valueOf(i);
+        } else {
+            BigInteger v1 = BigInteger.ZERO;
+            BigInteger v2 = BigInteger.ONE;
+            BigInteger tmp;
+            for (int j = 2; j <= i; j++) {
+                tmp = v2;
+                v2 = v1.add(v2);
+                v1 = tmp;
+            }
+            return v2;
+        }
+    }
+        
+
+    @Test
+    public void testFibPerformance() throws CompileException, ZExecutionException, InterruptedException {
+        String fib = "fib = func det (x) {fib(x-1) + fib(x-2);}; fib(0) = 0; fib(1) = 1; fib(x);";
+        Program fibZel = Program.compile(fib, "x");
+        long startTime = System.currentTimeMillis();
+        Number zelResult = (Number) fibZel.execute(40);
+        long intTime = System.currentTimeMillis();
+        long javaResult = fib(40);
+        long stopTime = System.currentTimeMillis();
+        Assert.assertEquals(zelResult.longValue(), javaResult);
+        System.out.println("zel exec " + (intTime - startTime));
+        System.out.println("java exec " + (stopTime - intTime));
+
+        startTime = System.currentTimeMillis();
+        BigInteger zelResult2 = (BigInteger) fibZel.execute(10000);
+        intTime = System.currentTimeMillis();
+        BigInteger javaResult2 = fibBNr(10000);
+        stopTime = System.currentTimeMillis();
+        System.out.println("fib(10000) = " + zelResult2);
+        System.out.println("fib(10000) = " + javaResult2);
+        Assert.assertEquals(zelResult2, javaResult2);
+        System.out.println("zel exec " + (intTime - startTime));
+        System.out.println("java exec " + (stopTime - intTime));
     }
 
 }
