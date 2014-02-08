@@ -48,6 +48,8 @@ public class FutureBean<T> implements Future<T> {
     }
 
     @Override
+    // Findbugs complain here is rubbish, InterruptedException is thrown by wait
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("BED_BOGUS_EXCEPTION_DECLARATION")
     public final synchronized T get() throws InterruptedException, ExecutionException {
         while (resultStore == null) {
             this.wait();
