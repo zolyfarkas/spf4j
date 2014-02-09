@@ -58,20 +58,20 @@ public final class Arrays {
         }
         return result;
     }
-
+    
     public static boolean deepEquals(final Object[] a1, final Object[] a2, final int starting) {
+        return deepEquals(a1, a2, starting, a1.length);
+    }
+
+    public static boolean deepEquals(final Object[] a1, final Object[] a2, final int starting, final int ending) {
         if (a1 == a2) {
             return true;
         }
         if (a1 == null || a2 == null) {
             return false;
         }
-        int length = a1.length;
-        if (a2.length != length) {
-            return false;
-        }
 
-        for (int i = starting; i < length; i++) {
+        for (int i = starting; i < ending; i++) {
             Object e1 = a1[i];
             Object e2 = a2[i];
 

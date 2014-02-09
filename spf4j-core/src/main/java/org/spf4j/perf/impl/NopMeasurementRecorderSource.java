@@ -18,7 +18,6 @@
 
 package org.spf4j.perf.impl;
 
-import java.io.IOException;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
 

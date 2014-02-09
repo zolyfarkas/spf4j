@@ -18,9 +18,7 @@
 
 package org.spf4j.zel.vm;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,18 +30,19 @@ import java.util.Set;
  */
 public final class HierarchicalMap<K, V>  implements Map<K, V> {
     
-    private final List<Map<K, V>> maps;
+    private final Map<K, V> map;
+    
+    private final HierarchicalMap<K, V> parentMap;
 
     public HierarchicalMap(final HierarchicalMap<K, V> parentMap, final Map<K, V> map) {
-        this.maps = new ArrayList<Map<K, V>>(parentMap.maps.size() + 1);
-        this.maps.add(map);
-        this.maps.addAll(parentMap.maps);
+        this.map = map;
+        this.parentMap = parentMap;
     }
     
     
     public HierarchicalMap(final Map<K, V> map) {
-        this.maps = new ArrayList<Map<K, V>>(1);
-        this.maps.add(map);
+        this.map = map;
+        this.parentMap = null;
     }
     
     @Override
@@ -58,11 +57,13 @@ public final class HierarchicalMap<K, V>  implements Map<K, V> {
 
     @Override
     public boolean containsKey(final Object key) {
-        for (Map<K, V> map : maps) {
-            if (map.containsKey(key)) {
+        HierarchicalMap<K, V> imap = this;
+        do {
+            if (imap.map.containsKey(key)) {
                 return true;
             }
-        }
+            imap = imap.parentMap;
+        } while (map != null);
         return false;
     }
 
@@ -73,32 +74,34 @@ public final class HierarchicalMap<K, V>  implements Map<K, V> {
 
     @Override
     public V get(final Object key) {
-        for (Map<K, V> map : maps) {
-            if (map.containsKey((K) key)) {
-                return map.get(key);
+        HierarchicalMap<K, V> imap = this;
+        do {
+            if (imap.map.containsKey((K) key)) {
+                return imap.map.get(key);
             }
-        }
+            imap = imap.parentMap;
+        } while (map != null);
         return null;
     }
 
     @Override
     public V put(final K key, final V value) {
-        return maps.get(0).put(key, value);
+        return map.put(key, value);
     }
 
     @Override
     public V remove(final Object key) {
-        return maps.get(0).remove(key);
+        return map.remove(key);
     }
 
     @Override
     public void putAll(final Map<? extends K, ? extends V> m) {
-        maps.get(0).putAll(m);
+        map.putAll(m);
     }
 
     @Override
     public void clear() {
-        maps.get(0).clear();
+        map.clear();
     }
 
     @Override

@@ -17,11 +17,11 @@
  */
 package org.spf4j.zel.vm;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import org.spf4j.base.Arrays;
 
 public final class SimpleStack<T>
         implements List<T> {
@@ -40,13 +40,11 @@ public final class SimpleStack<T>
     private static final int DEFAULT_SIZE = 32;
 
     /**
-     * construct a stack with specified max size
-     *
-     * @param max int
+     * construct a stack with specified size
      */
-    public SimpleStack(final int max) {
+    public SimpleStack(final int size) {
 
-        elems = (T[]) new Object[max];
+        elems = (T[]) new Object[size];
         top = 0;
     }
 
@@ -85,7 +83,7 @@ public final class SimpleStack<T>
                 newCapacity = minCapacity;
             }
             // minCapacity is usually close to size, so this is a win:
-            elems = Arrays.copyOf(elems, newCapacity);
+            elems = java.util.Arrays.copyOf(elems, newCapacity);
         }
     }
     
@@ -112,10 +110,10 @@ public final class SimpleStack<T>
      * @return Object
      */
     public T pop() {
-        final T o = elems[top - 1];
-        top--;
+        int ot = top;
+        final T o = elems[--top];
         // this is for the garbage collector  to avoid memory leaks if storing big objects in stack
-        elems[top] = null;
+        elems[ot] = null;
         return o;
     }
     
@@ -255,14 +253,17 @@ public final class SimpleStack<T>
         if (this.top != other.top) {
             return false;
         }
-        return (Arrays.deepEquals(this.elems, other.elems));
+        return Arrays.deepEquals(this.elems, other.elems, 0, top);
     }
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 37 * hash + Arrays.deepHashCode(this.elems);
-        return 37 * hash + this.top;
+        int hashCode = 7;
+        for (int i = 0; i < top; i++) {
+            Object obj = elems[i];
+            hashCode = 31 * hashCode + (obj == null ? 0 : obj.hashCode());
+        }
+        return hashCode;
     }
 
     @Override

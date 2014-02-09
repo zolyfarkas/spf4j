@@ -53,8 +53,9 @@ public final class CALL extends Instruction {
             Object obj;
             switch (p.getType()) {
                 case DETERMINISTIC:
-                    SimpleStack params = new SimpleStack();
-                    for (int i = parameters.size() - 1; i >= 0; i--) {
+                    int l = parameters.size();
+                    SimpleStack params = new SimpleStack(l + 1);
+                    for (int i = l - 1; i >= 0; i--) {
                         params.push(parameters.get(i));
                     }
                     params.push(p);
