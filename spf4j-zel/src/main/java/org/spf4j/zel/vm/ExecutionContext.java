@@ -20,7 +20,6 @@ package org.spf4j.zel.vm;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -96,7 +95,7 @@ public final class ExecutionContext {
         this.in = parent.in;
         this.out = parent.out;
         this.err = parent.err;
-        this.memory = new HierarchicalMap(parent.memory, new HashMap());
+        this.memory = new HierarchicalMap(parent.memory);
         this.execService = service;
         this.stack = new SimpleStack(32);
         this.code = program;

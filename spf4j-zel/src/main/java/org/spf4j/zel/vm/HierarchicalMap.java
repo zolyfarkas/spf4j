@@ -19,6 +19,7 @@
 package org.spf4j.zel.vm;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,12 +31,17 @@ import java.util.Set;
  */
 public final class HierarchicalMap<K, V>  implements Map<K, V> {
     
-    private final Map<K, V> map;
+    private Map<K, V> map;
     
     private final HierarchicalMap<K, V> parentMap;
 
     public HierarchicalMap(final HierarchicalMap<K, V> parentMap, final Map<K, V> map) {
         this.map = map;
+        this.parentMap = parentMap;
+    }
+
+    public HierarchicalMap(final HierarchicalMap<K, V> parentMap) {
+        this.map = null;
         this.parentMap = parentMap;
     }
     
@@ -59,11 +65,11 @@ public final class HierarchicalMap<K, V>  implements Map<K, V> {
     public boolean containsKey(final Object key) {
         HierarchicalMap<K, V> imap = this;
         do {
-            if (imap.map.containsKey(key)) {
+            if (imap.map != null && imap.map.containsKey(key)) {
                 return true;
             }
             imap = imap.parentMap;
-        } while (map != null);
+        } while (imap != null);
         return false;
     }
 
@@ -76,16 +82,20 @@ public final class HierarchicalMap<K, V>  implements Map<K, V> {
     public V get(final Object key) {
         HierarchicalMap<K, V> imap = this;
         do {
-            if (imap.map.containsKey((K) key)) {
-                return imap.map.get(key);
+            final Map<K, V> rmap = imap.map;
+            if (rmap != null && rmap.containsKey((K) key)) {
+                return rmap.get(key);
             }
             imap = imap.parentMap;
-        } while (map != null);
+        } while (imap != null);
         return null;
     }
 
     @Override
     public V put(final K key, final V value) {
+        if (map == null) {
+            map = new HashMap<K, V>();
+        }
         return map.put(key, value);
     }
 
@@ -96,12 +106,15 @@ public final class HierarchicalMap<K, V>  implements Map<K, V> {
 
     @Override
     public void putAll(final Map<? extends K, ? extends V> m) {
+        if (map == null) {
+            map = new HashMap<K, V>();
+        }
         map.putAll(m);
     }
 
     @Override
     public void clear() {
-        map.clear();
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
