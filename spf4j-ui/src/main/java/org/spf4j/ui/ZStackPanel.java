@@ -116,7 +116,7 @@ public final class ZStackPanel extends StackPanelBase {
                 FlameStackPanel.setElementColor(counter++, g2);
                 g2.setClip((int) x, (int) y, (int) width, (int) height);
                 g2.fillRect((int) x, (int) y, (int) width, (int) height);
-                String val = vertex.toString() + "-" + nrSamples;
+                String val = vertex + "-" + nrSamples;
 
                 g2.setPaint(Color.BLACK);
                 g2.drawString(val, (int) x, (int) (y + height - 1));
@@ -216,7 +216,7 @@ public final class ZStackPanel extends StackPanelBase {
             final Map<SampleNode.InvocationCount, Method> incomming =
                     graph.getEdges(node.getFirst()).getIncomming();
             StringBuilder sb = new StringBuilder();
-            sb.append(node.getFirst().toString()).append('-').append(node.getSecond())
+            sb.append(node.getFirst()).append('-').append(node.getSecond())
                     .append("\n invoked from: ");
             appendEdgeInfo(incomming, sb);
             sb.append("\n invoking: ");

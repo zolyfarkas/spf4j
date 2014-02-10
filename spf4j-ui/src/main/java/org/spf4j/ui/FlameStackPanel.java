@@ -47,7 +47,7 @@ public final class FlameStackPanel extends StackPanelBase {
             final Graphics2D g2, final int x, final int py, final int width, final int height, final int depth) {
         int y = py;
         int sampleCount = node.getSampleCount();
-        String val = method.toString() + "-" + sampleCount;
+        String val = method + "-" + sampleCount;
         setElementColor(depth, g2);
         g2.setClip(x, y, width, height);
         g2.fillRect(x, y, width, height);
@@ -83,7 +83,8 @@ public final class FlameStackPanel extends StackPanelBase {
     public String getDetail(final Point location) {
         List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{location.x, location.y}, new float[]{0, 0});
         if (tips.size() >= 1) {
-            return tips.get(0).getFirst().toString() + "-" + tips.get(0).getSecond();
+            final Pair<Method, Integer> m = tips.get(0);
+            return m.getFirst() + "-" + m.getSecond();
         } else {
             return null;
         }
