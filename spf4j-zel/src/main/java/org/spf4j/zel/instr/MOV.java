@@ -17,11 +17,13 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.List;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.SimpleStack;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.FuncMarker;
 import org.spf4j.zel.vm.EndParamMarker;
+import org.spf4j.zel.vm.Program;
+import org.spf4j.zel.vm.SuspendedException;
 
 public final class MOV extends Instruction {
     
@@ -31,7 +33,7 @@ public final class MOV extends Instruction {
     }
     
     @Override
-    public void execute(final ExecutionContext context) {
+    public void execute(final ExecutionContext context) throws SuspendedException {
         Object what = context.pop();
         Object to = context.pop();
         if (to instanceof AssignableValue) {
@@ -44,13 +46,8 @@ public final class MOV extends Instruction {
             }
             context.push(what);
         } else if (to == FuncMarker.INSTANCE) {
-            SimpleStack params = new SimpleStack();
-            Object param;
-            while (((param = context.pop()) != EndParamMarker.INSTANCE)) {
-                params.push(param);
-            }
-            params.push(((AssignableValue) context.pop()).get());
-            context.resultCache.putPermanentResult(params, what);
+            List<Object> params = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
+            context.resultCache.putPermanentResult((Program) ((AssignableValue) context.pop()).get(), params, what);
         }
         context.ip++;
     }

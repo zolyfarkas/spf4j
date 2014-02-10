@@ -19,11 +19,16 @@ package org.spf4j.zel.vm;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.concurrent.UnboundedLoadingCache;
 
 /**
  * simple implementation for resultcache.
@@ -33,44 +38,62 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class SimpleResultCache implements ResultCache {
 
-    private final ConcurrentMap<Object, Object> permanentCache;
+    private final LoadingCache<Program, ConcurrentMap<List<Object>, Object>> permanentCache;
 
-    private final Cache<Object, Object> transientCache;
+    private final LoadingCache<Program, Cache<List<Object>, Object>> transientCache;
 
     public SimpleResultCache() {
         this(100000);
     }
 
     public SimpleResultCache(final int maxSize) {
-        permanentCache = new ConcurrentHashMap<Object, Object>();
-        transientCache = CacheBuilder.newBuilder().maximumSize(maxSize).build();
+        permanentCache = new UnboundedLoadingCache<Program, ConcurrentMap<List<Object>, Object>>(16,
+                new CacheLoader<Program, ConcurrentMap<List<Object>, Object>>() {
+                    @Override
+                    public ConcurrentMap<List<Object>, Object> load(final Program key) throws Exception {
+                        return new ConcurrentHashMap<List<Object>, Object>();
+                    }
+                });
+        transientCache = new UnboundedLoadingCache<Program, Cache<List<Object>, Object>>(16,
+                new CacheLoader<Program, Cache<List<Object>, Object>>() {
+            @Override
+            public Cache<List<Object>, Object> load(final Program key) throws Exception {
+                return CacheBuilder.newBuilder().maximumSize(maxSize).build();
+            }
+        });
+
     }
 
     @Override
-    public void putPermanentResult(final Object key, final Object result) {
+    public void putPermanentResult(final Program program,
+            @Nonnull final List<Object> params, final Object result) {
+        final ConcurrentMap<List<Object>, Object> resultsMap = permanentCache.getUnchecked(program);
         if (result == null) {
-            permanentCache.put(key, ResultCache.NULL);
+            resultsMap.put(params, ResultCache.NULL);
         } else {
-            permanentCache.put(key, result);
+            resultsMap.put(params, result);
         }
     }
 
     @Override
-    public void putTransientResult(final Object key, final Object result) {
+    public void putTransientResult(final Program program,
+            @Nonnull final  List<Object> params, final Object result) {
+        final Cache<List<Object>, Object> resultsMap = transientCache.getUnchecked(program);
         if (result == null) {
-            transientCache.put(key, ResultCache.NULL);
+            resultsMap.put(params, ResultCache.NULL);
         } else {
-            transientCache.put(key, result);
+            resultsMap.put(params, result);
         }
     }
 
     @Override
-    public Object getResult(final Object key, final Callable<Object> compute)
+    public Object getResult(final Program program,
+            @Nonnull final List<Object> params, final Callable<Object> compute)
             throws ZExecutionException {
-        Object result = permanentCache.get(key);
+        Object result = permanentCache.getUnchecked(program).get(params);
         if (result == null) {
             try {
-                result = transientCache.get(key, new Callable<Object>() {
+                result = transientCache.getUnchecked(program).get(params, new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
                         Object result = compute.call();

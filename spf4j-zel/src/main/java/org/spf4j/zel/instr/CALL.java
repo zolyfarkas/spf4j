@@ -24,7 +24,6 @@ import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 import org.spf4j.zel.vm.Program;
-import org.spf4j.zel.vm.SimpleStack;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
@@ -53,13 +52,7 @@ public final class CALL extends Instruction {
             Object obj;
             switch (p.getType()) {
                 case DETERMINISTIC:
-                    int l = parameters.size();
-                    SimpleStack params = new SimpleStack(l + 1);
-                    for (int i = l - 1; i >= 0; i--) {
-                        params.push(parameters.get(i));
-                    }
-                    params.push(p);
-                    obj = context.resultCache.getResult(params, new Callable<Object>() {
+                    obj = context.resultCache.getResult(p, parameters, new Callable<Object>() {
                         @Override
                         public Object call() throws Exception {
                             return Program.executeAsync(nctx);

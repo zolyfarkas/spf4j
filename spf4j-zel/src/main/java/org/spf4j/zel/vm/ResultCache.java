@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.vm;
 
+import java.util.List;
 import java.util.concurrent.Callable;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,12 +29,12 @@ import javax.annotation.Nullable;
  */
 public interface ResultCache {
 
-    void putPermanentResult(@Nonnull Object key, @Nullable Object result);
+    void putPermanentResult(Program program, @Nonnull List<Object> params, @Nullable Object result);
 
-    void putTransientResult(@Nonnull Object key, @Nullable Object result);
+    void putTransientResult(Program program, @Nonnull List<Object> params,  @Nullable Object result);
 
     @Nullable
-    Object getResult(Object key, Callable<Object> compute)
+    Object getResult(Program program, @Nonnull List<Object> params, Callable<Object> compute)
             throws ZExecutionException;
     
     Object NULL = new Object();
