@@ -29,9 +29,16 @@ import org.junit.Test;
 public final class ZelTest {
 
     @Test
+    public void helloWorld()
+            throws CompileException, ZExecutionException, InterruptedException {
+        Program.compile("out(\"Hello World\");").execute();
+    }
+    
+    
+    @Test
     public void testBasicArithmetic()
             throws CompileException, ZExecutionException, InterruptedException {
-        Program prog = Program.compile("1+5*4/(1+1);");
+        Program prog = Program.compile("// simple expression \n 1+5*4/(1+1);");
         Number result = (Number) prog.execute();
         assertEquals(11, result.intValue());
     }
@@ -109,6 +116,7 @@ public final class ZelTest {
     public void testFibPerformance() throws CompileException, ZExecutionException, InterruptedException {
         String fib = "fib = func det (x) {fib(x-1) + fib(x-2);}; fib(0) = 0; fib(1) = 1; fib(x);";
         Program fibZel = Program.compile(fib, "x");
+        System.out.println(fibZel);
         long startTime = System.currentTimeMillis();
         Number zelResult = (Number) fibZel.execute(40);
         long intTime = System.currentTimeMillis();
