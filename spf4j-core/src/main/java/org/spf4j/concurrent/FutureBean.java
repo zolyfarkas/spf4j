@@ -63,10 +63,10 @@ public class FutureBean<T> implements Future<T> {
         long timeoutMillis = unit.toMillis(timeout);
         long toWait = timeoutMillis;
         long startTime = System.currentTimeMillis();
-        do {
+        while (toWait > 0 && resultStore == null) {
             this.wait(toWait);
             toWait = timeoutMillis - (System.currentTimeMillis() - startTime);
-        } while (toWait > 0);
+        }
         if (resultStore == null) {
             throw new TimeoutException();
         }
