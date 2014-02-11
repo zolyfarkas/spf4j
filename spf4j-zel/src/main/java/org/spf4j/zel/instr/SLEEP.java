@@ -15,11 +15,8 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.zel.instr.var;
+package org.spf4j.zel.instr;
 
-import java.util.List;
-import org.spf4j.zel.instr.Instruction;
-import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
@@ -40,8 +37,8 @@ public final class SLEEP extends Instruction {
     public void execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
         try {
-            List<Object> params = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
-            Thread.sleep(((Number) params.get(0)).longValue());
+            Number param = (Number) context.popSyncStackVal();
+            Thread.sleep(param.longValue());
             context.ip++;
         } catch (InterruptedException ex) {
             throw new ZExecutionException("sleeping interrupted", ex, context);

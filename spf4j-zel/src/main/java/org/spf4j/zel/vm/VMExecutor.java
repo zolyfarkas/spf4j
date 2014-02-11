@@ -1,4 +1,3 @@
-
 package org.spf4j.zel.vm;
 
 import java.util.LinkedList;
@@ -52,16 +51,15 @@ public final class VMExecutor {
     private void addSuspendable(final FutureBean<Object> futureSuspendedFor,
             final Suspendable<Object> suspendedCallable, final FutureBean<Object> suspendedCallableFuture) {
 
-        List<Pair<Suspendable<Object>, FutureBean<Object>>> suspended;
-        if (!futToSuspMap.containsKey(futureSuspendedFor)) {
+        List<Pair<Suspendable<Object>, FutureBean<Object>>> suspended
+                = futToSuspMap.get(futureSuspendedFor);
+        if (suspended == null) {
             suspended = new LinkedList<Pair<Suspendable<Object>, FutureBean<Object>>>();
-            List<Pair<Suspendable<Object>, FutureBean<Object>>> old =
-                    futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);
+            List<Pair<Suspendable<Object>, FutureBean<Object>>> old
+                    = futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);
             if (old != null) {
                 suspended = old;
             }
-        } else {
-            suspended = futToSuspMap.get(futureSuspendedFor);
         }
         do {
             List<Pair<Suspendable<Object>, FutureBean<Object>>> newList
@@ -71,6 +69,14 @@ public final class VMExecutor {
                 break;
             } else {
                 suspended = futToSuspMap.get(futureSuspendedFor);
+                if (suspended == null) {
+                    suspended = new LinkedList<Pair<Suspendable<Object>, FutureBean<Object>>>();
+                    List<Pair<Suspendable<Object>, FutureBean<Object>>> old
+                            = futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);
+                    if (old != null) {
+                        suspended = old;
+                    }
+                }
             }
         } while (true);
         if (futureSuspendedFor.isDone()) {
@@ -97,5 +103,9 @@ public final class VMExecutor {
             }
         });
     }
+    
+    
+    
+    
 
 }

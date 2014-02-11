@@ -98,7 +98,7 @@ TOKEN : /* OPERATORS & KEYWORDS*/
   |	< DOT: "." >
   |	< CONTEXT: "context">
   |	< RETURN: "return">
-  |	< GLOBAL: "global">
+  |	< SLEEP: "sleep">
   |	< FUNCTION: ("function" | "func")>
   |	< DETERMINISTIC: ("deterministic" | "det" )>
   |	< ARG: "arg">
@@ -225,6 +225,7 @@ void program(ParsingContext context) :
   (assignement(context) <SCL>) 
   | (expression(context) <SCL>)
   | (zreturn(context) <SCL>)
+  | (<SLEEP> expression(context) {context.generateCode(org.spf4j.zel.instr.SLEEP.INSTANCE);} <SCL>) 
   | programBlock(context)
   ) +
  {context.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);}

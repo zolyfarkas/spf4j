@@ -247,8 +247,9 @@ public final class Program implements Serializable {
         }
     }
 
-private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(1, 16,
-                                      0L, TimeUnit.MILLISECONDS,
+private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(org.spf4j.base.Runtime.NR_PROCESSORS,
+                                      org.spf4j.base.Runtime.NR_PROCESSORS,
+                                      60, TimeUnit.SECONDS,
                                       new LinkedBlockingQueue<Runnable>());
     
     public Object execute(@Nonnull final java.util.Map memory, @Nonnull final InputStream in,

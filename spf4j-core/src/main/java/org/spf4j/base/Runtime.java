@@ -57,6 +57,7 @@ public final class Runtime {
     public static final int PID;
     public static final String OS_NAME;
     public static final String PROCESS_NAME;
+    public static final int NR_PROCESSORS = java.lang.Runtime.getRuntime().availableProcessors();
 
     static {
         PROCESS_NAME = ManagementFactory.getRuntimeMXBean().getName();

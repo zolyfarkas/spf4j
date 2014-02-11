@@ -137,5 +137,21 @@ public final class ZelTest {
         System.out.println("zel exec " + (intTime - startTime));
         System.out.println("java exec " + (stopTime - intTime));
     }
+    
+    
+    @Test
+    public void testParallelism() throws CompileException, ZExecutionException, InterruptedException {
+        String program = "f1 = func {sleep 5000; 1;};"
+                       + "f2 = func {sleep 5000; 2;};"
+                       + "f1() + f2();";
+        Program prog = Program.compile(program);
+        System.out.println(prog);
+        long startTime = System.currentTimeMillis();
+        Number result = (Number) prog.execute();
+        long endTime = System.currentTimeMillis();
+        Assert.assertEquals(3, result.intValue());
+        Assert.assertTrue("functions need to execute in parallel not in " + (endTime - startTime),
+                endTime - startTime < 5200);
+    }
 
 }
