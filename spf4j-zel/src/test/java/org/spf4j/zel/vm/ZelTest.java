@@ -31,14 +31,13 @@ public final class ZelTest {
     @Test
     public void helloWorld()
             throws CompileException, ZExecutionException, InterruptedException {
-        Program.compile("out(\"Hello World\");").execute();
+        Program.compile("out(\"Hello World\")").execute();
     }
-    
-    
+
     @Test
     public void testBasicArithmetic()
             throws CompileException, ZExecutionException, InterruptedException {
-        Program prog = Program.compile("// simple expression \n 1+5*4/(1+1);");
+        Program prog = Program.compile("// simple expression \n 1+5*4/(1+1)");
         Number result = (Number) prog.execute();
         assertEquals(11, result.intValue());
     }
@@ -46,7 +45,7 @@ public final class ZelTest {
     @Test
     public void testJavaExec()
             throws CompileException, ZExecutionException, InterruptedException {
-        Program prog = Program.compile("a.toString().substring(0, 1 + 1);", "a");
+        Program prog = Program.compile("a.toString().substring(0, 1 + 1)", "a");
         String result = (String) prog.execute(Integer.valueOf(100));
         assertEquals("100".substring(0, 2), result);
     }
@@ -54,7 +53,7 @@ public final class ZelTest {
     @Test
     public void testAssignement()
             throws CompileException, ZExecutionException, InterruptedException {
-        Program prog = Program.compile("a = a + 1;", "a");
+        Program prog = Program.compile("a = a + 1", "a");
         Integer result = (Integer) prog.execute(100);
         assertEquals(101, result.intValue());
     }
@@ -63,7 +62,7 @@ public final class ZelTest {
     public void testFib()
             throws CompileException, ZExecutionException, InterruptedException {
         String program
-                = "fib = function deterministic (x) { fib(x-1) + fib(x-2); };\n"
+                = "fib = function deterministic (x) { fib(x-1) + fib(x-2) };\n"
                 + "fib(0) = 0;\n"
                 + "fib(1) = 1;\n"
                 + "val1 = fib(100);\n"
@@ -71,7 +70,7 @@ public final class ZelTest {
                 + "val3 = fib(1000);\n"
                 + "val = val1 + val2;"
                 + "out(val3);"
-                + "val2;";
+                + "val2";
 
         Program compiledProgram = Program.compile(program);
         Number result = (Number) compiledProgram.execute();
@@ -110,11 +109,10 @@ public final class ZelTest {
             return v2;
         }
     }
-        
 
     @Test
     public void testFibPerformance() throws CompileException, ZExecutionException, InterruptedException {
-        String fib = "fib = func det (x) {fib(x-1) + fib(x-2);}; fib(0) = 0; fib(1) = 1; fib(x);";
+        String fib = "fib = func det (x) {fib(x-1) + fib(x-2)}; fib(0) = 0; fib(1) = 1; fib(x)";
         Program fibZel = Program.compile(fib, "x");
         System.out.println(fibZel);
         long startTime = System.currentTimeMillis();
@@ -137,13 +135,12 @@ public final class ZelTest {
         System.out.println("zel exec " + (intTime - startTime));
         System.out.println("java exec " + (stopTime - intTime));
     }
-    
-    
+
     @Test
     public void testParallelism() throws CompileException, ZExecutionException, InterruptedException {
-        String program = "f1 = func {sleep 5000; 1;};"
-                       + "f2 = func {sleep 5000; 2;};"
-                       + "f1() + f2();";
+        String program = "f1 = func {sleep 5000; 1}"
+                + "f2 = func {sleep 5000; 2}"
+                + "f1() + f2()";
         Program prog = Program.compile(program);
         System.out.println(prog);
         long startTime = System.currentTimeMillis();
@@ -153,5 +150,70 @@ public final class ZelTest {
         Assert.assertTrue("functions need to execute in parallel not in " + (endTime - startTime),
                 endTime - startTime < 5200);
     }
+
+    /**
+     * GO equivalent:
+     *
+     * // Concurrent computation of pi.
+     *
+     * func main() { fmt.Println(pi(5000)) }
+     *
+     * // pi launches n goroutines to compute an // approximation of pi.
+     * func pi(n int) float64 {
+     * ch := make(chan float64)
+     * for k := 0; k <= n; k++
+     * { go term(ch, float64(k)) }
+     * f := 0.0
+     * for k := 0; k <= n; k++ { f += <-ch }
+     * return f
+     * }
+     *
+     * func term(ch chan float64, k float64) { ch <- 4 * math.Pow(-1, k) / (2*k + 1) }
+     *
+     *
+     *
+     * @throws CompileException
+     * @throws ZExecutionException
+     * @throws InterruptedException
+     */
+    @Test
+    public void testParallelPi() throws CompileException, ZExecutionException, InterruptedException {
+        String pi = "pi = func (x) {"
+                + "term = func (k) {4 * (-1 ** k) / (2d * k + 1)};"
+                + "for i = 0; i < x; i = i + 1 { parts[i] = term(i) };"
+                + "result = 0;"
+                + "for i = 0; i < x; i = i + 1 { result = result + parts[i] }"
+                + "return result};"
+                + "pi(x)";
+        Program prog = Program.compile(pi, "x");
+        System.out.println(prog);
+        long startTime = System.currentTimeMillis();
+        Number result = (Number) prog.execute(100000);
+        long endTime = System.currentTimeMillis();
+        System.out.println("zel pi = " + result + " in " + (endTime - startTime) + "ms");
+        // pi is 3.141592653589793
+        Assert.assertEquals(3.141592653589793, result.doubleValue(), 0.0001);
+        
+        startTime = System.currentTimeMillis();
+        double dresult = pi(100000);
+        endTime = System.currentTimeMillis();
+        System.out.println("java pi = " + dresult + " in " + (endTime - startTime) + "ms");
+        
+        
+    }
+    
+     private static  double term(final int k) {
+        return 4 * Math.pow(-1, k) / (2d * k + 1);
+     }
+    
+     private static double pi(final int nr) {
+         double result = 0;
+         for (int i = 0; i < nr; i++) {
+             result += term(i);
+         }
+         return result;
+     }
+    
+    
 
 }

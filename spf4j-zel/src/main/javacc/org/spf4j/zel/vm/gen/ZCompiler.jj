@@ -42,7 +42,7 @@ public class ZCompiler
     public static void compile(String xpr, ParsingContext context) throws ParseException
     {
         ZCompiler parser = new ZCompiler(new java.io.ByteArrayInputStream(xpr.getBytes()));
-        parser.program(context);
+        parser.mainprogram(context);
     }
 
     public static Object getConstant(String constant) throws ParseException
@@ -99,6 +99,7 @@ TOKEN : /* OPERATORS & KEYWORDS*/
   |	< CONTEXT: "context">
   |	< RETURN: "return">
   |	< SLEEP: "sleep">
+  |	< FOR: "for">
   |	< FUNCTION: ("function" | "func")>
   |	< DETERMINISTIC: ("deterministic" | "det" )>
   |	< ARG: "arg">
@@ -217,18 +218,69 @@ TOKEN : /* Identifier */
 }
 
 
+void mainprogram(ParsingContext context) :
+{
+}
+{ 
+ program(context)
+ {context.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);}
+ <EOF>
+}
+
+
 void program(ParsingContext context) :
 {
 }
-{
-  ( LOOKAHEAD(assignement(context))
-  (assignement(context) <SCL>) 
-  | (expression(context) <SCL>)
-  | (zreturn(context) <SCL>)
-  | (<SLEEP> expression(context) {context.generateCode(org.spf4j.zel.instr.SLEEP.INSTANCE);} <SCL>) 
+{ 
+ ( 
+    (statement(context)
+     (<SCL> statement(context))* )
   | programBlock(context)
-  ) +
- {context.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);}
+ ) +
+ (<EOF>)?
+}
+
+void statement(ParsingContext context) :
+{
+}
+{
+ (LOOKAHEAD(assignement(context)) 
+    assignement(context) 
+  | expression(context)
+  | zreturn(context)
+  | forStmt(context)
+  | (<SLEEP> expression(context) {context.generateCode(org.spf4j.zel.instr.SLEEP.INSTANCE);})
+ ) 
+}
+
+
+void forStmt(ParsingContext context) :
+{
+  int condAddr = 0;
+  CompileContext postAssign = new CompileContext();
+  CompileContext loopBlock = new CompileContext();
+}
+{
+  <FOR>
+    ((assignement(context) 
+    (<COMMA> assignement(context))* ) <SCL>)?
+    
+     {condAddr = context.getAddress();}  
+     logical(context) 
+
+    (<SCL> (assignement(postAssign) 
+    (<COMMA> assignement(postAssign))*))?
+
+    programBlock(loopBlock)
+    
+    {
+      context.generateCode(org.spf4j.zel.instr.FJMP.INSTANCE,
+                context.getAddress() + loopBlock.getAddress() + postAssign.getAddress() + 3 );
+      context.generateCodeAll(loopBlock);
+      context.generateCodeAll(postAssign);
+      context.generateCode(org.spf4j.zel.instr.JMP.INSTANCE, condAddr);
+    }
+  
 }
 
 void programBlock(ParsingContext context) :
@@ -303,7 +355,7 @@ void ternary(ParsingContext context) :
 	( <CONDITION> )
 
         {   jmp1=context.getAddress()+1;
-            context.generateCode(org.spf4j.zel.instr.COND.INSTANCE, null);}
+            context.generateCode(org.spf4j.zel.instr.FJMP.INSTANCE, null);}
 
         ternary(context)
 
@@ -560,6 +612,7 @@ void sysFunction(ParsingContext context) :
  <RPAREN>)?)
    {ParsingContext pc = (ParsingContext) context.createSubContext();}
    programBlock(pc)
+   {pc.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);}
    {ProgramBuilder p=pc.getProgramBuilder();
     p.setType(pType);
     context.generateCode(p.toProgram(parameterNames));}

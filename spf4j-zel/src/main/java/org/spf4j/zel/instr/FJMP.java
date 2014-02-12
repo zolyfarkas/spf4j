@@ -25,11 +25,11 @@ import org.spf4j.zel.vm.ZExecutionException;
  *
  * @author zoly
  */
-public final class COND extends Instruction {
+public final class FJMP extends Instruction {
 
     private static final long serialVersionUID = 584597000187469774L;
 
-    private COND() {
+    private FJMP() {
     }
 
     @Override
@@ -38,6 +38,7 @@ public final class COND extends Instruction {
         boolean cond = (java.lang.Boolean) context.popSyncStackVal();
         if (!cond) {
             context.ip = ((Number) context.code.get(++context.ip)).intValue();
+            context.ip++;
         } else {
             context.ip += 2;
         }
@@ -45,5 +46,5 @@ public final class COND extends Instruction {
     /**
      * instance
      */
-    public static final Instruction INSTANCE = new COND();
+    public static final Instruction INSTANCE = new FJMP();
 }
