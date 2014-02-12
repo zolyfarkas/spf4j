@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.Pair;
 import org.spf4j.concurrent.FutureBean;
 
 /**
@@ -114,13 +115,17 @@ public final class ExecutionContext {
      */
     public ExecutionContext(final Program program, final java.util.Map memory,
             @Nullable final InputStream in, @Nullable final PrintStream out, @Nullable final PrintStream err,
-            final ExecutorService execService) {
+            @Nullable final ExecutorService execService) {
         this.code = program;
         this.memory = new HierarchicalMap(memory);
         this.in = in;
         this.out = out;
         this.err = err;
-        this.execService = new VMExecutor(execService);
+        if (execService != null) {
+            this.execService = new VMExecutor(execService);
+        } else {
+            this.execService = null;
+        }
         this.stack = new SimpleStack(32);
         this.ip = 0;
         this.resultCache = new SimpleResultCache();
@@ -137,14 +142,13 @@ public final class ExecutionContext {
         if (result instanceof FutureBean<?>) {
             try {
                 final FutureBean<Object> resFut = (FutureBean<Object>) result;
-                if (resFut.isDone()) {
-                    return (resFut).get();
+                 Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+                 if (resultStore != null) {
+                    return FutureBean.processResult(resultStore);
                 } else {
                     this.stack.push(result);
                     throw new SuspendedException(resFut);
                 }
-            } catch (InterruptedException ex) {
-                throw new RuntimeException(ex);
             } catch (ExecutionException ex) {
                 throw new RuntimeException(ex);
             }
@@ -163,16 +167,15 @@ public final class ExecutionContext {
             if (obj instanceof FutureBean<?>) {
                 try {
                     final FutureBean<Object> resFut = (FutureBean<Object>) obj;
-                    if (resFut.isDone()) {
-                        result[i] = resFut.get();
+                    Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+                    if (resultStore != null) {
+                        result[i] = FutureBean.processResult(resultStore);
                     } else {
                         for (int j = nvals - 1; j >= 0; j--) {
                             stack.push(result[j]);
                         }
                         throw new SuspendedException(resFut);
                     }
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
                 } catch (ExecutionException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -193,8 +196,9 @@ public final class ExecutionContext {
             if (obj instanceof FutureBean<?>) {
                 try {
                     final FutureBean<Object> resFut = (FutureBean<Object>) obj;
-                    if (resFut.isDone()) {
-                        result.set(i, resFut.get());
+                    Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+                    if (resultStore != null) {
+                        result.set(i, FutureBean.processResult(resultStore));
                     } else {
                         stack.push(until);
                         for (int j = l - 1; j >= 0; j--) {
@@ -202,8 +206,6 @@ public final class ExecutionContext {
                         }
                         throw new SuspendedException(resFut);
                     }
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
                 } catch (ExecutionException ex) {
                     throw new RuntimeException(ex);
                 }

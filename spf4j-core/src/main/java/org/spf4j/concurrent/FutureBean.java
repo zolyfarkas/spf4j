@@ -30,7 +30,7 @@ import org.spf4j.base.Pair;
  */
 @ThreadSafe
 public class FutureBean<T> implements Future<T> {
-    private Pair<Object, ? extends ExecutionException> resultStore;
+    private volatile Pair<T, ? extends ExecutionException> resultStore;
 
     @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
@@ -43,8 +43,12 @@ public class FutureBean<T> implements Future<T> {
     }
 
     @Override
-    public final synchronized boolean isDone() {
+    public final boolean isDone() {
         return resultStore != null;
+    }
+    
+    public final Pair<T, ? extends ExecutionException> getResultStore() {
+        return resultStore;
     }
 
     @Override
@@ -73,7 +77,7 @@ public class FutureBean<T> implements Future<T> {
         return processResult(resultStore);
     }
 
-    private T processResult(final Pair<Object, ? extends ExecutionException> result) throws ExecutionException {
+    public static <T> T processResult(final Pair<T, ? extends ExecutionException> result) throws ExecutionException {
         ExecutionException e = result.getSecond();
         if (e != null) {
             throw e;
@@ -82,12 +86,12 @@ public class FutureBean<T> implements Future<T> {
         }
     }
 
-    public final synchronized void setResult(final Object result) {
+    public final synchronized void setResult(final T result) {
         resultStore = Pair.of(result, (ExecutionException) null);
         done();
         this.notifyAll();
     }
-
+    
     public final synchronized void setExceptionResult(final ExecutionException result) {
         resultStore = Pair.of(null, (ExecutionException) result);
         done();

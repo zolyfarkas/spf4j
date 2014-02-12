@@ -28,8 +28,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -156,6 +156,12 @@ public final class Program implements Serializable {
         return execute(newMem(), System.in, System.out, System.err, args);
     }
 
+    public Object execute(@Nullable final ExecutorService execService,
+            final Object... args) throws ZExecutionException, InterruptedException {
+        return execute(newMem(), System.in, System.out, System.err, execService, args);
+    }
+
+    
     /**
      * Execute the program with the provided memory
      *
@@ -178,18 +184,10 @@ public final class Program implements Serializable {
      * Execute the program with the provided memory and input / output streams when a exec service is specified this
      * function will return a Future Also it is recomended that a thread safe memory is used in case your functions will
      * modify the memory (not recomended)
-     *
-     * @param memory Map
-     * @param in
-     * @param out
-     * @param err
-     * @param execService
-     * @return Object
-     * @throws com.zoltran.z.vm.ExecutionException
      */
     public Object execute(@Nonnull final java.util.Map memory, @Nullable final InputStream in,
             @Nullable final PrintStream out, @Nullable final PrintStream err,
-            final ThreadPoolExecutor execService, final Object... args)
+            @Nullable final ExecutorService execService, final Object... args)
             throws ZExecutionException, InterruptedException {
         HierarchicalMap map = new HierarchicalMap(BUILTINS, memory);
         final ExecutionContext ectx = new ExecutionContext(this, map, in, out, err, execService);
@@ -226,22 +224,29 @@ public final class Program implements Serializable {
  
     
     
-    public static Future<Object> executeAsync(@Nonnull final ExecutionContext ectx)
+    public static Object executeAsync(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
         final VMExecutor.Suspendable<Object> execution = getCallable(ectx);
         if (ectx.execService != null) {
             return ectx.execService.submit(execution);
         } else {
-            FutureTask future = new FutureTask(execution);
-            future.run();
-            return future;
+            try {
+                return execution.call();
+            } catch (SuspendedException ex) {
+               throw new RuntimeException(ex);
+            }
         }
     }
 
     public static Object execute(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
         try {
-            return executeAsync(ectx).get();
+            Object result = executeAsync(ectx);
+            if (result instanceof Future) {
+                return ((Future<Object>) result).get();
+            } else {
+                return result;
+            }
         } catch (ExecutionException ex) {
            throw new ZExecutionException(ex);
         }

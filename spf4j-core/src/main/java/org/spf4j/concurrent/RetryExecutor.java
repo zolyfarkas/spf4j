@@ -168,7 +168,7 @@ public class RetryExecutor<T> implements ExecutorService {
 
     private class RetryableCallable<T> implements Callable<T>, Runnable {
 
-        private final Callable callable;
+        private final Callable<T> callable;
         private final FutureBean<T> future;
 
         public RetryableCallable(final Callable<T> callable, final FutureBean<T> future) {
@@ -192,7 +192,7 @@ public class RetryExecutor<T> implements ExecutorService {
         @Override
         public T call() {
             try {
-                Object result = callable.call();
+                T result = callable.call();
                 if (future != null) {
                     future.setResult(result);
                 }

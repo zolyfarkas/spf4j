@@ -83,8 +83,9 @@ public final class HierarchicalMap<K, V>  implements Map<K, V> {
         HierarchicalMap<K, V> imap = this;
         do {
             final Map<K, V> rmap = imap.map;
-            if (rmap != null && rmap.containsKey((K) key)) {
-                return rmap.get(key);
+            V result = rmap.get(key);
+            if (result != null) {
+                return result;
             }
             imap = imap.parentMap;
         } while (imap != null);
