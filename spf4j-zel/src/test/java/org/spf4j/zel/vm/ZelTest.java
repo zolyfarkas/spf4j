@@ -181,8 +181,7 @@ public final class ZelTest {
         String pi = "pi = func (x) {"
                 + "term = func (k) {4 * (-1 ** k) / (2d * k + 1)};"
                 + "for i = 0; i < x; i = i + 1 { parts[i] = term(i) };"
-                + "result = 0;"
-                + "for i = 0; i < x; i = i + 1 { result = result + parts[i] }"
+                + "for result = 0, i = 0; i < x; i = i + 1 { result = result + parts[i] }"
                 + "return result};"
                 + "pi(x)";
         Program prog = Program.compile(pi, "x");
