@@ -17,23 +17,17 @@
  */
 package org.spf4j.zel.vm;
 
-import org.spf4j.concurrent.FutureBean;
 
 public final class SuspendedException extends Exception {
 
-    private final FutureBean<Object> suspendedAt;
-
-    public SuspendedException(final FutureBean<Object> suspendedAt) {
-        this.suspendedAt = suspendedAt;
-    }
-
-    public FutureBean<Object> getSuspendedAt() {
-        return suspendedAt;
+    private SuspendedException() {
     }
 
     @Override
     public Throwable fillInStackTrace() {
         return this;
     }
+    
+    public static final SuspendedException INSTANCE = new SuspendedException();
 
 }

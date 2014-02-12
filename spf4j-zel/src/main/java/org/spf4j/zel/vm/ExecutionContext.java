@@ -90,7 +90,7 @@ public final class ExecutionContext {
      */
     private final ExecutionContext parent;
     
-    
+    public FutureBean<Object> suspendedAt;
 
     private ExecutionContext(final ExecutionContext parent, final VMExecutor service, final Program program) {
         this.in = parent.in;
@@ -147,7 +147,8 @@ public final class ExecutionContext {
                     return FutureBean.processResult(resultStore);
                 } else {
                     this.stack.push(result);
-                    throw new SuspendedException(resFut);
+                    suspendedAt = resFut;
+                    throw  SuspendedException.INSTANCE;
                 }
             } catch (ExecutionException ex) {
                 throw new RuntimeException(ex);
@@ -174,7 +175,8 @@ public final class ExecutionContext {
                         for (int j = nvals - 1; j >= 0; j--) {
                             stack.push(result[j]);
                         }
-                        throw new SuspendedException(resFut);
+                        suspendedAt = resFut;
+                        throw  SuspendedException.INSTANCE;
                     }
                 } catch (ExecutionException ex) {
                     throw new RuntimeException(ex);
@@ -204,7 +206,8 @@ public final class ExecutionContext {
                         for (int j = l - 1; j >= 0; j--) {
                             stack.push(result.get(j));
                         }
-                        throw new SuspendedException(resFut);
+                        suspendedAt = resFut;
+                        throw  SuspendedException.INSTANCE;
                     }
                 } catch (ExecutionException ex) {
                     throw new RuntimeException(ex);

@@ -38,6 +38,8 @@ public final class VMExecutor {
 
         @Override
         T call() throws SuspendedException, ZExecutionException, InterruptedException;
+        
+        ExecutionContext getExecutionContext();
 
     }
 
@@ -111,7 +113,7 @@ public final class VMExecutor {
                     future.setResult(result);
                     resumeSuspendables((FutureBean<Object>) future);
                 } catch (SuspendedException ex) {
-                    addSuspendable((FutureBean<Object>) ex.getSuspendedAt(),
+                    addSuspendable((FutureBean<Object>) callable.getExecutionContext().suspendedAt,
                             (Suspendable<Object>) callable, (FutureBean<Object>) future);
                 } catch (Exception e) {
                     future.setExceptionResult(new ExecutionException(e));

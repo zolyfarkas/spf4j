@@ -205,6 +205,7 @@ public final class Program implements Serializable {
             @Override
             public synchronized Object call()
                     throws ZExecutionException, InterruptedException, SuspendedException {
+                ectx.suspendedAt = null;
                 while (!ectx.terminated) {
                     Object code = ectx.code.instructions[ectx.ip];
                     if (code instanceof Instruction) {
@@ -218,6 +219,11 @@ public final class Program implements Serializable {
                 } else {
                     return null;
                 }
+            }
+
+            @Override
+            public ExecutionContext getExecutionContext() {
+                return ectx;
             }
         };
     }
