@@ -139,8 +139,8 @@ public final class ZelTest {
 
     @Test
     public void testParallelism() throws CompileException, ZExecutionException, InterruptedException {
-        String program = "f1 = func {sleep 5000; 1}"
-                + "f2 = func {sleep 5000; 2}"
+        String program = "f1 = func {sleep 5000; 1};"
+                + "f2 = func {sleep 5000; 2};"
                 + "f1() + f2()";
         Program prog = Program.compile(program);
         System.out.println(prog);

@@ -609,8 +609,8 @@ void sysFunction(ParsingContext context) :
     (<SYNC> {eType = Program.ExecutionType.SYNC;})?
  (<LPAREN>
  (<ID> {parameterNames.add(token.image);}
- (<COMMA> <ID> {parameterNames.add(token.image);} )*)?
- <RPAREN>))
+ (<COMMA> <ID> {parameterNames.add(token.image);} )*)
+ <RPAREN>)?)
    {ParsingContext pc = (ParsingContext) context.createSubContext();}
    programBlock(pc)
    {pc.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);}
