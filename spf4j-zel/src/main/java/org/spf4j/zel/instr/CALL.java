@@ -47,7 +47,7 @@ public final class CALL extends Instruction {
         Object function = context.pop();
 
         if (function instanceof Program) {
-            Program p = (Program) function;
+            final Program p = (Program) function;
             final ExecutionContext nctx = context.getSubProgramContext(p, parameters);
             Object obj;
             switch (p.getType()) {

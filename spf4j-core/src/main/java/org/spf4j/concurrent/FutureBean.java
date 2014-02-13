@@ -62,19 +62,21 @@ public class FutureBean<T> implements Future<T> {
     }
 
     @Override
-    public final synchronized T get(final long timeout, final TimeUnit unit)
+    public final T get(final long timeout, final TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
         long timeoutMillis = unit.toMillis(timeout);
         long toWait = timeoutMillis;
         long startTime = System.currentTimeMillis();
-        while (toWait > 0 && resultStore == null) {
-            this.wait(toWait);
-            toWait = timeoutMillis - (System.currentTimeMillis() - startTime);
+        synchronized (this) {
+            while (toWait > 0 && resultStore == null) {
+                this.wait(toWait);
+                toWait = timeoutMillis - (System.currentTimeMillis() - startTime);
+            }
+            if (resultStore == null) {
+                throw new TimeoutException();
+            }
+            return processResult(resultStore);
         }
-        if (resultStore == null) {
-            throw new TimeoutException();
-        }
-        return processResult(resultStore);
     }
 
     public static <T> T processResult(final Pair<T, ? extends ExecutionException> result) throws ExecutionException {
@@ -87,12 +89,18 @@ public class FutureBean<T> implements Future<T> {
     }
 
     public final synchronized void setResult(final T result) {
+        if (resultStore != null) {
+            throw new IllegalStateException("cannot set result multiple times");
+        }
         resultStore = Pair.of(result, (ExecutionException) null);
         done();
         this.notifyAll();
     }
     
     public final synchronized void setExceptionResult(final ExecutionException result) {
+        if (resultStore != null) {
+            throw new IllegalStateException("cannot set result multiple times");
+        }
         resultStore = Pair.of(null, (ExecutionException) result);
         done();
         this.notifyAll();

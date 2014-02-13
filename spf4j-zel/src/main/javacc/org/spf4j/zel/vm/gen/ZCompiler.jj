@@ -64,6 +64,7 @@ SKIP :
   | "\t"
   | "\n"
   | <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+  | <MULTILINE_COMMENT: "/*" (~["*"])* "*" ("*" | ~["*","/"] (~["*"])* "*")* "/">
 }
 
 TOKEN : /* OPERATORS & KEYWORDS*/
@@ -102,6 +103,8 @@ TOKEN : /* OPERATORS & KEYWORDS*/
   |	< FOR: "for">
   |	< FUNCTION: ("function" | "func")>
   |	< DETERMINISTIC: ("deterministic" | "det" )>
+  |     < SYNC: "sync">
+  |     < ASYNC: "async">
   |	< ARG: "arg">
   |	< TRUE: "true" >
   |	< FALSE: "false" >
@@ -232,25 +235,20 @@ void program(ParsingContext context) :
 {
 }
 { 
- ( 
-    (statement(context)
-     (<SCL> statement(context))* )
-  | programBlock(context)
- ) +
- (<EOF>)?
+    statement(context)
+    (<SCL> statement(context))* 
 }
 
 void statement(ParsingContext context) :
 {
 }
 {
- (LOOKAHEAD(assignement(context)) 
+LOOKAHEAD(assignement(context)) 
     assignement(context) 
   | expression(context)
   | zreturn(context)
   | forStmt(context)
   | (<SLEEP> expression(context) {context.generateCode(org.spf4j.zel.instr.SLEEP.INSTANCE);})
- ) 
 }
 
 
@@ -287,7 +285,7 @@ void programBlock(ParsingContext context) :
 {
 }
 {
-  <LBRACE> ( program(context) ) + <RBRACE>
+  <LBRACE> program(context) <RBRACE>
 }
 
 /**
@@ -298,15 +296,15 @@ void zreturn(ParsingContext context) :
 {
 }
 {
-  ((<RETURN>)?
-  expression(context))
+  <RETURN> expression(context)
+ {context.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);}
 }
 
 void assignement(ParsingContext context) :
 {
 }
 {
-    assignableExpression(context) <EQUAL> expression(context)
+   assignableExpression(context) <EQUAL> expression(context)
    {
     context.generateCode(org.spf4j.zel.instr.MOV.INSTANCE);
    }
@@ -562,7 +560,7 @@ void constant(ParsingContext context) :
     |  <NULL>
       {context.generateCode(ResultCache.NULL);}
     |  <STRING>
-      {context.generateCode(token.image.substring(1, token.image.length()-1));}
+      {context.generateCode(org.spf4j.base.Strings.unescape(token.image.substring(1, token.image.length()-1)));}
     |  <MATCHEXP>
     {  String rExp = token.image.substring(1, token.image.length()-1);
        context.process(new WildCardMatcher(rExp));
@@ -602,21 +600,25 @@ void sysFunction(ParsingContext context) :
     int count = 0;
     List parameterNames = new ArrayList();
     Program.Type pType = Program.Type.NONDETERMINISTIC;
+    Program.ExecutionType eType = Program.ExecutionType.ASYNC;
 }
 {
-(
- (<FUNCTION> (<DETERMINISTIC> {pType = Program.Type.DETERMINISTIC;})?
+
+ (<FUNCTION> 
+    (<DETERMINISTIC> {pType = Program.Type.DETERMINISTIC;})?
+    (<SYNC> {eType = Program.ExecutionType.SYNC;})?
  (<LPAREN>
- <ID> {parameterNames.add(token.image);}
- (<COMMA> <ID> {parameterNames.add(token.image);} )*
- <RPAREN>)?)
+ (<ID> {parameterNames.add(token.image);}
+ (<COMMA> <ID> {parameterNames.add(token.image);} )*)?
+ <RPAREN>))
    {ParsingContext pc = (ParsingContext) context.createSubContext();}
    programBlock(pc)
    {pc.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);}
    {ProgramBuilder p=pc.getProgramBuilder();
     p.setType(pType);
+    p.setExecType(eType);
     context.generateCode(p.toProgram(parameterNames));}
-)
+
 }
 
 

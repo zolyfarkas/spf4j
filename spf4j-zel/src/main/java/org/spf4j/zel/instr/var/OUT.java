@@ -39,7 +39,7 @@ public final class OUT implements Method {
         ListIterator<Object> listIterator = parameters.listIterator(parameters.size());
         while (listIterator.hasPrevious()) {
             if (context.out != null) {
-                context.out.println(listIterator.previous());
+                context.out.print(listIterator.previous());
             }
         }
         return null;

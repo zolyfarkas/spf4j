@@ -18,6 +18,7 @@
 package org.spf4j.zel.vm;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +34,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nonnegative;
@@ -62,8 +65,13 @@ public final class Program implements Serializable {
     public enum Type {
         DETERMINISTIC, NONDETERMINISTIC
     };
+    
+    public enum ExecutionType {
+        SYNC, ASYNC
+    }
 
     private final Type type;
+    private final ExecutionType execType;
     private final int id; // program ID, unique ID identifying the program
 
     private final Object[] instructions;
@@ -79,14 +87,14 @@ public final class Program implements Serializable {
      * @param parameterNames
      */
     public Program(@Nonnull final Object[] objs, @Nonnegative final int start,
-            @Nonnegative final int end, final Type progType, final String... parameterNames) {
+            @Nonnegative final int end, final Type progType, final ExecutionType execType, final String... parameterNames) {
         int length = end - start;
         instructions = new Object[length];
         System.arraycopy(objs, start, instructions, 0, length);
         this.type = progType;
         id = ProgramBuilder.generateID();
         this.parameterNames = parameterNames;
-
+        this.execType = execType;
     }
 
     @Override
@@ -126,6 +134,10 @@ public final class Program implements Serializable {
         return instructions.length;
     }
 
+    public ExecutionType getExecType() {
+        return execType;
+    }
+    
     /**
      * create a compiled Z Byte Code
      *
@@ -207,11 +219,15 @@ public final class Program implements Serializable {
                     throws ZExecutionException, InterruptedException, SuspendedException {
                 ectx.suspendedAt = null;
                 while (!ectx.terminated) {
-                    Object code = ectx.code.instructions[ectx.ip];
-                    if (code instanceof Instruction) {
-                        ((Instruction) code).execute(ectx);
-                    } else {
-                        ectx.push(ectx.code.instructions[ectx.ip++]);
+                    try {
+                        Object code = ectx.code.instructions[ectx.ip];
+                        if (code instanceof Instruction) {
+                            ((Instruction) code).execute(ectx);
+                        } else {
+                            ectx.push(ectx.code.instructions[ectx.ip++]);
+                        }
+                    } catch (RuntimeException e) {
+                        throw new ZExecutionException("Program exec failed, state:" + ectx, e);
                     }
                 }
                 if (!ectx.isStackEmpty()) {
@@ -233,7 +249,7 @@ public final class Program implements Serializable {
     public static Object executeAsync(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
         final VMExecutor.Suspendable<Object> execution = getCallable(ectx);
-        if (ectx.execService != null) {
+        if (ectx.execService != null && ectx.code.getExecType() == ExecutionType.ASYNC) {
             return ectx.execService.submit(execution);
         } else {
             try {
@@ -246,16 +262,16 @@ public final class Program implements Serializable {
 
     public static Object execute(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
-        try {
             Object result = executeAsync(ectx);
             if (result instanceof Future) {
-                return ((Future<Object>) result).get();
+                try {
+                    return ((Future<Object>) result).get();
+                } catch (ExecutionException ex) {
+                    throw new ZExecutionException(ex);
+                }
             } else {
                 return result;
             }
-        } catch (ExecutionException ex) {
-           throw new ZExecutionException(ex);
-        }
     }
 
 private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(org.spf4j.base.Runtime.NR_PROCESSORS,
@@ -385,7 +401,16 @@ private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(org.sp
 
     @Override
     public String toString() {
-        return "Program: " + Arrays.toString(instructions);
+        StringBuilder result = new StringBuilder();
+        result.append("Program: \n");
+        for (int i = 0; i < instructions.length; i++) {
+            Object obj = instructions[i];
+            result.append(Strings.padEnd(Integer.toString(i), 8, ' '));
+            result.append(':');
+            result.append(obj);
+            result.append('\n');
+        }
+        return result.toString();
     }
 
     /**

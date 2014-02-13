@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -244,11 +245,14 @@ public final class ExecutionContext {
     }
 
     public ExecutionContext getSubProgramContext(final Program program, final List<Object> parameters) {
-        ExecutionContext ec = new ExecutionContext(this, this.execService, program);
+        ExecutionContext ec;
+        ec = new ExecutionContext(this, this.execService, program);
         String[] parameterNames = program.getParameterNames();
         int i = 0;
-        for (Object parameter : parameters) {
-            ec.memory.put(parameterNames[i++], parameter);
+        
+        ListIterator li = parameters.listIterator(parameters.size());
+        while (li.hasPrevious()) {
+            ec.memory.put(parameterNames[i++], li.previous());
         }
         return ec;
     }
@@ -269,7 +273,7 @@ public final class ExecutionContext {
                 + resultCache + ", memory=" + memory
                 + ", code=" + code + ", ip=" + ip + ", terminated=" + terminated
                 + ", stack=" + stack + ", in=" + in
-                + ", out=" + out + ", err=" + err + ", parent=" + parent + '}';
+                + ", out=" + out + ", err=" + err + '}';
     }
 
 }

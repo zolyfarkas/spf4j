@@ -1,6 +1,20 @@
+
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package org.spf4j.base;
 
@@ -14,10 +28,10 @@ import javax.annotation.Nonnull;
  * @author zoly
  */
 public final class Strings {
-    
-    private Strings() { }
-    
-    
+
+    private Strings() {
+    }
+
     public static void writeCsvElement(final String elem, final Writer writer) throws IOException {
         if (elem.contains(",")) {
             int length = elem.length();
@@ -35,8 +49,7 @@ public final class Strings {
             writer.write(elem);
         }
     }
-    
-    
+
     public static String toCsvElement(final String elem) {
         if (elem.contains(",")) {
             int length = elem.length();
@@ -52,17 +65,17 @@ public final class Strings {
             }
             builder.append('"');
             return builder.toString();
-            
+
         } else {
             return elem;
         }
     }
-    
+
     public static int readCsvElement(final String fromStr, final int fromIdx,
             final StringBuilder addElemTo) {
         return readCsvElement(fromStr, fromIdx, fromStr.length(), addElemTo);
     }
-    
+
     public static int readCsvElement(final String fromStr, final int fromIdx,
             final int maxIdx, final StringBuilder addElemTo) {
         int i = fromIdx;
@@ -100,11 +113,11 @@ public final class Strings {
         }
         return i;
     }
-    
+
     /**
-     * function that calculates the number of operations that are needed to
-     * transform s1 into s2.
-     * operations are: char add, char delete, char modify
+     * function that calculates the number of operations that are needed to transform s1 into s2. operations are: char
+     * add, char delete, char modify
+     *
      * @param s1
      * @param s2
      * @return the number of operations required to transfor s1 into s2
@@ -139,6 +152,32 @@ public final class Strings {
         } else {
             return 1;
         }
+    }
+
+    private static final String[][] JAVA_CTRL_CHARS_UNESCAPE = {
+        {"\\b", "\b"},
+        {"\\n", "\n"},
+        {"\\t", "\t"},
+        {"\\f", "\f"},
+        {"\\r", "\r"}
+    };
+
+    private static final CharSequenceTranslator UNESCAPE_JAVA
+            = new AggregateTranslator(
+                    new OctalUnescaper(),
+                    new UnicodeUnescaper(),
+                    new LookupTranslator(JAVA_CTRL_CHARS_UNESCAPE),
+                    new LookupTranslator(
+                            new String[][]{
+                                {"\\\\", "\\"},
+                                {"\\\"", "\""},
+                                {"\\'", "'"},
+                                {"\\", ""}
+                            })
+            );
+
+    public static String unescape(final String what) {
+        return UNESCAPE_JAVA.translate(what);
     }
     
     

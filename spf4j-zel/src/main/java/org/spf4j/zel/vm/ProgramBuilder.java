@@ -22,6 +22,8 @@ public final class ProgramBuilder {
     private int instrNumber;
 
     private Program.Type type;
+    
+    private Program.ExecutionType execType;
 
     private static final AtomicInteger COUNTER = new AtomicInteger();
 
@@ -35,6 +37,7 @@ public final class ProgramBuilder {
         instructions = new Object[DEFAULT_SIZE];
         instrNumber = 0;
         type = Program.Type.NONDETERMINISTIC;
+        execType = Program.ExecutionType.ASYNC;
     }
 
     /**
@@ -61,6 +64,12 @@ public final class ProgramBuilder {
     public void setType(final Program.Type type) {
         this.type = type;
     }
+    
+    public void setExecType(final Program.ExecutionType execType) {
+        this.execType = execType;
+    }
+    
+    
 
     public void add(final Object object) {
         ensureCapacity(instrNumber + 1);
@@ -117,12 +126,12 @@ public final class ProgramBuilder {
     }
 
     public Program toProgram(final String[] parameterNames) {
-        return new Program(instructions, 0, instrNumber, type, parameterNames);
+        return new Program(instructions, 0, instrNumber, type, execType, parameterNames);
     }
     
     
     public Program toProgram(final List<String> parameterNames) {
-        return new Program(instructions, 0, instrNumber, type,
+        return new Program(instructions, 0, instrNumber, type, execType,
                 parameterNames.toArray(new String[parameterNames.size()]));
     }
 
