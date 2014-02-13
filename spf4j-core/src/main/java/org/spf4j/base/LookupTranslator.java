@@ -27,7 +27,7 @@ import java.util.HashMap;
  * @since 3.0
  * @version $Id$
  */
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_ARRAY_INDEX")
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
 public final class LookupTranslator extends CharSequenceTranslator {
 
     private final HashMap<String, CharSequence> lookupMap;

@@ -84,14 +84,9 @@ public final class ExecutionContext {
     public final PrintStream err;
 
     
+    FutureBean<Object> suspendedAt;
     //CHECKSTYLE:ON
     
-    /**
-     * The parent Execution Context
-     */
-    private final ExecutionContext parent;
-    
-    public FutureBean<Object> suspendedAt;
 
     private ExecutionContext(final ExecutionContext parent, final VMExecutor service, final Program program) {
         this.in = parent.in;
@@ -102,7 +97,6 @@ public final class ExecutionContext {
         this.stack = new SimpleStack(32);
         this.code = program;
         this.resultCache = parent.resultCache;
-        this.parent = parent;
         this.ip = 0;
     }
 
@@ -130,7 +124,6 @@ public final class ExecutionContext {
         this.stack = new SimpleStack(32);
         this.ip = 0;
         this.resultCache = new SimpleResultCache();
-        this.parent = null;
     }
 
     /**

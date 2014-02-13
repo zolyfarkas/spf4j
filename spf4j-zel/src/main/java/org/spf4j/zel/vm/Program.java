@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -34,8 +33,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nonnegative;
@@ -87,7 +84,8 @@ public final class Program implements Serializable {
      * @param parameterNames
      */
     public Program(@Nonnull final Object[] objs, @Nonnegative final int start,
-            @Nonnegative final int end, final Type progType, final ExecutionType execType, final String... parameterNames) {
+            @Nonnegative final int end, final Type progType, final ExecutionType execType,
+            final String... parameterNames) {
         int length = end - start;
         instructions = new Object[length];
         System.arraycopy(objs, start, instructions, 0, length);
