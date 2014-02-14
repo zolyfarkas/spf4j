@@ -51,7 +51,7 @@ public final class JavaMethodCall implements Method {
             throws IllegalAccessException, InvocationTargetException {
         int np = parameters.length;
         if (np > 0) {
-            Class<?>[] classes = new Class<?>[np];          
+            Class<?>[] classes = new Class<?>[np];
             for (int i = 0; i < np; i++) {
                 classes[i] = parameters[i].getClass();
             }
