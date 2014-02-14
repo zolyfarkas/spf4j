@@ -26,7 +26,7 @@ public final class CompileContext implements ParsingContext {
         this.prog = new ProgramBuilder();
     }
 
-    
+
     @SuppressWarnings("unchecked")
     @Override
     public void generateCode(final Object... args) {

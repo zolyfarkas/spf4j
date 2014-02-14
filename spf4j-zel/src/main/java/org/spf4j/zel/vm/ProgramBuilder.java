@@ -1,12 +1,29 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package org.spf4j.zel.vm;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.spf4j.zel.instr.Instruction;
 
 /**
  *
@@ -26,7 +43,9 @@ public final class ProgramBuilder {
     private Program.ExecutionType execType;
 
     private static final AtomicInteger COUNTER = new AtomicInteger();
-
+    
+    private final Interner<String> stringInterner;
+    
     public static int generateID() {
         return COUNTER.getAndIncrement();
     }
@@ -37,20 +56,19 @@ public final class ProgramBuilder {
         instructions = new Object[DEFAULT_SIZE];
         instrNumber = 0;
         type = Program.Type.NONDETERMINISTIC;
-        execType = Program.ExecutionType.ASYNC;
+        execType = null; //Program.ExecutionType.ASYNC;
+        stringInterner = Interners.newStrongInterner();
     }
-
-    /**
-     * initializes the program with the provided size
-     *
-     * @param size
-     */
-    public ProgramBuilder(final int size) {
-        instructions = new Object[16];
-        instrNumber = 0;
-        this.type = Program.Type.NONDETERMINISTIC;
+    
+    public void intern(final Object[] array) {
+        for (int i = 0; i < array.length; i++) {
+            Object obj = array[i];
+            if (obj instanceof String) {
+                    array[i] = stringInterner.intern((String) obj);
+            }
+        }
     }
-
+    
     /**
      * @return the type
      */
@@ -61,43 +79,87 @@ public final class ProgramBuilder {
     /**
      * @param type the type to set
      */
-    public void setType(final Program.Type type) {
-        this.type = type;
+    public ProgramBuilder setType(final Program.Type ptype) {
+        this.type = ptype;
+        return this;
     }
     
-    public void setExecType(final Program.ExecutionType execType) {
-        this.execType = execType;
+    public ProgramBuilder setExecType(final Program.ExecutionType pexecType) {
+        this.execType = pexecType;
+        return this;
     }
     
     
 
-    public void add(final Object object) {
+    public ProgramBuilder add(final Object object) {
         ensureCapacity(instrNumber + 1);
         instructions[instrNumber++] = object;
+        return this;
     }
+    
+    public boolean contains(final Instruction instr) {
+        Boolean res = itterate(new Function<Object, Boolean>() {
 
-    public void set(final int idx, final Object object) {
+            @Override
+            @edu.umd.cs.findbugs.annotations.SuppressWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
+            public Boolean apply(final Object input) {
+                if (input == instr) {
+                    return Boolean.TRUE;
+                }
+                return null;
+            }
+        });
+        if (res == null) {
+            return false;
+        }
+        return res;
+    }
+    
+    public <T> T itterate(final Function<Object, T> func) {
+         for (int i = 0; i < instrNumber; i++) {
+            Object code = instructions[i];
+            T res = func.apply(code);
+            if (res != null) {
+                return res;
+            }
+            if (code instanceof Program) {
+                res = ((Program) code).itterate(func);
+                if (res != null) {
+                    return res;
+                }
+            }
+        }
+        return null;
+    }
+    
+    
+
+    public ProgramBuilder set(final int idx, final Object object) {
         ensureCapacity(idx + 1);
         instructions[idx] = object;
         instrNumber = Math.max(idx + 1, instrNumber);
+        return this;
     }
 
-    public void addAll(final Object[] objects) {
+    public ProgramBuilder addAll(final Object[] objects) {
         ensureCapacity(instrNumber + objects.length);
         System.arraycopy(objects, 0, instructions, instrNumber, objects.length);
         instrNumber += objects.length;
+        return this;
     }
 
-    public void setAll(final int idx, final Object[] objects) {
+    public ProgramBuilder setAll(final int idx, final Object[] objects) {
         ensureCapacity(idx + objects.length);
         System.arraycopy(objects, 0, instructions, idx, objects.length);
         instrNumber = Math.max(objects.length + idx, instrNumber);
+        return this;
     }
 
-    public void addAll(final ProgramBuilder opb) {
+    public ProgramBuilder addAll(final ProgramBuilder opb) {
         ensureCapacity(instrNumber + opb.instrNumber);
         System.arraycopy(opb.instructions, 0, instructions, instrNumber, opb.instrNumber);
         instrNumber += opb.instrNumber;
+        return this;
     }
 
     /**
@@ -106,7 +168,7 @@ public final class ProgramBuilder {
      *
      * @param minCapacity the desired minimum capacity
      */
-    public void ensureCapacity(final int minCapacity) {
+    private void ensureCapacity(final int minCapacity) {
         int oldCapacity = instructions.length;
         if (minCapacity > oldCapacity) {
             int newCapacity = (oldCapacity * 3) / 2 + 1;
@@ -125,14 +187,61 @@ public final class ProgramBuilder {
         return Arrays.copyOf(instructions, instrNumber);
     }
 
+    public boolean hasDeterministicFunctions() {
+        Boolean hasDetFuncs = itterate(new Function<Object, Boolean>() {
+
+            @Override
+            @edu.umd.cs.findbugs.annotations.SuppressWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
+            public Boolean apply(final Object input) {
+                if (input instanceof Program) {
+                    Program prog = (Program) input;
+                    if (prog.getType() == Program.Type.DETERMINISTIC
+                            || prog.isHasDeterministicFunctions()) {
+                        return Boolean.TRUE;
+                    }
+                }
+                return null;
+            }
+        });
+        if (hasDetFuncs == null) {
+            hasDetFuncs = Boolean.FALSE;
+        }
+        return hasDetFuncs;
+    }
+    
+    public boolean hasAsyncCalls() {
+         Boolean hasAsyncCalls = itterate(new Function<Object, Boolean>() {
+            @Override
+            @edu.umd.cs.findbugs.annotations.SuppressWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
+            public Boolean apply(final Object input) {
+                if (input instanceof Program) {
+                    Program prog = (Program) input;
+                    if (prog.getExecType() == Program.ExecutionType.ASYNC) {
+                        return Boolean.TRUE;
+                    }
+                }
+                return null;
+            }
+        });
+        if (hasAsyncCalls == null) {
+            return false;
+        }
+        return hasAsyncCalls;
+    }
+    
     public Program toProgram(final String[] parameterNames) {
-        return new Program(instructions, 0, instrNumber, type, execType, parameterNames);
+        intern(instructions);
+        intern(parameterNames);
+        return new Program(instructions, 0, instrNumber, type,
+                this.execType == Program.ExecutionType.ASYNC || hasAsyncCalls()
+                        ? (this.execType == null ? Program.ExecutionType.ASYNC : this.execType)
+                        : Program.ExecutionType.SYNC_ALL,
+                hasDeterministicFunctions(), parameterNames);
     }
     
     
     public Program toProgram(final List<String> parameterNames) {
-        return new Program(instructions, 0, instrNumber, type, execType,
-                parameterNames.toArray(new String[parameterNames.size()]));
+        return toProgram(parameterNames.toArray(new String[parameterNames.size()]));
     }
 
 }

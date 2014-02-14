@@ -25,6 +25,9 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import org.spf4j.base.Pair;
 import org.spf4j.concurrent.FutureBean;
 
@@ -33,14 +36,38 @@ import org.spf4j.concurrent.FutureBean;
  * @author zoly
  */
 public final class VMExecutor {
+    
+    
+    public static class Lazy {
+         private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(org.spf4j.base.Runtime.NR_PROCESSORS,
+                                      org.spf4j.base.Runtime.NR_PROCESSORS,
+                                      60, TimeUnit.SECONDS,
+                                      new LinkedBlockingQueue<Runnable>());
+         public static final VMExecutor DEFAULT = new VMExecutor(DEF_EXEC);
+    }
 
     public interface Suspendable<T> extends Callable<T> {
 
         @Override
         T call() throws SuspendedException, ZExecutionException, InterruptedException;
         
-        ExecutionContext getExecutionContext();
+        FutureBean<?> getSuspendedAt();
+        
+    }
+    
+    public static <T> Suspendable<T> synchronize(final Suspendable<T> what) {
+        return new Suspendable<T>() {
 
+            @Override
+            public synchronized T call() throws SuspendedException, ZExecutionException, InterruptedException {
+                return what.call();
+            }
+
+            @Override
+            public synchronized FutureBean<?> getSuspendedAt() {
+                return what.getSuspendedAt();
+            }
+        };
     }
 
     private final Executor exec;
@@ -113,7 +140,7 @@ public final class VMExecutor {
                     future.setResult(result);
                     resumeSuspendables((FutureBean<Object>) future);
                 } catch (SuspendedException ex) {
-                    addSuspendable((FutureBean<Object>) callable.getExecutionContext().suspendedAt,
+                    addSuspendable((FutureBean<Object>) callable.getSuspendedAt(),
                             (Suspendable<Object>) callable, (FutureBean<Object>) future);
                 } catch (Exception e) {
                     future.setExceptionResult(new ExecutionException(e));

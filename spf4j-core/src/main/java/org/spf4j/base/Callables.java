@@ -183,4 +183,15 @@ public final class Callables {
         return result;
     }
     
+    public static <T> Callable<T> synchronize(final Callable<T> callable) {
+        return new Callable<T>() {
+
+            @Override
+            public synchronized T call() throws Exception {
+                return callable.call();
+            }
+        };
+    }
+    
+    
 }

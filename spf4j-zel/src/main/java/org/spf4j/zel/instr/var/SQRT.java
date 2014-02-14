@@ -17,7 +17,6 @@
  */
 package org.spf4j.zel.instr.var;
 
-import java.util.List;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.ExecutionContext;
@@ -49,8 +48,8 @@ public final class SQRT extends Instruction {
     @Override
     public void execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
-        List<Object> params = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
-        final Number val = (Number) params.get(0);
+        Object [] params = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
+        final Number val = (Number) params[0];
         context.push(Math.sqrt(val.doubleValue()));
         context.ip++;
     }

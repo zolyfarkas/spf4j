@@ -17,8 +17,6 @@
  */
 package org.spf4j.zel.instr.var;
 
-import java.util.List;
-import java.util.ListIterator;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 
@@ -34,13 +32,9 @@ public final class OUT implements Method {
     public static final Method INSTANCE = new OUT();
 
     @Override
-    public Object invokeInverseParamOrder(final ExecutionContext context, final List<Object> parameters)
-            throws Exception {
-        ListIterator<Object> listIterator = parameters.listIterator(parameters.size());
-        while (listIterator.hasPrevious()) {
-            if (context.out != null) {
-                context.out.print(listIterator.previous());
-            }
+    public Object invoke(final ExecutionContext context, final Object [] parameters) {
+        for (Object obj : parameters) {
+                context.out.print(obj);
         }
         return null;
     }

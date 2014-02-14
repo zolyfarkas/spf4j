@@ -18,7 +18,6 @@
 package org.spf4j.zel.vm;
 
 import java.math.BigInteger;
-import java.util.concurrent.ExecutorService;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
@@ -115,7 +114,6 @@ public final class ZelTest {
     public void testFibPerformance() throws CompileException, ZExecutionException, InterruptedException {
         String fib = "fib = func det (x) {fib(x-1) + fib(x-2)}; fib(0) = 0; fib(1) = 1; fib(x)";
         Program fibZel = Program.compile(fib, "x");
-        System.out.println(fibZel);
         long startTime = System.currentTimeMillis();
         Number zelResult = (Number) fibZel.execute(40);
         long intTime = System.currentTimeMillis();

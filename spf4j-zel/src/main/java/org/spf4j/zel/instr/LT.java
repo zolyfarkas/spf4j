@@ -37,8 +37,8 @@ public final class LT extends Instruction {
     public void execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
         Object [] vals = context.popSyncStackVals(2);
-        context.push(Boolean.valueOf(((Comparable) vals[0]).
-                compareTo(vals[1]) > 0));
+        context.push(Boolean.valueOf(((Comparable) vals[1]).
+                compareTo(vals[0]) > 0));
         context.ip++;
     }
     /**

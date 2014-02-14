@@ -36,7 +36,7 @@ public final class POW extends Instruction {
     public void execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
         Object [] vals = context.popSyncStackVals(2);
-        context.push(Operators.apply(Operator.Enum.Pow, vals[1], vals[0]));
+        context.push(Operators.apply(Operator.Enum.Pow, vals[0], vals[1]));
         context.ip++;
     }
     /**

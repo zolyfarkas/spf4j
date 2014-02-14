@@ -18,6 +18,7 @@
 package org.spf4j.zel.vm;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,9 +31,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nonnegative;
@@ -64,7 +62,9 @@ public final class Program implements Serializable {
     };
     
     public enum ExecutionType {
-        SYNC, ASYNC
+        SYNC,
+        SYNC_ALL,
+        ASYNC
     }
 
     private final Type type;
@@ -73,6 +73,7 @@ public final class Program implements Serializable {
 
     private final Object[] instructions;
     private final String[] parameterNames;
+    private final boolean hasDeterministicFunctions;
 
     /**
      * initializes program with an array of objects.
@@ -85,7 +86,7 @@ public final class Program implements Serializable {
      */
     public Program(@Nonnull final Object[] objs, @Nonnegative final int start,
             @Nonnegative final int end, final Type progType, final ExecutionType execType,
-            final String... parameterNames) {
+            final boolean hasDeterministicFunctions, final String... parameterNames) {
         int length = end - start;
         instructions = new Object[length];
         System.arraycopy(objs, start, instructions, 0, length);
@@ -93,7 +94,11 @@ public final class Program implements Serializable {
         id = ProgramBuilder.generateID();
         this.parameterNames = parameterNames;
         this.execType = execType;
+        this.hasDeterministicFunctions = hasDeterministicFunctions;
     }
+    
+    
+    
 
     @Override
     @CheckReturnValue
@@ -114,6 +119,10 @@ public final class Program implements Serializable {
         return this.id;
     }
 
+    public boolean isHasDeterministicFunctions() {
+        return hasDeterministicFunctions;
+    }
+    
     /**
      * @return the instructions
      */
@@ -155,7 +164,6 @@ public final class Program implements Serializable {
             throw new CompileException(ex);
         }
         return cc.getProgramBuilder().toProgram(varNames);
-
     }
 
     public Object execute() throws ZExecutionException, InterruptedException {
@@ -166,18 +174,12 @@ public final class Program implements Serializable {
         return execute(newMem(), System.in, System.out, System.err, args);
     }
 
-    public Object execute(@Nullable final ExecutorService execService,
+    public Object execute(@Nonnull final ExecutorService execService,
             final Object... args) throws ZExecutionException, InterruptedException {
-        return execute(newMem(), System.in, System.out, System.err, execService, args);
+        return execute(new VMExecutor(execService), newMem(), System.in, System.out, System.err, args);
     }
 
     
-    /**
-     * Execute the program with the provided memory
-     *
-     * @param memory Map
-     * @return Object
-     */
     public Object execute(@Nonnull final java.util.Map memory, final Object... args)
             throws ZExecutionException, InterruptedException {
         return execute(memory, System.in, System.out, System.err, args);
@@ -195,9 +197,11 @@ public final class Program implements Serializable {
      * function will return a Future Also it is recomended that a thread safe memory is used in case your functions will
      * modify the memory (not recomended)
      */
-    public Object execute(@Nonnull final java.util.Map memory, @Nullable final InputStream in,
-            @Nullable final PrintStream out, @Nullable final PrintStream err,
-            @Nullable final ExecutorService execService, final Object... args)
+    public Object execute(@Nullable final VMExecutor execService, @Nonnull final java.util.Map memory,
+            @Nullable final InputStream in,
+            @Nullable final PrintStream out,
+            @Nullable final PrintStream err,
+            final Object... args)
             throws ZExecutionException, InterruptedException {
         HierarchicalMap map = new HierarchicalMap(BUILTINS, memory);
         final ExecutionContext ectx = new ExecutionContext(this, map, in, out, err, execService);
@@ -209,46 +213,11 @@ public final class Program implements Serializable {
 
     
     
-    public static VMExecutor.Suspendable<Object> getCallable(@Nonnull final ExecutionContext ectx) {
-        return new VMExecutor.Suspendable<Object>() {
-
-            @Override
-            public synchronized Object call()
-                    throws ZExecutionException, InterruptedException, SuspendedException {
-                ectx.suspendedAt = null;
-                while (!ectx.terminated) {
-                    try {
-                        Object code = ectx.code.instructions[ectx.ip];
-                        if (code instanceof Instruction) {
-                            ((Instruction) code).execute(ectx);
-                        } else {
-                            ectx.push(ectx.code.instructions[ectx.ip++]);
-                        }
-                    } catch (RuntimeException e) {
-                        throw new ZExecutionException("Program exec failed, state:" + ectx, e);
-                    }
-                }
-                if (!ectx.isStackEmpty()) {
-                    return ectx.popSyncStackVal();
-                } else {
-                    return null;
-                }
-            }
-
-            @Override
-            public ExecutionContext getExecutionContext() {
-                return ectx;
-            }
-        };
-    }
- 
-    
-    
     public static Object executeAsync(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
-        final VMExecutor.Suspendable<Object> execution = getCallable(ectx);
+        final VMExecutor.Suspendable<Object> execution = ectx.getCallable();
         if (ectx.execService != null && ectx.code.getExecType() == ExecutionType.ASYNC) {
-            return ectx.execService.submit(execution);
+            return ectx.execService.submit(VMExecutor.synchronize(execution));
         } else {
             try {
                 return execution.call();
@@ -271,16 +240,15 @@ public final class Program implements Serializable {
                 return result;
             }
     }
-
-private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(org.spf4j.base.Runtime.NR_PROCESSORS,
-                                      org.spf4j.base.Runtime.NR_PROCESSORS,
-                                      60, TimeUnit.SECONDS,
-                                      new LinkedBlockingQueue<Runnable>());
     
     public Object execute(@Nonnull final java.util.Map memory, @Nonnull final InputStream in,
             @Nonnull final PrintStream out, @Nonnull final PrintStream err, final Object... args)
             throws ZExecutionException, InterruptedException {
-        return execute(memory, in, out, err, DEF_EXEC, args);
+        if (execType == ExecutionType.SYNC_ALL) {
+            return execute(null, memory, in, out, err, args);
+        } else {
+            return execute(VMExecutor.Lazy.DEFAULT, memory, in, out, err, args);
+        }
     }
 
     @CheckReturnValue
@@ -386,7 +354,7 @@ private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(org.sp
                     terminated = true;
                 } else {
                     try {
-                        Program.compile(line).execute(mem, System.in, System.out, System.err);
+                        System.out.println(Program.compile(line).execute(mem, System.in, System.out, System.err));
                     } catch (CompileException ex) {
                         System.out.println("Syntax Error: " + ex.getMessage());
                     } catch (ZExecutionException ex) {
@@ -421,5 +389,45 @@ private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(org.sp
     String[] getParameterNames() {
         return parameterNames;
     }
+    
+    public boolean contains(final Instruction instr) {
+        Boolean res = itterate(new Function<Object, Boolean>() {
+            @Override
+            @edu.umd.cs.findbugs.annotations.SuppressWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
+            public Boolean apply(final Object input) {
+                if (input == instr) {
+                    return Boolean.TRUE;
+                }
+                return null;
+            }
+        });
+        if (res == null) {
+            return false;
+        }
+        return res;
+    }
+    
+    @Nullable
+    public <T> T itterate(final Function<Object, T> func) {
+            for (Object code : instructions) {
+            T res = func.apply(code);
+            if (res != null) {
+                return res;
+            }
+            if (code instanceof Program) {
+                res = ((Program) code).itterate(func);
+                if (res != null) {
+                    return res;
+                }
+            }
+        }
+        return null;
+    }
+
+    Object[] getInstructions() {
+        return instructions;
+    }
+    
+    
 
 }

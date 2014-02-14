@@ -36,7 +36,7 @@ public final class SUB extends Instruction {
     public void execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
         Object[] vals = context.popSyncStackVals(2);
-        context.push(Operators.apply(Operator.Enum.Sub, vals[1], vals[0]));
+        context.push(Operators.apply(Operator.Enum.Sub, vals[0], vals[1]));
         context.ip++;
     }
     /**

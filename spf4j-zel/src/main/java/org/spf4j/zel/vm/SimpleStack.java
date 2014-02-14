@@ -117,6 +117,25 @@ public final class SimpleStack<T>
         return o;
     }
     
+    public T[] pop(final int n) {
+        int ot = top;
+        top -= n;
+        T[] result = java.util.Arrays.copyOfRange(elems, top, ot);
+        java.util.Arrays.fill(elems, top, ot, null);
+        return result;
+    }
+    
+    public T [] popUntil(final T until) {
+        int i = top - 1;
+        while (elems[i] != until) {
+            i--;
+        }
+        T [] result = java.util.Arrays.copyOfRange(elems, i + 1, top);
+        java.util.Arrays.fill(elems, i, top, null);
+        top = i;
+        return result;
+    }
+    
 
     /**
      * take a look at the top of stack

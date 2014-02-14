@@ -41,8 +41,17 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
     private final CacheLoader<K, V> loader;
 
     public UnboundedLoadingCache(final int initialSize, final CacheLoader<K, V> loader) {
-        this.map = new ConcurrentHashMap<K, MemorizedCallable<? extends V>>(initialSize);
+        this.map = new ConcurrentHashMap<K, MemorizedCallable<? extends V>>(
+                initialSize, 0.75f, getDefaultConcurrency());
         this.loader = loader;
+    }
+
+    public static int getDefaultConcurrency() {
+        int defConcurrency = org.spf4j.base.Runtime.NR_PROCESSORS;
+        if (defConcurrency > 16) {
+            defConcurrency = 16;
+        }
+        return defConcurrency;
     }
 
     @Override

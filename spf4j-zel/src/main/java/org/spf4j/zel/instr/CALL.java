@@ -18,7 +18,7 @@
 package org.spf4j.zel.instr;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.ExecutionContext;
@@ -43,7 +43,7 @@ public final class CALL extends Instruction {
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public void execute(final ExecutionContext context)
             throws ZExecutionException, InterruptedException, SuspendedException {
-        List<Object> parameters = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
+        Object [] parameters = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
         Object function = context.pop();
 
         if (function instanceof Program) {
@@ -52,7 +52,8 @@ public final class CALL extends Instruction {
             Object obj;
             switch (p.getType()) {
                 case DETERMINISTIC:
-                    obj = context.resultCache.getResult(p, parameters, new Callable<Object>() {
+                    
+                    obj = context.resultCache.getResult(p,  Arrays.asList(parameters), new Callable<Object>() {
                         @Override
                         public Object call() throws Exception {
                             return Program.executeAsync(nctx);
@@ -69,7 +70,7 @@ public final class CALL extends Instruction {
             context.push(obj);
         } else if (function instanceof Method) {
             try {
-                context.push(((Method) function).invokeInverseParamOrder(context, parameters));
+                context.push(((Method) function).invoke(context, parameters));
             } catch (IllegalAccessException ex) {
                 throw new ZExecutionException("cannot invoke " + function, ex);
             } catch (InvocationTargetException ex) {

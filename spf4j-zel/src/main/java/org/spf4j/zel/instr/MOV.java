@@ -17,7 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
-import java.util.List;
+import java.util.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.FuncMarker;
@@ -46,8 +46,9 @@ public final class MOV extends Instruction {
             }
             context.push(what);
         } else if (to == FuncMarker.INSTANCE) {
-            List<Object> params = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
-            context.resultCache.putPermanentResult((Program) ((AssignableValue) context.pop()).get(), params, what);
+            Object [] params = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
+            context.resultCache.putPermanentResult((Program) ((AssignableValue) context.pop()).get(),
+                    Arrays.asList(params), what);
         }
         context.ip++;
     }

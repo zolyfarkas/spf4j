@@ -19,7 +19,6 @@
 package org.spf4j.zel.vm;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 import org.spf4j.base.Reflections;
 
 /**
@@ -44,21 +43,24 @@ public final class JavaMethodCall implements Method {
         this.object = null;
     }
     
+    
+    private static final Class<?>[] EMPTY_CL_ARR = new Class<?>[0];
+    
     @Override
-    public Object invokeInverseParamOrder(final ExecutionContext context, final List<Object> parameters)
+    public Object invoke(final ExecutionContext context, final Object [] parameters)
             throws IllegalAccessException, InvocationTargetException {
-        int np = parameters.size();
-        Class<?>[] classes = new Class<?>[np];
-        Object[] params = new Object[np];
-        int i = np - 1;
-        for (Object obj : parameters) {
-            Class<?> clasz = obj.getClass();
-            classes[i] = clasz;
-            params[i] = obj;
-            i--;
+        int np = parameters.length;
+        if (np > 0) {
+            Class<?>[] classes = new Class<?>[np];          
+            for (int i = 0; i < np; i++) {
+                classes[i] = parameters[i].getClass();
+            }
+            return Reflections.getCompatibleMethodCached(objectClass, name, classes)
+                    .invoke(object, parameters);
+        } else {
+            return Reflections.getCompatibleMethodCached(objectClass, name, EMPTY_CL_ARR)
+                    .invoke(object);
         }
-        return Reflections.getCompatibleMethodCached(objectClass, name, classes)
-                .invoke(object, params);
     }
 
 }

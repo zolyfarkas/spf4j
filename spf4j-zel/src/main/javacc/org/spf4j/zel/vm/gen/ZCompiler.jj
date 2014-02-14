@@ -255,8 +255,8 @@ LOOKAHEAD(assignement(context))
 void forStmt(ParsingContext context) :
 {
   int condAddr = 0;
-  CompileContext postAssign = new CompileContext();
-  CompileContext loopBlock = new CompileContext();
+  ParsingContext postAssign = (ParsingContext) context.createSubContext();
+  ParsingContext loopBlock = (ParsingContext) context.createSubContext();
 }
 {
   <FOR>
@@ -614,7 +614,7 @@ void sysFunction(ParsingContext context) :
    {ParsingContext pc = (ParsingContext) context.createSubContext();}
    programBlock(pc)
    {pc.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);}
-   {ProgramBuilder p=pc.getProgramBuilder();
+   {ProgramBuilder p= pc.getProgramBuilder();
     p.setType(pType);
     p.setExecType(eType);
     context.generateCode(p.toProgram(parameterNames));}

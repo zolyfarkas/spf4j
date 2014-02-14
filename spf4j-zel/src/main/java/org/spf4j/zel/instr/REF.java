@@ -42,8 +42,8 @@ public final class REF extends Instruction {
     public void execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
        Object [] vals = context.popSyncStackVals(2);
-       final Object ref = vals[0];
-       final Object relTo = vals[1];
+       final Object ref = vals[1];
+       final Object relTo = vals[0];
        final Object relativeTo;
        if (relTo instanceof AssignableValue) {
            Object obj = ((AssignableValue) relTo).get();

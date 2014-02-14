@@ -42,8 +42,8 @@ public final class DEREF extends Instruction {
             throws ZExecutionException, SuspendedException {
        
        Object [] vals = context.popSyncStackVals(2);
-       Object ref = vals[0];
-       Object relativeTo = vals[1];
+       Object ref = vals[1];
+       Object relativeTo = vals[0];
        
        if (relativeTo instanceof Map) {
            context.push(((Map) relativeTo).get(ref));

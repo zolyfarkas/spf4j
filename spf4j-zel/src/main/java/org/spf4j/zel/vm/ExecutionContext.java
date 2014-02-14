@@ -19,16 +19,13 @@ package org.spf4j.zel.vm;
 
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Pair;
 import org.spf4j.concurrent.FutureBean;
+import org.spf4j.zel.instr.Instruction;
 
 /**
  * Virtual Machine Execution Context
@@ -110,22 +107,62 @@ public final class ExecutionContext {
      */
     public ExecutionContext(final Program program, final java.util.Map memory,
             @Nullable final InputStream in, @Nullable final PrintStream out, @Nullable final PrintStream err,
-            @Nullable final ExecutorService execService) {
+            @Nullable final VMExecutor execService) {
         this.code = program;
         this.memory = new HierarchicalMap(memory);
         this.in = in;
         this.out = out;
         this.err = err;
-        if (execService != null) {
-            this.execService = new VMExecutor(execService);
-        } else {
-            this.execService = null;
-        }
-        this.stack = new SimpleStack(32);
+        this.execService = execService;
+        this.stack = new SimpleStack(16);
         this.ip = 0;
-        this.resultCache = new SimpleResultCache();
+        if (program.isHasDeterministicFunctions()) {
+            this.resultCache = new SimpleResultCache();
+        } else {
+            this.resultCache = null;
+        }
     }
 
+    
+        public VMExecutor.Suspendable<Object> getCallable() {
+        return new VMExecutor.Suspendable<Object>() {
+
+            @Override
+            public Object call()
+                    throws ZExecutionException, InterruptedException, SuspendedException {
+                suspendedAt = null;
+                Object [] instructions = code.getInstructions();
+                while (!terminated) {
+                    try {
+                        Object icode = instructions[ip];
+                        if (icode instanceof Instruction) {
+                            ((Instruction) icode).execute(ExecutionContext.this);
+                        } else {
+                            push(instructions[ip++]);
+                        }
+                    } catch (RuntimeException e) {
+                        throw new ZExecutionException("Program exec failed, state:" + this, e);
+                    }
+                }
+                if (!isStackEmpty()) {
+                    return popSyncStackVal();
+                } else {
+                    return null;
+                }
+            }
+
+            @Override
+            public FutureBean<?> getSuspendedAt() {
+                return ExecutionContext.this.suspendedAt;
+            }
+        };
+    }
+    
+    
+    
+    
+    
+    
     /**
      * pops object out of stack
      *
@@ -153,10 +190,7 @@ public final class ExecutionContext {
     }
 
     public Object[] popSyncStackVals(final int nvals) throws SuspendedException {
-        Object[] result = new Object[nvals];
-        for (int i = 0; i < nvals; i++) {
-            result[i] = stack.pop();
-        }
+        Object[] result = stack.pop(nvals);
         for (int i = 0; i < nvals; i++) {
             Object obj = result[i];
             if (obj instanceof FutureBean<?>) {
@@ -166,9 +200,7 @@ public final class ExecutionContext {
                     if (resultStore != null) {
                         result[i] = FutureBean.processResult(resultStore);
                     } else {
-                        for (int j = nvals - 1; j >= 0; j--) {
-                            stack.push(result[j]);
-                        }
+                        stack.pushAll(result);
                         suspendedAt = resFut;
                         throw  SuspendedException.INSTANCE;
                     }
@@ -180,26 +212,21 @@ public final class ExecutionContext {
         return result;
     }
     
-    public List<Object> popSyncStackValsUntil(final Object until) throws SuspendedException {
-        List<Object> result = new ArrayList<Object>();
-        Object param;
-        while (((param = stack.pop()) != until)) {
-            result.add(param);
-        }
-        int l = result.size();
+    public Object [] popSyncStackValsUntil(final Object until) throws SuspendedException {
+        Object [] result = stack.popUntil(until);
+        
+        int l = result.length;
         for (int i = 0; i < l; i++) {
-            Object obj = result.get(i);
+            Object obj = result[i];
             if (obj instanceof FutureBean<?>) {
                 try {
                     final FutureBean<Object> resFut = (FutureBean<Object>) obj;
                     Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
                     if (resultStore != null) {
-                        result.set(i, FutureBean.processResult(resultStore));
+                        result[i] = FutureBean.processResult(resultStore);
                     } else {
                         stack.push(until);
-                        for (int j = l - 1; j >= 0; j--) {
-                            stack.push(result.get(j));
-                        }
+                        stack.pushAll(result);
                         suspendedAt = resFut;
                         throw  SuspendedException.INSTANCE;
                     }
@@ -237,15 +264,12 @@ public final class ExecutionContext {
         return this.stack.getFromPtr(ptr);
     }
 
-    public ExecutionContext getSubProgramContext(final Program program, final List<Object> parameters) {
+    public ExecutionContext getSubProgramContext(final Program program, final Object [] parameters) {
         ExecutionContext ec;
         ec = new ExecutionContext(this, this.execService, program);
         String[] parameterNames = program.getParameterNames();
-        int i = 0;
-        
-        ListIterator li = parameters.listIterator(parameters.size());
-        while (li.hasPrevious()) {
-            ec.memory.put(parameterNames[i++], li.previous());
+        for (int i = 0; i < parameterNames.length; i++) {
+            ec.memory.put(parameterNames[i], parameters[i]);
         }
         return ec;
     }

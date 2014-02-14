@@ -1,12 +1,15 @@
 package org.spf4j.base;
 
-import org.spf4j.concurrent.UnboundedLoadingCache;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import org.spf4j.concurrent.UnboundedRacyLoadingCache;
 
 public final class Reflections {
 
@@ -70,8 +73,11 @@ public final class Reflections {
 
     static final class MethodDesc {
 
+        @Nonnull
         private final Class<?> clasz;
+        @Nonnull
         private final String name;
+        @Nonnull
         private final Class<?>[] paramTypes;
 
         public MethodDesc(final Class<?> clasz, final String name, final Class<?>[] paramTypes) {
@@ -94,13 +100,8 @@ public final class Reflections {
 
         @Override
         public int hashCode() {
-            int hash = 7;
-            hash = 67 * hash + (this.clasz != null ? this.clasz.hashCode() : 0);
-            hash = 67 * hash + (this.name != null ? this.name.hashCode() : 0);
-            return 67 * hash + Arrays.deepHashCode(this.paramTypes);
+            return 47 * this.clasz.hashCode() + this.name.hashCode();
         }
-
-
 
         @Override
         public boolean equals(final Object obj) {
@@ -111,10 +112,10 @@ public final class Reflections {
                 return false;
             }
             final MethodDesc other = (MethodDesc) obj;
-            if (this.clasz != other.clasz && (this.clasz == null || !this.clasz.equals(other.clasz))) {
+            if (this.clasz != other.clasz && !this.clasz.equals(other.clasz)) {
                 return false;
             }
-            if ((this.name == null) ? (other.name != null) : !this.name.equals(other.name)) {
+            if (!this.name.equals(other.name)) {
                 return false;
             }
             return (Arrays.deepEquals(this.paramTypes, other.paramTypes));
@@ -128,22 +129,28 @@ public final class Reflections {
 
     }
 
-
     private static final LoadingCache<MethodDesc, Method> CACHE_FAST
-            = new UnboundedLoadingCache<MethodDesc, Method>(64,
+            = new UnboundedRacyLoadingCache<MethodDesc, Method>(64,
                     new CacheLoader<MethodDesc, Method>() {
                         @Override
                         public Method load(final MethodDesc k) throws Exception {
-                            return getCompatibleMethod(k.getClasz(), k.getName(), k.getParamTypes());
+                            final Method m = getCompatibleMethod(k.getClasz(), k.getName(), k.getParamTypes());
+                            AccessController.doPrivileged(new PrivilegedAction() {
+                                @Override
+                                public Object run() {
+                                    m.setAccessible(true);
+                                    return null; // nothing to return
+                                }
+                            });
+                            m.setAccessible(true);
+                            return m;
                         }
                     });
-
 
     public static Method getCompatibleMethodCached(final Class<?> c,
             final String methodName,
             final Class<?>... paramTypes) {
         return CACHE_FAST.getUnchecked(new MethodDesc(c, methodName, paramTypes));
     }
-    
 
 }

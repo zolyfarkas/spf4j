@@ -41,7 +41,7 @@ public final class MOD extends Instruction {
     @Override
     public void execute(final ExecutionContext context) throws SuspendedException {
         Object [] vals = context.popSyncStackVals(2);
-        context.push(Operators.apply(Operator.Enum.Mod, vals[1], vals[0]));
+        context.push(Operators.apply(Operator.Enum.Mod, vals[0], vals[1]));
         context.ip++;
     }
     /**

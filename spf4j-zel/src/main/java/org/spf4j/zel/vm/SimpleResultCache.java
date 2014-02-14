@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.base.Pair;
 import org.spf4j.concurrent.UnboundedLoadingCache;
 
 /**
@@ -38,51 +39,49 @@ import org.spf4j.concurrent.UnboundedLoadingCache;
 @ThreadSafe
 public final class SimpleResultCache implements ResultCache {
 
-    private final LoadingCache<Program, ConcurrentMap<List<Object>, Object>> permanentCache;
-
-    private final LoadingCache<Program, Cache<List<Object>, Object>> transientCache;
+    private final LoadingCache<Program,
+            Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>>> cache;
 
     public SimpleResultCache() {
         this(100000);
     }
 
     public SimpleResultCache(final int maxSize) {
-        permanentCache = new UnboundedLoadingCache<Program, ConcurrentMap<List<Object>, Object>>(16,
-                new CacheLoader<Program, ConcurrentMap<List<Object>, Object>>() {
+        cache = new UnboundedLoadingCache<Program,
+                Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>>>(16,
+                new CacheLoader<Program, Pair<? extends ConcurrentMap<List<Object>, Object>,
+                        ? extends Cache<List<Object>, Object>>>() {
                     @Override
-                    public ConcurrentMap<List<Object>, Object> load(final Program key) throws Exception {
-                        return new ConcurrentHashMap<List<Object>, Object>();
+                    public Pair<? extends ConcurrentMap<List<Object>, Object>,
+                                ? extends Cache<List<Object>, Object>> load(
+                            final Program key) throws Exception {
+                        Cache<List<Object>, Object> trCache = CacheBuilder.newBuilder().maximumSize(maxSize).build();
+                        return Pair.of(new ConcurrentHashMap<List<Object>, Object>(), trCache);
                     }
                 });
-        transientCache = new UnboundedLoadingCache<Program, Cache<List<Object>, Object>>(16,
-                new CacheLoader<Program, Cache<List<Object>, Object>>() {
-            @Override
-            public Cache<List<Object>, Object> load(final Program key) throws Exception {
-                return CacheBuilder.newBuilder().maximumSize(maxSize).build();
-            }
-        });
-
     }
 
     @Override
     public void putPermanentResult(final Program program,
             @Nonnull final List<Object> params, final Object result) {
-        final ConcurrentMap<List<Object>, Object> resultsMap = permanentCache.getUnchecked(program);
+        final Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>> resultsMap =
+                cache.getUnchecked(program);
         if (result == null) {
-            resultsMap.put(params, ResultCache.NULL);
+            resultsMap.getFirst().put(params, ResultCache.NULL);
         } else {
-            resultsMap.put(params, result);
+            resultsMap.getFirst().put(params, result);
         }
     }
 
     @Override
     public void putTransientResult(final Program program,
             @Nonnull final  List<Object> params, final Object result) {
-        final Cache<List<Object>, Object> resultsMap = transientCache.getUnchecked(program);
+        final Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>> resultsMap =
+                cache.getUnchecked(program);
         if (result == null) {
-            resultsMap.put(params, ResultCache.NULL);
+            resultsMap.getSecond().put(params, ResultCache.NULL);
         } else {
-            resultsMap.put(params, result);
+            resultsMap.getSecond().put(params, result);
         }
     }
 
@@ -90,10 +89,12 @@ public final class SimpleResultCache implements ResultCache {
     public Object getResult(final Program program,
             @Nonnull final List<Object> params, final Callable<Object> compute)
             throws ZExecutionException {
-        Object result = permanentCache.getUnchecked(program).get(params);
+        final Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>> prCache =
+                cache.getUnchecked(program);
+        Object result = prCache.getFirst().get(params);
         if (result == null) {
             try {
-                result = transientCache.getUnchecked(program).get(params, new Callable<Object>() {
+                result = prCache.getSecond().get(params, new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
                         Object result = compute.call();
@@ -116,7 +117,7 @@ public final class SimpleResultCache implements ResultCache {
 
     @Override
     public String toString() {
-        return "SimpleResultCache{" + "permanentCache=" + permanentCache + ", transientCache=" + transientCache + '}';
+        return "SimpleResultCache{" + "cache=" + cache + '}';
     }
-
+    
 }

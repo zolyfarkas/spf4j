@@ -18,14 +18,12 @@
 
 package org.spf4j.zel.vm;
 
-import java.util.List;
-
 /**
  *
  * @author zoly
  */
 public interface Method {
 
-    Object invokeInverseParamOrder(ExecutionContext context, List<Object> parameters) throws Exception;
+    Object invoke(ExecutionContext context, Object [] parameters) throws Exception;
     
 }
