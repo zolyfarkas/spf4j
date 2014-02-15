@@ -20,6 +20,7 @@ package org.spf4j.zel.vm;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +38,12 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import org.spf4j.zel.instr.Instruction;
+import org.spf4j.zel.instr.var.INT;
+import org.spf4j.zel.instr.var.LOG;
+import org.spf4j.zel.instr.var.MAX;
+import org.spf4j.zel.instr.var.MIN;
 import org.spf4j.zel.instr.var.OUT;
+import org.spf4j.zel.instr.var.SQRT;
 import org.spf4j.zel.vm.gen.ParseException;
 import org.spf4j.zel.vm.gen.TokenMgrError;
 import org.spf4j.zel.vm.gen.ZCompiler;
@@ -189,6 +195,12 @@ public final class Program implements Serializable {
     
     static {
         BUILTINS.put("out", OUT.INSTANCE);
+        BUILTINS.put("sqrt", SQRT.INSTANCE);
+        BUILTINS.put("int", INT.INSTANCE);
+        BUILTINS.put("log", LOG.INSTANCE);
+        BUILTINS.put("log10", LOG.INSTANCE);
+        BUILTINS.put("min", MIN.INSTANCE);
+        BUILTINS.put("max", MAX.INSTANCE);
     }
     
     
@@ -356,9 +368,9 @@ public final class Program implements Serializable {
                     try {
                         System.out.println(Program.compile(line).execute(mem, System.in, System.out, System.err));
                     } catch (CompileException ex) {
-                        System.out.println("Syntax Error: " + ex.getMessage());
+                        System.out.println("Syntax Error: " + Throwables.getStackTraceAsString(ex));
                     } catch (ZExecutionException ex) {
-                        System.out.println("Execution Error: " + ex.getMessage());
+                        System.out.println("Execution Error: " + Throwables.getStackTraceAsString(ex));
                     }
                 }
             }

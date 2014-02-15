@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
@@ -18,31 +17,25 @@
  */
 package org.spf4j.zel.instr.var;
 
-import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
+import org.spf4j.zel.vm.Method;
 
 
 
-public final class LOG10 extends Instruction {
+public final class LOG10 implements Method {
 
-    private static final long serialVersionUID = 8011393036772700617L;
+    private static final long serialVersionUID = -5424036740352433092L;
 
     private LOG10() {
-    }
-
-    @Override
-    public void execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
-        final Number val = (Number) context.popSyncStackVal();
-        context.pop(); // TODO unclean endparma marker expectation
-        context.push(Math.log(val.doubleValue()) / Math.log(10));
-        context.ip++;
     }
 
     /**
      * instance
      */
-    public static final Instruction INSTANCE = new LOG10();
+    public static final Method INSTANCE = new LOG10();
+
+    @Override
+    public Object invoke(final ExecutionContext context, final Object[] parameters) {
+        return Math.log10(((Number) parameters[0]).doubleValue());
+    }
 }

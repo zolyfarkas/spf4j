@@ -17,28 +17,27 @@
  */
 package org.spf4j.zel.instr.var;
 
+import java.util.Arrays;
+import org.spf4j.base.Comparables;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 
-/**
- *
- * @author zoly
- */
-public final class SQRT implements Method {
+
+
+public final class MAX implements Method {
+
+    private static final long serialVersionUID = -5424036740352433092L;
+
+    private MAX() {
+    }
 
     /**
      * instance
      */
-    public static final Method INSTANCE = new SQRT();
-
-    private static final long serialVersionUID = -2959988309644882051L;
-
-    private SQRT() {
-    }
+    public static final Method INSTANCE = new MAX();
 
     @Override
     public Object invoke(final ExecutionContext context, final Object[] parameters) {
-        return Math.sqrt(((Number) parameters[0]).doubleValue());
+        return Comparables.max(parameters);
     }
-
 }

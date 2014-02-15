@@ -109,6 +109,9 @@ TOKEN : /* OPERATORS & KEYWORDS*/
   |	< TRUE: "true" >
   |	< FALSE: "false" >
   |	< NULL: ("null" | "nill") >
+  |     < E: "E" >
+  |     < PI: "PI" >
+
 }
 
 TOKEN : /* string constants */
@@ -566,6 +569,8 @@ void constant(ParsingContext context) :
        context.process(new WildCardMatcher(rExp));
        context.generateCode(new WildCardMatcher(rExp));}
     )
+    | <E> {context.generateCode(Math.E);}
+    | <PI> {context.generateCode(Math.PI);}
 }
 
 JAVACODE

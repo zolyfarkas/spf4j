@@ -17,35 +17,26 @@
  */
 package org.spf4j.zel.instr.var;
 
-import org.spf4j.zel.instr.Instruction;
-import org.spf4j.zel.operators.Operator;
-import org.spf4j.zel.operators.Operators;
+import org.spf4j.base.Comparables;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.SuspendedException;
+import org.spf4j.zel.vm.Method;
 
 
 
-/**
- *
- * @author zoly
- */
-public final class EXP extends Instruction {
+public final class MIN implements Method {
 
-    private static final long serialVersionUID = -104479947741779060L;
+    private static final long serialVersionUID = -5424036740352433092L;
 
-    private EXP() {
-    }
-
-    @Override
-    public void execute(final ExecutionContext context) throws SuspendedException {
-        final Number val = ((Number) context.popSyncStackVal()).doubleValue();
-        context.pop();
-        context.push(Operators.apply(Operator.Enum.Pow, Math.E, val));
-        context.ip++;
+    private MIN() {
     }
 
     /**
      * instance
      */
-    public static final Instruction INSTANCE = new EXP();
+    public static final Method INSTANCE = new MIN();
+
+    @Override
+    public Object invoke(final ExecutionContext context, final Object[] parameters) {
+        return Comparables.min(parameters);
+    }
 }

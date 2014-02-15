@@ -17,31 +17,25 @@
  */
 package org.spf4j.zel.instr.var;
 
-import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
+import org.spf4j.zel.vm.Method;
 
 
 
-public final class LOG extends Instruction {
+public final class LOG implements Method {
 
     private static final long serialVersionUID = -5424036740352433092L;
 
     private LOG() {
     }
-    
-    @Override
-    public void execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
-        final Number val = (Number) context.popSyncStackVal();
-        context.pop(); // TODO End param Marker Expectation
-        context.push(Math.log(val.doubleValue()));
-        context.ip++;
-    }
 
     /**
      * instance
      */
-    public static final Instruction INSTANCE = new LOG();
+    public static final Method INSTANCE = new LOG();
+
+    @Override
+    public Object invoke(final ExecutionContext context, final Object[] parameters) {
+        return Math.log(((Number) parameters[0]).doubleValue());
+    }
 }

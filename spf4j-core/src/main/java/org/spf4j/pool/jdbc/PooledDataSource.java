@@ -17,6 +17,7 @@
  */
 package org.spf4j.pool.jdbc;
 
+import com.google.common.annotations.Beta;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -33,6 +34,7 @@ import org.spf4j.pool.impl.ObjectPoolBuilder;
  *
  * @author zoly
  */
+@Beta
 public final class PooledDataSource implements DataSource {
 
     private final ObjectPool<Connection> pool;

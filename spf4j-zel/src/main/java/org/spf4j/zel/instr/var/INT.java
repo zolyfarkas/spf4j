@@ -17,54 +17,29 @@
  */
 package org.spf4j.zel.instr.var;
 
+
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.instr.Instruction;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
+import org.spf4j.zel.vm.Method;
 
 /**
  *
  * @author zoly
  */
-public final class INT extends Instruction {
+public final class INT implements Method {
 
     /**
      * instance
      */
-    public static final Instruction INSTANCE = new INT();
+    public static final Method INSTANCE = new INT();
 
     private static final long serialVersionUID = 5154431044890636019L;
 
     private INT() {
     }
 
-    /**
-     * experimental cast
-     *
-     * @param context ExecutionContext
-     * @throws ZExecutionException
-     */
-    @Override
-    public void execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
-        Number val = (Number) context.popSyncStackVal();
-        context.pop();
-        if (val instanceof Integer || val instanceof Short || val instanceof Byte) {
-            context.push(val.intValue());
-        } else if (val instanceof Long) {
-            context.push(val.longValue());
-        } else if (val instanceof Double) {
-            context.push(new BigDecimal(val.doubleValue()).toBigInteger());
-        } else if (val instanceof BigDecimal) {
-            context.push(((BigDecimal) val).toBigInteger());
-        } else if (val instanceof BigInteger) {
-            context.push(val);
-        } else {
-            throw new ZExecutionException("Unsupported argument " + val);
-        }
-        context.ip++;
 
+    @Override
+    public Object invoke(final ExecutionContext context, final Object[] parameters) {
+        return ((Number) parameters[0]).intValue();
     }
 }

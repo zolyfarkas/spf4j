@@ -17,6 +17,7 @@
  */
 package org.spf4j.pool.jdbc;
 
+import com.google.common.annotations.Beta;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -31,6 +32,7 @@ import org.spf4j.pool.ObjectPool;
  *
  * @author zoly
  */
+@Beta
 public final class JdbcConnectionFactory  implements ObjectPool.Factory<Connection> {
 
     public JdbcConnectionFactory(final String driverName, final String url,
