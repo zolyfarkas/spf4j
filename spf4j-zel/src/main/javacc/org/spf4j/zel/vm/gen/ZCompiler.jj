@@ -70,6 +70,8 @@ SKIP :
 TOKEN : /* OPERATORS & KEYWORDS*/
 {
 	< PLUS: "+" >
+  |     < INC: "++" >
+  |     < DEC: "--" >
   |	< MINUS: "-" >
   |	< MULTIPLY: "*" >
   |	< DIVIDE: "/" >
@@ -307,10 +309,13 @@ void assignement(ParsingContext context) :
 {
 }
 {
-   assignableExpression(context) <EQUAL> expression(context)
-   {
-    context.generateCode(org.spf4j.zel.instr.MOV.INSTANCE);
-   }
+   assignableExpression(context) 
+  ((<EQUAL> expression(context)
+   {context.generateCode(org.spf4j.zel.instr.MOV.INSTANCE);})
+  | (<INC>
+   {context.generateCode(org.spf4j.zel.instr.INC.INSTANCE);})
+  | (<DEC>
+   {context.generateCode(org.spf4j.zel.instr.DEC.INSTANCE);}))
 }
 
 
