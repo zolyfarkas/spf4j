@@ -42,6 +42,7 @@ public final class DEC extends Instruction {
      * @param context ExecutionContext
      */
     @Override
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void execute(final ExecutionContext context)
             throws SuspendedException {
         final Object val = context.popSyncStackVal();

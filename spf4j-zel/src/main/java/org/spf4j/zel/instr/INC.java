@@ -43,6 +43,7 @@ public final class INC extends Instruction {
      * @param context ExecutionContext
      */
     @Override
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void execute(final ExecutionContext context)
             throws SuspendedException {
         Object val = context.popSyncStackVal();
@@ -52,7 +53,7 @@ public final class INC extends Instruction {
             Number result = (Number) Operators.apply(Operator.Enum.Add, nr, 1);
             aval.assign(result);
         } else {
-            context.push(Operators.apply(Operator.Enum.Add, val, 1)); 
+            context.push(Operators.apply(Operator.Enum.Add, val, 1));
         }
         context.ip++;
     }

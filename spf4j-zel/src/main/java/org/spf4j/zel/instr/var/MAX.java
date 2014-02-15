@@ -17,7 +17,6 @@
  */
 package org.spf4j.zel.instr.var;
 
-import java.util.Arrays;
 import org.spf4j.base.Comparables;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
