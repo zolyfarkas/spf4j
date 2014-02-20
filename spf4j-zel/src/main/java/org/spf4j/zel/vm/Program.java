@@ -229,7 +229,11 @@ public final class Program implements Serializable {
             throws ZExecutionException, InterruptedException {
         final VMExecutor.Suspendable<Object> execution = ectx.getCallable();
         if (ectx.execService != null && ectx.code.getExecType() == ExecutionType.ASYNC) {
-            return ectx.execService.submit(VMExecutor.synchronize(execution));
+            if (ectx.isChildContext()) {
+                return ectx.execService.submitInternal(VMExecutor.synchronize(execution));
+            } else {
+                return ectx.execService.submit(VMExecutor.synchronize(execution));
+            }
         } else {
             try {
                 return execution.call();

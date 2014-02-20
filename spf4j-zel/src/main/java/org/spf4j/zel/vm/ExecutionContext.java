@@ -80,10 +80,10 @@ public final class ExecutionContext {
      */
     public final PrintStream err;
 
-    
-    FutureBean<Object> suspendedAt;
+    VMFuture<Object> suspendedAt;
     //CHECKSTYLE:ON
-    
+
+    private final boolean isChildContext;
 
     private ExecutionContext(final ExecutionContext parent, final VMExecutor service, final Program program) {
         this.in = parent.in;
@@ -95,6 +95,7 @@ public final class ExecutionContext {
         this.code = program;
         this.resultCache = parent.resultCache;
         this.ip = 0;
+        isChildContext = true;
     }
 
     /**
@@ -121,17 +122,17 @@ public final class ExecutionContext {
         } else {
             this.resultCache = null;
         }
+        isChildContext = false;
     }
 
-    
-        public VMExecutor.Suspendable<Object> getCallable() {
+    public VMExecutor.Suspendable<Object> getCallable() {
         return new VMExecutor.Suspendable<Object>() {
 
             @Override
             public Object call()
                     throws ZExecutionException, InterruptedException, SuspendedException {
                 suspendedAt = null;
-                Object [] instructions = code.getInstructions();
+                Object[] instructions = code.getInstructions();
                 while (!terminated) {
                     try {
                         Object icode = instructions[ip];
@@ -152,17 +153,12 @@ public final class ExecutionContext {
             }
 
             @Override
-            public FutureBean<?> getSuspendedAt() {
+            public VMFuture<?> getSuspendedAt() {
                 return ExecutionContext.this.suspendedAt;
             }
         };
     }
-    
-    
-    
-    
-    
-    
+
     /**
      * pops object out of stack
      *
@@ -170,16 +166,16 @@ public final class ExecutionContext {
      */
     public Object popSyncStackVal() throws SuspendedException {
         Object result = this.stack.pop();
-        if (result instanceof FutureBean<?>) {
+        if (result instanceof VMFuture<?>) {
             try {
-                final FutureBean<Object> resFut = (FutureBean<Object>) result;
-                 Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
-                 if (resultStore != null) {
+                final VMFuture<Object> resFut = (VMFuture<Object>) result;
+                Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+                if (resultStore != null) {
                     return FutureBean.processResult(resultStore);
                 } else {
                     this.stack.push(result);
                     suspendedAt = resFut;
-                    throw  SuspendedException.INSTANCE;
+                    throw SuspendedException.INSTANCE;
                 }
             } catch (ExecutionException ex) {
                 throw new RuntimeException(ex);
@@ -193,16 +189,16 @@ public final class ExecutionContext {
         Object[] result = stack.pop(nvals);
         for (int i = 0; i < nvals; i++) {
             Object obj = result[i];
-            if (obj instanceof FutureBean<?>) {
+            if (obj instanceof VMFuture<?>) {
                 try {
-                    final FutureBean<Object> resFut = (FutureBean<Object>) obj;
+                    final VMFuture<Object> resFut = (VMFuture<Object>) obj;
                     Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
                     if (resultStore != null) {
                         result[i] = FutureBean.processResult(resultStore);
                     } else {
                         stack.pushAll(result);
                         suspendedAt = resFut;
-                        throw  SuspendedException.INSTANCE;
+                        throw SuspendedException.INSTANCE;
                     }
                 } catch (ExecutionException ex) {
                     throw new RuntimeException(ex);
@@ -211,16 +207,16 @@ public final class ExecutionContext {
         }
         return result;
     }
-    
-    public Object [] popSyncStackValsUntil(final Object until) throws SuspendedException {
-        Object [] result = stack.popUntil(until);
-        
+
+    public Object[] popSyncStackValsUntil(final Object until) throws SuspendedException {
+        Object[] result = stack.popUntil(until);
+
         int l = result.length;
         for (int i = 0; i < l; i++) {
             Object obj = result[i];
-            if (obj instanceof FutureBean<?>) {
+            if (obj instanceof VMFuture<?>) {
                 try {
-                    final FutureBean<Object> resFut = (FutureBean<Object>) obj;
+                    final VMFuture<Object> resFut = (VMFuture<Object>) obj;
                     Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
                     if (resultStore != null) {
                         result[i] = FutureBean.processResult(resultStore);
@@ -228,7 +224,7 @@ public final class ExecutionContext {
                         stack.push(until);
                         stack.pushAll(result);
                         suspendedAt = resFut;
-                        throw  SuspendedException.INSTANCE;
+                        throw SuspendedException.INSTANCE;
                     }
                 } catch (ExecutionException ex) {
                     throw new RuntimeException(ex);
@@ -237,8 +233,6 @@ public final class ExecutionContext {
         }
         return result;
     }
-    
-    
 
     public Object pop() {
         return this.stack.pop();
@@ -264,7 +258,7 @@ public final class ExecutionContext {
         return this.stack.getFromPtr(ptr);
     }
 
-    public ExecutionContext getSubProgramContext(final Program program, final Object [] parameters) {
+    public ExecutionContext getSubProgramContext(final Program program, final Object[] parameters) {
         ExecutionContext ec;
         ec = new ExecutionContext(this, this.execService, program);
         String[] parameterNames = program.getParameterNames();
@@ -292,5 +286,11 @@ public final class ExecutionContext {
                 + ", stack=" + stack + ", in=" + in
                 + ", out=" + out + ", err=" + err + '}';
     }
+
+    public boolean isChildContext() {
+        return isChildContext;
+    }
+    
+    
 
 }

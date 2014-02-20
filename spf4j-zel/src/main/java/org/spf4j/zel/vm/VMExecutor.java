@@ -29,7 +29,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.Pair;
-import org.spf4j.concurrent.FutureBean;
 
 /**
  *
@@ -51,7 +50,7 @@ public final class VMExecutor {
         @Override
         T call() throws SuspendedException, ZExecutionException, InterruptedException;
         
-        FutureBean<?> getSuspendedAt();
+        VMFuture<?> getSuspendedAt();
         
     }
     
@@ -64,7 +63,7 @@ public final class VMExecutor {
             }
 
             @Override
-            public synchronized FutureBean<?> getSuspendedAt() {
+            public synchronized VMFuture<?> getSuspendedAt() {
                 return what.getSuspendedAt();
             }
         };
@@ -77,47 +76,53 @@ public final class VMExecutor {
     }
 
     public <T> Future<T> submit(final Suspendable<T> callable) {
-        final FutureBean<T> resultFuture = new FutureBean<T>();
+        final VMFuture<T> resultFuture = new VMSyncFuture<T>();
+        submit(callable, resultFuture);
+        return resultFuture;
+    }
+    
+    public <T> Future<T> submitInternal(final Suspendable<T> callable) {
+        final VMFuture<T> resultFuture = new VMASyncFuture<T>();
         submit(callable, resultFuture);
         return resultFuture;
     }
 
-    private final ConcurrentMap<FutureBean<Object>, List<Pair<Suspendable<Object>, FutureBean<Object>>>> futToSuspMap
-            = new ConcurrentHashMap<FutureBean<Object>, List<Pair<Suspendable<Object>, FutureBean<Object>>>>();
+    private final ConcurrentMap<VMFuture<Object>, List<Pair<Suspendable<Object>, VMFuture<Object>>>> futToSuspMap
+            = new ConcurrentHashMap<VMFuture<Object>, List<Pair<Suspendable<Object>, VMFuture<Object>>>>();
 
-    private void resumeSuspendables(final FutureBean<Object> future) {
-        List<Pair<Suspendable<Object>, FutureBean<Object>>> suspended = futToSuspMap.remove(future);
+    private void resumeSuspendables(final VMFuture<Object> future) {
+        List<Pair<Suspendable<Object>, VMFuture<Object>>> suspended = futToSuspMap.remove(future);
         if (suspended != null) {
-            for (Pair<Suspendable<Object>, FutureBean<Object>> susp : suspended) {
+            for (Pair<Suspendable<Object>, VMFuture<Object>> susp : suspended) {
                 submit(susp.getFirst(), susp.getSecond());
             }
         }
     }
 
-    private void addSuspendable(final FutureBean<Object> futureSuspendedFor,
-            final Suspendable<Object> suspendedCallable, final FutureBean<Object> suspendedCallableFuture) {
+    private void addSuspendable(final VMFuture<Object> futureSuspendedFor,
+            final Suspendable<Object> suspendedCallable, final VMFuture<Object> suspendedCallableFuture) {
 
-        List<Pair<Suspendable<Object>, FutureBean<Object>>> suspended
+        List<Pair<Suspendable<Object>, VMFuture<Object>>> suspended
                 = futToSuspMap.get(futureSuspendedFor);
         if (suspended == null) {
-            suspended = new LinkedList<Pair<Suspendable<Object>, FutureBean<Object>>>();
-            List<Pair<Suspendable<Object>, FutureBean<Object>>> old
+            suspended = new LinkedList<Pair<Suspendable<Object>, VMFuture<Object>>>();
+            List<Pair<Suspendable<Object>, VMFuture<Object>>> old
                     = futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);
             if (old != null) {
                 suspended = old;
             }
         }
         do {
-            List<Pair<Suspendable<Object>, FutureBean<Object>>> newList
-                    = new LinkedList<Pair<Suspendable<Object>, FutureBean<Object>>>(suspended);
+            List<Pair<Suspendable<Object>, VMFuture<Object>>> newList
+                    = new LinkedList<Pair<Suspendable<Object>, VMFuture<Object>>>(suspended);
             newList.add(Pair.of(suspendedCallable, suspendedCallableFuture));
             if (futToSuspMap.replace(futureSuspendedFor, suspended, newList)) {
                 break;
             } else {
                 suspended = futToSuspMap.get(futureSuspendedFor);
                 if (suspended == null) {
-                    suspended = new LinkedList<Pair<Suspendable<Object>, FutureBean<Object>>>();
-                    List<Pair<Suspendable<Object>, FutureBean<Object>>> old
+                    suspended = new LinkedList<Pair<Suspendable<Object>, VMFuture<Object>>>();
+                    List<Pair<Suspendable<Object>, VMFuture<Object>>> old
                             = futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);
                     if (old != null) {
                         suspended = old;
@@ -130,7 +135,7 @@ public final class VMExecutor {
         }
     }
 
-    private <T> void submit(final Suspendable<T> callable, final FutureBean<T> future) {
+    private <T> void submit(final Suspendable<T> callable, final VMFuture<T> future) {
         exec.execute(new Runnable() {
 
             @Override
@@ -138,13 +143,13 @@ public final class VMExecutor {
                 try {
                     T result = callable.call();
                     future.setResult(result);
-                    resumeSuspendables((FutureBean<Object>) future);
+                    resumeSuspendables((VMFuture<Object>) future);
                 } catch (SuspendedException ex) {
-                    addSuspendable((FutureBean<Object>) callable.getSuspendedAt(),
-                            (Suspendable<Object>) callable, (FutureBean<Object>) future);
+                    addSuspendable((VMFuture<Object>) callable.getSuspendedAt(),
+                            (Suspendable<Object>) callable, (VMFuture<Object>) future);
                 } catch (Exception e) {
                     future.setExceptionResult(new ExecutionException(e));
-                    resumeSuspendables((FutureBean<Object>) future);
+                    resumeSuspendables((VMFuture<Object>) future);
                 }
             }
         });
