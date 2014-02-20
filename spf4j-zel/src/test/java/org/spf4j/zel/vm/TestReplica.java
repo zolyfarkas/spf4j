@@ -17,23 +17,23 @@
  */
 package org.spf4j.zel.vm;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import java.io.IOException;
 import org.junit.Test;
 
 /**
  *
  * @author zoly
  */
-public final  class Scratch {
-    
-    
+public final class TestReplica {
+
     @Test
-    public void test() throws CompileException, ZExecutionException, InterruptedException {
-//        Program p1 = Program.compile("a-b+1+c.length()", "a", "b", "c");
-//        Number actualReturn = (Number) p1.execute(3, 2, "");
-//        System.out.println(actualReturn);
-       String fib = "fib = func det (x) {fib(x-1) + fib(x-2)}; fib(0) = 0; fib(1) = 1; fib(x)";
-        Program fibZel = Program.compile(fib, "x");
-        Number zelResult = (Number) fibZel.execute(40);
-        
+    public void test() throws CompileException, ZExecutionException, InterruptedException, IOException {
+        String replicas = Resources.toString(Resources.getResource(TestZelMultiThreaded.class, "replicas.zel"),
+                Charsets.US_ASCII);
+        Program fibZel = Program.compile(replicas);
+        fibZel.execute();
+
     }
 }

@@ -43,6 +43,7 @@ import org.spf4j.zel.instr.var.LOG;
 import org.spf4j.zel.instr.var.MAX;
 import org.spf4j.zel.instr.var.MIN;
 import org.spf4j.zel.instr.var.OUT;
+import org.spf4j.zel.instr.var.RANDOM;
 import org.spf4j.zel.instr.var.SQRT;
 import org.spf4j.zel.vm.gen.ParseException;
 import org.spf4j.zel.vm.gen.TokenMgrError;
@@ -201,6 +202,7 @@ public final class Program implements Serializable {
         BUILTINS.put("log10", LOG.INSTANCE);
         BUILTINS.put("min", MIN.INSTANCE);
         BUILTINS.put("max", MAX.INSTANCE);
+        BUILTINS.put("random", RANDOM.INSTANCE);
     }
     
     

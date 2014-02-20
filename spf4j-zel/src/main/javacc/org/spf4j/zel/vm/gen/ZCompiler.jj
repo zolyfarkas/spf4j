@@ -113,6 +113,7 @@ TOKEN : /* OPERATORS & KEYWORDS*/
   |	< NULL: ("null" | "nill") >
   |     < E: "E" >
   |     < PI: "PI" >
+  |     < FIRST: "first" >
 
 }
 
@@ -535,6 +536,10 @@ void element(ParsingContext context, boolean left) :
             }
             context.generateCode(name);} )
     | sysFunction(context)
+    | ( <FIRST><LPAREN>
+        {context.generateCode(EndParamMarker.INSTANCE);}
+        (expression(context) (<COMMA> expression(context))*)?
+       <RPAREN> {context.generateCode(org.spf4j.zel.instr.FIRST.INSTANCE);})
     |  <LPAREN> expression(context) <RPAREN>
   )
 }
@@ -616,7 +621,8 @@ void sysFunction(ParsingContext context) :
 
  (<FUNCTION> 
     (<DETERMINISTIC> {pType = Program.Type.DETERMINISTIC;})?
-    (<SYNC> {eType = Program.ExecutionType.SYNC;})?
+    ((<SYNC> {eType = Program.ExecutionType.SYNC;}) 
+     | (<ASYNC> {eType = Program.ExecutionType.ASYNC;}))?
  (<LPAREN>
  (<ID> {parameterNames.add(token.image);}
  (<COMMA> <ID> {parameterNames.add(token.image);} )*)

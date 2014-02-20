@@ -17,31 +17,40 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
 
 
+/**
+ * Add takes two objects from the top of the stack and puts the sum back
+ *
+ * @author zoly
+ * @version 1.0
+ */
+public final class FIRST extends Instruction {
 
-public final class OR extends Instruction {
+    private static final long serialVersionUID = 6127414006563169983L;
 
-    private static final long serialVersionUID = 1052309045965557132L;
-
-    private OR() {
+    private FIRST() {
     }
-
+    
+    /**
+     * ADD Instruction microcode
+     * if any of the operands are null the result is null
+     * @param context ExecutionContext
+     */
     @Override
     public void execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
-        Object [] vals = context.popSyncStackVals(2);
-        // TODO: optimize this for or we don't need to sync wait for both values
-        boolean v1 = (java.lang.Boolean) vals[0];
-        boolean v2 = (java.lang.Boolean) vals[1];
-        context.push(Boolean.valueOf(v1 || v2));
+            throws SuspendedException {
+        final Object val = context.popFirstAvailUntil(EndParamMarker.INSTANCE);
+        context.push(val);
         context.ip++;
     }
     /**
-     * instance
+     * Add instance
      */
-    public static final Instruction INSTANCE = new OR();
+    public static final Instruction INSTANCE = new FIRST();
+
+
 }

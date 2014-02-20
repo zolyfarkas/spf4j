@@ -15,25 +15,31 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.zel.vm;
+package org.spf4j.zel.instr.var;
 
-import org.junit.Test;
+
+import org.spf4j.zel.vm.ExecutionContext;
+import org.spf4j.zel.vm.Method;
 
 /**
  *
  * @author zoly
  */
-public final  class Scratch {
-    
-    
-    @Test
-    public void test() throws CompileException, ZExecutionException, InterruptedException {
-//        Program p1 = Program.compile("a-b+1+c.length()", "a", "b", "c");
-//        Number actualReturn = (Number) p1.execute(3, 2, "");
-//        System.out.println(actualReturn);
-       String fib = "fib = func det (x) {fib(x-1) + fib(x-2)}; fib(0) = 0; fib(1) = 1; fib(x)";
-        Program fibZel = Program.compile(fib, "x");
-        Number zelResult = (Number) fibZel.execute(40);
-        
+public final class RANDOM implements Method {
+
+    /**
+     * instance
+     */
+    public static final Method INSTANCE = new RANDOM();
+
+    private static final long serialVersionUID = 5154431044890636019L;
+
+    private RANDOM() {
+    }
+
+
+    @Override
+    public Object invoke(final ExecutionContext context, final Object[] parameters) {
+        return Math.random();
     }
 }

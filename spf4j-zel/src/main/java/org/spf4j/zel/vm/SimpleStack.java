@@ -146,6 +146,19 @@ public final class SimpleStack<T>
         return elems[top - 1];
     }
 
+    
+    public T[] peek(final int n) {
+        return java.util.Arrays.copyOfRange(elems, top - n, top);
+    }
+    
+    public T [] peekUntil(final T until) {
+        int i = top - 1;
+        while (elems[i] != until) {
+            i--;
+        }
+        return java.util.Arrays.copyOfRange(elems, i + 1, top);
+    }
+    
     /**
      * Clear the stack - also makes sure the stack objects are not referenced anymore
      */

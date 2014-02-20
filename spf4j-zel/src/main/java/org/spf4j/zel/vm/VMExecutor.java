@@ -50,20 +50,37 @@ public final class VMExecutor {
         @Override
         T call() throws SuspendedException, ZExecutionException, InterruptedException;
         
-        VMFuture<?> getSuspendedAt();
+        List<VMFuture<Object>> getSuspendedAt();
         
     }
+    
+    
     
     public static <T> Suspendable<T> synchronize(final Suspendable<T> what) {
         return new Suspendable<T>() {
 
+            private volatile boolean isRunning = false;
+            
             @Override
-            public synchronized T call() throws SuspendedException, ZExecutionException, InterruptedException {
-                return what.call();
+            public T call() throws SuspendedException, ZExecutionException, InterruptedException {
+                if (!isRunning) {
+                    synchronized (this) {
+                        if (!isRunning) {
+                            isRunning = true;
+                            try {
+                                return what.call();
+                            } catch (SuspendedException e) {
+                                isRunning = false;
+                                throw e;
+                            }
+                        }
+                    }
+                }
+                throw ExecAbortException.INSTANCE;
             }
 
             @Override
-            public synchronized VMFuture<?> getSuspendedAt() {
+            public synchronized List<VMFuture<Object>> getSuspendedAt() {
                 return what.getSuspendedAt();
             }
         };
@@ -145,8 +162,10 @@ public final class VMExecutor {
                     future.setResult(result);
                     resumeSuspendables((VMFuture<Object>) future);
                 } catch (SuspendedException ex) {
-                    addSuspendable((VMFuture<Object>) callable.getSuspendedAt(),
+                    for (VMFuture<Object> fut : callable.getSuspendedAt()) {
+                        addSuspendable(fut,
                             (Suspendable<Object>) callable, (VMFuture<Object>) future);
+                    }
                 } catch (Exception e) {
                     future.setExceptionResult(new ExecutionException(e));
                     resumeSuspendables((VMFuture<Object>) future);

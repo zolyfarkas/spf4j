@@ -71,6 +71,9 @@ public class VMASyncFuture<T> implements VMFuture<T> {
     
     @Override
     public final void setExceptionResult(final ExecutionException result) {
+        if (result.getCause() == ExecAbortException.INSTANCE) {
+            return;
+        }
         resultStore = Pair.of(null, (ExecutionException) result);
     }
 

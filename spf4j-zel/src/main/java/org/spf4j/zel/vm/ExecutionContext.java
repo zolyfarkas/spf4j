@@ -19,11 +19,15 @@ package org.spf4j.zel.vm;
 
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Pair;
+import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.FutureBean;
 import org.spf4j.zel.instr.Instruction;
 
@@ -80,7 +84,7 @@ public final class ExecutionContext {
      */
     public final PrintStream err;
 
-    VMFuture<Object> suspendedAt;
+    List<VMFuture<Object>> suspendedAt;
     //CHECKSTYLE:ON
 
     private final boolean isChildContext;
@@ -153,7 +157,7 @@ public final class ExecutionContext {
             }
 
             @Override
-            public VMFuture<?> getSuspendedAt() {
+            public List<VMFuture<Object>> getSuspendedAt() {
                 return ExecutionContext.this.suspendedAt;
             }
         };
@@ -174,7 +178,7 @@ public final class ExecutionContext {
                     return FutureBean.processResult(resultStore);
                 } else {
                     this.stack.push(result);
-                    suspendedAt = resFut;
+                    suspendedAt = Arrays.asList(resFut);
                     throw SuspendedException.INSTANCE;
                 }
             } catch (ExecutionException ex) {
@@ -197,7 +201,7 @@ public final class ExecutionContext {
                         result[i] = FutureBean.processResult(resultStore);
                     } else {
                         stack.pushAll(result);
-                        suspendedAt = resFut;
+                        suspendedAt = Arrays.asList(resFut);
                         throw SuspendedException.INSTANCE;
                     }
                 } catch (ExecutionException ex) {
@@ -223,7 +227,7 @@ public final class ExecutionContext {
                     } else {
                         stack.push(until);
                         stack.pushAll(result);
-                        suspendedAt = resFut;
+                        suspendedAt = Arrays.asList(resFut);
                         throw SuspendedException.INSTANCE;
                     }
                 } catch (ExecutionException ex) {
@@ -233,6 +237,56 @@ public final class ExecutionContext {
         }
         return result;
     }
+    
+    public Object popFirstAvailUntil(final Object until) throws SuspendedException {
+        Object[] params = stack.peekUntil(until);
+
+        int l = params.length;
+        int nrErrors = 0;
+        RuntimeException e = null;
+        List<VMFuture<Object>> futures = null;
+        for (int i = 0; i < l; i++) {
+            Object obj = params[i];
+            if (obj instanceof VMFuture<?>) {
+                    final VMFuture<Object> resFut = (VMFuture<Object>) obj;
+                    Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+                    if (resultStore != null) {
+                        if (resultStore.getSecond() == null) {
+                            stack.popUntil(until);
+                            return resultStore.getFirst();
+                        } else {
+                            nrErrors++;
+                            if (e == null) {
+                                e = new RuntimeException(resultStore.getSecond());
+                            } else {
+                                e = new RuntimeException(Throwables.chain(resultStore.getSecond(), e));
+                            }
+                        }
+                    } else {
+                        if (futures == null) {
+                            futures = new ArrayList<VMFuture<Object>>(l);
+                        }
+                        futures.add(resFut);
+                    }
+            } else {
+                stack.popUntil(until);
+                return obj;
+            }
+        }
+        if (nrErrors == l) {
+            if (e == null) {
+                throw new  IllegalStateException();
+            } else {
+                throw e;
+            }
+        }
+        if (futures.isEmpty()) {
+            throw new IllegalStateException();
+        }
+        suspendedAt = futures;
+        throw SuspendedException.INSTANCE;
+    }
+    
 
     public Object pop() {
         return this.stack.pop();

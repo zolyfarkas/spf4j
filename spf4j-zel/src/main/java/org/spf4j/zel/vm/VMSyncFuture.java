@@ -91,6 +91,9 @@ public class VMSyncFuture<T> implements VMFuture<T> {
     
     @Override
     public final synchronized void setExceptionResult(final ExecutionException result) {
+        if (result.getCause() == ExecAbortException.INSTANCE) {
+            return;
+        }
         if (resultStore != null) {
             throw new IllegalStateException("cannot set result multiple times");
         }
