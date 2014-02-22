@@ -18,6 +18,7 @@
 
 package org.spf4j.zel.vm;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import org.spf4j.base.Reflections;
 
@@ -33,16 +34,14 @@ public final class JavaMethodCall implements Method {
 
     public JavaMethodCall(final Object object, final String methodName) {
         this.name = methodName;
-        this.objectClass = object.getClass();
-        this.object = object;
+        if (object instanceof Class) {
+            this.objectClass = (Class<?>) object;
+            this.object = null;
+        } else {
+            this.objectClass = object.getClass();
+            this.object = object;
+        }
     }
-    
-    public JavaMethodCall(final Class<?> objectClass, final String methodName) {
-        this.name = methodName;
-        this.objectClass = objectClass;
-        this.object = null;
-    }
-    
     
     private static final Class<?>[] EMPTY_CL_ARR = new Class<?>[0];
     
@@ -55,12 +54,35 @@ public final class JavaMethodCall implements Method {
             for (int i = 0; i < np; i++) {
                 classes[i] = parameters[i].getClass();
             }
-            return Reflections.getCompatibleMethodCached(objectClass, name, classes)
-                    .invoke(object, parameters);
+            java.lang.reflect.Method m =  Reflections.getCompatibleMethodCached(objectClass, name, classes);
+            Class<?> [] actTypes = m.getParameterTypes();
+            Class<?> lastParamClass =  actTypes[actTypes.length - 1];
+            if (Reflections.canAssign(classes[classes.length - 1], lastParamClass)) {
+                return m.invoke(object, parameters);
+            } else if (lastParamClass.isArray()) {
+                int lidx = actTypes.length - 1;
+                int l = np - lidx;
+                Object array = Array.newInstance(lastParamClass.getComponentType(), l);
+                for (int k = 0; k < l; k++) {
+                    Array.set(array, k, parameters[lidx + k]);
+                }
+                Object [] newParams  = new Object [actTypes.length];
+                System.arraycopy(parameters, 0, newParams, 0, lidx);
+                newParams[lidx] = array;
+                return m.invoke(object, newParams);
+            } else {
+                throw new IllegalStateException();
+            }
         } else {
             return Reflections.getCompatibleMethodCached(objectClass, name, EMPTY_CL_ARR)
                     .invoke(object);
         }
     }
 
+    @Override
+    public String toString() {
+        return "JavaMethodCall{" + "name=" + name + ", objectClass=" + objectClass + ", object=" + object + '}';
+    }
+
+    
 }

@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.vm;
 
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 /**
@@ -31,9 +32,9 @@ public final  class Scratch {
 //        Program p1 = Program.compile("a-b+1+c.length()", "a", "b", "c");
 //        Number actualReturn = (Number) p1.execute(3, 2, "");
 //        System.out.println(actualReturn);
-       String fib = "fib = func det (x) {fib(x-1) + fib(x-2)}; fib(0) = 0; fib(1) = 1; fib(x)";
-        Program fibZel = Program.compile(fib, "x");
-        Number zelResult = (Number) fibZel.execute(40);
+        Program prog = Program.compile("s.format(\"Number %d\", 3)", "s");
+        String result = (String) prog.execute(String.class);
+        assertEquals(String.format("Number %d", 3), result);
         
     }
 }

@@ -49,6 +49,14 @@ public final class ZelTest {
         String result = (String) prog.execute(Integer.valueOf(100));
         assertEquals("100".substring(0, 2), result);
     }
+    
+    @Test
+    public void testJavaExecStatic()
+            throws CompileException, ZExecutionException, InterruptedException {
+        Program prog = Program.compile("s.format(\"Number %d\", 3)", "s");
+        String result = (String) prog.execute(String.class);
+        assertEquals(String.format("Number %d", 3), result);
+    }
 
     @Test
     public void testAssignement()
