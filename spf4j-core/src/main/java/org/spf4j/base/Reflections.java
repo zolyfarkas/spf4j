@@ -2,6 +2,8 @@ package org.spf4j.base;
 
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -40,25 +42,29 @@ public final class Reflections {
             }
 
             Class<?>[] actualTypes = m.getParameterTypes();
-            if (actualTypes.length != paramTypes.length) {
+            if (actualTypes.length > paramTypes.length) {
                 continue;
             }
 
             boolean found = true;
+            int last = actualTypes.length - 1;
             for (int j = 0; j < actualTypes.length; j++) {
-                if (!actualTypes[j].isAssignableFrom(paramTypes[j])) {
-                    if (actualTypes[j].isPrimitive()) {
-                        Class<?> boxed = PRIMITIVE_MAP.get(actualTypes[j]);
-                        found = boxed.equals(paramTypes[j]);
-//                        if (!found) {
-//                            found = (Number.class.isAssignableFrom(boxed)
-//                                    &&  Number.class.isAssignableFrom(paramTypes[j]));
-//                        }
-                    } else if (paramTypes[j].isPrimitive()) {
-                        found = PRIMITIVE_MAP.get(paramTypes[j]).equals(actualTypes[j]);
+                final Class<?> actType = actualTypes[j];
+                final Class<?> paramType = paramTypes[j];
+                found = canAssign(actType, paramType);
+                if (!found && j == last) {
+                    if (actType.isArray()) {
+                        boolean matchvararg = true;
+                        Class<?> varargType = actType.getComponentType();
+                        for (int k = j; k < paramTypes.length; k++) {
+                            if (!canAssign(varargType, paramTypes[k])) {
+                                matchvararg = false;
+                                break;
+                            }
+                        }
+                        found = matchvararg;
                     }
                 }
-
                 if (!found) {
                     break;
                 }
@@ -69,6 +75,51 @@ public final class Reflections {
             }
         }
         return null;
+    }
+    
+    
+    public static Object invoke(final Method m, final Object object, final Object [] parameters)
+            throws IllegalAccessException, InvocationTargetException {
+        int np = parameters.length;
+        if (np > 0) {
+            Class<?> [] actTypes = m.getParameterTypes();
+            Class<?> lastParamClass =  actTypes[actTypes.length - 1];
+            if (Reflections.canAssign(parameters[np - 1].getClass(), lastParamClass)) {
+                return m.invoke(object, parameters);
+            } else if (lastParamClass.isArray()) {
+                int lidx = actTypes.length - 1;
+                int l = np - lidx;
+                Object array = Array.newInstance(lastParamClass.getComponentType(), l);
+                for (int k = 0; k < l; k++) {
+                    Array.set(array, k, parameters[lidx + k]);
+                }
+                Object [] newParams  = new Object [actTypes.length];
+                System.arraycopy(parameters, 0, newParams, 0, lidx);
+                newParams[lidx] = array;
+                return m.invoke(object, newParams);
+            } else {
+                throw new IllegalStateException();
+            }
+        } else {
+            return m.invoke(object);
+        }
+    }
+    
+    
+
+    public static boolean canAssign(final Class<?> to, final Class<?> from) {
+        boolean found = true;
+        if (!to.isAssignableFrom(from)) {
+            if (to.isPrimitive()) {
+                Class<?> boxed = PRIMITIVE_MAP.get(to);
+                found = boxed.equals(from);
+            } else if (from.isPrimitive()) {
+                found = PRIMITIVE_MAP.get(from).equals(to);
+            } else {
+                found = false;
+            }
+        }
+        return found;
     }
 
     static final class MethodDesc {
