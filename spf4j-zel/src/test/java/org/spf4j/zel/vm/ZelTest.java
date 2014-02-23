@@ -157,5 +157,21 @@ public final class ZelTest {
         Assert.assertTrue("functions need to execute in parallel not in " + (endTime - startTime),
                 endTime - startTime < 5200);
     }
+    
+    @Test
+    public void testCond() throws CompileException, ZExecutionException, InterruptedException {
+        Boolean result = (Boolean) Program.compile("x == 1", "x").execute(1);
+        Assert.assertTrue(result);
+        result = (Boolean) Program.compile("x != 1", "x").execute(1);
+        Assert.assertFalse(result);
+        result = (Boolean) Program.compile("x < 1", "x").execute(1);
+        Assert.assertFalse(result);
+        result = (Boolean) Program.compile("x >= 1", "x").execute(1);
+        Assert.assertTrue(result);
+        result = (Boolean) Program.compile("x <= 1", "x").execute(1);
+        Assert.assertTrue(result);
+        result = (Boolean) Program.compile("x > 1", "x").execute(1);
+        Assert.assertFalse(result);
+    }
 
 }

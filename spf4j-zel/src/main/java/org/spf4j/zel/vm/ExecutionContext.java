@@ -19,6 +19,7 @@ package org.spf4j.zel.vm;
 
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +31,8 @@ import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.FutureBean;
 import org.spf4j.zel.instr.Instruction;
+import org.spf4j.zel.operators.Operator;
+import org.spf4j.zel.operators.Operators;
 
 /**
  * Virtual Machine Execution Context
@@ -40,6 +43,9 @@ import org.spf4j.zel.instr.Instruction;
 public final class ExecutionContext {
 
     //CHECKSTYLE:OFF
+    
+    public MathContext mathContext;
+    
     public final VMExecutor execService;
 
     public final ResultCache resultCache;
@@ -136,6 +142,9 @@ public final class ExecutionContext {
             public Object call()
                     throws ZExecutionException, InterruptedException, SuspendedException {
                 suspendedAt = null;
+                if (mathContext != null) {
+                    Operator.MATH_CONTEXT.set(mathContext);
+                }
                 Object[] instructions = code.getInstructions();
                 while (!terminated) {
                     try {

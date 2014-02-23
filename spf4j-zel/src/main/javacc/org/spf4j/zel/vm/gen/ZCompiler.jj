@@ -114,6 +114,8 @@ TOKEN : /* OPERATORS & KEYWORDS*/
   |     < E: "E" >
   |     < PI: "PI" >
   |     < FIRST: "first" >
+  |     < USE: "use" >
+  |     < DECIMAL: ("decimal" | "dec") >
 
 }
 
@@ -255,6 +257,9 @@ LOOKAHEAD(assignement(context))
   | zreturn(context)
   | forStmt(context)
   | (<SLEEP> expression(context) {context.generateCode(org.spf4j.zel.instr.SLEEP.INSTANCE);})
+  | (<USE> <DECIMAL> <INTEGER> 
+    {context.generateCode(org.spf4j.zel.instr.MCTX.INSTANCE);
+    context.generateCode(parseInteger(token.image));})
 }
 
 
