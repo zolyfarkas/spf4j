@@ -1,104 +1,185 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Strings.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Strings.java</span></div><h1>Strings.java</h1><pre class="source lang-java linenums">/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Strings.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Strings.java</span></div><h1>Strings.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package org.spf4j.base;
 
 import java.io.IOException;
 import java.io.Writer;
+import static java.lang.Math.min;
+import javax.annotation.Nonnull;
 
 /**
  *
  * @author zoly
  */
 public final class Strings {
-    
-<span class="nc" id="L16">    private Strings() { }</span>
-    
-    
+
+<span class="nc" id="L32">    private Strings() {</span>
+<span class="nc" id="L33">    }</span>
+
     public static void writeCsvElement(final String elem, final Writer writer) throws IOException {
-<span class="pc bpc" id="L20" title="1 of 2 branches missed.">        if (elem.contains(&quot;,&quot;)) {</span>
-<span class="nc" id="L21">            int length = elem.length();</span>
-<span class="nc" id="L22">            writer.write('&quot;');</span>
-<span class="nc bnc" id="L23" title="All 2 branches missed.">            for (int i = 0; i &lt; length; i++) {</span>
-<span class="nc" id="L24">                char c = elem.charAt(i);</span>
-<span class="nc bnc" id="L25" title="All 2 branches missed.">                if (c == '&quot;') {</span>
-<span class="nc" id="L26">                    writer.write(&quot;\&quot;\&quot;&quot;);</span>
+<span class="pc bpc" id="L36" title="1 of 2 branches missed.">        if (elem.contains(&quot;,&quot;)) {</span>
+<span class="nc" id="L37">            int length = elem.length();</span>
+<span class="nc" id="L38">            writer.write('&quot;');</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">            for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc" id="L40">                char c = elem.charAt(i);</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">                if (c == '&quot;') {</span>
+<span class="nc" id="L42">                    writer.write(&quot;\&quot;\&quot;&quot;);</span>
                 } else {
-<span class="nc" id="L28">                    writer.write(c);</span>
+<span class="nc" id="L44">                    writer.write(c);</span>
                 }
             }
-<span class="nc" id="L31">            writer.write('&quot;');</span>
-<span class="nc" id="L32">        } else {</span>
-<span class="fc" id="L33">            writer.write(elem);</span>
+<span class="nc" id="L47">            writer.write('&quot;');</span>
+<span class="nc" id="L48">        } else {</span>
+<span class="fc" id="L49">            writer.write(elem);</span>
         }
-<span class="fc" id="L35">    }</span>
-    
-    
+<span class="fc" id="L51">    }</span>
+
     public static String toCsvElement(final String elem) {
-<span class="fc bfc" id="L39" title="All 2 branches covered.">        if (elem.contains(&quot;,&quot;)) {</span>
-<span class="fc" id="L40">            int length = elem.length();</span>
-<span class="fc" id="L41">            StringBuilder builder = new StringBuilder(length + 2);</span>
-<span class="fc" id="L42">            builder.append('&quot;');</span>
-<span class="fc bfc" id="L43" title="All 2 branches covered.">            for (int i = 0; i &lt; length; i++) {</span>
-<span class="fc" id="L44">                char c = elem.charAt(i);</span>
-<span class="fc bfc" id="L45" title="All 2 branches covered.">                if (c == '&quot;') {</span>
-<span class="fc" id="L46">                    builder.append(&quot;\&quot;\&quot;&quot;);</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (elem.contains(&quot;,&quot;)) {</span>
+<span class="fc" id="L55">            int length = elem.length();</span>
+<span class="fc" id="L56">            StringBuilder builder = new StringBuilder(length + 2);</span>
+<span class="fc" id="L57">            builder.append('&quot;');</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">            for (int i = 0; i &lt; length; i++) {</span>
+<span class="fc" id="L59">                char c = elem.charAt(i);</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">                if (c == '&quot;') {</span>
+<span class="fc" id="L61">                    builder.append(&quot;\&quot;\&quot;&quot;);</span>
                 } else {
-<span class="fc" id="L48">                    builder.append(c);</span>
+<span class="fc" id="L63">                    builder.append(c);</span>
                 }
             }
-<span class="fc" id="L51">            builder.append('&quot;');</span>
-<span class="fc" id="L52">            return builder.toString();</span>
-            
+<span class="fc" id="L66">            builder.append('&quot;');</span>
+<span class="fc" id="L67">            return builder.toString();</span>
+
         } else {
-<span class="fc" id="L55">            return elem;</span>
+<span class="fc" id="L70">            return elem;</span>
         }
     }
-    
+
     public static int readCsvElement(final String fromStr, final int fromIdx,
             final StringBuilder addElemTo) {
-<span class="fc" id="L61">        return readCsvElement(fromStr, fromIdx, fromStr.length(), addElemTo);</span>
+<span class="fc" id="L76">        return readCsvElement(fromStr, fromIdx, fromStr.length(), addElemTo);</span>
     }
-    
+
     public static int readCsvElement(final String fromStr, final int fromIdx,
             final int maxIdx, final StringBuilder addElemTo) {
-<span class="fc" id="L66">        int i = fromIdx;</span>
-<span class="fc" id="L67">        char c = fromStr.charAt(i);</span>
-<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (c == '&quot;') {</span>
-<span class="fc" id="L69">            i++;</span>
-<span class="pc bpc" id="L70" title="1 of 2 branches missed.">            while (i &lt; maxIdx) {</span>
-<span class="fc" id="L71">                c = fromStr.charAt(i);</span>
-<span class="fc bfc" id="L72" title="All 2 branches covered.">                if (c == '&quot;') {</span>
-<span class="fc" id="L73">                    int nxtIdx = i + 1;</span>
-<span class="fc bfc" id="L74" title="All 2 branches covered.">                    if (nxtIdx &lt; maxIdx) {</span>
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">                        if (fromStr.charAt(nxtIdx) == '&quot;') {</span>
-<span class="fc" id="L76">                            addElemTo.append(c);</span>
-<span class="fc" id="L77">                            i = nxtIdx;</span>
+<span class="fc" id="L81">        int i = fromIdx;</span>
+<span class="fc" id="L82">        char c = fromStr.charAt(i);</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (c == '&quot;') {</span>
+<span class="fc" id="L84">            i++;</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">            while (i &lt; maxIdx) {</span>
+<span class="fc" id="L86">                c = fromStr.charAt(i);</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">                if (c == '&quot;') {</span>
+<span class="fc" id="L88">                    int nxtIdx = i + 1;</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">                    if (nxtIdx &lt; maxIdx) {</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">                        if (fromStr.charAt(nxtIdx) == '&quot;') {</span>
+<span class="fc" id="L91">                            addElemTo.append(c);</span>
+<span class="fc" id="L92">                            i = nxtIdx;</span>
                         } else {
                             break;
                         }
                     } else {
                         break;
                     }
-<span class="fc" id="L84">                } else {</span>
-<span class="fc" id="L85">                    addElemTo.append(c);</span>
+<span class="fc" id="L99">                } else {</span>
+<span class="fc" id="L100">                    addElemTo.append(c);</span>
                 }
-<span class="fc" id="L87">                i++;</span>
+<span class="fc" id="L102">                i++;</span>
             }
         } else {
-<span class="fc bfc" id="L90" title="All 2 branches covered.">            while (c != ',') {</span>
-<span class="fc" id="L91">                addElemTo.append(c);</span>
-<span class="fc" id="L92">                i++;</span>
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">                if (i &gt;= maxIdx) {</span>
-<span class="nc" id="L94">                    break;</span>
+<span class="fc bfc" id="L105" title="All 2 branches covered.">            while (c != ',') {</span>
+<span class="fc" id="L106">                addElemTo.append(c);</span>
+<span class="fc" id="L107">                i++;</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">                if (i &gt;= maxIdx) {</span>
+<span class="nc" id="L109">                    break;</span>
                 }
-<span class="fc" id="L96">                c = fromStr.charAt(i);</span>
+<span class="fc" id="L111">                c = fromStr.charAt(i);</span>
             }
         }
-<span class="fc" id="L99">        return i;</span>
+<span class="fc" id="L114">        return i;</span>
+    }
+
+    /**
+     * function that calculates the number of operations that are needed to transform s1 into s2. operations are: char
+     * add, char delete, char modify
+     *
+     * @param s1
+     * @param s2
+     * @return the number of operations required to transfor s1 into s2
+     */
+    public static int distance(@Nonnull final String s1, @Nonnull final String s2) {
+<span class="fc" id="L126">        int l1 = s1.length();</span>
+<span class="fc" id="L127">        int l2 = s2.length();</span>
+
+<span class="fc" id="L129">        int[] prev = new int[l2];</span>
+<span class="fc" id="L130">        char c1 = s1.charAt(0);</span>
+<span class="fc" id="L131">        prev[0] = distance(c1, s2.charAt(0));</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">        for (int j = 1; j &lt; l2; j++) {</span>
+<span class="fc" id="L133">            prev[j] = prev[j - 1] + distance(c1, s2.charAt(j));</span>
+        }
+
+<span class="fc bfc" id="L136" title="All 2 branches covered.">        for (int i = 1; i &lt; l1; i++) {</span>
+<span class="fc" id="L137">            int[] dist = new int[l2];</span>
+<span class="fc" id="L138">            c1 = s1.charAt(i);</span>
+<span class="fc" id="L139">            dist[0] = prev[i - 1] + distance(c1, s2.charAt(0));</span>
+<span class="fc bfc" id="L140" title="All 2 branches covered.">            for (int j = 1; j &lt; l2; j++) {</span>
+<span class="fc" id="L141">                dist[j] = min(prev[j - 1] + distance(c1, s2.charAt(j)),</span>
+                        min(prev[j] + 1, dist[j - 1] + 1));
+            }
+<span class="fc" id="L144">            prev = dist;</span>
+        }
+<span class="fc" id="L146">        return prev[l2 - 1];</span>
+    }
+
+    public static int distance(final char c1, final char c2) {
+<span class="fc bfc" id="L150" title="All 2 branches covered.">        if (c1 == c2) {</span>
+<span class="fc" id="L151">            return 0;</span>
+        } else {
+<span class="fc" id="L153">            return 1;</span>
+        }
+    }
+
+<span class="fc" id="L157">    private static final String[][] JAVA_CTRL_CHARS_UNESCAPE = {</span>
+        {&quot;\\b&quot;, &quot;\b&quot;},
+        {&quot;\\n&quot;, &quot;\n&quot;},
+        {&quot;\\t&quot;, &quot;\t&quot;},
+        {&quot;\\f&quot;, &quot;\f&quot;},
+        {&quot;\\r&quot;, &quot;\r&quot;}
+    };
+
+<span class="fc" id="L165">    private static final CharSequenceTranslator UNESCAPE_JAVA</span>
+            = new AggregateTranslator(
+                    new OctalUnescaper(),
+                    new UnicodeUnescaper(),
+                    new LookupTranslator(JAVA_CTRL_CHARS_UNESCAPE),
+                    new LookupTranslator(
+                            new String[][]{
+                                {&quot;\\\\&quot;, &quot;\\&quot;},
+                                {&quot;\\\&quot;&quot;, &quot;\&quot;&quot;},
+                                {&quot;\\'&quot;, &quot;'&quot;},
+                                {&quot;\\&quot;, &quot;&quot;}
+                            })
+            );
+
+    public static String unescape(final String what) {
+<span class="nc" id="L180">        return UNESCAPE_JAVA.translate(what);</span>
     }
     
     
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

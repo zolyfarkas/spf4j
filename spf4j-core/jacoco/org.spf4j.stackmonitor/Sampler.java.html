@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Sampler.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">Sampler.java</span></div><h1>Sampler.java</h1><pre class="source lang-java linenums">/*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Sampler.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">Sampler.java</span></div><h1>Sampler.java</h1><pre class="source lang-java linenums">/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@ import javax.management.ObjectName;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.AbstractRunnable;
-import org.spf4j.base.Holder;
+import org.spf4j.base.MutableHolder;
 import org.spf4j.perf.memory.GCUsageSampler;
 import org.spf4j.stackmonitor.proto.Converter;
 
@@ -168,9 +168,10 @@ public final class Sampler implements SamplerMBean {
 <span class="fc" id="L168">    }</span>
 <span class="fc" id="L169">    private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();</span>
 
-    public void dumpToFile() throws IOException {
-<span class="nc" id="L172">        dumpToFile(null);</span>
-<span class="nc" id="L173">    }</span>
+    @Override
+    public String dumpToFile() throws IOException {
+<span class="nc" id="L173">        return dumpToFile(null);</span>
+    }
     
     /**
      * Dumps the sampled stacks to file.
@@ -180,262 +181,263 @@ public final class Sampler implements SamplerMBean {
      * @throws IOException
      */
     
+    @Override
     public synchronized String dumpToFile(@Nullable final String id) throws IOException {
-<span class="nc" id="L184">        final Holder&lt;String&gt; result = new Holder&lt;String&gt;();</span>
-<span class="nc" id="L185">        stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
+<span class="nc" id="L186">        final MutableHolder&lt;String&gt; result = new MutableHolder&lt;String&gt;();</span>
+<span class="nc" id="L187">        stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
             @Override
             public SampleNode apply(final SampleNode input) {
                 try {
-<span class="nc bnc" id="L189" title="All 2 branches missed.">                    if (input != null) {</span>
-<span class="nc bnc" id="L190" title="All 2 branches missed.">                        String fileName = filePrefix + &quot;_&quot; + ((id == null) ? &quot;&quot; : id + &quot;_&quot;)</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">                    if (input != null) {</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">                        String fileName = filePrefix + &quot;_&quot; + ((id == null) ? &quot;&quot; : id + &quot;_&quot;)</span>
                                 + TS_FORMAT.print(lastDumpTime) + &quot;_&quot;
                                 + TS_FORMAT.print(System.currentTimeMillis()) + &quot;.ssdump&quot;;
-<span class="nc" id="L193">                        final BufferedOutputStream bos = new BufferedOutputStream(</span>
+<span class="nc" id="L195">                        final BufferedOutputStream bos = new BufferedOutputStream(</span>
                                 new FileOutputStream(fileName));
                         try {
-<span class="nc" id="L196">                            Converter.fromSampleNodeToProto(input).writeTo(bos);</span>
-<span class="nc" id="L197">                            lastDumpTime = System.currentTimeMillis();</span>
-<span class="nc" id="L198">                            result.setValue(fileName);</span>
+<span class="nc" id="L198">                            Converter.fromSampleNodeToProto(input).writeTo(bos);</span>
+<span class="nc" id="L199">                            lastDumpTime = System.currentTimeMillis();</span>
+<span class="nc" id="L200">                            result.setValue(fileName);</span>
                         } finally {
-<span class="nc" id="L200">                            bos.close();</span>
-<span class="nc" id="L201">                        }</span>
+<span class="nc" id="L202">                            bos.close();</span>
+<span class="nc" id="L203">                        }</span>
                     }
-<span class="nc" id="L203">                } catch (IOException ex) {</span>
-<span class="nc" id="L204">                    throw new RuntimeException(ex);</span>
-<span class="nc" id="L205">                }</span>
-<span class="nc" id="L206">                return null;</span>
+<span class="nc" id="L205">                } catch (IOException ex) {</span>
+<span class="nc" id="L206">                    throw new RuntimeException(ex);</span>
+<span class="nc" id="L207">                }</span>
+<span class="nc" id="L208">                return null;</span>
             }
         });
 
-<span class="nc" id="L210">        return result.getValue();</span>
+<span class="nc" id="L212">        return result.getValue();</span>
     }
 
     @Override
     public synchronized void generateHtmlMonitorReport(final String fileName, final int chartWidth, final int maxDepth)
             throws IOException {
-<span class="fc" id="L216">        final Writer writer</span>
+<span class="fc" id="L218">        final Writer writer</span>
                 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
-<span class="fc" id="L219">            writer.append(&quot;&lt;html&gt;&quot;);</span>
+<span class="fc" id="L221">            writer.append(&quot;&lt;html&gt;&quot;);</span>
 
-<span class="fc" id="L221">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
+<span class="fc" id="L223">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
                 @Override
                 public SampleNode apply(final SampleNode input) {
-<span class="pc bpc" id="L224" title="1 of 2 branches missed.">                    if (input != null) {</span>
-<span class="fc" id="L225">                        SampleNode finput = input;</span>
+<span class="pc bpc" id="L226" title="1 of 2 branches missed.">                    if (input != null) {</span>
+<span class="fc" id="L227">                        SampleNode finput = input;</span>
                         try {
-<span class="fc" id="L227">                            writer.append(&quot;&lt;h1&gt;Total stats&lt;/h1&gt;&quot;);</span>
-<span class="fc" id="L228">                            StackVisualizer.generateHtmlTable(writer, Method.ROOT, finput, chartWidth, maxDepth);</span>
-<span class="nc" id="L229">                        } catch (IOException ex) {</span>
-<span class="nc" id="L230">                            throw new RuntimeException(ex);</span>
-<span class="fc" id="L231">                        }</span>
+<span class="fc" id="L229">                            writer.append(&quot;&lt;h1&gt;Total stats&lt;/h1&gt;&quot;);</span>
+<span class="fc" id="L230">                            StackVisualizer.generateHtmlTable(writer, Method.ROOT, finput, chartWidth, maxDepth);</span>
+<span class="nc" id="L231">                        } catch (IOException ex) {</span>
+<span class="nc" id="L232">                            throw new RuntimeException(ex);</span>
+<span class="fc" id="L233">                        }</span>
                     }
-<span class="fc" id="L233">                    return input;</span>
+<span class="fc" id="L235">                    return input;</span>
                 }
             });
 
 
-<span class="fc" id="L238">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
+<span class="fc" id="L240">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
                 @Override
                 public SampleNode apply(final SampleNode input) {
-<span class="pc bpc" id="L241" title="1 of 2 branches missed.">                    if (input != null) {</span>
-<span class="fc" id="L242">                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);</span>
+<span class="pc bpc" id="L243" title="1 of 2 branches missed.">                    if (input != null) {</span>
+<span class="fc" id="L244">                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);</span>
                         try {
-<span class="fc" id="L244">                            writer.append(&quot;&lt;h1&gt;CPU stats&lt;/h1&gt;&quot;);</span>
-<span class="fc" id="L245">                            StackVisualizer.generateHtmlTable(writer, Method.ROOT, finput, chartWidth, maxDepth);</span>
-<span class="nc" id="L246">                        } catch (IOException ex) {</span>
-<span class="nc" id="L247">                            throw new RuntimeException(ex);</span>
-<span class="fc" id="L248">                        }</span>
+<span class="fc" id="L246">                            writer.append(&quot;&lt;h1&gt;CPU stats&lt;/h1&gt;&quot;);</span>
+<span class="fc" id="L247">                            StackVisualizer.generateHtmlTable(writer, Method.ROOT, finput, chartWidth, maxDepth);</span>
+<span class="nc" id="L248">                        } catch (IOException ex) {</span>
+<span class="nc" id="L249">                            throw new RuntimeException(ex);</span>
+<span class="fc" id="L250">                        }</span>
                     }
-<span class="fc" id="L250">                    return input;</span>
+<span class="fc" id="L252">                    return input;</span>
                 }
             });
 
-<span class="fc" id="L254">            writer.append(&quot;&lt;/html&gt;&quot;);</span>
+<span class="fc" id="L256">            writer.append(&quot;&lt;/html&gt;&quot;);</span>
 
         } finally {
-<span class="pc" id="L257">            writer.close();</span>
-<span class="fc" id="L258">        }</span>
+<span class="pc" id="L259">            writer.close();</span>
+<span class="fc" id="L260">        }</span>
 
-<span class="fc" id="L260">    }</span>
+<span class="fc" id="L262">    }</span>
 
     @Override
     public synchronized void stop() throws InterruptedException {
-<span class="pc bpc" id="L264" title="1 of 2 branches missed.">        if (!stopped) {</span>
-<span class="fc" id="L265">            stopped = true;</span>
-<span class="fc" id="L266">            samplingThread.join();</span>
+<span class="pc bpc" id="L266" title="1 of 2 branches missed.">        if (!stopped) {</span>
+<span class="fc" id="L267">            stopped = true;</span>
+<span class="fc" id="L268">            samplingThread.join();</span>
         }
-<span class="fc" id="L268">    }</span>
+<span class="fc" id="L270">    }</span>
 
     @Override
     public int getSampleTimeMillis() {
-<span class="nc" id="L272">        return sampleTimeMillis;</span>
+<span class="nc" id="L274">        return sampleTimeMillis;</span>
     }
 
     @Override
     public void setSampleTimeMillis(final int sampleTimeMillis) {
-<span class="nc" id="L277">        this.sampleTimeMillis = sampleTimeMillis;</span>
-<span class="nc" id="L278">    }</span>
+<span class="nc" id="L279">        this.sampleTimeMillis = sampleTimeMillis;</span>
+<span class="nc" id="L280">    }</span>
 
     @Override
     public boolean isStopped() {
-<span class="nc" id="L282">        return stopped;</span>
+<span class="nc" id="L284">        return stopped;</span>
     }
 
     @Override
     public List&lt;String&gt; generate(final Properties props) throws IOException {
-<span class="nc" id="L287">        int width = Integer.parseInt(props.getProperty(&quot;width&quot;, &quot;1200&quot;));</span>
-<span class="nc" id="L288">        int maxDepth = Integer.parseInt(props.getProperty(&quot;maxDepth&quot;, &quot;1200&quot;));</span>
-<span class="nc" id="L289">        String fileName = File.createTempFile(&quot;stack&quot;, &quot;.html&quot;).getAbsolutePath();</span>
-<span class="nc" id="L290">        generateHtmlMonitorReport(fileName, width, maxDepth);</span>
-<span class="nc" id="L291">        return Arrays.asList(fileName);</span>
+<span class="nc" id="L289">        int width = Integer.parseInt(props.getProperty(&quot;width&quot;, &quot;1200&quot;));</span>
+<span class="nc" id="L290">        int maxDepth = Integer.parseInt(props.getProperty(&quot;maxDepth&quot;, &quot;1200&quot;));</span>
+<span class="nc" id="L291">        String fileName = File.createTempFile(&quot;stack&quot;, &quot;.html&quot;).getAbsolutePath();</span>
+<span class="nc" id="L292">        generateHtmlMonitorReport(fileName, width, maxDepth);</span>
+<span class="nc" id="L293">        return Arrays.asList(fileName);</span>
     }
 
     @Override
     public List&lt;String&gt; getParameters() {
-<span class="nc" id="L296">        return Arrays.asList(&quot;width&quot;);</span>
+<span class="nc" id="L298">        return Arrays.asList(&quot;width&quot;);</span>
     }
 
     @Override
     public void clear() {
-<span class="nc" id="L301">        stackCollector.clear();</span>
-<span class="nc" id="L302">    }</span>
+<span class="nc" id="L303">        stackCollector.clear();</span>
+<span class="nc" id="L304">    }</span>
 
     public StackCollector getStackCollector() {
-<span class="fc" id="L305">        return stackCollector;</span>
+<span class="fc" id="L307">        return stackCollector;</span>
     }
 
     @PreDestroy
     public void dispose() throws InterruptedException, InstanceNotFoundException {
-<span class="nc" id="L310">        stop();</span>
+<span class="nc" id="L312">        stop();</span>
         try {
-<span class="nc bnc" id="L312" title="All 2 branches missed.">            if (isJmxRegistered) {</span>
-<span class="nc" id="L313">                ManagementFactory.getPlatformMBeanServer().unregisterMBean(name);</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">            if (isJmxRegistered) {</span>
+<span class="nc" id="L315">                ManagementFactory.getPlatformMBeanServer().unregisterMBean(name);</span>
             }
-<span class="nc" id="L315">        } catch (InstanceNotFoundException ex) {</span>
-<span class="nc" id="L316">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L317">        } catch (MBeanRegistrationException ex) {</span>
+<span class="nc" id="L317">        } catch (InstanceNotFoundException ex) {</span>
 <span class="nc" id="L318">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L319">        }</span>
-<span class="nc" id="L320">    }</span>
+<span class="nc" id="L319">        } catch (MBeanRegistrationException ex) {</span>
+<span class="nc" id="L320">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L321">        }</span>
+<span class="nc" id="L322">    }</span>
 
     @Override
     public void generateCpuSvg(final String fileName, final int chartWidth, final int maxDepth) throws IOException {
-<span class="nc" id="L324">        final Writer writer</span>
+<span class="nc" id="L326">        final Writer writer</span>
                 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
 
-<span class="nc" id="L328">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
+<span class="nc" id="L330">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
                 @Override
                 public SampleNode apply(final SampleNode input) {
-<span class="nc bnc" id="L331" title="All 2 branches missed.">                    if (input != null) {</span>
-<span class="nc" id="L332">                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">                    if (input != null) {</span>
+<span class="nc" id="L334">                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);</span>
                         try {
-<span class="nc" id="L334">                            StackVisualizer.generateSvg(writer, Method.ROOT, finput, 0, 0, chartWidth, maxDepth, &quot;a&quot;);</span>
-<span class="nc" id="L335">                        } catch (IOException ex) {</span>
-<span class="nc" id="L336">                            throw new RuntimeException(ex);</span>
-<span class="nc" id="L337">                        }</span>
+<span class="nc" id="L336">                            StackVisualizer.generateSvg(writer, Method.ROOT, finput, 0, 0, chartWidth, maxDepth, &quot;a&quot;);</span>
+<span class="nc" id="L337">                        } catch (IOException ex) {</span>
+<span class="nc" id="L338">                            throw new RuntimeException(ex);</span>
+<span class="nc" id="L339">                        }</span>
                     }
-<span class="nc" id="L339">                    return input;</span>
+<span class="nc" id="L341">                    return input;</span>
                 }
             });
         } finally {
-<span class="nc" id="L343">            writer.close();</span>
-<span class="nc" id="L344">        }</span>
-<span class="nc" id="L345">    }</span>
+<span class="nc" id="L345">            writer.close();</span>
+<span class="nc" id="L346">        }</span>
+<span class="nc" id="L347">    }</span>
 
     @Override
     public void generateTotalSvg(final String fileName, final int chartWidth, final int maxDepth) throws IOException {
-<span class="nc" id="L349">        final Writer writer</span>
+<span class="nc" id="L351">        final Writer writer</span>
                 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
 
-<span class="nc" id="L353">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
+<span class="nc" id="L355">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
                 @Override
                 public SampleNode apply(final SampleNode input) {
-<span class="nc bnc" id="L356" title="All 2 branches missed.">                    if (input != null) {</span>
+<span class="nc bnc" id="L358" title="All 2 branches missed.">                    if (input != null) {</span>
 
                         try {
-<span class="nc" id="L359">                            StackVisualizer.generateSvg(writer, Method.ROOT, input, 0, 0, chartWidth, maxDepth, &quot;b&quot;);</span>
-<span class="nc" id="L360">                        } catch (IOException ex) {</span>
-<span class="nc" id="L361">                            throw new RuntimeException(ex);</span>
-<span class="nc" id="L362">                        }</span>
+<span class="nc" id="L361">                            StackVisualizer.generateSvg(writer, Method.ROOT, input, 0, 0, chartWidth, maxDepth, &quot;b&quot;);</span>
+<span class="nc" id="L362">                        } catch (IOException ex) {</span>
+<span class="nc" id="L363">                            throw new RuntimeException(ex);</span>
+<span class="nc" id="L364">                        }</span>
                     }
-<span class="nc" id="L364">                    return input;</span>
+<span class="nc" id="L366">                    return input;</span>
                 }
             });
         } finally {
-<span class="nc" id="L368">            writer.close();</span>
-<span class="nc" id="L369">        }</span>
-<span class="nc" id="L370">    }</span>
+<span class="nc" id="L370">            writer.close();</span>
+<span class="nc" id="L371">        }</span>
+<span class="nc" id="L372">    }</span>
 
     @Override
     public void generateSvgHtmlMonitorReport(final String fileName, final int chartWidth, final int maxDepth)
             throws IOException {
-<span class="fc" id="L375">        final Writer writer</span>
+<span class="fc" id="L377">        final Writer writer</span>
                 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
         try {
-<span class="fc" id="L378">            writer.append(&quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;UTF-8\&quot; standalone=\&quot;no\&quot;?&gt;\n&quot;</span>
+<span class="fc" id="L380">            writer.append(&quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;UTF-8\&quot; standalone=\&quot;no\&quot;?&gt;\n&quot;</span>
                     + &quot;&lt;!DOCTYPE svg PUBLIC \&quot;-//W3C//DTD SVG 1.0//EN\&quot;&quot;
                     + &quot; \&quot;http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\&quot;&gt;\n&quot;);
-<span class="fc" id="L381">            writer.append(&quot;&lt;html&gt;&quot;);</span>
+<span class="fc" id="L383">            writer.append(&quot;&lt;html&gt;&quot;);</span>
 
 
-<span class="fc" id="L384">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
+<span class="fc" id="L386">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
                 @Override
                 public SampleNode apply(final SampleNode input) {
-<span class="pc bpc" id="L387" title="1 of 2 branches missed.">                    if (input != null) {</span>
+<span class="pc bpc" id="L389" title="1 of 2 branches missed.">                    if (input != null) {</span>
 
                         try {
-<span class="fc" id="L390">                            writer.append(&quot;&lt;h1&gt;Total stats&lt;/h1&gt;&quot;);</span>
-<span class="fc" id="L391">                            StackVisualizer.generateSvg(writer, Method.ROOT, input, 0, 0, chartWidth, maxDepth, &quot;a&quot;);</span>
-<span class="nc" id="L392">                        } catch (IOException ex) {</span>
-<span class="nc" id="L393">                            throw new RuntimeException(ex);</span>
-<span class="fc" id="L394">                        }</span>
+<span class="fc" id="L392">                            writer.append(&quot;&lt;h1&gt;Total stats&lt;/h1&gt;&quot;);</span>
+<span class="fc" id="L393">                            StackVisualizer.generateSvg(writer, Method.ROOT, input, 0, 0, chartWidth, maxDepth, &quot;a&quot;);</span>
+<span class="nc" id="L394">                        } catch (IOException ex) {</span>
+<span class="nc" id="L395">                            throw new RuntimeException(ex);</span>
+<span class="fc" id="L396">                        }</span>
 
                     }
-<span class="fc" id="L397">                    return input;</span>
+<span class="fc" id="L399">                    return input;</span>
                 }
             });
 
 
-<span class="fc" id="L402">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
+<span class="fc" id="L404">            stackCollector.applyOnSamples(new Function&lt;SampleNode, SampleNode&gt;() {</span>
                 @Override
                 public SampleNode apply(final SampleNode input) {
-<span class="pc bpc" id="L405" title="1 of 2 branches missed.">                    if (input != null) {</span>
-<span class="fc" id="L406">                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);</span>
-<span class="pc bpc" id="L407" title="1 of 2 branches missed.">                        if (finput != null) {</span>
+<span class="pc bpc" id="L407" title="1 of 2 branches missed.">                    if (input != null) {</span>
+<span class="fc" id="L408">                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);</span>
+<span class="pc bpc" id="L409" title="1 of 2 branches missed.">                        if (finput != null) {</span>
                             try {
-<span class="fc" id="L409">                                writer.append(&quot;&lt;h1&gt;CPU stats&lt;/h1&gt;&quot;);</span>
-<span class="fc" id="L410">                                StackVisualizer.generateSvg(writer, Method.ROOT,</span>
+<span class="fc" id="L411">                                writer.append(&quot;&lt;h1&gt;CPU stats&lt;/h1&gt;&quot;);</span>
+<span class="fc" id="L412">                                StackVisualizer.generateSvg(writer, Method.ROOT,</span>
                                         finput, 0, 0, chartWidth, maxDepth, &quot;b&quot;);
-<span class="nc" id="L412">                            } catch (IOException ex) {</span>
-<span class="nc" id="L413">                                throw new RuntimeException(ex);</span>
-<span class="fc" id="L414">                            }</span>
+<span class="nc" id="L414">                            } catch (IOException ex) {</span>
+<span class="nc" id="L415">                                throw new RuntimeException(ex);</span>
+<span class="fc" id="L416">                            }</span>
                         }
                     }
-<span class="fc" id="L417">                    return input;</span>
+<span class="fc" id="L419">                    return input;</span>
                 }
             });
 
 
-<span class="fc" id="L422">            writer.append(&quot;&lt;/html&gt;&quot;);</span>
+<span class="fc" id="L424">            writer.append(&quot;&lt;/html&gt;&quot;);</span>
 
         } finally {
-<span class="pc" id="L425">            writer.close();</span>
-<span class="fc" id="L426">        }</span>
+<span class="pc" id="L427">            writer.close();</span>
+<span class="fc" id="L428">        }</span>
 
-<span class="fc" id="L428">    }</span>
+<span class="fc" id="L430">    }</span>
 
     @Override
     public int getDumpTimeMillis() {
-<span class="nc" id="L432">        return dumpTimeMillis;</span>
+<span class="nc" id="L434">        return dumpTimeMillis;</span>
     }
 
     @Override
     public void setDumpTimeMillis(final int dumpTimeMillis) {
-<span class="nc" id="L437">        this.dumpTimeMillis = dumpTimeMillis;</span>
-<span class="nc" id="L438">    }</span>
+<span class="nc" id="L439">        this.dumpTimeMillis = dumpTimeMillis;</span>
+<span class="nc" id="L440">    }</span>
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

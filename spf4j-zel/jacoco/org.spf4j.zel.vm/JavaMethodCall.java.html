@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>JavaMethodCall.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.vm</a> &gt; <span class="el_source">JavaMethodCall.java</span></div><h1>JavaMethodCall.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+package org.spf4j.zel.vm;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import org.spf4j.base.Reflections;
+
+/**
+ *
+ * @author zoly
+ */
+public final class JavaMethodCall implements Method {
+
+    private final String name;
+    private final Class&lt;?&gt; objectClass;
+    private final Object object;
+
+<span class="fc" id="L35">    public JavaMethodCall(final Object object, final String methodName) {</span>
+<span class="fc" id="L36">        this.name = methodName;</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (object instanceof Class) {</span>
+<span class="fc" id="L38">            this.objectClass = (Class&lt;?&gt;) object;</span>
+<span class="fc" id="L39">            this.object = null;</span>
+        } else {
+<span class="fc" id="L41">            this.objectClass = object.getClass();</span>
+<span class="fc" id="L42">            this.object = object;</span>
+        }
+<span class="fc" id="L44">    }</span>
+    
+<span class="fc" id="L46">    private static final Class&lt;?&gt;[] EMPTY_CL_ARR = new Class&lt;?&gt;[0];</span>
+    
+    @Override
+    public Object invoke(final ExecutionContext context, final Object [] parameters)
+            throws IllegalAccessException, InvocationTargetException {
+<span class="fc" id="L51">        int np = parameters.length;</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (np &gt; 0) {</span>
+<span class="fc" id="L53">            Class&lt;?&gt;[] classes = new Class&lt;?&gt;[np];</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">            for (int i = 0; i &lt; np; i++) {</span>
+<span class="fc" id="L55">                classes[i] = parameters[i].getClass();</span>
+            }
+<span class="fc" id="L57">            java.lang.reflect.Method m =  Reflections.getCompatibleMethodCached(objectClass, name, classes);</span>
+<span class="fc" id="L58">            Class&lt;?&gt; [] actTypes = m.getParameterTypes();</span>
+<span class="fc" id="L59">            Class&lt;?&gt; lastParamClass =  actTypes[actTypes.length - 1];</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">            if (Reflections.canAssign(classes[classes.length - 1], lastParamClass)) {</span>
+<span class="fc" id="L61">                return m.invoke(object, parameters);</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">            } else if (lastParamClass.isArray()) {</span>
+<span class="fc" id="L63">                int lidx = actTypes.length - 1;</span>
+<span class="fc" id="L64">                int l = np - lidx;</span>
+<span class="fc" id="L65">                Object array = Array.newInstance(lastParamClass.getComponentType(), l);</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">                for (int k = 0; k &lt; l; k++) {</span>
+<span class="fc" id="L67">                    Array.set(array, k, parameters[lidx + k]);</span>
+                }
+<span class="fc" id="L69">                Object [] newParams  = new Object [actTypes.length];</span>
+<span class="fc" id="L70">                System.arraycopy(parameters, 0, newParams, 0, lidx);</span>
+<span class="fc" id="L71">                newParams[lidx] = array;</span>
+<span class="fc" id="L72">                return m.invoke(object, newParams);</span>
+            } else {
+<span class="nc" id="L74">                throw new IllegalStateException();</span>
+            }
+        } else {
+<span class="fc" id="L77">            return Reflections.getCompatibleMethodCached(objectClass, name, EMPTY_CL_ARR)</span>
+<span class="fc" id="L78">                    .invoke(object);</span>
+        }
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L84">        return &quot;JavaMethodCall{&quot; + &quot;name=&quot; + name + &quot;, objectClass=&quot; + objectClass + &quot;, object=&quot; + object + '}';</span>
+    }
+
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>FastStackCollector.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">FastStackCollector.java</span></div><h1>FastStackCollector.java</h1><pre class="source lang-java linenums">/*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>FastStackCollector.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">FastStackCollector.java</span></div><h1>FastStackCollector.java</h1><pre class="source lang-java linenums">/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -65,31 +65,26 @@ import java.security.PrivilegedAction;
         try {
 <span class="fc" id="L66">            Thread[] threads = (Thread[]) GET_THREADS.invoke(null);</span>
 <span class="fc" id="L67">            final int nrThreads = threads.length;</span>
-<span class="fc" id="L68">            int currThreadPos = -1;</span>
-<span class="pc bpc" id="L69" title="1 of 2 branches missed.">            for (int i = 0; i &lt; nrThreads; i++) {</span>
-<span class="fc bfc" id="L70" title="All 2 branches covered.">                if (ignore == threads[i]) { // not interested in the sampler's stack trace</span>
-<span class="fc" id="L71">                    threads[i] = null;</span>
-<span class="fc" id="L72">                    currThreadPos = i;</span>
-<span class="fc" id="L73">                    break;</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">            for (int i = 0; i &lt; nrThreads; i++) {</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">                if (ignore == threads[i]) { // not interested in the sampler's stack trace</span>
+<span class="fc" id="L70">                    threads[i] = null;</span>
+<span class="fc" id="L71">                    break;</span>
                 }
             }
-<span class="fc" id="L76">            StackTraceElement[][] stackDump = (StackTraceElement[][]) DUMP_THREADS.invoke(null, (Object) threads);</span>
-<span class="fc bfc" id="L77" title="All 2 branches covered.">            for (int i = 0; i &lt; nrThreads; i++) {</span>
-<span class="fc bfc" id="L78" title="All 2 branches covered.">                if (i != currThreadPos) {</span>
-<span class="fc" id="L79">                    StackTraceElement[] stackTrace = stackDump[i];</span>
-<span class="fc bfc" id="L80" title="All 2 branches covered.">                    if (stackTrace.length &gt; 0) {</span>
-<span class="fc" id="L81">                        addSample(stackTrace);</span>
-                    }
+<span class="fc" id="L74">            StackTraceElement[][] stackDump = (StackTraceElement[][]) DUMP_THREADS.invoke(null, (Object) threads);</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">            for (StackTraceElement[] stackTrace : stackDump) {</span>
+<span class="fc bfc" id="L76" title="All 4 branches covered.">                if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
+<span class="fc" id="L77">                        addSample(stackTrace);</span>
                 }
             }
-<span class="nc" id="L85">        } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L86">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L87">        } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L88">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L89">        } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L90">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L91">        }</span>
-<span class="fc" id="L92">    }</span>
+<span class="nc" id="L80">        } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L81">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L82">        } catch (IllegalArgumentException ex) {</span>
+<span class="nc" id="L83">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L84">        } catch (InvocationTargetException ex) {</span>
+<span class="nc" id="L85">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L86">        }</span>
+<span class="fc" id="L87">    }</span>
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

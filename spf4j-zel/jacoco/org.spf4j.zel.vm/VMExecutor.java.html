@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>VMExecutor.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.vm</a> &gt; <span class="el_source">VMExecutor.java</span></div><h1>VMExecutor.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.zel.vm;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import org.spf4j.base.Pair;
+
+/**
+ *
+ * @author zoly
+ */
+public final class VMExecutor {
+    
+    
+<span class="nc" id="L40">    public static class Lazy {</span>
+<span class="fc" id="L41">         private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(org.spf4j.base.Runtime.NR_PROCESSORS,</span>
+                                      org.spf4j.base.Runtime.NR_PROCESSORS,
+                                      60, TimeUnit.SECONDS,
+                                      new LinkedBlockingQueue&lt;Runnable&gt;());
+<span class="fc" id="L45">         public static final VMExecutor DEFAULT = new VMExecutor(DEF_EXEC);</span>
+    }
+
+    public interface Suspendable&lt;T&gt; extends Callable&lt;T&gt; {
+
+        @Override
+        T call() throws SuspendedException, ZExecutionException, InterruptedException;
+        
+        List&lt;VMFuture&lt;Object&gt;&gt; getSuspendedAt();
+        
+    }
+    
+    
+    
+    public static &lt;T&gt; Suspendable&lt;T&gt; synchronize(final Suspendable&lt;T&gt; what) {
+<span class="fc" id="L60">        return new Suspendable&lt;T&gt;() {</span>
+
+<span class="fc" id="L62">            private volatile boolean isRunning = false;</span>
+            
+            @Override
+            public T call() throws SuspendedException, ZExecutionException, InterruptedException {
+<span class="fc bfc" id="L66" title="All 2 branches covered.">                if (!isRunning) {</span>
+<span class="fc" id="L67">                    synchronized (this) {</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">                        if (!isRunning) {</span>
+<span class="fc" id="L69">                            isRunning = true;</span>
+                            try {
+<span class="fc" id="L71">                                return what.call();</span>
+<span class="fc" id="L72">                            } catch (SuspendedException e) {</span>
+<span class="fc" id="L73">                                isRunning = false;</span>
+<span class="fc" id="L74">                                throw e;</span>
+                            }
+                        }
+<span class="pc" id="L77">                    }</span>
+                }
+<span class="fc" id="L79">                throw ExecAbortException.INSTANCE;</span>
+            }
+
+            @Override
+            public synchronized List&lt;VMFuture&lt;Object&gt;&gt; getSuspendedAt() {
+<span class="fc" id="L84">                return what.getSuspendedAt();</span>
+            }
+        };
+    }
+
+    private final Executor exec;
+
+<span class="fc" id="L91">    public VMExecutor(final Executor exec) {</span>
+<span class="fc" id="L92">        this.exec = exec;</span>
+<span class="fc" id="L93">    }</span>
+
+    public &lt;T&gt; Future&lt;T&gt; submit(final Suspendable&lt;T&gt; callable) {
+<span class="fc" id="L96">        final VMFuture&lt;T&gt; resultFuture = new VMSyncFuture&lt;T&gt;();</span>
+<span class="fc" id="L97">        submit(callable, resultFuture);</span>
+<span class="fc" id="L98">        return resultFuture;</span>
+    }
+    
+    public &lt;T&gt; Future&lt;T&gt; submitInternal(final Suspendable&lt;T&gt; callable) {
+<span class="fc" id="L102">        final VMFuture&lt;T&gt; resultFuture = new VMASyncFuture&lt;T&gt;();</span>
+<span class="fc" id="L103">        submit(callable, resultFuture);</span>
+<span class="fc" id="L104">        return resultFuture;</span>
+    }
+
+<span class="fc" id="L107">    private final ConcurrentMap&lt;VMFuture&lt;Object&gt;, List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt;&gt; futToSuspMap</span>
+            = new ConcurrentHashMap&lt;VMFuture&lt;Object&gt;, List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt;&gt;();
+
+    private void resumeSuspendables(final VMFuture&lt;Object&gt; future) {
+<span class="fc" id="L111">        List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; suspended = futToSuspMap.remove(future);</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        if (suspended != null) {</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">            for (Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt; susp : suspended) {</span>
+<span class="fc" id="L114">                submit(susp.getFirst(), susp.getSecond());</span>
+<span class="fc" id="L115">            }</span>
+        }
+<span class="fc" id="L117">    }</span>
+
+    private void addSuspendable(final VMFuture&lt;Object&gt; futureSuspendedFor,
+            final Suspendable&lt;Object&gt; suspendedCallable, final VMFuture&lt;Object&gt; suspendedCallableFuture) {
+
+<span class="fc" id="L122">        List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; suspended</span>
+                = futToSuspMap.get(futureSuspendedFor);
+<span class="fc bfc" id="L124" title="All 2 branches covered.">        if (suspended == null) {</span>
+<span class="fc" id="L125">            suspended = new LinkedList&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt;();</span>
+<span class="fc" id="L126">            List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; old</span>
+                    = futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);
+<span class="pc bpc" id="L128" title="1 of 2 branches missed.">            if (old != null) {</span>
+<span class="nc" id="L129">                suspended = old;</span>
+            }
+        }
+        do {
+<span class="fc" id="L133">            List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; newList</span>
+                    = new LinkedList&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt;(suspended);
+<span class="fc" id="L135">            newList.add(Pair.of(suspendedCallable, suspendedCallableFuture));</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">            if (futToSuspMap.replace(futureSuspendedFor, suspended, newList)) {</span>
+<span class="fc" id="L137">                break;</span>
+            } else {
+<span class="fc" id="L139">                suspended = futToSuspMap.get(futureSuspendedFor);</span>
+<span class="pc bpc" id="L140" title="1 of 2 branches missed.">                if (suspended == null) {</span>
+<span class="fc" id="L141">                    suspended = new LinkedList&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt;();</span>
+<span class="fc" id="L142">                    List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; old</span>
+                            = futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">                    if (old != null) {</span>
+<span class="nc" id="L145">                        suspended = old;</span>
+                    }
+                }
+            }
+<span class="fc" id="L149">        } while (true);</span>
+<span class="fc bfc" id="L150" title="All 2 branches covered.">        if (futureSuspendedFor.isDone()) {</span>
+<span class="fc" id="L151">            resumeSuspendables(futureSuspendedFor);</span>
+        }
+<span class="fc" id="L153">    }</span>
+
+    private &lt;T&gt; void submit(final Suspendable&lt;T&gt; callable, final VMFuture&lt;T&gt; future) {
+<span class="fc" id="L156">        exec.execute(new Runnable() {</span>
+
+            @Override
+            public void run() {
+                try {
+<span class="fc" id="L161">                    T result = callable.call();</span>
+<span class="fc" id="L162">                    future.setResult(result);</span>
+<span class="fc" id="L163">                    resumeSuspendables((VMFuture&lt;Object&gt;) future);</span>
+<span class="fc" id="L164">                } catch (SuspendedException ex) {</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">                    for (VMFuture&lt;Object&gt; fut : callable.getSuspendedAt()) {</span>
+<span class="fc" id="L166">                        addSuspendable(fut,</span>
+                            (Suspendable&lt;Object&gt;) callable, (VMFuture&lt;Object&gt;) future);
+<span class="fc" id="L168">                    }</span>
+<span class="fc" id="L169">                } catch (Exception e) {</span>
+<span class="fc" id="L170">                    future.setExceptionResult(new ExecutionException(e));</span>
+<span class="fc" id="L171">                    resumeSuspendables((VMFuture&lt;Object&gt;) future);</span>
+<span class="fc" id="L172">                }</span>
+<span class="fc" id="L173">            }</span>
+        });
+<span class="fc" id="L175">    }</span>
+    
+    
+    
+    
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

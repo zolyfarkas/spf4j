@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>TimeSeriesDatabase.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.html" class="el_package">org.spf4j.perf.tsdb</a> &gt; <span class="el_source">TimeSeriesDatabase.java</span></div><h1>TimeSeriesDatabase.java</h1><pre class="source lang-java linenums"> /*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>TimeSeriesDatabase.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.tsdb</a> &gt; <span class="el_source">TimeSeriesDatabase.java</span></div><h1>TimeSeriesDatabase.java</h1><pre class="source lang-java linenums"> /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -34,6 +34,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.jfree.chart.JFreeChart;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -60,7 +62,7 @@ import static org.spf4j.perf.impl.chart.Charts.fillGaps;
 public final class TimeSeriesDatabase implements Closeable {
     
     public static final int VERSION = 1;
-    private final Map&lt;String, TSTable&gt; groups;
+    private final ConcurrentMap&lt;String, TSTable&gt; groups;
     private final RandomAccessFile file;
     private final Header header;
     private final TableOfContents toc;
@@ -68,338 +70,349 @@ public final class TimeSeriesDatabase implements Closeable {
     private final Map&lt;String, DataFragment&gt; writeDataFragments;
     private final String pathToDatabaseFile;
     
-<span class="fc" id="L71">    public TimeSeriesDatabase(final String pathToDatabaseFile, final byte[] metaData) throws IOException {</span>
-<span class="fc" id="L72">        this.pathToDatabaseFile = pathToDatabaseFile;</span>
-<span class="fc" id="L73">        file = new RandomAccessFile(pathToDatabaseFile, &quot;rw&quot;);</span>
+<span class="fc" id="L73">    public TimeSeriesDatabase(final String pathToDatabaseFile, final byte[] metaData) throws IOException {</span>
+<span class="fc" id="L74">        this.pathToDatabaseFile = pathToDatabaseFile;</span>
+<span class="fc" id="L75">        file = new RandomAccessFile(pathToDatabaseFile, &quot;rw&quot;);</span>
         // read or create header
-<span class="fc bfc" id="L75" title="All 2 branches covered.">        if (file.length() == 0) {</span>
-<span class="fc" id="L76">            this.header = new Header(VERSION, metaData);</span>
-<span class="fc" id="L77">            this.header.writeTo(file);</span>
-<span class="fc" id="L78">            this.toc = new TableOfContents(file.getFilePointer());</span>
-<span class="fc" id="L79">            this.toc.writeTo(file);</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (file.length() == 0) {</span>
+<span class="fc" id="L78">            this.header = new Header(VERSION, metaData);</span>
+<span class="fc" id="L79">            this.header.writeTo(file);</span>
+<span class="fc" id="L80">            this.toc = new TableOfContents(file.getFilePointer());</span>
+<span class="fc" id="L81">            this.toc.writeTo(file);</span>
         } else {
-<span class="fc" id="L81">            this.header = new Header(file);</span>
-<span class="fc" id="L82">            this.toc = new TableOfContents(file);</span>
+<span class="fc" id="L83">            this.header = new Header(file);</span>
+<span class="fc" id="L84">            this.toc = new TableOfContents(file);</span>
         }
-<span class="fc" id="L84">        groups = new HashMap&lt;String, TSTable&gt;();</span>
-<span class="fc bfc" id="L85" title="All 2 branches covered.">        if (toc.getFirstColumnInfo() &gt; 0) {</span>
-<span class="fc" id="L86">            file.seek(toc.getFirstColumnInfo());</span>
-<span class="fc" id="L87">            TSTable colInfo = new TSTable(file);</span>
-<span class="fc" id="L88">            groups.put(colInfo.getTableName(), colInfo);</span>
+<span class="fc" id="L86">        groups = new ConcurrentHashMap&lt;String, TSTable&gt;();</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        if (toc.getFirstColumnInfo() &gt; 0) {</span>
+<span class="fc" id="L88">            file.seek(toc.getFirstColumnInfo());</span>
+<span class="fc" id="L89">            TSTable colInfo = new TSTable(file);</span>
+<span class="fc" id="L90">            groups.put(colInfo.getTableName(), colInfo);</span>
             
-<span class="fc" id="L90">            lastColumnInfo = colInfo;</span>
-<span class="fc bfc" id="L91" title="All 2 branches covered.">            while (colInfo.getNextTSTable() &gt; 0) {</span>
-<span class="fc" id="L92">                file.seek(colInfo.getNextTSTable());</span>
-<span class="fc" id="L93">                colInfo = new TSTable(file);</span>
-<span class="fc" id="L94">                groups.put(colInfo.getTableName(), colInfo);</span>
-<span class="fc" id="L95">                lastColumnInfo = colInfo;</span>
+<span class="fc" id="L92">            lastColumnInfo = colInfo;</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">            while (colInfo.getNextTSTable() &gt; 0) {</span>
+<span class="fc" id="L94">                file.seek(colInfo.getNextTSTable());</span>
+<span class="fc" id="L95">                colInfo = new TSTable(file);</span>
+<span class="fc" id="L96">                groups.put(colInfo.getTableName(), colInfo);</span>
+<span class="fc" id="L97">                lastColumnInfo = colInfo;</span>
             }
         }
-<span class="fc" id="L98">        writeDataFragments = new HashMap&lt;String, DataFragment&gt;();</span>
-<span class="fc" id="L99">    }</span>
+<span class="fc" id="L100">        writeDataFragments = new HashMap&lt;String, DataFragment&gt;();</span>
+<span class="fc" id="L101">    }</span>
     
     @Override
     public synchronized void close() throws IOException {
         try {
-<span class="fc" id="L104">            flush();</span>
+<span class="fc" id="L106">            flush();</span>
         } finally {
-<span class="pc" id="L106">            file.close();</span>
-<span class="fc" id="L107">        }</span>
-<span class="fc" id="L108">    }</span>
+<span class="pc" id="L108">            file.close();</span>
+<span class="fc" id="L109">        }</span>
+<span class="fc" id="L110">    }</span>
     
     public synchronized boolean hasTSTable(final String tableName) {
-<span class="fc" id="L111">        return groups.containsKey(tableName);</span>
+<span class="fc" id="L113">        return groups.containsKey(tableName);</span>
     }
     
     public void addTSTable(final String tableName,
             final byte[] tableMetaData, final int sampleTime, final String[] columnNames,
             final String[] columnMetaData) throws IOException {
-<span class="fc" id="L117">        byte[][] metadata = new byte[columnMetaData.length][];</span>
-<span class="fc bfc" id="L118" title="All 2 branches covered.">        for (int i = 0; i &lt; columnMetaData.length; i++) {</span>
-<span class="fc" id="L119">            metadata[i] = columnMetaData[i].getBytes(Charsets.UTF_8);</span>
+<span class="fc" id="L119">        byte[][] metadata = new byte[columnMetaData.length][];</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">        for (int i = 0; i &lt; columnMetaData.length; i++) {</span>
+<span class="fc" id="L121">            metadata[i] = columnMetaData[i].getBytes(Charsets.UTF_8);</span>
         }
-<span class="fc" id="L121">        addTSTable(tableName, tableMetaData, sampleTime, columnNames, metadata);</span>
-<span class="fc" id="L122">    }</span>
+<span class="fc" id="L123">        addTSTable(tableName, tableMetaData, sampleTime, columnNames, metadata);</span>
+<span class="fc" id="L124">    }</span>
     
     public synchronized void addTSTable(final String tableName,
             final byte[] tableMetaData, final int sampleTime, final String[] columnNames,
             final byte[][] columnMetaData) throws IOException {
-<span class="fc bfc" id="L127" title="All 2 branches covered.">        if (groups.containsKey(tableName)) {</span>
-<span class="fc" id="L128">            throw new IllegalArgumentException(&quot;group already exists &quot; + tableName);</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">        if (groups.containsKey(tableName)) {</span>
+<span class="fc" id="L130">            throw new IllegalArgumentException(&quot;group already exists &quot; + tableName);</span>
         }
         //write column information at the end of the file.
-<span class="fc" id="L131">        flush();</span>
-<span class="fc" id="L132">        file.seek(file.length());</span>
-<span class="fc" id="L133">        TSTable colInfo = new TSTable(tableName, tableMetaData, columnNames,</span>
+<span class="fc" id="L133">        flush();</span>
+<span class="fc" id="L134">        file.seek(file.length());</span>
+<span class="fc" id="L135">        TSTable colInfo = new TSTable(tableName, tableMetaData, columnNames,</span>
                 columnMetaData, sampleTime, file.getFilePointer());
-<span class="fc" id="L135">        colInfo.writeTo(file);</span>
+<span class="fc" id="L137">        colInfo.writeTo(file);</span>
         //update refferences to this new ColumnInfo.
-<span class="fc bfc" id="L137" title="All 2 branches covered.">        if (lastColumnInfo != null) {</span>
-<span class="fc" id="L138">            lastColumnInfo.setNextColumnInfo(colInfo.getLocation(), file);</span>
+<span class="fc bfc" id="L139" title="All 2 branches covered.">        if (lastColumnInfo != null) {</span>
+<span class="fc" id="L140">            lastColumnInfo.setNextColumnInfo(colInfo.getLocation(), file);</span>
         } else {
-<span class="fc" id="L140">            toc.setFirstColumnInfo(colInfo.getLocation(), file);</span>
+<span class="fc" id="L142">            toc.setFirstColumnInfo(colInfo.getLocation(), file);</span>
         }
-<span class="fc" id="L142">        toc.setLastColumnInfo(colInfo.getLocation(), file);</span>
-<span class="fc" id="L143">        lastColumnInfo = colInfo;</span>
-<span class="fc" id="L144">        groups.put(tableName, colInfo);</span>
-<span class="fc" id="L145">    }</span>
+<span class="fc" id="L144">        toc.setLastColumnInfo(colInfo.getLocation(), file);</span>
+<span class="fc" id="L145">        lastColumnInfo = colInfo;</span>
+<span class="fc" id="L146">        groups.put(tableName, colInfo);</span>
+<span class="fc" id="L147">    }</span>
     
-    public synchronized void write(final long time, final String tableName, final long[] values) throws IOException {
-<span class="pc bpc" id="L148" title="1 of 2 branches missed.">        if (!groups.containsKey(tableName)) {</span>
-<span class="nc" id="L149">            throw new IllegalArgumentException(&quot;Unknown group name&quot; + tableName);</span>
+    public void write(final long time, final String tableName, final long[] values) throws IOException {
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">        if (!groups.containsKey(tableName)) {</span>
+<span class="nc" id="L151">            throw new IllegalArgumentException(&quot;Unknown group name&quot; + tableName);</span>
         }
-<span class="fc" id="L151">        DataFragment writeDataFragment = writeDataFragments.get(tableName);</span>
-<span class="fc bfc" id="L152" title="All 2 branches covered.">        if (writeDataFragment == null) {</span>
-<span class="fc" id="L153">            writeDataFragment = new DataFragment(time);</span>
-<span class="fc" id="L154">            writeDataFragments.put(tableName, writeDataFragment);</span>
-        }
-<span class="fc" id="L156">        writeDataFragment.addData(time, values);</span>
-<span class="fc" id="L157">    }</span>
+<span class="fc" id="L153">        synchronized (writeDataFragments) {</span>
+<span class="fc" id="L154">            DataFragment writeDataFragment = writeDataFragments.get(tableName);</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">            if (writeDataFragment == null) {</span>
+<span class="fc" id="L156">                writeDataFragment = new DataFragment(time);</span>
+<span class="fc" id="L157">                writeDataFragments.put(tableName, writeDataFragment);</span>
+            }
+<span class="fc" id="L159">            writeDataFragment.addData(time, values);</span>
+<span class="pc" id="L160">        }</span>
+<span class="fc" id="L161">    }</span>
     
     public synchronized void flush() throws IOException {
-<span class="fc bfc" id="L160" title="All 2 branches covered.">        for (Map.Entry&lt;String, DataFragment&gt; entry : writeDataFragments.entrySet()) {</span>
-<span class="fc" id="L161">            DataFragment writeDataFragment = entry.getValue();</span>
-<span class="fc" id="L162">            String groupName = entry.getKey();</span>
-<span class="fc" id="L163">            file.seek(file.length());</span>
-<span class="fc" id="L164">            writeDataFragment.setLocation(file.getFilePointer());</span>
-<span class="fc" id="L165">            writeDataFragment.writeTo(file);</span>
-<span class="fc" id="L166">            TSTable colInfo = groups.get(groupName);</span>
-<span class="fc bfc" id="L167" title="All 2 branches covered.">            if (colInfo.getLastDataFragment() != 0) {</span>
-<span class="fc" id="L168">                DataFragment.setNextDataFragment(colInfo.getLastDataFragment(), writeDataFragment.getLocation(), file);</span>
+        List&lt;Map.Entry&lt;String, DataFragment&gt;&gt; lwriteDataFragments;
+<span class="fc" id="L165">        synchronized (writeDataFragments) {</span>
+<span class="fc" id="L166">            lwriteDataFragments = new ArrayList&lt;Map.Entry&lt;String, DataFragment&gt;&gt;(writeDataFragments.size());</span>
+<span class="fc bfc" id="L167" title="All 2 branches covered.">            for (Map.Entry&lt;String, DataFragment&gt; entry : writeDataFragments.entrySet()) {</span>
+<span class="fc" id="L168">                lwriteDataFragments.add(entry);</span>
+<span class="fc" id="L169">            }</span>
+<span class="fc" id="L170">            writeDataFragments.clear();</span>
+<span class="pc" id="L171">        }</span>
+
+<span class="fc bfc" id="L173" title="All 2 branches covered.">        for (Map.Entry&lt;String, DataFragment&gt; entry : lwriteDataFragments) {</span>
+<span class="fc" id="L174">            DataFragment writeDataFragment = entry.getValue();</span>
+<span class="fc" id="L175">            String groupName = entry.getKey();</span>
+<span class="fc" id="L176">            file.seek(file.length());</span>
+<span class="fc" id="L177">            writeDataFragment.setLocation(file.getFilePointer());</span>
+<span class="fc" id="L178">            writeDataFragment.writeTo(file);</span>
+<span class="fc" id="L179">            TSTable colInfo = groups.get(groupName);</span>
+<span class="fc bfc" id="L180" title="All 2 branches covered.">            if (colInfo.getLastDataFragment() != 0) {</span>
+<span class="fc" id="L181">                DataFragment.setNextDataFragment(</span>
+                        colInfo.getLastDataFragment(), writeDataFragment.getLocation(), file);
             } else {
-<span class="fc" id="L170">                colInfo.setFirstDataFragment(writeDataFragment.getLocation(), file);</span>
+<span class="fc" id="L184">                colInfo.setFirstDataFragment(writeDataFragment.getLocation(), file);</span>
             }
-<span class="fc" id="L172">            colInfo.setLastDataFragment(writeDataFragment.getLocation(), file);</span>
-<span class="fc" id="L173">        }</span>
-<span class="fc" id="L174">        writeDataFragments.clear();</span>
-<span class="fc" id="L175">        sync();</span>
-<span class="fc" id="L176">    }</span>
+<span class="fc" id="L186">            colInfo.setLastDataFragment(writeDataFragment.getLocation(), file);</span>
+<span class="fc" id="L187">        }</span>
+<span class="fc" id="L188">        sync();</span>
+<span class="fc" id="L189">    }</span>
     
     public synchronized String[] getColumnNames(final String tableName) {
-<span class="nc" id="L179">        return groups.get(tableName).getColumnNames();</span>
+<span class="nc" id="L192">        return groups.get(tableName).getColumnNames();</span>
     }
     
     public synchronized TSTable getTSTable(final String tableName) {
-<span class="fc" id="L183">        return groups.get(tableName);</span>
+<span class="fc" id="L196">        return groups.get(tableName);</span>
     }
     
     public synchronized Collection&lt;TSTable&gt; getTSTables() {
-<span class="fc" id="L187">        return groups.values();</span>
+<span class="fc" id="L200">        return groups.values();</span>
     }
     
     public synchronized Pair&lt;long[], long[][]&gt; readAll(final String tableName) throws IOException {
-<span class="fc" id="L191">        return read(tableName, 0, Long.MAX_VALUE);</span>
+<span class="fc" id="L204">        return read(tableName, 0, Long.MAX_VALUE);</span>
     }
     
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;LII_LIST_INDEXED_ITERATING&quot;)
     public synchronized Pair&lt;long[], long[][]&gt; read(final String tableName,
             final long startTime, final long endTime) throws IOException {
-<span class="fc" id="L197">        TLongArrayList timeStamps = new TLongArrayList();</span>
-<span class="fc" id="L198">        List&lt;long[]&gt; data = new ArrayList&lt;long[]&gt;();</span>
-<span class="fc" id="L199">        TSTable info = groups.get(tableName);</span>
+<span class="fc" id="L210">        TLongArrayList timeStamps = new TLongArrayList();</span>
+<span class="fc" id="L211">        List&lt;long[]&gt; data = new ArrayList&lt;long[]&gt;();</span>
+<span class="fc" id="L212">        TSTable info = groups.get(tableName);</span>
         
-<span class="pc bpc" id="L201" title="1 of 2 branches missed.">        if (info.getFirstDataFragment() &gt; 0) {</span>
+<span class="pc bpc" id="L214" title="1 of 2 branches missed.">        if (info.getFirstDataFragment() &gt; 0) {</span>
             DataFragment frag;
-<span class="fc" id="L203">            long nextFragmentLocation = info.getFirstDataFragment();</span>
+<span class="fc" id="L216">            long nextFragmentLocation = info.getFirstDataFragment();</span>
             do {
-<span class="fc" id="L205">                file.seek(nextFragmentLocation);</span>
-<span class="fc" id="L206">                frag = new DataFragment(file);</span>
-<span class="fc" id="L207">                long fragStartTime = frag.getStartTimeMillis();</span>
-<span class="fc bfc" id="L208" title="All 2 branches covered.">                if (fragStartTime &gt; startTime) {</span>
-<span class="fc" id="L209">                    TIntArrayList fragTimestamps = frag.getTimestamps();</span>
-<span class="fc" id="L210">                    int nr = 0;</span>
-<span class="fc bfc" id="L211" title="All 2 branches covered.">                    for (int i = 0; i &lt; fragTimestamps.size(); i++) {</span>
-<span class="fc" id="L212">                        long ts = fragStartTime + fragTimestamps.get(i);</span>
-<span class="pc bpc" id="L213" title="1 of 2 branches missed.">                        if (ts &lt; endTime) {</span>
-<span class="fc" id="L214">                            timeStamps.add(ts);</span>
-<span class="fc" id="L215">                            nr++;</span>
+<span class="fc" id="L218">                file.seek(nextFragmentLocation);</span>
+<span class="fc" id="L219">                frag = new DataFragment(file);</span>
+<span class="fc" id="L220">                long fragStartTime = frag.getStartTimeMillis();</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">                if (fragStartTime &gt; startTime) {</span>
+<span class="fc" id="L222">                    TIntArrayList fragTimestamps = frag.getTimestamps();</span>
+<span class="fc" id="L223">                    int nr = 0;</span>
+<span class="fc bfc" id="L224" title="All 2 branches covered.">                    for (int i = 0; i &lt; fragTimestamps.size(); i++) {</span>
+<span class="fc" id="L225">                        long ts = fragStartTime + fragTimestamps.get(i);</span>
+<span class="pc bpc" id="L226" title="1 of 2 branches missed.">                        if (ts &lt; endTime) {</span>
+<span class="fc" id="L227">                            timeStamps.add(ts);</span>
+<span class="fc" id="L228">                            nr++;</span>
                         } else {
                             break;
                         }
                     }
-<span class="fc" id="L220">                    List&lt;long[]&gt; d = frag.getData();</span>
-<span class="fc bfc" id="L221" title="All 2 branches covered.">                    for (int i = 0; i &lt; nr; i++) {</span>
-<span class="fc" id="L222">                        data.add(d.get(i));</span>
+<span class="fc" id="L233">                    List&lt;long[]&gt; d = frag.getData();</span>
+<span class="fc bfc" id="L234" title="All 2 branches covered.">                    for (int i = 0; i &lt; nr; i++) {</span>
+<span class="fc" id="L235">                        data.add(d.get(i));</span>
                     }
-<span class="pc bpc" id="L224" title="1 of 2 branches missed.">                    if (fragTimestamps.size() &gt; nr) {</span>
-<span class="nc" id="L225">                        break;</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">                    if (fragTimestamps.size() &gt; nr) {</span>
+<span class="nc" id="L238">                        break;</span>
                     }
                 }
-<span class="fc" id="L228">                nextFragmentLocation = frag.getNextDataFragment();</span>
-<span class="fc bfc" id="L229" title="All 2 branches covered.">            } while (nextFragmentLocation &gt; 0);</span>
+<span class="fc" id="L241">                nextFragmentLocation = frag.getNextDataFragment();</span>
+<span class="fc bfc" id="L242" title="All 2 branches covered.">            } while (nextFragmentLocation &gt; 0);</span>
         }
-<span class="fc" id="L231">        return Pair.of(timeStamps.toArray(), data.toArray(new long[data.size()][]));</span>
+<span class="fc" id="L244">        return Pair.of(timeStamps.toArray(), data.toArray(new long[data.size()][]));</span>
     }
     
-    private synchronized void sync() throws IOException {
-<span class="fc" id="L235">        file.getFD().sync();</span>
-<span class="fc" id="L236">    }</span>
+    private void sync() throws IOException {
+<span class="fc" id="L248">        file.getFD().sync();</span>
+<span class="fc" id="L249">    }</span>
     
     public String getDBFilePath() {
-<span class="fc" id="L239">        return pathToDatabaseFile;</span>
+<span class="fc" id="L252">        return pathToDatabaseFile;</span>
     }
     
     public JFreeChart createHeatJFreeChart(final String tableName) throws IOException {
-<span class="nc" id="L243">        TSTable info = this.getTSTable(tableName);</span>
-<span class="nc" id="L244">        Pair&lt;long[], long[][]&gt; data = this.readAll(tableName);</span>
-<span class="nc" id="L245">        return createHeatJFreeChart(data, info);</span>
+<span class="nc" id="L256">        TSTable info = this.getTSTable(tableName);</span>
+<span class="nc" id="L257">        Pair&lt;long[], long[][]&gt; data = this.readAll(tableName);</span>
+<span class="nc" id="L258">        return createHeatJFreeChart(data, info);</span>
     }
     
     public JFreeChart createMinMaxAvgJFreeChart(final String tableName) throws IOException {
-<span class="nc" id="L249">        TSTable info = this.getTSTable(tableName);</span>
-<span class="nc" id="L250">        Pair&lt;long[], long[][]&gt; data = this.readAll(tableName);</span>
-<span class="nc" id="L251">        return createMinMaxAvgJFreeChart(data, info);</span>
+<span class="nc" id="L262">        TSTable info = this.getTSTable(tableName);</span>
+<span class="nc" id="L263">        Pair&lt;long[], long[][]&gt; data = this.readAll(tableName);</span>
+<span class="nc" id="L264">        return createMinMaxAvgJFreeChart(data, info);</span>
     }
     
     public JFreeChart createCountJFreeChart(final String tableName) throws IOException {
-<span class="nc" id="L255">        TSTable info = this.getTSTable(tableName);</span>
-<span class="nc" id="L256">        Pair&lt;long[], long[][]&gt; data = this.readAll(tableName);</span>
-<span class="nc" id="L257">        return createCountJFreeChart(data, info);</span>
+<span class="nc" id="L268">        TSTable info = this.getTSTable(tableName);</span>
+<span class="nc" id="L269">        Pair&lt;long[], long[][]&gt; data = this.readAll(tableName);</span>
+<span class="nc" id="L270">        return createCountJFreeChart(data, info);</span>
     }
     
     public List&lt;JFreeChart&gt; createJFreeCharts(final String tableName) throws IOException {
-<span class="nc" id="L261">        TSTable info = this.getTSTable(tableName);</span>
-<span class="nc" id="L262">        Pair&lt;long[], long[][]&gt; data = this.readAll(tableName);</span>
-<span class="nc" id="L263">        return createJFreeCharts(data, info);</span>
+<span class="nc" id="L274">        TSTable info = this.getTSTable(tableName);</span>
+<span class="nc" id="L275">        Pair&lt;long[], long[][]&gt; data = this.readAll(tableName);</span>
+<span class="nc" id="L276">        return createJFreeCharts(data, info);</span>
     }
     
     public static JFreeChart createHeatJFreeChart(final Pair&lt;long[], long[][]&gt; data, final TSTable info) {
-<span class="fc" id="L267">        Pair&lt;long[], double[][]&gt; mData = fillGaps(data.getFirst(), data.getSecond(),</span>
+<span class="fc" id="L280">        Pair&lt;long[], double[][]&gt; mData = fillGaps(data.getFirst(), data.getSecond(),</span>
                 info.getSampleTime(), info.getColumnNames().length);
-<span class="fc" id="L269">        return Charts.createHeatJFreeChart(info.getColumnNames(),</span>
+<span class="fc" id="L282">        return Charts.createHeatJFreeChart(info.getColumnNames(),</span>
                 mData.getSecond(), data.getFirst()[0], info.getSampleTime(),
                 new String(info.getTableMetaData(), Charsets.UTF_8), &quot;Measurements distribution for &quot;
                 + info.getTableName() + &quot;, sampleTime &quot; + info.getSampleTime() + &quot;ms, generated by spf4j&quot;);
     }
     
     public static JFreeChart createMinMaxAvgJFreeChart(final Pair&lt;long[], long[][]&gt; data, final TSTable info) {
-<span class="nc" id="L276">        long[][] vals = data.getSecond();</span>
-<span class="nc" id="L277">        double[] min = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;min&quot;));</span>
-<span class="nc" id="L278">        double[] max = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;max&quot;));</span>
-<span class="nc" id="L279">        double[] total = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;total&quot;));</span>
-<span class="nc" id="L280">        double[] count = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;count&quot;));</span>
-<span class="nc bnc" id="L281" title="All 2 branches missed.">        for (int i = 0; i &lt; count.length; i++) {</span>
-<span class="nc bnc" id="L282" title="All 2 branches missed.">            if (count[i] == 0) {</span>
-<span class="nc" id="L283">                min[i] = 0;</span>
-<span class="nc" id="L284">                max[i] = 0;</span>
+<span class="nc" id="L289">        long[][] vals = data.getSecond();</span>
+<span class="nc" id="L290">        double[] min = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;min&quot;));</span>
+<span class="nc" id="L291">        double[] max = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;max&quot;));</span>
+<span class="nc" id="L292">        double[] total = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;total&quot;));</span>
+<span class="nc" id="L293">        double[] count = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;count&quot;));</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">        for (int i = 0; i &lt; count.length; i++) {</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">            if (count[i] == 0) {</span>
+<span class="nc" id="L296">                min[i] = 0;</span>
+<span class="nc" id="L297">                max[i] = 0;</span>
             }
         }
-<span class="nc" id="L287">        long[] timestamps = data.getFirst();</span>
-<span class="nc" id="L288">        return Charts.createTimeSeriesJFreeChart(&quot;Min,Max,Avg chart for &quot;</span>
+<span class="nc" id="L300">        long[] timestamps = data.getFirst();</span>
+<span class="nc" id="L301">        return Charts.createTimeSeriesJFreeChart(&quot;Min,Max,Avg chart for &quot;</span>
                 + info.getTableName() + &quot;, sampleTime &quot; + info.getSampleTime() + &quot;ms, generated by spf4j&quot;, timestamps,
                 new String[]{&quot;min&quot;, &quot;max&quot;, &quot;avg&quot;}, new String(info.getTableMetaData(), Charsets.UTF_8),
                 new double[][]{min, max, Arrays.divide(total, count)});
     }
     
     public static JFreeChart createCountJFreeChart(final Pair&lt;long[], long[][]&gt; data, final TSTable info) {
-<span class="nc" id="L295">        long[][] vals = data.getSecond();</span>
-<span class="nc" id="L296">        double[] count = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;count&quot;));</span>
-<span class="nc" id="L297">        long[] timestamps = data.getFirst();</span>
-<span class="nc" id="L298">        return Charts.createTimeSeriesJFreeChart(&quot;count chart for &quot;</span>
+<span class="nc" id="L308">        long[][] vals = data.getSecond();</span>
+<span class="nc" id="L309">        double[] count = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;count&quot;));</span>
+<span class="nc" id="L310">        long[] timestamps = data.getFirst();</span>
+<span class="nc" id="L311">        return Charts.createTimeSeriesJFreeChart(&quot;count chart for &quot;</span>
                 + info.getTableName() + &quot;, sampleTime &quot; + info.getSampleTime() + &quot; ms, generated by spf4j&quot;, timestamps,
                 new String[]{&quot;count&quot;}, &quot;count&quot;, new double[][]{count});
     }
     
     public static List&lt;JFreeChart&gt; createJFreeCharts(final Pair&lt;long[], long[][]&gt; data, final TSTable info) {
-<span class="nc" id="L304">        long[][] vals = data.getSecond();</span>
-<span class="nc" id="L305">        List&lt;JFreeChart&gt; result = new ArrayList&lt;JFreeChart&gt;();</span>
-<span class="nc" id="L306">        Map&lt;String, Pair&lt;List&lt;String&gt;, List&lt;double[]&gt;&gt;&gt; measurementsByUom =</span>
+<span class="nc" id="L317">        long[][] vals = data.getSecond();</span>
+<span class="nc" id="L318">        List&lt;JFreeChart&gt; result = new ArrayList&lt;JFreeChart&gt;();</span>
+<span class="nc" id="L319">        Map&lt;String, Pair&lt;List&lt;String&gt;, List&lt;double[]&gt;&gt;&gt; measurementsByUom =</span>
                 new HashMap&lt;String, Pair&lt;List&lt;String&gt;, List&lt;double[]&gt;&gt;&gt;();
-<span class="nc" id="L308">        String[] columnMetaData = info.getColumnMetaDataAsStrings();</span>
-<span class="nc bnc" id="L309" title="All 2 branches missed.">        for (int i = 0; i &lt; info.getColumnNumber(); i++) {</span>
-<span class="nc" id="L310">            String uom = columnMetaData[i];</span>
-<span class="nc" id="L311">            Pair&lt;List&lt;String&gt;, List&lt;double[]&gt;&gt; meas = measurementsByUom.get(uom);</span>
-<span class="nc bnc" id="L312" title="All 2 branches missed.">            if (meas == null) {</span>
-<span class="nc" id="L313">                meas = Pair.of((List&lt;String&gt;) new ArrayList&lt;String&gt;(), (List&lt;double[]&gt;) new ArrayList&lt;double[]&gt;());</span>
-<span class="nc" id="L314">                measurementsByUom.put(uom, meas);</span>
+<span class="nc" id="L321">        String[] columnMetaData = info.getColumnMetaDataAsStrings();</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">        for (int i = 0; i &lt; info.getColumnNumber(); i++) {</span>
+<span class="nc" id="L323">            String uom = columnMetaData[i];</span>
+<span class="nc" id="L324">            Pair&lt;List&lt;String&gt;, List&lt;double[]&gt;&gt; meas = measurementsByUom.get(uom);</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">            if (meas == null) {</span>
+<span class="nc" id="L326">                meas = Pair.of((List&lt;String&gt;) new ArrayList&lt;String&gt;(), (List&lt;double[]&gt;) new ArrayList&lt;double[]&gt;());</span>
+<span class="nc" id="L327">                measurementsByUom.put(uom, meas);</span>
             }
-<span class="nc" id="L316">            meas.getFirst().add(info.getColumnName(i));</span>
-<span class="nc" id="L317">            meas.getSecond().add(Arrays.getColumnAsDoubles(vals, i));</span>
+<span class="nc" id="L329">            meas.getFirst().add(info.getColumnName(i));</span>
+<span class="nc" id="L330">            meas.getSecond().add(Arrays.getColumnAsDoubles(vals, i));</span>
         }
-<span class="nc" id="L319">        long[] timestamps = data.getFirst();</span>
-<span class="nc bnc" id="L320" title="All 2 branches missed.">        for (Map.Entry&lt;String, Pair&lt;List&lt;String&gt;, List&lt;double[]&gt;&gt;&gt; entry : measurementsByUom.entrySet()) {</span>
-<span class="nc" id="L321">            Pair&lt;List&lt;String&gt;, List&lt;double[]&gt;&gt; p = entry.getValue();</span>
-<span class="nc" id="L322">            result.add(Charts.createTimeSeriesJFreeChart(&quot;chart for &quot;</span>
+<span class="nc" id="L332">        long[] timestamps = data.getFirst();</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">        for (Map.Entry&lt;String, Pair&lt;List&lt;String&gt;, List&lt;double[]&gt;&gt;&gt; entry : measurementsByUom.entrySet()) {</span>
+<span class="nc" id="L334">            Pair&lt;List&lt;String&gt;, List&lt;double[]&gt;&gt; p = entry.getValue();</span>
+<span class="nc" id="L335">            result.add(Charts.createTimeSeriesJFreeChart(&quot;chart for &quot;</span>
                     + info.getTableName() + &quot;, sampleTime &quot; + info.getSampleTime()
                     + &quot; ms, generated by spf4j&quot;, timestamps,
                     p.getFirst().toArray(new String[p.getFirst().size()]), entry.getKey(),
                     p.getSecond().toArray(new double[p.getSecond().size()][])));
-<span class="nc" id="L327">        }</span>
-<span class="nc" id="L328">        return result;</span>
+<span class="nc" id="L340">        }</span>
+<span class="nc" id="L341">        return result;</span>
     }
     
     public byte[] getMetaData() {
-<span class="nc" id="L332">        return header.getMetaData().clone();</span>
+<span class="nc" id="L345">        return header.getMetaData().clone();</span>
     }
     
     public void writeCsvTable(final String tableName, final File output) throws IOException {
-<span class="fc" id="L336">        TSTable table = getTSTable(tableName);</span>
-<span class="fc" id="L337">        Pair&lt;long[], long[][]&gt; data = readAll(tableName);</span>
-<span class="fc" id="L338">        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8));</span>
-<span class="fc" id="L339">        DateTimeFormatter formatter = ISODateTimeFormat.dateTime();</span>
+<span class="fc" id="L349">        TSTable table = getTSTable(tableName);</span>
+<span class="fc" id="L350">        Pair&lt;long[], long[][]&gt; data = readAll(tableName);</span>
+<span class="fc" id="L351">        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8));</span>
+<span class="fc" id="L352">        DateTimeFormatter formatter = ISODateTimeFormat.dateTime();</span>
         try {
-<span class="fc" id="L341">            Strings.writeCsvElement(&quot;timestamp&quot;, writer);</span>
-<span class="fc bfc" id="L342" title="All 2 branches covered.">            for (String colName : table.getColumnNames()) {</span>
-<span class="fc" id="L343">                writer.append(',');</span>
-<span class="fc" id="L344">                Strings.writeCsvElement(colName, writer);</span>
+<span class="fc" id="L354">            Strings.writeCsvElement(&quot;timestamp&quot;, writer);</span>
+<span class="fc bfc" id="L355" title="All 2 branches covered.">            for (String colName : table.getColumnNames()) {</span>
+<span class="fc" id="L356">                writer.append(',');</span>
+<span class="fc" id="L357">                Strings.writeCsvElement(colName, writer);</span>
             }
-<span class="fc" id="L346">            writer.write('\n');</span>
-<span class="fc" id="L347">            long[] timestamps = data.getFirst();</span>
-<span class="fc" id="L348">            long[][] values = data.getSecond();</span>
-<span class="fc bfc" id="L349" title="All 2 branches covered.">            for (int i = 0; i &lt; timestamps.length; i++)  {</span>
-<span class="fc" id="L350">                Strings.writeCsvElement(formatter.print(timestamps[i]), writer);</span>
-<span class="fc bfc" id="L351" title="All 2 branches covered.">                for (long val : values[i]) {</span>
-<span class="fc" id="L352">                    writer.append(',');</span>
-<span class="fc" id="L353">                    Strings.writeCsvElement(Long.toString(val), writer);</span>
+<span class="fc" id="L359">            writer.write('\n');</span>
+<span class="fc" id="L360">            long[] timestamps = data.getFirst();</span>
+<span class="fc" id="L361">            long[][] values = data.getSecond();</span>
+<span class="fc bfc" id="L362" title="All 2 branches covered.">            for (int i = 0; i &lt; timestamps.length; i++)  {</span>
+<span class="fc" id="L363">                Strings.writeCsvElement(formatter.print(timestamps[i]), writer);</span>
+<span class="fc bfc" id="L364" title="All 2 branches covered.">                for (long val : values[i]) {</span>
+<span class="fc" id="L365">                    writer.append(',');</span>
+<span class="fc" id="L366">                    Strings.writeCsvElement(Long.toString(val), writer);</span>
                 }
-<span class="fc" id="L355">                writer.write('\n');</span>
+<span class="fc" id="L368">                writer.write('\n');</span>
             }
         } finally {
-<span class="pc" id="L358">            writer.close();</span>
-<span class="fc" id="L359">        }</span>
-<span class="fc" id="L360">    }</span>
+<span class="pc" id="L371">            writer.close();</span>
+<span class="fc" id="L372">        }</span>
+<span class="fc" id="L373">    }</span>
 
     
     public void writeCsvTables(final List&lt;String&gt; tableNames, final File output) throws IOException {
-<span class="fc" id="L364">        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8));</span>
-<span class="fc" id="L365">        DateTimeFormatter formatter = ISODateTimeFormat.dateTime();</span>
+<span class="fc" id="L377">        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8));</span>
+<span class="fc" id="L378">        DateTimeFormatter formatter = ISODateTimeFormat.dateTime();</span>
         try {
-<span class="fc" id="L367">            String firstTable = tableNames.get(0);</span>
-<span class="fc" id="L368">            TSTable table = getTSTable(firstTable);</span>
-<span class="fc" id="L369">            Strings.writeCsvElement(&quot;table&quot;, writer);</span>
-<span class="fc" id="L370">            writer.append(',');</span>
-<span class="fc" id="L371">            Strings.writeCsvElement(&quot;timestamp&quot;, writer);</span>
-<span class="fc bfc" id="L372" title="All 2 branches covered.">            for (String colName : table.getColumnNames()) {</span>
-<span class="fc" id="L373">                writer.append(',');</span>
-<span class="fc" id="L374">                Strings.writeCsvElement(colName, writer);</span>
+<span class="fc" id="L380">            String firstTable = tableNames.get(0);</span>
+<span class="fc" id="L381">            TSTable table = getTSTable(firstTable);</span>
+<span class="fc" id="L382">            Strings.writeCsvElement(&quot;table&quot;, writer);</span>
+<span class="fc" id="L383">            writer.append(',');</span>
+<span class="fc" id="L384">            Strings.writeCsvElement(&quot;timestamp&quot;, writer);</span>
+<span class="fc bfc" id="L385" title="All 2 branches covered.">            for (String colName : table.getColumnNames()) {</span>
+<span class="fc" id="L386">                writer.append(',');</span>
+<span class="fc" id="L387">                Strings.writeCsvElement(colName, writer);</span>
             }
-<span class="fc" id="L376">            writer.write('\n');</span>
+<span class="fc" id="L389">            writer.write('\n');</span>
             
-<span class="fc bfc" id="L378" title="All 2 branches covered.">            for (String tableName : tableNames) {</span>
-<span class="fc" id="L379">                Pair&lt;long[], long[][]&gt; data = readAll(tableName);</span>
-<span class="fc" id="L380">                long[] timestamps = data.getFirst();</span>
-<span class="fc" id="L381">                long[][] values = data.getSecond();</span>
-<span class="fc bfc" id="L382" title="All 2 branches covered.">                for (int i = 0; i &lt; timestamps.length; i++)  {</span>
-<span class="fc" id="L383">                    Strings.writeCsvElement(tableName, writer);</span>
-<span class="fc" id="L384">                    writer.append(',');</span>
-<span class="fc" id="L385">                    Strings.writeCsvElement(formatter.print(timestamps[i]), writer);</span>
-<span class="fc bfc" id="L386" title="All 2 branches covered.">                    for (long val : values[i]) {</span>
-<span class="fc" id="L387">                        writer.append(',');</span>
-<span class="fc" id="L388">                        Strings.writeCsvElement(Long.toString(val), writer);</span>
+<span class="fc bfc" id="L391" title="All 2 branches covered.">            for (String tableName : tableNames) {</span>
+<span class="fc" id="L392">                Pair&lt;long[], long[][]&gt; data = readAll(tableName);</span>
+<span class="fc" id="L393">                long[] timestamps = data.getFirst();</span>
+<span class="fc" id="L394">                long[][] values = data.getSecond();</span>
+<span class="fc bfc" id="L395" title="All 2 branches covered.">                for (int i = 0; i &lt; timestamps.length; i++)  {</span>
+<span class="fc" id="L396">                    Strings.writeCsvElement(tableName, writer);</span>
+<span class="fc" id="L397">                    writer.append(',');</span>
+<span class="fc" id="L398">                    Strings.writeCsvElement(formatter.print(timestamps[i]), writer);</span>
+<span class="fc bfc" id="L399" title="All 2 branches covered.">                    for (long val : values[i]) {</span>
+<span class="fc" id="L400">                        writer.append(',');</span>
+<span class="fc" id="L401">                        Strings.writeCsvElement(Long.toString(val), writer);</span>
                     }
-<span class="fc" id="L390">                    writer.write('\n');</span>
+<span class="fc" id="L403">                    writer.write('\n');</span>
                 }
-<span class="fc" id="L392">            }</span>
+<span class="fc" id="L405">            }</span>
         } finally {
-<span class="pc" id="L394">            writer.close();</span>
-<span class="fc" id="L395">        }</span>
-<span class="fc" id="L396">    }</span>
+<span class="pc" id="L407">            writer.close();</span>
+<span class="fc" id="L408">        }</span>
+<span class="fc" id="L409">    }</span>
     
     
     
     @Override
     public String toString() {
-<span class="nc" id="L402">        return &quot;TimeSeriesDatabase{&quot; + &quot;groups=&quot; + groups + &quot;, pathToDatabaseFile=&quot; + pathToDatabaseFile + '}';</span>
+<span class="nc" id="L415">        return &quot;TimeSeriesDatabase{&quot; + &quot;groups=&quot; + groups + &quot;, pathToDatabaseFile=&quot; + pathToDatabaseFile + '}';</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

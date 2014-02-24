@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>RTree.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.html" class="el_package">org.spf4j.ds</a> &gt; <span class="el_source">RTree.java</span></div><h1>RTree.java</h1><pre class="source lang-java linenums">/*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>RTree.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ds</a> &gt; <span class="el_source">RTree.java</span></div><h1>RTree.java</h1><pre class="source lang-java linenums">/*
  * Copyright 2010 Russ Weeks rweeks@newbrightidea.com Licensed under the GNU
  * LGPL License details here: http://www.gnu.org/licenses/lgpl-3.0.txt
  * 
@@ -143,13 +143,13 @@ public final class RTree&lt;T&gt; {
 <span class="fc bfc" id="L143" title="All 2 branches covered.">                if (isOverlap(coords, dimensions, e.coords, e.dimensions)) {</span>
 <span class="fc" id="L144">                    results.add(((Entry&lt;T&gt;) e).entry);</span>
                 }
-            }
+<span class="fc" id="L146">            }</span>
         } else {
 <span class="nc bnc" id="L148" title="All 2 branches missed.">            for (Node c : n.children) {</span>
 <span class="nc bnc" id="L149" title="All 2 branches missed.">                if (isOverlap(coords, dimensions, c.coords, c.dimensions)) {</span>
 <span class="nc" id="L150">                    search(coords, dimensions, c, results);</span>
                 }
-            }
+<span class="nc" id="L152">            }</span>
         }
 <span class="fc" id="L154">    }</span>
 
@@ -201,7 +201,7 @@ public final class RTree&lt;T&gt; {
 <span class="nc bnc" id="L201" title="All 2 branches missed.">                if (((Entry) c).entry.equals(entry)) {</span>
 <span class="nc" id="L202">                    return n;</span>
                 }
-            }
+<span class="nc" id="L204">            }</span>
 <span class="nc" id="L205">            return null;</span>
         } else {
 <span class="nc bnc" id="L207" title="All 2 branches missed.">            for (Node c : n.children) {</span>
@@ -210,8 +210,8 @@ public final class RTree&lt;T&gt; {
 <span class="nc bnc" id="L210" title="All 2 branches missed.">                    if (result != null) {</span>
 <span class="nc" id="L211">                        return result;</span>
                     }
-<span class="nc" id="L213">                }</span>
-            }
+                }
+<span class="nc" id="L214">            }</span>
 <span class="nc" id="L215">            return null;</span>
         }
     }
@@ -412,7 +412,7 @@ public final class RTree&lt;T&gt; {
 <span class="nc" id="L412">                    bestPair[1] = n2;</span>
                 }
 <span class="nc" id="L414">            }</span>
-        }
+<span class="nc" id="L415">        }</span>
 <span class="nc" id="L416">        nn.remove(bestPair[0]);</span>
 <span class="nc" id="L417">        nn.remove(bestPair[1]);</span>
 <span class="nc" id="L418">        return bestPair;</span>
@@ -467,7 +467,7 @@ public final class RTree&lt;T&gt; {
 <span class="nc" id="L467">                    dimMinUb = n.dimensions[i] + n.coords[i];</span>
 <span class="nc" id="L468">                    nMinUb = n;</span>
                 }
-            }
+<span class="nc" id="L470">            }</span>
 <span class="nc bnc" id="L471" title="All 2 branches missed.">            float sep = (nMaxLb == nMinUb) ? -1.0f</span>
                     : Math.abs((dimMinUb - dimMaxLb) / (dimUb - dimLb));
 <span class="nc bnc" id="L473" title="All 2 branches missed.">            if (sep &gt;= bestSep) {</span>
@@ -519,7 +519,7 @@ public final class RTree&lt;T&gt; {
 <span class="pc bpc" id="L519" title="1 of 2 branches missed.">                    if ((c.coords[i] + c.dimensions[i]) &gt; maxCoords[i]) {</span>
 <span class="fc" id="L520">                        maxCoords[i] = (c.coords[i] + c.dimensions[i]);</span>
                     }
-                }
+<span class="fc" id="L522">                }</span>
             }
 <span class="fc bfc" id="L524" title="All 2 branches covered.">            for (int i = 0; i &lt; numDims; i++) {</span>
                 // Convert max coords to dimensions
@@ -668,7 +668,7 @@ public final class RTree&lt;T&gt; {
 <span class="nc" id="L668">        pw.printf(&quot;&lt;div style=\&quot;position:absolute; left: %d; top: %d; width: %d; height: %d; border: 1px dashed\&quot;&gt;%n&quot;,</span>
                 x0, y0, w, h);
 <span class="nc" id="L670">        pw.println(&quot;&lt;pre&gt;&quot;);</span>
-<span class="nc bnc" id="L671" title="All 2 branches missed.">        pw.println(&quot;Node: &quot; + n.toString() + &quot; (root==&quot; + (n == root) + &quot;) \n&quot;);</span>
+<span class="nc bnc" id="L671" title="All 2 branches missed.">        pw.println(&quot;Node: &quot; + n + &quot; (root==&quot; + (n == root) + &quot;) \n&quot;);</span>
 <span class="nc" id="L672">        pw.println(&quot;Coords: &quot; + Arrays.toString(n.coords) + &quot;\n&quot;);</span>
 <span class="nc" id="L673">        pw.println(&quot;Dimensions: &quot; + Arrays.toString(n.dimensions) + &quot;\n&quot;);</span>
 <span class="nc bnc" id="L674" title="All 2 branches missed.">        pw.println(&quot;# Children: &quot; + ((n.children == null) ? 0 : n.children.size()) + &quot;\n&quot;);</span>
@@ -682,4 +682,4 @@ public final class RTree&lt;T&gt; {
 <span class="nc" id="L682">        pw.println(&quot;&lt;/div&gt;&quot;);</span>
 <span class="nc" id="L683">    }</span>
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

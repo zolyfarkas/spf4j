@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>WildCardMatcher.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.vm</a> &gt; <span class="el_source">WildCardMatcher.java</span></div><h1>WildCardMatcher.java</h1><pre class="source lang-java linenums">/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package org.spf4j.zel.vm;
+
+/**
+ *
+ * @author zoly
+ */
+public final class WildCardMatcher {
+
+<span class="nc" id="L13">    public WildCardMatcher(final String wildcardExp) {</span>
+<span class="nc" id="L14">        this.wildcardExp = wildcardExp;</span>
+<span class="nc" id="L15">    }</span>
+
+    private final String wildcardExp;
+
+    /**
+     * Returns true if a matches b and false otherwise
+     *
+     * @param o Object
+     * @return boolean
+     */
+    public boolean match(final String str) {
+<span class="nc" id="L26">        return match(this.wildcardExp, str);</span>
+    }
+
+    /**
+     * static wildcard matching
+     *
+     * @param wildcard
+     * @param v
+     * @return return true ifr string v matches the wildcard
+     */
+    @SuppressWarnings(&quot;empty-statement&quot;)
+    public static boolean match(final String wildcard, final String v) {
+<span class="nc" id="L38">        int i = 0;</span>
+<span class="nc" id="L39">        int j = 0;</span>
+<span class="nc" id="L40">        final int length = wildcard.length();</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        for (; i &lt; length; i++, j++) {</span>
+<span class="nc" id="L42">            final char some2 = wildcard.charAt(i);</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">            if (some2 != v.charAt(j)) {</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">                if (some2 == '*') {</span>
+<span class="nc" id="L45">                    i++;</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">                    if (i == length) {</span>
+<span class="nc" id="L47">                        return true;</span>
+                    }
+<span class="nc" id="L49">                    final char some = wildcard.charAt(i);</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">                    while (some != v.charAt(j)) {</span>
+<span class="nc" id="L51">                        ++j;</span>
+                    }
+<span class="nc" id="L53">                    j--;</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">                } else if (some2 != '?') {</span>
+<span class="nc" id="L55">                    return false;</span>
+                }
+            }
+        }
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        return (j == v.length());</span>
+    }
+
+    /**
+     * return the java regexp version of this class
+     *
+     * @return
+     */
+    public String getJavaRegexp() {
+<span class="nc" id="L68">        final StringBuilder buff = new StringBuilder();</span>
+<span class="nc" id="L69">        final int length = wildcardExp.length();</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc" id="L71">            final char c = wildcardExp.charAt(i);</span>
+<span class="nc bnc" id="L72" title="All 4 branches missed.">            switch (c) {</span>
+                case '*':
+<span class="nc" id="L74">                    buff.append(&quot;[^\\[\\]\\.]+&quot;);</span>
+<span class="nc" id="L75">                    break;</span>
+                case '?':
+<span class="nc" id="L77">                    buff.append(&quot;.&quot;);</span>
+<span class="nc" id="L78">                    break;</span>
+                case '[':
+                case ']':
+                case '.':
+<span class="nc" id="L82">                    buff.append('\\').append(c);</span>
+<span class="nc" id="L83">                    break;</span>
+                default:
+<span class="nc" id="L85">                    buff.append(c);</span>
+            }
+        }
+<span class="nc" id="L88">        return buff.toString();</span>
+    }
+
+    /**
+     * return if this variable object is a exact mach or a set of variables I use a for cycle to iterate through strings
+     * using a CharacterIterator migh tbe better ?
+     *
+     * @param str - string to test
+     * @return true if str is a wildcard matcher
+     */
+    public static boolean isWildcardMatcher(final String str) {
+<span class="nc" id="L99">        final int length = str.length();</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc" id="L101">            final char c = str.charAt(i);</span>
+<span class="nc bnc" id="L102" title="All 4 branches missed.">            if (c == '*' || c == '?') {</span>
+<span class="nc" id="L103">                return true;</span>
+            }
+        }
+<span class="nc" id="L106">        return false;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L111">        return &quot;`&quot; + wildcardExp + &quot;`&quot;;</span>
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L117">            return false;</span>
+        }
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L120">            return false;</span>
+        }
+<span class="nc" id="L122">        final WildCardMatcher other = (WildCardMatcher) obj;</span>
+<span class="nc bnc" id="L123" title="All 6 branches missed.">        return !((this.wildcardExp == null)</span>
+                ? (other.wildcardExp != null) : !this.wildcardExp.equals(other.wildcardExp));
+    }
+
+
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L131">        int hash = 5;</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        return 43 * hash + (this.wildcardExp != null ? this.wildcardExp.hashCode() : 0);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

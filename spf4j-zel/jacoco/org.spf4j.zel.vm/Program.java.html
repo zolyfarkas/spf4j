@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Program.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.vm</a> &gt; <span class="el_source">Program.java</span></div><h1>Program.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.zel.vm;
+
+import com.google.common.base.Charsets;
+import com.google.common.base.Function;
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
+import org.spf4j.zel.instr.Instruction;
+import org.spf4j.zel.instr.var.INT;
+import org.spf4j.zel.instr.var.LOG;
+import org.spf4j.zel.instr.var.MAX;
+import org.spf4j.zel.instr.var.MIN;
+import org.spf4j.zel.instr.var.OUT;
+import org.spf4j.zel.instr.var.RANDOM;
+import org.spf4j.zel.instr.var.SQRT;
+import org.spf4j.zel.vm.gen.ParseException;
+import org.spf4j.zel.vm.gen.TokenMgrError;
+import org.spf4j.zel.vm.gen.ZCompiler;
+
+
+/**
+ * &lt;p&gt;
+ * Title: Program&lt;/p&gt;
+ *
+ * @author zoly
+ * @version 1.0
+ *
+ * This is a Turing machine a Program will always be preety much an array of operations.
+ */
+@Immutable
+public final class Program implements Serializable {
+
+    static final long serialVersionUID = 748365748433474932L;
+
+<span class="pc" id="L67">    public enum Type {</span>
+<span class="fc" id="L68">        DETERMINISTIC, NONDETERMINISTIC</span>
+    };
+    
+<span class="pc" id="L71">    public enum ExecutionType {</span>
+<span class="fc" id="L72">        SYNC,</span>
+<span class="fc" id="L73">        SYNC_ALL,</span>
+<span class="fc" id="L74">        ASYNC</span>
+    }
+
+    private final Type type;
+    private final ExecutionType execType;
+    private final int id; // program ID, unique ID identifying the program
+
+    private final Object[] instructions;
+    private final String[] parameterNames;
+    private final boolean hasDeterministicFunctions;
+
+    /**
+     * initializes program with an array of objects.
+     *
+     * @param objs
+     * @param start
+     * @param end
+     * @param progType
+     * @param parameterNames
+     */
+    public Program(@Nonnull final Object[] objs, @Nonnegative final int start,
+            @Nonnegative final int end, final Type progType, final ExecutionType execType,
+<span class="fc" id="L96">            final boolean hasDeterministicFunctions, final String... parameterNames) {</span>
+<span class="fc" id="L97">        int length = end - start;</span>
+<span class="fc" id="L98">        instructions = new Object[length];</span>
+<span class="fc" id="L99">        System.arraycopy(objs, start, instructions, 0, length);</span>
+<span class="fc" id="L100">        this.type = progType;</span>
+<span class="fc" id="L101">        id = ProgramBuilder.generateID();</span>
+<span class="fc" id="L102">        this.parameterNames = parameterNames;</span>
+<span class="fc" id="L103">        this.execType = execType;</span>
+<span class="fc" id="L104">        this.hasDeterministicFunctions = hasDeterministicFunctions;</span>
+<span class="fc" id="L105">    }</span>
+    
+    
+    
+
+    @Override
+    @CheckReturnValue
+    public boolean equals(@Nullable final Object obj) {
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L114">            return false;</span>
+        }
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L117">            return false;</span>
+        }
+<span class="nc" id="L119">        final Program other = (Program) obj;</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        return (this.id == other.id);</span>
+    }
+
+    @Override
+    @CheckReturnValue
+    public int hashCode() {
+<span class="fc" id="L126">        return this.id;</span>
+    }
+
+    public boolean isHasDeterministicFunctions() {
+<span class="fc" id="L130">        return hasDeterministicFunctions;</span>
+    }
+    
+    /**
+     * @return the instructions
+     */
+    @CheckReturnValue
+    public Object get(final int i) {
+<span class="fc" id="L138">        return instructions[i];</span>
+    }
+
+    @CheckReturnValue
+    Object[] toArray() {
+<span class="nc" id="L143">        return instructions.clone();</span>
+    }
+
+    @CheckReturnValue
+    public int size() {
+<span class="nc" id="L148">        return instructions.length;</span>
+    }
+
+    public ExecutionType getExecType() {
+<span class="fc" id="L152">        return execType;</span>
+    }
+    
+    /**
+     * create a compiled Z Byte Code
+     *
+     * @param zExpr String
+     * @throws com.zoltran.z.vm.ParseException
+     * @return Program
+     */
+    public static Program compile(@Nonnull final String zExpr, @Nonnull final String... varNames)
+            throws CompileException {
+
+<span class="fc" id="L165">        CompileContext cc = new CompileContext();</span>
+        try {
+<span class="fc" id="L167">            ZCompiler.compile(zExpr, cc);</span>
+<span class="nc" id="L168">        } catch (TokenMgrError err) {</span>
+<span class="nc" id="L169">            throw new CompileException(err);</span>
+<span class="nc" id="L170">        } catch (ParseException ex) {</span>
+<span class="nc" id="L171">            throw new CompileException(ex);</span>
+<span class="fc" id="L172">        }</span>
+<span class="fc" id="L173">        return cc.getProgramBuilder().toProgram(varNames);</span>
+    }
+
+    public Object execute() throws ZExecutionException, InterruptedException {
+<span class="fc" id="L177">        return execute(newMem(), System.in, System.out, System.err);</span>
+    }
+
+    public Object execute(final Object... args) throws ZExecutionException, InterruptedException {
+<span class="fc" id="L181">        return execute(newMem(), System.in, System.out, System.err, args);</span>
+    }
+
+    public Object execute(@Nonnull final ExecutorService execService,
+            final Object... args) throws ZExecutionException, InterruptedException {
+<span class="nc" id="L186">        return execute(new VMExecutor(execService), newMem(), System.in, System.out, System.err, args);</span>
+    }
+
+    
+    public Object execute(@Nonnull final java.util.Map memory, final Object... args)
+            throws ZExecutionException, InterruptedException {
+<span class="fc" id="L192">        return execute(memory, System.in, System.out, System.err, args);</span>
+    }
+    
+<span class="fc" id="L195">    private static final HierarchicalMap BUILTINS = new HierarchicalMap(new HashMap&lt;Object, Object&gt;());</span>
+    
+    static {
+<span class="fc" id="L198">        BUILTINS.put(&quot;out&quot;, OUT.INSTANCE);</span>
+<span class="fc" id="L199">        BUILTINS.put(&quot;sqrt&quot;, SQRT.INSTANCE);</span>
+<span class="fc" id="L200">        BUILTINS.put(&quot;int&quot;, INT.INSTANCE);</span>
+<span class="fc" id="L201">        BUILTINS.put(&quot;log&quot;, LOG.INSTANCE);</span>
+<span class="fc" id="L202">        BUILTINS.put(&quot;log10&quot;, LOG.INSTANCE);</span>
+<span class="fc" id="L203">        BUILTINS.put(&quot;min&quot;, MIN.INSTANCE);</span>
+<span class="fc" id="L204">        BUILTINS.put(&quot;max&quot;, MAX.INSTANCE);</span>
+<span class="fc" id="L205">        BUILTINS.put(&quot;random&quot;, RANDOM.INSTANCE);</span>
+<span class="fc" id="L206">    }</span>
+    
+    
+    /**
+     * Execute the program with the provided memory and input / output streams when a exec service is specified this
+     * function will return a Future Also it is recomended that a thread safe memory is used in case your functions will
+     * modify the memory (not recomended)
+     */
+    public Object execute(@Nullable final VMExecutor execService, @Nonnull final java.util.Map memory,
+            @Nullable final InputStream in,
+            @Nullable final PrintStream out,
+            @Nullable final PrintStream err,
+            final Object... args)
+            throws ZExecutionException, InterruptedException {
+<span class="fc" id="L220">        HierarchicalMap map = new HierarchicalMap(BUILTINS, memory);</span>
+<span class="fc" id="L221">        final ExecutionContext ectx = new ExecutionContext(this, map, in, out, err, execService);</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">        for (int i = 0; i &lt; args.length; i++) {</span>
+<span class="fc" id="L223">            ectx.memory.put(this.parameterNames[i], args[i]);</span>
+        }
+<span class="fc" id="L225">        return execute(ectx);</span>
+    }
+
+    
+    
+    public static Object executeAsync(@Nonnull final ExecutionContext ectx)
+            throws ZExecutionException, InterruptedException {
+<span class="fc" id="L232">        final VMExecutor.Suspendable&lt;Object&gt; execution = ectx.getCallable();</span>
+<span class="fc bfc" id="L233" title="All 4 branches covered.">        if (ectx.execService != null &amp;&amp; ectx.code.getExecType() == ExecutionType.ASYNC) {</span>
+<span class="fc bfc" id="L234" title="All 2 branches covered.">            if (ectx.isChildContext()) {</span>
+<span class="fc" id="L235">                return ectx.execService.submitInternal(VMExecutor.synchronize(execution));</span>
+            } else {
+<span class="fc" id="L237">                return ectx.execService.submit(VMExecutor.synchronize(execution));</span>
+            }
+        } else {
+            try {
+<span class="fc" id="L241">                return execution.call();</span>
+<span class="nc" id="L242">            } catch (SuspendedException ex) {</span>
+<span class="nc" id="L243">               throw new RuntimeException(ex);</span>
+            }
+        }
+    }
+
+    public static Object execute(@Nonnull final ExecutionContext ectx)
+            throws ZExecutionException, InterruptedException {
+<span class="fc" id="L250">            Object result = executeAsync(ectx);</span>
+<span class="fc bfc" id="L251" title="All 2 branches covered.">            if (result instanceof Future) {</span>
+                try {
+<span class="fc" id="L253">                    return ((Future&lt;Object&gt;) result).get();</span>
+<span class="nc" id="L254">                } catch (ExecutionException ex) {</span>
+<span class="nc" id="L255">                    throw new ZExecutionException(ex);</span>
+                }
+            } else {
+<span class="fc" id="L258">                return result;</span>
+            }
+    }
+    
+    public Object execute(@Nonnull final java.util.Map memory, @Nonnull final InputStream in,
+            @Nonnull final PrintStream out, @Nonnull final PrintStream err, final Object... args)
+            throws ZExecutionException, InterruptedException {
+<span class="fc bfc" id="L265" title="All 2 branches covered.">        if (execType == ExecutionType.SYNC_ALL) {</span>
+<span class="fc" id="L266">            return execute(null, memory, in, out, err, args);</span>
+        } else {
+<span class="fc" id="L268">            return execute(VMExecutor.Lazy.DEFAULT, memory, in, out, err, args);</span>
+        }
+    }
+
+    @CheckReturnValue
+    @Nonnull
+    public static java.util.Map newMem() {
+        //return  (java.util.Map) exampleMem.clone(); // (cannot be used because of java's poor implementation of clone)
+        //return new gnu.trove.THashMap(); // (in comparisons vs the java implementations the VM performs 5% slower)
+<span class="fc" id="L277">        return new Memory();</span>
+    }
+
+    /**
+     * get a value of a variable from memory, this function is syntax safe
+     *
+     * @param mem Map
+     * @param name String
+     * @throws Exception
+     * @return Object
+     */
+    public static Object getValue(@Nonnull final java.util.Map mem, @Nonnull final String name)
+            throws CompileException, ZExecutionException, InterruptedException, ExecutionException {
+<span class="nc" id="L290">        return Program.compile(name + &quot;;&quot;).execute(mem);</span>
+    }
+
+    /**
+     * Load a value into memory Have to go through the VM so that the assignement is acurate
+     *
+     * @param mem
+     * @param name String
+     * @param value Object
+     * @throws net.sf.zel.vm.ParseException
+     * @throws net.sf.zel.vm.ZExecutionException
+     * @throws java.lang.InterruptedException
+     */
+    public static void addValue(@Nonnull final java.util.Map mem, @Nonnull final String name,
+            final Object value)
+            throws CompileException, ZExecutionException, InterruptedException, ExecutionException {
+<span class="nc" id="L306">        Program.compile(name + &quot;=&quot; + value + &quot;;&quot;).execute(mem);</span>
+<span class="nc" id="L307">    }</span>
+
+    /**
+     * build indentation string
+     *
+     * @param indent
+     * @return
+     */
+    @CheckReturnValue
+    public static String strIndent(@Nonnegative final int indent) {
+<span class="nc" id="L317">        StringBuilder result = new StringBuilder();</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">        for (int i = 0; i &lt; indent; i++) {</span>
+<span class="nc" id="L319">            result.append(' ');</span>
+        }
+<span class="nc" id="L321">        return result.toString();</span>
+    }
+
+    /**
+     * Output Core, in hierarchical tab indented mode
+     *
+     * @param name
+     * @param mem
+     * @param indent
+     * @param maxIndent
+     * @return
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @CheckReturnValue
+    public static String dumpCore(final String name, final Object mem, final int indent, final int maxIndent) {
+<span class="nc bnc" id="L336" title="All 2 branches missed.">        if (mem == null) {</span>
+<span class="nc" id="L337">            return &quot;&quot;;</span>
+        }
+<span class="nc bnc" id="L339" title="All 4 branches missed.">        if (maxIndent &gt; 0 &amp;&amp; indent &gt; maxIndent) {</span>
+<span class="nc" id="L340">            return &quot;&quot;;</span>
+        }
+<span class="nc" id="L342">        StringBuilder result = new StringBuilder();</span>
+<span class="nc bnc" id="L343" title="All 2 branches missed.">        if (mem instanceof java.util.Map) {</span>
+<span class="nc" id="L344">            result.append(strIndent(indent)).append(name).append('\n');</span>
+<span class="nc bnc" id="L345" title="All 2 branches missed.">            for (Map.Entry&lt;Object, Object&gt; elem : ((Map&lt;Object, Object&gt;) mem).entrySet()) {</span>
+<span class="nc" id="L346">                result.append(dumpCore(elem.getKey().toString(), elem.getValue(), indent + 1, maxIndent));</span>
+<span class="nc" id="L347">            }</span>
+        } else {
+<span class="nc" id="L349">            result.append(strIndent(indent)).append(name).append('=').append(mem).append('\n');</span>
+        }
+<span class="nc" id="L351">        return result.toString();</span>
+    }
+
+    /**
+     * *
+     * This allows to run ZEL in an interactive mode
+     *
+     * @param args
+     */
+    public static void main(final String[] args)
+            throws IOException, ZExecutionException, InterruptedException {
+<span class="nc" id="L362">        System.out.println(&quot;ZEL Shell&quot;);</span>
+<span class="nc" id="L363">        boolean terminated = false;</span>
+<span class="nc" id="L364">        Memory mem = new Memory();</span>
+<span class="nc" id="L365">        InputStreamReader inp = new InputStreamReader(System.in, Charsets.UTF_8);</span>
+<span class="nc" id="L366">        BufferedReader br = new BufferedReader(inp);</span>
+<span class="nc bnc" id="L367" title="All 2 branches missed.">        while (!terminated) {</span>
+<span class="nc" id="L368">            System.out.print(&quot;zel&gt;&quot;);</span>
+<span class="nc" id="L369">            String line = br.readLine();</span>
+<span class="nc bnc" id="L370" title="All 2 branches missed.">            if (line != null) {</span>
+<span class="nc bnc" id="L371" title="All 2 branches missed.">                if (line.toUpperCase().startsWith(&quot;QUIT&quot;)) {</span>
+<span class="nc" id="L372">                    terminated = true;</span>
+                } else {
+                    try {
+<span class="nc" id="L375">                        System.out.println(Program.compile(line).execute(mem, System.in, System.out, System.err));</span>
+<span class="nc" id="L376">                    } catch (CompileException ex) {</span>
+<span class="nc" id="L377">                        System.out.println(&quot;Syntax Error: &quot; + Throwables.getStackTraceAsString(ex));</span>
+<span class="nc" id="L378">                    } catch (ZExecutionException ex) {</span>
+<span class="nc" id="L379">                        System.out.println(&quot;Execution Error: &quot; + Throwables.getStackTraceAsString(ex));</span>
+<span class="nc" id="L380">                    }</span>
+                }
+            }
+<span class="nc" id="L383">        }</span>
+<span class="nc" id="L384">    }</span>
+
+    @Override
+    public String toString() {
+<span class="fc" id="L388">        StringBuilder result = new StringBuilder();</span>
+<span class="fc" id="L389">        result.append(&quot;Program: \n&quot;);</span>
+<span class="fc bfc" id="L390" title="All 2 branches covered.">        for (int i = 0; i &lt; instructions.length; i++) {</span>
+<span class="fc" id="L391">            Object obj = instructions[i];</span>
+<span class="fc" id="L392">            result.append(Strings.padEnd(Integer.toString(i), 8, ' '));</span>
+<span class="fc" id="L393">            result.append(':');</span>
+<span class="fc" id="L394">            result.append(obj);</span>
+<span class="fc" id="L395">            result.append('\n');</span>
+        }
+<span class="fc" id="L397">        return result.toString();</span>
+    }
+
+    /**
+     * @return the type
+     */
+    public Program.Type getType() {
+<span class="fc" id="L404">        return type;</span>
+    }
+
+    String[] getParameterNames() {
+<span class="fc" id="L408">        return parameterNames;</span>
+    }
+    
+    public boolean contains(final Instruction instr) {
+<span class="nc" id="L412">        Boolean res = itterate(new Function&lt;Object, Boolean&gt;() {</span>
+            @Override
+            @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;TBP_TRISTATE_BOOLEAN_PATTERN&quot;)
+            public Boolean apply(final Object input) {
+<span class="nc bnc" id="L416" title="All 2 branches missed.">                if (input == instr) {</span>
+<span class="nc" id="L417">                    return Boolean.TRUE;</span>
+                }
+<span class="nc" id="L419">                return null;</span>
+            }
+        });
+<span class="nc bnc" id="L422" title="All 2 branches missed.">        if (res == null) {</span>
+<span class="nc" id="L423">            return false;</span>
+        }
+<span class="nc" id="L425">        return res;</span>
+    }
+    
+    @Nullable
+    public &lt;T&gt; T itterate(final Function&lt;Object, T&gt; func) {
+<span class="fc bfc" id="L430" title="All 2 branches covered.">            for (Object code : instructions) {</span>
+<span class="fc" id="L431">            T res = func.apply(code);</span>
+<span class="pc bpc" id="L432" title="1 of 2 branches missed.">            if (res != null) {</span>
+<span class="nc" id="L433">                return res;</span>
+            }
+<span class="fc bfc" id="L435" title="All 2 branches covered.">            if (code instanceof Program) {</span>
+<span class="fc" id="L436">                res = ((Program) code).itterate(func);</span>
+<span class="pc bpc" id="L437" title="1 of 2 branches missed.">                if (res != null) {</span>
+<span class="nc" id="L438">                    return res;</span>
+                }
+            }
+        }
+<span class="fc" id="L442">        return null;</span>
+    }
+
+    Object[] getInstructions() {
+<span class="fc" id="L446">        return instructions;</span>
+    }
+    
+    
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

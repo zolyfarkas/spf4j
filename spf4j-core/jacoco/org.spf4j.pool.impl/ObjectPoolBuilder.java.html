@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ObjectPoolBuilder.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.html" class="el_package">org.spf4j.pool.impl</a> &gt; <span class="el_source">ObjectPoolBuilder.java</span></div><h1>ObjectPoolBuilder.java</h1><pre class="source lang-java linenums"> /*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ObjectPoolBuilder.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.pool.impl</a> &gt; <span class="el_source">ObjectPoolBuilder.java</span></div><h1>ObjectPoolBuilder.java</h1><pre class="source lang-java linenums"> /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -94,24 +94,38 @@ public final class ObjectPoolBuilder&lt;T, E extends Exception&gt; {
 <span class="fc" id="L94">            pool = underlyingPool;</span>
         }
 <span class="fc bfc" id="L96" title="All 2 branches covered.">        if (maintenanceExecutor != null) {</span>
-<span class="fc" id="L97">            maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnable(true) {</span>
-                @Override
-                public void doRun() throws Exception {
-<span class="pc bpc" id="L100" title="1 of 2 branches missed.">                        if (ObjectPoolBuilder.this.collectBorrowed) {</span>
-<span class="fc" id="L101">                            underlyingPool.requestReturnFromBorrowersIfNotInUse();</span>
-                        }
-<span class="fc" id="L103">                        ((Scanable&lt;ObjectHolder&lt;T&gt;&gt;) pool).scan(new Scanable.ScanHandler&lt;ObjectHolder&lt;T&gt;&gt;() {</span>
-                            @Override
-                            public boolean handle(final ObjectHolder&lt;T&gt; object) throws ObjectDisposeException {
-<span class="fc" id="L106">                                object.validateObjectIfNotBorrowed();</span>
-<span class="fc" id="L107">                                return true;</span>
-                            }
-                        });
-                   
-<span class="fc" id="L111">                }</span>
-            }, maintenanceIntervalMillis, maintenanceIntervalMillis, TimeUnit.MILLISECONDS);
+<span class="fc" id="L97">            maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnableImpl&lt;T&gt;(underlyingPool, collectBorrowed),</span>
+                    maintenanceIntervalMillis, maintenanceIntervalMillis, TimeUnit.MILLISECONDS);
         }
-<span class="fc" id="L114">        return pool;</span>
+<span class="fc" id="L100">        factory.setPool(pool);</span>
+<span class="fc" id="L101">        return pool;</span>
+    }
+
+    public static final class AbstractRunnableImpl&lt;T&gt; extends AbstractRunnable {
+
+        private final ScalableObjectPool&lt;T&gt; underlyingPool;
+        private final boolean collectBorrowed;
+
+        public AbstractRunnableImpl(final ScalableObjectPool&lt;T&gt; underlyingPool, final boolean collectBorrowed) {
+<span class="fc" id="L110">            super(true);</span>
+<span class="fc" id="L111">            this.underlyingPool = underlyingPool;</span>
+<span class="fc" id="L112">            this.collectBorrowed = collectBorrowed;</span>
+<span class="fc" id="L113">        }</span>
+
+        @Override
+        public void doRun() throws Exception {
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">                if (collectBorrowed) {</span>
+<span class="fc" id="L118">                    underlyingPool.requestReturnFromBorrowersIfNotInUse();</span>
+                }
+<span class="fc" id="L120">                underlyingPool.scan(new Scanable.ScanHandler&lt;ObjectHolder&lt;T&gt;&gt;() {</span>
+                    @Override
+                    public boolean handle(final ObjectHolder&lt;T&gt; object) throws ObjectDisposeException {
+<span class="fc" id="L123">                        object.validateObjectIfNotBorrowed();</span>
+<span class="fc" id="L124">                        return true;</span>
+                    }
+                });
+           
+<span class="fc" id="L128">        }</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

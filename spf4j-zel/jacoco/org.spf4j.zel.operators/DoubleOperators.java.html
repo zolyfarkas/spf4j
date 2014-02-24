@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>DoubleOperators.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.operators</a> &gt; <span class="el_source">DoubleOperators.java</span></div><h1>DoubleOperators.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.zel.operators;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
+public final class DoubleOperators {
+    
+<span class="nc" id="L25">    private DoubleOperators() {</span>
+<span class="nc" id="L26">    }</span>
+
+<span class="fc" id="L28">    public static final class Add implements Operator&lt;Double, Number, Number&gt; {</span>
+
+        @Override
+        public Number op(final Double a, final Number b) {
+<span class="fc" id="L32">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="pc bpc" id="L33" title="3 of 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
+                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
+<span class="fc" id="L35">                return  a + b.intValue();</span>
+<span class="pc bpc" id="L36" title="1 of 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
+<span class="nc" id="L37">                return a + b.longValue();</span>
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
+<span class="fc" id="L39">                return a + b.doubleValue();</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">            }  else if (claszB.equals(BigInteger.class)) {</span>
+<span class="nc" id="L41">                return a + b.doubleValue();</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
+<span class="nc" id="L43">                return a + b.doubleValue();</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
+<span class="nc" id="L45">                return a + b.floatValue();</span>
+            } else {
+<span class="nc" id="L47">                throw new IllegalArgumentException(b.toString());</span>
+            }
+        }
+    }
+
+<span class="fc" id="L52">    public static final class Sub implements Operator&lt;Double, Number, Number&gt; {</span>
+
+        @Override
+        public Number op(final Double a, final Number b) {
+<span class="nc" id="L56">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="nc bnc" id="L57" title="All 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
+                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
+<span class="nc" id="L59">                return a - b.intValue();</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
+<span class="nc" id="L61">                return a - b.longValue();</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
+<span class="nc" id="L63">                return a - b.doubleValue();</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
+<span class="nc" id="L65">                return a - b.doubleValue();</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
+<span class="nc" id="L67">                return a - b.doubleValue();</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
+<span class="nc" id="L69">                return a - b.floatValue();</span>
+            } else {
+<span class="nc" id="L71">                throw new IllegalArgumentException(b.toString());</span>
+            }
+        }
+    }
+
+<span class="fc" id="L76">    public static final class Mul implements Operator&lt;Double, Number, Number&gt; {</span>
+
+        @Override
+        public Number op(final Double a, final Number b) {
+<span class="fc" id="L80">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="pc bpc" id="L81" title="7 of 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
+                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
+<span class="fc" id="L83">                return a * b.intValue();</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
+<span class="nc" id="L85">                return a * b.longValue();</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
+<span class="nc" id="L87">                return a * ((Double) b);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
+<span class="nc" id="L89">                return a * b.doubleValue();</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
+<span class="nc" id="L91">                return a * b.doubleValue();</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
+<span class="nc" id="L93">                return a * b.floatValue();</span>
+            } else {
+<span class="nc" id="L95">                throw new IllegalArgumentException(b.toString());</span>
+            }
+        }
+    }
+
+<span class="fc" id="L100">    public static final class Div implements Operator&lt;Double, Number, Number&gt; {</span>
+
+        @Override
+        public Number op(final Double a, final Number b) {
+<span class="nc" id="L104">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="nc bnc" id="L105" title="All 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
+                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
+<span class="nc" id="L107">                return a / b.intValue();</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
+<span class="nc" id="L109">                return a / b.longValue();</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
+<span class="nc" id="L111">                return a / ((Double) b);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
+<span class="nc" id="L113">                return a / b.doubleValue();</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
+<span class="nc" id="L115">                return a / b.doubleValue();</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
+<span class="nc" id="L117">                return a / b.floatValue();</span>
+            } else {
+<span class="nc" id="L119">                throw new IllegalArgumentException(b.toString());</span>
+            }
+        }
+    }
+
+<span class="fc" id="L124">    public static final class Mod implements Operator&lt;Double, Number, Number&gt; {</span>
+
+        @Override
+        public Number op(final Double a, final Number b) {
+<span class="nc" id="L128">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="nc bnc" id="L129" title="All 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
+                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
+<span class="nc" id="L131">                return a.longValue() % b.intValue();</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
+<span class="nc" id="L133">                return a.longValue() % b.longValue();</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
+<span class="nc" id="L135">                return  a % b.longValue();</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
+<span class="nc" id="L137">                return BigInteger.valueOf(a.longValue()).mod((BigInteger) b).intValue();</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
+<span class="nc" id="L139">                return BigInteger.valueOf(a.longValue()).mod(((BigDecimal) b).toBigInteger()).intValue();</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
+<span class="nc" id="L141">                return  a % b.longValue();</span>
+            } else {
+<span class="nc" id="L143">                throw new IllegalArgumentException(b.toString());</span>
+            }
+        }
+    }
+
+<span class="fc" id="L148">    public static final class Pow implements Operator&lt;Double, Number, Number&gt; {</span>
+
+        @Override
+        public Number op(final Double a, final Number b) {
+<span class="nc" id="L152">            return Math.pow(a, b.doubleValue());</span>
+        }
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

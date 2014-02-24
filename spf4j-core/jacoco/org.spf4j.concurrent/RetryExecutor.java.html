@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>RetryExecutor.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="right"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">RetryExecutor.java</span></div><h1>RetryExecutor.java</h1><pre class="source lang-java linenums">/*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>RetryExecutor.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">RetryExecutor.java</span></div><h1>RetryExecutor.java</h1><pre class="source lang-java linenums">/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -168,7 +168,7 @@ public class RetryExecutor&lt;T&gt; implements ExecutorService {
 
     private class RetryableCallable&lt;T&gt; implements Callable&lt;T&gt;, Runnable {
 
-        private final Callable callable;
+        private final Callable&lt;T&gt; callable;
         private final FutureBean&lt;T&gt; future;
 
 <span class="fc" id="L174">        public RetryableCallable(final Callable&lt;T&gt; callable, final FutureBean&lt;T&gt; future) {</span>
@@ -192,7 +192,7 @@ public class RetryExecutor&lt;T&gt; implements ExecutorService {
         @Override
         public T call() {
             try {
-<span class="fc" id="L195">                Object result = callable.call();</span>
+<span class="fc" id="L195">                T result = callable.call();</span>
 <span class="pc bpc" id="L196" title="1 of 2 branches missed.">                if (future != null) {</span>
 <span class="fc" id="L197">                    future.setResult(result);</span>
                 }
@@ -243,82 +243,86 @@ public class RetryExecutor&lt;T&gt; implements ExecutorService {
 <span class="fc bfc" id="L243" title="All 2 branches covered.">                        if (attemptsInfo == null) {</span>
 <span class="fc" id="L244">                            attemptsInfo = Pair.of(1, event.getException());</span>
                         } else {
-<span class="fc" id="L246">                            attemptsInfo = Pair.of(attemptsInfo.getFirst() + 1,</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">                            if (attemptsInfo.getSecond() == null) {</span>
+<span class="nc" id="L247">                                attemptsInfo = Pair.of(attemptsInfo.getFirst() + 1, event.getException());</span>
+                            } else {
+<span class="fc" id="L249">                                attemptsInfo = Pair.of(attemptsInfo.getFirst() + 1,</span>
                                     Throwables.suppress(event.getException(), attemptsInfo.getSecond()));
+                            }
                         }
-<span class="fc" id="L249">                        int nrAttempts = attemptsInfo.getFirst();</span>
-<span class="pc bpc" id="L250" title="1 of 2 branches missed.">                        if (nrAttempts &gt; nrTotalRetries) {</span>
-<span class="nc" id="L251">                            executionAttempts.remove(event.getCallable());</span>
-<span class="nc" id="L252">                            event.getFuture().setExceptionResult(attemptsInfo.getSecond());</span>
-<span class="fc bfc" id="L253" title="All 2 branches covered.">                        } else if (nrAttempts &gt; nrImmediateRetries) {</span>
-<span class="fc" id="L254">                            executionAttempts.put(event.getCallable(), attemptsInfo);</span>
-<span class="fc" id="L255">                            executionEvents.put(new FailedExecutionResult(attemptsInfo.getSecond(), event.getFuture(),</span>
+<span class="fc" id="L253">                        int nrAttempts = attemptsInfo.getFirst();</span>
+<span class="pc bpc" id="L254" title="1 of 2 branches missed.">                        if (nrAttempts &gt; nrTotalRetries) {</span>
+<span class="nc" id="L255">                            executionAttempts.remove(event.getCallable());</span>
+<span class="nc" id="L256">                            event.getFuture().setExceptionResult(attemptsInfo.getSecond());</span>
+<span class="fc bfc" id="L257" title="All 2 branches covered.">                        } else if (nrAttempts &gt; nrImmediateRetries) {</span>
+<span class="fc" id="L258">                            executionAttempts.put(event.getCallable(), attemptsInfo);</span>
+<span class="fc" id="L259">                            executionEvents.put(new FailedExecutionResult(attemptsInfo.getSecond(), event.getFuture(),</span>
                                     event.getCallable(), delayMillis, true));
                         } else {
-<span class="fc" id="L258">                            executionAttempts.put(event.getCallable(), attemptsInfo);</span>
-<span class="fc" id="L259">                            executionService.execute(</span>
+<span class="fc" id="L262">                            executionAttempts.put(event.getCallable(), attemptsInfo);</span>
+<span class="fc" id="L263">                            executionService.execute(</span>
                                     new RetryableCallable&lt;Object&gt;(event.getCallable(), event.getFuture()));
                         }
                     }
 
 
-<span class="nc" id="L265">                } catch (InterruptedException ex) {</span>
-<span class="nc" id="L266">                    managerThread.interrupt();</span>
-<span class="nc" id="L267">                    break;</span>
-<span class="fc" id="L268">                }</span>
+<span class="nc" id="L269">                } catch (InterruptedException ex) {</span>
+<span class="nc" id="L270">                    managerThread.interrupt();</span>
+<span class="nc" id="L271">                    break;</span>
+<span class="fc" id="L272">                }</span>
             }
-<span class="nc" id="L270">        }</span>
+<span class="nc" id="L274">        }</span>
     }
 
     public RetryExecutor(final ExecutorService exec, final int nrImmediateRetries,
             final int nrTotalRetries, final long delayMillis,  final Predicate&lt;Exception&gt; retryException,
-<span class="fc" id="L275">            @Nullable final BlockingQueue&lt;Future&lt;T&gt;&gt; completionQueue) {</span>
-<span class="fc" id="L276">        executionService = exec;</span>
-<span class="fc" id="L277">        executionAttempts = new ConcurrentHashMap&lt;Callable&lt;? extends Object&gt;, Pair&lt;Integer, ExecutionException&gt;&gt;();</span>
-<span class="fc" id="L278">        this.nrImmediateRetries = nrImmediateRetries;</span>
-<span class="fc" id="L279">        this.nrTotalRetries = nrTotalRetries;</span>
-<span class="fc" id="L280">        this.delayMillis = delayMillis;</span>
-<span class="fc" id="L281">        this.exec = exec;</span>
-<span class="fc" id="L282">        this.retryException = retryException;</span>
-<span class="fc" id="L283">        this.completionQueue = completionQueue;</span>
-<span class="fc" id="L284">    }</span>
+<span class="fc" id="L279">            @Nullable final BlockingQueue&lt;Future&lt;T&gt;&gt; completionQueue) {</span>
+<span class="fc" id="L280">        executionService = exec;</span>
+<span class="fc" id="L281">        executionAttempts = new ConcurrentHashMap&lt;Callable&lt;? extends Object&gt;, Pair&lt;Integer, ExecutionException&gt;&gt;();</span>
+<span class="fc" id="L282">        this.nrImmediateRetries = nrImmediateRetries;</span>
+<span class="fc" id="L283">        this.nrTotalRetries = nrTotalRetries;</span>
+<span class="fc" id="L284">        this.delayMillis = delayMillis;</span>
+<span class="fc" id="L285">        this.exec = exec;</span>
+<span class="fc" id="L286">        this.retryException = retryException;</span>
+<span class="fc" id="L287">        this.completionQueue = completionQueue;</span>
+<span class="fc" id="L288">    }</span>
 
     @Override
     public final void shutdown() {
-<span class="nc" id="L288">        shutdownRetryManager();</span>
-<span class="nc" id="L289">        exec.shutdown();</span>
-<span class="nc" id="L290">    }</span>
+<span class="nc" id="L292">        shutdownRetryManager();</span>
+<span class="nc" id="L293">        exec.shutdown();</span>
+<span class="nc" id="L294">    }</span>
 
     @Override
     public final List&lt;Runnable&gt; shutdownNow() {
-<span class="nc" id="L294">        shutdownRetryManager();</span>
-<span class="nc" id="L295">        return exec.shutdownNow();</span>
+<span class="nc" id="L298">        shutdownRetryManager();</span>
+<span class="nc" id="L299">        return exec.shutdownNow();</span>
     }
 
     @Override
     public final boolean isShutdown() {
-<span class="nc" id="L300">        return exec.isShutdown();</span>
+<span class="nc" id="L304">        return exec.isShutdown();</span>
     }
 
     @Override
     public final boolean isTerminated() {
-<span class="nc" id="L305">        return exec.isTerminated();</span>
+<span class="nc" id="L309">        return exec.isTerminated();</span>
     }
 
     @Override
     public final boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
-<span class="nc" id="L310">        return exec.awaitTermination(timeout, unit);</span>
+<span class="nc" id="L314">        return exec.awaitTermination(timeout, unit);</span>
     }
 
     private  FutureBean&lt;T&gt; createFutureBean() {
-<span class="fc bfc" id="L314" title="All 2 branches covered.">        if (completionQueue == null) {</span>
-<span class="fc" id="L315">            return new FutureBean&lt;T&gt;();</span>
+<span class="fc bfc" id="L318" title="All 2 branches covered.">        if (completionQueue == null) {</span>
+<span class="fc" id="L319">            return new FutureBean&lt;T&gt;();</span>
         } else {
-<span class="fc" id="L317">            return new FutureBean&lt;T&gt;() {</span>
+<span class="fc" id="L321">            return new FutureBean&lt;T&gt;() {</span>
                 @Override
                 public void done() {
-<span class="fc" id="L320">                    completionQueue.add(this);</span>
-<span class="fc" id="L321">                }</span>
+<span class="fc" id="L324">                    completionQueue.add(this);</span>
+<span class="fc" id="L325">                }</span>
             };
         }
     }
@@ -326,66 +330,66 @@ public class RetryExecutor&lt;T&gt; implements ExecutorService {
     
     @Override
     public final &lt;A&gt; Future&lt;A&gt; submit(final Callable&lt;A&gt; task) {
-<span class="fc" id="L329">        FutureBean&lt;T&gt; result = createFutureBean();</span>
-<span class="fc" id="L330">        executionService.execute(new RetryableCallable(task, result));</span>
-<span class="fc" id="L331">        return (Future&lt;A&gt;) result;</span>
+<span class="fc" id="L333">        FutureBean&lt;T&gt; result = createFutureBean();</span>
+<span class="fc" id="L334">        executionService.execute(new RetryableCallable(task, result));</span>
+<span class="fc" id="L335">        return (Future&lt;A&gt;) result;</span>
     }
    
 
     @Override
     public final &lt;A&gt; Future&lt;A&gt; submit(final Runnable task, final A result) {
-<span class="nc" id="L337">        FutureBean&lt;T&gt; resultFuture = createFutureBean();</span>
-<span class="nc" id="L338">        executionService.execute(new RetryableCallable&lt;T&gt;(task, result, resultFuture));</span>
-<span class="nc" id="L339">        return (Future&lt;A&gt;) resultFuture;</span>
+<span class="nc" id="L341">        FutureBean&lt;T&gt; resultFuture = createFutureBean();</span>
+<span class="nc" id="L342">        executionService.execute(new RetryableCallable&lt;T&gt;(task, result, resultFuture));</span>
+<span class="nc" id="L343">        return (Future&lt;A&gt;) resultFuture;</span>
     }
 
     @Override
     public final Future&lt;?&gt; submit(final Runnable task) {
-<span class="nc" id="L344">        FutureBean&lt;?&gt; resultFuture = createFutureBean();</span>
-<span class="nc" id="L345">        executionService.execute(new RetryableCallable(task, null, resultFuture));</span>
-<span class="nc" id="L346">        return resultFuture;</span>
+<span class="nc" id="L348">        FutureBean&lt;?&gt; resultFuture = createFutureBean();</span>
+<span class="nc" id="L349">        executionService.execute(new RetryableCallable(task, null, resultFuture));</span>
+<span class="nc" id="L350">        return resultFuture;</span>
     }
 
     @Override
     public final &lt;T&gt; List&lt;Future&lt;T&gt;&gt; invokeAll(final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks)
             throws InterruptedException {
-<span class="nc" id="L352">        List&lt;Future&lt;T&gt;&gt; result = new ArrayList&lt;Future&lt;T&gt;&gt;();</span>
-<span class="nc bnc" id="L353" title="All 2 branches missed.">        for (Callable task : tasks) {</span>
-<span class="nc" id="L354">            result.add(this.submit(task));</span>
-        }
-<span class="nc bnc" id="L356" title="All 2 branches missed.">        for (Future fut : result) {</span>
+<span class="nc" id="L356">        List&lt;Future&lt;T&gt;&gt; result = new ArrayList&lt;Future&lt;T&gt;&gt;();</span>
+<span class="nc bnc" id="L357" title="All 2 branches missed.">        for (Callable task : tasks) {</span>
+<span class="nc" id="L358">            result.add(this.submit(task));</span>
+<span class="nc" id="L359">        }</span>
+<span class="nc bnc" id="L360" title="All 2 branches missed.">        for (Future fut : result) {</span>
             try {
-<span class="nc" id="L358">                fut.get();</span>
+<span class="nc" id="L362">                fut.get();</span>
             // CHECKSTYLE:OFF
-<span class="nc" id="L360">            } catch (ExecutionException ex) {</span>
+<span class="nc" id="L364">            } catch (ExecutionException ex) {</span>
                 //CHECKSTYLE:ON
                 // Swallow exception for now, this sexception will be thoriwn when the client will call get again..
-<span class="nc" id="L363">            }</span>
-        }
-<span class="nc" id="L365">        return result;</span>
+<span class="nc" id="L367">            }</span>
+<span class="nc" id="L368">        }</span>
+<span class="nc" id="L369">        return result;</span>
     }
 
     @Override
     public final  &lt;T&gt; List&lt;Future&lt;T&gt;&gt; invokeAll(final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks,
                 final long timeout, final TimeUnit unit) throws InterruptedException {
-<span class="nc" id="L371">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L375">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public final &lt;T&gt; T invokeAny(final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks)
             throws InterruptedException, ExecutionException {
-<span class="nc" id="L377">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L381">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public final &lt;T&gt; T invokeAny(final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks, final long timeout, final TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
-<span class="nc" id="L383">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L387">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public final void execute(final Runnable command) {
-<span class="nc" id="L388">        executionService.execute(new RetryableCallable(command, null, null));</span>
-<span class="nc" id="L389">    }</span>
+<span class="nc" id="L392">        executionService.execute(new RetryableCallable(command, null, null));</span>
+<span class="nc" id="L393">    }</span>
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.2.201302030002</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
