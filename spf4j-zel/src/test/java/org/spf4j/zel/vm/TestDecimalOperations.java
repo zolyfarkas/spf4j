@@ -18,7 +18,6 @@
 package org.spf4j.zel.vm;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import junit.framework.Assert;
 import org.junit.Test;
 
@@ -47,8 +46,7 @@ public final  class TestDecimalOperations {
     
     @Test
     public void test3() throws CompileException, ZExecutionException, InterruptedException {
-        Program prog = Program.compile("use dec 128; (1.0/3) * 3 + (1 - 1.0/3*3)");
-        BigDecimal result = (BigDecimal) prog.execute();
+        BigDecimal result = (BigDecimal) Program.compile("use dec 128; (1.0/3) * 3 + (1 - 1.0/3*3)").execute();
         System.out.println(result.toPlainString());
         Assert.assertTrue(BigDecimal.ONE.compareTo(result) == 0);
     }

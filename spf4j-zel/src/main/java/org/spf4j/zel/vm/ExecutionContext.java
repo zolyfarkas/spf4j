@@ -32,7 +32,6 @@ import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.FutureBean;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.operators.Operator;
-import org.spf4j.zel.operators.Operators;
 
 /**
  * Virtual Machine Execution Context
