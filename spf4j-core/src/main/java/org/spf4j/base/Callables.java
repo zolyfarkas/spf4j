@@ -66,7 +66,7 @@ public final class Callables {
 
         public RetryPause(final int nrImmediateRetries, final int nrTotalRetries, final int retryWaitMillis)
         {
-            assert (nrImmediateRetries < nrTotalRetries);
+            assert (nrImmediateRetries <= nrTotalRetries);
             this.nrImmediateRetries = nrImmediateRetries;
             this.nrTotalRetries = nrTotalRetries;
             this.waitMillis = retryWaitMillis;
