@@ -17,7 +17,6 @@
  */
 package org.spf4j.zel.instr;
 
-import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
@@ -43,7 +42,14 @@ public final class FIRST extends Instruction {
     @Override
     public void execute(final ExecutionContext context)
             throws SuspendedException {
-        final Object val = context.popFirstAvailUntil(EndParamMarker.INSTANCE);
+        Integer nrParams = (Integer) context.pop();
+        final Object val;
+        try {
+            val = context.popFirstAvail(nrParams);
+        } catch (SuspendedException ex) {
+            context.push(nrParams);
+            throw ex;
+        }
         context.push(val);
         context.ip++;
     }

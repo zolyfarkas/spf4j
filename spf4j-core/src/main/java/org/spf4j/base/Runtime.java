@@ -139,12 +139,12 @@ public final class Runtime {
                     pis.close();
                 }
             } finally {
-                pos.close();
+                pes.close();
             }
         } finally {
             pos.close();
         }
-        return proc.exitValue();
+        return proc.waitFor();
     }
 
     private static class LineCountCharHandler implements ProcOutputHandler {

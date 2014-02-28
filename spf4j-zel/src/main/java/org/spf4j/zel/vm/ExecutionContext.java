@@ -151,7 +151,8 @@ public final class ExecutionContext {
                         if (icode instanceof Instruction) {
                             ((Instruction) icode).execute(ExecutionContext.this);
                         } else {
-                            push(instructions[ip++]);
+                            push(icode);
+                            ++ip;
                         }
                     } catch (RuntimeException e) {
                         throw new ZExecutionException("Program exec failed, state:" + this, e);
@@ -294,6 +295,57 @@ public final class ExecutionContext {
         suspendedAt = futures;
         throw SuspendedException.INSTANCE;
     }
+
+    public Object popFirstAvail(int nr) throws SuspendedException {
+        Object[] params = stack.peek(nr);
+
+        int l = params.length;
+        int nrErrors = 0;
+        RuntimeException e = null;
+        List<VMFuture<Object>> futures = null;
+        for (int i = 0; i < l; i++) {
+            Object obj = params[i];
+            if (obj instanceof VMFuture<?>) {
+                    final VMFuture<Object> resFut = (VMFuture<Object>) obj;
+                    Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+                    if (resultStore != null) {
+                        if (resultStore.getSecond() == null) {
+                            stack.pop(nr);
+                            return resultStore.getFirst();
+                        } else {
+                            nrErrors++;
+                            if (e == null) {
+                                e = new RuntimeException(resultStore.getSecond());
+                            } else {
+                                e = new RuntimeException(Throwables.chain(resultStore.getSecond(), e));
+                            }
+                        }
+                    } else {
+                        if (futures == null) {
+                            futures = new ArrayList<VMFuture<Object>>(l);
+                        }
+                        futures.add(resFut);
+                    }
+            } else {
+                stack.pop(nr);
+                return obj;
+            }
+        }
+        if (nrErrors == l) {
+            if (e == null) {
+                throw new  IllegalStateException();
+            } else {
+                throw e;
+            }
+        }
+        if (futures.isEmpty()) {
+            throw new IllegalStateException();
+        }
+        suspendedAt = futures;
+        throw SuspendedException.INSTANCE;
+    }
+    
+    
     
 
     public Object pop() {
@@ -314,6 +366,10 @@ public final class ExecutionContext {
 
     public Object peek() {
         return this.stack.peek();
+    }
+    
+    public Object peekElemAfter(Object elem) {
+        return this.stack.peekElemAfter(elem);
     }
 
     public Object getFromPtr(final int ptr) {

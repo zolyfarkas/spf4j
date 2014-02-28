@@ -20,7 +20,6 @@ package org.spf4j.zel.instr;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
-import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 import org.spf4j.zel.vm.Program;
@@ -43,7 +42,14 @@ public final class CALL extends Instruction {
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public void execute(final ExecutionContext context)
             throws ZExecutionException, InterruptedException, SuspendedException {
-        Object [] parameters = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
+        Integer nrParams = (Integer) context.pop();
+        Object [] parameters;
+        try {
+            parameters = context.popSyncStackVals(nrParams);
+        } catch (SuspendedException e) {
+            context.push(nrParams);
+            throw e;
+        }
         Object function = context.pop();
 
         if (function instanceof Program) {

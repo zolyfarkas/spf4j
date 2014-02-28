@@ -159,6 +159,14 @@ public final class SimpleStack<T>
         return java.util.Arrays.copyOfRange(elems, i + 1, top);
     }
     
+    public T peekElemAfter(final T until) {
+        int i = top - 1;
+        while (elems[i] != until) {
+            i--;
+        }
+        return elems[i - 1];
+    }
+    
     /**
      * Clear the stack - also makes sure the stack objects are not referenced anymore
      */

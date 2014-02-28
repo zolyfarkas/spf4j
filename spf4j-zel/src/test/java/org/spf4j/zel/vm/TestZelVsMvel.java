@@ -32,7 +32,15 @@ import org.mvel2.MVEL;
 public final class TestZelVsMvel {
 
     @Test
-    public void testZelVsMVEL2() throws ExecutionException, ZExecutionException, InterruptedException, CompileException {
+    public void testZelVsMVEL()
+            throws ExecutionException, ZExecutionException, InterruptedException, CompileException {
+        testZelVsMVEL2();
+        testZelVsMVEL2();
+        testZelVsMVEL2();
+    }
+    
+    public void testZelVsMVEL2()
+            throws ExecutionException, ZExecutionException, InterruptedException, CompileException {
         java.lang.Number actualReturn = null;
         java.lang.Number actualReturn2 = null;
         Program p1 = Program.compile("a-b+1+c.length() - d.toString().substring(0, 1).length()", "a", "b", "c", "d");

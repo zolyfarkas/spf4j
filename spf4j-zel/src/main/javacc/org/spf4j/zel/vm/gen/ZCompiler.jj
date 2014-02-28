@@ -78,6 +78,7 @@ TOKEN : /* OPERATORS & KEYWORDS*/
   |	< MOD: "%" >
   |	< POW: "**" >
   |	< AND: "&&" >
+  |	< SAND: "&" >
   |	< OR: "||" >
   |	< GT: ">" >
   |	< LT: "<" >
@@ -331,10 +332,7 @@ String name;
             context.generateCode(name);
        })
     ( LOOKAHEAD( 2 )
-        ( <LPAREN>
-        {context.generateCode(EndParamMarker.INSTANCE);}
-        (expression(context) (<COMMA> expression(context))*)?
-         <RPAREN> {context.generateCode(org.spf4j.zel.vm.FuncMarker.INSTANCE);} )
+        ( params(context) {context.generateCode(org.spf4j.zel.vm.FuncMarker.INSTANCE);} )
 	| (<DOT> <ID> {name = token.image; context.generateCode(name);} ) 
         | (<LBRACKET> expression(context) <RBRACKET>)
 	{
@@ -488,10 +486,7 @@ void unaryPost(ParsingContext context) :
 {
      unary(context, true)
      (LOOKAHEAD(2)
-      ( <LPAREN>
-        {context.generateCode(EndParamMarker.INSTANCE);}
-        (expression(context) (<COMMA> expression(context))*)?
-      <RPAREN> {context.generateCode(org.spf4j.zel.instr.CALL.INSTANCE);})
+      ( params(context) {context.generateCode(org.spf4j.zel.instr.CALL.INSTANCE);})
       | 
 	(((<DOT> unary(context, false) ) |
         (<LBRACKET> expression(context) <RBRACKET>))
@@ -537,13 +532,22 @@ void element(ParsingContext context, boolean left) :
             }
             context.generateCode(name);} )
     | sysFunction(context)
-    | ( <FIRST><LPAREN>
-        {context.generateCode(EndParamMarker.INSTANCE);}
-        (expression(context) (<COMMA> expression(context))*)?
-       <RPAREN> {context.generateCode(org.spf4j.zel.instr.FIRST.INSTANCE);})
+    | ( <FIRST> params(context) {context.generateCode(org.spf4j.zel.instr.FIRST.INSTANCE);})
     |  <LPAREN> expression(context) <RPAREN>
   )
 }
+
+void params(ParsingContext context) :
+{
+    int i=0;
+}
+{
+    <LPAREN>
+        (expression(context) {i++;} (<COMMA> expression(context) {i++;} )*)?
+        {context.generateCode(i);}
+    <RPAREN>
+}
+
 
 void constant(ParsingContext context) :
 {

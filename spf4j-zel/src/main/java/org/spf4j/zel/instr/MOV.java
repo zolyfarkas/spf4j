@@ -21,7 +21,6 @@ import java.util.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.FuncMarker;
-import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.SuspendedException;
 
@@ -46,7 +45,14 @@ public final class MOV extends Instruction {
             }
             context.push(what);
         } else if (to == FuncMarker.INSTANCE) {
-            Object [] params = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);
+            Integer nrParams = (Integer) context.pop();
+            Object [] params;
+            try {
+                params = context.popSyncStackVals(nrParams);
+            } catch (SuspendedException e) {
+                context.push(nrParams);
+                throw e;
+            }
             context.resultCache.putPermanentResult((Program) ((AssignableValue) context.pop()).get(),
                     Arrays.asList(params), what);
         }
