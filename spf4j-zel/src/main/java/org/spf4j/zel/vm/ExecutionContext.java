@@ -23,7 +23,6 @@ import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -296,9 +295,8 @@ public final class ExecutionContext {
         throw SuspendedException.INSTANCE;
     }
 
-    public Object popFirstAvail(int nr) throws SuspendedException {
+    public Object popFirstAvail(final int nr) throws SuspendedException {
         Object[] params = stack.peek(nr);
-
         int l = params.length;
         int nrErrors = 0;
         RuntimeException e = null;
@@ -368,7 +366,7 @@ public final class ExecutionContext {
         return this.stack.peek();
     }
     
-    public Object peekElemAfter(Object elem) {
+    public Object peekElemAfter(final Object elem) {
         return this.stack.peekElemAfter(elem);
     }
 
@@ -384,16 +382,6 @@ public final class ExecutionContext {
             ec.memory.put(parameterNames[i], parameters[i]);
         }
         return ec;
-    }
-
-    public Map newMem() {
-        try {
-            return this.memory.getClass().newInstance();
-        } catch (InstantiationException ex) {
-            throw new RuntimeException(ex);
-        } catch (IllegalAccessException ex) {
-            throw new RuntimeException(ex);
-        }
     }
 
     @Override
