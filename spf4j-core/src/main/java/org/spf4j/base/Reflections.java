@@ -64,6 +64,8 @@ public final class Reflections {
                         }
                         found = matchvararg;
                     }
+                } else if (j == last && actualTypes.length < paramTypes.length) {
+                    found = false;
                 }
                 if (!found) {
                     break;
