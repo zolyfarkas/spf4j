@@ -173,5 +173,17 @@ public final class ZelTest {
         result = (Boolean) Program.compile("x > 1", "x").execute(1);
         Assert.assertFalse(result);
     }
+    
+    @Test
+    public void testAsync() throws CompileException, ZExecutionException, InterruptedException {
+        String prog = "f = func (a, b) {sleep 1000; a + b };"
+                + "f(f(1, 2),f(3, 4))";
+        long startTime = System.currentTimeMillis();
+        Number result = (Number) Program.compile(prog).execute();
+        long elapsed = System.currentTimeMillis() - startTime;
+        System.out.println(elapsed);
+        Assert.assertTrue(elapsed < 1200);
+        Assert.assertEquals(10, result.intValue());
+    }
 
 }

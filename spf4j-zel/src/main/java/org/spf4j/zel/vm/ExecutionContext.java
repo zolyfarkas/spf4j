@@ -197,6 +197,10 @@ public final class ExecutionContext {
         }
     }
 
+   public Object[] popStackVals(final int nvals) {
+        return stack.pop(nvals);
+   }
+    
     public Object[] popSyncStackVals(final int nvals) throws SuspendedException {
         Object[] result = stack.pop(nvals);
         for (int i = 0; i < nvals; i++) {
@@ -364,6 +368,10 @@ public final class ExecutionContext {
 
     public Object peek() {
         return this.stack.peek();
+    }
+    
+    public Object peekFromTop(final int n) {
+        return this.stack.peekFromTop(n);
     }
     
     public Object peekElemAfter(final Object elem) {

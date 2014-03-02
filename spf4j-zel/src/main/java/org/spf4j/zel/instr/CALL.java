@@ -43,22 +43,16 @@ public final class CALL extends Instruction {
     public void execute(final ExecutionContext context)
             throws ZExecutionException, InterruptedException, SuspendedException {
         Integer nrParams = (Integer) context.pop();
-        Object [] parameters;
-        try {
-            parameters = context.popSyncStackVals(nrParams);
-        } catch (SuspendedException e) {
-            context.push(nrParams);
-            throw e;
-        }
-        Object function = context.pop();
-
+        Object function = context.peekFromTop(nrParams);
         if (function instanceof Program) {
             final Program p = (Program) function;
-            final ExecutionContext nctx = context.getSubProgramContext(p, parameters);
+            final ExecutionContext nctx;
             Object obj;
+            Object[] parameters;
             switch (p.getType()) {
                 case DETERMINISTIC:
-                    
+                    parameters = getParamsSync(context, nrParams);
+                    nctx = context.getSubProgramContext(p, parameters);
                     obj = context.resultCache.getResult(p,  Arrays.asList(parameters), new Callable<Object>() {
                         @Override
                         public Object call() throws Exception {
@@ -68,6 +62,8 @@ public final class CALL extends Instruction {
 
                     break;
                 case NONDETERMINISTIC:
+                        parameters = getParams(context, nrParams);
+                        nctx = context.getSubProgramContext(p, parameters);
                         obj = Program.executeAsync(nctx);
                     break;
                 default:
@@ -75,6 +71,7 @@ public final class CALL extends Instruction {
             }
             context.push(obj);
         } else if (function instanceof Method) {
+            Object[] parameters = getParamsSync(context, nrParams);
             try {
                 context.push(((Method) function).invoke(context, parameters));
             } catch (IllegalAccessException ex) {
@@ -88,6 +85,26 @@ public final class CALL extends Instruction {
             throw new ZExecutionException("cannot invoke " + function);
         }
         context.ip++;
+    }
+
+    private static Object[] getParamsSync(final ExecutionContext context, final Integer nrParams)
+            throws SuspendedException {
+        Object [] parameters;
+        try {
+            parameters = context.popSyncStackVals(nrParams);
+        } catch (SuspendedException e) {
+            context.push(nrParams); // put back param count so tat stack is identical.
+            throw e;
+        }
+        context.pop(); // extract function
+        return parameters;
+    }
+    
+    private static Object[] getParams(final ExecutionContext context, final Integer nrParams)
+            throws SuspendedException {
+        Object [] parameters = context.popStackVals(nrParams);
+        context.pop();
+        return parameters;
     }
 
     /**

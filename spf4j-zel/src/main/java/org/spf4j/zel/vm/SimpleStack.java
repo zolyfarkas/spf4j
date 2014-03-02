@@ -145,6 +145,10 @@ public final class SimpleStack<T>
     public T peek() {
         return elems[top - 1];
     }
+    
+    public T peekFromTop(final int n) {
+        return elems[top - 1 - n];
+    }
 
     
     public T[] peek(final int n) {
