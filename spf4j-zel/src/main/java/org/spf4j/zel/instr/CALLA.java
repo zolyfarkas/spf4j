@@ -77,6 +77,8 @@ public final class CALLA extends Instruction {
             Future<Object> obj = context.execService.submit(new VMExecutor.Suspendable<Object>() {
 
                 @Override
+                @edu.umd.cs.findbugs.annotations.SuppressWarnings(
+                "EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
                 public Object call() {
                     try {
                         return ((Method) function).invoke(context, parameters);

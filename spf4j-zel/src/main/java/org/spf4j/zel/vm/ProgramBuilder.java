@@ -220,7 +220,7 @@ public final class ProgramBuilder {
                     if (prog.getExecType() == Program.ExecutionType.ASYNC) {
                         return Boolean.TRUE;
                     }
-                } else if (input instanceof CALLA) {
+                } else if (input == CALLA.INSTANCE) {
                     return Boolean.TRUE;
                 }
                 return null;
