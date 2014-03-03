@@ -17,7 +17,6 @@
  */
 package org.spf4j.zel.instr;
 
-import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
@@ -32,8 +31,8 @@ public final class FIRST extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
 
-<span class="fc" id="L35">    private FIRST() {</span>
-<span class="fc" id="L36">    }</span>
+<span class="fc" id="L34">    private FIRST() {</span>
+<span class="fc" id="L35">    }</span>
     
     /**
      * ADD Instruction microcode
@@ -43,14 +42,21 @@ public final class FIRST extends Instruction {
     @Override
     public void execute(final ExecutionContext context)
             throws SuspendedException {
-<span class="fc" id="L46">        final Object val = context.popFirstAvailUntil(EndParamMarker.INSTANCE);</span>
-<span class="fc" id="L47">        context.push(val);</span>
-<span class="fc" id="L48">        context.ip++;</span>
-<span class="fc" id="L49">    }</span>
+<span class="fc" id="L45">        Integer nrParams = (Integer) context.pop();</span>
+        final Object val;
+        try {
+<span class="fc" id="L48">            val = context.popFirstAvail(nrParams);</span>
+<span class="fc" id="L49">        } catch (SuspendedException ex) {</span>
+<span class="fc" id="L50">            context.push(nrParams);</span>
+<span class="fc" id="L51">            throw ex;</span>
+<span class="fc" id="L52">        }</span>
+<span class="fc" id="L53">        context.push(val);</span>
+<span class="fc" id="L54">        context.ip++;</span>
+<span class="fc" id="L55">    }</span>
     /**
      * Add instance
      */
-<span class="fc" id="L53">    public static final Instruction INSTANCE = new FIRST();</span>
+<span class="fc" id="L59">    public static final Instruction INSTANCE = new FIRST();</span>
 
 
 }

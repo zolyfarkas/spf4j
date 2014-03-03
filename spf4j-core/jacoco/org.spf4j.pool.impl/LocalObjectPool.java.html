@@ -183,7 +183,7 @@ final class LocalObjectPool&lt;T&gt; implements ObjectPool&lt;T&gt;, ObjectBorow
     @Override
     public Collection&lt;ObjectHolder&lt;T&gt;&gt; tryReturnObjectsIfNotNeededAnymore() {
 <span class="fc" id="L185">        boolean acquired = lock.tryLock();</span>
-<span class="fc bfc" id="L186" title="All 2 branches covered.">        if (acquired) {</span>
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">        if (acquired) {</span>
             try {
 <span class="pc bpc" id="L188" title="1 of 2 branches missed.">                if (!thread.isAlive()) {</span>
 <span class="nc bnc" id="L189" title="All 2 branches missed.">                    if (!borrowedObjects.isEmpty()) {</span>
@@ -196,7 +196,7 @@ final class LocalObjectPool&lt;T&gt; implements ObjectPool&lt;T&gt;, ObjectBorow
 <span class="pc" id="L196">                lock.unlock();</span>
             }
         } else {
-<span class="fc" id="L199">            return null;</span>
+<span class="nc" id="L199">            return null;</span>
         }
     }
 

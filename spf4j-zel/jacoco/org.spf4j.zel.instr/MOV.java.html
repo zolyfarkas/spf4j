@@ -21,7 +21,6 @@ import java.util.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.FuncMarker;
-import org.spf4j.zel.vm.EndParamMarker;
 import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.SuspendedException;
 
@@ -29,32 +28,39 @@ public final class MOV extends Instruction {
     
     private static final long serialVersionUID = -7101682855885757988L;
     
-<span class="fc" id="L32">    private MOV() {</span>
-<span class="fc" id="L33">    }</span>
+<span class="fc" id="L31">    private MOV() {</span>
+<span class="fc" id="L32">    }</span>
     
     @Override
     public void execute(final ExecutionContext context) throws SuspendedException {
-<span class="fc" id="L37">        Object what = context.pop();</span>
-<span class="fc" id="L38">        Object to = context.pop();</span>
-<span class="fc bfc" id="L39" title="All 2 branches covered.">        if (to instanceof AssignableValue) {</span>
-<span class="fc" id="L40">            AssignableValue assignTo = (AssignableValue) to;</span>
-<span class="fc" id="L41">            assignTo.assign(what);</span>
-<span class="fc bfc" id="L42" title="All 2 branches covered.">            while (!context.isStackEmpty()) {</span>
+<span class="fc" id="L36">        Object what = context.pop();</span>
+<span class="fc" id="L37">        Object to = context.pop();</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        if (to instanceof AssignableValue) {</span>
+<span class="fc" id="L39">            AssignableValue assignTo = (AssignableValue) to;</span>
+<span class="fc" id="L40">            assignTo.assign(what);</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">            while (!context.isStackEmpty()) {</span>
                 // clear all values from stack.
                 // only last assigned value should be on the stack.
-<span class="fc" id="L45">                context.pop();</span>
+<span class="fc" id="L44">                context.pop();</span>
             }
-<span class="fc" id="L47">            context.push(what);</span>
-<span class="pc bpc" id="L48" title="1 of 2 branches missed.">        } else if (to == FuncMarker.INSTANCE) {</span>
-<span class="fc" id="L49">            Object [] params = context.popSyncStackValsUntil(EndParamMarker.INSTANCE);</span>
-<span class="fc" id="L50">            context.resultCache.putPermanentResult((Program) ((AssignableValue) context.pop()).get(),</span>
-<span class="fc" id="L51">                    Arrays.asList(params), what);</span>
+<span class="fc" id="L46">            context.push(what);</span>
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">        } else if (to == FuncMarker.INSTANCE) {</span>
+<span class="fc" id="L48">            Integer nrParams = (Integer) context.pop();</span>
+            Object [] params;
+            try {
+<span class="fc" id="L51">                params = context.popSyncStackVals(nrParams);</span>
+<span class="nc" id="L52">            } catch (SuspendedException e) {</span>
+<span class="nc" id="L53">                context.push(nrParams);</span>
+<span class="nc" id="L54">                throw e;</span>
+<span class="fc" id="L55">            }</span>
+<span class="fc" id="L56">            context.resultCache.putPermanentResult((Program) ((AssignableValue) context.pop()).get(),</span>
+                    Arrays.asList(params), what);
         }
-<span class="fc" id="L53">        context.ip++;</span>
-<span class="fc" id="L54">    }</span>
+<span class="fc" id="L59">        context.ip++;</span>
+<span class="fc" id="L60">    }</span>
     /**
      * instance
      */
-<span class="fc" id="L58">    public static final Instruction INSTANCE = new MOV();</span>
+<span class="fc" id="L64">    public static final Instruction INSTANCE = new MOV();</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
