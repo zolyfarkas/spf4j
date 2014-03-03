@@ -36,15 +36,18 @@ EX1:    // mathematical expressions
         Number result = (Number) prog.execute();
 
 EX2:    // formulas with decimal numbers can be written easer than directly in java
+        // decimal numbers are represented with BigDecimal by default in zel
+        // regular binary floating point representation can be used as well with "d" suffix.
 
         BigDecimal result = (BigDecimal) Program.compile("use dec 128; (1.0/3) * 3 + (1 - 1.0/3*3)").execute();
 
-EX3:    // java integration, java objects are suppoted just like in java:
+EX3:    // java integration, java objects are supported just like in java:
 
         Program prog = Program.compile("a.toString().substring(0, 1 + 1)", "a");
         String result = (String) prog.execute(100);
 
 EX4:    // fibonacci recursive definition executes in O(n)
+        // deterministic function results are automatically memorized
 
         String program =
                   "fib = func det (x) { fib(x-1) + fib(x-2) };\n"
@@ -55,7 +58,8 @@ EX4:    // fibonacci recursive definition executes in O(n)
         Program compiledProgram = Program.compile(program);
         Number result = (Number) compiledProgram.execute();
 
-EX5:    // Async programming
+EX5:    // Async programming.
+        // Zel functions are async by default.
 
         replica = func async (x) {
             sleep random() * 1000;
@@ -64,7 +68,24 @@ EX5:    // Async programming
         };
         out(first(replica(1), replica(2), replica(3)), " finished first\n");
 
-EX5:    // Async programming, parallel PI
+EX6:    // Explicit ASync function execution.
+        // Java method invocation are sync by default
+        // using & postfix operator you can call any function async
+
+        private static class TestF {
+            public static int f(final int a, final int b) throws InterruptedException {
+                Thread.sleep(1000);
+                return a + b;
+            }
+        }
+    
+        String prog = "f(f(1, 2)&,f(3, 4)&)&";
+        Number result = (Number) Program.compile(prog, "f").execute(new JavaMethodCall(TestF.class, "f"));
+
+
+
+EX7:    // Async programming, parallel PI
+        // functions can be declared to be executed sync or async
 
         piPart = func (s, x) {
             term = func sync (k) {4 * (-1 ** k) / (2d * k + 1)};
