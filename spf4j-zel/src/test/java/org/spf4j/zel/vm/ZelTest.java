@@ -185,5 +185,23 @@ public final class ZelTest {
         Assert.assertTrue(elapsed < 1200);
         Assert.assertEquals(10, result.intValue());
     }
+    
+    private static class TestF {
+        public static int f(final int a, final int b) throws InterruptedException {
+            Thread.sleep(1000);
+            return a + b;
+        }
+    }
+    
+    @Test
+    public void testAsync2() throws CompileException, ZExecutionException, InterruptedException {
+        String prog = "f(f(1, 2)&,f(3, 4)&)&";
+        long startTime = System.currentTimeMillis();
+        Number result = (Number) Program.compile(prog, "f").execute(new JavaMethodCall(TestF.class, "f"));
+        long elapsed = System.currentTimeMillis() - startTime;
+        System.out.println(elapsed);
+        Assert.assertTrue(elapsed < 2200);
+        Assert.assertEquals(10, result.intValue());
+    }
 
 }

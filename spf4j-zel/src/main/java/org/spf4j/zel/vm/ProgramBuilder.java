@@ -23,6 +23,7 @@ import com.google.common.collect.Interners;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.spf4j.zel.instr.CALLA;
 import org.spf4j.zel.instr.Instruction;
 
 /**
@@ -219,6 +220,8 @@ public final class ProgramBuilder {
                     if (prog.getExecType() == Program.ExecutionType.ASYNC) {
                         return Boolean.TRUE;
                     }
+                } else if (input instanceof CALLA) {
+                    return Boolean.TRUE;
                 }
                 return null;
             }

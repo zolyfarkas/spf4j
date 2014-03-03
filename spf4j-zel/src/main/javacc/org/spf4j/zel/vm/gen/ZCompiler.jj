@@ -482,17 +482,23 @@ void exponent(ParsingContext context) :
 }
 
 void unaryPost(ParsingContext context) :
-{Token x;}
+{
+ Token x;
+ boolean asyncForce = false;
+}
 {
      unary(context, true)
      (LOOKAHEAD(2)
-      ( params(context) {context.generateCode(org.spf4j.zel.instr.CALL.INSTANCE);})
+      ( params(context) (<SAND> {asyncForce = true;})? 
+        {if (asyncForce)  {
+            context.generateCode(org.spf4j.zel.instr.CALLA.INSTANCE);
+          } else {
+            context.generateCode(org.spf4j.zel.instr.CALL.INSTANCE);
+          }})
       | 
 	(((<DOT> unary(context, false) ) |
         (<LBRACKET> expression(context) <RBRACKET>))
-	{
-             context.generateCode(org.spf4j.zel.instr.DEREF.INSTANCE);
-	})
+	{context.generateCode(org.spf4j.zel.instr.DEREF.INSTANCE);})
      ) *
 }
 

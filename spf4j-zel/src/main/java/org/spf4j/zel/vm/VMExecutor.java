@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -90,6 +91,12 @@ public final class VMExecutor {
 
     public VMExecutor(final Executor exec) {
         this.exec = exec;
+    }
+    
+    public <T> Future<T> submitNonSuspendable(final Callable<T> callable) {
+        FutureTask task = new FutureTask(callable);
+        exec.execute(task);
+        return task;
     }
 
     public <T> Future<T> submit(final Suspendable<T> callable) {

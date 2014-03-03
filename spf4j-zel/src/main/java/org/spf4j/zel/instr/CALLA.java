@@ -17,25 +17,27 @@
  */
 package org.spf4j.zel.instr;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.SuspendedException;
+import org.spf4j.zel.vm.VMExecutor;
+import org.spf4j.zel.vm.VMFuture;
 import org.spf4j.zel.vm.ZExecutionException;
-
 
 /**
  *
  * @author zoly
  */
-public final class CALL extends Instruction {
+public final class CALLA extends Instruction {
 
     private static final long serialVersionUID = 759722625722456554L;
 
-    private CALL() {
+    private CALLA() {
     }
 
     @Override
@@ -43,7 +45,7 @@ public final class CALL extends Instruction {
     public void execute(final ExecutionContext context)
             throws ZExecutionException, InterruptedException, SuspendedException {
         Integer nrParams = (Integer) context.pop();
-        Object function = context.peekFromTop(nrParams);
+        final Object function = context.peekFromTop(nrParams);
         if (function instanceof Program) {
             final Program p = (Program) function;
             final ExecutionContext nctx;
@@ -51,64 +53,53 @@ public final class CALL extends Instruction {
             Object[] parameters;
             switch (p.getType()) {
                 case DETERMINISTIC:
-                    parameters = getParamsSync(context, nrParams);
+                    parameters = CALL.getParamsSync(context, nrParams);
                     nctx = context.getSubProgramContext(p, parameters);
-                    obj = context.resultCache.getResult(p,  Arrays.asList(parameters), new Callable<Object>() {
+                    obj = context.resultCache.getResult(p, Arrays.asList(parameters), new Callable<Object>() {
                         @Override
                         public Object call() throws Exception {
-                            return Program.executeSyncOrAsync(nctx);
+                            return Program.executeAsync(nctx);
                         }
                     });
 
                     break;
                 case NONDETERMINISTIC:
-                        parameters = getParams(context, nrParams);
-                        nctx = context.getSubProgramContext(p, parameters);
-                        obj = Program.executeSyncOrAsync(nctx);
+                    parameters = CALL.getParams(context, nrParams);
+                    nctx = context.getSubProgramContext(p, parameters);
+                    obj = Program.executeAsync(nctx);
                     break;
                 default:
                     throw new UnsupportedOperationException(p.getType().toString());
             }
             context.push(obj);
         } else if (function instanceof Method) {
-            Object[] parameters = getParamsSync(context, nrParams);
-            try {
-                context.push(((Method) function).invoke(context, parameters));
-            } catch (IllegalAccessException ex) {
-                throw new ZExecutionException("cannot invoke " + function, ex);
-            } catch (InvocationTargetException ex) {
-                throw new ZExecutionException("cannot invoke " + function, ex);
-            } catch (Exception ex) {
-                throw new ZExecutionException("cannot invoke " + function, ex);
-            }
+            final Object[] parameters = CALL.getParamsSync(context, nrParams);
+            Future<Object> obj = context.execService.submit(new VMExecutor.Suspendable<Object>() {
+
+                @Override
+                public Object call() {
+                    try {
+                        return ((Method) function).invoke(context, parameters);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+
+                @Override
+                public List<VMFuture<Object>> getSuspendedAt() {
+                    throw new UnsupportedOperationException("Not supported yet.");
+                }
+            });
+            context.push(obj);
+
         } else {
             throw new ZExecutionException("cannot invoke " + function);
         }
         context.ip++;
     }
 
-    static Object[] getParamsSync(final ExecutionContext context, final Integer nrParams)
-            throws SuspendedException {
-        Object [] parameters;
-        try {
-            parameters = context.popSyncStackVals(nrParams);
-        } catch (SuspendedException e) {
-            context.push(nrParams); // put back param count so tat stack is identical.
-            throw e;
-        }
-        context.pop(); // extract function
-        return parameters;
-    }
-    
-    static Object[] getParams(final ExecutionContext context, final Integer nrParams)
-            throws SuspendedException {
-        Object [] parameters = context.popStackVals(nrParams);
-        context.pop();
-        return parameters;
-    }
-
     /**
      * instance
      */
-    public static final Instruction INSTANCE = new CALL();
+    public static final Instruction INSTANCE = new CALLA();
 }

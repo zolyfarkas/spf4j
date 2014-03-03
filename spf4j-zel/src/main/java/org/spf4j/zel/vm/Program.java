@@ -227,7 +227,7 @@ public final class Program implements Serializable {
 
     
     
-    public static Object executeAsync(@Nonnull final ExecutionContext ectx)
+    public static Object executeSyncOrAsync(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
         final VMExecutor.Suspendable<Object> execution = ectx.getCallable();
         if (ectx.execService != null && ectx.code.getExecType() == ExecutionType.ASYNC) {
@@ -244,10 +244,19 @@ public final class Program implements Serializable {
             }
         }
     }
+    
+    public static Future<Object> executeAsync(@Nonnull final ExecutionContext ectx) {
+        final VMExecutor.Suspendable<Object> execution = ectx.getCallable();
+        if (ectx.isChildContext()) {
+            return ectx.execService.submitInternal(VMExecutor.synchronize(execution));
+        } else {
+            return ectx.execService.submit(VMExecutor.synchronize(execution));
+        }
+    }
 
     public static Object execute(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
-            Object result = executeAsync(ectx);
+            Object result = executeSyncOrAsync(ectx);
             if (result instanceof Future) {
                 try {
                     return ((Future<Object>) result).get();
