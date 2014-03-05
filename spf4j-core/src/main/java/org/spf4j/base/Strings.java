@@ -31,6 +31,19 @@ public final class Strings {
 
     private Strings() {
     }
+    
+    public static void writeCsvRow(final Writer writer, final String ... elems) throws IOException {
+        if (elems.length > 0) {
+            int i = 0;
+            writeCsvElement(elems[i++], writer);
+            while (i < elems.length) {
+                writer.write(',');
+                writeCsvElement(elems[i++], writer);
+            }
+        }
+        writer.write('\n');
+    }
+    
 
     public static void writeCsvElement(final String elem, final Writer writer) throws IOException {
         if (elem.contains(",")) {
@@ -114,6 +127,8 @@ public final class Strings {
         return i;
     }
 
+    
+    
     /**
      * function that calculates the number of operations that are needed to transform s1 into s2. operations are: char
      * add, char delete, char modify
