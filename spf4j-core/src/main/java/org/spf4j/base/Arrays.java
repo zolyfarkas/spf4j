@@ -112,4 +112,14 @@ public final class Arrays {
         }
         return true;
     }
+    
+    public static int search(final char [] array, final char c) {
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] == c) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    
 }

@@ -44,7 +44,7 @@ public final class CsvTest {
     }
 
     @Test
-    public void testSomeMethod() throws IOException {
+    public void testCsvReadWrite() throws IOException {
         
         File testFile = File.createTempFile("csvTest", ".csv");
         
@@ -55,7 +55,7 @@ public final class CsvTest {
         try {
             Csv.writeCsvRow(writer, "a", "b", "c", "d");
             Csv.writeCsvRow(writer, "1.2", "1", "1,3", 1);
-            Csv.writeCsvRow(writer, "0", "0", "0", "1,3");
+            Csv.writeCsvRow(writer, "0", "\"", "0\n", "1,3");
         } finally {
             writer.close();
         }
@@ -84,11 +84,11 @@ public final class CsvTest {
                 }
 
                 @Override
-                public void element(final String elem) {
+                public void element(final StringBuilder elem) {
                     if (firstRow) {
-                        header.add(elem);
+                        header.add(elem.toString());
                     } else {
-                        row.put(header.get(i++), elem);
+                        row.put(header.get(i++), elem.toString());
                     }
                 }
 
@@ -109,6 +109,8 @@ public final class CsvTest {
             Assert.assertEquals("1,3", data.get(0).get("c"));
             Assert.assertEquals("1", data.get(0).get("d"));
             Assert.assertEquals("1,3", data.get(1).get("d"));
+            Assert.assertEquals("\"", data.get(1).get("b"));
+            Assert.assertEquals("0\n", data.get(1).get("c"));
         } finally {
             reader.close();
         }

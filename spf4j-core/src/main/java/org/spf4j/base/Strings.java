@@ -30,7 +30,7 @@ public final class Strings {
     private Strings() {
     }
     
-    
+    public static final String EOL = System.getProperty("line.separator", "\n");
     
     /**
      * function that calculates the number of operations that are needed to transform s1 into s2.
@@ -97,6 +97,17 @@ public final class Strings {
 
     public static String unescape(final String what) {
         return UNESCAPE_JAVA.translate(what);
+    }
+    
+    public static boolean contains(final String string, final char [] chars) {
+        int l = string.length();
+        for (int i = 0; i < l; i++) {
+            char c = string.charAt(i);
+            if (Arrays.search(chars, c) >= 0) {
+                return true;
+            }
+        }
+        return false;
     }
     
     
