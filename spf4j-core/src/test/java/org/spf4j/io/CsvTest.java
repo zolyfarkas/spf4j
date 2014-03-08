@@ -16,8 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.spf4j.base;
+package org.spf4j.io;
 
+import org.spf4j.io.Csv;
 import com.google.common.base.Charsets;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

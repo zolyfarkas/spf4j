@@ -48,8 +48,7 @@ public final class TestZelVsMvel {
         
         long t1 = System.currentTimeMillis();
         for (int i = 0; i < 1000000; i++) {
-            Memory memory = new Memory();
-            actualReturn = (java.lang.Number) p1.execute(memory, 3, 2, " ", "bla");
+            actualReturn = (java.lang.Number) p1.execute(3, 2, " ", "bla");
         }
         long t2 = System.currentTimeMillis();
 

@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.spf4j.base;
+package org.spf4j.io;
 
 import java.io.IOException;
 import java.io.Reader;

@@ -43,8 +43,7 @@ public final class TestZelVsSpel {
 
         long t1 = System.currentTimeMillis();
         for (int i = 0; i < 100000; i++) {
-            Memory memory = new Memory();
-            actualReturn = (java.lang.Number) p1.execute(memory, 3, 2);
+            actualReturn = (java.lang.Number) p1.execute(3, 2);
         }
         long t2 = System.currentTimeMillis();
 

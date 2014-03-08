@@ -15,12 +15,13 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.base;
+package org.spf4j.io;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Iterator;
+import org.spf4j.base.Strings;
 
 /**
  * Cupports CSV format as described at: https://en.wikipedia.org/wiki/Comma-separated_values.
@@ -72,7 +73,7 @@ public final class Csv {
      * @param preader
      * @param handler
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
     
     public static <T> T read(final Reader preader, final CsvHandler<T> handler) throws IOException {

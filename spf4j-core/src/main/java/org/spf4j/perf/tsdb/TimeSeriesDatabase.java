@@ -40,7 +40,7 @@ import org.jfree.chart.JFreeChart;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.Arrays;
-import org.spf4j.base.Csv;
+import org.spf4j.io.Csv;
 import org.spf4j.perf.impl.chart.Charts;
 import static org.spf4j.perf.impl.chart.Charts.fillGaps;
 

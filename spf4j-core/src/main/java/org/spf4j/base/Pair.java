@@ -18,6 +18,7 @@
  */
 package org.spf4j.base;
 
+import org.spf4j.io.Csv;
 import com.google.common.base.Objects;
 import java.util.List;
 

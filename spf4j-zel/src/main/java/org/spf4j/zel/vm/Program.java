@@ -192,17 +192,19 @@ public final class Program implements Serializable {
         return execute(memory, System.in, System.out, System.err, args);
     }
     
-    private static final HierarchicalMap BUILTINS = new HierarchicalMap(new HashMap<Object, Object>());
+    private static final HierarchicalMap ZEL_GLOBAL_FUNC;
     
     static {
-        BUILTINS.put("out", OUT.INSTANCE);
-        BUILTINS.put("sqrt", SQRT.INSTANCE);
-        BUILTINS.put("int", INT.INSTANCE);
-        BUILTINS.put("log", LOG.INSTANCE);
-        BUILTINS.put("log10", LOG.INSTANCE);
-        BUILTINS.put("min", MIN.INSTANCE);
-        BUILTINS.put("max", MAX.INSTANCE);
-        BUILTINS.put("random", RANDOM.INSTANCE);
+        Map<Object, Object> stdFunctions = new HashMap<Object, Object>();
+        stdFunctions.put("out", OUT.INSTANCE);
+        stdFunctions.put("sqrt", SQRT.INSTANCE);
+        stdFunctions.put("int", INT.INSTANCE);
+        stdFunctions.put("log", LOG.INSTANCE);
+        stdFunctions.put("log10", LOG.INSTANCE);
+        stdFunctions.put("min", MIN.INSTANCE);
+        stdFunctions.put("max", MAX.INSTANCE);
+        stdFunctions.put("random", RANDOM.INSTANCE);
+        ZEL_GLOBAL_FUNC = new HierarchicalMap(stdFunctions);
     }
     
     
@@ -217,7 +219,7 @@ public final class Program implements Serializable {
             @Nullable final PrintStream err,
             final Object... args)
             throws ZExecutionException, InterruptedException {
-        HierarchicalMap map = new HierarchicalMap(BUILTINS, memory);
+        HierarchicalMap map = new HierarchicalMap(ZEL_GLOBAL_FUNC, memory);
         final ExecutionContext ectx = new ExecutionContext(this, map, in, out, err, execService);
         for (int i = 0; i < args.length; i++) {
             ectx.memory.put(this.parameterNames[i], args[i]);
@@ -283,7 +285,7 @@ public final class Program implements Serializable {
     public static java.util.Map newMem() {
         //return  (java.util.Map) exampleMem.clone(); // (cannot be used because of java's poor implementation of clone)
         //return new gnu.trove.THashMap(); // (in comparisons vs the java implementations the VM performs 5% slower)
-        return new Memory();
+        return new HashMap();
     }
 
     /**
@@ -370,7 +372,7 @@ public final class Program implements Serializable {
             throws IOException, ZExecutionException, InterruptedException {
         System.out.println("ZEL Shell");
         boolean terminated = false;
-        Memory mem = new Memory();
+        HashMap mem = new HashMap();
         InputStreamReader inp = new InputStreamReader(System.in, Charsets.UTF_8);
         BufferedReader br = new BufferedReader(inp);
         while (!terminated) {
