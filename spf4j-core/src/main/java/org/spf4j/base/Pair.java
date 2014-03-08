@@ -50,12 +50,12 @@ public class Pair<A, B> {
             return null;
         }
         StringBuilder first = new StringBuilder();
-        int idx = Strings.readCsvElement(stringPair, 1, first);
+        int idx = Csv.readCsvElement(stringPair, 1, first);
         if (stringPair.charAt(idx) != ',') {
             return null;
         }
         StringBuilder second = new StringBuilder();
-        Strings.readCsvElement(stringPair, idx + 1, stringPair.length() - 1, second);
+        Csv.readCsvElement(stringPair, idx + 1, stringPair.length() - 1, second);
         return Pair.of(first.toString(), second.toString());
     }
         
@@ -98,8 +98,8 @@ public class Pair<A, B> {
 
     @Override
     public final String toString() {
-        return "(" + Strings.toCsvElement(first.toString())
-                + "," + Strings.toCsvElement(second.toString()) + ')';
+        return "(" + Csv.toCsvElement(first.toString())
+                + "," + Csv.toCsvElement(second.toString()) + ')';
     }
     
     public final List<Object> toList() {

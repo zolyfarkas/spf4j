@@ -18,8 +18,6 @@
  */
 package org.spf4j.base;
 
-import java.io.IOException;
-import java.io.Writer;
 import static java.lang.Math.min;
 import javax.annotation.Nonnull;
 
@@ -32,105 +30,11 @@ public final class Strings {
     private Strings() {
     }
     
-    public static void writeCsvRow(final Writer writer, final String ... elems) throws IOException {
-        if (elems.length > 0) {
-            int i = 0;
-            writeCsvElement(elems[i++], writer);
-            while (i < elems.length) {
-                writer.write(',');
-                writeCsvElement(elems[i++], writer);
-            }
-        }
-        writer.write('\n');
-    }
-    
-
-    public static void writeCsvElement(final String elem, final Writer writer) throws IOException {
-        if (elem.contains(",")) {
-            int length = elem.length();
-            writer.write('"');
-            for (int i = 0; i < length; i++) {
-                char c = elem.charAt(i);
-                if (c == '"') {
-                    writer.write("\"\"");
-                } else {
-                    writer.write(c);
-                }
-            }
-            writer.write('"');
-        } else {
-            writer.write(elem);
-        }
-    }
-
-    public static String toCsvElement(final String elem) {
-        if (elem.contains(",")) {
-            int length = elem.length();
-            StringBuilder builder = new StringBuilder(length + 2);
-            builder.append('"');
-            for (int i = 0; i < length; i++) {
-                char c = elem.charAt(i);
-                if (c == '"') {
-                    builder.append("\"\"");
-                } else {
-                    builder.append(c);
-                }
-            }
-            builder.append('"');
-            return builder.toString();
-
-        } else {
-            return elem;
-        }
-    }
-
-    public static int readCsvElement(final String fromStr, final int fromIdx,
-            final StringBuilder addElemTo) {
-        return readCsvElement(fromStr, fromIdx, fromStr.length(), addElemTo);
-    }
-
-    public static int readCsvElement(final String fromStr, final int fromIdx,
-            final int maxIdx, final StringBuilder addElemTo) {
-        int i = fromIdx;
-        char c = fromStr.charAt(i);
-        if (c == '"') {
-            i++;
-            while (i < maxIdx) {
-                c = fromStr.charAt(i);
-                if (c == '"') {
-                    int nxtIdx = i + 1;
-                    if (nxtIdx < maxIdx) {
-                        if (fromStr.charAt(nxtIdx) == '"') {
-                            addElemTo.append(c);
-                            i = nxtIdx;
-                        } else {
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
-                } else {
-                    addElemTo.append(c);
-                }
-                i++;
-            }
-        } else {
-            while (c != ',') {
-                addElemTo.append(c);
-                i++;
-                if (i >= maxIdx) {
-                    break;
-                }
-                c = fromStr.charAt(i);
-            }
-        }
-        return i;
-    }
-
     
     
     /**
-     * function that calculates the number of operations that are needed to transform s1 into s2. operations are: char
+     * function that calculates the number of operations that are needed to transform s1 into s2.
+     * operations are: char
      * add, char delete, char modify
      *
      * @param s1

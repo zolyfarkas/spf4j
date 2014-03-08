@@ -40,7 +40,7 @@ import org.jfree.chart.JFreeChart;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.Arrays;
-import org.spf4j.base.Strings;
+import org.spf4j.base.Csv;
 import org.spf4j.perf.impl.chart.Charts;
 import static org.spf4j.perf.impl.chart.Charts.fillGaps;
 
@@ -351,19 +351,19 @@ public final class TimeSeriesDatabase implements Closeable {
         Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8));
         DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
         try {
-            Strings.writeCsvElement("timestamp", writer);
+            Csv.writeCsvElement("timestamp", writer);
             for (String colName : table.getColumnNames()) {
                 writer.append(',');
-                Strings.writeCsvElement(colName, writer);
+                Csv.writeCsvElement(colName, writer);
             }
             writer.write('\n');
             long[] timestamps = data.getFirst();
             long[][] values = data.getSecond();
             for (int i = 0; i < timestamps.length; i++)  {
-                Strings.writeCsvElement(formatter.print(timestamps[i]), writer);
+                Csv.writeCsvElement(formatter.print(timestamps[i]), writer);
                 for (long val : values[i]) {
                     writer.append(',');
-                    Strings.writeCsvElement(Long.toString(val), writer);
+                    Csv.writeCsvElement(Long.toString(val), writer);
                 }
                 writer.write('\n');
             }
@@ -379,12 +379,12 @@ public final class TimeSeriesDatabase implements Closeable {
         try {
             String firstTable = tableNames.get(0);
             TSTable table = getTSTable(firstTable);
-            Strings.writeCsvElement("table", writer);
+            Csv.writeCsvElement("table", writer);
             writer.append(',');
-            Strings.writeCsvElement("timestamp", writer);
+            Csv.writeCsvElement("timestamp", writer);
             for (String colName : table.getColumnNames()) {
                 writer.append(',');
-                Strings.writeCsvElement(colName, writer);
+                Csv.writeCsvElement(colName, writer);
             }
             writer.write('\n');
             
@@ -393,12 +393,12 @@ public final class TimeSeriesDatabase implements Closeable {
                 long[] timestamps = data.getFirst();
                 long[][] values = data.getSecond();
                 for (int i = 0; i < timestamps.length; i++)  {
-                    Strings.writeCsvElement(tableName, writer);
+                    Csv.writeCsvElement(tableName, writer);
                     writer.append(',');
-                    Strings.writeCsvElement(formatter.print(timestamps[i]), writer);
+                    Csv.writeCsvElement(formatter.print(timestamps[i]), writer);
                     for (long val : values[i]) {
                         writer.append(',');
-                        Strings.writeCsvElement(Long.toString(val), writer);
+                        Csv.writeCsvElement(Long.toString(val), writer);
                     }
                     writer.write('\n');
                 }

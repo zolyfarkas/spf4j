@@ -172,6 +172,11 @@ public final class ZelTest {
         Assert.assertTrue(result);
         result = (Boolean) Program.compile("x > 1", "x").execute(1);
         Assert.assertFalse(result);
+        Number n = (Number) Program.compile("min(3, 1, 8)").execute();
+        Assert.assertEquals(1, n.intValue());
+        n = (Number) Program.compile("max(3, 1, 8, 10)").execute();
+        Assert.assertEquals(10, n.intValue());
+
     }
     
     @Test
