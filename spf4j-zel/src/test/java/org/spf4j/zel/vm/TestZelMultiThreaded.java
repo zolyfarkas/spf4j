@@ -53,7 +53,14 @@ public final class TestZelMultiThreaded {
      * @throws InterruptedException
      */
     @Test
-    public void testParallelPi() throws CompileException, ZExecutionException, InterruptedException {
+    public void testParallelPi() throws CompileException, ZExecutionException, InterruptedException  {
+        for (int i = 0; i < 3; i++) {
+            testParallelPiImpl();
+        }
+    }
+    
+    
+    public void testParallelPiImpl() throws CompileException, ZExecutionException, InterruptedException {
         String pi = "pi = func (x) {"
                 + "term = func (k) {4 * (-1 ** k) / (2d * k + 1)};"
                 + "for i = 0; i < x; i = i + 1 { parts[i] = term(i) };"
@@ -86,9 +93,14 @@ public final class TestZelMultiThreaded {
          return result;
      }
 
-     
     @Test
-    public void testParallelPi2() throws CompileException, ZExecutionException, InterruptedException, IOException {
+    public void testParallelPi2() throws CompileException, ZExecutionException, InterruptedException, IOException  {
+        for (int i = 0; i < 3; i++) {
+            testParallelPi2Impl();
+        }
+    }
+     
+    public void testParallelPi2Impl() throws CompileException, ZExecutionException, InterruptedException, IOException {
         String pi = Resources.toString(Resources.getResource(TestZelMultiThreaded.class, "parallelPi.zel"),
                 Charsets.US_ASCII);
         Program prog = Program.compile(pi, "x");

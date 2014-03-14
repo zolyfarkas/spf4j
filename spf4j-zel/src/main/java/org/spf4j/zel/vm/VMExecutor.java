@@ -26,10 +26,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import org.spf4j.base.Pair;
+import org.spf4j.concurrent.SimpleExecutor;
 
 /**
  *
@@ -39,10 +37,27 @@ public final class VMExecutor {
     
     
     public static class Lazy {
-         private static final ThreadPoolExecutor DEF_EXEC = new ThreadPoolExecutor(org.spf4j.base.Runtime.NR_PROCESSORS,
-                                      org.spf4j.base.Runtime.NR_PROCESSORS,
-                                      60, TimeUnit.SECONDS,
-                                      new LinkedBlockingQueue<Runnable>());
+//         private static final ThreadPoolExecutor DEF_EXEC =
+//        new ThreadPoolExecutor(org.spf4j.base.Runtime.NR_PROCESSORS,
+//                                      org.spf4j.base.Runtime.NR_PROCESSORS,
+//                                      60, TimeUnit.SECONDS,
+//                                      new LinkedBlockingQueue<Runnable>());
+        
+         private static final SimpleExecutor DEF_EXEC = new SimpleExecutor();
+         static {
+             DEF_EXEC.startThreads(org.spf4j.base.Runtime.NR_PROCESSORS);
+             org.spf4j.base.Runtime.addHookAtEnd(new Runnable() {
+
+                 @Override
+                 public void run() {
+                     try {
+                         DEF_EXEC.shutdownAndWait();
+                     } catch (InterruptedException ex) {
+                        throw new RuntimeException(ex);
+                     }
+                 }
+             });
+         }
          public static final VMExecutor DEFAULT = new VMExecutor(DEF_EXEC);
     }
 
