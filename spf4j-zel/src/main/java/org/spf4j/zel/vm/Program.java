@@ -255,6 +255,16 @@ public final class Program implements Serializable {
             return ectx.execService.submit(VMExecutor.synchronize(execution));
         }
     }
+    
+    
+   public static Object executeSync(@Nonnull final ExecutionContext ectx) throws
+           ZExecutionException, InterruptedException {
+        try {
+            return ectx.getCallable().call();
+        } catch (SuspendedException ex) {
+           throw new RuntimeException(ex);
+        }
+    }
 
     public static Object execute(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {

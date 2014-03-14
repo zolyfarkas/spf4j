@@ -22,6 +22,7 @@ import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
+import org.spf4j.zel.vm.ZExecutionException;
 
 /**
  * Add takes two objects from the top of the stack and puts the sum back
@@ -44,7 +45,7 @@ public final class DEC extends Instruction {
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void execute(final ExecutionContext context)
-            throws SuspendedException {
+            throws SuspendedException, ZExecutionException, InterruptedException {
         final Object val = context.popSyncStackVal();
         if (val instanceof AssignableValue) {
             AssignableValue aval = (AssignableValue) val;

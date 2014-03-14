@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.List;
 import java.util.Map;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.JavaMethodCall;
@@ -33,6 +34,30 @@ public final class DEREF extends Instruction {
     private DEREF() {
     }
 
+//    public interface Deref<A, B> {
+//        Object apply(A relativeTo, B ref);
+//    }
+//    public static final Map<Class<?>, Deref<?,?>> DEREF = new HashMap<Class<?>, Deref<?, ?>>();
+//    static {
+//        DEREF.put(Map.class, new Deref<Map, Object>() {
+//
+//            @Override
+//            public Object apply(final Map relativeTo, final Object ref) {
+//                return relativeTo.get(ref);
+//            }
+//        });
+//        DEREF.put(Object [].class, new Deref<Object [], Number>() {
+//
+//            @Override
+//            public Object apply(final Object[] relativeTo, final Number ref) {
+//                return relativeTo[ref.intValue()];
+//            }
+//        });
+//
+//    }
+    
+    
+    
     /**
      * The instruction microcode
      * @param context ExecutionContext
@@ -45,8 +70,24 @@ public final class DEREF extends Instruction {
        Object ref = vals[1];
        Object relativeTo = vals[0];
        
+       
+       
        if (relativeTo instanceof Map) {
            context.push(((Map) relativeTo).get(ref));
+       } else if (relativeTo instanceof Object[]) {
+           context.push(((Object []) relativeTo)[((Number) ref).intValue()]);
+       } else if (relativeTo instanceof int[]) {
+           context.push(((int []) relativeTo)[((Number) ref).intValue()]);
+       } else if (relativeTo instanceof byte[]) {
+           context.push(((byte []) relativeTo)[((Number) ref).intValue()]);
+       } else if (relativeTo instanceof char[]) {
+           context.push(((char []) relativeTo)[((Number) ref).intValue()]);
+       } else if (relativeTo instanceof long[]) {
+           context.push(((long []) relativeTo)[((Number) ref).intValue()]);
+       } else if (relativeTo instanceof short[]) {
+           context.push(((short []) relativeTo)[((Number) ref).intValue()]);
+       } else if (relativeTo instanceof List) {
+           context.push(((List) relativeTo).get(((Number) ref).intValue()));
        } else {
            context.push(new JavaMethodCall(relativeTo, (String) ref));
        }

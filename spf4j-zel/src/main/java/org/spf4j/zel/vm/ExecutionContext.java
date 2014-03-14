@@ -391,6 +391,16 @@ public final class ExecutionContext {
         }
         return ec;
     }
+    
+    public ExecutionContext getSyncSubProgramContext(final Program program, final Object[] parameters) {
+        ExecutionContext ec;
+        ec = new ExecutionContext(this, null, program);
+        String[] parameterNames = program.getParameterNames();
+        for (int i = 0; i < parameterNames.length; i++) {
+            ec.memory.put(parameterNames[i], parameters[i]);
+        }
+        return ec;
+    }
 
     @Override
     public String toString() {

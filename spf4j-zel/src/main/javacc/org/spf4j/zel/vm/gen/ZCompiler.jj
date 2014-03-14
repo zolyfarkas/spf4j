@@ -332,13 +332,11 @@ String name;
             context.generateCode(name);
        })
     ( LOOKAHEAD( 2 )
-        ( params(context) {context.generateCode(org.spf4j.zel.vm.FuncMarker.INSTANCE);} )
-	| (<DOT> <ID> {name = token.image; context.generateCode(name);} ) 
-        | (<LBRACKET> expression(context) <RBRACKET>)
-	{
-             context.generateCode(org.spf4j.zel.instr.REF.INSTANCE);
-	}
-    )* 
+        ( params(context) {context.generateCode(org.spf4j.zel.instr.CALLREF.INSTANCE);} )
+	| (((<DOT> <ID> {name = token.image; context.generateCode(name);} ) 
+           | (<LBRACKET> expression(context) <RBRACKET>))
+            {context.generateCode(org.spf4j.zel.instr.REF.INSTANCE);})
+    )*
 }
 
 

@@ -176,6 +176,10 @@ public final class ZelTest {
         Assert.assertEquals(1, n.intValue());
         n = (Number) Program.compile("max(3, 1, 8, 10)").execute();
         Assert.assertEquals(10, n.intValue());
+        n = (Number) Program.compile("sqrt(4)").execute();
+        Assert.assertEquals(2, n.intValue());
+        n = (Number) Program.compile("log(E)").execute();
+        Assert.assertEquals(1, n.intValue());
 
     }
     
@@ -207,6 +211,15 @@ public final class ZelTest {
         System.out.println(elapsed);
         Assert.assertTrue(elapsed < 2200);
         Assert.assertEquals(10, result.intValue());
+    }
+    
+    
+    @Test
+    public void testArrays() throws CompileException, ZExecutionException, InterruptedException {
+       String result = (String) Program.compile("x.split(\",\")[1]", "x").execute("a,b,c");
+       Assert.assertEquals("b", result);
+       result = (String) Program.compile("x.split(\",\")[1] = \"A\"", "x").execute("a,b,c");
+       Assert.assertEquals("A", result);
     }
 
 }

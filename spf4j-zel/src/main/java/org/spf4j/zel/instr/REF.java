@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
+import org.spf4j.zel.vm.JavaMethodCall;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
@@ -40,7 +41,7 @@ public final class REF extends Instruction {
      */
     @Override
     public void execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
+            throws ZExecutionException, SuspendedException, InterruptedException {
        Object [] vals = context.popSyncStackVals(2);
        final Object ref = vals[1];
        final Object relTo = vals[0];
@@ -69,8 +70,34 @@ public final class REF extends Instruction {
                }
            });
            
+       } else if (relativeTo instanceof Object []) {
+           context.push(new AssignableValue() {
+
+               @Override
+               public void assign(final Object object) {
+                   ((Object []) relativeTo)[((Number) ref).intValue()] = object;
+               }
+
+               @Override
+               public Object get() {
+                   return ((Object []) relativeTo)[((Number) ref).intValue()];
+               }
+           });
+           
        } else {
-               throw new ZExecutionException("cannot assign  " + ref + " for object " + relativeTo);
+             context.push(new AssignableValue() {
+
+               @Override
+               public void assign(final Object object) {
+                  throw new UnsupportedOperationException("Cannot assign " + object + " to "
+                   + relativeTo + "." + ref);
+               }
+
+               @Override
+               public Object get() {
+                   return new JavaMethodCall(relativeTo, (String) ref);
+               }
+           });
        }
        context.ip++;
         

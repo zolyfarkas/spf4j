@@ -23,8 +23,8 @@ package org.spf4j.zel.vm;
  */
 public interface AssignableValue {
     
-    void assign(Object object);
+    void assign(Object object) throws ZExecutionException, InterruptedException;
     
-    Object get();
+    Object get() throws ZExecutionException, InterruptedException;
     
 }

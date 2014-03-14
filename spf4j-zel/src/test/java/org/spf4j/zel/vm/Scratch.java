@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.vm;
 
+import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
@@ -32,9 +33,24 @@ public final  class Scratch {
 //        Program p1 = Program.compile("a-b+1+c.length()", "a", "b", "c");
 //        Number actualReturn = (Number) p1.execute(3, 2, "");
 //        System.out.println(actualReturn);
-        Program prog = Program.compile("s.format(\"Number %d\", 3)", "s");
-        String result = (String) prog.execute(String.class);
-        assertEquals(String.format("Number %d", 3), result);
+//        Program prog = Program.compile("s.format(\"Number %d\", 3)", "s");
+//        String result = (String) prog.execute(String.class);
+//        assertEquals(String.format("Number %d", 3), result);
+        
+        
+                String program
+                = "fib = function deterministic (x) { fib(x-1) + fib(x-2) };\n"
+                + "fib(0) = 0;\n"
+                + "fib(1) = 1;\n"
+                + "fib(10)";
+
+        Program compiledProgram = Program.compile(program);
+        System.out.println(compiledProgram);
+        Number result = (Number) compiledProgram.execute();
+//       Program program = Program.compile("x.split(\",\")[1] = \"A\"", "x");
+//       System.out.println(program);
+//       String result = (String) program.execute("a,b,c");
+//       Assert.assertEquals("A", result);
         
     }
 }

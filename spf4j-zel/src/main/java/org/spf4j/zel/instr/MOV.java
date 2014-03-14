@@ -17,12 +17,10 @@
  */
 package org.spf4j.zel.instr;
 
-import java.util.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.AssignableValue;
-import org.spf4j.zel.vm.FuncMarker;
-import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.SuspendedException;
+import org.spf4j.zel.vm.ZExecutionException;
 
 public final class MOV extends Instruction {
     
@@ -32,7 +30,8 @@ public final class MOV extends Instruction {
     }
     
     @Override
-    public void execute(final ExecutionContext context) throws SuspendedException {
+    public void execute(final ExecutionContext context)
+            throws SuspendedException, ZExecutionException, InterruptedException {
         Object what = context.pop();
         Object to = context.pop();
         if (to instanceof AssignableValue) {
@@ -44,17 +43,8 @@ public final class MOV extends Instruction {
                 context.pop();
             }
             context.push(what);
-        } else if (to == FuncMarker.INSTANCE) {
-            Integer nrParams = (Integer) context.pop();
-            Object [] params;
-            try {
-                params = context.popSyncStackVals(nrParams);
-            } catch (SuspendedException e) {
-                context.push(nrParams);
-                throw e;
-            }
-            context.resultCache.putPermanentResult((Program) ((AssignableValue) context.pop()).get(),
-                    Arrays.asList(params), what);
+        } else {
+            throw new ZExecutionException("Lvalue expected insted of " + to);
         }
         context.ip++;
     }
