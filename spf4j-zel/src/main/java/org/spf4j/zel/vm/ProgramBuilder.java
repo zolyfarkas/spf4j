@@ -22,7 +22,9 @@ import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.spf4j.base.Pair;
 import org.spf4j.zel.instr.CALLA;
 import org.spf4j.zel.instr.Instruction;
 
@@ -47,13 +49,16 @@ public final class ProgramBuilder {
     
     private final Interner<String> stringInterner;
     
+    private final MemoryBuilder staticMemBuilder;
+    
     public static int generateID() {
         return COUNTER.getAndIncrement();
     }
     /**
      * initializes the program
      */
-    public ProgramBuilder() {
+    public ProgramBuilder(final MemoryBuilder staticMemBuilder) {
+        this.staticMemBuilder = staticMemBuilder;
         instructions = new Object[DEFAULT_SIZE];
         instrNumber = 0;
         type = Program.Type.NONDETERMINISTIC;
@@ -232,10 +237,11 @@ public final class ProgramBuilder {
         return hasAsyncCalls;
     }
     
-    public Program toProgram(final String[] parameterNames) {
+    public Program toProgram(final String[] parameterNames) throws CompileException {
         intern(instructions);
         intern(parameterNames);
-        return new Program(instructions, 0, instrNumber, type,
+        Pair<Object[], Map<String, Integer>> build = staticMemBuilder.build();
+        return new Program(build.getSecond(), build.getFirst(), instructions, 0, instrNumber, type,
                 this.execType == Program.ExecutionType.ASYNC || hasAsyncCalls()
                         ? (this.execType == null ? Program.ExecutionType.ASYNC : this.execType)
                         : Program.ExecutionType.SYNC_ALL,
@@ -243,7 +249,7 @@ public final class ProgramBuilder {
     }
     
     
-    public Program toProgram(final List<String> parameterNames) {
+    public Program toProgram(final List<String> parameterNames) throws CompileException {
         return toProgram(parameterNames.toArray(new String[parameterNames.size()]));
     }
 

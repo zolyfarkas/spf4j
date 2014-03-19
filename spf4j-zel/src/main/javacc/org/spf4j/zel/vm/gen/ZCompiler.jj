@@ -626,6 +626,7 @@ void sysFunction(ParsingContext context) :
     List parameterNames = new ArrayList();
     Program.Type pType = Program.Type.NONDETERMINISTIC;
     Program.ExecutionType eType = Program.ExecutionType.ASYNC;
+    String staticName = null;
 }
 {
 
@@ -633,6 +634,7 @@ void sysFunction(ParsingContext context) :
     (<DETERMINISTIC> {pType = Program.Type.DETERMINISTIC;})?
     ((<SYNC> {eType = Program.ExecutionType.SYNC;}) 
      | (<ASYNC> {eType = Program.ExecutionType.ASYNC;}))?
+    (<ID> {staticName = token.image;})?
  (<LPAREN>
  (<ID> {parameterNames.add(token.image);}
  (<COMMA> <ID> {parameterNames.add(token.image);} )*)
@@ -643,7 +645,19 @@ void sysFunction(ParsingContext context) :
    {ProgramBuilder p= pc.getProgramBuilder();
     p.setType(pType);
     p.setExecType(eType);
-    context.generateCode(p.toProgram(parameterNames));}
+    try { 
+      if (staticName != null) {
+          context.staticSymbol(staticName, null);
+      }
+      Program prog = p.toProgram(parameterNames);
+      if (staticName != null) {
+          context.staticSymbol(staticName, prog);
+      }
+      context.generateCode(prog);
+    } catch (CompileException e) {
+        throw new ParseException(e.toString());
+    }
+    }
 
 }
 

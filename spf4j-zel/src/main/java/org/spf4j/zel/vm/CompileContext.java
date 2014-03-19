@@ -21,11 +21,13 @@ package org.spf4j.zel.vm;
 public final class CompileContext implements ParsingContext {
 
     private final ProgramBuilder prog;
+    
+    private final MemoryBuilder staticMemBuilder;
 
-    public CompileContext() {
-        this.prog = new ProgramBuilder();
+    public CompileContext(final MemoryBuilder staticMemBuilder) {
+        this.prog = new ProgramBuilder(staticMemBuilder);
+        this.staticMemBuilder = staticMemBuilder;
     }
-
 
     @SuppressWarnings("unchecked")
     @Override
@@ -73,7 +75,12 @@ public final class CompileContext implements ParsingContext {
 
     @Override
     public CompileContext createSubContext() {
-        return new CompileContext();
+        return new CompileContext(staticMemBuilder);
+    }
+
+    @Override
+    public void staticSymbol(final String name, final Object object) {
+        staticMemBuilder.addSymbol(name, object);
     }
 
 

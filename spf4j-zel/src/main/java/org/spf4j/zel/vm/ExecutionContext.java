@@ -48,11 +48,13 @@ public final class ExecutionContext {
 
     public final ResultCache resultCache;
 
-    /**
-     * local memory context
-     */
     public final HierarchicalMap memory;
+        
+    public final Object [] mem;
 
+    public final Object [] globalMem;
+    
+    
     /**
      * the program
      */
@@ -97,7 +99,9 @@ public final class ExecutionContext {
         this.in = parent.in;
         this.out = parent.out;
         this.err = parent.err;
-        this.memory = new HierarchicalMap(parent.memory);
+        this.memory = null;//new HierarchicalMap(parent.memory);
+        this.mem = new Object[program.getLocalMemSize()];
+        this.globalMem = parent.globalMem;
         this.execService = service;
         this.stack = new SimpleStack(32);
         this.code = program;
@@ -114,17 +118,19 @@ public final class ExecutionContext {
      * @param out
      * @param err
      */
-    public ExecutionContext(final Program program, final java.util.Map memory,
+    public ExecutionContext(final Program program, final Object [] mem, final Object [] globalMem, 
             @Nullable final InputStream in, @Nullable final PrintStream out, @Nullable final PrintStream err,
             @Nullable final VMExecutor execService) {
         this.code = program;
-        this.memory = new HierarchicalMap(memory);
         this.in = in;
         this.out = out;
         this.err = err;
         this.execService = execService;
         this.stack = new SimpleStack(16);
         this.ip = 0;
+        this.memory = null; //        this.memory = new HierarchicalMap(memory);
+        this.mem = mem;
+        this.globalMem = globalMem;
         if (program.isHasDeterministicFunctions()) {
             this.resultCache = new SimpleResultCache();
         } else {
@@ -385,20 +391,14 @@ public final class ExecutionContext {
     public ExecutionContext getSubProgramContext(final Program program, final Object[] parameters) {
         ExecutionContext ec;
         ec = new ExecutionContext(this, this.execService, program);
-        String[] parameterNames = program.getParameterNames();
-        for (int i = 0; i < parameterNames.length; i++) {
-            ec.memory.put(parameterNames[i], parameters[i]);
-        }
+        System.arraycopy(parameters, 0, ec.mem, 0, parameters.length);
         return ec;
     }
     
     public ExecutionContext getSyncSubProgramContext(final Program program, final Object[] parameters) {
         ExecutionContext ec;
         ec = new ExecutionContext(this, null, program);
-        String[] parameterNames = program.getParameterNames();
-        for (int i = 0; i < parameterNames.length; i++) {
-            ec.memory.put(parameterNames[i], parameters[i]);
-        }
+        System.arraycopy(parameters, 0, ec.mem, 0, parameters.length);
         return ec;
     }
 

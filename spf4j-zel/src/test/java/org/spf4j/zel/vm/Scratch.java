@@ -36,17 +36,27 @@ public final  class Scratch {
 //        Program prog = Program.compile("s.format(\"Number %d\", 3)", "s");
 //        String result = (String) prog.execute(String.class);
 //        assertEquals(String.format("Number %d", 3), result);
-        
-        
-                String program
-                = "fib = function deterministic (x) { fib(x-1) + fib(x-2) };\n"
-                + "fib(0) = 0;\n"
-                + "fib(1) = 1;\n"
-                + "fib(10)";
 
-        Program compiledProgram = Program.compile(program);
-        System.out.println(compiledProgram);
-        Number result = (Number) compiledProgram.execute();
+        
+                String prog = "f = func (a, b) {sleep 1000; a + b };"
+                + "f(f(1, 2),f(3, 4))";
+        long startTime = System.currentTimeMillis();
+        Number result = (Number) Program.compile(prog).execute();
+        long elapsed = System.currentTimeMillis() - startTime;
+        System.out.println(elapsed);
+        Assert.assertTrue("Execution is " + elapsed + "should be smaller than 1200" , elapsed < 1200);
+        Assert.assertEquals(10, result.intValue());
+        
+        
+//                String program
+//                = "func det fib (x) { fib(x-1) + fib(x-2) };\n"
+//                + "fib(0) = 0;\n"
+//                + "fib(1) = 1;\n"
+//                + "fib(10)";
+//
+//        Program compiledProgram = Program.compile(program);
+//        System.out.println(compiledProgram);
+//        Number result = (Number) compiledProgram.execute();
 //       Program program = Program.compile("x.split(\",\")[1] = \"A\"", "x");
 //       System.out.println(program);
 //       String result = (String) program.execute("a,b,c");

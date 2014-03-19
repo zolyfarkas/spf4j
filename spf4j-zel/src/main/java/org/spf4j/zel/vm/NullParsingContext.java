@@ -65,4 +65,8 @@ public final class NullParsingContext implements ParsingContext {
     public void generateCodeAt(final int address, final Object... args) {
     }
 
+    @Override
+    public void staticSymbol(final String name, final Object object) {
+    }
+
 }

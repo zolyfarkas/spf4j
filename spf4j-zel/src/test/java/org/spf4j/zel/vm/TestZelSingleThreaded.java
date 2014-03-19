@@ -28,6 +28,13 @@ public final class TestZelSingleThreaded {
 
     @Test
     public void testPi() throws CompileException, ZExecutionException, InterruptedException {
+        for (int i = 0; i < 3; i++) {
+            testPiImpl();
+        }
+    }
+    
+    
+    public void testPiImpl() throws CompileException, ZExecutionException, InterruptedException {
         String pi = "pi = func sync (x) {"
                 + "term = func sync (k) {4 * (-1 ** k) / (2d * k + 1)};"
                 + "for i = 0, result = 0; i < x; i = i + 1 { result = result + term(i) };"

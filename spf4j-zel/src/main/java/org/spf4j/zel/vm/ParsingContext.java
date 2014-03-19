@@ -35,6 +35,9 @@ public interface ParsingContext {
      * @param args
      */
     void generateCodeAt(int address, Object... args);
+    
+    
+    void staticSymbol(String name, Object object);
 
     /**
      * Add code to this context
@@ -43,6 +46,7 @@ public interface ParsingContext {
      */
     void generateCodeAll(ParsingContext parsingContext);
 
+    
     /**
      * return the current code address
      *

@@ -38,6 +38,10 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import org.spf4j.zel.instr.Instruction;
+import org.spf4j.zel.instr.LODAX;
+import org.spf4j.zel.instr.LODAXF;
+import org.spf4j.zel.instr.LODX;
+import org.spf4j.zel.instr.LODXF;
 import org.spf4j.zel.instr.var.INT;
 import org.spf4j.zel.instr.var.LOG;
 import org.spf4j.zel.instr.var.MAX;
@@ -48,7 +52,6 @@ import org.spf4j.zel.instr.var.SQRT;
 import org.spf4j.zel.vm.gen.ParseException;
 import org.spf4j.zel.vm.gen.TokenMgrError;
 import org.spf4j.zel.vm.gen.ZCompiler;
-
 
 /**
  * <p>
@@ -67,7 +70,7 @@ public final class Program implements Serializable {
     public enum Type {
         DETERMINISTIC, NONDETERMINISTIC
     };
-    
+
     public enum ExecutionType {
         SYNC,
         SYNC_ALL,
@@ -81,6 +84,8 @@ public final class Program implements Serializable {
     private final Object[] instructions;
     private final String[] parameterNames;
     private final boolean hasDeterministicFunctions;
+    private final Map<String, Integer> symbolTable;
+    private final Object[] globalMem;
 
     /**
      * initializes program with an array of objects.
@@ -91,9 +96,11 @@ public final class Program implements Serializable {
      * @param progType
      * @param parameterNames
      */
-    public Program(@Nonnull final Object[] objs, @Nonnegative final int start,
+    public Program(final Map<String, Integer> globalTable, final Object[] globalMem,
+            @Nonnull final Object[] objs, @Nonnegative final int start,
             @Nonnegative final int end, final Type progType, final ExecutionType execType,
-            final boolean hasDeterministicFunctions, final String... parameterNames) {
+            final boolean hasDeterministicFunctions, final String... parameterNames) throws CompileException {
+        this.globalMem = globalMem;
         int length = end - start;
         instructions = new Object[length];
         System.arraycopy(objs, start, instructions, 0, length);
@@ -102,10 +109,60 @@ public final class Program implements Serializable {
         this.parameterNames = parameterNames;
         this.execType = execType;
         this.hasDeterministicFunctions = hasDeterministicFunctions;
+        symbolTable = new HashMap<String, Integer>(parameterNames.length);
+        int i = 0;
+        for (String param : parameterNames) {
+            Integer existing = symbolTable.put(param, i++);
+            if (existing != null) {
+                throw new CompileException("Duplicate parameter defined: " + param);
+            }
+        }
+        for (int j = 0; j < length; j++) {
+            Object code = instructions[j];
+            if (code == LODX.INSTANCE) {
+                String ref = (String) instructions[j + 1];
+                Integer idxr = symbolTable.get(ref);
+                Address adr;
+                if (idxr == null) {
+                    idxr = globalTable.get(ref);
+                    if (idxr == null) {
+                        throw new CompileException("undefined variable: " + ref);
+                    } else {
+                        adr = new Address(idxr, Address.Scope.GLOBAL);
+                    }
+                } else {
+                    adr = new Address(idxr, Address.Scope.LOCAL);
+                }
+                instructions[j] = LODXF.INSTANCE;
+                instructions[j + 1] = adr;
+                ++j;
+            } else if (code == LODAX.INSTANCE) {
+                String ref = (String) instructions[j + 1];
+                Integer idxr = symbolTable.get(ref);
+                Address adr;
+                if (idxr == null) {
+                    idxr = globalTable.get(ref);
+                    if (idxr == null) {
+                        idxr = i++;
+                        symbolTable.put(ref, idxr);
+                        adr = new Address(idxr, Address.Scope.LOCAL);
+                    } else {
+                        adr = new Address(idxr, Address.Scope.GLOBAL);
+                    }      
+                } else {
+                    adr = new Address(idxr, Address.Scope.LOCAL);
+                }
+                instructions[j] = LODAXF.INSTANCE;
+                instructions[j + 1] = adr;
+                ++j;
+            }
+        }
     }
     
     
-    
+    public int getLocalMemSize() {
+       return symbolTable.size();
+    }
 
     @Override
     @CheckReturnValue
@@ -129,7 +186,7 @@ public final class Program implements Serializable {
     public boolean isHasDeterministicFunctions() {
         return hasDeterministicFunctions;
     }
-    
+
     /**
      * @return the instructions
      */
@@ -151,7 +208,7 @@ public final class Program implements Serializable {
     public ExecutionType getExecType() {
         return execType;
     }
-    
+
     /**
      * create a compiled Z Byte Code
      *
@@ -162,7 +219,7 @@ public final class Program implements Serializable {
     public static Program compile(@Nonnull final String zExpr, @Nonnull final String... varNames)
             throws CompileException {
 
-        CompileContext cc = new CompileContext();
+        CompileContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());
         try {
             ZCompiler.compile(zExpr, cc);
         } catch (TokenMgrError err) {
@@ -174,61 +231,51 @@ public final class Program implements Serializable {
     }
 
     public Object execute() throws ZExecutionException, InterruptedException {
-        return execute(newMem(), System.in, System.out, System.err);
+        return execute(System.in, System.out, System.err);
     }
 
     public Object execute(final Object... args) throws ZExecutionException, InterruptedException {
-        return execute(newMem(), System.in, System.out, System.err, args);
+        return execute(System.in, System.out, System.err, args);
     }
 
     public Object execute(@Nonnull final ExecutorService execService,
             final Object... args) throws ZExecutionException, InterruptedException {
-        return execute(new VMExecutor(execService), newMem(), System.in, System.out, System.err, args);
+        return execute(new VMExecutor(execService), System.in, System.out, System.err, args);
     }
 
-    
-    public Object execute(@Nonnull final java.util.Map memory, final Object... args)
-            throws ZExecutionException, InterruptedException {
-        return execute(memory, System.in, System.out, System.err, args);
-    }
-    
-    private static final HierarchicalMap ZEL_GLOBAL_FUNC;
-    
+
+    private static final MemoryBuilder ZEL_GLOBAL_FUNC;
+
     static {
-        Map<Object, Object> stdFunctions = new HashMap<Object, Object>();
-        stdFunctions.put("out", OUT.INSTANCE);
-        stdFunctions.put("sqrt", SQRT.INSTANCE);
-        stdFunctions.put("int", INT.INSTANCE);
-        stdFunctions.put("log", LOG.INSTANCE);
-        stdFunctions.put("log10", LOG.INSTANCE);
-        stdFunctions.put("min", MIN.INSTANCE);
-        stdFunctions.put("max", MAX.INSTANCE);
-        stdFunctions.put("random", RANDOM.INSTANCE);
-        ZEL_GLOBAL_FUNC = new HierarchicalMap(stdFunctions);
+        ZEL_GLOBAL_FUNC = new MemoryBuilder();
+        ZEL_GLOBAL_FUNC.addSymbol("out", OUT.INSTANCE);
+        ZEL_GLOBAL_FUNC.addSymbol("sqrt", SQRT.INSTANCE);
+        ZEL_GLOBAL_FUNC.addSymbol("int", INT.INSTANCE);
+        ZEL_GLOBAL_FUNC.addSymbol("log", LOG.INSTANCE);
+        ZEL_GLOBAL_FUNC.addSymbol("log10", LOG.INSTANCE);
+        ZEL_GLOBAL_FUNC.addSymbol("min", MIN.INSTANCE);
+        ZEL_GLOBAL_FUNC.addSymbol("max", MAX.INSTANCE);
+        ZEL_GLOBAL_FUNC.addSymbol("random", RANDOM.INSTANCE);
     }
-    
-    
+
     /**
      * Execute the program with the provided memory and input / output streams when a exec service is specified this
      * function will return a Future Also it is recomended that a thread safe memory is used in case your functions will
      * modify the memory (not recomended)
      */
-    public Object execute(@Nullable final VMExecutor execService, @Nonnull final java.util.Map memory,
+    public Object execute(@Nullable final VMExecutor execService,
             @Nullable final InputStream in,
             @Nullable final PrintStream out,
             @Nullable final PrintStream err,
             final Object... args)
             throws ZExecutionException, InterruptedException {
-        HierarchicalMap map = new HierarchicalMap(ZEL_GLOBAL_FUNC, memory);
-        final ExecutionContext ectx = new ExecutionContext(this, map, in, out, err, execService);
-        for (int i = 0; i < args.length; i++) {
-            ectx.memory.put(this.parameterNames[i], args[i]);
-        }
+
+        Object [] mem = new Object[symbolTable.size()];
+        System.arraycopy(args, 0, mem, 0, args.length);
+        final ExecutionContext ectx = new ExecutionContext(this, mem, globalMem, in, out, err, execService);
         return execute(ectx);
     }
 
-    
-    
     public static Object executeSyncOrAsync(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
         final VMExecutor.Suspendable<Object> execution = ectx.getCallable();
@@ -242,11 +289,11 @@ public final class Program implements Serializable {
             try {
                 return execution.call();
             } catch (SuspendedException ex) {
-               throw new RuntimeException(ex);
+                throw new RuntimeException(ex);
             }
         }
     }
-    
+
     public static Future<Object> executeAsync(@Nonnull final ExecutionContext ectx) {
         final VMExecutor.Suspendable<Object> execution = ectx.getCallable();
         if (ectx.isChildContext()) {
@@ -255,47 +302,38 @@ public final class Program implements Serializable {
             return ectx.execService.submit(VMExecutor.synchronize(execution));
         }
     }
-    
-    
-   public static Object executeSync(@Nonnull final ExecutionContext ectx) throws
-           ZExecutionException, InterruptedException {
+
+    public static Object executeSync(@Nonnull final ExecutionContext ectx) throws
+            ZExecutionException, InterruptedException {
         try {
             return ectx.getCallable().call();
         } catch (SuspendedException ex) {
-           throw new RuntimeException(ex);
+            throw new RuntimeException(ex);
         }
     }
 
     public static Object execute(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
-            Object result = executeSyncOrAsync(ectx);
-            if (result instanceof Future) {
-                try {
-                    return ((Future<Object>) result).get();
-                } catch (ExecutionException ex) {
-                    throw new ZExecutionException(ex);
-                }
-            } else {
-                return result;
+        Object result = executeSyncOrAsync(ectx);
+        if (result instanceof Future) {
+            try {
+                return ((Future<Object>) result).get();
+            } catch (ExecutionException ex) {
+                throw new ZExecutionException(ex);
             }
-    }
-    
-    public Object execute(@Nonnull final java.util.Map memory, @Nonnull final InputStream in,
-            @Nonnull final PrintStream out, @Nonnull final PrintStream err, final Object... args)
-            throws ZExecutionException, InterruptedException {
-        if (execType == ExecutionType.SYNC_ALL) {
-            return execute(null, memory, in, out, err, args);
         } else {
-            return execute(VMExecutor.Lazy.DEFAULT, memory, in, out, err, args);
+            return result;
         }
     }
 
-    @CheckReturnValue
-    @Nonnull
-    public static java.util.Map newMem() {
-        //return  (java.util.Map) exampleMem.clone(); // (cannot be used because of java's poor implementation of clone)
-        //return new gnu.trove.THashMap(); // (in comparisons vs the java implementations the VM performs 5% slower)
-        return new HashMap();
+    public Object execute(@Nonnull final InputStream in,
+            @Nonnull final PrintStream out, @Nonnull final PrintStream err, final Object... args)
+            throws ZExecutionException, InterruptedException {
+        if (execType == ExecutionType.SYNC_ALL) {
+            return execute((VMExecutor) null, in, out, err, args);
+        } else {
+            return execute(VMExecutor.Lazy.DEFAULT, in, out, err, args);
+        }
     }
 
     /**
@@ -428,7 +466,7 @@ public final class Program implements Serializable {
     String[] getParameterNames() {
         return parameterNames;
     }
-    
+
     public boolean contains(final Instruction instr) {
         Boolean res = itterate(new Function<Object, Boolean>() {
             @Override
@@ -445,10 +483,10 @@ public final class Program implements Serializable {
         }
         return res;
     }
-    
+
     @Nullable
     public <T> T itterate(final Function<Object, T> func) {
-            for (Object code : instructions) {
+        for (Object code : instructions) {
             T res = func.apply(code);
             if (res != null) {
                 return res;
@@ -466,7 +504,5 @@ public final class Program implements Serializable {
     Object[] getInstructions() {
         return instructions;
     }
-    
-    
 
 }

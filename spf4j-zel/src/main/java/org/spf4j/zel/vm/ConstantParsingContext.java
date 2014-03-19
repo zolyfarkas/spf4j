@@ -54,12 +54,11 @@ public final class ConstantParsingContext implements ParsingContext {
 
     @Override
     public ProgramBuilder getProgramBuilder() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new ProgramBuilder(new MemoryBuilder());
     }
 
     @Override
     public void generateCodeAll(final ParsingContext parsingContext) {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -73,6 +72,9 @@ public final class ConstantParsingContext implements ParsingContext {
 
     @Override
     public void generateCodeAt(final int address, final Object... args) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void staticSymbol(final String name, final Object object) {
     }
 }

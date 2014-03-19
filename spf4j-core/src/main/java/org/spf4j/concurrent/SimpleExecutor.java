@@ -21,6 +21,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,11 +57,13 @@ public final class SimpleExecutor implements Executor {
                 public void run() {
                     try {
                         while (!terminated) {
-                            Runnable runnable = queuedTasks.take();
-                            try {
-                                runnable.run();
-                            } catch (RuntimeException ex) {
-                                LOG.error("Exception encountered in worker", ex);
+                            Runnable runnable = queuedTasks.poll(1, TimeUnit.SECONDS);
+                            if (runnable != null) {
+                                try {
+                                    runnable.run();
+                                } catch (RuntimeException ex) {
+                                    LOG.error("Exception encountered in worker", ex);
+                                }
                             }
                         }
                     } catch (InterruptedException ex) {

@@ -36,7 +36,6 @@ public final class HierarchicalMap<K, V>  implements Map<K, V> {
     private final HierarchicalMap<K, V> parentMap;
 
     
-    
     public HierarchicalMap(final HierarchicalMap<K, V> parentMap, final Map<K, V> map) {
         this.map = map;
         this.parentMap = parentMap;
