@@ -40,7 +40,7 @@ import org.jfree.chart.JFreeChart;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.Arrays;
-import org.spf4j.base.Strings;
+import org.spf4j.io.Csv;
 import org.spf4j.perf.impl.chart.Charts;
 import static org.spf4j.perf.impl.chart.Charts.fillGaps;
 
@@ -351,19 +351,19 @@ public final class TimeSeriesDatabase implements Closeable {
 <span class="fc" id="L351">        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8));</span>
 <span class="fc" id="L352">        DateTimeFormatter formatter = ISODateTimeFormat.dateTime();</span>
         try {
-<span class="fc" id="L354">            Strings.writeCsvElement(&quot;timestamp&quot;, writer);</span>
+<span class="fc" id="L354">            Csv.writeCsvElement(&quot;timestamp&quot;, writer);</span>
 <span class="fc bfc" id="L355" title="All 2 branches covered.">            for (String colName : table.getColumnNames()) {</span>
 <span class="fc" id="L356">                writer.append(',');</span>
-<span class="fc" id="L357">                Strings.writeCsvElement(colName, writer);</span>
+<span class="fc" id="L357">                Csv.writeCsvElement(colName, writer);</span>
             }
 <span class="fc" id="L359">            writer.write('\n');</span>
 <span class="fc" id="L360">            long[] timestamps = data.getFirst();</span>
 <span class="fc" id="L361">            long[][] values = data.getSecond();</span>
 <span class="fc bfc" id="L362" title="All 2 branches covered.">            for (int i = 0; i &lt; timestamps.length; i++)  {</span>
-<span class="fc" id="L363">                Strings.writeCsvElement(formatter.print(timestamps[i]), writer);</span>
+<span class="fc" id="L363">                Csv.writeCsvElement(formatter.print(timestamps[i]), writer);</span>
 <span class="fc bfc" id="L364" title="All 2 branches covered.">                for (long val : values[i]) {</span>
 <span class="fc" id="L365">                    writer.append(',');</span>
-<span class="fc" id="L366">                    Strings.writeCsvElement(Long.toString(val), writer);</span>
+<span class="fc" id="L366">                    Csv.writeCsvElement(Long.toString(val), writer);</span>
                 }
 <span class="fc" id="L368">                writer.write('\n');</span>
             }
@@ -379,12 +379,12 @@ public final class TimeSeriesDatabase implements Closeable {
         try {
 <span class="fc" id="L380">            String firstTable = tableNames.get(0);</span>
 <span class="fc" id="L381">            TSTable table = getTSTable(firstTable);</span>
-<span class="fc" id="L382">            Strings.writeCsvElement(&quot;table&quot;, writer);</span>
+<span class="fc" id="L382">            Csv.writeCsvElement(&quot;table&quot;, writer);</span>
 <span class="fc" id="L383">            writer.append(',');</span>
-<span class="fc" id="L384">            Strings.writeCsvElement(&quot;timestamp&quot;, writer);</span>
+<span class="fc" id="L384">            Csv.writeCsvElement(&quot;timestamp&quot;, writer);</span>
 <span class="fc bfc" id="L385" title="All 2 branches covered.">            for (String colName : table.getColumnNames()) {</span>
 <span class="fc" id="L386">                writer.append(',');</span>
-<span class="fc" id="L387">                Strings.writeCsvElement(colName, writer);</span>
+<span class="fc" id="L387">                Csv.writeCsvElement(colName, writer);</span>
             }
 <span class="fc" id="L389">            writer.write('\n');</span>
             
@@ -393,12 +393,12 @@ public final class TimeSeriesDatabase implements Closeable {
 <span class="fc" id="L393">                long[] timestamps = data.getFirst();</span>
 <span class="fc" id="L394">                long[][] values = data.getSecond();</span>
 <span class="fc bfc" id="L395" title="All 2 branches covered.">                for (int i = 0; i &lt; timestamps.length; i++)  {</span>
-<span class="fc" id="L396">                    Strings.writeCsvElement(tableName, writer);</span>
+<span class="fc" id="L396">                    Csv.writeCsvElement(tableName, writer);</span>
 <span class="fc" id="L397">                    writer.append(',');</span>
-<span class="fc" id="L398">                    Strings.writeCsvElement(formatter.print(timestamps[i]), writer);</span>
+<span class="fc" id="L398">                    Csv.writeCsvElement(formatter.print(timestamps[i]), writer);</span>
 <span class="fc bfc" id="L399" title="All 2 branches covered.">                    for (long val : values[i]) {</span>
 <span class="fc" id="L400">                        writer.append(',');</span>
-<span class="fc" id="L401">                        Strings.writeCsvElement(Long.toString(val), writer);</span>
+<span class="fc" id="L401">                        Csv.writeCsvElement(Long.toString(val), writer);</span>
                     }
 <span class="fc" id="L403">                    writer.write('\n');</span>
                 }

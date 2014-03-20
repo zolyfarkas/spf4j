@@ -37,16 +37,16 @@ public final class CALLA extends Instruction {
 
     private static final long serialVersionUID = 759722625722456554L;
 
-<span class="fc" id="L40">    private CALLA() {</span>
-<span class="fc" id="L41">    }</span>
+<span class="nc" id="L40">    private CALLA() {</span>
+<span class="nc" id="L41">    }</span>
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
     public void execute(final ExecutionContext context)
             throws ZExecutionException, InterruptedException, SuspendedException {
-<span class="fc" id="L47">        Integer nrParams = (Integer) context.pop();</span>
-<span class="fc" id="L48">        final Object function = context.peekFromTop(nrParams);</span>
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">        if (function instanceof Program) {</span>
+<span class="nc" id="L47">        Integer nrParams = (Integer) context.pop();</span>
+<span class="nc" id="L48">        final Object function = context.peekFromTop(nrParams);</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (function instanceof Program) {</span>
 <span class="nc" id="L50">            final Program p = (Program) function;</span>
             final ExecutionContext nctx;
             Object obj;
@@ -72,16 +72,16 @@ public final class CALLA extends Instruction {
 <span class="nc" id="L72">                    throw new UnsupportedOperationException(p.getType().toString());</span>
             }
 <span class="nc" id="L74">            context.push(obj);</span>
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        } else if (function instanceof Method) {</span>
-<span class="fc" id="L76">            final Object[] parameters = CALL.getParamsSync(context, nrParams);</span>
-<span class="fc" id="L77">            Future&lt;Object&gt; obj = context.execService.submit(new VMExecutor.Suspendable&lt;Object&gt;() {</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        } else if (function instanceof Method) {</span>
+<span class="nc" id="L76">            final Object[] parameters = CALL.getParamsSync(context, nrParams);</span>
+<span class="nc" id="L77">            Future&lt;Object&gt; obj = context.execService.submit(new VMExecutor.Suspendable&lt;Object&gt;() {</span>
 
                 @Override
                 @edu.umd.cs.findbugs.annotations.SuppressWarnings(
                 &quot;EXS_EXCEPTION_SOFTENING_HAS_CHECKED&quot;)
                 public Object call() {
                     try {
-<span class="fc" id="L84">                        return ((Method) function).invoke(context, parameters);</span>
+<span class="nc" id="L84">                        return ((Method) function).invoke(context, parameters);</span>
 <span class="nc" id="L85">                    } catch (Exception ex) {</span>
 <span class="nc" id="L86">                        throw new RuntimeException(ex);</span>
                     }
@@ -92,17 +92,17 @@ public final class CALLA extends Instruction {
 <span class="nc" id="L92">                    throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
                 }
             });
-<span class="fc" id="L95">            context.push(obj);</span>
+<span class="nc" id="L95">            context.push(obj);</span>
 
-<span class="fc" id="L97">        } else {</span>
+<span class="nc" id="L97">        } else {</span>
 <span class="nc" id="L98">            throw new ZExecutionException(&quot;cannot invoke &quot; + function);</span>
         }
-<span class="fc" id="L100">        context.ip++;</span>
-<span class="fc" id="L101">    }</span>
+<span class="nc" id="L100">        context.ip++;</span>
+<span class="nc" id="L101">    }</span>
 
     /**
      * instance
      */
-<span class="fc" id="L106">    public static final Instruction INSTANCE = new CALLA();</span>
+<span class="nc" id="L106">    public static final Instruction INSTANCE = new CALLA();</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

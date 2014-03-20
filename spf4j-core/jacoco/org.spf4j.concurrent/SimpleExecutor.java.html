@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SimpleExecutor.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">SimpleExecutor.java</span></div><h1>SimpleExecutor.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.concurrent;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ *
+ * @author zoly
+ */
+public final class SimpleExecutor implements Executor {
+
+    private final BlockingQueue&lt;Runnable&gt; queuedTasks;
+    
+    private final ThreadFactory threadFactory;
+
+    private volatile boolean terminated;
+    
+    private volatile Thread [] threads;
+
+<span class="nc" id="L42">    private static final Logger LOG = LoggerFactory.getLogger(SimpleExecutor.class);</span>
+
+<span class="nc" id="L44">    public SimpleExecutor() {</span>
+<span class="nc" id="L45">        queuedTasks = new LinkedBlockingQueue&lt;Runnable&gt;();</span>
+<span class="nc" id="L46">        terminated = false;</span>
+<span class="nc" id="L47">        threads = null;</span>
+<span class="nc" id="L48">        threadFactory = new CustomThreadFactory(&quot;SimpleExecutor&quot;, true);</span>
+<span class="nc" id="L49">    }</span>
+
+    public void startThreads(final int nrThreads) {
+<span class="nc" id="L52">        Thread [] newThreads = new Thread[nrThreads];</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        for (int i = 0; i &lt; nrThreads; i++) {</span>
+<span class="nc" id="L54">            Thread t = threadFactory.newThread(new Runnable() {</span>
+
+                @Override
+                public void run() {
+                    try {
+<span class="nc bnc" id="L59" title="All 2 branches missed.">                        while (!terminated) {</span>
+<span class="nc" id="L60">                            Runnable runnable = queuedTasks.poll(1, TimeUnit.SECONDS);</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">                            if (runnable != null) {</span>
+                                try {
+<span class="nc" id="L63">                                    runnable.run();</span>
+<span class="nc" id="L64">                                } catch (RuntimeException ex) {</span>
+<span class="nc" id="L65">                                    LOG.error(&quot;Exception encountered in worker&quot;, ex);</span>
+<span class="nc" id="L66">                                }</span>
+                            }
+<span class="nc" id="L68">                        }</span>
+<span class="nc" id="L69">                    } catch (InterruptedException ex) {</span>
+<span class="nc" id="L70">                        LOG.info(&quot;SimpleExecutor worker interrupted&quot;, ex);</span>
+<span class="nc" id="L71">                    }</span>
+<span class="nc" id="L72">                }</span>
+            });
+<span class="nc" id="L74">            t.start();</span>
+<span class="nc" id="L75">            newThreads[i] = t;</span>
+        }
+<span class="nc" id="L77">        threads = newThreads;</span>
+<span class="nc" id="L78">    }</span>
+    
+    public void shutdown() {
+<span class="nc" id="L81">        terminated = true;</span>
+<span class="nc" id="L82">    }</span>
+    
+    public void shutdownAndWait() throws InterruptedException {
+<span class="nc" id="L85">        terminated = true;</span>
+<span class="nc" id="L86">        Thread [] theThreads = threads;</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        for (Thread t : theThreads) {</span>
+<span class="nc" id="L88">            t.join();</span>
+        }
+<span class="nc" id="L90">    }</span>
+    
+
+    @Override
+    public void execute(final Runnable command) {
+        try {
+<span class="nc" id="L96">            queuedTasks.put(command);</span>
+<span class="nc" id="L97">        } catch (InterruptedException ex) {</span>
+<span class="nc" id="L98">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L99">        }</span>
+<span class="nc" id="L100">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

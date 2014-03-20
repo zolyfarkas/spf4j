@@ -31,13 +31,13 @@ import java.util.Locale;
 
 
     public final String translate(final CharSequence input) {
-<span class="nc bnc" id="L34" title="All 2 branches missed.">        if (input == null) {</span>
+<span class="pc bpc" id="L34" title="1 of 2 branches missed.">        if (input == null) {</span>
 <span class="nc" id="L35">            return null;</span>
         }
         try {
-<span class="nc" id="L38">            final StringWriter writer = new StringWriter(input.length() * 2);</span>
-<span class="nc" id="L39">            translate(input, writer);</span>
-<span class="nc" id="L40">            return writer.toString();</span>
+<span class="fc" id="L38">            final StringWriter writer = new StringWriter(input.length() * 2);</span>
+<span class="fc" id="L39">            translate(input, writer);</span>
+<span class="fc" id="L40">            return writer.toString();</span>
 <span class="nc" id="L41">        } catch (final IOException ioe) {</span>
             // this should never ever happen while writing to a StringWriter
 <span class="nc" id="L43">            throw new RuntimeException(ioe);</span>
@@ -46,27 +46,27 @@ import java.util.Locale;
 
 
     public final void translate(final CharSequence input, final Writer out) throws IOException {
-<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (out == null) {</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">        if (out == null) {</span>
 <span class="nc" id="L50">            throw new IllegalArgumentException(&quot;The Writer must not be null&quot;);</span>
         }
-<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (input == null) {</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        if (input == null) {</span>
 <span class="nc" id="L53">            return;</span>
         }
-<span class="nc" id="L55">        int pos = 0;</span>
-<span class="nc" id="L56">        final int len = input.length();</span>
-<span class="nc bnc" id="L57" title="All 2 branches missed.">        while (pos &lt; len) {</span>
-<span class="nc" id="L58">            final int consumed = translate(input, pos, out);</span>
-<span class="nc bnc" id="L59" title="All 2 branches missed.">            if (consumed == 0) {</span>
-<span class="nc" id="L60">                final char[] c = Character.toChars(Character.codePointAt(input, pos));</span>
-<span class="nc" id="L61">                out.write(c);</span>
-<span class="nc" id="L62">                pos += c.length;</span>
-<span class="nc" id="L63">                continue;</span>
+<span class="fc" id="L55">        int pos = 0;</span>
+<span class="fc" id="L56">        final int len = input.length();</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        while (pos &lt; len) {</span>
+<span class="fc" id="L58">            final int consumed = translate(input, pos, out);</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">            if (consumed == 0) {</span>
+<span class="fc" id="L60">                final char[] c = Character.toChars(Character.codePointAt(input, pos));</span>
+<span class="fc" id="L61">                out.write(c);</span>
+<span class="fc" id="L62">                pos += c.length;</span>
+<span class="fc" id="L63">                continue;</span>
             }
-<span class="nc bnc" id="L65" title="All 2 branches missed.">            for (int pt = 0; pt &lt; consumed; pt++) {</span>
-<span class="nc" id="L66">                pos += Character.charCount(Character.codePointAt(input, pt));</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">            for (int pt = 0; pt &lt; consumed; pt++) {</span>
+<span class="fc" id="L66">                pos += Character.charCount(Character.codePointAt(input, pt));</span>
             }
-<span class="nc" id="L68">        }</span>
-<span class="nc" id="L69">    }</span>
+<span class="fc" id="L68">        }</span>
+<span class="fc" id="L69">    }</span>
 
 
     public final CharSequenceTranslator with(final CharSequenceTranslator... translators) {

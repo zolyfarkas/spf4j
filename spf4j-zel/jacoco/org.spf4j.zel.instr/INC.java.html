@@ -22,6 +22,7 @@ import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
+import org.spf4j.zel.vm.ZExecutionException;
 
 
 /**
@@ -34,8 +35,8 @@ public final class INC extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
 
-<span class="fc" id="L37">    private INC() {</span>
-<span class="fc" id="L38">    }</span>
+<span class="nc" id="L38">    private INC() {</span>
+<span class="nc" id="L39">    }</span>
     
     /**
      * ADD Instruction microcode
@@ -45,22 +46,22 @@ public final class INC extends Instruction {
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
     public void execute(final ExecutionContext context)
-            throws SuspendedException {
-<span class="fc" id="L49">        Object val = context.popSyncStackVal();</span>
-<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        if (val instanceof AssignableValue) {</span>
-<span class="fc" id="L51">            AssignableValue aval = (AssignableValue) val;</span>
-<span class="fc" id="L52">            Number nr = (Number) aval.get();</span>
-<span class="fc" id="L53">            Number result = (Number) Operators.apply(Operator.Enum.Add, nr, 1);</span>
-<span class="fc" id="L54">            aval.assign(result);</span>
-<span class="fc" id="L55">        } else {</span>
-<span class="nc" id="L56">            context.push(Operators.apply(Operator.Enum.Add, val, 1));</span>
+            throws SuspendedException, ZExecutionException, InterruptedException {
+<span class="nc" id="L50">        Object val = context.popSyncStackVal();</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">        if (val instanceof AssignableValue) {</span>
+<span class="nc" id="L52">            AssignableValue aval = (AssignableValue) val;</span>
+<span class="nc" id="L53">            Number nr = (Number) aval.get();</span>
+<span class="nc" id="L54">            Number result = (Number) Operators.apply(Operator.Enum.Add, nr, 1);</span>
+<span class="nc" id="L55">            aval.assign(result);</span>
+<span class="nc" id="L56">        } else {</span>
+<span class="nc" id="L57">            context.push(Operators.apply(Operator.Enum.Add, val, 1));</span>
         }
-<span class="fc" id="L58">        context.ip++;</span>
-<span class="fc" id="L59">    }</span>
+<span class="nc" id="L59">        context.ip++;</span>
+<span class="nc" id="L60">    }</span>
     /**
      * Add instance
      */
-<span class="fc" id="L63">    public static final Instruction INSTANCE = new INC();</span>
+<span class="nc" id="L64">    public static final Instruction INSTANCE = new INC();</span>
 
 
 }

@@ -17,6 +17,8 @@
  */
 package org.spf4j.base;
 
+import java.lang.reflect.Array;
+
 /**
  * Array utilities.
  *
@@ -24,93 +26,119 @@ package org.spf4j.base;
  */
 public final class Arrays {
 
-<span class="nc" id="L27">    private Arrays() {</span>
-<span class="nc" id="L28">    }</span>
+<span class="nc" id="L29">    private Arrays() {</span>
+<span class="nc" id="L30">    }</span>
 
     public static double[] getColumnAsDoubles(final long[][] data, final int columnNumber) {
-<span class="fc" id="L31">        double[] result = new double[data.length];</span>
-<span class="fc bfc" id="L32" title="All 2 branches covered.">        for (int i = 0; i &lt; result.length; i++) {</span>
-<span class="fc" id="L33">            result[i] = data[i][columnNumber];</span>
+<span class="fc" id="L33">        double[] result = new double[data.length];</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        for (int i = 0; i &lt; result.length; i++) {</span>
+<span class="fc" id="L35">            result[i] = data[i][columnNumber];</span>
         }
-<span class="fc" id="L35">        return result;</span>
+<span class="fc" id="L37">        return result;</span>
     }
 
     public static double[] getColumn(final double[][] data, final int columnNumber) {
-<span class="fc" id="L39">        double[] result = new double[data.length];</span>
-<span class="fc bfc" id="L40" title="All 2 branches covered.">        for (int i = 0; i &lt; result.length; i++) {</span>
-<span class="fc" id="L41">            result[i] = data[i][columnNumber];</span>
+<span class="fc" id="L41">        double[] result = new double[data.length];</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        for (int i = 0; i &lt; result.length; i++) {</span>
+<span class="fc" id="L43">            result[i] = data[i][columnNumber];</span>
         }
-<span class="fc" id="L43">        return result;</span>
+<span class="fc" id="L45">        return result;</span>
     }
 
     public static double[] toDoubleArray(final long[] larr) {
-<span class="fc" id="L47">        double[] result = new double[larr.length];</span>
-<span class="fc bfc" id="L48" title="All 2 branches covered.">        for (int i = 0; i &lt; larr.length; i++) {</span>
-<span class="fc" id="L49">            result[i] = larr[i];</span>
+<span class="fc" id="L49">        double[] result = new double[larr.length];</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        for (int i = 0; i &lt; larr.length; i++) {</span>
+<span class="fc" id="L51">            result[i] = larr[i];</span>
         }
-<span class="fc" id="L51">        return result;</span>
+<span class="fc" id="L53">        return result;</span>
     }
 
     public static double[] divide(final double[] arr1, final double[] arr2) {
-<span class="fc" id="L55">        double[] result = new double[arr1.length];</span>
-<span class="fc bfc" id="L56" title="All 2 branches covered.">        for (int i = 0; i &lt; result.length; i++) {</span>
-<span class="fc" id="L57">            result[i] = arr1[i] / arr2[i];</span>
+<span class="fc" id="L57">        double[] result = new double[arr1.length];</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        for (int i = 0; i &lt; result.length; i++) {</span>
+<span class="fc" id="L59">            result[i] = arr1[i] / arr2[i];</span>
         }
-<span class="fc" id="L59">        return result;</span>
+<span class="fc" id="L61">        return result;</span>
     }
     
     public static boolean deepEquals(final Object[] a1, final Object[] a2, final int starting) {
-<span class="nc" id="L63">        return deepEquals(a1, a2, starting, a1.length);</span>
+<span class="nc" id="L65">        return deepEquals(a1, a2, starting, a1.length);</span>
     }
 
     public static boolean deepEquals(final Object[] a1, final Object[] a2, final int starting, final int ending) {
-<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (a1 == a2) {</span>
-<span class="nc" id="L68">            return true;</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (a1 == a2) {</span>
+<span class="nc" id="L70">            return true;</span>
         }
-<span class="nc bnc" id="L70" title="All 4 branches missed.">        if (a1 == null || a2 == null) {</span>
-<span class="nc" id="L71">            return false;</span>
+<span class="nc bnc" id="L72" title="All 4 branches missed.">        if (a1 == null || a2 == null) {</span>
+<span class="nc" id="L73">            return false;</span>
         }
 
-<span class="nc bnc" id="L74" title="All 2 branches missed.">        for (int i = starting; i &lt; ending; i++) {</span>
-<span class="nc" id="L75">            Object e1 = a1[i];</span>
-<span class="nc" id="L76">            Object e2 = a2[i];</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        for (int i = starting; i &lt; ending; i++) {</span>
+<span class="nc" id="L77">            Object e1 = a1[i];</span>
+<span class="nc" id="L78">            Object e2 = a2[i];</span>
 
-<span class="nc bnc" id="L78" title="All 2 branches missed.">            if (e1 == e2) {</span>
-<span class="nc" id="L79">                continue;</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">            if (e1 == e2) {</span>
+<span class="nc" id="L81">                continue;</span>
             }
-<span class="nc bnc" id="L81" title="All 2 branches missed.">            if (e1 == null) {</span>
-<span class="nc" id="L82">                return false;</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">            if (e1 == null) {</span>
+<span class="nc" id="L84">                return false;</span>
             }
 
             // Figure out whether the two elements are equal
             boolean eq;
-<span class="nc bnc" id="L87" title="All 4 branches missed.">            if (e1 instanceof Object[] &amp;&amp; e2 instanceof Object[]) {</span>
-<span class="nc" id="L88">                eq = java.util.Arrays.deepEquals((Object[]) e1, (Object[]) e2);</span>
-<span class="nc bnc" id="L89" title="All 4 branches missed.">            } else if (e1 instanceof byte[] &amp;&amp; e2 instanceof byte[]) {</span>
-<span class="nc" id="L90">                eq = java.util.Arrays.equals((byte[]) e1, (byte[]) e2);</span>
-<span class="nc bnc" id="L91" title="All 4 branches missed.">            } else if (e1 instanceof short[] &amp;&amp; e2 instanceof short[]) {</span>
-<span class="nc" id="L92">                eq = java.util.Arrays.equals((short[]) e1, (short[]) e2);</span>
-<span class="nc bnc" id="L93" title="All 4 branches missed.">            } else if (e1 instanceof int[] &amp;&amp; e2 instanceof int[]) {</span>
-<span class="nc" id="L94">                eq = java.util.Arrays.equals((int[]) e1, (int[]) e2);</span>
-<span class="nc bnc" id="L95" title="All 4 branches missed.">            } else if (e1 instanceof long[] &amp;&amp; e2 instanceof long[]) {</span>
-<span class="nc" id="L96">                eq = java.util.Arrays.equals((long[]) e1, (long[]) e2);</span>
-<span class="nc bnc" id="L97" title="All 4 branches missed.">            } else if (e1 instanceof char[] &amp;&amp; e2 instanceof char[]) {</span>
-<span class="nc" id="L98">                eq = java.util.Arrays.equals((char[]) e1, (char[]) e2);</span>
-<span class="nc bnc" id="L99" title="All 4 branches missed.">            } else if (e1 instanceof float[] &amp;&amp; e2 instanceof float[]) {</span>
-<span class="nc" id="L100">                eq = java.util.Arrays.equals((float[]) e1, (float[]) e2);</span>
-<span class="nc bnc" id="L101" title="All 4 branches missed.">            } else if (e1 instanceof double[] &amp;&amp; e2 instanceof double[]) {</span>
-<span class="nc" id="L102">                eq = java.util.Arrays.equals((double[]) e1, (double[]) e2);</span>
-<span class="nc bnc" id="L103" title="All 4 branches missed.">            } else if (e1 instanceof boolean[] &amp;&amp; e2 instanceof boolean[]) {</span>
-<span class="nc" id="L104">                eq = java.util.Arrays.equals((boolean[]) e1, (boolean[]) e2);</span>
+<span class="nc bnc" id="L89" title="All 4 branches missed.">            if (e1 instanceof Object[] &amp;&amp; e2 instanceof Object[]) {</span>
+<span class="nc" id="L90">                eq = java.util.Arrays.deepEquals((Object[]) e1, (Object[]) e2);</span>
+<span class="nc bnc" id="L91" title="All 4 branches missed.">            } else if (e1 instanceof byte[] &amp;&amp; e2 instanceof byte[]) {</span>
+<span class="nc" id="L92">                eq = java.util.Arrays.equals((byte[]) e1, (byte[]) e2);</span>
+<span class="nc bnc" id="L93" title="All 4 branches missed.">            } else if (e1 instanceof short[] &amp;&amp; e2 instanceof short[]) {</span>
+<span class="nc" id="L94">                eq = java.util.Arrays.equals((short[]) e1, (short[]) e2);</span>
+<span class="nc bnc" id="L95" title="All 4 branches missed.">            } else if (e1 instanceof int[] &amp;&amp; e2 instanceof int[]) {</span>
+<span class="nc" id="L96">                eq = java.util.Arrays.equals((int[]) e1, (int[]) e2);</span>
+<span class="nc bnc" id="L97" title="All 4 branches missed.">            } else if (e1 instanceof long[] &amp;&amp; e2 instanceof long[]) {</span>
+<span class="nc" id="L98">                eq = java.util.Arrays.equals((long[]) e1, (long[]) e2);</span>
+<span class="nc bnc" id="L99" title="All 4 branches missed.">            } else if (e1 instanceof char[] &amp;&amp; e2 instanceof char[]) {</span>
+<span class="nc" id="L100">                eq = java.util.Arrays.equals((char[]) e1, (char[]) e2);</span>
+<span class="nc bnc" id="L101" title="All 4 branches missed.">            } else if (e1 instanceof float[] &amp;&amp; e2 instanceof float[]) {</span>
+<span class="nc" id="L102">                eq = java.util.Arrays.equals((float[]) e1, (float[]) e2);</span>
+<span class="nc bnc" id="L103" title="All 4 branches missed.">            } else if (e1 instanceof double[] &amp;&amp; e2 instanceof double[]) {</span>
+<span class="nc" id="L104">                eq = java.util.Arrays.equals((double[]) e1, (double[]) e2);</span>
+<span class="nc bnc" id="L105" title="All 4 branches missed.">            } else if (e1 instanceof boolean[] &amp;&amp; e2 instanceof boolean[]) {</span>
+<span class="nc" id="L106">                eq = java.util.Arrays.equals((boolean[]) e1, (boolean[]) e2);</span>
             } else {
-<span class="nc" id="L106">                eq = e1.equals(e2);</span>
+<span class="nc" id="L108">                eq = e1.equals(e2);</span>
             }
 
-<span class="nc bnc" id="L109" title="All 2 branches missed.">            if (!eq) {</span>
-<span class="nc" id="L110">                return false;</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            if (!eq) {</span>
+<span class="nc" id="L112">                return false;</span>
             }
         }
-<span class="nc" id="L113">        return true;</span>
+<span class="nc" id="L115">        return true;</span>
     }
+    
+    public static int search(final char [] array, final char c) {
+<span class="fc bfc" id="L119" title="All 2 branches covered.">        for (int i = 0; i &lt; array.length; i++) {</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">            if (array[i] == c) {</span>
+<span class="fc" id="L121">                return i;</span>
+            }
+        }
+<span class="fc" id="L124">        return -1;</span>
+    }
+    
+    public static &lt;T&gt; T[] moveOfRange(final T[] original, final int from, final int to) {
+<span class="nc" id="L128">        int newLength = to - from;</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (newLength &lt; 0) {</span>
+<span class="nc" id="L130">            throw new IllegalArgumentException(from + &quot; &gt; &quot; + to);</span>
+        }
+<span class="nc" id="L132">        Class&lt;?&gt; newType = original.getClass();</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        T[] copy = ((Object) newType == (Object) Object[].class)</span>
+            ? (T[]) new Object[newLength]
+            : (T[]) Array.newInstance(newType.getComponentType(), newLength);
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        for (int i = from, j = 0; i &lt; to; i++, j++) {</span>
+<span class="nc" id="L137">            copy[j] = original[i];</span>
+<span class="nc" id="L138">            original[i] = null;</span>
+        }
+<span class="nc" id="L140">        return copy;</span>
+    }
+    
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

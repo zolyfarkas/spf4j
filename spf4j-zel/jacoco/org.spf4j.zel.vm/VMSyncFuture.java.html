@@ -29,7 +29,7 @@ import static org.spf4j.concurrent.FutureBean.processResult;
  * @author zoly
  */
 @ThreadSafe
-<span class="fc" id="L32">public class VMSyncFuture&lt;T&gt; implements VMFuture&lt;T&gt; {</span>
+<span class="nc" id="L32">public class VMSyncFuture&lt;T&gt; implements VMFuture&lt;T&gt; {</span>
     private volatile Pair&lt;T, ? extends ExecutionException&gt; resultStore;
 
     @Override
@@ -44,22 +44,22 @@ import static org.spf4j.concurrent.FutureBean.processResult;
 
     @Override
     public final boolean isDone() {
-<span class="pc bpc" id="L47" title="1 of 2 branches missed.">        return resultStore != null;</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        return resultStore != null;</span>
     }
     
     @Override
     public final Pair&lt;T, ? extends ExecutionException&gt; getResultStore() {
-<span class="fc" id="L52">        return resultStore;</span>
+<span class="nc" id="L52">        return resultStore;</span>
     }
 
     @Override
     // Findbugs complain here is rubbish, InterruptedException is thrown by wait
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;BED_BOGUS_EXCEPTION_DECLARATION&quot;)
     public final synchronized T get() throws InterruptedException, ExecutionException {
-<span class="fc bfc" id="L59" title="All 2 branches covered.">        while (resultStore == null) {</span>
-<span class="fc" id="L60">            this.wait();</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        while (resultStore == null) {</span>
+<span class="nc" id="L60">            this.wait();</span>
         }
-<span class="fc" id="L62">        return processResult(resultStore);</span>
+<span class="nc" id="L62">        return processResult(resultStore);</span>
     }
 
     @Override
@@ -82,17 +82,17 @@ import static org.spf4j.concurrent.FutureBean.processResult;
 
     @Override
     public final synchronized void setResult(final T result) {
-<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (resultStore != null) {</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (resultStore != null) {</span>
 <span class="nc" id="L86">            throw new IllegalStateException(&quot;cannot set result multiple times&quot;);</span>
         }
-<span class="fc" id="L88">        resultStore = Pair.of(result, (ExecutionException) null);</span>
-<span class="fc" id="L89">        this.notifyAll();</span>
-<span class="fc" id="L90">    }</span>
+<span class="nc" id="L88">        resultStore = Pair.of(result, (ExecutionException) null);</span>
+<span class="nc" id="L89">        this.notifyAll();</span>
+<span class="nc" id="L90">    }</span>
     
     @Override
     public final synchronized void setExceptionResult(final ExecutionException result) {
-<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        if (result.getCause() == ExecAbortException.INSTANCE) {</span>
-<span class="fc" id="L95">            return;</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (result.getCause() == ExecAbortException.INSTANCE) {</span>
+<span class="nc" id="L95">            return;</span>
         }
 <span class="nc bnc" id="L97" title="All 2 branches missed.">        if (resultStore != null) {</span>
 <span class="nc" id="L98">            throw new IllegalStateException(&quot;cannot set result multiple times&quot;);</span>

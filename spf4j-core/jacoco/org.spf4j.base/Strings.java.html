@@ -18,8 +18,6 @@
  */
 package org.spf4j.base;
 
-import java.io.IOException;
-import java.io.Writer;
 import static java.lang.Math.min;
 import javax.annotation.Nonnull;
 
@@ -29,93 +27,14 @@ import javax.annotation.Nonnull;
  */
 public final class Strings {
 
-<span class="nc" id="L32">    private Strings() {</span>
-<span class="nc" id="L33">    }</span>
-
-    public static void writeCsvElement(final String elem, final Writer writer) throws IOException {
-<span class="pc bpc" id="L36" title="1 of 2 branches missed.">        if (elem.contains(&quot;,&quot;)) {</span>
-<span class="nc" id="L37">            int length = elem.length();</span>
-<span class="nc" id="L38">            writer.write('&quot;');</span>
-<span class="nc bnc" id="L39" title="All 2 branches missed.">            for (int i = 0; i &lt; length; i++) {</span>
-<span class="nc" id="L40">                char c = elem.charAt(i);</span>
-<span class="nc bnc" id="L41" title="All 2 branches missed.">                if (c == '&quot;') {</span>
-<span class="nc" id="L42">                    writer.write(&quot;\&quot;\&quot;&quot;);</span>
-                } else {
-<span class="nc" id="L44">                    writer.write(c);</span>
-                }
-            }
-<span class="nc" id="L47">            writer.write('&quot;');</span>
-<span class="nc" id="L48">        } else {</span>
-<span class="fc" id="L49">            writer.write(elem);</span>
-        }
-<span class="fc" id="L51">    }</span>
-
-    public static String toCsvElement(final String elem) {
-<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (elem.contains(&quot;,&quot;)) {</span>
-<span class="fc" id="L55">            int length = elem.length();</span>
-<span class="fc" id="L56">            StringBuilder builder = new StringBuilder(length + 2);</span>
-<span class="fc" id="L57">            builder.append('&quot;');</span>
-<span class="fc bfc" id="L58" title="All 2 branches covered.">            for (int i = 0; i &lt; length; i++) {</span>
-<span class="fc" id="L59">                char c = elem.charAt(i);</span>
-<span class="fc bfc" id="L60" title="All 2 branches covered.">                if (c == '&quot;') {</span>
-<span class="fc" id="L61">                    builder.append(&quot;\&quot;\&quot;&quot;);</span>
-                } else {
-<span class="fc" id="L63">                    builder.append(c);</span>
-                }
-            }
-<span class="fc" id="L66">            builder.append('&quot;');</span>
-<span class="fc" id="L67">            return builder.toString();</span>
-
-        } else {
-<span class="fc" id="L70">            return elem;</span>
-        }
-    }
-
-    public static int readCsvElement(final String fromStr, final int fromIdx,
-            final StringBuilder addElemTo) {
-<span class="fc" id="L76">        return readCsvElement(fromStr, fromIdx, fromStr.length(), addElemTo);</span>
-    }
-
-    public static int readCsvElement(final String fromStr, final int fromIdx,
-            final int maxIdx, final StringBuilder addElemTo) {
-<span class="fc" id="L81">        int i = fromIdx;</span>
-<span class="fc" id="L82">        char c = fromStr.charAt(i);</span>
-<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (c == '&quot;') {</span>
-<span class="fc" id="L84">            i++;</span>
-<span class="pc bpc" id="L85" title="1 of 2 branches missed.">            while (i &lt; maxIdx) {</span>
-<span class="fc" id="L86">                c = fromStr.charAt(i);</span>
-<span class="fc bfc" id="L87" title="All 2 branches covered.">                if (c == '&quot;') {</span>
-<span class="fc" id="L88">                    int nxtIdx = i + 1;</span>
-<span class="fc bfc" id="L89" title="All 2 branches covered.">                    if (nxtIdx &lt; maxIdx) {</span>
-<span class="pc bpc" id="L90" title="1 of 2 branches missed.">                        if (fromStr.charAt(nxtIdx) == '&quot;') {</span>
-<span class="fc" id="L91">                            addElemTo.append(c);</span>
-<span class="fc" id="L92">                            i = nxtIdx;</span>
-                        } else {
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
-<span class="fc" id="L99">                } else {</span>
-<span class="fc" id="L100">                    addElemTo.append(c);</span>
-                }
-<span class="fc" id="L102">                i++;</span>
-            }
-        } else {
-<span class="fc bfc" id="L105" title="All 2 branches covered.">            while (c != ',') {</span>
-<span class="fc" id="L106">                addElemTo.append(c);</span>
-<span class="fc" id="L107">                i++;</span>
-<span class="pc bpc" id="L108" title="1 of 2 branches missed.">                if (i &gt;= maxIdx) {</span>
-<span class="nc" id="L109">                    break;</span>
-                }
-<span class="fc" id="L111">                c = fromStr.charAt(i);</span>
-            }
-        }
-<span class="fc" id="L114">        return i;</span>
-    }
-
+<span class="nc" id="L30">    private Strings() {</span>
+<span class="nc" id="L31">    }</span>
+    
+<span class="fc" id="L33">    public static final String EOL = System.getProperty(&quot;line.separator&quot;, &quot;\n&quot;);</span>
+    
     /**
-     * function that calculates the number of operations that are needed to transform s1 into s2. operations are: char
+     * function that calculates the number of operations that are needed to transform s1 into s2.
+     * operations are: char
      * add, char delete, char modify
      *
      * @param s1
@@ -123,38 +42,38 @@ public final class Strings {
      * @return the number of operations required to transfor s1 into s2
      */
     public static int distance(@Nonnull final String s1, @Nonnull final String s2) {
-<span class="fc" id="L126">        int l1 = s1.length();</span>
-<span class="fc" id="L127">        int l2 = s2.length();</span>
+<span class="fc" id="L45">        int l1 = s1.length();</span>
+<span class="fc" id="L46">        int l2 = s2.length();</span>
 
-<span class="fc" id="L129">        int[] prev = new int[l2];</span>
-<span class="fc" id="L130">        char c1 = s1.charAt(0);</span>
-<span class="fc" id="L131">        prev[0] = distance(c1, s2.charAt(0));</span>
-<span class="fc bfc" id="L132" title="All 2 branches covered.">        for (int j = 1; j &lt; l2; j++) {</span>
-<span class="fc" id="L133">            prev[j] = prev[j - 1] + distance(c1, s2.charAt(j));</span>
+<span class="fc" id="L48">        int[] prev = new int[l2];</span>
+<span class="fc" id="L49">        char c1 = s1.charAt(0);</span>
+<span class="fc" id="L50">        prev[0] = distance(c1, s2.charAt(0));</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        for (int j = 1; j &lt; l2; j++) {</span>
+<span class="fc" id="L52">            prev[j] = prev[j - 1] + distance(c1, s2.charAt(j));</span>
         }
 
-<span class="fc bfc" id="L136" title="All 2 branches covered.">        for (int i = 1; i &lt; l1; i++) {</span>
-<span class="fc" id="L137">            int[] dist = new int[l2];</span>
-<span class="fc" id="L138">            c1 = s1.charAt(i);</span>
-<span class="fc" id="L139">            dist[0] = prev[i - 1] + distance(c1, s2.charAt(0));</span>
-<span class="fc bfc" id="L140" title="All 2 branches covered.">            for (int j = 1; j &lt; l2; j++) {</span>
-<span class="fc" id="L141">                dist[j] = min(prev[j - 1] + distance(c1, s2.charAt(j)),</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        for (int i = 1; i &lt; l1; i++) {</span>
+<span class="fc" id="L56">            int[] dist = new int[l2];</span>
+<span class="fc" id="L57">            c1 = s1.charAt(i);</span>
+<span class="fc" id="L58">            dist[0] = prev[i - 1] + distance(c1, s2.charAt(0));</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">            for (int j = 1; j &lt; l2; j++) {</span>
+<span class="fc" id="L60">                dist[j] = min(prev[j - 1] + distance(c1, s2.charAt(j)),</span>
                         min(prev[j] + 1, dist[j - 1] + 1));
             }
-<span class="fc" id="L144">            prev = dist;</span>
+<span class="fc" id="L63">            prev = dist;</span>
         }
-<span class="fc" id="L146">        return prev[l2 - 1];</span>
+<span class="fc" id="L65">        return prev[l2 - 1];</span>
     }
 
     public static int distance(final char c1, final char c2) {
-<span class="fc bfc" id="L150" title="All 2 branches covered.">        if (c1 == c2) {</span>
-<span class="fc" id="L151">            return 0;</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        if (c1 == c2) {</span>
+<span class="fc" id="L70">            return 0;</span>
         } else {
-<span class="fc" id="L153">            return 1;</span>
+<span class="fc" id="L72">            return 1;</span>
         }
     }
 
-<span class="fc" id="L157">    private static final String[][] JAVA_CTRL_CHARS_UNESCAPE = {</span>
+<span class="fc" id="L76">    private static final String[][] JAVA_CTRL_CHARS_UNESCAPE = {</span>
         {&quot;\\b&quot;, &quot;\b&quot;},
         {&quot;\\n&quot;, &quot;\n&quot;},
         {&quot;\\t&quot;, &quot;\t&quot;},
@@ -162,7 +81,7 @@ public final class Strings {
         {&quot;\\r&quot;, &quot;\r&quot;}
     };
 
-<span class="fc" id="L165">    private static final CharSequenceTranslator UNESCAPE_JAVA</span>
+<span class="fc" id="L84">    private static final CharSequenceTranslator UNESCAPE_JAVA</span>
             = new AggregateTranslator(
                     new OctalUnescaper(),
                     new UnicodeUnescaper(),
@@ -177,7 +96,18 @@ public final class Strings {
             );
 
     public static String unescape(final String what) {
-<span class="nc" id="L180">        return UNESCAPE_JAVA.translate(what);</span>
+<span class="fc" id="L99">        return UNESCAPE_JAVA.translate(what);</span>
+    }
+    
+    public static boolean contains(final String string, final char [] chars) {
+<span class="fc" id="L103">        int l = string.length();</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">        for (int i = 0; i &lt; l; i++) {</span>
+<span class="fc" id="L105">            char c = string.charAt(i);</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">            if (Arrays.search(chars, c) &gt;= 0) {</span>
+<span class="fc" id="L107">                return true;</span>
+            }
+        }
+<span class="fc" id="L110">        return false;</span>
     }
     
     
