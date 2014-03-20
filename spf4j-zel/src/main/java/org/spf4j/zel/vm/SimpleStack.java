@@ -43,7 +43,6 @@ public final class SimpleStack<T>
      * construct a stack with specified size
      */
     public SimpleStack(final int size) {
-
         elems = (T[]) new Object[size];
         top = 0;
     }
@@ -120,11 +119,14 @@ public final class SimpleStack<T>
     public T[] pop(final int n) {
         int ot = top;
         top -= n;
-        T[] result = java.util.Arrays.copyOfRange(elems, top, ot);
-        java.util.Arrays.fill(elems, top, ot, null);
+        T[] result =  (T[]) new Object[n];
+        for (int i = top, j = 0; i < ot; i++, j++) {
+            result[j] = elems[i];
+            elems[i] = null;
+        }
         return result;
     }
-    
+
     public T [] popUntil(final T until) {
         int i = top - 1;
         while (elems[i] != until) {

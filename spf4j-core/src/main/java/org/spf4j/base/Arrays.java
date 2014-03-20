@@ -17,6 +17,8 @@
  */
 package org.spf4j.base;
 
+import java.lang.reflect.Array;
+
 /**
  * Array utilities.
  *
@@ -120,6 +122,22 @@ public final class Arrays {
             }
         }
         return -1;
+    }
+    
+    public static <T> T[] moveOfRange(final T[] original, final int from, final int to) {
+        int newLength = to - from;
+        if (newLength < 0) {
+            throw new IllegalArgumentException(from + " > " + to);
+        }
+        Class<?> newType = original.getClass();
+        T[] copy = ((Object) newType == (Object) Object[].class)
+            ? (T[]) new Object[newLength]
+            : (T[]) Array.newInstance(newType.getComponentType(), newLength);
+        for (int i = from, j = 0; i < to; i++, j++) {
+            copy[j] = original[i];
+            original[i] = null;
+        }
+        return copy;
     }
     
 }

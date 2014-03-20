@@ -36,9 +36,7 @@ public final class LODX extends Instruction {
      */
     @Override
     public void execute(final ExecutionContext context) {
-        Object obj = context.memory.get(context.code.get(++context.ip));
-        context.push(obj);
-        context.ip++;
+        throw new UnsupportedOperationException();
     }
     /**
      * instance

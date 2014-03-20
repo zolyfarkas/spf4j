@@ -17,41 +17,35 @@
  */
 package org.spf4j.zel.vm;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
+import groovy.lang.Script;
 import java.util.concurrent.ExecutionException;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
-import org.mvel2.MVEL;
-import org.spf4j.stackmonitor.Sampler;
 
 /**
  *
  * @author zoly
  */
-public final class TestZelVsMvel {
+public final class TestZelVsGroovy {
 
     @Test
-    public void testZelVsMVEL()
-            throws ExecutionException, ZExecutionException, InterruptedException, CompileException, IOException {
-        Sampler sampler = new Sampler(1);
-        sampler.start();
-        testZelVsMVEL2();
-        testZelVsMVEL2();
-        testZelVsMVEL2();
-        sampler.stop();
-        String fileName = sampler.dumpToFile();
-        System.out.println(fileName);
+    public void testZelVsGroovy()
+            throws ExecutionException, ZExecutionException, InterruptedException, CompileException {
+        testZelVsGroovy2();
+        testZelVsGroovy2();
+        testZelVsGroovy2();
     }
     
-    public void testZelVsMVEL2()
+    public void testZelVsGroovy2()
             throws ExecutionException, ZExecutionException, InterruptedException, CompileException {
         java.lang.Number actualReturn = null;
         java.lang.Number actualReturn2 = null;
         Program p1 = Program.compile("a-b+1+c.length() - d.toString().substring(0, 1).length()", "a", "b", "c", "d");
-        Serializable compiled = MVEL.compileExpression("a-b+1+c.length() - d.toString().substring(0, 1).length()");
+        
+        GroovyShell shell = new GroovyShell();
+        Script gScript = shell.parse("a-b+1+c.length() - d.toString().substring(0, 1).length()");
         
         long t1 = System.currentTimeMillis();
         for (int i = 0; i < 1000000; i++) {
@@ -60,17 +54,18 @@ public final class TestZelVsMvel {
         long t2 = System.currentTimeMillis();
 
         for (int i = 0; i < 1000000; i++) {
-            Map vars = new HashMap();
-            vars.put("a", Integer.valueOf(3));
-            vars.put("b", Integer.valueOf(2));
-            vars.put("c", " ");
-            vars.put("d", "bla");
-            actualReturn2 = (Number) MVEL.executeExpression(compiled, vars);
+            Binding binding = new Binding();
+            binding.setVariable("a", Integer.valueOf(3));
+            binding.setVariable("b", Integer.valueOf(2));
+            binding.setVariable("c", " ");
+            binding.setVariable("d", "bla");
+            gScript.setBinding(binding);
+            actualReturn2 = (Number) gScript.run();
         }
         long t3 = System.currentTimeMillis();
 
         System.out.println("precompiled via zel: " + (t2 - t1));
-        System.out.println("precompiled via mvel: " + (t3 - t2));
+        System.out.println("precompiled via groovy: " + (t3 - t2));
 
         assertEquals(2, actualReturn.intValue());
         assertEquals(2, actualReturn2.intValue());

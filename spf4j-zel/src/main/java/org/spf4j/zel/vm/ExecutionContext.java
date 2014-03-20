@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.vm;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.math.MathContext;
@@ -47,8 +48,6 @@ public final class ExecutionContext {
     public final VMExecutor execService;
 
     public final ResultCache resultCache;
-
-    public final HierarchicalMap memory;
         
     public final Object [] mem;
 
@@ -95,15 +94,14 @@ public final class ExecutionContext {
 
     private final boolean isChildContext;
 
-    private ExecutionContext(final ExecutionContext parent, final VMExecutor service, final Program program) {
+    private ExecutionContext(final ExecutionContext parent, @Nullable final VMExecutor service, final Program program) {
         this.in = parent.in;
         this.out = parent.out;
         this.err = parent.err;
-        this.memory = null;//new HierarchicalMap(parent.memory);
         this.mem = new Object[program.getLocalMemSize()];
         this.globalMem = parent.globalMem;
         this.execService = service;
-        this.stack = new SimpleStack(32);
+        this.stack = new SimpleStack(8);
         this.code = program;
         this.resultCache = parent.resultCache;
         this.ip = 0;
@@ -118,7 +116,8 @@ public final class ExecutionContext {
      * @param out
      * @param err
      */
-    public ExecutionContext(final Program program, final Object [] mem, final Object [] globalMem, 
+    @SuppressWarnings("EI_EXPOSE_REP2")
+    public ExecutionContext(final Program program, final Object [] globalMem,
             @Nullable final InputStream in, @Nullable final PrintStream out, @Nullable final PrintStream err,
             @Nullable final VMExecutor execService) {
         this.code = program;
@@ -126,10 +125,9 @@ public final class ExecutionContext {
         this.out = out;
         this.err = err;
         this.execService = execService;
-        this.stack = new SimpleStack(16);
+        this.stack = new SimpleStack(8);
         this.ip = 0;
-        this.memory = null; //        this.memory = new HierarchicalMap(memory);
-        this.mem = mem;
+        this.mem = new Object[program.getLocalMemSize()];
         this.globalMem = globalMem;
         if (program.isHasDeterministicFunctions()) {
             this.resultCache = new SimpleResultCache();
@@ -229,81 +227,7 @@ public final class ExecutionContext {
         }
         return result;
     }
-
-    public Object[] popSyncStackValsUntil(final Object until) throws SuspendedException {
-        Object[] result = stack.popUntil(until);
-
-        int l = result.length;
-        for (int i = 0; i < l; i++) {
-            Object obj = result[i];
-            if (obj instanceof VMFuture<?>) {
-                try {
-                    final VMFuture<Object> resFut = (VMFuture<Object>) obj;
-                    Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
-                    if (resultStore != null) {
-                        result[i] = FutureBean.processResult(resultStore);
-                    } else {
-                        stack.push(until);
-                        stack.pushAll(result);
-                        suspendedAt = Arrays.asList(resFut);
-                        throw SuspendedException.INSTANCE;
-                    }
-                } catch (ExecutionException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-        }
-        return result;
-    }
     
-    public Object popFirstAvailUntil(final Object until) throws SuspendedException {
-        Object[] params = stack.peekUntil(until);
-
-        int l = params.length;
-        int nrErrors = 0;
-        RuntimeException e = null;
-        List<VMFuture<Object>> futures = null;
-        for (int i = 0; i < l; i++) {
-            Object obj = params[i];
-            if (obj instanceof VMFuture<?>) {
-                    final VMFuture<Object> resFut = (VMFuture<Object>) obj;
-                    Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
-                    if (resultStore != null) {
-                        if (resultStore.getSecond() == null) {
-                            stack.popUntil(until);
-                            return resultStore.getFirst();
-                        } else {
-                            nrErrors++;
-                            if (e == null) {
-                                e = new RuntimeException(resultStore.getSecond());
-                            } else {
-                                e = new RuntimeException(Throwables.chain(resultStore.getSecond(), e));
-                            }
-                        }
-                    } else {
-                        if (futures == null) {
-                            futures = new ArrayList<VMFuture<Object>>(l);
-                        }
-                        futures.add(resFut);
-                    }
-            } else {
-                stack.popUntil(until);
-                return obj;
-            }
-        }
-        if (nrErrors == l) {
-            if (e == null) {
-                throw new  IllegalStateException();
-            } else {
-                throw e;
-            }
-        }
-        if (futures.isEmpty()) {
-            throw new IllegalStateException();
-        }
-        suspendedAt = futures;
-        throw SuspendedException.INSTANCE;
-    }
 
     public Object popFirstAvail(final int nr) throws SuspendedException {
         Object[] params = stack.peek(nr);
@@ -405,7 +329,7 @@ public final class ExecutionContext {
     @Override
     public String toString() {
         return "ExecutionContext{" + "execService=" + execService + ", resultCache="
-                + resultCache + ", memory=" + memory
+                + resultCache + ", memory=" + Arrays.toString(mem)
                 + ", code=" + code + ", ip=" + ip + ", terminated=" + terminated
                 + ", stack=" + stack + ", in=" + in
                 + ", out=" + out + ", err=" + err + '}';

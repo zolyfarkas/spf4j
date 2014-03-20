@@ -494,9 +494,8 @@ void unaryPost(ParsingContext context) :
             context.generateCode(org.spf4j.zel.instr.CALL.INSTANCE);
           }})
       | 
-	(((<DOT> unary(context, false) ) |
-        (<LBRACKET> expression(context) <RBRACKET>))
-	{context.generateCode(org.spf4j.zel.instr.DEREF.INSTANCE);})
+	(((<DOT> <ID> {context.generateCode(org.spf4j.zel.instr.DEREFX.INSTANCE, token.image);} ) |
+        (<LBRACKET> expression(context) <RBRACKET> {context.generateCode(org.spf4j.zel.instr.DEREF.INSTANCE);} )))
      ) *
 }
 

@@ -41,7 +41,7 @@ public final class Address {
 
     public Scope getScope() {
         return scope;
-    }  
+    }
 
     @Override
     public int hashCode() {

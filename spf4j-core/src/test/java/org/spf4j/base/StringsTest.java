@@ -17,6 +17,7 @@
  */
 package org.spf4j.base;
 
+import junit.framework.Assert;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
@@ -36,6 +37,12 @@ public final class StringsTest {
         assertEquals(1, Strings.distance("abc", "bc"));
         assertEquals(3, Strings.distance("abc", "def"));
         assertEquals(1, Strings.distance("zoltran", "zoltan"));
+    }
+    
+    @Test
+    public void testEscaping() {
+        String res = Strings.unescape("a\\n");
+        Assert.assertEquals("a\n", res);
     }
 
 }

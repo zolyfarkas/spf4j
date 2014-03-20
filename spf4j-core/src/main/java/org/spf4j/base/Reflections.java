@@ -165,7 +165,7 @@ public final class Reflections {
                 return false;
             }
             final MethodDesc other = (MethodDesc) obj;
-            if (this.clasz != other.clasz && !this.clasz.equals(other.clasz)) {
+            if (!this.clasz.equals(other.clasz)) {
                 return false;
             }
             if (!this.name.equals(other.name)) {

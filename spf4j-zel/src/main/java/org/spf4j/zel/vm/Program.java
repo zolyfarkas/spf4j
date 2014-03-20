@@ -84,8 +84,8 @@ public final class Program implements Serializable {
     private final Object[] instructions;
     private final String[] parameterNames;
     private final boolean hasDeterministicFunctions;
-    private final Map<String, Integer> symbolTable;
     private final Object[] globalMem;
+    private final int localMemSize;
 
     /**
      * initializes program with an array of objects.
@@ -96,7 +96,9 @@ public final class Program implements Serializable {
      * @param progType
      * @param parameterNames
      */
-    public Program(final Map<String, Integer> globalTable, final Object[] globalMem,
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings(
+            { "UCC_UNRELATED_COLLECTION_CONTENTS", "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS" })
+    Program(final Map<String, Integer> globalTable, final Object[] globalMem,
             @Nonnull final Object[] objs, @Nonnegative final int start,
             @Nonnegative final int end, final Type progType, final ExecutionType execType,
             final boolean hasDeterministicFunctions, final String... parameterNames) throws CompileException {
@@ -109,7 +111,7 @@ public final class Program implements Serializable {
         this.parameterNames = parameterNames;
         this.execType = execType;
         this.hasDeterministicFunctions = hasDeterministicFunctions;
-        symbolTable = new HashMap<String, Integer>(parameterNames.length);
+        Map<String, Integer> symbolTable = new HashMap<String, Integer>(parameterNames.length);
         int i = 0;
         for (String param : parameterNames) {
             Integer existing = symbolTable.put(param, i++);
@@ -148,7 +150,7 @@ public final class Program implements Serializable {
                         adr = new Address(idxr, Address.Scope.LOCAL);
                     } else {
                         adr = new Address(idxr, Address.Scope.GLOBAL);
-                    }      
+                    }
                 } else {
                     adr = new Address(idxr, Address.Scope.LOCAL);
                 }
@@ -157,11 +159,12 @@ public final class Program implements Serializable {
                 ++j;
             }
         }
+        localMemSize = symbolTable.size();
     }
     
     
     public int getLocalMemSize() {
-       return symbolTable.size();
+       return localMemSize;
     }
 
     @Override
@@ -269,10 +272,8 @@ public final class Program implements Serializable {
             @Nullable final PrintStream err,
             final Object... args)
             throws ZExecutionException, InterruptedException {
-
-        Object [] mem = new Object[symbolTable.size()];
-        System.arraycopy(args, 0, mem, 0, args.length);
-        final ExecutionContext ectx = new ExecutionContext(this, mem, globalMem, in, out, err, execService);
+        final ExecutionContext ectx = new ExecutionContext(this, globalMem, in, out, err, execService);
+        System.arraycopy(args, 0, ectx.mem, 0, args.length);
         return execute(ectx);
     }
 
@@ -420,7 +421,6 @@ public final class Program implements Serializable {
             throws IOException, ZExecutionException, InterruptedException {
         System.out.println("ZEL Shell");
         boolean terminated = false;
-        HashMap mem = new HashMap();
         InputStreamReader inp = new InputStreamReader(System.in, Charsets.UTF_8);
         BufferedReader br = new BufferedReader(inp);
         while (!terminated) {
@@ -431,7 +431,7 @@ public final class Program implements Serializable {
                     terminated = true;
                 } else {
                     try {
-                        System.out.println(Program.compile(line).execute(mem, System.in, System.out, System.err));
+                        System.out.println(Program.compile(line).execute(System.in, System.out, System.err));
                     } catch (CompileException ex) {
                         System.out.println("Syntax Error: " + Throwables.getStackTraceAsString(ex));
                     } catch (ZExecutionException ex) {

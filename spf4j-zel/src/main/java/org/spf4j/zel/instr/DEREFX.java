@@ -17,29 +17,34 @@
  */
 package org.spf4j.zel.instr;
 
+import static org.spf4j.zel.instr.DEREF.pushDeref;
 import org.spf4j.zel.vm.ExecutionContext;
-
+import org.spf4j.zel.vm.SuspendedException;
+import org.spf4j.zel.vm.ZExecutionException;
 
 /**
  * @author zoly
  */
-public final class LODAX extends Instruction {
+public final class DEREFX extends Instruction {
 
-    private static final long serialVersionUID = 1257172216541960034L;
+    private static final long serialVersionUID = 1L;
 
-    private LODAX() {
+    private DEREFX() {
     }
-
+    
     /**
      * The instruction microcode
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context) {
-        throw new UnsupportedOperationException();
+    public void execute(final ExecutionContext context)
+            throws ZExecutionException, SuspendedException {
+       Object relativeTo = context.popSyncStackVal();
+       pushDeref(relativeTo, context.code.get(++context.ip), context);
+       context.ip++;
     }
     /**
      * instance
      */
-    public static final Instruction INSTANCE = new LODAX();
+    public static final Instruction INSTANCE = new DEREFX();
 }
