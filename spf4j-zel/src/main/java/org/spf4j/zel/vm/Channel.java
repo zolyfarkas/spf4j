@@ -1,8 +1,7 @@
 package org.spf4j.zel.vm;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * TODO: there is some dumb sync in this class that needs to be reviewed.
@@ -11,34 +10,34 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public final class Channel {
 
-    public static final Object EOF = new Object(); 
+    public static final Object EOF = new Object();
     
-    private final BlockingQueue<Object> queue;
+    private final Queue<Object> queue;
 
-    private final BlockingQueue<VMFuture<Object>> readers;
+    private final Queue<VMFuture<Object>> readers;
 
     private final VMExecutor exec;
     
     private boolean closed;
 
     public Channel(final VMExecutor exec) {
-        this.queue = new LinkedBlockingDeque<Object>();
-        this.readers = new LinkedBlockingQueue<VMFuture<Object>>();
+        this.queue = new LinkedList<Object>();
+        this.readers = new LinkedList<VMFuture<Object>>();
         this.exec = exec;
         this.closed = false;
     }
 
     public Object read() throws InterruptedException {
         synchronized (this) {
-            if (closed) {
-                return EOF;
-            }
             Object obj = queue.poll();
             if (obj == null) {
                 VMASyncFuture<Object> fut = new VMASyncFuture<Object>();
-                readers.put(fut);
+                readers.add(fut);
                 return fut;
             } else {
+                if (obj == EOF) {
+                    queue.add(EOF);
+                }
                 return obj;
             }
         }
@@ -54,18 +53,20 @@ public final class Channel {
                 reader.setResult(obj);
                 exec.resumeSuspendables(reader);
             } else {
-                queue.put(obj);
+                queue.add(obj);
             }
         }
     }
     
     public void close() {
-        synchronized(this) {
+        synchronized (this) {
             VMFuture<Object> reader = readers.poll();
-            while (reader != null) { 
+            while (reader != null) {
                 reader.setResult(EOF);
                 exec.resumeSuspendables(reader);
+                reader = readers.poll();
             }
+            queue.add(EOF);
             closed = true;
         }
     }
@@ -73,7 +74,7 @@ public final class Channel {
     public static class Factory implements Method {
 
         @Override
-        public Object invoke(final ExecutionContext context, final Object[] parameters) throws Exception {
+        public final Object invoke(final ExecutionContext context, final Object[] parameters) throws Exception {
             return new Channel(context.execService);
         }
 

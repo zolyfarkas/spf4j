@@ -33,8 +33,10 @@ public final class OUT implements Method {
 
     @Override
     public Object invoke(final ExecutionContext context, final Object [] parameters) {
-        for (Object obj : parameters) {
-                context.out.print(obj);
+        synchronized (context.out) {
+            for (Object obj : parameters) {
+                    context.out.print(obj);
+            }
         }
         return null;
     }

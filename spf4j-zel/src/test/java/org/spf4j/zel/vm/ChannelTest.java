@@ -31,9 +31,13 @@ public final  class ChannelTest {
         
         String prog = "ch = channel();"
                     + "func prod(ch) { for i = 0; i < 100 ; i++ { ch.write(i) }; ch.close()}; "
-                    + "func cons(ch) { for c = ch.read(); c != EOF; c = ch.read() { out(c, \",\") }; out(\"\\n\") };"
+                    + "func cons(ch, nr) "
+                    + "{ sum = 0; "
+                    + "for c = ch.read(); c != EOF; c = ch.read() {"
+                    + " out(c, \",\"); sum++ };"
+                    + " out(\"fin(\", nr, \",\", sum,\")\") };"
                     + "prod(ch); "
-                    + "for i = 0; i < 10; i++ { cons(ch) } ";
+                    + "for i = 0; i < 10; i++ { cons(ch, i) } ";
         
 //        String prog =
 //                     "func prod(ch) { out(\"A\"); for i = 0; i < 10 ; i++ { out(i); ch.write(i) }; out(\"B\")}; "

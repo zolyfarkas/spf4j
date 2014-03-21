@@ -276,7 +276,16 @@ public final class Program implements Serializable {
             throws ZExecutionException, InterruptedException {
         final ExecutionContext ectx = new ExecutionContext(this, globalMem, in, out, err, execService);
         System.arraycopy(args, 0, ectx.mem, 0, args.length);
-        return execute(ectx);
+        try {
+            return execute(ectx);
+        } finally {
+            if (err != null) {
+                err.flush();
+            }
+            if (out != null) {
+                out.flush();
+            }
+        }
     }
 
     public static Object executeSyncOrAsync(@Nonnull final ExecutionContext ectx)
