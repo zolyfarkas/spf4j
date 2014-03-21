@@ -259,6 +259,8 @@ public final class Program implements Serializable {
         ZEL_GLOBAL_FUNC.addSymbol("min", MIN.INSTANCE);
         ZEL_GLOBAL_FUNC.addSymbol("max", MAX.INSTANCE);
         ZEL_GLOBAL_FUNC.addSymbol("random", RANDOM.INSTANCE);
+        ZEL_GLOBAL_FUNC.addSymbol("channel", new Channel.Factory());
+        ZEL_GLOBAL_FUNC.addSymbol("EOF", Channel.EOF);
     }
 
     /**

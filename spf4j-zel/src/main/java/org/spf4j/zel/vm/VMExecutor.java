@@ -120,16 +120,28 @@ public final class VMExecutor {
         return resultFuture;
     }
     
+    /**
+     * Returns a future that will not get notified when callable completes.
+     * 
+     * @param <T>
+     * @param callable
+     * @return
+     */
+    
     public <T> Future<T> submitInternal(final Suspendable<T> callable) {
         final VMFuture<T> resultFuture = new VMASyncFuture<T>();
         submit(callable, resultFuture);
         return resultFuture;
     }
 
+    /**
+     * Map from Future -> Suspendables suspended at this futures and their futures.
+     */
+    
     private final ConcurrentMap<VMFuture<Object>, List<Pair<Suspendable<Object>, VMFuture<Object>>>> futToSuspMap
             = new ConcurrentHashMap<VMFuture<Object>, List<Pair<Suspendable<Object>, VMFuture<Object>>>>();
 
-    private void resumeSuspendables(final VMFuture<Object> future) {
+    public void resumeSuspendables(final VMFuture<Object> future) {
         List<Pair<Suspendable<Object>, VMFuture<Object>>> suspended = futToSuspMap.remove(future);
         if (suspended != null) {
             for (Pair<Suspendable<Object>, VMFuture<Object>> susp : suspended) {

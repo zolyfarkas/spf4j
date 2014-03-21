@@ -41,6 +41,7 @@ public final  class MemoryBuilder {
     private MemoryBuilder(final List<Object> memory, final Map<String, Integer> symbolTable) {
         this.memory = memory;
         this.symbolTable = symbolTable;
+        this.idx = memory.size();
     }
     
     public void addSymbol(final String symbol) {

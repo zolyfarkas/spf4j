@@ -57,7 +57,7 @@ public final class JavaMethodCall implements Method {
             java.lang.reflect.Method m =  Reflections.getCompatibleMethodCached(objectClass, name, classes);
             Class<?> [] actTypes = m.getParameterTypes();
             Class<?> lastParamClass =  actTypes[actTypes.length - 1];
-            if (Reflections.canAssign(classes[classes.length - 1], lastParamClass)) {
+            if (Reflections.canAssign(lastParamClass, classes[classes.length - 1])) {
                 return m.invoke(object, parameters);
             } else if (lastParamClass.isArray()) {
                 int lidx = actTypes.length - 1;

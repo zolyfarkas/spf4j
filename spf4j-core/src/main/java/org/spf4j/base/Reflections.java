@@ -86,7 +86,7 @@ public final class Reflections {
         if (np > 0) {
             Class<?> [] actTypes = m.getParameterTypes();
             Class<?> lastParamClass =  actTypes[actTypes.length - 1];
-            if (Reflections.canAssign(parameters[np - 1].getClass(), lastParamClass)) {
+            if (Reflections.canAssign(lastParamClass, parameters[np - 1].getClass())) {
                 return m.invoke(object, parameters);
             } else if (lastParamClass.isArray()) {
                 int lidx = actTypes.length - 1;

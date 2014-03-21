@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.Objects;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
@@ -34,15 +35,7 @@ public final class EQ extends Instruction {
     @Override
     public void execute(final ExecutionContext context) throws SuspendedException {
         Object [] vals = context.popSyncStackVals(2);
-        Comparable a = (Comparable) vals[0];
-        Comparable b = (Comparable) vals[1];
-        if (a != null) {
-            context.push(Boolean.valueOf(a.compareTo(b) == 0));
-        } else if (b != null) {
-            context.push(Boolean.FALSE);
-        } else {
-            context.push(Boolean.TRUE);
-        }
+        context.push(Objects.equals(vals[0], vals[1]));
         context.ip++;
     }
     /**
