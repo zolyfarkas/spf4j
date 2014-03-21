@@ -161,17 +161,18 @@ public final class Reflections {
             if (obj == null) {
                 return false;
             }
-            if (getClass() != obj.getClass()) {
+            if (obj instanceof MethodDesc) {
+                final MethodDesc other = (MethodDesc) obj;
+                if (!this.clasz.equals(other.clasz)) {
+                    return false;
+                }
+                if (!this.name.equals(other.name)) {
+                    return false;
+                }
+                return (Arrays.equals(this.paramTypes, other.paramTypes));
+            } else {
                 return false;
             }
-            final MethodDesc other = (MethodDesc) obj;
-            if (!this.clasz.equals(other.clasz)) {
-                return false;
-            }
-            if (!this.name.equals(other.name)) {
-                return false;
-            }
-            return (Arrays.deepEquals(this.paramTypes, other.paramTypes));
         }
 
         @Override

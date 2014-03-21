@@ -5,12 +5,11 @@ The Z Expression Language
 
  Now there are a few other components out there that do a similar job, here is what it's different (or not :-) ) about this particular implementation:
 
-  1. Implemented using javaCC
+  1. LGPL license
 
-  2. Asynchronous programming (function calls can be executed asynchronously or asynchronously)
+  2. Asynchronous programming / coroutines (function calls can be executed asynchronously or asynchronously)
 
-  3. Expressions are compiled providing decent execution performance. 
-     (Outperforms SPEL(Spring) by a few orders of magnitude)
+  3. Support for deterministic functions, (aka memorization) executions will be cached for deterministic functions
 
   4. Integer mathematical operations do not overflow.
      Real number representation can be used seamlessly with decimal or binary representation.
@@ -23,9 +22,11 @@ The Z Expression Language
   7. ZEL uses the last value out principle, expressions will return the last evaluated expression.
      There is a return keyword that can be used, but it is optional.
 
-  8. Support for deterministic functions, (aka memorization) executions will be cached for deterministic functions
+  8. Expressions are compiled providing decent execution performance. 
+     (Outperforms SPEL(Spring) by a few orders of magnitude, slightly slower than MVEL and Groovy,
+      the extra functionality comes at a cost, although there is room for performance improvement in zel)
 
-  10. LGPL license
+  10. Implemented using javaCC
 
  Here is how you would use the evaluator in your java code:
 
@@ -86,6 +87,9 @@ EX6:    // Explicit ASync function execution.
 
 EX7:    // Async programming, parallel PI
         // functions can be declared to be executed sync or async
+        // currently all functions declared in ZEL are async by default
+        // All other function calls are sync by default
+        // async execution can be forced with & postfix operator
 
         func piPart(s, x) {
             term = func sync (k) {4 * (-1 ** k) / (2d * k + 1)};
@@ -114,7 +118,19 @@ EX7:    // Async programming, parallel PI
         };
         pi(x, 5)
 
+EX8:    // Channels!
 
+        ch = channel();
+        func prod(ch) { for i = 0; i < 100 ; i++ { ch.write(i) }; ch.close()};
+        func cons(ch, nr) {
+            sum = 0;
+            for v = ch.read(); v != EOF; v = ch.read() {
+                out(v, \",\"); sum++ 
+            };
+            out("fin(", nr, ",", sum, ")") 
+        };
+        prod(ch); // start producer
+        for i = 0; i < 10; i++ { cons(ch, i) } //start consumers
  
 +-----------------------------------------------------------------------
   
