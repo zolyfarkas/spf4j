@@ -70,8 +70,10 @@ public final class SimpleStack<T>
      * @param o Object
      */
     public void push(final T o) {
-        ensureCapacity(top);
-        elems[top++] = o;
+        int t = top + 1;
+        ensureCapacity(t);
+        elems[top] = o;
+        top = t;
     }
 
     private void ensureCapacity(final int minCapacity) {
@@ -109,10 +111,9 @@ public final class SimpleStack<T>
      * @return Object
      */
     public T pop() {
-        int ot = top;
         final T o = elems[--top];
         // this is for the garbage collector  to avoid memory leaks if storing big objects in stack
-        elems[ot] = null;
+        elems[top] = null;
         return o;
     }
     
