@@ -16,22 +16,21 @@ The Z Expression Language
 
   5. Everything is an object, numbers, strings, functions.....
 
-  6. There is only one type of variable:  reference to object,
+  6. There is only one type of variable:  reference to object
      you declare a variable by assigning an object to it, all variables are local to the current exec context.
    
   7. ZEL uses the last value out principle, expressions will return the last evaluated expression.
-     There is a return keyword that can be used, but it is optional.
+     There is a return keyword that can also be used
 
   8. Expressions are compiled providing decent execution performance. 
-     (Outperforms SPEL(Spring) by a few orders of magnitude, slightly slower than MVEL and Groovy,
-      the extra functionality comes at a cost, although there is room for performance improvement in zel)
+     (Outperforms SPEL(Spring) by a few orders of magnitude, slightly slower(for now) than MVEL and Groovy)
 
   10. Implemented using javaCC
 
- Here is how you would use the evaluator in your java code:
+ Here are some examples:
 
 +-----------------------------------------------------------------------
-EX1:    // mathematical expressions 
+EX1:    // ZEL mathematical expressions in java code
 
         Program prog = Program.compile("1+5*4/(1+1)");
         Number result = (Number) prog.execute();
@@ -49,15 +48,11 @@ EX3:    // java integration, java objects are supported just like in java:
 
 EX4:    // fibonacci recursive definition executes in O(n)
         // deterministic function results are automatically memorized
-
-        String program =
-                  "func det fib (x) { fib(x-1) + fib(x-2) };\n"
-                + "fib(0) = 0;"
-                + "fib(1) = 1;"
-                + "fib(200)"
-
-        Program compiledProgram = Program.compile(program);
-        Number result = (Number) compiledProgram.execute();
+        
+        func det fib (x) { fib(x-1) + fib(x-2) }
+        fib(0) = 0;
+        fib(1) = 1;
+        fib(200)
 
 EX5:    // Async programming.
         // Zel functions are async by default.
@@ -72,6 +67,7 @@ EX5:    // Async programming.
 EX6:    // Explicit ASync function execution.
         // Java method invocation are sync by default
         // using & postfix operator you can call any function async
+        // java example:
 
         private static class TestF {
             public static int f(final int a, final int b) throws InterruptedException {
@@ -119,6 +115,7 @@ EX7:    // Async programming, parallel PI
         pi(x, 5)
 
 EX8:    // Channels!
+        // You can comunicate with channels between zel coroutines. 
 
         ch = channel();
         func prod(ch) { for i = 0; i < 100 ; i++ { ch.write(i) }; ch.close()};
