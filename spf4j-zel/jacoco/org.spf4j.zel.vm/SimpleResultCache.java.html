@@ -43,41 +43,41 @@ public final class SimpleResultCache implements ResultCache {
             Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt;&gt; cache;
 
     public SimpleResultCache() {
-<span class="nc" id="L46">        this(100000);</span>
-<span class="nc" id="L47">    }</span>
+<span class="fc" id="L46">        this(100000);</span>
+<span class="fc" id="L47">    }</span>
 
-<span class="nc" id="L49">    public SimpleResultCache(final int maxSize) {</span>
-<span class="nc" id="L50">        cache = new UnboundedLoadingCache&lt;Program,</span>
+<span class="fc" id="L49">    public SimpleResultCache(final int maxSize) {</span>
+<span class="fc" id="L50">        cache = new UnboundedLoadingCache&lt;Program,</span>
                 Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt;&gt;(16,
                 new CacheLoader&lt;Program, Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;,
-<span class="nc" id="L53">                        ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt;&gt;() {</span>
+<span class="fc" id="L53">                        ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt;&gt;() {</span>
                     @Override
                     public Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;,
                                 ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; load(
                             final Program key) throws Exception {
-<span class="nc" id="L58">                        Cache&lt;List&lt;Object&gt;, Object&gt; trCache = CacheBuilder.newBuilder().maximumSize(maxSize).build();</span>
-<span class="nc" id="L59">                        return Pair.of(new ConcurrentHashMap&lt;List&lt;Object&gt;, Object&gt;(), trCache);</span>
+<span class="fc" id="L58">                        Cache&lt;List&lt;Object&gt;, Object&gt; trCache = CacheBuilder.newBuilder().maximumSize(maxSize).build();</span>
+<span class="fc" id="L59">                        return Pair.of(new ConcurrentHashMap&lt;List&lt;Object&gt;, Object&gt;(), trCache);</span>
                     }
                 });
-<span class="nc" id="L62">    }</span>
+<span class="fc" id="L62">    }</span>
 
     @Override
     public void putPermanentResult(final Program program,
             @Nonnull final List&lt;Object&gt; params, final Object result) {
-<span class="nc" id="L67">        final Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; resultsMap =</span>
-<span class="nc" id="L68">                cache.getUnchecked(program);</span>
-<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (result == null) {</span>
+<span class="fc" id="L67">        final Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; resultsMap =</span>
+                cache.getUnchecked(program);
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">        if (result == null) {</span>
 <span class="nc" id="L70">            resultsMap.getFirst().put(params, ResultCache.NULL);</span>
         } else {
-<span class="nc" id="L72">            resultsMap.getFirst().put(params, result);</span>
+<span class="fc" id="L72">            resultsMap.getFirst().put(params, result);</span>
         }
-<span class="nc" id="L74">    }</span>
+<span class="fc" id="L74">    }</span>
 
     @Override
     public void putTransientResult(final Program program,
             @Nonnull final  List&lt;Object&gt; params, final Object result) {
 <span class="nc" id="L79">        final Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; resultsMap =</span>
-<span class="nc" id="L80">                cache.getUnchecked(program);</span>
+                cache.getUnchecked(program);
 <span class="nc bnc" id="L81" title="All 2 branches missed.">        if (result == null) {</span>
 <span class="nc" id="L82">            resultsMap.getSecond().put(params, ResultCache.NULL);</span>
         } else {
@@ -89,30 +89,30 @@ public final class SimpleResultCache implements ResultCache {
     public Object getResult(final Program program,
             @Nonnull final List&lt;Object&gt; params, final Callable&lt;Object&gt; compute)
             throws ZExecutionException {
-<span class="nc" id="L92">        final Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; prCache =</span>
-<span class="nc" id="L93">                cache.getUnchecked(program);</span>
-<span class="nc" id="L94">        Object result = prCache.getFirst().get(params);</span>
-<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (result == null) {</span>
+<span class="fc" id="L92">        final Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; prCache =</span>
+                cache.getUnchecked(program);
+<span class="fc" id="L94">        Object result = prCache.getFirst().get(params);</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        if (result == null) {</span>
             try {
-<span class="nc" id="L97">                result = prCache.getSecond().get(params, new Callable&lt;Object&gt;() {</span>
+<span class="fc" id="L97">                result = prCache.getSecond().get(params, new Callable&lt;Object&gt;() {</span>
                     @Override
                     public Object call() throws Exception {
-<span class="nc" id="L100">                        Object result = compute.call();</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">                        if (result == null) {</span>
+<span class="fc" id="L100">                        Object result = compute.call();</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">                        if (result == null) {</span>
 <span class="nc" id="L102">                            return ResultCache.NULL;</span>
                         } else {
-<span class="nc" id="L104">                            return result;</span>
+<span class="fc" id="L104">                            return result;</span>
                         }
                     }
                 });
 <span class="nc" id="L108">            } catch (ExecutionException ex) {</span>
 <span class="nc" id="L109">                throw new ZExecutionException(ex);</span>
-<span class="nc" id="L110">            }</span>
+<span class="fc" id="L110">            }</span>
         }
-<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (result == ResultCache.NULL) {</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">        if (result == ResultCache.NULL) {</span>
 <span class="nc" id="L113">            result = null;</span>
         }
-<span class="nc" id="L115">        return result;</span>
+<span class="fc" id="L115">        return result;</span>
     }
 
     @Override

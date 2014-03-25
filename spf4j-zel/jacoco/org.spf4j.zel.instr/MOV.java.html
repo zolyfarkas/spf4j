@@ -26,31 +26,31 @@ public final class MOV extends Instruction {
     
     private static final long serialVersionUID = -7101682855885757988L;
     
-<span class="nc" id="L29">    private MOV() {</span>
-<span class="nc" id="L30">    }</span>
+<span class="fc" id="L29">    private MOV() {</span>
+<span class="fc" id="L30">    }</span>
     
     @Override
     public void execute(final ExecutionContext context)
             throws SuspendedException, ZExecutionException, InterruptedException {
-<span class="nc" id="L35">        Object what = context.pop();</span>
-<span class="nc" id="L36">        Object to = context.pop();</span>
-<span class="nc bnc" id="L37" title="All 2 branches missed.">        if (to instanceof AssignableValue) {</span>
-<span class="nc" id="L38">            AssignableValue assignTo = (AssignableValue) to;</span>
-<span class="nc" id="L39">            assignTo.assign(what);</span>
-<span class="nc bnc" id="L40" title="All 2 branches missed.">            while (!context.isStackEmpty()) {</span>
+<span class="fc" id="L35">        Object what = context.pop();</span>
+<span class="fc" id="L36">        Object to = context.pop();</span>
+<span class="pc bpc" id="L37" title="1 of 2 branches missed.">        if (to instanceof AssignableValue) {</span>
+<span class="fc" id="L38">            AssignableValue assignTo = (AssignableValue) to;</span>
+<span class="fc" id="L39">            assignTo.assign(what);</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">            while (!context.isStackEmpty()) {</span>
                 // clear all values from stack.
                 // only last assigned value should be on the stack.
-<span class="nc" id="L43">                context.pop();</span>
+<span class="fc" id="L43">                context.pop();</span>
             }
-<span class="nc" id="L45">            context.push(what);</span>
-<span class="nc" id="L46">        } else {</span>
+<span class="fc" id="L45">            context.push(what);</span>
+<span class="fc" id="L46">        } else {</span>
 <span class="nc" id="L47">            throw new ZExecutionException(&quot;Lvalue expected insted of &quot; + to);</span>
         }
-<span class="nc" id="L49">        context.ip++;</span>
-<span class="nc" id="L50">    }</span>
+<span class="fc" id="L49">        context.ip++;</span>
+<span class="fc" id="L50">    }</span>
     /**
      * instance
      */
-<span class="nc" id="L54">    public static final Instruction INSTANCE = new MOV();</span>
+<span class="fc" id="L54">    public static final Instruction INSTANCE = new MOV();</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

@@ -35,36 +35,36 @@ public final class CALLREF extends Instruction {
 
     private static final long serialVersionUID = 759722625722456554L;
 
-<span class="nc" id="L38">    private CALLREF() {</span>
-<span class="nc" id="L39">    }</span>
+<span class="fc" id="L38">    private CALLREF() {</span>
+<span class="fc" id="L39">    }</span>
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
     public void execute(final ExecutionContext context)
             throws ZExecutionException, InterruptedException, SuspendedException {
-<span class="nc" id="L45">        final Integer nrParams = (Integer) context.pop();</span>
+<span class="fc" id="L45">        final Integer nrParams = (Integer) context.pop();</span>
         final Object[] parameters;
         try {
-<span class="nc" id="L48">            parameters = context.popSyncStackVals(nrParams);</span>
+<span class="fc" id="L48">            parameters = context.popSyncStackVals(nrParams);</span>
 <span class="nc" id="L49">        } catch (SuspendedException e) {</span>
 <span class="nc" id="L50">            context.push(nrParams);</span>
 <span class="nc" id="L51">            throw e;</span>
-<span class="nc" id="L52">        }</span>
-<span class="nc" id="L53">        final Object function = ((AssignableValue) context.pop()).get();</span>
+<span class="fc" id="L52">        }</span>
+<span class="fc" id="L53">        final Object function = ((AssignableValue) context.pop()).get();</span>
 
-<span class="nc" id="L55">        context.push(new AssignableValue() {</span>
+<span class="fc" id="L55">        context.push(new AssignableValue() {</span>
 
             @Override
             public void assign(final Object object) throws ZExecutionException, InterruptedException {
-<span class="nc" id="L59">                context.resultCache.putPermanentResult((Program) function,</span>
-<span class="nc" id="L60">                        Arrays.asList(parameters), object);</span>
+<span class="fc" id="L59">                context.resultCache.putPermanentResult((Program) function,</span>
+                        Arrays.asList(parameters), object);
 
-<span class="nc" id="L62">            }</span>
+<span class="fc" id="L62">            }</span>
 
             @Override
             public Object get() throws ZExecutionException, InterruptedException {
 
-<span class="nc bnc" id="L67" title="All 2 branches missed.">                if (function instanceof Program) {</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">                if (function instanceof Program) {</span>
 <span class="nc" id="L68">                    final Program p = (Program) function;</span>
                     final ExecutionContext nctx;
                     Object obj;
@@ -87,9 +87,9 @@ public final class CALLREF extends Instruction {
 <span class="nc" id="L87">                            throw new UnsupportedOperationException(p.getType().toString());</span>
                     }
 <span class="nc" id="L89">                    return obj;</span>
-<span class="nc bnc" id="L90" title="All 2 branches missed.">                } else if (function instanceof Method) {</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">                } else if (function instanceof Method) {</span>
                     try {
-<span class="nc" id="L92">                        return ((Method) function).invoke(context, parameters);</span>
+<span class="fc" id="L92">                        return ((Method) function).invoke(context, parameters);</span>
 <span class="nc" id="L93">                    } catch (IllegalAccessException ex) {</span>
 <span class="nc" id="L94">                        throw new ZExecutionException(&quot;cannot invoke &quot; + function, ex);</span>
 <span class="nc" id="L95">                    } catch (InvocationTargetException ex) {</span>
@@ -104,12 +104,12 @@ public final class CALLREF extends Instruction {
             }
         });
 
-<span class="nc" id="L107">        context.ip++;</span>
-<span class="nc" id="L108">    }</span>
+<span class="fc" id="L107">        context.ip++;</span>
+<span class="fc" id="L108">    }</span>
 
     /**
      * instance
      */
-<span class="nc" id="L113">    public static final Instruction INSTANCE = new CALLREF();</span>
+<span class="fc" id="L113">    public static final Instruction INSTANCE = new CALLREF();</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

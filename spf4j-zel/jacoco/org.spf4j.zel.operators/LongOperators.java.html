@@ -16,19 +16,19 @@ public final class LongOperators {
 <span class="nc" id="L16">    private LongOperators() {</span>
 <span class="nc" id="L17">    }</span>
 
-<span class="nc" id="L19">    public static final class Add implements Operator&lt;Long, Number, Number&gt; {</span>
+<span class="fc" id="L19">    public static final class Add implements Operator&lt;Long, Number, Number&gt; {</span>
 
         @Override
         public Number op(final Long a, final Number b) {
-<span class="nc" id="L23">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="nc bnc" id="L24" title="All 6 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)</span>
-<span class="nc bnc" id="L25" title="All 4 branches missed.">                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {</span>
-<span class="nc" id="L26">                long bb = b.longValue();</span>
-<span class="nc" id="L27">                long result = a + bb;</span>
-<span class="nc bnc" id="L28" title="All 6 branches missed.">                if ((a ^ bb) &lt; 0 | (a ^ result) &gt;= 0) {</span>
-<span class="nc" id="L29">                    return result;</span>
+<span class="fc" id="L23">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="pc bpc" id="L24" title="6 of 10 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)</span>
+                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
+<span class="fc" id="L26">                long bb = b.longValue();</span>
+<span class="fc" id="L27">                long result = a + bb;</span>
+<span class="pc bpc" id="L28" title="1 of 6 branches missed.">                if ((a ^ bb) &lt; 0 | (a ^ result) &gt;= 0) {</span>
+<span class="fc" id="L29">                    return result;</span>
                 } else {
-<span class="nc" id="L31">                    return BigInteger.valueOf(a).add(BigInteger.valueOf(bb));</span>
+<span class="fc" id="L31">                    return BigInteger.valueOf(a).add(BigInteger.valueOf(bb));</span>
                 }
 <span class="nc bnc" id="L33" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
 <span class="nc" id="L34">                return ((Double) b) + a;</span>
@@ -44,17 +44,17 @@ public final class LongOperators {
         }
     }
 
-<span class="nc" id="L47">    public static final class Sub implements Operator&lt;Long, Number, Number&gt; {</span>
+<span class="fc" id="L47">    public static final class Sub implements Operator&lt;Long, Number, Number&gt; {</span>
 
         @Override
         public Number op(final Long a, final Number b) {
-<span class="nc" id="L51">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="nc bnc" id="L52" title="All 6 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)</span>
-<span class="nc bnc" id="L53" title="All 4 branches missed.">                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {</span>
-<span class="nc" id="L54">                long bb = b.longValue();</span>
-<span class="nc" id="L55">                long result = a - bb;</span>
-<span class="nc bnc" id="L56" title="All 6 branches missed.">                if ((a ^ bb) &lt; 0 | (a ^ result) &gt;= 0) {</span>
-<span class="nc" id="L57">                    return result;</span>
+<span class="fc" id="L51">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="pc bpc" id="L52" title="9 of 10 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)</span>
+                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
+<span class="fc" id="L54">                long bb = b.longValue();</span>
+<span class="fc" id="L55">                long result = a - bb;</span>
+<span class="pc bpc" id="L56" title="3 of 6 branches missed.">                if ((a ^ bb) &lt; 0 | (a ^ result) &gt;= 0) {</span>
+<span class="fc" id="L57">                    return result;</span>
                 } else {
 <span class="nc" id="L59">                    return BigInteger.valueOf(a).subtract(BigInteger.valueOf(bb));</span>
                 }
@@ -72,20 +72,20 @@ public final class LongOperators {
         }
     }
 
-<span class="nc" id="L75">    public static final class Mul implements Operator&lt;Long, Number, Number&gt; {</span>
+<span class="fc" id="L75">    public static final class Mul implements Operator&lt;Long, Number, Number&gt; {</span>
 
         @Override
         public Number op(final Long a, final Number b) {
-<span class="nc" id="L79">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="nc bnc" id="L80" title="All 6 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)</span>
-<span class="nc bnc" id="L81" title="All 4 branches missed.">                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {</span>
+<span class="fc" id="L79">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="pc bpc" id="L80" title="9 of 10 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)</span>
+                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
                 
-<span class="nc" id="L83">                Long bb = b.longValue();</span>
-<span class="nc" id="L84">                int leadingZeros = Long.numberOfLeadingZeros(a) + Long.numberOfLeadingZeros(~a)</span>
-<span class="nc" id="L85">                        + Long.numberOfLeadingZeros(bb) + Long.numberOfLeadingZeros(~bb);</span>
+<span class="fc" id="L83">                Long bb = b.longValue();</span>
+<span class="fc" id="L84">                int leadingZeros = Long.numberOfLeadingZeros(a) + Long.numberOfLeadingZeros(~a)</span>
+                        + Long.numberOfLeadingZeros(bb) + Long.numberOfLeadingZeros(~bb);
 
-<span class="nc bnc" id="L87" title="All 2 branches missed.">                if (leadingZeros &gt; Long.SIZE + 1) {</span>
-<span class="nc" id="L88">                    return a * bb;</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">                if (leadingZeros &gt; Long.SIZE + 1) {</span>
+<span class="fc" id="L88">                    return a * bb;</span>
                 }
 <span class="nc bnc" id="L90" title="All 2 branches missed.">                if (!(leadingZeros &gt;= Long.SIZE)) {</span>
 <span class="nc" id="L91">                    return BigInteger.valueOf(a).multiply(BigInteger.valueOf(bb));</span>
@@ -112,14 +112,14 @@ public final class LongOperators {
         }
     }
 
-<span class="nc" id="L115">    public static final class Div implements Operator&lt;Long, Number, Number&gt; {</span>
+<span class="fc" id="L115">    public static final class Div implements Operator&lt;Long, Number, Number&gt; {</span>
 
         @Override
         public Number op(final Long a, final Number b) {
-<span class="nc" id="L119">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="nc bnc" id="L120" title="All 6 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)</span>
-<span class="nc bnc" id="L121" title="All 4 branches missed.">                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {</span>
-<span class="nc" id="L122">                return a / b.longValue();</span>
+<span class="fc" id="L119">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="pc bpc" id="L120" title="9 of 10 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)</span>
+                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
+<span class="fc" id="L122">                return a / b.longValue();</span>
 <span class="nc bnc" id="L123" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
 <span class="nc" id="L124">                return (double) a / ((Double) b);</span>
 <span class="nc bnc" id="L125" title="All 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
@@ -134,13 +134,13 @@ public final class LongOperators {
         }
     }
 
-<span class="nc" id="L137">    public static final class Mod implements Operator&lt;Long, Number, Number&gt; {</span>
+<span class="fc" id="L137">    public static final class Mod implements Operator&lt;Long, Number, Number&gt; {</span>
 
         @Override
         public Number op(final Long a, final Number b) {
 <span class="nc" id="L141">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="nc bnc" id="L142" title="All 6 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)</span>
-<span class="nc bnc" id="L143" title="All 4 branches missed.">                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {</span>
+<span class="nc bnc" id="L142" title="All 10 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)</span>
+                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
 <span class="nc" id="L144">                return a % b.longValue();</span>
 <span class="nc bnc" id="L145" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
 <span class="nc" id="L146">                return  a % b.longValue();</span>
@@ -156,13 +156,13 @@ public final class LongOperators {
         }
     }
 
-<span class="nc" id="L159">    public static final class Pow implements Operator&lt;Long, Number, Number&gt; {</span>
+<span class="fc" id="L159">    public static final class Pow implements Operator&lt;Long, Number, Number&gt; {</span>
 
         @Override
         public Number op(final Long a, final Number b) {
 <span class="nc" id="L163">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="nc bnc" id="L164" title="All 4 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
-<span class="nc bnc" id="L165" title="All 4 branches missed.">                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {</span>
+<span class="nc bnc" id="L164" title="All 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
+                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
 <span class="nc" id="L166">                return powLongInt(a, b);</span>
 <span class="nc bnc" id="L167" title="All 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
 <span class="nc bnc" id="L168" title="All 2 branches missed.">                if (((Long) b).compareTo((long) Integer.MAX_VALUE) &gt; 0) {</span>

@@ -30,8 +30,8 @@ public final class LODAXF extends Instruction {
 
     private static final long serialVersionUID = 1257172216541960034L;
 
-<span class="nc" id="L33">    private LODAXF() {</span>
-<span class="nc" id="L34">    }</span>
+<span class="fc" id="L33">    private LODAXF() {</span>
+<span class="fc" id="L34">    }</span>
 
     /**
      * The instruction microcode
@@ -39,32 +39,32 @@ public final class LODAXF extends Instruction {
      */
     @Override
     public void execute(final ExecutionContext context) {
-<span class="nc" id="L42">        final Address ref = (Address) context.code.get(++context.ip);</span>
-<span class="nc" id="L43">        context.push(new AssignableValue() {</span>
+<span class="fc" id="L42">        final Address ref = (Address) context.code.get(++context.ip);</span>
+<span class="fc" id="L43">        context.push(new AssignableValue() {</span>
 
             @Override
             public void assign(final Object object) throws ZExecutionException {
-<span class="nc bnc" id="L47" title="All 2 branches missed.">                if (ref.getScope() == Address.Scope.LOCAL) {</span>
-<span class="nc" id="L48">                    context.mem[ref.getAddress()] = object;</span>
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">                if (ref.getScope() == Address.Scope.LOCAL) {</span>
+<span class="fc" id="L48">                    context.mem[ref.getAddress()] = object;</span>
                 } else {
 <span class="nc" id="L50">                    throw new ZExecutionException(&quot;Cannot assign &quot; + object + &quot;to a global refference&quot;);</span>
                 }
-<span class="nc" id="L52">            }</span>
+<span class="fc" id="L52">            }</span>
 
             @Override
             public Object get() {
-<span class="nc bnc" id="L56" title="All 2 branches missed.">                if (ref.getScope() == Address.Scope.LOCAL) {</span>
-<span class="nc" id="L57">                    return context.mem[ref.getAddress()];</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">                if (ref.getScope() == Address.Scope.LOCAL) {</span>
+<span class="fc" id="L57">                    return context.mem[ref.getAddress()];</span>
                 } else {
-<span class="nc" id="L59">                    return context.globalMem[ref.getAddress()];</span>
+<span class="fc" id="L59">                    return context.globalMem[ref.getAddress()];</span>
                 }
             }
         });
-<span class="nc" id="L63">        context.ip++;</span>
-<span class="nc" id="L64">    }</span>
+<span class="fc" id="L63">        context.ip++;</span>
+<span class="fc" id="L64">    }</span>
     /**
      * instance
      */
-<span class="nc" id="L68">    public static final Instruction INSTANCE = new LODAXF();</span>
+<span class="fc" id="L68">    public static final Instruction INSTANCE = new LODAXF();</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

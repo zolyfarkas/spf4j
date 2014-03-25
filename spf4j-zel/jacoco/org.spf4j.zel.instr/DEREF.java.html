@@ -31,8 +31,8 @@ public final class DEREF extends Instruction {
 
     private static final long serialVersionUID = 1L;
 
-<span class="nc" id="L34">    private DEREF() {</span>
-<span class="nc" id="L35">    }</span>
+<span class="fc" id="L34">    private DEREF() {</span>
+<span class="fc" id="L35">    }</span>
     
     
     /**
@@ -42,35 +42,35 @@ public final class DEREF extends Instruction {
     @Override
     public void execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
-<span class="nc" id="L45">       Object [] vals = context.popSyncStackVals(2);</span>
-<span class="nc" id="L46">       pushDeref(vals[0], vals[1], context);</span>
-<span class="nc" id="L47">       context.ip++;</span>
-<span class="nc" id="L48">    }</span>
+<span class="fc" id="L45">       Object [] vals = context.popSyncStackVals(2);</span>
+<span class="fc" id="L46">       pushDeref(vals[0], vals[1], context);</span>
+<span class="fc" id="L47">       context.ip++;</span>
+<span class="fc" id="L48">    }</span>
 
     static void pushDeref(final Object relativeTo, final Object ref, final ExecutionContext context) {
-<span class="nc bnc" id="L51" title="All 2 branches missed.">        if (relativeTo instanceof Map) {</span>
-<span class="nc" id="L52">            context.push(((Map) relativeTo).get(ref));</span>
-<span class="nc bnc" id="L53" title="All 2 branches missed.">        } else if (relativeTo instanceof Object[]) {</span>
-<span class="nc" id="L54">            context.push(((Object []) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="nc bnc" id="L55" title="All 2 branches missed.">        } else if (relativeTo instanceof int[]) {</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        if (relativeTo instanceof Map) {</span>
+<span class="fc" id="L52">            context.push(((Map) relativeTo).get(ref));</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        } else if (relativeTo instanceof Object[]) {</span>
+<span class="fc" id="L54">            context.push(((Object []) relativeTo)[((Number) ref).intValue()]);</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        } else if (relativeTo instanceof int[]) {</span>
 <span class="nc" id="L56">            context.push(((int []) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="nc bnc" id="L57" title="All 2 branches missed.">        } else if (relativeTo instanceof byte[]) {</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">        } else if (relativeTo instanceof byte[]) {</span>
 <span class="nc" id="L58">            context.push(((byte []) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="nc bnc" id="L59" title="All 2 branches missed.">        } else if (relativeTo instanceof char[]) {</span>
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">        } else if (relativeTo instanceof char[]) {</span>
 <span class="nc" id="L60">            context.push(((char []) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="nc bnc" id="L61" title="All 2 branches missed.">        } else if (relativeTo instanceof long[]) {</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        } else if (relativeTo instanceof long[]) {</span>
 <span class="nc" id="L62">            context.push(((long []) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">        } else if (relativeTo instanceof short[]) {</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">        } else if (relativeTo instanceof short[]) {</span>
 <span class="nc" id="L64">            context.push(((short []) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">        } else if (relativeTo instanceof List) {</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        } else if (relativeTo instanceof List) {</span>
 <span class="nc" id="L66">            context.push(((List) relativeTo).get(((Number) ref).intValue()));</span>
         } else {
-<span class="nc" id="L68">            context.push(new JavaMethodCall(relativeTo, (String) ref));</span>
+<span class="fc" id="L68">            context.push(new JavaMethodCall(relativeTo, (String) ref));</span>
         }
-<span class="nc" id="L70">    }</span>
+<span class="fc" id="L70">    }</span>
     /**
      * instance
      */
-<span class="nc" id="L74">    public static final Instruction INSTANCE = new DEREF();</span>
+<span class="fc" id="L74">    public static final Instruction INSTANCE = new DEREF();</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

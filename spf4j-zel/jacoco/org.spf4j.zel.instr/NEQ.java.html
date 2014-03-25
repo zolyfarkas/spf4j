@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import com.google.common.base.Objects;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
@@ -31,27 +32,19 @@ public final class NEQ extends Instruction {
 
     private static final long serialVersionUID = -2608208783491820358L;
 
-<span class="nc" id="L34">    private NEQ() {</span>
-<span class="nc" id="L35">    }</span>
+<span class="fc" id="L35">    private NEQ() {</span>
+<span class="fc" id="L36">    }</span>
 
     @Override
     public void execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
-<span class="nc" id="L40">        Object [] vals = context.popSyncStackVals(2);</span>
-<span class="nc" id="L41">        Comparable a = (Comparable) vals[0];</span>
-<span class="nc" id="L42">        Comparable b = (Comparable) vals[1];</span>
-<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (a != null) {</span>
-<span class="nc bnc" id="L44" title="All 2 branches missed.">            context.push(Boolean.valueOf(a.compareTo(b) != 0));</span>
-<span class="nc bnc" id="L45" title="All 2 branches missed.">        } else if (b != null) {</span>
-<span class="nc" id="L46">            context.push(Boolean.TRUE);</span>
-        } else {
-<span class="nc" id="L48">            context.push(Boolean.FALSE);</span>
-        }
-<span class="nc" id="L50">        context.ip++;</span>
-<span class="nc" id="L51">    }</span>
+<span class="fc" id="L41">        Object [] vals = context.popSyncStackVals(2);</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        context.push(!Objects.equal(vals[0], vals[1]));</span>
+<span class="fc" id="L43">        context.ip++;</span>
+<span class="fc" id="L44">    }</span>
     /**
      * instance
      */
-<span class="nc" id="L55">    public static final Instruction INSTANCE = new NEQ();</span>
+<span class="fc" id="L48">    public static final Instruction INSTANCE = new NEQ();</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

@@ -41,32 +41,33 @@ public final  class MemoryBuilder {
 <span class="fc" id="L41">    private MemoryBuilder(final List&lt;Object&gt; memory, final Map&lt;String, Integer&gt; symbolTable) {</span>
 <span class="fc" id="L42">        this.memory = memory;</span>
 <span class="fc" id="L43">        this.symbolTable = symbolTable;</span>
-<span class="fc" id="L44">    }</span>
+<span class="fc" id="L44">        this.idx = memory.size();</span>
+<span class="fc" id="L45">    }</span>
     
     public void addSymbol(final String symbol) {
-<span class="nc bnc" id="L47" title="All 2 branches missed.">        if (!symbolTable.containsKey(symbol)) {</span>
-<span class="nc" id="L48">            memory.add(null);</span>
-<span class="nc" id="L49">            symbolTable.put(symbol, idx++);</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (!symbolTable.containsKey(symbol)) {</span>
+<span class="nc" id="L49">            memory.add(null);</span>
+<span class="nc" id="L50">            symbolTable.put(symbol, idx++);</span>
         }
-<span class="nc" id="L51">    }</span>
+<span class="nc" id="L52">    }</span>
     
     public void addSymbol(final String symbol, final Object value) {
-<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (!symbolTable.containsKey(symbol)) {</span>
-<span class="fc" id="L55">            memory.add(value);</span>
-<span class="fc" id="L56">            symbolTable.put(symbol, idx++);</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (!symbolTable.containsKey(symbol)) {</span>
+<span class="fc" id="L56">            memory.add(value);</span>
+<span class="fc" id="L57">            symbolTable.put(symbol, idx++);</span>
         } else {
-<span class="fc" id="L58">            memory.set(symbolTable.get(symbol).intValue(), value);</span>
+<span class="fc" id="L59">            memory.set(symbolTable.get(symbol).intValue(), value);</span>
         }
-<span class="fc" id="L60">    }</span>
+<span class="fc" id="L61">    }</span>
     
     
     public Pair&lt;Object[], Map&lt;String, Integer&gt;&gt; build() {
-<span class="fc" id="L64">        return Pair.of(memory.toArray(), (Map&lt;String, Integer&gt;) new HashMap&lt;String, Integer&gt;(symbolTable));</span>
+<span class="fc" id="L65">        return Pair.of(memory.toArray(), (Map&lt;String, Integer&gt;) new HashMap&lt;String, Integer&gt;(symbolTable));</span>
     }
     
     
     public MemoryBuilder copy() {
-<span class="fc" id="L69">        return new MemoryBuilder(new ArrayList&lt;Object&gt;(memory), new HashMap&lt;String, Integer&gt;(symbolTable));</span>
+<span class="fc" id="L70">        return new MemoryBuilder(new ArrayList&lt;Object&gt;(memory), new HashMap&lt;String, Integer&gt;(symbolTable));</span>
     }
     
 }
