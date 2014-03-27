@@ -41,7 +41,8 @@ public final class Runtime {
     }
     private static final Logger LOGGER = LoggerFactory.getLogger(Runtime.class);
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
+    // Calling Halt is the only sensible thing to do when the JVM is hosed.
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings
     public static void goDownWithError(final Throwable t, final int exitCode) {
         try {
             LOGGER.error("Unrecoverable Error, going down", t);
@@ -49,7 +50,7 @@ public final class Runtime {
             try {
                 t.printStackTrace();
             } finally {
-                System.exit(exitCode);
+                java.lang.Runtime.getRuntime().halt(exitCode);
             }
         }
     }
