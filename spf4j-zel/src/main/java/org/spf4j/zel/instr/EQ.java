@@ -18,6 +18,7 @@
 package org.spf4j.zel.instr;
 
 import com.google.common.base.Objects;
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
@@ -33,13 +34,18 @@ public final class EQ extends Instruction {
     }
 
     @Override
-    public void execute(final ExecutionContext context) throws SuspendedException {
+    public int execute(final ExecutionContext context) throws SuspendedException {
         Object [] vals = context.popSyncStackVals(2);
         context.push(Objects.equal(vals[0], vals[1]));
-        context.ip++;
+        return 1;
     }
     /**
      * instance
      */
     public static final Instruction INSTANCE = new EQ();
+
+    @Override
+    public Object[] getParameters() {
+        return Arrays.EMPTY_OBJ_ARRAY;
+    }
 }

@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.ExecutionContext;
@@ -42,16 +43,21 @@ public final class ADD extends Instruction {
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws SuspendedException {
         final Object[] vals = context.popSyncStackVals(2);
         context.push(Operators.apply(Operator.Enum.Add, vals[0], vals[1]));
-        context.ip++;
+        return 1;
     }
     /**
      * Add instance
      */
     public static final Instruction INSTANCE = new ADD();
+
+    @Override
+    public Object[] getParameters() {
+        return Arrays.EMPTY_OBJ_ARRAY;
+    }
 
 
 }

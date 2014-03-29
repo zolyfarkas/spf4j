@@ -17,6 +17,8 @@
  */
 package org.spf4j.zel.vm;
 
+import org.spf4j.zel.instr.Instruction;
+
 
 public final class CompileContext implements ParsingContext {
 
@@ -31,20 +33,11 @@ public final class CompileContext implements ParsingContext {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void generateCode(final Object... args) {
+    public void generateCode(final Instruction... args) {
         if (args == null) {
             prog.add(null);
         } else {
             prog.addAll(args);
-        }
-    }
-
-    @Override
-    public void generateCodeAt(final int address, final Object... args) {
-        if (args == null) {
-            prog.set(address, null);
-        } else {
-            prog.setAll(address, args);
         }
     }
 

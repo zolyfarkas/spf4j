@@ -42,7 +42,7 @@ public final class CALLA extends Instruction {
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws ZExecutionException, InterruptedException, SuspendedException {
         Integer nrParams = (Integer) context.pop();
         final Object function = context.peekFromTop(nrParams);
@@ -97,11 +97,16 @@ public final class CALLA extends Instruction {
         } else {
             throw new ZExecutionException("cannot invoke " + function);
         }
-        context.ip++;
+        return 1;
     }
 
     /**
      * instance
      */
     public static final Instruction INSTANCE = new CALLA();
+
+    @Override
+    public Object[] getParameters() {
+         return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+   }
 }

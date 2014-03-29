@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
@@ -34,13 +35,18 @@ public final class NOT extends Instruction {
     }
 
     @Override
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
-        context.push(Boolean.valueOf(!((java.lang.Boolean) context.popSyncStackVal()).booleanValue()));
-        context.ip++;
+        context.push(!((java.lang.Boolean) context.popSyncStackVal()));
+        return 1;
     }
     /**
      * instance
      */
     public static final Instruction INSTANCE = new NOT();
+
+    @Override
+    public Object[] getParameters() {
+        return Arrays.EMPTY_OBJ_ARRAY;
+    }
 }

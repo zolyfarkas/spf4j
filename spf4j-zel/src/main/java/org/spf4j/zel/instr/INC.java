@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.AssignableValue;
@@ -45,7 +46,7 @@ public final class INC extends Instruction {
      */
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws SuspendedException, ZExecutionException, InterruptedException {
         Object val = context.popSyncStackVal();
         if (val instanceof AssignableValue) {
@@ -56,12 +57,17 @@ public final class INC extends Instruction {
         } else {
             context.push(Operators.apply(Operator.Enum.Add, val, 1));
         }
-        context.ip++;
+        return 1;
     }
     /**
      * Add instance
      */
     public static final Instruction INSTANCE = new INC();
+
+    @Override
+    public Object[] getParameters() {
+        return Arrays.EMPTY_OBJ_ARRAY;
+    }
 
 
 }

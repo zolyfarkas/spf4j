@@ -83,6 +83,7 @@ public final class ZelTest {
                 + "val2";
 
         Program compiledProgram = Program.compile(program);
+        System.out.println(compiledProgram);
         Number result = (Number) compiledProgram.execute();
         Assert.assertEquals(new BigInteger("280571172992510140037611932413038677189525"), result);
         System.out.println(result);
@@ -227,5 +228,22 @@ public final class ZelTest {
        result = (String) Program.compile("x.split(\",\")[1] = \"A\"", "x").execute("a,b,c");
        Assert.assertEquals("A", result);
     }
+    
+    @Test
+    public void testCond2() throws CompileException, ZExecutionException, InterruptedException {
+       Program p = Program.compile("x >= 0 ? \"positive\" : \"negative\" ", "x");
+       System.out.println(p);
+       String result = (String) p.execute(1);
+       Assert.assertEquals("positive", result);
+    }
+    
+    @Test
+    public void testFor() throws CompileException, ZExecutionException, InterruptedException {
+       Program p = Program.compile("x = 0; for i=0; i < 10; i++ {out(i); x = x + i}; x ");
+       System.out.println(p);
+       Integer result = (Integer) p.execute(1);
+       Assert.assertEquals(45, result.intValue());
+    }
+    
 
 }

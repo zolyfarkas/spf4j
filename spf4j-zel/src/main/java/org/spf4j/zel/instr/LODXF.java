@@ -29,7 +29,10 @@ public final class LODXF extends Instruction {
 
     private static final long serialVersionUID = 1257172216541960034L;
 
-    private LODXF() {
+    private final Address fromAddr;
+    
+    public LODXF(final Address fromAddr) {
+        this.fromAddr = fromAddr;
     }
 
     /**
@@ -37,8 +40,8 @@ public final class LODXF extends Instruction {
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context) {
-        Address adr = (Address) context.code.get(++context.ip);
+    public int execute(final ExecutionContext context) {
+        Address adr = fromAddr;
         Object obj;
         if (adr.getScope() == Scope.LOCAL) {
             obj = context.mem[adr.getAddress()];
@@ -46,10 +49,11 @@ public final class LODXF extends Instruction {
             obj = context.globalMem[adr.getAddress()];
         }
         context.push(obj);
-        ++context.ip;
+        return 1;
     }
-    /**
-     * instance
-     */
-    public static final Instruction INSTANCE = new LODXF();
+
+    @Override
+    public Object[] getParameters() {
+        return new Object [] {fromAddr};
+    }
 }

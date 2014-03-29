@@ -27,7 +27,10 @@ public final class LODAX extends Instruction {
 
     private static final long serialVersionUID = 1257172216541960034L;
 
-    private LODAX() {
+    private final String symbol;
+    
+    public LODAX(final String symbol) {
+        this.symbol = symbol;
     }
 
     /**
@@ -35,11 +38,17 @@ public final class LODAX extends Instruction {
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context) {
+    public int execute(final ExecutionContext context) {
         throw new UnsupportedOperationException();
     }
-    /**
-     * instance
-     */
-    public static final Instruction INSTANCE = new LODAX();
+
+    public String getSymbol() {
+        return symbol;
+    }
+
+    @Override
+    public Object[] getParameters() {
+        return new Object [] {symbol};
+    }
+
 }

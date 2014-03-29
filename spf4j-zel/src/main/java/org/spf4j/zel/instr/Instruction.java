@@ -19,6 +19,7 @@ package org.spf4j.zel.instr;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import javax.annotation.Nullable;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
@@ -40,10 +41,14 @@ public abstract class Instruction implements Serializable {
      * @param context ExecutionContext
      * @throws ZExecutionException
      * @throws java.lang.InterruptedException
+     * @returns relative instruction pointer for next instruction.
      */
-    public abstract void execute(ExecutionContext context)
+    public abstract int execute(ExecutionContext context)
             throws ZExecutionException, InterruptedException, SuspendedException;
 
+    public abstract Object [] getParameters();
+    
+    
     /**
      * Outputs Instruction Name - use for debug purposes ...
      *
@@ -51,7 +56,11 @@ public abstract class Instruction implements Serializable {
      */
     @Override
     public final String toString() {
-        return this.getClass().getSimpleName();
+        if (getParameters().length > 0) {
+           return this.getClass().getSimpleName() + "(" + Arrays.toString(getParameters()) + ")";
+        } else {
+            return this.getClass().getSimpleName();
+        }
     }
 
 

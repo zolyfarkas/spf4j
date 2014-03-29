@@ -15,43 +15,33 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+
 package org.spf4j.zel.instr;
 
-import org.spf4j.base.Arrays;
-import org.spf4j.zel.operators.Operator;
-import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.SuspendedException;
 
+/**
+ *
+ * @author zoly
+ */
+public final  class PUSH extends Instruction {
 
-
-public final class MOD extends Instruction {
-
-    private static final long serialVersionUID = -8318761232689949542L;
-
-    private MOD() {
+    private final Object param;
+    
+    public PUSH(final Object param) {
+        this.param = param;
     }
-
-    /**
-     * MOD instruction microcode
-     * if any of the operands are null the result is null
-     *
-     * @param context ExecutionContext
-     * @throws VMException
-     */
+    
+    
     @Override
-    public int execute(final ExecutionContext context) throws SuspendedException {
-        Object [] vals = context.popSyncStackVals(2);
-        context.push(Operators.apply(Operator.Enum.Mod, vals[0], vals[1]));
+    public int execute(final ExecutionContext context) {
+        context.push(param);
         return 1;
     }
-    /**
-     * instance
-     */
-    public static final Instruction INSTANCE = new MOD();
 
     @Override
     public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
+        return new Object [] {param};
     }
+    
 }

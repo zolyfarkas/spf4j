@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 
 /**
@@ -35,12 +36,18 @@ public final class DUP extends Instruction {
      * @param context ExecutionContext
      * @throws VMException
      */
-    public void execute(final ExecutionContext context) {
+    @Override
+    public int execute(final ExecutionContext context) {
         context.push(context.peek());
-        context.ip++;
+        return 1;
     }
     /**
      * instance
      */
     public static final Instruction INSTANCE = new DUP();
+
+    @Override
+    public Object[] getParameters() {
+        return Arrays.EMPTY_OBJ_ARRAY;
+    }
 }

@@ -18,11 +18,13 @@
 
 package org.spf4j.zel.vm;
 
+import java.io.Serializable;
+
 /**
  *
  * @author zoly
  */
-public final class Address {
+public final class Address implements Serializable {
     
     public enum Scope { GLOBAL, LOCAL };
     

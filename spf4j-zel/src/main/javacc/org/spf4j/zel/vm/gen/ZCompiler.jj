@@ -35,6 +35,7 @@ package org.spf4j.zel.vm.gen;
 import java.util.*;
 import java.math.*;
 import org.spf4j.zel.vm.*;
+import org.spf4j.zel.instr.PUSH;
 
 public class ZCompiler
 {
@@ -44,15 +45,6 @@ public class ZCompiler
         ZCompiler parser = new ZCompiler(new java.io.ByteArrayInputStream(xpr.getBytes()));
         parser.mainprogram(context);
     }
-
-    public static Object getConstant(String constant) throws ParseException
-    {
-        ZCompiler parser = new ZCompiler(new java.io.ByteArrayInputStream(constant.getBytes()));
-        ConstantParsingContext ctx = new ConstantParsingContext();
-        parser.constant(ctx);
-        return ctx.getConstant();
-    }
-
 
 }
 PARSER_END(ZCompiler)
@@ -259,14 +251,13 @@ LOOKAHEAD(assignement(context))
   | forStmt(context)
   | (<SLEEP> expression(context) {context.generateCode(org.spf4j.zel.instr.SLEEP.INSTANCE);})
   | (<USE> <DECIMAL> <INTEGER> 
-    {context.generateCode(org.spf4j.zel.instr.MCTX.INSTANCE);
-    context.generateCode(parseInteger(token.image));})
+    {context.generateCode(new org.spf4j.zel.instr.MCTX(parseInteger(token.image).intValue()));})
 }
 
 
 void forStmt(ParsingContext context) :
 {
-  int condAddr = 0;
+  int condAddr = -1;
   ParsingContext postAssign = (ParsingContext) context.createSubContext();
   ParsingContext loopBlock = (ParsingContext) context.createSubContext();
 }
@@ -284,11 +275,10 @@ void forStmt(ParsingContext context) :
     programBlock(loopBlock)
     
     {
-      context.generateCode(org.spf4j.zel.instr.FJMP.INSTANCE,
-                context.getAddress() + loopBlock.getAddress() + postAssign.getAddress() + 3 );
+      context.generateCode(new org.spf4j.zel.instr.FJMP(loopBlock.getAddress() + postAssign.getAddress() + 2));
       context.generateCodeAll(loopBlock);
       context.generateCodeAll(postAssign);
-      context.generateCode(org.spf4j.zel.instr.JMP.INSTANCE, condAddr);
+      context.generateCode(new org.spf4j.zel.instr.JMP(condAddr - context.getAddress()));
     }
   
 }
@@ -328,12 +318,11 @@ String name;
 }
 {
     (<ID> {name = token.image; 
-            context.generateCode(org.spf4j.zel.instr.LODAX.INSTANCE);
-            context.generateCode(name);
+            context.generateCode(new org.spf4j.zel.instr.LODAX(name));
        })
     ( LOOKAHEAD( 2 )
         ( params(context) {context.generateCode(org.spf4j.zel.instr.CALLREF.INSTANCE);} )
-	| (((<DOT> <ID> {name = token.image; context.generateCode(name);} ) 
+	| (((<DOT> <ID> {name = token.image; context.generateCode(new PUSH(name));} ) 
            | (<LBRACKET> expression(context) <RBRACKET>))
             {context.generateCode(org.spf4j.zel.instr.REF.INSTANCE);})
     )*
@@ -352,25 +341,21 @@ void ternary(ParsingContext context) :
 {
  int jmp1;
  int jmp2;
+ ParsingContext left = (ParsingContext) context.createSubContext();
+ ParsingContext right = (ParsingContext) context.createSubContext();
 }
 {
     logical(context)
 (
 	( <CONDITION> )
-
-        {   jmp1=context.getAddress()+1;
-            context.generateCode(org.spf4j.zel.instr.FJMP.INSTANCE, null);}
-
-        ternary(context)
-
-        {   jmp2 = context.getAddress()+1;
-            context.generateCode(org.spf4j.zel.instr.JMP.INSTANCE, null);
-            context.generateCodeAt(jmp1, context.getAddress());}
-
+        ternary(left)
         <CLM>
-        ternary(context)
+        ternary(right)
 
-        {context.generateCodeAt(jmp2, context.getAddress());}
+        {context.generateCode(new org.spf4j.zel.instr.FJMP(left.getAddress() + 2));
+         context.generateCodeAll(left);
+         context.generateCode(new org.spf4j.zel.instr.JMP(right.getAddress() + 1));
+         context.generateCodeAll(right);}
 )?
 }
 
@@ -494,7 +479,7 @@ void unaryPost(ParsingContext context) :
             context.generateCode(org.spf4j.zel.instr.CALL.INSTANCE);
           }})
       | 
-	(((<DOT> <ID> {context.generateCode(org.spf4j.zel.instr.DEREFX.INSTANCE, token.image);} ) |
+	(((<DOT> <ID> {context.generateCode(new org.spf4j.zel.instr.DEREFX(token.image));} ) |
         (<LBRACKET> expression(context) <RBRACKET> {context.generateCode(org.spf4j.zel.instr.DEREF.INSTANCE);} )))
      ) *
 }
@@ -507,7 +492,7 @@ void unary(ParsingContext context, boolean left) :
 	{
             if ( x.kind == MINUS )
             {
-                context.generateCode(-1);
+                context.generateCode(new PUSH(-1));
                 context.generateCode(org.spf4j.zel.instr.MUL.INSTANCE);
             }
             else
@@ -531,9 +516,8 @@ void element(ParsingContext context, boolean left) :
         (  <ID> {
             name = token.image; 
             if (left) {
-                context.generateCode(org.spf4j.zel.instr.LODX.INSTANCE);
-            }
-            context.generateCode(name);} )
+                context.generateCode(new org.spf4j.zel.instr.LODX(name));
+            }} )
     | sysFunction(context)
     | ( <FIRST> params(context) {context.generateCode(org.spf4j.zel.instr.FIRST.INSTANCE);})
     |  <LPAREN> expression(context) <RPAREN>
@@ -547,7 +531,7 @@ void params(ParsingContext context) :
 {
     <LPAREN>
         (expression(context) {i++;} (<COMMA> expression(context) {i++;} )*)?
-        {context.generateCode(i);}
+        {context.generateCode(new PUSH(i));}
     <RPAREN>
 }
 
@@ -560,35 +544,35 @@ void constant(ParsingContext context) :
      <FLOATING_POINT>
           {   try {
                 if (token.image.endsWith("f") || token.image.endsWith("F")) {
-                    context.generateCode(Float.parseFloat(token.image));
+                    context.generateCode(new PUSH(Float.parseFloat(token.image)));
                 } else if (token.image.endsWith("d") || token.image.endsWith("D")) {
-                    context.generateCode(Double.parseDouble(token.image));
+                    context.generateCode(new PUSH(Double.parseDouble(token.image)));
                 } else {
-                    context.generateCode(new BigDecimal(token.image));
+                    context.generateCode(new PUSH(new BigDecimal(token.image)));
                 }
               } catch (NumberFormatException ee) {
                   throw new ParseException(ee.toString());
               }
           }
     |  <INTEGER>
-      {context.generateCode(parseInteger(token.image));}
+      {context.generateCode(new PUSH(parseInteger(token.image)));}
     |   <TRUE>
-	  {context.generateCode(Boolean.valueOf(true));}
+	  {context.generateCode(new PUSH(Boolean.valueOf(true)));}
     |   <FALSE>
-	  {context.generateCode(Boolean.valueOf(false));}
+	  {context.generateCode(new PUSH(Boolean.valueOf(false)));}
     |  <CHARACTER>
-      {context.generateCode(token.image.substring(1, token.image.length()-1));}
+      {context.generateCode(new PUSH(token.image.substring(1, token.image.length()-1)));}
     |  <NULL>
-      {context.generateCode(ResultCache.NULL);}
+      {context.generateCode(new PUSH(ResultCache.NULL));}
     |  <STRING>
-      {context.generateCode(org.spf4j.base.Strings.unescape(token.image.substring(1, token.image.length()-1)));}
+      {context.generateCode(new PUSH(org.spf4j.base.Strings.unescape(token.image.substring(1, token.image.length()-1))));}
     |  <MATCHEXP>
     {  String rExp = token.image.substring(1, token.image.length()-1);
        context.process(new WildCardMatcher(rExp));
-       context.generateCode(new WildCardMatcher(rExp));}
+       context.generateCode(new PUSH(new WildCardMatcher(rExp)));}
     )
-    | <E> {context.generateCode(Math.E);}
-    | <PI> {context.generateCode(Math.PI);}
+    | <E> {context.generateCode(new PUSH(Math.E));}
+    | <PI> {context.generateCode(new PUSH(Math.PI));}
 }
 
 JAVACODE
@@ -652,7 +636,7 @@ void sysFunction(ParsingContext context) :
       if (staticName != null) {
           context.staticSymbol(staticName, prog);
       }
-      context.generateCode(prog);
+      context.generateCode(new PUSH(prog));
     } catch (CompileException e) {
         throw new ParseException(e.toString());
     }

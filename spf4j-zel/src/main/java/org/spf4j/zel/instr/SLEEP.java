@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
@@ -34,12 +35,12 @@ public final class SLEEP extends Instruction {
     }
 
     @Override
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
         try {
             Number param = (Number) context.popSyncStackVal();
             Thread.sleep(param.longValue());
-            context.ip++;
+            return 1;
         } catch (InterruptedException ex) {
             throw new ZExecutionException("sleeping interrupted", ex, context);
         }
@@ -48,6 +49,11 @@ public final class SLEEP extends Instruction {
      * instance
      */
     public static final Instruction INSTANCE = new SLEEP();
+
+    @Override
+    public Object[] getParameters() {
+        return Arrays.EMPTY_OBJ_ARRAY;
+    }
 
 
 }

@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 
 /**
@@ -36,11 +37,17 @@ public final class HALT extends Instruction {
      * @throws ZExecutionException
      */
     @Override
-    public void execute(final ExecutionContext context) {
+    public int execute(final ExecutionContext context) {
         context.terminated = true;
+        return Integer.MAX_VALUE;
     }
     /**
      * instance
      */
     public static final Instruction INSTANCE = new HALT();
+
+    @Override
+    public Object[] getParameters() {
+        return Arrays.EMPTY_OBJ_ARRAY;
+    }
 }

@@ -37,7 +37,7 @@ public final class ProgramBuilder {
     private static final int DEFAULT_SIZE = 16;
 
 
-    private Object[] instructions;
+    private Instruction[] instructions;
 
     private int instrNumber;
 
@@ -59,7 +59,7 @@ public final class ProgramBuilder {
      */
     public ProgramBuilder(final MemoryBuilder staticMemBuilder) {
         this.staticMemBuilder = staticMemBuilder;
-        instructions = new Object[DEFAULT_SIZE];
+        instructions = new Instruction[DEFAULT_SIZE];
         instrNumber = 0;
         type = Program.Type.NONDETERMINISTIC;
         execType = null; //Program.ExecutionType.ASYNC;
@@ -97,19 +97,19 @@ public final class ProgramBuilder {
     
     
 
-    public ProgramBuilder add(final Object object) {
+    public ProgramBuilder add(final Instruction object) {
         ensureCapacity(instrNumber + 1);
         instructions[instrNumber++] = object;
         return this;
     }
     
-    public boolean contains(final Instruction instr) {
+    public boolean contains(final Class<? extends Instruction> instr) {
         Boolean res = itterate(new Function<Object, Boolean>() {
 
             @Override
             @edu.umd.cs.findbugs.annotations.SuppressWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
             public Boolean apply(final Object input) {
-                if (input == instr) {
+                if (input.getClass() == instr) {
                     return Boolean.TRUE;
                 }
                 return null;
@@ -123,16 +123,23 @@ public final class ProgramBuilder {
     
     public <T> T itterate(final Function<Object, T> func) {
          for (int i = 0; i < instrNumber; i++) {
-            Object code = instructions[i];
+            Instruction code = instructions[i];
             T res = func.apply(code);
             if (res != null) {
                 return res;
             }
-            if (code instanceof Program) {
-                res = ((Program) code).itterate(func);
+            for (Object param : code.getParameters()) {
+                res = func.apply(param);
                 if (res != null) {
-                    return res;
+                   return res;
                 }
+                if (param instanceof Program) {
+                    res = ((Program) param).itterate(func);
+                }
+                if (res != null) {
+                   return res;
+                }
+                
             }
         }
         return null;
@@ -140,14 +147,14 @@ public final class ProgramBuilder {
     
     
 
-    public ProgramBuilder set(final int idx, final Object object) {
+    public ProgramBuilder set(final int idx, final Instruction object) {
         ensureCapacity(idx + 1);
         instructions[idx] = object;
         instrNumber = Math.max(idx + 1, instrNumber);
         return this;
     }
 
-    public ProgramBuilder addAll(final Object[] objects) {
+    public ProgramBuilder addAll(final Instruction[] objects) {
         ensureCapacity(instrNumber + objects.length);
         System.arraycopy(objects, 0, instructions, instrNumber, objects.length);
         instrNumber += objects.length;

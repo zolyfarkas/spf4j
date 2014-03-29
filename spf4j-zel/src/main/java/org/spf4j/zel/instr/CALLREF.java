@@ -40,7 +40,7 @@ public final class CALLREF extends Instruction {
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws ZExecutionException, InterruptedException, SuspendedException {
         final Integer nrParams = (Integer) context.pop();
         final Object[] parameters;
@@ -104,11 +104,16 @@ public final class CALLREF extends Instruction {
             }
         });
 
-        context.ip++;
+        return 1;
     }
 
     /**
      * instance
      */
     public static final Instruction INSTANCE = new CALLREF();
+
+    @Override
+    public Object[] getParameters() {
+        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+    }
 }

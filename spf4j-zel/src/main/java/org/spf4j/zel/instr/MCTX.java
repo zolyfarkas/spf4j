@@ -32,7 +32,10 @@ public final class MCTX extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
 
-    private MCTX() {
+    private final int precission;
+    
+    public MCTX(final int precission) {
+        this.precission = precission;
     }
     
     /**
@@ -41,8 +44,7 @@ public final class MCTX extends Instruction {
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context) {
-        int precission = (Integer) context.code.get(context.ip + 1);
+    public int execute(final ExecutionContext context) {
         switch(precission) {
             case 32:
                 context.mathContext = MathContext.DECIMAL32;
@@ -57,12 +59,12 @@ public final class MCTX extends Instruction {
                 context.mathContext = MathContext.DECIMAL128;
         }
         Operator.MATH_CONTEXT.set(context.mathContext);
-        context.ip += 2;
+        return 1;
     }
-    /**
-     * Add instance
-     */
-    public static final Instruction INSTANCE = new MCTX();
 
+    @Override
+    public Object[] getParameters() {
+        return new Object [] {precission};
+    }
 
 }

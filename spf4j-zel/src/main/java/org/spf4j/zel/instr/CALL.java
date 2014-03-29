@@ -40,7 +40,7 @@ public final class CALL extends Instruction {
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws ZExecutionException, InterruptedException, SuspendedException {
         Integer nrParams = (Integer) context.pop();
         Object function = context.peekFromTop(nrParams);
@@ -84,7 +84,7 @@ public final class CALL extends Instruction {
         } else {
             throw new ZExecutionException("cannot invoke " + function);
         }
-        context.ip++;
+        return 1;
     }
 
     static Object[] getParamsSync(final ExecutionContext context, final Integer nrParams)
@@ -111,4 +111,9 @@ public final class CALL extends Instruction {
      * instance
      */
     public static final Instruction INSTANCE = new CALL();
+
+    @Override
+    public Object[] getParameters() {
+        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+    }
 }

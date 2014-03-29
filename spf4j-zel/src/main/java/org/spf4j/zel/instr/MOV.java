@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.SuspendedException;
@@ -30,7 +31,7 @@ public final class MOV extends Instruction {
     }
     
     @Override
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws SuspendedException, ZExecutionException, InterruptedException {
         Object what = context.pop();
         Object to = context.pop();
@@ -46,10 +47,15 @@ public final class MOV extends Instruction {
         } else {
             throw new ZExecutionException("Lvalue expected insted of " + to);
         }
-        context.ip++;
+        return 1;
     }
     /**
      * instance
      */
     public static final Instruction INSTANCE = new MOV();
+
+    @Override
+    public Object[] getParameters() {
+        return Arrays.EMPTY_OBJ_ARRAY;
+    }
 }

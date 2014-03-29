@@ -40,11 +40,11 @@ public final class DEREF extends Instruction {
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
        Object [] vals = context.popSyncStackVals(2);
        pushDeref(vals[0], vals[1], context);
-       context.ip++;
+       return 1;
     }
 
     static void pushDeref(final Object relativeTo, final Object ref, final ExecutionContext context) {
@@ -72,4 +72,9 @@ public final class DEREF extends Instruction {
      * instance
      */
     public static final Instruction INSTANCE = new DEREF();
+
+    @Override
+    public Object[] getParameters() {
+        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+    }
 }

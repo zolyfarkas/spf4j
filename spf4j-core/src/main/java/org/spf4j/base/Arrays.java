@@ -140,4 +140,6 @@ public final class Arrays {
         return copy;
     }
     
+    public static final Object [] EMPTY_OBJ_ARRAY = new Object [] {};
+    
 }

@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.operators.Operators;
@@ -35,13 +36,18 @@ public final class DIV extends Instruction {
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context) throws SuspendedException {
+    public int execute(final ExecutionContext context) throws SuspendedException {
         final Object [] vals = context.popSyncStackVals(2);
         context.push(Operators.apply(Operator.Enum.Div, vals[0], vals[1]));
-        context.ip++;
+        return 1;
     }
     /**
      * instance
      */
     public static final Instruction INSTANCE = new DIV();
+
+    @Override
+    public Object[] getParameters() {
+        return Arrays.EMPTY_OBJ_ARRAY;
+    }
 }

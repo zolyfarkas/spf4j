@@ -19,6 +19,7 @@ package org.spf4j.zel.instr;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.JavaMethodCall;
@@ -40,7 +41,7 @@ public final class REF extends Instruction {
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException, InterruptedException {
        Object [] vals = context.popSyncStackVals(2);
        final Object ref = vals[1];
@@ -99,11 +100,15 @@ public final class REF extends Instruction {
                }
            });
        }
-       context.ip++;
-        
+       return 1;
     }
     /**
      * instance
      */
     public static final Instruction INSTANCE = new REF();
+
+    @Override
+    public Object[] getParameters() {
+        return Arrays.EMPTY_OBJ_ARRAY;
+    }
 }

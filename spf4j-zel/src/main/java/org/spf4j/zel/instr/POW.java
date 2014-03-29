@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.ExecutionContext;
@@ -33,14 +34,19 @@ public final class POW extends Instruction {
     }
 
     @Override
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
         Object [] vals = context.popSyncStackVals(2);
         context.push(Operators.apply(Operator.Enum.Pow, vals[0], vals[1]));
-        context.ip++;
+        return 1;
     }
     /**
      * instance
      */
     public static final Instruction INSTANCE = new POW();
+
+    @Override
+    public Object[] getParameters() {
+        return Arrays.EMPTY_OBJ_ARRAY;
+    }
 }

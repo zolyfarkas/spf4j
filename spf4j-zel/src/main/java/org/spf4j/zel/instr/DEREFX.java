@@ -29,7 +29,10 @@ public final class DEREFX extends Instruction {
 
     private static final long serialVersionUID = 1L;
 
-    private DEREFX() {
+    private final Object ref;
+    
+    public DEREFX(final Object ref) {
+        this.ref = ref;
     }
     
     /**
@@ -37,14 +40,15 @@ public final class DEREFX extends Instruction {
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
        Object relativeTo = context.popSyncStackVal();
-       pushDeref(relativeTo, context.code.get(++context.ip), context);
-       context.ip++;
+       pushDeref(relativeTo, ref, context);
+       return 1;
     }
-    /**
-     * instance
-     */
-    public static final Instruction INSTANCE = new DEREFX();
+
+    @Override
+    public Object[] getParameters() {
+        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+    }
 }

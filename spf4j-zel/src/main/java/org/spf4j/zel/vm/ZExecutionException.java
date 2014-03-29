@@ -29,20 +29,25 @@ public final class ZExecutionException extends Exception {
 
     public ZExecutionException(final String message, final Exception e) {
         super(message, e);
+        this.context = null;
     }
 
-    public ZExecutionException(final String message) {
-        super(message);
-    }
 
     public ZExecutionException(final Exception e) {
         super(e);
+        this.context = null;
     }
+    
+      public ZExecutionException(final String msg) {
+        super(msg);
+        this.context = null;
+    }
+    
 
     /**
      * the execution context in which the exception happened
      */
-    private ExecutionContext context;
+    private final ExecutionContext context;
 
     /**
      * the execution context where the exception happened
@@ -53,8 +58,4 @@ public final class ZExecutionException extends Exception {
         return context;
     }
 
-    @Override
-    public String toString() {
-        return super.toString() + " in context: " + context;
-    }
 }

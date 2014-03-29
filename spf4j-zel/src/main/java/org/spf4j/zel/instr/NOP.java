@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 
 public final class NOP extends Instruction {
@@ -30,11 +31,17 @@ public final class NOP extends Instruction {
      * does nothing, my favorite instruction
      */
     @Override
-    public void execute(final ExecutionContext context) {
+    public int execute(final ExecutionContext context) {
         // Do nothing, guaranteed no bugs
+        return 1;
     }
     /**
      * instance
      */
     public static final Instruction INSTANCE = new NOP();
+
+    @Override
+    public Object[] getParameters() {
+        return Arrays.EMPTY_OBJ_ARRAY;
+    }
 }

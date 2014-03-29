@@ -19,23 +19,26 @@
 package org.spf4j.zel.instr;
 
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.ZExecutionException;
 
 public final class JMP extends Instruction {
 
     private static final long serialVersionUID = -3763337334172149636L;
 
-    private JMP() {
+    private final int relAddr;
+    
+    public JMP(final int relAddr) {
+        this.relAddr = relAddr;
     }
 
     @Override
-    public void execute(final ExecutionContext context) throws ZExecutionException {
-        int address = ((Number) context.code.get(++context.ip)).intValue();
-        context.ip = address;
-
+    public int execute(final ExecutionContext context) {
+        return relAddr;
     }
-    /**
-     * instance
-     */
-    public static final Instruction INSTANCE = new JMP();
+
+    @Override
+    public Object[] getParameters() {
+        return new Object [] {relAddr};
+    }
+
+    
 }

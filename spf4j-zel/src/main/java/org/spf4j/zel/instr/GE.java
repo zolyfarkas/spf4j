@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
@@ -32,14 +33,19 @@ public final class GE extends Instruction {
     }
 
     @Override
-    public void execute(final ExecutionContext context) throws SuspendedException {
+    public int execute(final ExecutionContext context) throws SuspendedException {
         Object [] vals = context.popSyncStackVals(2);
-        context.push(Boolean.valueOf(((Comparable) vals[1]).
-                compareTo(vals[0]) <= 0));
-        context.ip++;
+        context.push(((Comparable) vals[0]).
+                compareTo(vals[1]) >= 0);
+        return 1;
     }
     /**
      * instance
      */
     public static final Instruction INSTANCE = new GE();
+
+    @Override
+    public Object[] getParameters() {
+        return Arrays.EMPTY_OBJ_ARRAY;
+    }
 }

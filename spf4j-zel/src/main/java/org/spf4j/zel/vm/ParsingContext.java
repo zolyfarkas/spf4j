@@ -17,6 +17,8 @@
  */
 package org.spf4j.zel.vm;
 
+import org.spf4j.zel.instr.Instruction;
+
 
 public interface ParsingContext {
 
@@ -26,16 +28,8 @@ public interface ParsingContext {
      * @param instr Instruction
      * @param arg Object
      */
-    void generateCode(Object... args);
-
-    /**
-     * generate code at address
-     *
-     * @param address
-     * @param args
-     */
-    void generateCodeAt(int address, Object... args);
-    
+    void generateCode(Instruction... args);
+ 
     
     void staticSymbol(String name, Object object);
 

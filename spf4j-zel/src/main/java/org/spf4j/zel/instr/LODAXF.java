@@ -30,7 +30,10 @@ public final class LODAXF extends Instruction {
 
     private static final long serialVersionUID = 1257172216541960034L;
 
-    private LODAXF() {
+    private final Address fromAddr;
+    
+    public LODAXF(final Address fromAddr) {
+        this.fromAddr = fromAddr;
     }
 
     /**
@@ -38,14 +41,13 @@ public final class LODAXF extends Instruction {
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context) {
-        final Address ref = (Address) context.code.get(++context.ip);
+    public int execute(final ExecutionContext context) {
         context.push(new AssignableValue() {
 
             @Override
             public void assign(final Object object) throws ZExecutionException {
-                if (ref.getScope() == Address.Scope.LOCAL) {
-                    context.mem[ref.getAddress()] = object;
+                if (fromAddr.getScope() == Address.Scope.LOCAL) {
+                    context.mem[fromAddr.getAddress()] = object;
                 } else {
                     throw new ZExecutionException("Cannot assign " + object + "to a global refference");
                 }
@@ -53,17 +55,21 @@ public final class LODAXF extends Instruction {
 
             @Override
             public Object get() {
-                if (ref.getScope() == Address.Scope.LOCAL) {
-                    return context.mem[ref.getAddress()];
+                if (fromAddr.getScope() == Address.Scope.LOCAL) {
+                    return context.mem[fromAddr.getAddress()];
                 } else {
-                    return context.globalMem[ref.getAddress()];
+                    return context.globalMem[fromAddr.getAddress()];
                 }
             }
         });
-        context.ip++;
+        return 1;
     }
-    /**
-     * instance
-     */
-    public static final Instruction INSTANCE = new LODAXF();
+
+    @Override
+    public Object[] getParameters() {
+        return new Object [] {fromAddr};
+    }
+    
+    
+
 }

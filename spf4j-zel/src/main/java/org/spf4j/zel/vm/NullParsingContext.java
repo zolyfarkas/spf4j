@@ -17,6 +17,8 @@
  */
 package org.spf4j.zel.vm;
 
+import org.spf4j.zel.instr.Instruction;
+
 /**
  *
  * @author zoly
@@ -27,7 +29,7 @@ public final class NullParsingContext implements ParsingContext {
     }
 
     @Override
-    public void generateCode(final Object... args) {
+    public void generateCode(final Instruction... args) {
     }
 
     /**
@@ -60,10 +62,6 @@ public final class NullParsingContext implements ParsingContext {
 
     public static final NullParsingContext INSTANCE = new NullParsingContext();
 
-
-    @Override
-    public void generateCodeAt(final int address, final Object... args) {
-    }
 
     @Override
     public void staticSymbol(final String name, final Object object) {

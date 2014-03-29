@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
@@ -40,7 +41,7 @@ public final class FIRST extends Instruction {
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws SuspendedException {
         Integer nrParams = (Integer) context.pop();
         final Object val;
@@ -51,12 +52,17 @@ public final class FIRST extends Instruction {
             throw ex;
         }
         context.push(val);
-        context.ip++;
+        return 1;
     }
     /**
      * Add instance
      */
     public static final Instruction INSTANCE = new FIRST();
+
+    @Override
+    public Object[] getParameters() {
+        return Arrays.EMPTY_OBJ_ARRAY;
+    }
 
 
 }

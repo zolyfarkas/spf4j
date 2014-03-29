@@ -44,7 +44,7 @@ public final class DEC extends Instruction {
      */
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws SuspendedException, ZExecutionException, InterruptedException {
         final Object val = context.popSyncStackVal();
         if (val instanceof AssignableValue) {
@@ -55,11 +55,16 @@ public final class DEC extends Instruction {
         } else {
             context.push(Operators.apply(Operator.Enum.Sub, val, 1));
         }
-        context.ip++;
+        return 1;
     }
     /**
      * Add instance
      */
     public static final Instruction INSTANCE = new DEC();
+
+    @Override
+    public Object[] getParameters() {
+        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+    }
 
 }

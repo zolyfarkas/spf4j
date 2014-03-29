@@ -81,7 +81,7 @@ public final class Program implements Serializable {
     private final ExecutionType execType;
     private final int id; // program ID, unique ID identifying the program
 
-    private final Object[] instructions;
+    private final Instruction[] instructions;
     private final String[] parameterNames;
     private final boolean hasDeterministicFunctions;
     private final Object[] globalMem;
@@ -97,14 +97,14 @@ public final class Program implements Serializable {
      * @param parameterNames
      */
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(
-            { "UCC_UNRELATED_COLLECTION_CONTENTS", "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS" })
+            { "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "ITC_INHERITANCE_TYPE_CHECKING" })
     Program(final Map<String, Integer> globalTable, final Object[] globalMem,
             @Nonnull final Object[] objs, @Nonnegative final int start,
             @Nonnegative final int end, final Type progType, final ExecutionType execType,
             final boolean hasDeterministicFunctions, final String... parameterNames) throws CompileException {
         this.globalMem = globalMem;
         int length = end - start;
-        instructions = new Object[length];
+        instructions = new Instruction[length];
         System.arraycopy(objs, start, instructions, 0, length);
         this.type = progType;
         id = ProgramBuilder.generateID();
@@ -120,9 +120,9 @@ public final class Program implements Serializable {
             }
         }
         for (int j = 0; j < length; j++) {
-            Object code = instructions[j];
-            if (code == LODX.INSTANCE) {
-                String ref = (String) instructions[j + 1];
+            Instruction code = instructions[j];
+            if (code instanceof LODX) {
+                String ref = ((LODX) code).getSymbol();
                 Integer idxr = symbolTable.get(ref);
                 Address adr;
                 if (idxr == null) {
@@ -135,11 +135,9 @@ public final class Program implements Serializable {
                 } else {
                     adr = new Address(idxr, Address.Scope.LOCAL);
                 }
-                instructions[j] = LODXF.INSTANCE;
-                instructions[j + 1] = adr;
-                ++j;
-            } else if (code == LODAX.INSTANCE) {
-                String ref = (String) instructions[j + 1];
+                instructions[j] = new LODXF(adr);
+            } else if (code instanceof LODAX) {
+                String ref = ((LODAX) code).getSymbol();
                 Integer idxr = symbolTable.get(ref);
                 Address adr;
                 if (idxr == null) {
@@ -154,9 +152,7 @@ public final class Program implements Serializable {
                 } else {
                     adr = new Address(idxr, Address.Scope.LOCAL);
                 }
-                instructions[j] = LODAXF.INSTANCE;
-                instructions[j + 1] = adr;
-                ++j;
+                instructions[j] = new LODAXF(adr);
             }
         }
         localMemSize = symbolTable.size();
@@ -478,12 +474,12 @@ public final class Program implements Serializable {
         return parameterNames;
     }
 
-    public boolean contains(final Instruction instr) {
+    public boolean contains(final Class<? extends Instruction> instr) {
         Boolean res = itterate(new Function<Object, Boolean>() {
             @Override
             @edu.umd.cs.findbugs.annotations.SuppressWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
             public Boolean apply(final Object input) {
-                if (input == instr) {
+                if (input.getClass() == instr) {
                     return Boolean.TRUE;
                 }
                 return null;
@@ -497,13 +493,19 @@ public final class Program implements Serializable {
 
     @Nullable
     public <T> T itterate(final Function<Object, T> func) {
-        for (Object code : instructions) {
+        for (Instruction code : instructions) {
             T res = func.apply(code);
             if (res != null) {
                 return res;
             }
-            if (code instanceof Program) {
-                res = ((Program) code).itterate(func);
+            for (Object param : code.getParameters()) {
+                res = func.apply(param);
+                if (res != null) {
+                   return res;
+                }
+                if (param instanceof Program) {
+                    res = ((Program) param).itterate(func);
+                }
                 if (res != null) {
                     return res;
                 }
@@ -512,7 +514,7 @@ public final class Program implements Serializable {
         return null;
     }
 
-    Object[] getInstructions() {
+    Instruction[] getInstructions() {
         return instructions;
     }
 
