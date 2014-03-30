@@ -269,5 +269,14 @@ public final class ZelTest {
        Assert.assertEquals(45, result.intValue());
     }
     
+    @Test
+    public void testSwap() throws CompileException, ZExecutionException, InterruptedException {
+       Program p = Program.compile("x[0] <-> x[1]; x[1]", "x");
+       System.out.println(p);
+       String [] testArray = new String[] {"a", "b"};
+       String result = (String) p.execute(new Object [] {testArray});
+       Assert.assertEquals("a", result);
+    }
+    
 
 }

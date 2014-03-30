@@ -109,6 +109,7 @@ TOKEN : /* OPERATORS & KEYWORDS*/
   |     < FIRST: "first" >
   |     < IF: "if" >
   |     < ELSE: "else" >
+  |     < SWAP: "<->" >
   |     < USE: "use" >
   |     < DECIMAL: ("decimal" | "dec") >
 
@@ -246,8 +247,8 @@ void statement(ParsingContext context) :
 {
 }
 {
-LOOKAHEAD(assignement(context)) 
-    assignement(context) 
+    LOOKAHEAD(assignement(context)) assignement(context)
+  | LOOKAHEAD(swap(context)) swap(context)
   | expression(context)
   | zreturn(context)
   | forStmt(context)
@@ -337,6 +338,17 @@ void assignement(ParsingContext context) :
   | (<DEC>
    {context.generateCode(org.spf4j.zel.instr.DEC.INSTANCE);}))
 }
+
+void swap(ParsingContext context) :
+{
+}
+{
+   assignableExpression(context) 
+   <SWAP> assignableExpression(context)
+   {context.generateCode(org.spf4j.zel.instr.SWAP.INSTANCE);}
+ 
+}
+
 
 
 void assignableExpression(ParsingContext context) :
