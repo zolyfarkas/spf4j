@@ -254,6 +254,7 @@ void statement(ParsingContext context) :
   | forStmt(context)
   | ifStmt(context)
   | (<SLEEP> expression(context) {context.generateCode(org.spf4j.zel.instr.SLEEP.INSTANCE);})
+  | (<SYNC> expression(context) {context.generateCode(org.spf4j.zel.instr.SYNC.INSTANCE);})
   | (<USE> <DECIMAL> <INTEGER> 
     {context.generateCode(new org.spf4j.zel.instr.MCTX(parseInteger(token.image).intValue()));})
 }
@@ -298,7 +299,7 @@ void ifStmt(ParsingContext context) :
     (<IF>
     logical(context)
     programBlock(left)
-        {context.generateCode(new org.spf4j.zel.instr.FJMP(left.getAddress() + 2));
+        {context.generateCode(new org.spf4j.zel.instr.FJMP(left.getAddress() + 1));
          context.generateCodeAll(left);})
 
     (<ELSE> 
@@ -322,7 +323,7 @@ void zreturn(ParsingContext context) :
 {
 }
 {
-  <RETURN> expression(context)
+  <RETURN> (expression(context))?
  {context.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);}
 }
 

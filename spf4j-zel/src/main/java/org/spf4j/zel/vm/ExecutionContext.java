@@ -42,18 +42,16 @@ import org.spf4j.zel.operators.Operator;
 public final class ExecutionContext {
 
     //CHECKSTYLE:OFF
-    
     public MathContext mathContext;
-    
+
     public final VMExecutor execService;
 
     public final ResultCache resultCache;
-        
-    public final Object [] mem;
 
-    public final Object [] globalMem;
-    
-    
+    public final Object[] mem;
+
+    public final Object[] globalMem;
+
     /**
      * the program
      */
@@ -92,19 +90,16 @@ public final class ExecutionContext {
     List<VMFuture<Object>> suspendedAt;
     //CHECKSTYLE:ON
 
-    
     public void suspend(final VMFuture<Object> future) throws SuspendedException {
         suspendedAt = Arrays.asList(future);
         throw SuspendedException.INSTANCE;
     }
-    
+
     public void suspend(final List<VMFuture<Object>> futures) throws SuspendedException {
         suspendedAt = futures;
         throw SuspendedException.INSTANCE;
     }
-    
-    
-    
+
     private final boolean isChildContext;
 
     private ExecutionContext(final ExecutionContext parent, @Nullable final VMExecutor service, final Program program) {
@@ -130,7 +125,7 @@ public final class ExecutionContext {
      * @param err
      */
     @SuppressWarnings("EI_EXPOSE_REP2")
-    public ExecutionContext(final Program program, final Object [] globalMem,
+    public ExecutionContext(final Program program, final Object[] globalMem,
             @Nullable final InputStream in, @Nullable final PrintStream out, @Nullable final PrintStream err,
             @Nullable final VMExecutor execService) {
         this.code = program;
@@ -162,17 +157,21 @@ public final class ExecutionContext {
                 }
                 Instruction[] instructions = code.getInstructions();
                 try {
-                    while (ip >= 0) {
-                            Instruction icode = instructions[ip];
-                            ip += icode.execute(ExecutionContext.this);
+                    while (!terminated) {
+                        Instruction icode = instructions[ip];
+                        ip += icode.execute(ExecutionContext.this);
                     }
-                } catch (RuntimeException e) {
-                    throw new ZExecutionException("Program exec failed, state:" + this, e);
-                }
-                if (!isStackEmpty()) {
-                    return popSyncStackVal();
-                } else {
-                    return null;
+                    if (!isStackEmpty()) {
+                        Object[] results = popSyncStackVals(stack.size());
+                        return results[results.length - 1];
+                    } else {
+                        return null;
+                    }
+                } catch (SuspendedException e) {
+                    throw e;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new ZExecutionException("Program exec failed, state:" + ExecutionContext.this, e);
                 }
             }
 
@@ -183,6 +182,9 @@ public final class ExecutionContext {
         };
     }
 
+    
+    
+    
     /**
      * pops object out of stack
      *
@@ -209,10 +211,14 @@ public final class ExecutionContext {
         }
     }
 
-   public Object[] popStackVals(final int nvals) {
+    public Object[] popStackVals(final int nvals) {
         return stack.pop(nvals);
-   }
-    
+    }
+
+    public int getNrStackVals() {
+        return stack.size();
+    }
+
     public Object[] popSyncStackVals(final int nvals) throws SuspendedException {
         Object[] result = stack.pop(nvals);
         for (int i = 0; i < nvals; i++) {
@@ -235,7 +241,6 @@ public final class ExecutionContext {
         }
         return result;
     }
-    
 
     public Object popFirstAvail(final int nr) throws SuspendedException {
         Object[] params = stack.peek(nr);
@@ -246,26 +251,26 @@ public final class ExecutionContext {
         for (int i = 0; i < l; i++) {
             Object obj = params[i];
             if (obj instanceof VMFuture<?>) {
-                    final VMFuture<Object> resFut = (VMFuture<Object>) obj;
-                    Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
-                    if (resultStore != null) {
-                        if (resultStore.getSecond() == null) {
-                            stack.pop(nr);
-                            return resultStore.getFirst();
-                        } else {
-                            nrErrors++;
-                            if (e == null) {
-                                e = new RuntimeException(resultStore.getSecond());
-                            } else {
-                                e = new RuntimeException(Throwables.chain(resultStore.getSecond(), e));
-                            }
-                        }
+                final VMFuture<Object> resFut = (VMFuture<Object>) obj;
+                Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+                if (resultStore != null) {
+                    if (resultStore.getSecond() == null) {
+                        stack.pop(nr);
+                        return resultStore.getFirst();
                     } else {
-                        if (futures == null) {
-                            futures = new ArrayList<VMFuture<Object>>(l);
+                        nrErrors++;
+                        if (e == null) {
+                            e = new RuntimeException(resultStore.getSecond());
+                        } else {
+                            e = new RuntimeException(Throwables.chain(resultStore.getSecond(), e));
                         }
-                        futures.add(resFut);
                     }
+                } else {
+                    if (futures == null) {
+                        futures = new ArrayList<VMFuture<Object>>(l);
+                    }
+                    futures.add(resFut);
+                }
             } else {
                 stack.pop(nr);
                 return obj;
@@ -273,7 +278,7 @@ public final class ExecutionContext {
         }
         if (nrErrors == l) {
             if (e == null) {
-                throw new  IllegalStateException();
+                throw new IllegalStateException();
             } else {
                 throw e;
             }
@@ -284,9 +289,6 @@ public final class ExecutionContext {
         suspend(futures);
         throw new IllegalStateException();
     }
-    
-    
-    
 
     public Object pop() {
         return this.stack.pop();
@@ -307,11 +309,11 @@ public final class ExecutionContext {
     public Object peek() {
         return this.stack.peek();
     }
-    
+
     public Object peekFromTop(final int n) {
         return this.stack.peekFromTop(n);
     }
-    
+
     public Object peekElemAfter(final Object elem) {
         return this.stack.peekElemAfter(elem);
     }
@@ -326,7 +328,7 @@ public final class ExecutionContext {
         System.arraycopy(parameters, 0, ec.mem, 0, parameters.length);
         return ec;
     }
-    
+
     public ExecutionContext getSyncSubProgramContext(final Program program, final Object[] parameters) {
         ExecutionContext ec;
         ec = new ExecutionContext(this, null, program);
@@ -346,7 +348,7 @@ public final class ExecutionContext {
     public boolean isChildContext() {
         return isChildContext;
     }
-    
-    
 
+    
+    
 }

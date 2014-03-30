@@ -462,6 +462,8 @@ public final class Program implements Serializable {
             result.append(obj);
             result.append('\n');
         }
+        result.append("execType = " + this.execType + "\n");
+        result.append("type = " + this.type + "\n");
         return result.toString();
     }
 

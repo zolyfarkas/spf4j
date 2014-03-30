@@ -278,5 +278,13 @@ public final class ZelTest {
        Assert.assertEquals("a", result);
     }
     
+    @Test
+    public void testArray() throws CompileException, ZExecutionException, InterruptedException {
+       Program p = Program.compile("x = array(2); x.length");
+       System.out.println(p);
+       Integer result = (Integer) p.execute();
+       Assert.assertEquals(2, result.intValue());
+    }
+    
 
 }

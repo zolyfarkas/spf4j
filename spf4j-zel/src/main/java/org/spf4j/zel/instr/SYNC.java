@@ -19,32 +19,33 @@ package org.spf4j.zel.instr;
 
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
+import org.spf4j.zel.vm.SuspendedException;
 
 /**
  * @author zoly
  * @version 1.0
  */
-public final class HALT extends Instruction {
+public final class SYNC extends Instruction {
 
-    private static final long serialVersionUID = 569446978264434892L;
+    private static final long serialVersionUID = -5165232100964035429L;
 
-    private HALT() {
+    private SYNC() {
     }
 
     /**
-     * HALT instruction microcode
+     * DUP Instruction microcode
      * @param context ExecutionContext
-     * @throws ZExecutionException
+     * @throws VMException
      */
     @Override
-    public int execute(final ExecutionContext context) {
-        context.terminated = true;
-        return 0;
+    public int execute(final ExecutionContext context) throws SuspendedException {
+        context.popSyncStackVal();
+        return 1;
     }
     /**
      * instance
      */
-    public static final Instruction INSTANCE = new HALT();
+    public static final Instruction INSTANCE = new SYNC();
 
     @Override
     public Object[] getParameters() {

@@ -239,6 +239,7 @@ public final class ProgramBuilder {
             }
         });
         if (hasAsyncCalls == null) {
+            
             return false;
         }
         return hasAsyncCalls;
