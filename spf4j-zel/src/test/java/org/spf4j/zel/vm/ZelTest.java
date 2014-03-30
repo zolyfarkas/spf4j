@@ -254,6 +254,14 @@ public final class ZelTest {
     }
     
     @Test
+    public void testCond3() throws CompileException, ZExecutionException, InterruptedException {
+       Program p = Program.compile(" if x >= 0 { \"positive\" } else { \"negative\" } ", "x");
+       System.out.println(p);
+       String result = (String) p.execute(1);
+       Assert.assertEquals("positive", result);
+    }
+    
+    @Test
     public void testFor() throws CompileException, ZExecutionException, InterruptedException {
        Program p = Program.compile("x = 0; for i=0; i < 10; i++ {out(i); x = x + i}; x ");
        System.out.println(p);

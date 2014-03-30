@@ -209,7 +209,7 @@ public final class ProgramBuilder {
                 if (input instanceof Program) {
                     Program prog = (Program) input;
                     if (prog.getType() == Program.Type.DETERMINISTIC
-                            || prog.isHasDeterministicFunctions()) {
+                            || prog.hasDeterministicFunctions()) {
                         return Boolean.TRUE;
                     }
                 }

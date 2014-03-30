@@ -107,6 +107,8 @@ TOKEN : /* OPERATORS & KEYWORDS*/
   |     < E: "E" >
   |     < PI: "PI" >
   |     < FIRST: "first" >
+  |     < IF: "if" >
+  |     < ELSE: "else" >
   |     < USE: "use" >
   |     < DECIMAL: ("decimal" | "dec") >
 
@@ -249,6 +251,7 @@ LOOKAHEAD(assignement(context))
   | expression(context)
   | zreturn(context)
   | forStmt(context)
+  | ifStmt(context)
   | (<SLEEP> expression(context) {context.generateCode(org.spf4j.zel.instr.SLEEP.INSTANCE);})
   | (<USE> <DECIMAL> <INTEGER> 
     {context.generateCode(new org.spf4j.zel.instr.MCTX(parseInteger(token.image).intValue()));})
@@ -282,6 +285,30 @@ void forStmt(ParsingContext context) :
     }
   
 }
+
+void ifStmt(ParsingContext context) :
+{
+ int jmp1;
+ int jmp2;
+ ParsingContext left = (ParsingContext) context.createSubContext();
+ ParsingContext right = (ParsingContext) context.createSubContext();
+}
+{
+    (<IF>
+    logical(context)
+    programBlock(left)
+        {context.generateCode(new org.spf4j.zel.instr.FJMP(left.getAddress() + 2));
+         context.generateCodeAll(left);})
+
+    (<ELSE> 
+    programBlock(right)
+         {context.generateCode(new org.spf4j.zel.instr.JMP(right.getAddress() + 1));
+         context.generateCodeAll(right);}
+    )?
+}
+
+
+
 
 void programBlock(ParsingContext context) :
 {

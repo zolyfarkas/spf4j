@@ -51,7 +51,11 @@ public final class DEREF extends Instruction {
         if (relativeTo instanceof Map) {
             context.push(((Map) relativeTo).get(ref));
         } else if (relativeTo instanceof Object[]) {
-            context.push(((Object []) relativeTo)[((Number) ref).intValue()]);
+            if (ref instanceof String && ref.equals("length")) {
+                context.push(((Object []) relativeTo).length);
+            } else {
+                context.push(((Object []) relativeTo)[((Number) ref).intValue()]);
+            }
         } else if (relativeTo instanceof int[]) {
             context.push(((int []) relativeTo)[((Number) ref).intValue()]);
         } else if (relativeTo instanceof byte[]) {

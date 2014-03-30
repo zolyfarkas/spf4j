@@ -142,7 +142,7 @@ public final class ExecutionContext {
         this.ip = 0;
         this.mem = new Object[program.getLocalMemSize()];
         this.globalMem = globalMem;
-        if (program.isHasDeterministicFunctions()) {
+        if (program.hasDeterministicFunctions()) {
             this.resultCache = new SimpleResultCache();
         } else {
             this.resultCache = null;

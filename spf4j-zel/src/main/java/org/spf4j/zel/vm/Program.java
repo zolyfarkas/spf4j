@@ -33,8 +33,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nonnull;
 import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import org.spf4j.zel.instr.Instruction;
@@ -42,6 +42,7 @@ import org.spf4j.zel.instr.LODAX;
 import org.spf4j.zel.instr.LODAXF;
 import org.spf4j.zel.instr.LODX;
 import org.spf4j.zel.instr.LODXF;
+import org.spf4j.zel.instr.var.ARRAY;
 import org.spf4j.zel.instr.var.INT;
 import org.spf4j.zel.instr.var.LOG;
 import org.spf4j.zel.instr.var.MAX;
@@ -60,7 +61,7 @@ import org.spf4j.zel.vm.gen.ZCompiler;
  * @author zoly
  * @version 1.0
  *
- * This is a Turing machine a Program will always be preety much an array of operations.
+ * This is a Turing machine a Program will always be pretty much an array of operations.
  */
 @Immutable
 public final class Program implements Serializable {
@@ -182,7 +183,7 @@ public final class Program implements Serializable {
         return this.id;
     }
 
-    public boolean isHasDeterministicFunctions() {
+    public boolean hasDeterministicFunctions() {
         return hasDeterministicFunctions;
     }
 
@@ -254,6 +255,7 @@ public final class Program implements Serializable {
         ZEL_GLOBAL_FUNC.addSymbol("log10", LOG.INSTANCE);
         ZEL_GLOBAL_FUNC.addSymbol("min", MIN.INSTANCE);
         ZEL_GLOBAL_FUNC.addSymbol("max", MAX.INSTANCE);
+        ZEL_GLOBAL_FUNC.addSymbol("array", ARRAY.INSTANCE);
         ZEL_GLOBAL_FUNC.addSymbol("random", RANDOM.INSTANCE);
         ZEL_GLOBAL_FUNC.addSymbol("channel", new Channel.Factory());
         ZEL_GLOBAL_FUNC.addSymbol("EOF", Channel.EOF);
