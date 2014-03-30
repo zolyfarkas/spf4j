@@ -18,8 +18,6 @@
 package org.spf4j.zel.instr;
 
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.spf4j.base.Arrays;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.zel.vm.ExecutionContext;
