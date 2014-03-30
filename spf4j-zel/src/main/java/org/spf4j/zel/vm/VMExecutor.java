@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import javax.annotation.Nullable;
 import org.spf4j.base.Pair;
 import org.spf4j.concurrent.SimpleExecutor;
 
@@ -141,13 +142,15 @@ public final class VMExecutor {
     private final ConcurrentMap<VMFuture<Object>, List<Pair<Suspendable<Object>, VMFuture<Object>>>> futToSuspMap
             = new ConcurrentHashMap<VMFuture<Object>, List<Pair<Suspendable<Object>, VMFuture<Object>>>>();
 
-    public void resumeSuspendables(final VMFuture<Object> future) {
+    @Nullable
+    public List<Pair<Suspendable<Object>, VMFuture<Object>>> resumeSuspendables(final VMFuture<Object> future) {
         List<Pair<Suspendable<Object>, VMFuture<Object>>> suspended = futToSuspMap.remove(future);
         if (suspended != null) {
             for (Pair<Suspendable<Object>, VMFuture<Object>> susp : suspended) {
                 submit(susp.getFirst(), susp.getSecond());
             }
         }
+        return suspended;
     }
 
     private void addSuspendable(final VMFuture<Object> futureSuspendedFor,

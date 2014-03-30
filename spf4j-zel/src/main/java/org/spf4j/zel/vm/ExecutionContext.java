@@ -92,6 +92,19 @@ public final class ExecutionContext {
     List<VMFuture<Object>> suspendedAt;
     //CHECKSTYLE:ON
 
+    
+    public void suspend(final VMFuture<Object> future) throws SuspendedException {
+        suspendedAt = Arrays.asList(future);
+        throw SuspendedException.INSTANCE;
+    }
+    
+    public void suspend(final List<VMFuture<Object>> futures) throws SuspendedException {
+        suspendedAt = futures;
+        throw SuspendedException.INSTANCE;
+    }
+    
+    
+    
     private final boolean isChildContext;
 
     private ExecutionContext(final ExecutionContext parent, @Nullable final VMExecutor service, final Program program) {
@@ -188,8 +201,8 @@ public final class ExecutionContext {
                     return FutureBean.processResult(resultStore);
                 } else {
                     this.stack.push(result);
-                    suspendedAt = Arrays.asList(resFut);
-                    throw SuspendedException.INSTANCE;
+                    suspend(resFut);
+                    throw new IllegalThreadStateException();
                 }
             } catch (ExecutionException ex) {
                 throw new RuntimeException(ex);
@@ -215,8 +228,8 @@ public final class ExecutionContext {
                         result[i] = FutureBean.processResult(resultStore);
                     } else {
                         stack.pushAll(result);
-                        suspendedAt = Arrays.asList(resFut);
-                        throw SuspendedException.INSTANCE;
+                        suspend(resFut);
+                        throw new IllegalStateException();
                     }
                 } catch (ExecutionException ex) {
                     throw new RuntimeException(ex);
@@ -271,8 +284,8 @@ public final class ExecutionContext {
         if (futures.isEmpty()) {
             throw new IllegalStateException();
         }
-        suspendedAt = futures;
-        throw SuspendedException.INSTANCE;
+        suspend(futures);
+        throw new IllegalStateException();
     }
     
     

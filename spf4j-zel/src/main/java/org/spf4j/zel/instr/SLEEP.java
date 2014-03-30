@@ -17,9 +17,14 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.spf4j.base.Arrays;
+import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
+import org.spf4j.zel.vm.VMASyncFuture;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
@@ -39,7 +44,24 @@ public final class SLEEP extends Instruction {
             throws ZExecutionException, SuspendedException {
         try {
             Number param = (Number) context.popSyncStackVal();
-            Thread.sleep(param.longValue());
+            if (context.execService == null) {
+                Thread.sleep(param.longValue());
+            } else {
+                final VMASyncFuture<Object> future =  new VMASyncFuture<Object>();
+                DefaultScheduler.INSTANCE.schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                         while (context.execService.resumeSuspendables(future) == null) {
+                             try {
+                                 Thread.sleep(1);
+                             } catch (InterruptedException ex) {
+                                 break;
+                             }
+                         }
+                    }
+                }, param.longValue(), TimeUnit.MILLISECONDS);
+                context.suspend(future);
+            }
             return 1;
         } catch (InterruptedException ex) {
             throw new ZExecutionException("sleeping interrupted", ex, context);
