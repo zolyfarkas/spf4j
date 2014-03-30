@@ -161,6 +161,22 @@ public final class ZelTest {
                 endTime - startTime < 5200);
     }
     
+        @Test
+    public void testParallelism2() throws CompileException, ZExecutionException, InterruptedException {
+        String program = "f1 = func {sleep 5000; 1};"
+                + "f2 = func {sleep 5000; 2};"
+                + "f1() + f2()";
+        Program prog = Program.compile(program);
+        System.out.println(prog);
+        long startTime = System.currentTimeMillis();
+        Number result = (Number) prog.execute(Executors.newSingleThreadExecutor());
+        long endTime = System.currentTimeMillis();
+        Assert.assertEquals(3, result.intValue());
+        Assert.assertTrue("functions need to execute in parallel not in " + (endTime - startTime),
+                endTime - startTime < 5200);
+    }
+    
+    
     @Test
     public void testCond() throws CompileException, ZExecutionException, InterruptedException {
         Boolean result = (Boolean) Program.compile("x == 1", "x").execute(1);

@@ -62,7 +62,7 @@ public final class ExecutionContext {
     /**
      * The Instruction pointer
      */
-    private int ip;
+    public int ip;
 
     /**
      * The halt register
@@ -161,16 +161,13 @@ public final class ExecutionContext {
                     Operator.MATH_CONTEXT.set(mathContext);
                 }
                 Instruction[] instructions = code.getInstructions();
-                int lip = ip;
                 try {
-                    while (lip >= 0) {
-                            Instruction icode = instructions[lip];
-                            lip += icode.execute(ExecutionContext.this);
+                    while (ip >= 0) {
+                            Instruction icode = instructions[ip];
+                            ip += icode.execute(ExecutionContext.this);
                     }
                 } catch (RuntimeException e) {
                     throw new ZExecutionException("Program exec failed, state:" + this, e);
-                } finally {
-                    ip = lip;
                 }
                 if (!isStackEmpty()) {
                     return popSyncStackVal();

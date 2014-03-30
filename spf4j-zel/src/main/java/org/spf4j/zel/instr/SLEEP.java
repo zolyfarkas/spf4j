@@ -27,7 +27,6 @@ import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.VMASyncFuture;
 import org.spf4j.zel.vm.ZExecutionException;
 
-
 /**
  *
  * @author zoly
@@ -41,31 +40,29 @@ public final class SLEEP extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
-        try {
-            Number param = (Number) context.popSyncStackVal();
-            if (context.execService == null) {
-                Thread.sleep(param.longValue());
-            } else {
-                final VMASyncFuture<Object> future =  new VMASyncFuture<Object>();
-                DefaultScheduler.INSTANCE.schedule(new Runnable() {
-                    @Override
-                    public void run() {
-                         while (context.execService.resumeSuspendables(future) == null) {
-                             try {
-                                 Thread.sleep(1);
-                             } catch (InterruptedException ex) {
-                                 break;
-                             }
-                         }
+            throws ZExecutionException, SuspendedException, InterruptedException {
+        Number param = (Number) context.popSyncStackVal();
+        if (context.execService == null) {
+            Thread.sleep(param.longValue());
+        } else {
+            final VMASyncFuture<Object> future = new VMASyncFuture<Object>();
+            DefaultScheduler.INSTANCE.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    while (context.execService.resumeSuspendables(future) == null) {
+                        try {
+                            Thread.sleep(1);
+                        } catch (InterruptedException ex) {
+                            break;
+                        }
                     }
-                }, param.longValue(), TimeUnit.MILLISECONDS);
-                context.suspend(future);
-            }
-            return 1;
-        } catch (InterruptedException ex) {
-            throw new ZExecutionException("sleeping interrupted", ex, context);
+                }
+            }, param.longValue(), TimeUnit.MILLISECONDS);
+            context.ip++;
+            context.suspend(future);
         }
+        return 1;
+
     }
     /**
      * instance
@@ -76,6 +73,5 @@ public final class SLEEP extends Instruction {
     public Object[] getParameters() {
         return Arrays.EMPTY_OBJ_ARRAY;
     }
-
 
 }

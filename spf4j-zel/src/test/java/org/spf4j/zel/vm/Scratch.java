@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.vm;
 
+import java.util.concurrent.Executors;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
@@ -48,16 +49,31 @@ public final  class Scratch {
 //        Assert.assertEquals(10, result.intValue());
 //        
         
-                String program
-                = "func det fib (x) { fib(x-1) + fib(x-2) };\n"
-                + "fib(0) = 0;\n"
-                + "fib(1) = 1;\n"
-                + "fib(10)";
-
-        Program compiledProgram = Program.compile(program);
-        System.out.println(compiledProgram);
-        Number result = (Number) compiledProgram.execute();
-        System.out.println(result);
+//                String program
+//                = "func det fib (x) { fib(x-1) + fib(x-2) };\n"
+//                + "fib(0) = 0;\n"
+//                + "fib(1) = 1;\n"
+//                + "fib(10)";
+//
+//        Program compiledProgram = Program.compile(program);
+//        System.out.println(compiledProgram);
+//        Number result = (Number) compiledProgram.execute();
+//        System.out.println(result);
+//        
+        
+                String program = "f1 = func {sleep 5000; 1};"
+                + "f2 = func {sleep 5000; 2};"
+                + "f1() + f2()";
+        Program prog = Program.compile(program);
+        System.out.println(prog);
+        long startTime = System.currentTimeMillis();
+        Number result = (Number) prog.execute(Executors.newSingleThreadExecutor());
+        long endTime = System.currentTimeMillis();
+        Assert.assertEquals(3, result.intValue());
+        Assert.assertTrue("functions need to execute in parallel not in " + (endTime - startTime),
+                endTime - startTime < 5200);
+        
+        
 //       Program program = Program.compile("x.split(\",\")[1] = \"A\"", "x");
 //       System.out.println(program);
 //       String result = (String) program.execute("a,b,c");
