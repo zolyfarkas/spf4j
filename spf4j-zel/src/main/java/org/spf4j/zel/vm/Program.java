@@ -304,12 +304,21 @@ public final class Program implements Serializable {
         }
     }
 
-    public static Future<Object> executeAsync(@Nonnull final ExecutionContext ectx) {
+    public static Object executeAsync(@Nonnull final ExecutionContext ectx)
+            throws ZExecutionException, InterruptedException {
         final VMExecutor.Suspendable<Object> execution = ectx.getCallable();
-        if (ectx.isChildContext()) {
-            return ectx.execService.submitInternal(VMExecutor.synchronize(execution));
+        if (ectx.execService != null) {
+            if (ectx.isChildContext()) {
+                return ectx.execService.submitInternal(VMExecutor.synchronize(execution));
+            } else {
+                return ectx.execService.submit(VMExecutor.synchronize(execution));
+            }
         } else {
-            return ectx.execService.submit(VMExecutor.synchronize(execution));
+            try {
+                return execution.call();
+            } catch (SuspendedException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 
