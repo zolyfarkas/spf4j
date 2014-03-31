@@ -292,21 +292,23 @@ void ifStmt(ParsingContext context) :
 {
  int jmp1;
  int jmp2;
+ boolean isElse = false;
  ParsingContext left = (ParsingContext) context.createSubContext();
  ParsingContext right = (ParsingContext) context.createSubContext();
 }
 {
     (<IF>
     logical(context)
-    programBlock(left)
-        {context.generateCode(new org.spf4j.zel.instr.FJMP(left.getAddress() + 1));
-         context.generateCodeAll(left);})
+    programBlock(left))
 
-    (<ELSE> 
-    programBlock(right)
-         {context.generateCode(new org.spf4j.zel.instr.JMP(right.getAddress() + 1));
-         context.generateCodeAll(right);}
-    )?
+    (<ELSE> {isElse = true;}
+    programBlock(right))?
+        {context.generateCode(new org.spf4j.zel.instr.FJMP(left.getAddress() + 1 + ((isElse) ? 1 : 0)));
+         context.generateCodeAll(left);
+         if (isElse) {
+         context.generateCode(new org.spf4j.zel.instr.JMP(right.getAddress() + 1));
+         context.generateCodeAll(right);
+         }}
 }
 
 
