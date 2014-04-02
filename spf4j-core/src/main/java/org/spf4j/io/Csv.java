@@ -18,8 +18,10 @@
 package org.spf4j.io;
 
 import java.io.IOException;
+import java.io.PushbackReader;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import org.spf4j.base.Strings;
 
@@ -67,6 +69,21 @@ public final class Csv {
         T eof();
     }
 
+    public static <T> T readSkipBom(final Reader preader, final Charset charset,
+        final CsvHandler<T> handler) throws IOException {
+        PushbackReader reader = new PushbackReader(preader);
+        int firstChar = reader.read();
+        if (firstChar != UTF_BOM) {
+            reader.unread(firstChar);
+        }
+        return read(reader, handler);
+    }
+    
+    /**
+     * http://unicode.org/faq/utf_bom.html#BOM
+     */
+    public static final int UTF_BOM = '\uFEFF';
+    
     /**
      * reads CSV format until EOF of reader.
      * @param <T>
@@ -77,7 +94,7 @@ public final class Csv {
      */
     
     public static <T> T read(final Reader preader, final CsvHandler<T> handler) throws IOException {
-        final PushBackReader reader = new PushBackReader(preader);
+        final Reader reader = preader;
         boolean start = true;
         do {
             if (start) {
@@ -87,11 +104,14 @@ public final class Csv {
             StringBuilder strB = new StringBuilder();
             int c = readCsvElement(reader, strB);
             handler.element(strB);
-            if (c == '\n') {
+            if (c == '\r') {
                 int c2 = reader.read();
-                if (c2 != '\r') {
-                    reader.pushBack((char) c2);
+                if (c2 != '\n') {
+                    throw new IOException("\\r\\n expected");
                 }
+                handler.endRow();
+                start = true;
+            } else if (c == '\n') {
                 handler.endRow();
                 start = true;
             } else if (c < 0) {
@@ -211,7 +231,7 @@ public final class Csv {
         }
         if (c == '"') {
             c = reader.read();
-            while (true) {
+            while (c >= 0) {
                 if (c == '"') {
                     int c2 = reader.read();
                     if (c2 >= 0) {
@@ -227,17 +247,14 @@ public final class Csv {
                     addElemTo.append((char) c);
                 }
                 c = reader.read();
-                if (c < 0) {
-                    return c;
-                }
             }
         } else {
-            while (c != ',' && c >= 0 && c != '\n') {
+            while (c != ',' && c >= 0 && c != '\n' && c != '\r') {
                 addElemTo.append((char) c);
                 c = reader.read();
             }
-            return c;
         }
+        return c;
     }
 
 }
