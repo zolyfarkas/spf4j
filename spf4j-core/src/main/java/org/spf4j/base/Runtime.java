@@ -72,9 +72,17 @@ public final class Runtime {
     }
     public static final String MAC_OS_X_OS_NAME = "Mac OS X";
     private static final File FD_FOLDER = new File("/proc/" + PID + "/fd");
-
+    
+    public static boolean isMacOsx() {
+        return OS_NAME.equals(MAC_OS_X_OS_NAME);
+    }
+    
+    public static boolean isWindows() {
+        return OS_NAME.startsWith("Windows");
+    }
+    
     public static int getNrOpenFiles() throws IOException, InterruptedException, ExecutionException {
-        if (OS_NAME.equals(MAC_OS_X_OS_NAME)) {
+        if (isMacOsx()) {
             LineCountCharHandler handler = new LineCountCharHandler();
             run("/usr/sbin/lsof -p " + PID, handler);
             return handler.getLineCount() - 1;
