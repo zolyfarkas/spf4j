@@ -128,6 +128,32 @@ EX8:    // Channels!
         };
         prod(ch); // start producer
         for i = 0; i < 10; i++ { cons(ch, i) } //start consumers
+
+EX9:    // Paralle sort!
+
+        func qSortP(x, start, end) {
+          l = end - start;
+          if l < 2 {
+            return
+          };
+          pidx = start + l / 2;
+          pivot = x[pidx];
+          lm1  = end - 1;
+          x[pidx] <-> x[lm1];
+          npv = start;
+          for i = start; i < lm1; i++ {
+            if x[i] < pivot {
+              x[npv] <-> x[i];
+              npv ++
+            }
+          };
+          x[npv] <-> x[lm1];
+          qSortP(x, start, npv);
+          qSortP(x, npv + 1, end)
+        };
+
+        qSortP(x, 0, x.length)
+
  
 +-----------------------------------------------------------------------
   
