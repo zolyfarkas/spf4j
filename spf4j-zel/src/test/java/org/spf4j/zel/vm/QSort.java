@@ -20,6 +20,7 @@ package org.spf4j.zel.vm;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
+import java.util.Random;
 import org.junit.Test;
 
 /**
@@ -30,10 +31,35 @@ public final class QSort {
 
     @Test
     public void test() throws CompileException, ZExecutionException, InterruptedException, IOException {
-        String replicas = Resources.toString(Resources.getResource(QSort.class, "sort.zel"),
+        String qsort = Resources.toString(Resources.getResource(QSort.class, "sort.zel"),
                 Charsets.US_ASCII);
-        Program p = Program.compile(replicas);
+        Program p = Program.compile(qsort);
         System.out.println(p);
         p.execute();
     }
+    
+    @Test
+    public void testSort() throws CompileException, ZExecutionException, InterruptedException, IOException {
+       String qsort = Resources.toString(Resources.getResource(QSort.class, "sortFunc.zel"),
+                Charsets.US_ASCII);
+        Program p = Program.compile(qsort, "x");
+        Integer [] testArray = new Integer [100000];
+        Random random = new Random();
+        for (int i = 0; i < testArray.length; i++) {
+            testArray[i] = random.nextInt();
+        }
+        
+        for (int i = 0; i < 3; i++) {
+            long startTime = System.currentTimeMillis();
+            p.execute(new Object [] {testArray.clone()});
+            System.out.println("Parallel exec time = " + (System.currentTimeMillis() - startTime));
+        }
+        
+        for (int i = 0; i < 3; i++) {
+            long startTime = System.currentTimeMillis();
+            p.executeSingleThreaded(new Object [] {testArray.clone()});
+            System.out.println("ST exec time = " + (System.currentTimeMillis() - startTime));
+        }
+    }
+    
 }

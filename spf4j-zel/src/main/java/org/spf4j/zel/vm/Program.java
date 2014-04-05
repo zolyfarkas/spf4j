@@ -242,6 +242,10 @@ public final class Program implements Serializable {
             final Object... args) throws ZExecutionException, InterruptedException {
         return execute(new VMExecutor(execService), System.in, System.out, System.err, args);
     }
+    
+    public Object executeSingleThreaded(final Object... args) throws ZExecutionException, InterruptedException {
+        return execute(null, System.in, System.out, System.err, args);
+    }
 
 
     private static final MemoryBuilder ZEL_GLOBAL_FUNC;
