@@ -27,11 +27,11 @@ import org.junit.Test;
  *
  * @author zoly
  */
-public final class QSort {
+public final class QSortTest {
 
     @Test
     public void test() throws CompileException, ZExecutionException, InterruptedException, IOException {
-        String qsort = Resources.toString(Resources.getResource(QSort.class, "sort.zel"),
+        String qsort = Resources.toString(Resources.getResource(QSortTest.class, "sort.zel"),
                 Charsets.US_ASCII);
         Program p = Program.compile(qsort);
         System.out.println(p);
@@ -40,7 +40,7 @@ public final class QSort {
     
     @Test
     public void testSort() throws CompileException, ZExecutionException, InterruptedException, IOException {
-       String qsort = Resources.toString(Resources.getResource(QSort.class, "sortFunc.zel"),
+       String qsort = Resources.toString(Resources.getResource(QSortTest.class, "sortFunc.zel"),
                 Charsets.US_ASCII);
         Program p = Program.compile(qsort, "x");
         Integer [] testArray = new Integer [100000];
