@@ -32,6 +32,7 @@ import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.FutureBean;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.operators.Operator;
+import static org.spf4j.zel.vm.Program.ExecutionType.SYNC;
 
 /**
  * Virtual Machine Execution Context
@@ -324,7 +325,11 @@ public final class ExecutionContext {
 
     public ExecutionContext getSubProgramContext(final Program program, final Object[] parameters) {
         ExecutionContext ec;
-        ec = new ExecutionContext(this, this.execService, program);
+        if (program.getExecType() == SYNC) {
+            ec = new ExecutionContext(this, null, program);
+        } else {
+            ec = new ExecutionContext(this, this.execService, program);
+        }
         System.arraycopy(parameters, 0, ec.mem, 0, parameters.length);
         return ec;
     }

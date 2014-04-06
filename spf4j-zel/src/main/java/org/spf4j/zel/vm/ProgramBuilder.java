@@ -252,7 +252,7 @@ public final class ProgramBuilder {
         return new Program(build.getSecond(), build.getFirst(), instructions, 0, instrNumber, type,
                 this.execType == Program.ExecutionType.ASYNC || hasAsyncCalls()
                         ? (this.execType == null ? Program.ExecutionType.ASYNC : this.execType)
-                        : Program.ExecutionType.SYNC_ALL,
+                        : Program.ExecutionType.SYNC,
                 hasDeterministicFunctions(), parameterNames);
     }
     

@@ -74,7 +74,6 @@ public final class Program implements Serializable {
 
     public enum ExecutionType {
         SYNC,
-        SYNC_ALL,
         ASYNC
     }
 
@@ -352,7 +351,7 @@ public final class Program implements Serializable {
     public Object execute(@Nonnull final InputStream in,
             @Nonnull final PrintStream out, @Nonnull final PrintStream err, final Object... args)
             throws ZExecutionException, InterruptedException {
-        if (execType == ExecutionType.SYNC_ALL) {
+        if (execType == ExecutionType.SYNC) {
             return execute((VMExecutor) null, in, out, err, args);
         } else {
             return execute(VMExecutor.Lazy.DEFAULT, in, out, err, args);
