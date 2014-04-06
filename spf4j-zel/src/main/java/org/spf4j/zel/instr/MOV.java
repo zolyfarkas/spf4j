@@ -38,11 +38,6 @@ public final class MOV extends Instruction {
         if (to instanceof AssignableValue) {
             AssignableValue assignTo = (AssignableValue) to;
             assignTo.assign(what);
-            while (!context.isStackEmpty()) {
-                // clear all values from stack.
-                // only last assigned value should be on the stack.
-                context.pop();
-            }
             context.push(what);
         } else {
             throw new ZExecutionException("Lvalue expected insted of " + to);
