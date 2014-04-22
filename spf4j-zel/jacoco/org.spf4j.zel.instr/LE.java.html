@@ -17,12 +17,12 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 /**
- *
  * @author zoly
  */
 public final class LE extends Instruction {
@@ -32,18 +32,23 @@ public final class LE extends Instruction {
     private static final long serialVersionUID = -3993717987392417186L;
 
     @Override
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
 <span class="fc" id="L37">        Object [] vals = context.popSyncStackVals(2);</span>
-<span class="pc bpc" id="L38" title="1 of 2 branches missed.">        context.push(Boolean.valueOf(((Comparable) vals[1]).</span>
-                compareTo(vals[0]) &gt;= 0));
-<span class="fc" id="L40">        context.ip++;</span>
-<span class="fc" id="L41">    }</span>
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">        context.push(((Comparable) vals[1]).</span>
+                compareTo(vals[0]) &gt;= 0);
+<span class="fc" id="L40">        return 1;</span>
+    }
 
     /**
      * instance
      */
 <span class="fc" id="L46">    public static final Instruction INSTANCE = new LE();</span>
+
+    @Override
+    public Object[] getParameters() {
+<span class="fc" id="L50">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+    }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

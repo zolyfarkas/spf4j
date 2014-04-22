@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.ExecutionContext;
@@ -29,8 +30,8 @@ public final class MUL extends Instruction {
 
     private static final long serialVersionUID = -872688683600090372L;
 
-<span class="fc" id="L32">    private MUL() {</span>
-<span class="fc" id="L33">    }</span>
+<span class="fc" id="L33">    private MUL() {</span>
+<span class="fc" id="L34">    }</span>
 
     /**
      * if any of the operands are null the result is null
@@ -39,15 +40,20 @@ public final class MUL extends Instruction {
      * @throws ZExecutionException
      */
     @Override
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
-<span class="fc" id="L44">        Object[] vals = context.popSyncStackVals(2);</span>
-<span class="fc" id="L45">        context.push(Operators.apply(Operator.Enum.Mul, vals[0], vals[1]));</span>
-<span class="fc" id="L46">        context.ip++;</span>
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L45">        Object[] vals = context.popSyncStackVals(2);</span>
+<span class="fc" id="L46">        context.push(Operators.apply(Operator.Enum.Mul, vals[0], vals[1]));</span>
+<span class="fc" id="L47">        return 1;</span>
+    }
     /**
      * instance
      */
-<span class="fc" id="L51">    public static final Instruction INSTANCE = new MUL();</span>
+<span class="fc" id="L52">    public static final Instruction INSTANCE = new MUL();</span>
+
+    @Override
+    public Object[] getParameters() {
+<span class="fc" id="L56">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

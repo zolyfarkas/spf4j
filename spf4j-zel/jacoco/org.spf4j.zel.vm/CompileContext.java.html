@@ -17,6 +17,8 @@
  */
 package org.spf4j.zel.vm;
 
+import org.spf4j.zel.instr.Instruction;
+
 
 public final class CompileContext implements ParsingContext {
 
@@ -24,38 +26,29 @@ public final class CompileContext implements ParsingContext {
     
     private final MemoryBuilder staticMemBuilder;
 
-<span class="fc" id="L27">    public CompileContext(final MemoryBuilder staticMemBuilder) {</span>
-<span class="fc" id="L28">        this.prog = new ProgramBuilder(staticMemBuilder);</span>
-<span class="fc" id="L29">        this.staticMemBuilder = staticMemBuilder;</span>
-<span class="fc" id="L30">    }</span>
+<span class="fc" id="L29">    public CompileContext(final MemoryBuilder staticMemBuilder) {</span>
+<span class="fc" id="L30">        this.prog = new ProgramBuilder(staticMemBuilder);</span>
+<span class="fc" id="L31">        this.staticMemBuilder = staticMemBuilder;</span>
+<span class="fc" id="L32">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     @Override
-    public void generateCode(final Object... args) {
-<span class="pc bpc" id="L35" title="1 of 2 branches missed.">        if (args == null) {</span>
-<span class="nc" id="L36">            prog.add(null);</span>
+    public void generateCode(final Instruction... args) {
+<span class="pc bpc" id="L37" title="1 of 2 branches missed.">        if (args == null) {</span>
+<span class="nc" id="L38">            prog.add(null);</span>
         } else {
-<span class="fc" id="L38">            prog.addAll(args);</span>
+<span class="fc" id="L40">            prog.addAll(args);</span>
         }
-<span class="fc" id="L40">    }</span>
-
-    @Override
-    public void generateCodeAt(final int address, final Object... args) {
-<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (args == null) {</span>
-<span class="nc" id="L45">            prog.set(address, null);</span>
-        } else {
-<span class="nc" id="L47">            prog.setAll(address, args);</span>
-        }
-<span class="nc" id="L49">    }</span>
+<span class="fc" id="L42">    }</span>
 
     @Override
     public void generateCodeAll(final ParsingContext parsingContext) {
-<span class="fc" id="L53">        prog.addAll(parsingContext.getProgramBuilder());</span>
-<span class="fc" id="L54">    }</span>
+<span class="fc" id="L46">        prog.addAll(parsingContext.getProgramBuilder());</span>
+<span class="fc" id="L47">    }</span>
 
     @Override
     public int getAddress() {
-<span class="fc" id="L58">        return prog.size();</span>
+<span class="fc" id="L51">        return prog.size();</span>
     }
 
     /**
@@ -65,23 +58,23 @@ public final class CompileContext implements ParsingContext {
      */
     @Override
     public void process(final Object obj) {
-<span class="nc" id="L68">    }</span>
+<span class="nc" id="L61">    }</span>
 
 
     @Override
     public ProgramBuilder getProgramBuilder() {
-<span class="fc" id="L73">        return prog;</span>
+<span class="fc" id="L66">        return prog;</span>
     }
 
     @Override
     public CompileContext createSubContext() {
-<span class="fc" id="L78">        return new CompileContext(staticMemBuilder);</span>
+<span class="fc" id="L71">        return new CompileContext(staticMemBuilder);</span>
     }
 
     @Override
     public void staticSymbol(final String name, final Object object) {
-<span class="fc" id="L83">        staticMemBuilder.addSymbol(name, object);</span>
-<span class="fc" id="L84">    }</span>
+<span class="fc" id="L76">        staticMemBuilder.addSymbol(name, object);</span>
+<span class="fc" id="L77">    }</span>
 
 
 }

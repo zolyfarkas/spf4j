@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.ExecutionContext;
@@ -28,8 +29,8 @@ public final class MOD extends Instruction {
 
     private static final long serialVersionUID = -8318761232689949542L;
 
-<span class="nc" id="L31">    private MOD() {</span>
-<span class="nc" id="L32">    }</span>
+<span class="nc" id="L32">    private MOD() {</span>
+<span class="nc" id="L33">    }</span>
 
     /**
      * MOD instruction microcode
@@ -39,14 +40,19 @@ public final class MOD extends Instruction {
      * @throws VMException
      */
     @Override
-    public void execute(final ExecutionContext context) throws SuspendedException {
-<span class="nc" id="L43">        Object [] vals = context.popSyncStackVals(2);</span>
-<span class="nc" id="L44">        context.push(Operators.apply(Operator.Enum.Mod, vals[0], vals[1]));</span>
-<span class="nc" id="L45">        context.ip++;</span>
-<span class="nc" id="L46">    }</span>
+    public int execute(final ExecutionContext context) throws SuspendedException {
+<span class="nc" id="L44">        Object [] vals = context.popSyncStackVals(2);</span>
+<span class="nc" id="L45">        context.push(Operators.apply(Operator.Enum.Mod, vals[0], vals[1]));</span>
+<span class="nc" id="L46">        return 1;</span>
+    }
     /**
      * instance
      */
-<span class="nc" id="L50">    public static final Instruction INSTANCE = new MOD();</span>
+<span class="nc" id="L51">    public static final Instruction INSTANCE = new MOD();</span>
+
+    @Override
+    public Object[] getParameters() {
+<span class="nc" id="L55">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

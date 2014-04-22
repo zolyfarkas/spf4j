@@ -40,7 +40,7 @@ public final class CALLREF extends Instruction {
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws ZExecutionException, InterruptedException, SuspendedException {
 <span class="fc" id="L45">        final Integer nrParams = (Integer) context.pop();</span>
         final Object[] parameters;
@@ -104,12 +104,17 @@ public final class CALLREF extends Instruction {
             }
         });
 
-<span class="fc" id="L107">        context.ip++;</span>
-<span class="fc" id="L108">    }</span>
+<span class="fc" id="L107">        return 1;</span>
+    }
 
     /**
      * instance
      */
 <span class="fc" id="L113">    public static final Instruction INSTANCE = new CALLREF();</span>
+
+    @Override
+    public Object[] getParameters() {
+<span class="fc" id="L117">        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

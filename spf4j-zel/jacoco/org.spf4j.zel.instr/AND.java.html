@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
@@ -25,24 +26,29 @@ public final class AND extends Instruction {
 
     private static final long serialVersionUID = -7010871353287467986L;
 
-<span class="nc" id="L28">    private AND() {</span>
-<span class="nc" id="L29">    }</span>
+<span class="nc" id="L29">    private AND() {</span>
+<span class="nc" id="L30">    }</span>
 
     /**
      * AND instruction microcode
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws SuspendedException {
-<span class="nc" id="L38">        Object [] vals = context.popSyncStackVals(2);</span>
-<span class="nc bnc" id="L39" title="All 4 branches missed.">        context.push(((java.lang.Boolean) vals[0]) &amp;&amp; ((java.lang.Boolean) vals[1]));</span>
-<span class="nc" id="L40">        context.ip++;</span>
-<span class="nc" id="L41">    }</span>
+<span class="nc" id="L39">        Object [] vals = context.popSyncStackVals(2);</span>
+<span class="nc bnc" id="L40" title="All 4 branches missed.">        context.push(((java.lang.Boolean) vals[0]) &amp;&amp; ((java.lang.Boolean) vals[1]));</span>
+<span class="nc" id="L41">        return 1;</span>
+    }
     /**
      * instance
      */
-<span class="nc" id="L45">    public static final Instruction INSTANCE = new AND();</span>
+<span class="nc" id="L46">    public static final Instruction INSTANCE = new AND();</span>
+
+    @Override
+    public Object[] getParameters() {
+<span class="nc" id="L50">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+    }
 
 
 }

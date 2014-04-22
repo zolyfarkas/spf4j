@@ -29,23 +29,27 @@ public final class DEREFX extends Instruction {
 
     private static final long serialVersionUID = 1L;
 
-<span class="fc" id="L32">    private DEREFX() {</span>
-<span class="fc" id="L33">    }</span>
+    private final Object ref;
+    
+<span class="fc" id="L34">    public DEREFX(final Object ref) {</span>
+<span class="fc" id="L35">        this.ref = ref;</span>
+<span class="fc" id="L36">    }</span>
     
     /**
      * The instruction microcode
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
-<span class="fc" id="L42">       Object relativeTo = context.popSyncStackVal();</span>
-<span class="fc" id="L43">       pushDeref(relativeTo, context.code.get(++context.ip), context);</span>
-<span class="fc" id="L44">       context.ip++;</span>
-<span class="fc" id="L45">    }</span>
-    /**
-     * instance
-     */
-<span class="fc" id="L49">    public static final Instruction INSTANCE = new DEREFX();</span>
+<span class="fc" id="L45">       Object relativeTo = context.popSyncStackVal();</span>
+<span class="fc" id="L46">       pushDeref(relativeTo, ref, context);</span>
+<span class="fc" id="L47">       return 1;</span>
+    }
+
+    @Override
+    public Object[] getParameters() {
+<span class="fc" id="L52">        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

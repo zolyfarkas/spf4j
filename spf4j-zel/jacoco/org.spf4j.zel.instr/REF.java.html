@@ -19,6 +19,7 @@ package org.spf4j.zel.instr;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.JavaMethodCall;
@@ -32,79 +33,83 @@ public final class REF extends Instruction {
 
     private static final long serialVersionUID = 1L;
 
-<span class="fc" id="L35">    private REF() {</span>
-<span class="fc" id="L36">    }</span>
+<span class="fc" id="L36">    private REF() {</span>
+<span class="fc" id="L37">    }</span>
 
     /**
      * The instruction microcode
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context)
+    public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException, InterruptedException {
-<span class="fc" id="L45">       Object [] vals = context.popSyncStackVals(2);</span>
-<span class="fc" id="L46">       final Object ref = vals[1];</span>
-<span class="fc" id="L47">       final Object relTo = vals[0];</span>
+<span class="fc" id="L46">       Object [] vals = context.popSyncStackVals(2);</span>
+<span class="fc" id="L47">       final Object ref = vals[1];</span>
+<span class="fc" id="L48">       final Object relTo = vals[0];</span>
        final Object relativeTo;
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">       if (relTo instanceof AssignableValue) {</span>
-<span class="fc" id="L50">           Object obj = ((AssignableValue) relTo).get();</span>
-<span class="fc bfc" id="L51" title="All 2 branches covered.">           if (obj == null) {</span>
-<span class="fc" id="L52">               obj = new HashMap();</span>
-<span class="fc" id="L53">               ((AssignableValue) relTo).assign(obj);</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">       if (relTo instanceof AssignableValue) {</span>
+<span class="fc" id="L51">           Object obj = ((AssignableValue) relTo).get();</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">           if (obj == null) {</span>
+<span class="fc" id="L53">               obj = new HashMap();</span>
+<span class="fc" id="L54">               ((AssignableValue) relTo).assign(obj);</span>
            }
-<span class="fc" id="L55">           relativeTo = obj;</span>
-<span class="fc" id="L56">       } else {</span>
-<span class="nc" id="L57">           relativeTo = relTo;</span>
+<span class="fc" id="L56">           relativeTo = obj;</span>
+<span class="fc" id="L57">       } else {</span>
+<span class="nc" id="L58">           relativeTo = relTo;</span>
        }
-<span class="fc bfc" id="L59" title="All 2 branches covered.">       if (relativeTo instanceof Map) {</span>
-<span class="fc" id="L60">           context.push(new AssignableValue() {</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">       if (relativeTo instanceof Map) {</span>
+<span class="fc" id="L61">           context.push(new AssignableValue() {</span>
 
                @Override
                public void assign(final Object object) {
-<span class="fc" id="L64">                   ((Map) relativeTo).put(ref, object);</span>
-<span class="fc" id="L65">               }</span>
+<span class="fc" id="L65">                   ((Map) relativeTo).put(ref, object);</span>
+<span class="fc" id="L66">               }</span>
 
                @Override
                public Object get() {
-<span class="nc" id="L69">                   return ((Map) relativeTo).get(ref);</span>
+<span class="nc" id="L70">                   return ((Map) relativeTo).get(ref);</span>
                }
            });
            
-<span class="fc bfc" id="L73" title="All 2 branches covered.">       } else if (relativeTo instanceof Object []) {</span>
-<span class="fc" id="L74">           context.push(new AssignableValue() {</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">       } else if (relativeTo instanceof Object []) {</span>
+<span class="fc" id="L75">           context.push(new AssignableValue() {</span>
 
                @Override
                public void assign(final Object object) {
-<span class="fc" id="L78">                   ((Object []) relativeTo)[((Number) ref).intValue()] = object;</span>
-<span class="fc" id="L79">               }</span>
+<span class="fc" id="L79">                   ((Object []) relativeTo)[((Number) ref).intValue()] = object;</span>
+<span class="fc" id="L80">               }</span>
 
                @Override
                public Object get() {
-<span class="nc" id="L83">                   return ((Object []) relativeTo)[((Number) ref).intValue()];</span>
+<span class="fc" id="L84">                   return ((Object []) relativeTo)[((Number) ref).intValue()];</span>
                }
            });
            
        } else {
-<span class="fc" id="L88">             context.push(new AssignableValue() {</span>
+<span class="fc" id="L89">             context.push(new AssignableValue() {</span>
 
                @Override
                public void assign(final Object object) {
-<span class="nc" id="L92">                  throw new UnsupportedOperationException(&quot;Cannot assign &quot; + object + &quot; to &quot;</span>
+<span class="nc" id="L93">                  throw new UnsupportedOperationException(&quot;Cannot assign &quot; + object + &quot; to &quot;</span>
                    + relativeTo + &quot;.&quot; + ref);
                }
 
                @Override
                public Object get() {
-<span class="fc" id="L98">                   return new JavaMethodCall(relativeTo, (String) ref);</span>
+<span class="fc" id="L99">                   return new JavaMethodCall(relativeTo, (String) ref);</span>
                }
            });
        }
-<span class="fc" id="L102">       context.ip++;</span>
-        
-<span class="fc" id="L104">    }</span>
+<span class="fc" id="L103">       return 1;</span>
+    }
     /**
      * instance
      */
 <span class="fc" id="L108">    public static final Instruction INSTANCE = new REF();</span>
+
+    @Override
+    public Object[] getParameters() {
+<span class="fc" id="L112">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

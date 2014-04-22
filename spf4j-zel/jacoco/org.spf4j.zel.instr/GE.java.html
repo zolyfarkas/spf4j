@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
@@ -28,19 +29,24 @@ public final class GE extends Instruction {
 
     private static final long serialVersionUID = 3547837369204585282L;
 
-<span class="fc" id="L31">    private GE() {</span>
-<span class="fc" id="L32">    }</span>
+<span class="fc" id="L32">    private GE() {</span>
+<span class="fc" id="L33">    }</span>
 
     @Override
-    public void execute(final ExecutionContext context) throws SuspendedException {
-<span class="fc" id="L36">        Object [] vals = context.popSyncStackVals(2);</span>
-<span class="pc bpc" id="L37" title="1 of 2 branches missed.">        context.push(Boolean.valueOf(((Comparable) vals[1]).</span>
-                compareTo(vals[0]) &lt;= 0));
-<span class="fc" id="L39">        context.ip++;</span>
-<span class="fc" id="L40">    }</span>
+    public int execute(final ExecutionContext context) throws SuspendedException {
+<span class="fc" id="L37">        Object [] vals = context.popSyncStackVals(2);</span>
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">        context.push(((Comparable) vals[0]).</span>
+                compareTo(vals[1]) &gt;= 0);
+<span class="fc" id="L40">        return 1;</span>
+    }
     /**
      * instance
      */
-<span class="fc" id="L44">    public static final Instruction INSTANCE = new GE();</span>
+<span class="fc" id="L45">    public static final Instruction INSTANCE = new GE();</span>
+
+    @Override
+    public Object[] getParameters() {
+<span class="fc" id="L49">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

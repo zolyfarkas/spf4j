@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.base.Arrays;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.operators.Operators;
@@ -26,8 +27,8 @@ public final class DIV extends Instruction {
 
     private static final long serialVersionUID = -2148283081301406237L;
 
-<span class="fc" id="L29">    private DIV() {</span>
-<span class="fc" id="L30">    }</span>
+<span class="fc" id="L30">    private DIV() {</span>
+<span class="fc" id="L31">    }</span>
     
     /**
      * DIV instruction microcode
@@ -35,14 +36,19 @@ public final class DIV extends Instruction {
      * @param context ExecutionContext
      */
     @Override
-    public void execute(final ExecutionContext context) throws SuspendedException {
-<span class="fc" id="L39">        final Object [] vals = context.popSyncStackVals(2);</span>
-<span class="fc" id="L40">        context.push(Operators.apply(Operator.Enum.Div, vals[0], vals[1]));</span>
-<span class="fc" id="L41">        context.ip++;</span>
-<span class="fc" id="L42">    }</span>
+    public int execute(final ExecutionContext context) throws SuspendedException {
+<span class="fc" id="L40">        final Object [] vals = context.popSyncStackVals(2);</span>
+<span class="fc" id="L41">        context.push(Operators.apply(Operator.Enum.Div, vals[0], vals[1]));</span>
+<span class="fc" id="L42">        return 1;</span>
+    }
     /**
      * instance
      */
-<span class="fc" id="L46">    public static final Instruction INSTANCE = new DIV();</span>
+<span class="fc" id="L47">    public static final Instruction INSTANCE = new DIV();</span>
+
+    @Override
+    public Object[] getParameters() {
+<span class="fc" id="L51">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
