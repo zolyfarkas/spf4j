@@ -96,8 +96,6 @@ public final class Program implements Serializable {
      * @param progType
      * @param parameterNames
      */
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(
-            { "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "ITC_INHERITANCE_TYPE_CHECKING" })
     Program(final Map<String, Integer> globalTable, final Object[] globalMem,
             @Nonnull final Object[] objs, @Nonnegative final int start,
             @Nonnegative final int end, final Type progType, final ExecutionType execType,
@@ -111,9 +109,17 @@ public final class Program implements Serializable {
         this.parameterNames = parameterNames;
         this.execType = execType;
         this.hasDeterministicFunctions = hasDeterministicFunctions;
-        Map<String, Integer> symbolTable = new HashMap<String, Integer>(parameterNames.length);
+        Map<String, Integer> symbolTable = buildSymTable(parameterNames, length, globalTable);
+        localMemSize = symbolTable.size();
+    }
+
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings(
+            { "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "ITC_INHERITANCE_TYPE_CHECKING" })
+    private Map<String, Integer> buildSymTable(final String[] parameterNames1,
+            final int length, final Map<String, Integer> globalTable) throws CompileException {
+        Map<String, Integer> symbolTable = new HashMap<String, Integer>(parameterNames1.length);
         int i = 0;
-        for (String param : parameterNames) {
+        for (String param : parameterNames1) {
             Integer existing = symbolTable.put(param, i++);
             if (existing != null) {
                 throw new CompileException("Duplicate parameter defined: " + param);
@@ -155,7 +161,7 @@ public final class Program implements Serializable {
                 instructions[j] = new LODAXF(adr);
             }
         }
-        localMemSize = symbolTable.size();
+        return symbolTable;
     }
     
     
