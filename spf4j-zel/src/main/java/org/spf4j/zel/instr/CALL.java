@@ -27,10 +27,6 @@ import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
-/**
- *
- * @author zoly
- */
 public final class CALL extends Instruction {
 
     private static final long serialVersionUID = 759722625722456554L;
@@ -107,9 +103,6 @@ public final class CALL extends Instruction {
         return parameters;
     }
 
-    /**
-     * instance
-     */
     public static final Instruction INSTANCE = new CALL();
 
     @Override

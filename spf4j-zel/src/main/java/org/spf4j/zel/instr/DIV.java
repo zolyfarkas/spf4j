@@ -30,20 +30,13 @@ public final class DIV extends Instruction {
     private DIV() {
     }
     
-    /**
-     * DIV instruction microcode
-     * if any of the operands are null the result is null
-     * @param context ExecutionContext
-     */
     @Override
     public int execute(final ExecutionContext context) throws SuspendedException {
         final Object [] vals = context.popSyncStackVals(2);
         context.push(Operators.apply(Operator.Enum.Div, vals[0], vals[1]));
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new DIV();
 
     @Override

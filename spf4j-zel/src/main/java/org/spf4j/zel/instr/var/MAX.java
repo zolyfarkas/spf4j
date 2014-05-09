@@ -30,9 +30,6 @@ public final class MAX implements Method {
     private MAX() {
     }
 
-    /**
-     * instance
-     */
     public static final Method INSTANCE = new MAX();
 
     @Override

@@ -20,10 +20,6 @@ package org.spf4j.zel.instr;
 
 import org.spf4j.zel.vm.ExecutionContext;
 
-/**
- *
- * @author zoly
- */
 public final  class PUSH extends Instruction {
 
     private final Object param;

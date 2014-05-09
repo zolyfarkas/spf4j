@@ -93,7 +93,7 @@ TOKEN : /* OPERATORS & KEYWORDS*/
   |	< COMMA: "," >
   |	< DOT: "." >
   |	< CONTEXT: "context">
-  |	< RETURN: "return">
+  |	< RETURN: ("return" | "ret")>
   |	< SLEEP: "sleep">
   |	< FOR: "for">
   |	< FUNCTION: ("function" | "func")>
@@ -323,19 +323,32 @@ void programBlock(ParsingContext context) :
 
 void zreturn(ParsingContext context) :
 {
+ int nr = 0;
 }
 {
-  <RETURN> (expression(context))?
- {context.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);}
+  <RETURN> (expression(context) {nr++;} (<COMMA> expression(context) {nr++;})* )?
+ { 
+  if (nr > 1) {
+    context.generateCode(new org.spf4j.zel.instr.ARR(nr));
+  }
+  context.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);
+ }
 }
 
 void assignement(ParsingContext context) :
 {
+ int nr = 0;
 }
 {
-   assignableExpression(context) 
+   assignableExpression(context) {nr++;} (<COMMA> assignableExpression(context) {nr++;})*
   ((<EQUAL> expression(context)
-   {context.generateCode(org.spf4j.zel.instr.MOV.INSTANCE);})
+   { 
+    if (nr > 1) {
+      context.generateCode(new org.spf4j.zel.instr.MOVN(nr));
+    } else { 
+      context.generateCode(org.spf4j.zel.instr.MOV.INSTANCE);
+    }
+   })
   | (<INC>
    {context.generateCode(org.spf4j.zel.instr.INC.INSTANCE);})
   | (<DEC>

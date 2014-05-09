@@ -22,12 +22,6 @@ import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
 
-/**
- * Add takes two objects from the top of the stack and puts the sum back
- *
- * @author zoly
- * @version 1.0
- */
 public final class FIRST extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
@@ -35,11 +29,7 @@ public final class FIRST extends Instruction {
     private FIRST() {
     }
     
-    /**
-     * ADD Instruction microcode
-     * if any of the operands are null the result is null
-     * @param context ExecutionContext
-     */
+
     @Override
     public int execute(final ExecutionContext context)
             throws SuspendedException {
@@ -54,9 +44,7 @@ public final class FIRST extends Instruction {
         context.push(val);
         return 1;
     }
-    /**
-     * Add instance
-     */
+
     public static final Instruction INSTANCE = new FIRST();
 
     @Override

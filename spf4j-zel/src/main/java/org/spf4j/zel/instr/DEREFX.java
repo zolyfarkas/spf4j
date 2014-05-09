@@ -22,9 +22,7 @@ import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
-/**
- * @author zoly
- */
+
 public final class DEREFX extends Instruction {
 
     private static final long serialVersionUID = 1L;
@@ -35,10 +33,7 @@ public final class DEREFX extends Instruction {
         this.ref = ref;
     }
     
-    /**
-     * The instruction microcode
-     * @param context ExecutionContext
-     */
+
     @Override
     public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {

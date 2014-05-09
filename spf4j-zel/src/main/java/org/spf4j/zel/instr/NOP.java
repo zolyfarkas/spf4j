@@ -35,9 +35,7 @@ public final class NOP extends Instruction {
         // Do nothing, guaranteed no bugs
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new NOP();
 
     @Override

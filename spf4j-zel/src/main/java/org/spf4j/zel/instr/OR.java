@@ -41,9 +41,7 @@ public final class OR extends Instruction {
         context.push(v1 || v2);
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new OR();
 
     @Override

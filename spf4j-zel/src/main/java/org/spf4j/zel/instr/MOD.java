@@ -32,22 +32,13 @@ public final class MOD extends Instruction {
     private MOD() {
     }
 
-    /**
-     * MOD instruction microcode
-     * if any of the operands are null the result is null
-     *
-     * @param context ExecutionContext
-     * @throws VMException
-     */
     @Override
     public int execute(final ExecutionContext context) throws SuspendedException {
         Object [] vals = context.popSyncStackVals(2);
         context.push(Operators.apply(Operator.Enum.Mod, vals[0], vals[1]));
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new MOD();
 
     @Override

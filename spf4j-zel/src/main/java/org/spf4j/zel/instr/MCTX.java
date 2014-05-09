@@ -22,12 +22,6 @@ import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.vm.ExecutionContext;
 
 
-/**
- * Add takes two objects from the top of the stack and puts the sum back
- *
- * @author zoly
- * @version 1.0
- */
 public final class MCTX extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
@@ -37,12 +31,7 @@ public final class MCTX extends Instruction {
     public MCTX(final int precission) {
         this.precission = precission;
     }
-    
-    /**
-     * ADD Instruction microcode
-     * if any of the operands are null the result is null
-     * @param context ExecutionContext
-     */
+
     @Override
     public int execute(final ExecutionContext context) {
         switch(precission) {

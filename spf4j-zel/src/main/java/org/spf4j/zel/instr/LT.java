@@ -23,10 +23,6 @@ import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
-/**
- *
- * @author zoly
- */
 public final class LT extends Instruction {
 
     private static final long serialVersionUID = -3923389719742934857L;
@@ -42,9 +38,7 @@ public final class LT extends Instruction {
                 compareTo(vals[0]) > 0);
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new LT();
 
     @Override

@@ -22,10 +22,7 @@ import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-/**
- *
- * @author zoly
- */
+
 public final class EQ extends Instruction {
 
     private static final long serialVersionUID = 3636486821507786259L;
@@ -39,9 +36,7 @@ public final class EQ extends Instruction {
         context.push(Objects.equal(vals[0], vals[1]));
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new EQ();
 
     @Override

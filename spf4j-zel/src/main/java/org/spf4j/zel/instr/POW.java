@@ -40,9 +40,7 @@ public final class POW extends Instruction {
         context.push(Operators.apply(Operator.Enum.Pow, vals[0], vals[1]));
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new POW();
 
     @Override

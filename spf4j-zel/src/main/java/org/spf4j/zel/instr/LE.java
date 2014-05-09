@@ -22,9 +22,7 @@ import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
-/**
- * @author zoly
- */
+
 public final class LE extends Instruction {
     
     private LE() { }
@@ -40,9 +38,6 @@ public final class LE extends Instruction {
         return 1;
     }
 
-    /**
-     * instance
-     */
     public static final Instruction INSTANCE = new LE();
 
     @Override

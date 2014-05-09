@@ -24,12 +24,7 @@ import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
-/**
- * Add takes two objects from the top of the stack and puts the sum back
- *
- * @author zoly
- * @version 1.0
- */
+
 public final class DEC extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
@@ -37,11 +32,7 @@ public final class DEC extends Instruction {
     private DEC() {
     }
 
-    /**
-     * ADD Instruction microcode if any of the operands are null the result is null
-     *
-     * @param context ExecutionContext
-     */
+
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public int execute(final ExecutionContext context)
@@ -57,9 +48,7 @@ public final class DEC extends Instruction {
         }
         return 1;
     }
-    /**
-     * Add instance
-     */
+
     public static final Instruction INSTANCE = new DEC();
 
     @Override

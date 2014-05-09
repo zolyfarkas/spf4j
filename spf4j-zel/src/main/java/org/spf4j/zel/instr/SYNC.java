@@ -32,19 +32,12 @@ public final class SYNC extends Instruction {
     private SYNC() {
     }
 
-    /**
-     * DUP Instruction microcode
-     * @param context ExecutionContext
-     * @throws VMException
-     */
     @Override
     public int execute(final ExecutionContext context) throws SuspendedException {
         context.popSyncStackVal();
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new SYNC();
 
     @Override

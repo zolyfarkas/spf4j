@@ -20,10 +20,7 @@ package org.spf4j.zel.instr;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 
-/**
- * @author zoly
- * @version 1.0
- */
+
 public final class DUP extends Instruction {
 
     private static final long serialVersionUID = -5165232100964035429L;
@@ -31,19 +28,12 @@ public final class DUP extends Instruction {
     private DUP() {
     }
 
-    /**
-     * DUP Instruction microcode
-     * @param context ExecutionContext
-     * @throws VMException
-     */
     @Override
     public int execute(final ExecutionContext context) {
         context.push(context.peek());
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new DUP();
 
     @Override

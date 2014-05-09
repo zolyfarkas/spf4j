@@ -36,10 +36,7 @@ public final class REF extends Instruction {
     private REF() {
     }
 
-    /**
-     * The instruction microcode
-     * @param context ExecutionContext
-     */
+
     @Override
     public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException, InterruptedException {

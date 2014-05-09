@@ -33,12 +33,7 @@ public final class MUL extends Instruction {
     private MUL() {
     }
 
-    /**
-     * if any of the operands are null the result is null
-     *
-     * @param context
-     * @throws ZExecutionException
-     */
+
     @Override
     public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
@@ -46,9 +41,7 @@ public final class MUL extends Instruction {
         context.push(Operators.apply(Operator.Enum.Mul, vals[0], vals[1]));
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new MUL();
 
     @Override

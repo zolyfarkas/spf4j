@@ -20,9 +20,6 @@ package org.spf4j.zel.instr;
 import org.spf4j.zel.vm.ExecutionContext;
 
 
-/**
- * @author zoly
- */
 public final class LODAX extends Instruction {
 
     private static final long serialVersionUID = 1257172216541960034L;
@@ -33,10 +30,6 @@ public final class LODAX extends Instruction {
         this.symbol = symbol;
     }
 
-    /**
-     * The instruction microcode
-     * @param context ExecutionContext
-     */
     @Override
     public int execute(final ExecutionContext context) {
         throw new UnsupportedOperationException();

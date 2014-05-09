@@ -29,10 +29,6 @@ public final class AND extends Instruction {
     private AND() {
     }
 
-    /**
-     * AND instruction microcode
-     * @param context ExecutionContext
-     */
     @Override
     public int execute(final ExecutionContext context)
             throws SuspendedException {
@@ -40,9 +36,7 @@ public final class AND extends Instruction {
         context.push(((java.lang.Boolean) vals[0]) && ((java.lang.Boolean) vals[1]));
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new AND();
 
     @Override

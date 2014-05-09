@@ -29,9 +29,6 @@ public final class LOG10 implements Method {
     private LOG10() {
     }
 
-    /**
-     * instance
-     */
     public static final Method INSTANCE = new LOG10();
 
     @Override

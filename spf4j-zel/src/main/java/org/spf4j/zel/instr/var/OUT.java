@@ -26,9 +26,7 @@ public final class OUT implements Method {
 
     private OUT() {
     }
-    /**
-     * instance
-     */
+
     public static final Method INSTANCE = new OUT();
 
     @Override

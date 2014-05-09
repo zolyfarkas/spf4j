@@ -62,9 +62,7 @@ public final class SLEEP extends Instruction {
         return 1;
 
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new SLEEP();
 
     @Override

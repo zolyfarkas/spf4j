@@ -20,10 +20,7 @@ package org.spf4j.zel.instr;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-/**
- *
- * @author zoly
- */
+
 public final class FJMP extends Instruction {
 
     private static final long serialVersionUID = 584597000187469774L;

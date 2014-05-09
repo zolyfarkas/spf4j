@@ -29,10 +29,7 @@ import org.spf4j.zel.vm.VMExecutor;
 import org.spf4j.zel.vm.VMFuture;
 import org.spf4j.zel.vm.ZExecutionException;
 
-/**
- *
- * @author zoly
- */
+
 public final class CALLA extends Instruction {
 
     private static final long serialVersionUID = 759722625722456554L;
@@ -100,9 +97,6 @@ public final class CALLA extends Instruction {
         return 1;
     }
 
-    /**
-     * instance
-     */
     public static final Instruction INSTANCE = new CALLA();
 
     @Override

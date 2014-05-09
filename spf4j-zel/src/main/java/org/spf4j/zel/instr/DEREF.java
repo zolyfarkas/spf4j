@@ -24,9 +24,7 @@ import org.spf4j.zel.vm.JavaMethodCall;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
-/**
- * @author zoly
- */
+
 public final class DEREF extends Instruction {
 
     private static final long serialVersionUID = 1L;
@@ -34,11 +32,7 @@ public final class DEREF extends Instruction {
     private DEREF() {
     }
     
-    
-    /**
-     * The instruction microcode
-     * @param context ExecutionContext
-     */
+
     @Override
     public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException {
@@ -72,9 +66,7 @@ public final class DEREF extends Instruction {
             context.push(new JavaMethodCall(relativeTo, (String) ref));
         }
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new DEREF();
 
     @Override

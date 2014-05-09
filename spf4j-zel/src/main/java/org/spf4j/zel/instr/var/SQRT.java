@@ -20,15 +20,8 @@ package org.spf4j.zel.instr.var;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 
-/**
- *
- * @author zoly
- */
 public final class SQRT implements Method {
 
-    /**
-     * instance
-     */
     public static final Method INSTANCE = new SQRT();
 
     private static final long serialVersionUID = -2959988309644882051L;

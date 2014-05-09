@@ -21,10 +21,7 @@ import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-/**
- *
- * @author zoly
- */
+
 public final class GE extends Instruction {
 
     private static final long serialVersionUID = 3547837369204585282L;
@@ -39,9 +36,7 @@ public final class GE extends Instruction {
                 compareTo(vals[1]) >= 0);
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new GE();
 
     @Override

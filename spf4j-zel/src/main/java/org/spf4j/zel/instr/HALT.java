@@ -31,19 +31,12 @@ public final class HALT extends Instruction {
     private HALT() {
     }
 
-    /**
-     * HALT instruction microcode
-     * @param context ExecutionContext
-     * @throws ZExecutionException
-     */
     @Override
     public int execute(final ExecutionContext context) {
         context.terminated = true;
         return 0;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new HALT();
 
     @Override

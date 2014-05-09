@@ -24,11 +24,6 @@ import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
-
-/**
- *
- * @author zoly
- */
 public final class NEQ extends Instruction {
 
     private static final long serialVersionUID = -2608208783491820358L;
@@ -43,9 +38,7 @@ public final class NEQ extends Instruction {
         context.push(!Objects.equal(vals[0], vals[1]));
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new NEQ();
 
     @Override

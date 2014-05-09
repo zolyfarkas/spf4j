@@ -22,10 +22,6 @@ import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
-/**
- *
- * @author zoly
- */
 public final class GT extends Instruction {
 
     private static final long serialVersionUID = 9127950519503616845L;
@@ -41,9 +37,7 @@ public final class GT extends Instruction {
                 compareTo(vals[0]) < 0);
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new GT();
 
     @Override

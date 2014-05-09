@@ -29,9 +29,7 @@ public final class LOG implements Method {
     private LOG() {
     }
 
-    /**
-     * instance
-     */
+
     public static final Method INSTANCE = new LOG();
 
     @Override

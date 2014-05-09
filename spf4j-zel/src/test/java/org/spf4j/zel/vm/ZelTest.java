@@ -286,5 +286,18 @@ public final class ZelTest {
        Assert.assertEquals(2, result.intValue());
     }
     
+    
+    @Test
+    public void testMultiRet() throws CompileException, ZExecutionException, InterruptedException {
+       Program p = Program.compile("func test {"
+               + "ret 1,2 };"
+               + "x,y = test();"
+               + "out(y); ret x");
+       System.out.println(p);
+       Integer result = (Integer) p.execute();
+       Assert.assertEquals(1, result.intValue());
+    }
+
+    
 
 }

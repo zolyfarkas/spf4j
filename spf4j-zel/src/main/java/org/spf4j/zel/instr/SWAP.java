@@ -46,9 +46,7 @@ public final class SWAP extends Instruction {
         }
         return 1;
     }
-    /**
-     * instance
-     */
+
     public static final Instruction INSTANCE = new SWAP();
 
     @Override

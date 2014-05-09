@@ -27,9 +27,7 @@ import org.spf4j.zel.vm.Method;
  */
 public final class INT implements Method {
 
-    /**
-     * instance
-     */
+
     public static final Method INSTANCE = new INT();
 
     private static final long serialVersionUID = 5154431044890636019L;

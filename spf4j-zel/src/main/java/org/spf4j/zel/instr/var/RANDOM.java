@@ -21,15 +21,9 @@ package org.spf4j.zel.instr.var;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 
-/**
- *
- * @author zoly
- */
+
 public final class RANDOM implements Method {
 
-    /**
-     * instance
-     */
     public static final Method INSTANCE = new RANDOM();
 
     private static final long serialVersionUID = 5154431044890636019L;

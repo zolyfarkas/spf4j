@@ -30,9 +30,6 @@ public final class MIN implements Method {
     private MIN() {
     }
 
-    /**
-     * instance
-     */
     public static final Method INSTANCE = new MIN();
 
     @Override

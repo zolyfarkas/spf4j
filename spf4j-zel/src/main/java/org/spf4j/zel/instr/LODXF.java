@@ -22,9 +22,6 @@ import org.spf4j.zel.vm.Address.Scope;
 import org.spf4j.zel.vm.ExecutionContext;
 
 
-/**
- * @author zoly
- */
 public final class LODXF extends Instruction {
 
     private static final long serialVersionUID = 1257172216541960034L;
@@ -35,10 +32,7 @@ public final class LODXF extends Instruction {
         this.fromAddr = fromAddr;
     }
 
-    /**
-     * The instruction microcode
-     * @param context ExecutionContext
-     */
+
     @Override
     public int execute(final ExecutionContext context) {
         Address adr = fromAddr;

@@ -23,9 +23,6 @@ import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
-/**
- * @author zoly
- */
 public final class LODAXF extends Instruction {
 
     private static final long serialVersionUID = 1257172216541960034L;
@@ -36,10 +33,6 @@ public final class LODAXF extends Instruction {
         this.fromAddr = fromAddr;
     }
 
-    /**
-     * The instruction microcode
-     * @param context ExecutionContext
-     */
     @Override
     public int execute(final ExecutionContext context) {
         context.push(new AssignableValue() {
@@ -69,7 +62,5 @@ public final class LODAXF extends Instruction {
     public Object[] getParameters() {
         return new Object [] {fromAddr};
     }
-    
-    
 
 }

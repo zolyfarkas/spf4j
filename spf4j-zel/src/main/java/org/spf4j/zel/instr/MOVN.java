@@ -19,36 +19,40 @@ package org.spf4j.zel.instr;
 
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
+import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
-
-
-/**
- *
- * @author zoly
- */
-public final class XOR extends Instruction {
-
-    private static final long serialVersionUID = 173371262128951181L;
-
-    private XOR() {
+public final class MOVN extends Instruction {
+    
+    private static final long serialVersionUID = -7101682855885757988L;
+    
+    private final int nr;
+    
+    public MOVN(final int nr) {
+        this.nr = nr;
     }
-
+    
     @Override
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
-        Object [] vals = context.popSyncStackVals(2);
-        boolean v1 = (java.lang.Boolean) vals[0];
-        boolean v2 = (java.lang.Boolean) vals[1];
-        context.push(v1 ^ v2);
+            throws SuspendedException, ZExecutionException, InterruptedException {
+        Object [] what = (Object []) context.popSyncStackVal();
+        Object [] tos = context.popStackVals(what.length);
+        int i = 0;
+        for (Object to : tos) {
+            if (to instanceof AssignableValue) {
+                AssignableValue assignTo = (AssignableValue) to;
+                assignTo.assign(what[i++]);
+                context.push(what);
+            } else {
+                throw new ZExecutionException("Lvalue expected insted of " + to);
+            }
+        }
         return 1;
     }
 
-    public static final Instruction INSTANCE = new XOR();
-
     @Override
     public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
+        return new Object [] {nr};
     }
 }
