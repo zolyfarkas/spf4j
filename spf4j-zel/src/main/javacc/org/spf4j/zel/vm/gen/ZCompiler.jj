@@ -299,10 +299,10 @@ void ifStmt(ParsingContext context) :
 {
     (<IF>
     logical(context)
-    programBlock(left))
+    (programBlock(left) | statement(left)))
 
     (<ELSE> {isElse = true;}
-    programBlock(right))?
+    (programBlock(right) | statement(right)))?
         {context.generateCode(new org.spf4j.zel.instr.FJMP(left.getAddress() + 1 + ((isElse) ? 1 : 0)));
          context.generateCodeAll(left);
          if (isElse) {
