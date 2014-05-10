@@ -17,7 +17,6 @@
  */
 package org.spf4j.zel.instr;
 
-import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.SuspendedException;
