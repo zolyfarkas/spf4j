@@ -297,6 +297,15 @@ public final class ZelTest {
        Integer result = (Integer) p.execute();
        Assert.assertEquals(1, result.intValue());
     }
+    
+    
+    @Test
+    public void testMultiAssignement() throws CompileException, ZExecutionException, InterruptedException {
+       Program p = Program.compile("x, y, z = 1, 2, 3; ret y");
+       System.out.println(p);
+       Integer result = (Integer) p.execute();
+       Assert.assertEquals(2, result.intValue());
+    }
 
     
 

@@ -338,11 +338,15 @@ void zreturn(ParsingContext context) :
 void assignement(ParsingContext context) :
 {
  int nr = 0;
+ int nre = 0;
 }
 {
    assignableExpression(context) {nr++;} (<COMMA> assignableExpression(context) {nr++;})*
-  ((<EQUAL> expression(context)
+  ((<EQUAL> expression(context) {nre++;} (<COMMA> expression(context) {nre++;})*
    { 
+    if (nre > 1) {
+        context.generateCode(new org.spf4j.zel.instr.ARR(nre));
+    }
     if (nr > 1) {
       context.generateCode(new org.spf4j.zel.instr.MOVN(nr));
     } else { 
