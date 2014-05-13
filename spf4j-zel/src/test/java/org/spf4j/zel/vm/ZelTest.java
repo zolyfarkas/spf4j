@@ -290,7 +290,7 @@ public final class ZelTest {
     @Test
     public void testMultiRet() throws CompileException, ZExecutionException, InterruptedException {
        Program p = Program.compile("func test {"
-               + "ret 1,2 };"
+               + "ret {1, 2} };"
                + "x,y = test();"
                + "out(y); ret x");
        System.out.println(p);
@@ -301,7 +301,7 @@ public final class ZelTest {
     
     @Test
     public void testMultiAssignement() throws CompileException, ZExecutionException, InterruptedException {
-       Program p = Program.compile("x, y, z = 1, 2, 3; ret y");
+       Program p = Program.compile("x, y, z = {1, 2, 3}; ret y");
        System.out.println(p);
        Integer result = (Integer) p.execute();
        Assert.assertEquals(2, result.intValue());

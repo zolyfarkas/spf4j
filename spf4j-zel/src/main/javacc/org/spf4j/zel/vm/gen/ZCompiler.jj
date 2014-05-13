@@ -259,7 +259,6 @@ void statement(ParsingContext context) :
     {context.generateCode(new org.spf4j.zel.instr.MCTX(parseInteger(token.image).intValue()));})
 }
 
-
 void forStmt(ParsingContext context) :
 {
   int condAddr = -1;
@@ -311,9 +310,6 @@ void ifStmt(ParsingContext context) :
          }}
 }
 
-
-
-
 void programBlock(ParsingContext context) :
 {
 }
@@ -326,11 +322,8 @@ void zreturn(ParsingContext context) :
  int nr = 0;
 }
 {
-  <RETURN> (expression(context) {nr++;} (<COMMA> expression(context) {nr++;})* )?
+  <RETURN> (expression(context))?
  { 
-  if (nr > 1) {
-    context.generateCode(new org.spf4j.zel.instr.ARR(nr));
-  }
   context.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);
  }
 }
@@ -342,11 +335,8 @@ void assignement(ParsingContext context) :
 }
 {
    assignableExpression(context) {nr++;} (<COMMA> assignableExpression(context) {nr++;})*
-  ((<EQUAL> expression(context) {nre++;} (<COMMA> expression(context) {nre++;})*
-   { 
-    if (nre > 1) {
-        context.generateCode(new org.spf4j.zel.instr.ARR(nre));
-    }
+  ((<EQUAL> expression(context)
+   {
     if (nr > 1) {
       context.generateCode(new org.spf4j.zel.instr.MOVN(nr));
     } else { 
@@ -386,7 +376,6 @@ String name;
             {context.generateCode(org.spf4j.zel.instr.REF.INSTANCE);})
     )*
 }
-
 
 
 void expression(ParsingContext context) :
@@ -568,6 +557,7 @@ void unary(ParsingContext context, boolean left) :
 void element(ParsingContext context, boolean left) :
 {
     String name;
+    int nre = 0;
 }
 {
 (    constant(context)
@@ -580,6 +570,10 @@ void element(ParsingContext context, boolean left) :
     | sysFunction(context)
     | ( <FIRST> params(context) {context.generateCode(org.spf4j.zel.instr.FIRST.INSTANCE);})
     |  <LPAREN> expression(context) <RPAREN>
+    |  (<LBRACE>(expression(context) {nre++;} (<COMMA> expression(context) {nre++;})*)?<RBRACE> 
+       {
+        context.generateCode(new org.spf4j.zel.instr.ARR(nre));
+       })
   )
 }
 
