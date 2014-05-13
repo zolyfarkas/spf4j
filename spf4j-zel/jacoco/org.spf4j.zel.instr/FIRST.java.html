@@ -22,46 +22,34 @@ import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
 
-/**
- * Add takes two objects from the top of the stack and puts the sum back
- *
- * @author zoly
- * @version 1.0
- */
 public final class FIRST extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
 
-<span class="fc" id="L35">    private FIRST() {</span>
-<span class="fc" id="L36">    }</span>
+<span class="fc" id="L29">    private FIRST() {</span>
+<span class="fc" id="L30">    }</span>
     
-    /**
-     * ADD Instruction microcode
-     * if any of the operands are null the result is null
-     * @param context ExecutionContext
-     */
+
     @Override
     public int execute(final ExecutionContext context)
             throws SuspendedException {
-<span class="fc" id="L46">        Integer nrParams = (Integer) context.pop();</span>
+<span class="fc" id="L36">        Integer nrParams = (Integer) context.pop();</span>
         final Object val;
         try {
-<span class="fc" id="L49">            val = context.popFirstAvail(nrParams);</span>
-<span class="fc" id="L50">        } catch (SuspendedException ex) {</span>
-<span class="fc" id="L51">            context.push(nrParams);</span>
-<span class="fc" id="L52">            throw ex;</span>
-<span class="fc" id="L53">        }</span>
-<span class="fc" id="L54">        context.push(val);</span>
-<span class="fc" id="L55">        return 1;</span>
+<span class="fc" id="L39">            val = context.popFirstAvail(nrParams);</span>
+<span class="fc" id="L40">        } catch (SuspendedException ex) {</span>
+<span class="fc" id="L41">            context.push(nrParams);</span>
+<span class="fc" id="L42">            throw ex;</span>
+<span class="fc" id="L43">        }</span>
+<span class="fc" id="L44">        context.push(val);</span>
+<span class="fc" id="L45">        return 1;</span>
     }
-    /**
-     * Add instance
-     */
-<span class="fc" id="L60">    public static final Instruction INSTANCE = new FIRST();</span>
+
+<span class="fc" id="L48">    public static final Instruction INSTANCE = new FIRST();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L64">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L52">        return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 
 

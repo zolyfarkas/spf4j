@@ -65,7 +65,7 @@ public class RetryExecutor&lt;T&gt; implements ExecutorService {
     private void startRetryManager() {
 <span class="fc bfc" id="L66" title="All 2 branches covered.">        if (this.retryManager == null) {</span>
 <span class="fc" id="L67">            synchronized (this) {</span>
-<span class="fc bfc" id="L68" title="All 2 branches covered.">                if (this.retryManager == null) {</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">                if (this.retryManager == null) {</span>
 <span class="fc" id="L69">                    this.retryManager = new RetryManager();</span>
 <span class="fc" id="L70">                    this.retryManager.start();</span>
                 }
@@ -114,14 +114,14 @@ public class RetryExecutor&lt;T&gt; implements ExecutorService {
 
         @Override
         public int compareTo(final Delayed o) {
-<span class="fc" id="L117">            long tDelay = getDelay(TimeUnit.MILLISECONDS);</span>
-<span class="fc" id="L118">            long oDelay = o.getDelay(TimeUnit.MILLISECONDS);</span>
-<span class="pc bpc" id="L119" title="1 of 2 branches missed.">            if (tDelay &gt; oDelay) {</span>
+<span class="nc" id="L117">            long tDelay = getDelay(TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L118">            long oDelay = o.getDelay(TimeUnit.MILLISECONDS);</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">            if (tDelay &gt; oDelay) {</span>
 <span class="nc" id="L120">                return 1;</span>
-<span class="pc bpc" id="L121" title="1 of 2 branches missed.">            } else if (tDelay &lt; oDelay) {</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">            } else if (tDelay &lt; oDelay) {</span>
 <span class="nc" id="L122">                return -1;</span>
             } else {
-<span class="fc" id="L124">                return 0;</span>
+<span class="nc" id="L124">                return 0;</span>
             }
         }
 

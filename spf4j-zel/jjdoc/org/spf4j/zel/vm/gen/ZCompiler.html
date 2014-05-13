@@ -60,7 +60,7 @@
 | &lt;COMMA: ","&gt;
 | &lt;DOT: "."&gt;
 | &lt;CONTEXT: "context"&gt;
-| &lt;RETURN: "return"&gt;
+| &lt;RETURN: "return" | "ret"&gt;
 | &lt;SLEEP: "sleep"&gt;
 | &lt;FOR: "for"&gt;
 | &lt;FUNCTION: "function" | "func"&gt;
@@ -182,7 +182,7 @@
 <TR>
 <TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod9">ifStmt</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;IF&gt; <A HREF="#prod10">logical</A> <A HREF="#prod11">programBlock</A> ) ( &lt;ELSE&gt; <A HREF="#prod11">programBlock</A> )?</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;IF&gt; <A HREF="#prod10">logical</A> ( <A HREF="#prod11">programBlock</A> | <A HREF="#prod3">statement</A> ) ) ( &lt;ELSE&gt; ( <A HREF="#prod11">programBlock</A> | <A HREF="#prod3">statement</A> ) )?</TD>
 </TR>
 <TR>
 <TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod11">programBlock</A></TD>
@@ -197,7 +197,7 @@
 <TR>
 <TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod4">assignement</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod12">assignableExpression</A> ( ( &lt;EQUAL&gt; <A HREF="#prod6">expression</A> ) | ( &lt;INC&gt; ) | ( &lt;DEC&gt; ) )</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod12">assignableExpression</A> ( &lt;COMMA&gt; <A HREF="#prod12">assignableExpression</A> )* ( ( &lt;EQUAL&gt; <A HREF="#prod6">expression</A> ) | ( &lt;INC&gt; ) | ( &lt;DEC&gt; ) )</TD>
 </TR>
 <TR>
 <TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod5">swap</A></TD>
@@ -262,7 +262,7 @@
 <TR>
 <TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod21">element</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod22">constant</A> | ( &lt;ID&gt; ) | <A HREF="#prod23">sysFunction</A> | ( &lt;FIRST&gt; <A HREF="#prod13">params</A> ) | &lt;LPAREN&gt; <A HREF="#prod6">expression</A> &lt;RPAREN&gt; )</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod22">constant</A> | ( &lt;ID&gt; ) | <A HREF="#prod23">sysFunction</A> | ( &lt;FIRST&gt; <A HREF="#prod13">params</A> ) | &lt;LPAREN&gt; <A HREF="#prod6">expression</A> &lt;RPAREN&gt; | ( &lt;LBRACE&gt; ( <A HREF="#prod6">expression</A> ( &lt;COMMA&gt; <A HREF="#prod6">expression</A> )* )? &lt;RBRACE&gt; ) )</TD>
 </TR>
 <TR>
 <TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod13">params</A></TD>

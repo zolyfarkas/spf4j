@@ -22,49 +22,38 @@ import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.vm.ExecutionContext;
 
 
-/**
- * Add takes two objects from the top of the stack and puts the sum back
- *
- * @author zoly
- * @version 1.0
- */
 public final class MCTX extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
 
     private final int precission;
     
-<span class="fc" id="L37">    public MCTX(final int precission) {</span>
-<span class="fc" id="L38">        this.precission = precission;</span>
-<span class="fc" id="L39">    }</span>
-    
-    /**
-     * ADD Instruction microcode
-     * if any of the operands are null the result is null
-     * @param context ExecutionContext
-     */
+<span class="fc" id="L31">    public MCTX(final int precission) {</span>
+<span class="fc" id="L32">        this.precission = precission;</span>
+<span class="fc" id="L33">    }</span>
+
     @Override
     public int execute(final ExecutionContext context) {
-<span class="pc bpc" id="L48" title="2 of 4 branches missed.">        switch(precission) {</span>
+<span class="pc bpc" id="L37" title="2 of 4 branches missed.">        switch(precission) {</span>
             case 32:
-<span class="nc" id="L50">                context.mathContext = MathContext.DECIMAL32;</span>
-<span class="nc" id="L51">                break;</span>
+<span class="nc" id="L39">                context.mathContext = MathContext.DECIMAL32;</span>
+<span class="nc" id="L40">                break;</span>
             case 64:
-<span class="fc" id="L53">                context.mathContext = MathContext.DECIMAL64;</span>
-<span class="fc" id="L54">                break;</span>
+<span class="fc" id="L42">                context.mathContext = MathContext.DECIMAL64;</span>
+<span class="fc" id="L43">                break;</span>
             case 128:
-<span class="fc" id="L56">                context.mathContext = MathContext.DECIMAL128;</span>
-<span class="fc" id="L57">                break;</span>
+<span class="fc" id="L45">                context.mathContext = MathContext.DECIMAL128;</span>
+<span class="fc" id="L46">                break;</span>
             default:
-<span class="nc" id="L59">                context.mathContext = MathContext.DECIMAL128;</span>
+<span class="nc" id="L48">                context.mathContext = MathContext.DECIMAL128;</span>
         }
-<span class="fc" id="L61">        Operator.MATH_CONTEXT.set(context.mathContext);</span>
-<span class="fc" id="L62">        return 1;</span>
+<span class="fc" id="L50">        Operator.MATH_CONTEXT.set(context.mathContext);</span>
+<span class="fc" id="L51">        return 1;</span>
     }
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L67">        return new Object [] {precission};</span>
+<span class="fc" id="L56">        return new Object [] {precission};</span>
     }
 
 }
