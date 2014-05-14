@@ -72,6 +72,7 @@ TOKEN : /* OPERATORS & KEYWORDS*/
   |	< AND: "&&" >
   |	< SAND: "&" >
   |	< OR: "||" >
+  |	< PIPE: "|" >
   |	< GT: ">" >
   |	< LT: "<" >
   |	< LE: "<=" >
@@ -573,6 +574,10 @@ void element(ParsingContext context, boolean left) :
     |  (<LBRACE>(expression(context) {nre++;} (<COMMA> expression(context) {nre++;})*)?<RBRACE> 
        {
         context.generateCode(new org.spf4j.zel.instr.ARR(nre));
+       })
+    |  (<PIPE>expression(context)<PIPE> 
+       {
+        context.generateCode(org.spf4j.zel.instr.ABS.INSTANCE);
        })
   )
 }

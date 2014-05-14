@@ -306,6 +306,15 @@ public final class ZelTest {
        Integer result = (Integer) p.execute();
        Assert.assertEquals(2, result.intValue());
     }
+    
+    
+    @Test
+    public void testAbs() throws CompileException, ZExecutionException, InterruptedException {
+       Program p = Program.compile("|3 - 5|");
+       System.out.println(p);
+       Integer result = (Integer) p.execute();
+       Assert.assertEquals(2, result.intValue());
+    }
 
     
 
