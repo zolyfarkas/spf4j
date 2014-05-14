@@ -22,12 +22,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,47 +54,72 @@ public final class Throwables {
     private static final Field CAUSE_FIELD;
 
     private static final Method ADD_SUPPRESSED;
+    
+    private static final Method GET_SUPPRESSED;
 
     static {
-        try {
-            CAUSE_FIELD = Throwable.class.getDeclaredField("cause");
-        } catch (NoSuchFieldException ex) {
-            throw new RuntimeException(ex);
-        } catch (SecurityException ex) {
-            throw new RuntimeException(ex);
-        }
-        AccessController.doPrivileged(new PrivilegedAction() {
+        CAUSE_FIELD = AccessController.doPrivileged(new PrivilegedAction<Field>() {
             @Override
-            public Object run() {
-                CAUSE_FIELD.setAccessible(true);
-                return null; // nothing to return
+            public Field run() {
+                Field causeField;
+                try {
+                    causeField = Throwable.class.getDeclaredField("cause");
+                } catch (NoSuchFieldException ex) {
+                    throw new RuntimeException(ex);
+                } catch (SecurityException ex) {
+                    throw new RuntimeException(ex);
+                }
+                causeField.setAccessible(true);
+                return causeField;
             }
         });
-    }
-    static {
-        Method m;
-        try {
-            m = Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class);
-        } catch (NoSuchMethodException ex) {
-            m = null;
-        } catch (SecurityException ex) {
-            m = null;
-        }
-        ADD_SUPPRESSED = m;
-        if (ADD_SUPPRESSED != null) {
-            AccessController.doPrivileged(new PrivilegedAction() {
-                @Override
-                public Object run() {
-                    ADD_SUPPRESSED.setAccessible(true);
-                    return null; // nothing to return
+
+        ADD_SUPPRESSED = AccessController.doPrivileged(new PrivilegedAction<Method>() {
+            @Override
+            public Method run() {
+                Method m;
+                try {
+                    m = Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class);
+                } catch (NoSuchMethodException ex) {
+                    LOG.info("Throwables do not support suppression", ex);
+                    m = null;
+                } catch (SecurityException ex) {
+                    throw new RuntimeException(ex);
                 }
-            });
-        }
+                if (m != null) {
+                    m.setAccessible(true);
+                }
+                return m; // nothing to return
+            }
+        });
+        
+        GET_SUPPRESSED = AccessController.doPrivileged(new PrivilegedAction<Method>() {
+            @Override
+            public Method run() {
+                Method m;
+                try {
+                    m = Throwable.class.getDeclaredMethod("getSuppressed");
+                } catch (NoSuchMethodException ex) {
+                    LOG.info("Throwables do not support suppression", ex);
+                    m = null;
+                } catch (SecurityException ex) {
+                    throw new RuntimeException(ex);
+                }
+                if (m != null) {
+                    m.setAccessible(true);
+                }
+                return m; // nothing to return
+            }
+        });
 
     }
 
-    private static Throwable chain0(final Throwable t, final Throwable cause) {
+    private static void chain0(final Throwable t, final Throwable cause) {
         final Throwable rc = com.google.common.base.Throwables.getRootCause(t);
+        setCause(rc, cause);
+    }
+
+    private static void setCause(final Throwable rc, @Nullable final Throwable cause) {
         try {
             AccessController.doPrivileged(new PrivilegedAction() {
                 @Override
@@ -110,7 +138,6 @@ public final class Throwables {
         } catch (IllegalArgumentException ex) {
             throw new RuntimeException(ex);
         }
-        return t;
     }
 
     /**
@@ -133,6 +160,13 @@ public final class Throwables {
             newChainIdx = newRootCauseChain.size() - (MAX_THROWABLE_CHAIN - chainedExNr);
             LOG.warn("Trimming exception at {} ", newChainIdx, newRootCause);
         }
+        T result = clone(t);
+        chain0(result, newRootCauseChain.get(newChainIdx));
+        return result;
+  
+    }
+
+    public static <T extends Serializable> T clone(final T t) {
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutputStream out = new ObjectOutputStream(bos);
@@ -141,7 +175,6 @@ public final class Throwables {
             } finally {
                 out.close();
             }
-
             T result;
             ObjectInputStream in = new ObjectInputStream(
                     new ByteArrayInputStream(bos.toByteArray()));
@@ -150,12 +183,11 @@ public final class Throwables {
             } finally {
                 in.close();
             }
-            chain0(result, newRootCauseChain.get(newChainIdx));
             return result;
-        } catch (ClassNotFoundException ex) {
-            throw new RuntimeException(ex);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -189,5 +221,34 @@ public final class Throwables {
             return chain(t, new SuppressedThrowable(suppressed));
         }
     }
+    
+    public static Throwable [] getSuppressed(final Throwable t) {
+        if (GET_SUPPRESSED != null) {
+            try {
+                return (Throwable []) GET_SUPPRESSED.invoke(t);
+            } catch (IllegalAccessException ex) {
+                throw new RuntimeException(ex);
+            } catch (IllegalArgumentException ex) {
+                throw new RuntimeException(ex);
+            } catch (InvocationTargetException ex) {
+                throw new RuntimeException(ex);
+            }
+        } else {
+            List<Throwable> chain = com.google.common.base.Throwables.getCausalChain(clone(t));
+            List<Throwable> result = new ArrayList<Throwable>();
+            Throwable prev = null;
+            for (Throwable comp : chain) {
+                if (comp instanceof SuppressedThrowable) {
+                    if (prev != null) {
+                        setCause(prev, null);
+                    }
+                    result.add(comp.getCause());
+                }
+                prev = comp;
+            }
+            return result.toArray(new Throwable [result.size()]);
+        }
+    }
+    
 
 }

@@ -60,13 +60,13 @@ public final class ThrowablesTest {
     }
     
     @Test
-    @Ignore
     public void testChain3() {
         Exception e = new RuntimeException();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
             e = Throwables.suppress(e, new RuntimeException());
         }
-        Assert.assertEquals(200, com.google.common.base.Throwables.getCausalChain(e).size());
+        Throwable [] suppressed = Throwables.getSuppressed(e);
+        Assert.assertEquals(10, suppressed.length);
     
     }
 
