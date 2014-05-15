@@ -89,7 +89,7 @@ public final class Throwables {
                 if (m != null) {
                     m.setAccessible(true);
                 }
-                return m; // nothing to return
+                return m; 
             }
         });
         
@@ -108,7 +108,7 @@ public final class Throwables {
                 if (m != null) {
                     m.setAccessible(true);
                 }
-                return m; // nothing to return
+                return m; 
             }
         });
 
