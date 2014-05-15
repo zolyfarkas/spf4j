@@ -18,6 +18,7 @@
 package org.spf4j.zel.vm;
 
 import org.spf4j.zel.instr.Instruction;
+import org.spf4j.zel.instr.NOP;
 
 /**
  *
@@ -65,6 +66,11 @@ public final class NullParsingContext implements ParsingContext {
 
     @Override
     public void staticSymbol(final String name, final Object object) {
+    }
+
+    @Override
+    public Instruction getLast() {
+        return NOP.INSTANCE;
     }
 
 }

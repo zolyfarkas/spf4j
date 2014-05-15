@@ -16,16 +16,14 @@ The Z Expression Language
 
   5. Everything is an object, numbers, strings, functions.....
 
-  6. There is only one type of variable:  reference to object
-     you declare a variable by assigning an object to it, all variables are local to the current exec context.
    
-  7. ZEL uses the last value out principle, expressions will return the last evaluated expression.
+  6. ZEL uses the last value out principle, expressions will return the last evaluated expression.
      There is a return keyword that can also be used
 
-  8. Expressions are compiled providing decent execution performance. 
+  7. Expressions are compiled providing decent execution performance. 
      (Outperforms SPEL(Spring) by a few orders of magnitude, slightly slower(for now) than MVEL and Groovy)
 
-  10. Implemented using javaCC
+  8. Implemented using javaCC
 
  Here are some examples:
 
@@ -55,7 +53,7 @@ EX4:    // fibonacci recursive definition executes in O(n)
         fib(200)
 
 EX5:    // Async programming.
-        // Zel functions are async by default.
+        // Zel function invocations are async by default.
 
         replica = func async (x) {
             sleep random() * 1000;
@@ -84,6 +82,7 @@ EX6:    // Explicit ASync function execution.
 EX7:    // Async programming, parallel PI
         // functions can be declared to be executed sync or async
         // currently all functions declared in ZEL are async by default
+        // except when the function result is discarded (not assigned to a variable)
         // All other function calls are sync by default
         // async execution can be forced with & postfix operator
 
@@ -148,8 +147,8 @@ EX9:    // Parallel sort!
             }
           };
           x[npv] <-> x[lm1];
-          qSortP(x, start, npv);
-          qSortP(x, npv + 1, end)
+          qSortP(x, start, npv)&;
+          qSortP(x, npv + 1, end)&
         };
 
         qSortP(x, 0, x.length)

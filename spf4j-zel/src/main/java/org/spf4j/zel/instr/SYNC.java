@@ -34,7 +34,7 @@ public final class SYNC extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context) throws SuspendedException {
-        context.popSyncStackVal();
+        context.syncStackVal();
         return 1;
     }
 

@@ -47,6 +47,9 @@ public interface ParsingContext {
      * @return
      */
     int getAddress();
+    
+    
+    Instruction getLast();
 
     /**
      * send a object for processing

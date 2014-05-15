@@ -171,7 +171,6 @@ public final class ExecutionContext {
                 } catch (SuspendedException e) {
                     throw e;
                 } catch (Exception e) {
-                    e.printStackTrace();
                     throw new ZExecutionException("Program exec failed, state:" + ExecutionContext.this, e);
                 }
             }
@@ -211,6 +210,21 @@ public final class ExecutionContext {
             return result;
         }
     }
+    
+    public void syncStackVal() throws SuspendedException {
+        Object result = this.stack.peek();
+        if (result instanceof VMFuture<?>) {
+                final VMFuture<Object> resFut = (VMFuture<Object>) result;
+                Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+                if (resultStore == null) {
+                    this.stack.push(result);
+                    suspend(resFut);
+                    throw new IllegalThreadStateException();
+                }
+        }
+    }
+
+    
 
     public Object[] popStackVals(final int nvals) {
         return stack.pop(nvals);

@@ -250,7 +250,11 @@ void statement(ParsingContext context) :
 {
     LOOKAHEAD(assignement(context)) assignement(context)
   | LOOKAHEAD(swap(context)) swap(context)
-  | expression(context)
+  | expression(context) {
+    if (context.getLast() != org.spf4j.zel.instr.CALLA.INSTANCE) {
+        context.generateCode(org.spf4j.zel.instr.SYNC.INSTANCE);
+    }
+   }
   | zreturn(context)
   | forStmt(context)
   | ifStmt(context)

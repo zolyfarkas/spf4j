@@ -25,6 +25,8 @@ public final class CompileContext implements ParsingContext {
     private final ProgramBuilder prog;
     
     private final MemoryBuilder staticMemBuilder;
+    
+    private Instruction last;
 
     public CompileContext(final MemoryBuilder staticMemBuilder) {
         this.prog = new ProgramBuilder(staticMemBuilder);
@@ -34,11 +36,8 @@ public final class CompileContext implements ParsingContext {
     @SuppressWarnings("unchecked")
     @Override
     public void generateCode(final Instruction... args) {
-        if (args == null) {
-            prog.add(null);
-        } else {
-            prog.addAll(args);
-        }
+        prog.addAll(args);
+        last = args[args.length - 1];
     }
 
     @Override
@@ -74,6 +73,11 @@ public final class CompileContext implements ParsingContext {
     @Override
     public void staticSymbol(final String name, final Object object) {
         staticMemBuilder.addSymbol(name, object);
+    }
+
+    @Override
+    public Instruction getLast() {
+       return last;
     }
 
 
