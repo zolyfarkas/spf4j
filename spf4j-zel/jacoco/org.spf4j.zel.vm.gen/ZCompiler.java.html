@@ -45,6 +45,7 @@ public class ZCompiler implements ZCompilerConstants {
     } else {
 <span class="pc bpc" id="L46" title="1 of 8 branches missed.">      switch (jj_nt.kind) {</span>
       case MINUS:
+      case PIPE:
       case NOT:
       case LPAREN:
       case LBRACE:
@@ -61,112 +62,116 @@ public class ZCompiler implements ZCompilerConstants {
       case STRING:
       case MATCHEXP:
       case ID:
-<span class="fc" id="L64">        expression(context);</span>
-<span class="fc" id="L65">        break;</span>
+<span class="fc" id="L65">        expression(context);</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">    if (context.getLast() != org.spf4j.zel.instr.CALLA.INSTANCE) {</span>
+<span class="fc" id="L67">        context.generateCode(org.spf4j.zel.instr.SYNC.INSTANCE);</span>
+    }
+        break;
       case RETURN:
-<span class="fc" id="L67">        zreturn(context);</span>
-<span class="fc" id="L68">        break;</span>
+<span class="fc" id="L71">        zreturn(context);</span>
+<span class="fc" id="L72">        break;</span>
       case FOR:
-<span class="fc" id="L70">        forStmt(context);</span>
-<span class="fc" id="L71">        break;</span>
+<span class="fc" id="L74">        forStmt(context);</span>
+<span class="fc" id="L75">        break;</span>
       case IF:
-<span class="fc" id="L73">        ifStmt(context);</span>
-<span class="fc" id="L74">        break;</span>
+<span class="fc" id="L77">        ifStmt(context);</span>
+<span class="fc" id="L78">        break;</span>
       case SLEEP:
-<span class="fc" id="L76">        jj_consume_token(SLEEP);</span>
-<span class="fc" id="L77">        expression(context);</span>
-<span class="fc" id="L78">                                  context.generateCode(org.spf4j.zel.instr.SLEEP.INSTANCE);</span>
-<span class="fc" id="L79">        break;</span>
+<span class="fc" id="L80">        jj_consume_token(SLEEP);</span>
+<span class="fc" id="L81">        expression(context);</span>
+<span class="fc" id="L82">                                  context.generateCode(org.spf4j.zel.instr.SLEEP.INSTANCE);</span>
+<span class="fc" id="L83">        break;</span>
       case SYNC:
-<span class="fc" id="L81">        jj_consume_token(SYNC);</span>
-<span class="fc" id="L82">        expression(context);</span>
-<span class="fc" id="L83">                                 context.generateCode(org.spf4j.zel.instr.SYNC.INSTANCE);</span>
-<span class="fc" id="L84">        break;</span>
+<span class="fc" id="L85">        jj_consume_token(SYNC);</span>
+<span class="fc" id="L86">        expression(context);</span>
+<span class="fc" id="L87">                                 context.generateCode(org.spf4j.zel.instr.SYNC.INSTANCE);</span>
+<span class="fc" id="L88">        break;</span>
       case USE:
-<span class="fc" id="L86">        jj_consume_token(USE);</span>
-<span class="fc" id="L87">        jj_consume_token(DECIMAL);</span>
-<span class="fc" id="L88">        jj_consume_token(INTEGER);</span>
-<span class="fc" id="L89">     context.generateCode(new org.spf4j.zel.instr.MCTX(parseInteger(token.image).intValue()));</span>
-<span class="fc" id="L90">        break;</span>
+<span class="fc" id="L90">        jj_consume_token(USE);</span>
+<span class="fc" id="L91">        jj_consume_token(DECIMAL);</span>
+<span class="fc" id="L92">        jj_consume_token(INTEGER);</span>
+<span class="fc" id="L93">     context.generateCode(new org.spf4j.zel.instr.MCTX(parseInteger(token.image).intValue()));</span>
+<span class="fc" id="L94">        break;</span>
       default:
-<span class="nc" id="L92">        jj_la1[1] = jj_gen;</span>
-<span class="nc" id="L93">        jj_consume_token(-1);</span>
-<span class="nc" id="L94">        throw new ParseException();</span>
+<span class="nc" id="L96">        jj_la1[1] = jj_gen;</span>
+<span class="nc" id="L97">        jj_consume_token(-1);</span>
+<span class="nc" id="L98">        throw new ParseException();</span>
       }
     }
-<span class="fc" id="L97">  }</span>
+<span class="fc" id="L101">  }</span>
 
   final public void forStmt(ParsingContext context) throws ParseException {
-<span class="fc" id="L100">  int condAddr = -1;</span>
-<span class="fc" id="L101">  ParsingContext postAssign = (ParsingContext) context.createSubContext();</span>
-<span class="fc" id="L102">  ParsingContext loopBlock = (ParsingContext) context.createSubContext();</span>
-<span class="fc" id="L103">    jj_consume_token(FOR);</span>
-<span class="pc bpc" id="L104" title="1 of 2 branches missed.">    switch (jj_nt.kind) {</span>
+<span class="fc" id="L104">  int condAddr = -1;</span>
+<span class="fc" id="L105">  ParsingContext postAssign = (ParsingContext) context.createSubContext();</span>
+<span class="fc" id="L106">  ParsingContext loopBlock = (ParsingContext) context.createSubContext();</span>
+<span class="fc" id="L107">    jj_consume_token(FOR);</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">    switch (jj_nt.kind) {</span>
     case ID:
-<span class="fc" id="L106">      assignement(context);</span>
+<span class="fc" id="L110">      assignement(context);</span>
       label_2:
       while (true) {
-<span class="fc bfc" id="L109" title="All 2 branches covered.">        switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">        switch (jj_nt.kind) {</span>
         case COMMA:
           ;
-<span class="fc" id="L112">          break;</span>
+<span class="fc" id="L116">          break;</span>
         default:
-<span class="fc" id="L114">          jj_la1[2] = jj_gen;</span>
-<span class="fc" id="L115">          break label_2;</span>
+<span class="fc" id="L118">          jj_la1[2] = jj_gen;</span>
+<span class="fc" id="L119">          break label_2;</span>
         }
-<span class="fc" id="L117">        jj_consume_token(COMMA);</span>
-<span class="fc" id="L118">        assignement(context);</span>
+<span class="fc" id="L121">        jj_consume_token(COMMA);</span>
+<span class="fc" id="L122">        assignement(context);</span>
       }
-<span class="fc" id="L120">      jj_consume_token(SCL);</span>
-<span class="fc" id="L121">      break;</span>
+<span class="fc" id="L124">      jj_consume_token(SCL);</span>
+<span class="fc" id="L125">      break;</span>
     default:
-<span class="nc" id="L123">      jj_la1[3] = jj_gen;</span>
+<span class="nc" id="L127">      jj_la1[3] = jj_gen;</span>
       ;
     }
-<span class="fc" id="L126">      condAddr = context.getAddress();</span>
-<span class="fc" id="L127">    logical(context);</span>
-<span class="pc bpc" id="L128" title="1 of 2 branches missed.">    switch (jj_nt.kind) {</span>
+<span class="fc" id="L130">      condAddr = context.getAddress();</span>
+<span class="fc" id="L131">    logical(context);</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">    switch (jj_nt.kind) {</span>
     case SCL:
-<span class="fc" id="L130">      jj_consume_token(SCL);</span>
-<span class="fc" id="L131">      assignement(postAssign);</span>
+<span class="fc" id="L134">      jj_consume_token(SCL);</span>
+<span class="fc" id="L135">      assignement(postAssign);</span>
       label_3:
       while (true) {
-<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">        switch (jj_nt.kind) {</span>
         case COMMA:
           ;
-<span class="nc" id="L137">          break;</span>
+<span class="nc" id="L141">          break;</span>
         default:
-<span class="fc" id="L139">          jj_la1[4] = jj_gen;</span>
-<span class="fc" id="L140">          break label_3;</span>
+<span class="fc" id="L143">          jj_la1[4] = jj_gen;</span>
+<span class="fc" id="L144">          break label_3;</span>
         }
-<span class="nc" id="L142">        jj_consume_token(COMMA);</span>
-<span class="nc" id="L143">        assignement(postAssign);</span>
+<span class="nc" id="L146">        jj_consume_token(COMMA);</span>
+<span class="nc" id="L147">        assignement(postAssign);</span>
       }
       break;
     default:
-<span class="nc" id="L147">      jj_la1[5] = jj_gen;</span>
+<span class="nc" id="L151">      jj_la1[5] = jj_gen;</span>
       ;
     }
-<span class="fc" id="L150">    programBlock(loopBlock);</span>
-<span class="fc" id="L151">      context.generateCode(new org.spf4j.zel.instr.FJMP(loopBlock.getAddress() + postAssign.getAddress() + 2));</span>
-<span class="fc" id="L152">      context.generateCodeAll(loopBlock);</span>
-<span class="fc" id="L153">      context.generateCodeAll(postAssign);</span>
-<span class="fc" id="L154">      context.generateCode(new org.spf4j.zel.instr.JMP(condAddr - context.getAddress()));</span>
-<span class="fc" id="L155">  }</span>
+<span class="fc" id="L154">    programBlock(loopBlock);</span>
+<span class="fc" id="L155">      context.generateCode(new org.spf4j.zel.instr.FJMP(loopBlock.getAddress() + postAssign.getAddress() + 2));</span>
+<span class="fc" id="L156">      context.generateCodeAll(loopBlock);</span>
+<span class="fc" id="L157">      context.generateCodeAll(postAssign);</span>
+<span class="fc" id="L158">      context.generateCode(new org.spf4j.zel.instr.JMP(condAddr - context.getAddress()));</span>
+<span class="fc" id="L159">  }</span>
 
   final public void ifStmt(ParsingContext context) throws ParseException {
  int jmp1;
  int jmp2;
-<span class="fc" id="L160"> boolean isElse = false;</span>
-<span class="fc" id="L161"> ParsingContext left = (ParsingContext) context.createSubContext();</span>
-<span class="fc" id="L162"> ParsingContext right = (ParsingContext) context.createSubContext();</span>
-<span class="fc" id="L163">    jj_consume_token(IF);</span>
-<span class="fc" id="L164">    logical(context);</span>
-<span class="pc bpc" id="L165" title="2 of 3 branches missed.">    switch (jj_nt.kind) {</span>
+<span class="fc" id="L164"> boolean isElse = false;</span>
+<span class="fc" id="L165"> ParsingContext left = (ParsingContext) context.createSubContext();</span>
+<span class="fc" id="L166"> ParsingContext right = (ParsingContext) context.createSubContext();</span>
+<span class="fc" id="L167">    jj_consume_token(IF);</span>
+<span class="fc" id="L168">    logical(context);</span>
+<span class="pc bpc" id="L169" title="2 of 3 branches missed.">    switch (jj_nt.kind) {</span>
     case LBRACE:
-<span class="fc" id="L167">      programBlock(left);</span>
-<span class="fc" id="L168">      break;</span>
+<span class="fc" id="L171">      programBlock(left);</span>
+<span class="fc" id="L172">      break;</span>
     case MINUS:
+    case PIPE:
     case NOT:
     case LPAREN:
     case RETURN:
@@ -188,22 +193,23 @@ public class ZCompiler implements ZCompilerConstants {
     case STRING:
     case MATCHEXP:
     case ID:
-<span class="nc" id="L191">      statement(left);</span>
-<span class="nc" id="L192">      break;</span>
+<span class="nc" id="L196">      statement(left);</span>
+<span class="nc" id="L197">      break;</span>
     default:
-<span class="nc" id="L194">      jj_la1[6] = jj_gen;</span>
-<span class="nc" id="L195">      jj_consume_token(-1);</span>
-<span class="nc" id="L196">      throw new ParseException();</span>
+<span class="nc" id="L199">      jj_la1[6] = jj_gen;</span>
+<span class="nc" id="L200">      jj_consume_token(-1);</span>
+<span class="nc" id="L201">      throw new ParseException();</span>
     }
-<span class="fc bfc" id="L198" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L203" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
     case ELSE:
-<span class="fc" id="L200">      jj_consume_token(ELSE);</span>
-<span class="fc" id="L201">             isElse = true;</span>
-<span class="pc bpc" id="L202" title="1 of 3 branches missed.">      switch (jj_nt.kind) {</span>
+<span class="fc" id="L205">      jj_consume_token(ELSE);</span>
+<span class="fc" id="L206">             isElse = true;</span>
+<span class="pc bpc" id="L207" title="1 of 3 branches missed.">      switch (jj_nt.kind) {</span>
       case LBRACE:
-<span class="fc" id="L204">        programBlock(right);</span>
-<span class="fc" id="L205">        break;</span>
+<span class="fc" id="L209">        programBlock(right);</span>
+<span class="fc" id="L210">        break;</span>
       case MINUS:
+      case PIPE:
       case NOT:
       case LPAREN:
       case RETURN:
@@ -225,37 +231,38 @@ public class ZCompiler implements ZCompilerConstants {
       case STRING:
       case MATCHEXP:
       case ID:
-<span class="fc" id="L228">        statement(right);</span>
-<span class="fc" id="L229">        break;</span>
+<span class="fc" id="L234">        statement(right);</span>
+<span class="fc" id="L235">        break;</span>
       default:
-<span class="nc" id="L231">        jj_la1[7] = jj_gen;</span>
-<span class="nc" id="L232">        jj_consume_token(-1);</span>
-<span class="nc" id="L233">        throw new ParseException();</span>
+<span class="nc" id="L237">        jj_la1[7] = jj_gen;</span>
+<span class="nc" id="L238">        jj_consume_token(-1);</span>
+<span class="nc" id="L239">        throw new ParseException();</span>
       }
       break;
     default:
-<span class="fc" id="L237">      jj_la1[8] = jj_gen;</span>
+<span class="fc" id="L243">      jj_la1[8] = jj_gen;</span>
       ;
     }
-<span class="fc bfc" id="L240" title="All 2 branches covered.">         context.generateCode(new org.spf4j.zel.instr.FJMP(left.getAddress() + 1 + ((isElse) ? 1 : 0)));</span>
-<span class="fc" id="L241">         context.generateCodeAll(left);</span>
-<span class="fc bfc" id="L242" title="All 2 branches covered.">         if (isElse) {</span>
-<span class="fc" id="L243">         context.generateCode(new org.spf4j.zel.instr.JMP(right.getAddress() + 1));</span>
-<span class="fc" id="L244">         context.generateCodeAll(right);</span>
+<span class="fc bfc" id="L246" title="All 2 branches covered.">         context.generateCode(new org.spf4j.zel.instr.FJMP(left.getAddress() + 1 + ((isElse) ? 1 : 0)));</span>
+<span class="fc" id="L247">         context.generateCodeAll(left);</span>
+<span class="fc bfc" id="L248" title="All 2 branches covered.">         if (isElse) {</span>
+<span class="fc" id="L249">         context.generateCode(new org.spf4j.zel.instr.JMP(right.getAddress() + 1));</span>
+<span class="fc" id="L250">         context.generateCodeAll(right);</span>
          }
-<span class="fc" id="L246">  }</span>
-
-  final public void programBlock(ParsingContext context) throws ParseException {
-<span class="fc" id="L249">    jj_consume_token(LBRACE);</span>
-<span class="fc" id="L250">    program(context);</span>
-<span class="fc" id="L251">    jj_consume_token(RBRACE);</span>
 <span class="fc" id="L252">  }</span>
 
+  final public void programBlock(ParsingContext context) throws ParseException {
+<span class="fc" id="L255">    jj_consume_token(LBRACE);</span>
+<span class="fc" id="L256">    program(context);</span>
+<span class="fc" id="L257">    jj_consume_token(RBRACE);</span>
+<span class="fc" id="L258">  }</span>
+
   final public void zreturn(ParsingContext context) throws ParseException {
-<span class="fc" id="L255"> int nr = 0;</span>
-<span class="fc" id="L256">    jj_consume_token(RETURN);</span>
-<span class="fc bfc" id="L257" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
+<span class="fc" id="L261"> int nr = 0;</span>
+<span class="fc" id="L262">    jj_consume_token(RETURN);</span>
+<span class="fc bfc" id="L263" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
     case MINUS:
+    case PIPE:
     case NOT:
     case LPAREN:
     case LBRACE:
@@ -272,197 +279,197 @@ public class ZCompiler implements ZCompilerConstants {
     case STRING:
     case MATCHEXP:
     case ID:
-<span class="fc" id="L275">      expression(context);</span>
-<span class="fc" id="L276">      break;</span>
+<span class="fc" id="L282">      expression(context);</span>
+<span class="fc" id="L283">      break;</span>
     default:
-<span class="fc" id="L278">      jj_la1[9] = jj_gen;</span>
+<span class="fc" id="L285">      jj_la1[9] = jj_gen;</span>
       ;
     }
-<span class="fc" id="L281">  context.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);</span>
-<span class="fc" id="L282">  }</span>
+<span class="fc" id="L288">  context.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);</span>
+<span class="fc" id="L289">  }</span>
 
   final public void assignement(ParsingContext context) throws ParseException {
-<span class="fc" id="L285"> int nr = 0;</span>
-<span class="fc" id="L286"> int nre = 0;</span>
-<span class="fc" id="L287">    assignableExpression(context);</span>
-<span class="fc" id="L288">                                  nr++;</span>
+<span class="fc" id="L292"> int nr = 0;</span>
+<span class="fc" id="L293"> int nre = 0;</span>
+<span class="fc" id="L294">    assignableExpression(context);</span>
+<span class="fc" id="L295">                                  nr++;</span>
     label_4:
     while (true) {
-<span class="fc bfc" id="L291" title="All 2 branches covered.">      switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L298" title="All 2 branches covered.">      switch (jj_nt.kind) {</span>
       case COMMA:
         ;
-<span class="fc" id="L294">        break;</span>
+<span class="fc" id="L301">        break;</span>
       default:
-<span class="fc" id="L296">        jj_la1[10] = jj_gen;</span>
-<span class="fc" id="L297">        break label_4;</span>
+<span class="fc" id="L303">        jj_la1[10] = jj_gen;</span>
+<span class="fc" id="L304">        break label_4;</span>
       }
-<span class="fc" id="L299">      jj_consume_token(COMMA);</span>
-<span class="fc" id="L300">      assignableExpression(context);</span>
-<span class="fc" id="L301">                                                                                 nr++;</span>
+<span class="fc" id="L306">      jj_consume_token(COMMA);</span>
+<span class="fc" id="L307">      assignableExpression(context);</span>
+<span class="fc" id="L308">                                                                                 nr++;</span>
     }
-<span class="pc bpc" id="L303" title="2 of 4 branches missed.">    switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L310" title="2 of 4 branches missed.">    switch (jj_nt.kind) {</span>
     case EQUAL:
-<span class="fc" id="L305">      jj_consume_token(EQUAL);</span>
-<span class="fc" id="L306">      expression(context);</span>
-<span class="fc bfc" id="L307" title="All 2 branches covered.">    if (nr &gt; 1) {</span>
-<span class="fc" id="L308">      context.generateCode(new org.spf4j.zel.instr.MOVN(nr));</span>
+<span class="fc" id="L312">      jj_consume_token(EQUAL);</span>
+<span class="fc" id="L313">      expression(context);</span>
+<span class="fc bfc" id="L314" title="All 2 branches covered.">    if (nr &gt; 1) {</span>
+<span class="fc" id="L315">      context.generateCode(new org.spf4j.zel.instr.MOVN(nr));</span>
     } else {
-<span class="fc" id="L310">      context.generateCode(org.spf4j.zel.instr.MOV.INSTANCE);</span>
+<span class="fc" id="L317">      context.generateCode(org.spf4j.zel.instr.MOV.INSTANCE);</span>
     }
-<span class="fc" id="L312">      break;</span>
+<span class="fc" id="L319">      break;</span>
     case INC:
-<span class="fc" id="L314">      jj_consume_token(INC);</span>
-<span class="fc" id="L315">    context.generateCode(org.spf4j.zel.instr.INC.INSTANCE);</span>
-<span class="fc" id="L316">      break;</span>
+<span class="fc" id="L321">      jj_consume_token(INC);</span>
+<span class="fc" id="L322">    context.generateCode(org.spf4j.zel.instr.INC.INSTANCE);</span>
+<span class="fc" id="L323">      break;</span>
     case DEC:
-<span class="nc" id="L318">      jj_consume_token(DEC);</span>
-<span class="nc" id="L319">    context.generateCode(org.spf4j.zel.instr.DEC.INSTANCE);</span>
-<span class="nc" id="L320">      break;</span>
+<span class="nc" id="L325">      jj_consume_token(DEC);</span>
+<span class="nc" id="L326">    context.generateCode(org.spf4j.zel.instr.DEC.INSTANCE);</span>
+<span class="nc" id="L327">      break;</span>
     default:
-<span class="nc" id="L322">      jj_la1[11] = jj_gen;</span>
-<span class="nc" id="L323">      jj_consume_token(-1);</span>
-<span class="nc" id="L324">      throw new ParseException();</span>
+<span class="nc" id="L329">      jj_la1[11] = jj_gen;</span>
+<span class="nc" id="L330">      jj_consume_token(-1);</span>
+<span class="nc" id="L331">      throw new ParseException();</span>
     }
-<span class="fc" id="L326">  }</span>
+<span class="fc" id="L333">  }</span>
 
   final public void swap(ParsingContext context) throws ParseException {
-<span class="fc" id="L329">    assignableExpression(context);</span>
-<span class="fc" id="L330">    jj_consume_token(SWAP);</span>
-<span class="fc" id="L331">    assignableExpression(context);</span>
-<span class="fc" id="L332">    context.generateCode(org.spf4j.zel.instr.SWAP.INSTANCE);</span>
-<span class="fc" id="L333">  }</span>
+<span class="fc" id="L336">    assignableExpression(context);</span>
+<span class="fc" id="L337">    jj_consume_token(SWAP);</span>
+<span class="fc" id="L338">    assignableExpression(context);</span>
+<span class="fc" id="L339">    context.generateCode(org.spf4j.zel.instr.SWAP.INSTANCE);</span>
+<span class="fc" id="L340">  }</span>
 
   final public void assignableExpression(ParsingContext context) throws ParseException {
 String name;
-<span class="fc" id="L337">    jj_consume_token(ID);</span>
-<span class="fc" id="L338">           name = token.image;</span>
-<span class="fc" id="L339">            context.generateCode(new org.spf4j.zel.instr.LODAX(name));</span>
+<span class="fc" id="L344">    jj_consume_token(ID);</span>
+<span class="fc" id="L345">           name = token.image;</span>
+<span class="fc" id="L346">            context.generateCode(new org.spf4j.zel.instr.LODAX(name));</span>
     label_5:
     while (true) {
-<span class="fc bfc" id="L342" title="All 2 branches covered.">      switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L349" title="All 2 branches covered.">      switch (jj_nt.kind) {</span>
       case LPAREN:
       case LBRACKET:
       case DOT:
         ;
-<span class="fc" id="L347">        break;</span>
+<span class="fc" id="L354">        break;</span>
       default:
-<span class="fc" id="L349">        jj_la1[12] = jj_gen;</span>
-<span class="fc" id="L350">        break label_5;</span>
+<span class="fc" id="L356">        jj_la1[12] = jj_gen;</span>
+<span class="fc" id="L357">        break label_5;</span>
       }
-<span class="fc bfc" id="L352" title="All 2 branches covered.">      if (jj_2_3(2)) {</span>
-<span class="fc" id="L353">        params(context);</span>
-<span class="fc" id="L354">                           context.generateCode(org.spf4j.zel.instr.CALLREF.INSTANCE);</span>
+<span class="fc bfc" id="L359" title="All 2 branches covered.">      if (jj_2_3(2)) {</span>
+<span class="fc" id="L360">        params(context);</span>
+<span class="fc" id="L361">                           context.generateCode(org.spf4j.zel.instr.CALLREF.INSTANCE);</span>
       } else {
-<span class="pc bpc" id="L356" title="1 of 2 branches missed.">        switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L363" title="1 of 2 branches missed.">        switch (jj_nt.kind) {</span>
         case LBRACKET:
         case DOT:
-<span class="pc bpc" id="L359" title="1 of 3 branches missed.">          switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L366" title="1 of 3 branches missed.">          switch (jj_nt.kind) {</span>
           case DOT:
-<span class="fc" id="L361">            jj_consume_token(DOT);</span>
-<span class="fc" id="L362">            jj_consume_token(ID);</span>
-<span class="fc" id="L363">                         name = token.image; context.generateCode(new PUSH(name));</span>
-<span class="fc" id="L364">            break;</span>
+<span class="fc" id="L368">            jj_consume_token(DOT);</span>
+<span class="fc" id="L369">            jj_consume_token(ID);</span>
+<span class="fc" id="L370">                         name = token.image; context.generateCode(new PUSH(name));</span>
+<span class="fc" id="L371">            break;</span>
           case LBRACKET:
-<span class="fc" id="L366">            jj_consume_token(LBRACKET);</span>
-<span class="fc" id="L367">            expression(context);</span>
-<span class="fc" id="L368">            jj_consume_token(RBRACKET);</span>
-<span class="fc" id="L369">            break;</span>
+<span class="fc" id="L373">            jj_consume_token(LBRACKET);</span>
+<span class="fc" id="L374">            expression(context);</span>
+<span class="fc" id="L375">            jj_consume_token(RBRACKET);</span>
+<span class="fc" id="L376">            break;</span>
           default:
-<span class="nc" id="L371">            jj_la1[13] = jj_gen;</span>
-<span class="nc" id="L372">            jj_consume_token(-1);</span>
-<span class="nc" id="L373">            throw new ParseException();</span>
+<span class="nc" id="L378">            jj_la1[13] = jj_gen;</span>
+<span class="nc" id="L379">            jj_consume_token(-1);</span>
+<span class="nc" id="L380">            throw new ParseException();</span>
           }
-<span class="fc" id="L375">             context.generateCode(org.spf4j.zel.instr.REF.INSTANCE);</span>
-<span class="fc" id="L376">          break;</span>
+<span class="fc" id="L382">             context.generateCode(org.spf4j.zel.instr.REF.INSTANCE);</span>
+<span class="fc" id="L383">          break;</span>
         default:
-<span class="nc" id="L378">          jj_la1[14] = jj_gen;</span>
-<span class="nc" id="L379">          jj_consume_token(-1);</span>
-<span class="nc" id="L380">          throw new ParseException();</span>
+<span class="nc" id="L385">          jj_la1[14] = jj_gen;</span>
+<span class="nc" id="L386">          jj_consume_token(-1);</span>
+<span class="nc" id="L387">          throw new ParseException();</span>
         }
       }
     }
-<span class="fc" id="L384">  }</span>
+<span class="fc" id="L391">  }</span>
 
   final public void expression(ParsingContext context) throws ParseException {
-<span class="fc" id="L387">    ternary(context);</span>
-<span class="fc" id="L388">  }</span>
+<span class="fc" id="L394">    ternary(context);</span>
+<span class="fc" id="L395">  }</span>
 
   final public void ternary(ParsingContext context) throws ParseException {
  int jmp1;
  int jmp2;
-<span class="fc" id="L393"> ParsingContext left = (ParsingContext) context.createSubContext();</span>
-<span class="fc" id="L394"> ParsingContext right = (ParsingContext) context.createSubContext();</span>
-<span class="fc" id="L395">    logical(context);</span>
-<span class="fc bfc" id="L396" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
+<span class="fc" id="L400"> ParsingContext left = (ParsingContext) context.createSubContext();</span>
+<span class="fc" id="L401"> ParsingContext right = (ParsingContext) context.createSubContext();</span>
+<span class="fc" id="L402">    logical(context);</span>
+<span class="fc bfc" id="L403" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
     case CONDITION:
-<span class="fc" id="L398">      jj_consume_token(CONDITION);</span>
-<span class="fc" id="L399">      ternary(left);</span>
-<span class="fc" id="L400">      jj_consume_token(CLM);</span>
-<span class="fc" id="L401">      ternary(right);</span>
-<span class="fc" id="L402">         context.generateCode(new org.spf4j.zel.instr.FJMP(left.getAddress() + 2));</span>
-<span class="fc" id="L403">         context.generateCodeAll(left);</span>
-<span class="fc" id="L404">         context.generateCode(new org.spf4j.zel.instr.JMP(right.getAddress() + 1));</span>
-<span class="fc" id="L405">         context.generateCodeAll(right);</span>
-<span class="fc" id="L406">      break;</span>
+<span class="fc" id="L405">      jj_consume_token(CONDITION);</span>
+<span class="fc" id="L406">      ternary(left);</span>
+<span class="fc" id="L407">      jj_consume_token(CLM);</span>
+<span class="fc" id="L408">      ternary(right);</span>
+<span class="fc" id="L409">         context.generateCode(new org.spf4j.zel.instr.FJMP(left.getAddress() + 2));</span>
+<span class="fc" id="L410">         context.generateCodeAll(left);</span>
+<span class="fc" id="L411">         context.generateCode(new org.spf4j.zel.instr.JMP(right.getAddress() + 1));</span>
+<span class="fc" id="L412">         context.generateCodeAll(right);</span>
+<span class="fc" id="L413">      break;</span>
     default:
-<span class="fc" id="L408">      jj_la1[15] = jj_gen;</span>
+<span class="fc" id="L415">      jj_la1[15] = jj_gen;</span>
       ;
     }
-<span class="fc" id="L411">  }</span>
+<span class="fc" id="L418">  }</span>
 
   final public void logical(ParsingContext context) throws ParseException {
  Token x;
-<span class="fc" id="L415">    compare(context);</span>
+<span class="fc" id="L422">    compare(context);</span>
     label_6:
     while (true) {
-<span class="pc bpc" id="L418" title="1 of 2 branches missed.">      switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L425" title="1 of 2 branches missed.">      switch (jj_nt.kind) {</span>
       case AND:
       case OR:
       case XOR:
         ;
-<span class="nc" id="L423">        break;</span>
+<span class="nc" id="L430">        break;</span>
       default:
-<span class="fc" id="L425">        jj_la1[16] = jj_gen;</span>
-<span class="fc" id="L426">        break label_6;</span>
+<span class="fc" id="L432">        jj_la1[16] = jj_gen;</span>
+<span class="fc" id="L433">        break label_6;</span>
       }
-<span class="nc bnc" id="L428" title="All 4 branches missed.">      switch (jj_nt.kind) {</span>
+<span class="nc bnc" id="L435" title="All 4 branches missed.">      switch (jj_nt.kind) {</span>
       case AND:
-<span class="nc" id="L430">        x = jj_consume_token(AND);</span>
-<span class="nc" id="L431">        break;</span>
+<span class="nc" id="L437">        x = jj_consume_token(AND);</span>
+<span class="nc" id="L438">        break;</span>
       case OR:
-<span class="nc" id="L433">        x = jj_consume_token(OR);</span>
-<span class="nc" id="L434">        break;</span>
+<span class="nc" id="L440">        x = jj_consume_token(OR);</span>
+<span class="nc" id="L441">        break;</span>
       case XOR:
-<span class="nc" id="L436">        x = jj_consume_token(XOR);</span>
-<span class="nc" id="L437">        break;</span>
+<span class="nc" id="L443">        x = jj_consume_token(XOR);</span>
+<span class="nc" id="L444">        break;</span>
       default:
-<span class="nc" id="L439">        jj_la1[17] = jj_gen;</span>
-<span class="nc" id="L440">        jj_consume_token(-1);</span>
-<span class="nc" id="L441">        throw new ParseException();</span>
+<span class="nc" id="L446">        jj_la1[17] = jj_gen;</span>
+<span class="nc" id="L447">        jj_consume_token(-1);</span>
+<span class="nc" id="L448">        throw new ParseException();</span>
       }
-<span class="nc" id="L443">      compare(context);</span>
-<span class="nc bnc" id="L444" title="All 4 branches missed.">            switch (x.kind) {</span>
+<span class="nc" id="L450">      compare(context);</span>
+<span class="nc bnc" id="L451" title="All 4 branches missed.">            switch (x.kind) {</span>
                 case AND:
-<span class="nc" id="L446">                    context.generateCode(org.spf4j.zel.instr.AND.INSTANCE);</span>
-<span class="nc" id="L447">                    break;</span>
+<span class="nc" id="L453">                    context.generateCode(org.spf4j.zel.instr.AND.INSTANCE);</span>
+<span class="nc" id="L454">                    break;</span>
                 case OR:
-<span class="nc" id="L449">                    context.generateCode(org.spf4j.zel.instr.OR.INSTANCE);</span>
-<span class="nc" id="L450">                    break;</span>
+<span class="nc" id="L456">                    context.generateCode(org.spf4j.zel.instr.OR.INSTANCE);</span>
+<span class="nc" id="L457">                    break;</span>
                 case XOR:
-<span class="nc" id="L452">                    context.generateCode(org.spf4j.zel.instr.XOR.INSTANCE);</span>
-<span class="nc" id="L453">                    break;</span>
+<span class="nc" id="L459">                    context.generateCode(org.spf4j.zel.instr.XOR.INSTANCE);</span>
+<span class="nc" id="L460">                    break;</span>
                 default:
-<span class="nc" id="L455">                    {if (true) throw new RuntimeException(&quot;Unsupported token type &quot; + x);}</span>
+<span class="nc" id="L462">                    {if (true) throw new RuntimeException(&quot;Unsupported token type &quot; + x);}</span>
             }
     }
-<span class="fc" id="L458">  }</span>
+<span class="fc" id="L465">  }</span>
 
   final public void compare(ParsingContext context) throws ParseException {
  Token x;
-<span class="fc" id="L462">    sum(context);</span>
+<span class="fc" id="L469">    sum(context);</span>
     label_7:
     while (true) {
-<span class="fc bfc" id="L465" title="All 2 branches covered.">      switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L472" title="All 2 branches covered.">      switch (jj_nt.kind) {</span>
       case GT:
       case LT:
       case LE:
@@ -470,241 +477,242 @@ String name;
       case EQ:
       case NEQ:
         ;
-<span class="fc" id="L473">        break;</span>
+<span class="fc" id="L480">        break;</span>
       default:
-<span class="fc" id="L475">        jj_la1[18] = jj_gen;</span>
-<span class="fc" id="L476">        break label_7;</span>
+<span class="fc" id="L482">        jj_la1[18] = jj_gen;</span>
+<span class="fc" id="L483">        break label_7;</span>
       }
-<span class="pc bpc" id="L478" title="1 of 7 branches missed.">      switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L485" title="1 of 7 branches missed.">      switch (jj_nt.kind) {</span>
       case GT:
-<span class="fc" id="L480">        x = jj_consume_token(GT);</span>
-<span class="fc" id="L481">        break;</span>
+<span class="fc" id="L487">        x = jj_consume_token(GT);</span>
+<span class="fc" id="L488">        break;</span>
       case LT:
-<span class="fc" id="L483">        x = jj_consume_token(LT);</span>
-<span class="fc" id="L484">        break;</span>
+<span class="fc" id="L490">        x = jj_consume_token(LT);</span>
+<span class="fc" id="L491">        break;</span>
       case GE:
-<span class="fc" id="L486">        x = jj_consume_token(GE);</span>
-<span class="fc" id="L487">        break;</span>
+<span class="fc" id="L493">        x = jj_consume_token(GE);</span>
+<span class="fc" id="L494">        break;</span>
       case LE:
-<span class="fc" id="L489">        x = jj_consume_token(LE);</span>
-<span class="fc" id="L490">        break;</span>
+<span class="fc" id="L496">        x = jj_consume_token(LE);</span>
+<span class="fc" id="L497">        break;</span>
       case EQ:
-<span class="fc" id="L492">        x = jj_consume_token(EQ);</span>
-<span class="fc" id="L493">        break;</span>
+<span class="fc" id="L499">        x = jj_consume_token(EQ);</span>
+<span class="fc" id="L500">        break;</span>
       case NEQ:
-<span class="fc" id="L495">        x = jj_consume_token(NEQ);</span>
-<span class="fc" id="L496">        break;</span>
+<span class="fc" id="L502">        x = jj_consume_token(NEQ);</span>
+<span class="fc" id="L503">        break;</span>
       default:
-<span class="nc" id="L498">        jj_la1[19] = jj_gen;</span>
-<span class="nc" id="L499">        jj_consume_token(-1);</span>
-<span class="nc" id="L500">        throw new ParseException();</span>
+<span class="nc" id="L505">        jj_la1[19] = jj_gen;</span>
+<span class="nc" id="L506">        jj_consume_token(-1);</span>
+<span class="nc" id="L507">        throw new ParseException();</span>
       }
-<span class="fc" id="L502">      sum(context);</span>
-<span class="pc bpc" id="L503" title="1 of 7 branches missed.">            switch (x.kind) {</span>
+<span class="fc" id="L509">      sum(context);</span>
+<span class="pc bpc" id="L510" title="1 of 7 branches missed.">            switch (x.kind) {</span>
                 case GT:
-<span class="fc" id="L505">                    context.generateCode(org.spf4j.zel.instr.GT.INSTANCE);</span>
-<span class="fc" id="L506">                    break;</span>
+<span class="fc" id="L512">                    context.generateCode(org.spf4j.zel.instr.GT.INSTANCE);</span>
+<span class="fc" id="L513">                    break;</span>
                 case LT:
-<span class="fc" id="L508">                    context.generateCode(org.spf4j.zel.instr.LT.INSTANCE);</span>
-<span class="fc" id="L509">                    break;</span>
+<span class="fc" id="L515">                    context.generateCode(org.spf4j.zel.instr.LT.INSTANCE);</span>
+<span class="fc" id="L516">                    break;</span>
                 case GE:
-<span class="fc" id="L511">                    context.generateCode(org.spf4j.zel.instr.GE.INSTANCE);</span>
-<span class="fc" id="L512">                    break;</span>
+<span class="fc" id="L518">                    context.generateCode(org.spf4j.zel.instr.GE.INSTANCE);</span>
+<span class="fc" id="L519">                    break;</span>
                 case LE:
-<span class="fc" id="L514">                    context.generateCode(org.spf4j.zel.instr.LE.INSTANCE);</span>
-<span class="fc" id="L515">                    break;</span>
+<span class="fc" id="L521">                    context.generateCode(org.spf4j.zel.instr.LE.INSTANCE);</span>
+<span class="fc" id="L522">                    break;</span>
                 case EQ:
-<span class="fc" id="L517">                    context.generateCode(org.spf4j.zel.instr.EQ.INSTANCE);</span>
-<span class="fc" id="L518">                    break;</span>
+<span class="fc" id="L524">                    context.generateCode(org.spf4j.zel.instr.EQ.INSTANCE);</span>
+<span class="fc" id="L525">                    break;</span>
                 case NEQ:
-<span class="fc" id="L520">                    context.generateCode(org.spf4j.zel.instr.NEQ.INSTANCE);</span>
-<span class="fc" id="L521">                    break;</span>
+<span class="fc" id="L527">                    context.generateCode(org.spf4j.zel.instr.NEQ.INSTANCE);</span>
+<span class="fc" id="L528">                    break;</span>
                 default:
-<span class="nc" id="L523">                    {if (true) throw new RuntimeException(&quot;Unsupported token type &quot; + x);}</span>
+<span class="nc" id="L530">                    {if (true) throw new RuntimeException(&quot;Unsupported token type &quot; + x);}</span>
 
             }
     }
-<span class="fc" id="L527">  }</span>
+<span class="fc" id="L534">  }</span>
 
   final public void sum(ParsingContext context) throws ParseException {
  Token x;
-<span class="fc" id="L531">    term(context);</span>
+<span class="fc" id="L538">    term(context);</span>
     label_8:
     while (true) {
-<span class="fc bfc" id="L534" title="All 2 branches covered.">      switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L541" title="All 2 branches covered.">      switch (jj_nt.kind) {</span>
       case PLUS:
       case MINUS:
         ;
-<span class="fc" id="L538">        break;</span>
+<span class="fc" id="L545">        break;</span>
       default:
-<span class="fc" id="L540">        jj_la1[20] = jj_gen;</span>
-<span class="fc" id="L541">        break label_8;</span>
+<span class="fc" id="L547">        jj_la1[20] = jj_gen;</span>
+<span class="fc" id="L548">        break label_8;</span>
       }
-<span class="pc bpc" id="L543" title="1 of 3 branches missed.">      switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L550" title="1 of 3 branches missed.">      switch (jj_nt.kind) {</span>
       case PLUS:
-<span class="fc" id="L545">        x = jj_consume_token(PLUS);</span>
-<span class="fc" id="L546">        break;</span>
+<span class="fc" id="L552">        x = jj_consume_token(PLUS);</span>
+<span class="fc" id="L553">        break;</span>
       case MINUS:
-<span class="fc" id="L548">        x = jj_consume_token(MINUS);</span>
-<span class="fc" id="L549">        break;</span>
+<span class="fc" id="L555">        x = jj_consume_token(MINUS);</span>
+<span class="fc" id="L556">        break;</span>
       default:
-<span class="nc" id="L551">        jj_la1[21] = jj_gen;</span>
-<span class="nc" id="L552">        jj_consume_token(-1);</span>
-<span class="nc" id="L553">        throw new ParseException();</span>
+<span class="nc" id="L558">        jj_la1[21] = jj_gen;</span>
+<span class="nc" id="L559">        jj_consume_token(-1);</span>
+<span class="nc" id="L560">        throw new ParseException();</span>
       }
-<span class="fc" id="L555">      term(context);</span>
-<span class="fc bfc" id="L556" title="All 2 branches covered.">            if ( x.kind == PLUS )</span>
-<span class="fc" id="L557">                    context.generateCode(org.spf4j.zel.instr.ADD.INSTANCE);</span>
+<span class="fc" id="L562">      term(context);</span>
+<span class="fc bfc" id="L563" title="All 2 branches covered.">            if ( x.kind == PLUS )</span>
+<span class="fc" id="L564">                    context.generateCode(org.spf4j.zel.instr.ADD.INSTANCE);</span>
             else
-<span class="fc" id="L559">                    context.generateCode(org.spf4j.zel.instr.SUB.INSTANCE);</span>
+<span class="fc" id="L566">                    context.generateCode(org.spf4j.zel.instr.SUB.INSTANCE);</span>
     }
-<span class="fc" id="L561">  }</span>
+<span class="fc" id="L568">  }</span>
 
   final public void term(ParsingContext context) throws ParseException {
  Token x;
-<span class="fc" id="L565">    exponent(context);</span>
+<span class="fc" id="L572">    exponent(context);</span>
     label_9:
     while (true) {
-<span class="fc bfc" id="L568" title="All 2 branches covered.">      switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L575" title="All 2 branches covered.">      switch (jj_nt.kind) {</span>
       case MULTIPLY:
       case DIVIDE:
       case MOD:
         ;
-<span class="fc" id="L573">        break;</span>
+<span class="fc" id="L580">        break;</span>
       default:
-<span class="fc" id="L575">        jj_la1[22] = jj_gen;</span>
-<span class="fc" id="L576">        break label_9;</span>
+<span class="fc" id="L582">        jj_la1[22] = jj_gen;</span>
+<span class="fc" id="L583">        break label_9;</span>
       }
-<span class="pc bpc" id="L578" title="2 of 4 branches missed.">      switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L585" title="2 of 4 branches missed.">      switch (jj_nt.kind) {</span>
       case MULTIPLY:
-<span class="fc" id="L580">        x = jj_consume_token(MULTIPLY);</span>
-<span class="fc" id="L581">        break;</span>
+<span class="fc" id="L587">        x = jj_consume_token(MULTIPLY);</span>
+<span class="fc" id="L588">        break;</span>
       case DIVIDE:
-<span class="fc" id="L583">        x = jj_consume_token(DIVIDE);</span>
-<span class="fc" id="L584">        break;</span>
+<span class="fc" id="L590">        x = jj_consume_token(DIVIDE);</span>
+<span class="fc" id="L591">        break;</span>
       case MOD:
-<span class="nc" id="L586">        x = jj_consume_token(MOD);</span>
-<span class="nc" id="L587">        break;</span>
+<span class="nc" id="L593">        x = jj_consume_token(MOD);</span>
+<span class="nc" id="L594">        break;</span>
       default:
-<span class="nc" id="L589">        jj_la1[23] = jj_gen;</span>
-<span class="nc" id="L590">        jj_consume_token(-1);</span>
-<span class="nc" id="L591">        throw new ParseException();</span>
+<span class="nc" id="L596">        jj_la1[23] = jj_gen;</span>
+<span class="nc" id="L597">        jj_consume_token(-1);</span>
+<span class="nc" id="L598">        throw new ParseException();</span>
       }
-<span class="fc" id="L593">      exponent(context);</span>
-<span class="fc bfc" id="L594" title="All 2 branches covered.">            if ( x.kind == MULTIPLY )</span>
-<span class="fc" id="L595">                    context.generateCode(org.spf4j.zel.instr.MUL.INSTANCE);</span>
-<span class="pc bpc" id="L596" title="1 of 2 branches missed.">            else if ( x.kind == DIVIDE )</span>
-<span class="fc" id="L597">                    context.generateCode(org.spf4j.zel.instr.DIV.INSTANCE);</span>
-<span class="nc" id="L598">        else context.generateCode(org.spf4j.zel.instr.MOD.INSTANCE);</span>
+<span class="fc" id="L600">      exponent(context);</span>
+<span class="fc bfc" id="L601" title="All 2 branches covered.">            if ( x.kind == MULTIPLY )</span>
+<span class="fc" id="L602">                    context.generateCode(org.spf4j.zel.instr.MUL.INSTANCE);</span>
+<span class="pc bpc" id="L603" title="1 of 2 branches missed.">            else if ( x.kind == DIVIDE )</span>
+<span class="fc" id="L604">                    context.generateCode(org.spf4j.zel.instr.DIV.INSTANCE);</span>
+<span class="nc" id="L605">        else context.generateCode(org.spf4j.zel.instr.MOD.INSTANCE);</span>
     }
-<span class="fc" id="L600">  }</span>
+<span class="fc" id="L607">  }</span>
 
   final public void exponent(ParsingContext context) throws ParseException {
-<span class="fc" id="L603">    unaryPost(context);</span>
+<span class="fc" id="L610">    unaryPost(context);</span>
     label_10:
     while (true) {
-<span class="fc bfc" id="L606" title="All 2 branches covered.">      if (jj_2_4(2147483647)) {</span>
+<span class="fc bfc" id="L613" title="All 2 branches covered.">      if (jj_2_4(2147483647)) {</span>
         ;
       } else {
         break label_10;
       }
-<span class="fc" id="L611">      jj_consume_token(POW);</span>
-<span class="fc" id="L612">      unaryPost(context);</span>
-<span class="fc" id="L613">             context.generateCode(org.spf4j.zel.instr.POW.INSTANCE);</span>
+<span class="fc" id="L618">      jj_consume_token(POW);</span>
+<span class="fc" id="L619">      unaryPost(context);</span>
+<span class="fc" id="L620">             context.generateCode(org.spf4j.zel.instr.POW.INSTANCE);</span>
     }
-<span class="fc" id="L615">  }</span>
+<span class="fc" id="L622">  }</span>
 
   final public void unaryPost(ParsingContext context) throws ParseException {
  Token x;
-<span class="fc" id="L619"> boolean asyncForce = false;</span>
-<span class="fc" id="L620">    unary(context, true);</span>
+<span class="fc" id="L626"> boolean asyncForce = false;</span>
+<span class="fc" id="L627">    unary(context, true);</span>
     label_11:
     while (true) {
-<span class="fc bfc" id="L623" title="All 2 branches covered.">      switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L630" title="All 2 branches covered.">      switch (jj_nt.kind) {</span>
       case LPAREN:
       case LBRACKET:
       case DOT:
         ;
-<span class="fc" id="L628">        break;</span>
+<span class="fc" id="L635">        break;</span>
       default:
-<span class="fc" id="L630">        jj_la1[24] = jj_gen;</span>
-<span class="fc" id="L631">        break label_11;</span>
+<span class="fc" id="L637">        jj_la1[24] = jj_gen;</span>
+<span class="fc" id="L638">        break label_11;</span>
       }
-<span class="fc bfc" id="L633" title="All 2 branches covered.">      if (jj_2_5(2)) {</span>
-<span class="fc" id="L634">        params(context);</span>
-<span class="fc bfc" id="L635" title="All 2 branches covered.">        switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L640" title="All 2 branches covered.">      if (jj_2_5(2)) {</span>
+<span class="fc" id="L641">        params(context);</span>
+<span class="fc bfc" id="L642" title="All 2 branches covered.">        switch (jj_nt.kind) {</span>
         case SAND:
-<span class="fc" id="L637">          jj_consume_token(SAND);</span>
-<span class="fc" id="L638">                                 asyncForce = true;</span>
-<span class="fc" id="L639">          break;</span>
+<span class="fc" id="L644">          jj_consume_token(SAND);</span>
+<span class="fc" id="L645">                                 asyncForce = true;</span>
+<span class="fc" id="L646">          break;</span>
         default:
-<span class="fc" id="L641">          jj_la1[25] = jj_gen;</span>
+<span class="fc" id="L648">          jj_la1[25] = jj_gen;</span>
           ;
         }
-<span class="fc bfc" id="L644" title="All 2 branches covered.">         if (asyncForce)  {</span>
-<span class="fc" id="L645">            context.generateCode(org.spf4j.zel.instr.CALLA.INSTANCE);</span>
+<span class="fc bfc" id="L651" title="All 2 branches covered.">         if (asyncForce)  {</span>
+<span class="fc" id="L652">            context.generateCode(org.spf4j.zel.instr.CALLA.INSTANCE);</span>
           } else {
-<span class="fc" id="L647">            context.generateCode(org.spf4j.zel.instr.CALL.INSTANCE);</span>
+<span class="fc" id="L654">            context.generateCode(org.spf4j.zel.instr.CALL.INSTANCE);</span>
           }
       } else {
-<span class="pc bpc" id="L650" title="1 of 2 branches missed.">        switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L657" title="1 of 2 branches missed.">        switch (jj_nt.kind) {</span>
         case LBRACKET:
         case DOT:
-<span class="pc bpc" id="L653" title="1 of 3 branches missed.">          switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L660" title="1 of 3 branches missed.">          switch (jj_nt.kind) {</span>
           case DOT:
-<span class="fc" id="L655">            jj_consume_token(DOT);</span>
-<span class="fc" id="L656">            jj_consume_token(ID);</span>
-<span class="fc" id="L657">                       context.generateCode(new org.spf4j.zel.instr.DEREFX(token.image));</span>
-<span class="fc" id="L658">            break;</span>
+<span class="fc" id="L662">            jj_consume_token(DOT);</span>
+<span class="fc" id="L663">            jj_consume_token(ID);</span>
+<span class="fc" id="L664">                       context.generateCode(new org.spf4j.zel.instr.DEREFX(token.image));</span>
+<span class="fc" id="L665">            break;</span>
           case LBRACKET:
-<span class="fc" id="L660">            jj_consume_token(LBRACKET);</span>
-<span class="fc" id="L661">            expression(context);</span>
-<span class="fc" id="L662">            jj_consume_token(RBRACKET);</span>
-<span class="fc" id="L663">                                                    context.generateCode(org.spf4j.zel.instr.DEREF.INSTANCE);</span>
-<span class="fc" id="L664">            break;</span>
+<span class="fc" id="L667">            jj_consume_token(LBRACKET);</span>
+<span class="fc" id="L668">            expression(context);</span>
+<span class="fc" id="L669">            jj_consume_token(RBRACKET);</span>
+<span class="fc" id="L670">                                                    context.generateCode(org.spf4j.zel.instr.DEREF.INSTANCE);</span>
+<span class="fc" id="L671">            break;</span>
           default:
-<span class="nc" id="L666">            jj_la1[26] = jj_gen;</span>
-<span class="nc" id="L667">            jj_consume_token(-1);</span>
-<span class="nc" id="L668">            throw new ParseException();</span>
+<span class="nc" id="L673">            jj_la1[26] = jj_gen;</span>
+<span class="nc" id="L674">            jj_consume_token(-1);</span>
+<span class="nc" id="L675">            throw new ParseException();</span>
           }
           break;
         default:
-<span class="nc" id="L672">          jj_la1[27] = jj_gen;</span>
-<span class="nc" id="L673">          jj_consume_token(-1);</span>
-<span class="nc" id="L674">          throw new ParseException();</span>
+<span class="nc" id="L679">          jj_la1[27] = jj_gen;</span>
+<span class="nc" id="L680">          jj_consume_token(-1);</span>
+<span class="nc" id="L681">          throw new ParseException();</span>
         }
       }
     }
-<span class="fc" id="L678">  }</span>
+<span class="fc" id="L685">  }</span>
 
   final public void unary(ParsingContext context, boolean left) throws ParseException {
  Token x;
-<span class="pc bpc" id="L682" title="1 of 3 branches missed.">    switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L689" title="1 of 3 branches missed.">    switch (jj_nt.kind) {</span>
     case MINUS:
     case NOT:
-<span class="pc bpc" id="L685" title="2 of 3 branches missed.">      switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L692" title="2 of 3 branches missed.">      switch (jj_nt.kind) {</span>
       case MINUS:
-<span class="fc" id="L687">        x = jj_consume_token(MINUS);</span>
-<span class="fc" id="L688">        break;</span>
+<span class="fc" id="L694">        x = jj_consume_token(MINUS);</span>
+<span class="fc" id="L695">        break;</span>
       case NOT:
-<span class="nc" id="L690">        x = jj_consume_token(NOT);</span>
-<span class="nc" id="L691">        break;</span>
+<span class="nc" id="L697">        x = jj_consume_token(NOT);</span>
+<span class="nc" id="L698">        break;</span>
       default:
-<span class="nc" id="L693">        jj_la1[28] = jj_gen;</span>
-<span class="nc" id="L694">        jj_consume_token(-1);</span>
-<span class="nc" id="L695">        throw new ParseException();</span>
+<span class="nc" id="L700">        jj_la1[28] = jj_gen;</span>
+<span class="nc" id="L701">        jj_consume_token(-1);</span>
+<span class="nc" id="L702">        throw new ParseException();</span>
       }
-<span class="fc" id="L697">      element(context, left);</span>
-<span class="pc bpc" id="L698" title="1 of 2 branches missed.">            if ( x.kind == MINUS )</span>
+<span class="fc" id="L704">      element(context, left);</span>
+<span class="pc bpc" id="L705" title="1 of 2 branches missed.">            if ( x.kind == MINUS )</span>
             {
-<span class="fc" id="L700">                context.generateCode(new PUSH(-1));</span>
-<span class="fc" id="L701">                context.generateCode(org.spf4j.zel.instr.MUL.INSTANCE);</span>
+<span class="fc" id="L707">                context.generateCode(new PUSH(-1));</span>
+<span class="fc" id="L708">                context.generateCode(org.spf4j.zel.instr.MUL.INSTANCE);</span>
             }
             else
             {
-<span class="nc" id="L705">                context.generateCode(org.spf4j.zel.instr.NOT.INSTANCE);</span>
+<span class="nc" id="L712">                context.generateCode(org.spf4j.zel.instr.NOT.INSTANCE);</span>
             }
-<span class="nc" id="L707">      break;</span>
+<span class="nc" id="L714">      break;</span>
+    case PIPE:
     case LPAREN:
     case LBRACE:
     case FUNCTION:
@@ -720,19 +728,19 @@ String name;
     case STRING:
     case MATCHEXP:
     case ID:
-<span class="fc" id="L723">      element(context, left);</span>
-<span class="fc" id="L724">      break;</span>
+<span class="fc" id="L731">      element(context, left);</span>
+<span class="fc" id="L732">      break;</span>
     default:
-<span class="nc" id="L726">      jj_la1[29] = jj_gen;</span>
-<span class="nc" id="L727">      jj_consume_token(-1);</span>
-<span class="nc" id="L728">      throw new ParseException();</span>
+<span class="nc" id="L734">      jj_la1[29] = jj_gen;</span>
+<span class="nc" id="L735">      jj_consume_token(-1);</span>
+<span class="nc" id="L736">      throw new ParseException();</span>
     }
-<span class="fc" id="L730">  }</span>
+<span class="fc" id="L738">  }</span>
 
   final public void element(ParsingContext context, boolean left) throws ParseException {
     String name;
-<span class="fc" id="L734">    int nre = 0;</span>
-<span class="pc bpc" id="L735" title="1 of 7 branches missed.">    switch (jj_nt.kind) {</span>
+<span class="fc" id="L742">    int nre = 0;</span>
+<span class="pc bpc" id="L743" title="1 of 8 branches missed.">    switch (jj_nt.kind) {</span>
     case TRUE:
     case FALSE:
     case NULL:
@@ -743,32 +751,33 @@ String name;
     case CHARACTER:
     case STRING:
     case MATCHEXP:
-<span class="fc" id="L746">      constant(context);</span>
-<span class="fc" id="L747">      break;</span>
+<span class="fc" id="L754">      constant(context);</span>
+<span class="fc" id="L755">      break;</span>
     case ID:
-<span class="fc" id="L749">      jj_consume_token(ID);</span>
-<span class="fc" id="L750">            name = token.image;</span>
-<span class="pc bpc" id="L751" title="1 of 2 branches missed.">            if (left) {</span>
-<span class="fc" id="L752">                context.generateCode(new org.spf4j.zel.instr.LODX(name));</span>
+<span class="fc" id="L757">      jj_consume_token(ID);</span>
+<span class="fc" id="L758">            name = token.image;</span>
+<span class="pc bpc" id="L759" title="1 of 2 branches missed.">            if (left) {</span>
+<span class="fc" id="L760">                context.generateCode(new org.spf4j.zel.instr.LODX(name));</span>
             }
       break;
     case FUNCTION:
-<span class="fc" id="L756">      sysFunction(context);</span>
-<span class="fc" id="L757">      break;</span>
+<span class="fc" id="L764">      sysFunction(context);</span>
+<span class="fc" id="L765">      break;</span>
     case FIRST:
-<span class="fc" id="L759">      jj_consume_token(FIRST);</span>
-<span class="fc" id="L760">      params(context);</span>
-<span class="fc" id="L761">                                 context.generateCode(org.spf4j.zel.instr.FIRST.INSTANCE);</span>
-<span class="fc" id="L762">      break;</span>
+<span class="fc" id="L767">      jj_consume_token(FIRST);</span>
+<span class="fc" id="L768">      params(context);</span>
+<span class="fc" id="L769">                                 context.generateCode(org.spf4j.zel.instr.FIRST.INSTANCE);</span>
+<span class="fc" id="L770">      break;</span>
     case LPAREN:
-<span class="fc" id="L764">      jj_consume_token(LPAREN);</span>
-<span class="fc" id="L765">      expression(context);</span>
-<span class="fc" id="L766">      jj_consume_token(RPAREN);</span>
-<span class="fc" id="L767">      break;</span>
+<span class="fc" id="L772">      jj_consume_token(LPAREN);</span>
+<span class="fc" id="L773">      expression(context);</span>
+<span class="fc" id="L774">      jj_consume_token(RPAREN);</span>
+<span class="fc" id="L775">      break;</span>
     case LBRACE:
-<span class="fc" id="L769">      jj_consume_token(LBRACE);</span>
-<span class="pc bpc" id="L770" title="1 of 2 branches missed.">      switch (jj_nt.kind) {</span>
+<span class="fc" id="L777">      jj_consume_token(LBRACE);</span>
+<span class="pc bpc" id="L778" title="1 of 2 branches missed.">      switch (jj_nt.kind) {</span>
       case MINUS:
+      case PIPE:
       case NOT:
       case LPAREN:
       case LBRACE:
@@ -785,42 +794,49 @@ String name;
       case STRING:
       case MATCHEXP:
       case ID:
-<span class="fc" id="L788">        expression(context);</span>
-<span class="fc" id="L789">                                      nre++;</span>
+<span class="fc" id="L797">        expression(context);</span>
+<span class="fc" id="L798">                                      nre++;</span>
         label_12:
         while (true) {
-<span class="fc bfc" id="L792" title="All 2 branches covered.">          switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L801" title="All 2 branches covered.">          switch (jj_nt.kind) {</span>
           case COMMA:
             ;
-<span class="fc" id="L795">            break;</span>
+<span class="fc" id="L804">            break;</span>
           default:
-<span class="fc" id="L797">            jj_la1[30] = jj_gen;</span>
-<span class="fc" id="L798">            break label_12;</span>
+<span class="fc" id="L806">            jj_la1[30] = jj_gen;</span>
+<span class="fc" id="L807">            break label_12;</span>
           }
-<span class="fc" id="L800">          jj_consume_token(COMMA);</span>
-<span class="fc" id="L801">          expression(context);</span>
-<span class="fc" id="L802">                                                                            nre++;</span>
+<span class="fc" id="L809">          jj_consume_token(COMMA);</span>
+<span class="fc" id="L810">          expression(context);</span>
+<span class="fc" id="L811">                                                                            nre++;</span>
         }
         break;
       default:
-<span class="nc" id="L806">        jj_la1[31] = jj_gen;</span>
+<span class="nc" id="L815">        jj_la1[31] = jj_gen;</span>
         ;
       }
-<span class="fc" id="L809">      jj_consume_token(RBRACE);</span>
-<span class="fc" id="L810">        context.generateCode(new org.spf4j.zel.instr.ARR(nre));</span>
-<span class="fc" id="L811">      break;</span>
+<span class="fc" id="L818">      jj_consume_token(RBRACE);</span>
+<span class="fc" id="L819">        context.generateCode(new org.spf4j.zel.instr.ARR(nre));</span>
+<span class="fc" id="L820">      break;</span>
+    case PIPE:
+<span class="fc" id="L822">      jj_consume_token(PIPE);</span>
+<span class="fc" id="L823">      expression(context);</span>
+<span class="fc" id="L824">      jj_consume_token(PIPE);</span>
+<span class="fc" id="L825">        context.generateCode(org.spf4j.zel.instr.ABS.INSTANCE);</span>
+<span class="fc" id="L826">      break;</span>
     default:
-<span class="nc" id="L813">      jj_la1[32] = jj_gen;</span>
-<span class="nc" id="L814">      jj_consume_token(-1);</span>
-<span class="nc" id="L815">      throw new ParseException();</span>
+<span class="nc" id="L828">      jj_la1[32] = jj_gen;</span>
+<span class="nc" id="L829">      jj_consume_token(-1);</span>
+<span class="nc" id="L830">      throw new ParseException();</span>
     }
-<span class="fc" id="L817">  }</span>
+<span class="fc" id="L832">  }</span>
 
   final public void params(ParsingContext context) throws ParseException {
-<span class="fc" id="L820">    int i=0;</span>
-<span class="fc" id="L821">    jj_consume_token(LPAREN);</span>
-<span class="fc bfc" id="L822" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
+<span class="fc" id="L835">    int i=0;</span>
+<span class="fc" id="L836">    jj_consume_token(LPAREN);</span>
+<span class="fc bfc" id="L837" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
     case MINUS:
+    case PIPE:
     case NOT:
     case LPAREN:
     case LBRACE:
@@ -837,33 +853,33 @@ String name;
     case STRING:
     case MATCHEXP:
     case ID:
-<span class="fc" id="L840">      expression(context);</span>
-<span class="fc" id="L841">                              i++;</span>
+<span class="fc" id="L856">      expression(context);</span>
+<span class="fc" id="L857">                              i++;</span>
       label_13:
       while (true) {
-<span class="fc bfc" id="L844" title="All 2 branches covered.">        switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L860" title="All 2 branches covered.">        switch (jj_nt.kind) {</span>
         case COMMA:
           ;
-<span class="fc" id="L847">          break;</span>
+<span class="fc" id="L863">          break;</span>
         default:
-<span class="fc" id="L849">          jj_la1[33] = jj_gen;</span>
-<span class="fc" id="L850">          break label_13;</span>
+<span class="fc" id="L865">          jj_la1[33] = jj_gen;</span>
+<span class="fc" id="L866">          break label_13;</span>
         }
-<span class="fc" id="L852">        jj_consume_token(COMMA);</span>
-<span class="fc" id="L853">        expression(context);</span>
-<span class="fc" id="L854">                                                                  i++;</span>
+<span class="fc" id="L868">        jj_consume_token(COMMA);</span>
+<span class="fc" id="L869">        expression(context);</span>
+<span class="fc" id="L870">                                                                  i++;</span>
       }
       break;
     default:
-<span class="fc" id="L858">      jj_la1[34] = jj_gen;</span>
+<span class="fc" id="L874">      jj_la1[34] = jj_gen;</span>
       ;
     }
-<span class="fc" id="L861">         context.generateCode(new PUSH(i));</span>
-<span class="fc" id="L862">    jj_consume_token(RPAREN);</span>
-<span class="fc" id="L863">  }</span>
+<span class="fc" id="L877">         context.generateCode(new PUSH(i));</span>
+<span class="fc" id="L878">    jj_consume_token(RPAREN);</span>
+<span class="fc" id="L879">  }</span>
 
   final public void constant(ParsingContext context) throws ParseException {
-<span class="pc bpc" id="L866" title="2 of 4 branches missed.">    switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L882" title="2 of 4 branches missed.">    switch (jj_nt.kind) {</span>
     case TRUE:
     case FALSE:
     case NULL:
@@ -872,899 +888,876 @@ String name;
     case CHARACTER:
     case STRING:
     case MATCHEXP:
-<span class="pc bpc" id="L875" title="6 of 9 branches missed.">      switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L891" title="6 of 9 branches missed.">      switch (jj_nt.kind) {</span>
       case FLOATING_POINT:
-<span class="fc" id="L877">        jj_consume_token(FLOATING_POINT);</span>
+<span class="fc" id="L893">        jj_consume_token(FLOATING_POINT);</span>
               try {
-<span class="pc bpc" id="L879" title="2 of 4 branches missed.">                if (token.image.endsWith(&quot;f&quot;) || token.image.endsWith(&quot;F&quot;)) {</span>
-<span class="nc" id="L880">                    context.generateCode(new PUSH(Float.parseFloat(token.image)));</span>
-<span class="pc bpc" id="L881" title="1 of 4 branches missed.">                } else if (token.image.endsWith(&quot;d&quot;) || token.image.endsWith(&quot;D&quot;)) {</span>
-<span class="fc" id="L882">                    context.generateCode(new PUSH(Double.parseDouble(token.image)));</span>
+<span class="pc bpc" id="L895" title="2 of 4 branches missed.">                if (token.image.endsWith(&quot;f&quot;) || token.image.endsWith(&quot;F&quot;)) {</span>
+<span class="nc" id="L896">                    context.generateCode(new PUSH(Float.parseFloat(token.image)));</span>
+<span class="pc bpc" id="L897" title="1 of 4 branches missed.">                } else if (token.image.endsWith(&quot;d&quot;) || token.image.endsWith(&quot;D&quot;)) {</span>
+<span class="fc" id="L898">                    context.generateCode(new PUSH(Double.parseDouble(token.image)));</span>
                 } else {
-<span class="fc" id="L884">                    context.generateCode(new PUSH(new BigDecimal(token.image)));</span>
+<span class="fc" id="L900">                    context.generateCode(new PUSH(new BigDecimal(token.image)));</span>
                 }
-<span class="nc" id="L886">              } catch (NumberFormatException ee) {</span>
-<span class="nc" id="L887">                  {if (true) throw new ParseException(ee.toString());}</span>
-<span class="fc" id="L888">              }</span>
+<span class="nc" id="L902">              } catch (NumberFormatException ee) {</span>
+<span class="nc" id="L903">                  {if (true) throw new ParseException(ee.toString());}</span>
+<span class="fc" id="L904">              }</span>
         break;
       case INTEGER:
-<span class="fc" id="L891">        jj_consume_token(INTEGER);</span>
-<span class="fc" id="L892">       context.generateCode(new PUSH(parseInteger(token.image)));</span>
-<span class="fc" id="L893">        break;</span>
+<span class="fc" id="L907">        jj_consume_token(INTEGER);</span>
+<span class="fc" id="L908">       context.generateCode(new PUSH(parseInteger(token.image)));</span>
+<span class="fc" id="L909">        break;</span>
       case TRUE:
-<span class="nc" id="L895">        jj_consume_token(TRUE);</span>
-<span class="nc" id="L896">           context.generateCode(new PUSH(Boolean.valueOf(true)));</span>
-<span class="nc" id="L897">        break;</span>
+<span class="nc" id="L911">        jj_consume_token(TRUE);</span>
+<span class="nc" id="L912">           context.generateCode(new PUSH(Boolean.valueOf(true)));</span>
+<span class="nc" id="L913">        break;</span>
       case FALSE:
-<span class="nc" id="L899">        jj_consume_token(FALSE);</span>
-<span class="nc" id="L900">           context.generateCode(new PUSH(Boolean.valueOf(false)));</span>
-<span class="nc" id="L901">        break;</span>
+<span class="nc" id="L915">        jj_consume_token(FALSE);</span>
+<span class="nc" id="L916">           context.generateCode(new PUSH(Boolean.valueOf(false)));</span>
+<span class="nc" id="L917">        break;</span>
       case CHARACTER:
-<span class="nc" id="L903">        jj_consume_token(CHARACTER);</span>
-<span class="nc" id="L904">       context.generateCode(new PUSH(token.image.substring(1, token.image.length()-1)));</span>
-<span class="nc" id="L905">        break;</span>
+<span class="nc" id="L919">        jj_consume_token(CHARACTER);</span>
+<span class="nc" id="L920">       context.generateCode(new PUSH(token.image.substring(1, token.image.length()-1)));</span>
+<span class="nc" id="L921">        break;</span>
       case NULL:
-<span class="nc" id="L907">        jj_consume_token(NULL);</span>
-<span class="nc" id="L908">       context.generateCode(new PUSH(ResultCache.NULL));</span>
-<span class="nc" id="L909">        break;</span>
+<span class="nc" id="L923">        jj_consume_token(NULL);</span>
+<span class="nc" id="L924">       context.generateCode(new PUSH(ResultCache.NULL));</span>
+<span class="nc" id="L925">        break;</span>
       case STRING:
-<span class="fc" id="L911">        jj_consume_token(STRING);</span>
-<span class="fc" id="L912">       context.generateCode(new PUSH(org.spf4j.base.Strings.unescape(token.image.substring(1, token.image.length()-1))));</span>
-<span class="fc" id="L913">        break;</span>
+<span class="fc" id="L927">        jj_consume_token(STRING);</span>
+<span class="fc" id="L928">       context.generateCode(new PUSH(org.spf4j.base.Strings.unescape(token.image.substring(1, token.image.length()-1))));</span>
+<span class="fc" id="L929">        break;</span>
       case MATCHEXP:
-<span class="nc" id="L915">        jj_consume_token(MATCHEXP);</span>
-<span class="nc" id="L916">       String rExp = token.image.substring(1, token.image.length()-1);</span>
-<span class="nc" id="L917">       context.process(new WildCardMatcher(rExp));</span>
-<span class="nc" id="L918">       context.generateCode(new PUSH(new WildCardMatcher(rExp)));</span>
-<span class="nc" id="L919">        break;</span>
+<span class="nc" id="L931">        jj_consume_token(MATCHEXP);</span>
+<span class="nc" id="L932">       String rExp = token.image.substring(1, token.image.length()-1);</span>
+<span class="nc" id="L933">       context.process(new WildCardMatcher(rExp));</span>
+<span class="nc" id="L934">       context.generateCode(new PUSH(new WildCardMatcher(rExp)));</span>
+<span class="nc" id="L935">        break;</span>
       default:
-<span class="nc" id="L921">        jj_la1[35] = jj_gen;</span>
-<span class="nc" id="L922">        jj_consume_token(-1);</span>
-<span class="nc" id="L923">        throw new ParseException();</span>
+<span class="nc" id="L937">        jj_la1[35] = jj_gen;</span>
+<span class="nc" id="L938">        jj_consume_token(-1);</span>
+<span class="nc" id="L939">        throw new ParseException();</span>
       }
-<span class="fc" id="L925">      break;</span>
+<span class="fc" id="L941">      break;</span>
     case E:
-<span class="fc" id="L927">      jj_consume_token(E);</span>
-<span class="fc" id="L928">           context.generateCode(new PUSH(Math.E));</span>
-<span class="fc" id="L929">      break;</span>
+<span class="fc" id="L943">      jj_consume_token(E);</span>
+<span class="fc" id="L944">           context.generateCode(new PUSH(Math.E));</span>
+<span class="fc" id="L945">      break;</span>
     case PI:
-<span class="nc" id="L931">      jj_consume_token(PI);</span>
-<span class="nc" id="L932">            context.generateCode(new PUSH(Math.PI));</span>
-<span class="nc" id="L933">      break;</span>
+<span class="nc" id="L947">      jj_consume_token(PI);</span>
+<span class="nc" id="L948">            context.generateCode(new PUSH(Math.PI));</span>
+<span class="nc" id="L949">      break;</span>
     default:
-<span class="nc" id="L935">      jj_la1[36] = jj_gen;</span>
-<span class="nc" id="L936">      jj_consume_token(-1);</span>
-<span class="nc" id="L937">      throw new ParseException();</span>
+<span class="nc" id="L951">      jj_la1[36] = jj_gen;</span>
+<span class="nc" id="L952">      jj_consume_token(-1);</span>
+<span class="nc" id="L953">      throw new ParseException();</span>
     }
-<span class="fc" id="L939">  }</span>
+<span class="fc" id="L955">  }</span>
 
   Number parseInteger(String intStr) throws ParseException {
        Number obj;
-<span class="pc bpc" id="L943" title="1 of 4 branches missed.">       if (intStr.endsWith(&quot;l&quot;) || intStr.endsWith(&quot;L&quot;)) {</span>
-<span class="fc" id="L944">             intStr = intStr.substring(0, intStr.length() - 1);</span>
+<span class="pc bpc" id="L959" title="1 of 4 branches missed.">       if (intStr.endsWith(&quot;l&quot;) || intStr.endsWith(&quot;L&quot;)) {</span>
+<span class="fc" id="L960">             intStr = intStr.substring(0, intStr.length() - 1);</span>
              try {
-<span class="fc" id="L946">                obj= Long.decode(intStr);</span>
-<span class="nc" id="L947">             } catch(NumberFormatException  ex2) {</span>
-<span class="nc" id="L948">                obj= new BigInteger(intStr);</span>
-<span class="pc" id="L949">             }</span>
+<span class="fc" id="L962">                obj= Long.decode(intStr);</span>
+<span class="nc" id="L963">             } catch(NumberFormatException  ex2) {</span>
+<span class="nc" id="L964">                obj= new BigInteger(intStr);</span>
+<span class="pc" id="L965">             }</span>
        } else {
            try {
-<span class="fc" id="L952">             obj = Integer.decode(intStr);</span>
-<span class="nc" id="L953">           } catch(NumberFormatException  e) {</span>
+<span class="fc" id="L968">             obj = Integer.decode(intStr);</span>
+<span class="nc" id="L969">           } catch(NumberFormatException  e) {</span>
              try {
-<span class="nc" id="L955">                obj = Long.decode(intStr);</span>
-<span class="nc" id="L956">             } catch(NumberFormatException  ex2) {</span>
-<span class="nc" id="L957">                obj = new BigInteger(intStr);</span>
-<span class="nc" id="L958">             }</span>
-<span class="fc" id="L959">           }</span>
+<span class="nc" id="L971">                obj = Long.decode(intStr);</span>
+<span class="nc" id="L972">             } catch(NumberFormatException  ex2) {</span>
+<span class="nc" id="L973">                obj = new BigInteger(intStr);</span>
+<span class="nc" id="L974">             }</span>
+<span class="fc" id="L975">           }</span>
        }
-<span class="fc" id="L961">       return obj;</span>
+<span class="fc" id="L977">       return obj;</span>
   }
 
   final public void sysFunction(ParsingContext context) throws ParseException {
-<span class="fc" id="L965">    int count = 0;</span>
-<span class="fc" id="L966">    List parameterNames = new ArrayList();</span>
-<span class="fc" id="L967">    Program.Type pType = Program.Type.NONDETERMINISTIC;</span>
-<span class="fc" id="L968">    Program.ExecutionType eType = Program.ExecutionType.ASYNC;</span>
-<span class="fc" id="L969">    String staticName = null;</span>
-<span class="fc" id="L970">    jj_consume_token(FUNCTION);</span>
-<span class="fc bfc" id="L971" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
+<span class="fc" id="L981">    int count = 0;</span>
+<span class="fc" id="L982">    List parameterNames = new ArrayList();</span>
+<span class="fc" id="L983">    Program.Type pType = Program.Type.NONDETERMINISTIC;</span>
+<span class="fc" id="L984">    Program.ExecutionType eType = Program.ExecutionType.ASYNC;</span>
+<span class="fc" id="L985">    String staticName = null;</span>
+<span class="fc" id="L986">    jj_consume_token(FUNCTION);</span>
+<span class="fc bfc" id="L987" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
     case DETERMINISTIC:
-<span class="fc" id="L973">      jj_consume_token(DETERMINISTIC);</span>
-<span class="fc" id="L974">                      pType = Program.Type.DETERMINISTIC;</span>
-<span class="fc" id="L975">      break;</span>
+<span class="fc" id="L989">      jj_consume_token(DETERMINISTIC);</span>
+<span class="fc" id="L990">                      pType = Program.Type.DETERMINISTIC;</span>
+<span class="fc" id="L991">      break;</span>
     default:
-<span class="fc" id="L977">      jj_la1[37] = jj_gen;</span>
+<span class="fc" id="L993">      jj_la1[37] = jj_gen;</span>
       ;
     }
-<span class="fc bfc" id="L980" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L996" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
     case SYNC:
     case ASYNC:
-<span class="pc bpc" id="L983" title="1 of 3 branches missed.">      switch (jj_nt.kind) {</span>
+<span class="pc bpc" id="L999" title="1 of 3 branches missed.">      switch (jj_nt.kind) {</span>
       case SYNC:
-<span class="fc" id="L985">        jj_consume_token(SYNC);</span>
-<span class="fc" id="L986">              eType = Program.ExecutionType.SYNC;</span>
-<span class="fc" id="L987">        break;</span>
+<span class="fc" id="L1001">        jj_consume_token(SYNC);</span>
+<span class="fc" id="L1002">              eType = Program.ExecutionType.SYNC;</span>
+<span class="fc" id="L1003">        break;</span>
       case ASYNC:
-<span class="fc" id="L989">        jj_consume_token(ASYNC);</span>
-<span class="fc" id="L990">                 eType = Program.ExecutionType.ASYNC;</span>
-<span class="fc" id="L991">        break;</span>
+<span class="fc" id="L1005">        jj_consume_token(ASYNC);</span>
+<span class="fc" id="L1006">                 eType = Program.ExecutionType.ASYNC;</span>
+<span class="fc" id="L1007">        break;</span>
       default:
-<span class="nc" id="L993">        jj_la1[38] = jj_gen;</span>
-<span class="nc" id="L994">        jj_consume_token(-1);</span>
-<span class="nc" id="L995">        throw new ParseException();</span>
+<span class="nc" id="L1009">        jj_la1[38] = jj_gen;</span>
+<span class="nc" id="L1010">        jj_consume_token(-1);</span>
+<span class="nc" id="L1011">        throw new ParseException();</span>
       }
       break;
     default:
-<span class="fc" id="L999">      jj_la1[39] = jj_gen;</span>
+<span class="fc" id="L1015">      jj_la1[39] = jj_gen;</span>
       ;
     }
-<span class="fc bfc" id="L1002" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L1018" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
     case ID:
-<span class="fc" id="L1004">      jj_consume_token(ID);</span>
-<span class="fc" id="L1005">           staticName = token.image;</span>
-<span class="fc" id="L1006">      break;</span>
+<span class="fc" id="L1020">      jj_consume_token(ID);</span>
+<span class="fc" id="L1021">           staticName = token.image;</span>
+<span class="fc" id="L1022">      break;</span>
     default:
-<span class="fc" id="L1008">      jj_la1[40] = jj_gen;</span>
+<span class="fc" id="L1024">      jj_la1[40] = jj_gen;</span>
       ;
     }
-<span class="fc bfc" id="L1011" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L1027" title="All 2 branches covered.">    switch (jj_nt.kind) {</span>
     case LPAREN:
-<span class="fc" id="L1013">      jj_consume_token(LPAREN);</span>
-<span class="fc" id="L1014">      jj_consume_token(ID);</span>
-<span class="fc" id="L1015">        parameterNames.add(token.image);</span>
+<span class="fc" id="L1029">      jj_consume_token(LPAREN);</span>
+<span class="fc" id="L1030">      jj_consume_token(ID);</span>
+<span class="fc" id="L1031">        parameterNames.add(token.image);</span>
       label_14:
       while (true) {
-<span class="fc bfc" id="L1018" title="All 2 branches covered.">        switch (jj_nt.kind) {</span>
+<span class="fc bfc" id="L1034" title="All 2 branches covered.">        switch (jj_nt.kind) {</span>
         case COMMA:
           ;
-<span class="fc" id="L1021">          break;</span>
+<span class="fc" id="L1037">          break;</span>
         default:
-<span class="fc" id="L1023">          jj_la1[41] = jj_gen;</span>
-<span class="fc" id="L1024">          break label_14;</span>
+<span class="fc" id="L1039">          jj_la1[41] = jj_gen;</span>
+<span class="fc" id="L1040">          break label_14;</span>
         }
-<span class="fc" id="L1026">        jj_consume_token(COMMA);</span>
-<span class="fc" id="L1027">        jj_consume_token(ID);</span>
-<span class="fc" id="L1028">                parameterNames.add(token.image);</span>
+<span class="fc" id="L1042">        jj_consume_token(COMMA);</span>
+<span class="fc" id="L1043">        jj_consume_token(ID);</span>
+<span class="fc" id="L1044">                parameterNames.add(token.image);</span>
       }
-<span class="fc" id="L1030">      jj_consume_token(RPAREN);</span>
-<span class="fc" id="L1031">      break;</span>
+<span class="fc" id="L1046">      jj_consume_token(RPAREN);</span>
+<span class="fc" id="L1047">      break;</span>
     default:
-<span class="fc" id="L1033">      jj_la1[42] = jj_gen;</span>
+<span class="fc" id="L1049">      jj_la1[42] = jj_gen;</span>
       ;
     }
-<span class="fc" id="L1036">    ParsingContext pc = (ParsingContext) context.createSubContext();</span>
-<span class="fc" id="L1037">    programBlock(pc);</span>
-<span class="fc" id="L1038">    pc.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);</span>
-<span class="fc" id="L1039">    ProgramBuilder p= pc.getProgramBuilder();</span>
-<span class="fc" id="L1040">    p.setType(pType);</span>
-<span class="fc" id="L1041">    p.setExecType(eType);</span>
+<span class="fc" id="L1052">    ParsingContext pc = (ParsingContext) context.createSubContext();</span>
+<span class="fc" id="L1053">    programBlock(pc);</span>
+<span class="fc" id="L1054">    pc.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);</span>
+<span class="fc" id="L1055">    ProgramBuilder p= pc.getProgramBuilder();</span>
+<span class="fc" id="L1056">    p.setType(pType);</span>
+<span class="fc" id="L1057">    p.setExecType(eType);</span>
     try {
-<span class="fc bfc" id="L1043" title="All 2 branches covered.">      if (staticName != null) {</span>
-<span class="fc" id="L1044">          context.staticSymbol(staticName, null);</span>
+<span class="fc bfc" id="L1059" title="All 2 branches covered.">      if (staticName != null) {</span>
+<span class="fc" id="L1060">          context.staticSymbol(staticName, null);</span>
       }
-<span class="fc" id="L1046">      Program prog = p.toProgram(parameterNames);</span>
-<span class="fc bfc" id="L1047" title="All 2 branches covered.">      if (staticName != null) {</span>
-<span class="fc" id="L1048">          context.staticSymbol(staticName, prog);</span>
+<span class="fc" id="L1062">      Program prog = p.toProgram(parameterNames);</span>
+<span class="fc bfc" id="L1063" title="All 2 branches covered.">      if (staticName != null) {</span>
+<span class="fc" id="L1064">          context.staticSymbol(staticName, prog);</span>
       }
-<span class="fc" id="L1050">      context.generateCode(new PUSH(prog));</span>
-<span class="nc" id="L1051">    } catch (CompileException e) {</span>
-<span class="nc" id="L1052">        {if (true) throw new ParseException(e.toString());}</span>
-<span class="fc" id="L1053">    }</span>
-<span class="fc" id="L1054">  }</span>
+<span class="fc" id="L1066">      context.generateCode(new PUSH(prog));</span>
+<span class="nc" id="L1067">    } catch (CompileException e) {</span>
+<span class="nc" id="L1068">        {if (true) throw new ParseException(e.toString());}</span>
+<span class="fc" id="L1069">    }</span>
+<span class="fc" id="L1070">  }</span>
 
   private boolean jj_2_1(int xla) {
-<span class="fc" id="L1057">    jj_la = xla; jj_lastpos = jj_scanpos = token;</span>
-<span class="fc bfc" id="L1058" title="All 2 branches covered.">    try { return !jj_3_1(); }</span>
-<span class="nc" id="L1059">    catch(LookaheadSuccess ls) { return true; }</span>
-<span class="pc" id="L1060">    finally { jj_save(0, xla); }</span>
+<span class="fc" id="L1073">    jj_la = xla; jj_lastpos = jj_scanpos = token;</span>
+<span class="fc bfc" id="L1074" title="All 2 branches covered.">    try { return !jj_3_1(); }</span>
+<span class="nc" id="L1075">    catch(LookaheadSuccess ls) { return true; }</span>
+<span class="pc" id="L1076">    finally { jj_save(0, xla); }</span>
   }
 
   private boolean jj_2_2(int xla) {
-<span class="fc" id="L1064">    jj_la = xla; jj_lastpos = jj_scanpos = token;</span>
-<span class="fc bfc" id="L1065" title="All 2 branches covered.">    try { return !jj_3_2(); }</span>
-<span class="nc" id="L1066">    catch(LookaheadSuccess ls) { return true; }</span>
-<span class="pc" id="L1067">    finally { jj_save(1, xla); }</span>
+<span class="fc" id="L1080">    jj_la = xla; jj_lastpos = jj_scanpos = token;</span>
+<span class="fc bfc" id="L1081" title="All 2 branches covered.">    try { return !jj_3_2(); }</span>
+<span class="nc" id="L1082">    catch(LookaheadSuccess ls) { return true; }</span>
+<span class="pc" id="L1083">    finally { jj_save(1, xla); }</span>
   }
 
   private boolean jj_2_3(int xla) {
-<span class="fc" id="L1071">    jj_la = xla; jj_lastpos = jj_scanpos = token;</span>
-<span class="pc bpc" id="L1072" title="1 of 2 branches missed.">    try { return !jj_3_3(); }</span>
-<span class="fc" id="L1073">    catch(LookaheadSuccess ls) { return true; }</span>
-<span class="pc" id="L1074">    finally { jj_save(2, xla); }</span>
+<span class="fc" id="L1087">    jj_la = xla; jj_lastpos = jj_scanpos = token;</span>
+<span class="pc bpc" id="L1088" title="1 of 2 branches missed.">    try { return !jj_3_3(); }</span>
+<span class="fc" id="L1089">    catch(LookaheadSuccess ls) { return true; }</span>
+<span class="pc" id="L1090">    finally { jj_save(2, xla); }</span>
   }
 
   private boolean jj_2_4(int xla) {
-<span class="fc" id="L1078">    jj_la = xla; jj_lastpos = jj_scanpos = token;</span>
-<span class="fc bfc" id="L1079" title="All 2 branches covered.">    try { return !jj_3_4(); }</span>
-<span class="nc" id="L1080">    catch(LookaheadSuccess ls) { return true; }</span>
-<span class="pc" id="L1081">    finally { jj_save(3, xla); }</span>
+<span class="fc" id="L1094">    jj_la = xla; jj_lastpos = jj_scanpos = token;</span>
+<span class="fc bfc" id="L1095" title="All 2 branches covered.">    try { return !jj_3_4(); }</span>
+<span class="nc" id="L1096">    catch(LookaheadSuccess ls) { return true; }</span>
+<span class="pc" id="L1097">    finally { jj_save(3, xla); }</span>
   }
 
   private boolean jj_2_5(int xla) {
-<span class="fc" id="L1085">    jj_la = xla; jj_lastpos = jj_scanpos = token;</span>
-<span class="pc bpc" id="L1086" title="1 of 2 branches missed.">    try { return !jj_3_5(); }</span>
-<span class="fc" id="L1087">    catch(LookaheadSuccess ls) { return true; }</span>
-<span class="pc" id="L1088">    finally { jj_save(4, xla); }</span>
-  }
-
-  private boolean jj_3R_19() {
-<span class="fc bfc" id="L1092" title="All 2 branches covered.">    if (jj_scan_token(COMMA)) return true;</span>
-<span class="pc bpc" id="L1093" title="1 of 2 branches missed.">    if (jj_3R_18()) return true;</span>
-<span class="fc" id="L1094">    return false;</span>
-  }
-
-  private boolean jj_3_3() {
-<span class="fc bfc" id="L1098" title="All 2 branches covered.">    if (jj_3R_17()) return true;</span>
-<span class="fc" id="L1099">    return false;</span>
-  }
-
-  private boolean jj_3R_24() {
-    Token xsp;
-<span class="fc" id="L1104">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1105" title="All 2 branches covered.">    if (jj_3_3()) {</span>
-<span class="fc" id="L1106">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1107" title="All 2 branches covered.">    if (jj_3R_26()) return true;</span>
-    }
-<span class="fc" id="L1109">    return false;</span>
-  }
-
-  private boolean jj_3R_52() {
-<span class="fc bfc" id="L1113" title="All 2 branches covered.">    if (jj_3R_58()) return true;</span>
-<span class="fc" id="L1114">    return false;</span>
+<span class="fc" id="L1101">    jj_la = xla; jj_lastpos = jj_scanpos = token;</span>
+<span class="pc bpc" id="L1102" title="1 of 2 branches missed.">    try { return !jj_3_5(); }</span>
+<span class="fc" id="L1103">    catch(LookaheadSuccess ls) { return true; }</span>
+<span class="pc" id="L1104">    finally { jj_save(4, xla); }</span>
   }
 
   private boolean jj_3R_18() {
-<span class="fc bfc" id="L1118" title="All 2 branches covered.">    if (jj_scan_token(ID)) return true;</span>
+<span class="fc bfc" id="L1108" title="All 2 branches covered.">    if (jj_scan_token(ID)) return true;</span>
     Token xsp;
     while (true) {
-<span class="fc" id="L1121">      xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1122" title="All 2 branches covered.">      if (jj_3R_24()) { jj_scanpos = xsp; break; }</span>
+<span class="fc" id="L1111">      xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1112" title="All 2 branches covered.">      if (jj_3R_24()) { jj_scanpos = xsp; break; }</span>
     }
-<span class="fc" id="L1124">    return false;</span>
+<span class="fc" id="L1114">    return false;</span>
   }
 
   private boolean jj_3R_48() {
     Token xsp;
-<span class="fc" id="L1129">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1130" title="All 2 branches covered.">    if (jj_3R_52()) {</span>
+<span class="fc" id="L1119">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1120" title="All 2 branches covered.">    if (jj_3R_52()) {</span>
+<span class="fc" id="L1121">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1122" title="All 2 branches covered.">    if (jj_3R_53()) {</span>
+<span class="fc" id="L1123">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1124" title="All 2 branches covered.">    if (jj_3R_54()) {</span>
+<span class="fc" id="L1125">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1126" title="All 2 branches covered.">    if (jj_3R_55()) {</span>
+<span class="fc" id="L1127">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1128" title="All 2 branches covered.">    if (jj_3R_56()) {</span>
+<span class="fc" id="L1129">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1130" title="All 2 branches covered.">    if (jj_3R_57()) {</span>
 <span class="fc" id="L1131">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1132" title="All 2 branches covered.">    if (jj_3R_53()) {</span>
-<span class="fc" id="L1133">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1134" title="All 2 branches covered.">    if (jj_3R_54()) {</span>
-<span class="fc" id="L1135">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1136" title="All 2 branches covered.">    if (jj_3R_55()) {</span>
-<span class="fc" id="L1137">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1138" title="All 2 branches covered.">    if (jj_3R_56()) {</span>
-<span class="fc" id="L1139">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1140" title="All 2 branches covered.">    if (jj_3R_57()) return true;</span>
+<span class="pc bpc" id="L1132" title="1 of 2 branches missed.">    if (jj_3R_58()) return true;</span>
     }
     }
     }
     }
     }
-<span class="fc" id="L1146">    return false;</span>
+    }
+<span class="fc" id="L1139">    return false;</span>
   }
 
   private boolean jj_3R_46() {
-<span class="fc bfc" id="L1150" title="All 2 branches covered.">    if (jj_3R_48()) return true;</span>
-<span class="fc" id="L1151">    return false;</span>
+<span class="fc bfc" id="L1143" title="All 2 branches covered.">    if (jj_3R_48()) return true;</span>
+<span class="fc" id="L1144">    return false;</span>
   }
 
   private boolean jj_3R_16() {
-<span class="fc bfc" id="L1155" title="All 2 branches covered.">    if (jj_3R_18()) return true;</span>
-<span class="fc bfc" id="L1156" title="All 2 branches covered.">    if (jj_scan_token(SWAP)) return true;</span>
-<span class="pc bpc" id="L1157" title="1 of 2 branches missed.">    if (jj_3R_18()) return true;</span>
-<span class="fc" id="L1158">    return false;</span>
+<span class="fc bfc" id="L1148" title="All 2 branches covered.">    if (jj_3R_18()) return true;</span>
+<span class="fc bfc" id="L1149" title="All 2 branches covered.">    if (jj_scan_token(SWAP)) return true;</span>
+<span class="pc bpc" id="L1150" title="1 of 2 branches missed.">    if (jj_3R_18()) return true;</span>
+<span class="fc" id="L1151">    return false;</span>
   }
 
   private boolean jj_3R_49() {
-<span class="fc bfc" id="L1162" title="All 2 branches covered.">    if (jj_scan_token(SAND)) return true;</span>
-<span class="fc" id="L1163">    return false;</span>
+<span class="fc bfc" id="L1155" title="All 2 branches covered.">    if (jj_scan_token(SAND)) return true;</span>
+<span class="fc" id="L1156">    return false;</span>
   }
 
   private boolean jj_3R_22() {
-<span class="pc bpc" id="L1167" title="1 of 2 branches missed.">    if (jj_scan_token(DEC)) return true;</span>
-<span class="nc" id="L1168">    return false;</span>
+<span class="pc bpc" id="L1160" title="1 of 2 branches missed.">    if (jj_scan_token(DEC)) return true;</span>
+<span class="nc" id="L1161">    return false;</span>
   }
 
   private boolean jj_3R_43() {
     Token xsp;
-<span class="fc" id="L1173">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1174" title="All 2 branches covered.">    if (jj_3R_45()) {</span>
-<span class="fc" id="L1175">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1176" title="All 2 branches covered.">    if (jj_3R_46()) return true;</span>
+<span class="fc" id="L1166">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1167" title="All 2 branches covered.">    if (jj_3R_45()) {</span>
+<span class="fc" id="L1168">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1169" title="All 2 branches covered.">    if (jj_3R_46()) return true;</span>
     }
-<span class="fc" id="L1178">    return false;</span>
+<span class="fc" id="L1171">    return false;</span>
   }
 
   private boolean jj_3_4() {
-<span class="fc bfc" id="L1182" title="All 2 branches covered.">    if (jj_scan_token(POW)) return true;</span>
-<span class="fc" id="L1183">    return false;</span>
+<span class="fc bfc" id="L1175" title="All 2 branches covered.">    if (jj_scan_token(POW)) return true;</span>
+<span class="fc" id="L1176">    return false;</span>
   }
 
   private boolean jj_3R_45() {
     Token xsp;
-<span class="fc" id="L1188">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1189" title="All 2 branches covered.">    if (jj_scan_token(10)) {</span>
-<span class="fc" id="L1190">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1191" title="1 of 2 branches missed.">    if (jj_scan_token(25)) return true;</span>
+<span class="fc" id="L1181">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1182" title="All 2 branches covered.">    if (jj_scan_token(10)) {</span>
+<span class="fc" id="L1183">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1184" title="1 of 2 branches missed.">    if (jj_scan_token(26)) return true;</span>
     }
-<span class="pc bpc" id="L1193" title="1 of 2 branches missed.">    if (jj_3R_48()) return true;</span>
-<span class="fc" id="L1194">    return false;</span>
+<span class="pc bpc" id="L1186" title="1 of 2 branches missed.">    if (jj_3R_48()) return true;</span>
+<span class="fc" id="L1187">    return false;</span>
   }
 
   private boolean jj_3R_21() {
-<span class="fc bfc" id="L1198" title="All 2 branches covered.">    if (jj_scan_token(INC)) return true;</span>
-<span class="fc" id="L1199">    return false;</span>
+<span class="fc bfc" id="L1191" title="All 2 branches covered.">    if (jj_scan_token(INC)) return true;</span>
+<span class="fc" id="L1192">    return false;</span>
   }
 
   private boolean jj_3R_50() {
-<span class="fc bfc" id="L1203" title="All 2 branches covered.">    if (jj_scan_token(DOT)) return true;</span>
-<span class="pc bpc" id="L1204" title="1 of 2 branches missed.">    if (jj_scan_token(ID)) return true;</span>
-<span class="fc" id="L1205">    return false;</span>
+<span class="fc bfc" id="L1196" title="All 2 branches covered.">    if (jj_scan_token(DOT)) return true;</span>
+<span class="pc bpc" id="L1197" title="1 of 2 branches missed.">    if (jj_scan_token(ID)) return true;</span>
+<span class="fc" id="L1198">    return false;</span>
   }
 
   private boolean jj_3R_51() {
-<span class="fc bfc" id="L1209" title="All 2 branches covered.">    if (jj_scan_token(LBRACKET)) return true;</span>
-<span class="pc bpc" id="L1210" title="1 of 2 branches missed.">    if (jj_3R_25()) return true;</span>
-<span class="pc bpc" id="L1211" title="1 of 2 branches missed.">    if (jj_scan_token(RBRACKET)) return true;</span>
-<span class="fc" id="L1212">    return false;</span>
+<span class="fc bfc" id="L1202" title="All 2 branches covered.">    if (jj_scan_token(LBRACKET)) return true;</span>
+<span class="pc bpc" id="L1203" title="1 of 2 branches missed.">    if (jj_3R_25()) return true;</span>
+<span class="pc bpc" id="L1204" title="1 of 2 branches missed.">    if (jj_scan_token(RBRACKET)) return true;</span>
+<span class="fc" id="L1205">    return false;</span>
   }
 
   private boolean jj_3R_47() {
     Token xsp;
-<span class="fc" id="L1217">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1218" title="All 2 branches covered.">    if (jj_3R_50()) {</span>
-<span class="fc" id="L1219">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1220" title="All 2 branches covered.">    if (jj_3R_51()) return true;</span>
+<span class="fc" id="L1210">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1211" title="All 2 branches covered.">    if (jj_3R_50()) {</span>
+<span class="fc" id="L1212">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1213" title="All 2 branches covered.">    if (jj_3R_51()) return true;</span>
     }
-<span class="fc" id="L1222">    return false;</span>
+<span class="fc" id="L1215">    return false;</span>
   }
 
   private boolean jj_3R_20() {
-<span class="fc bfc" id="L1226" title="All 2 branches covered.">    if (jj_scan_token(EQUAL)) return true;</span>
-<span class="pc bpc" id="L1227" title="1 of 2 branches missed.">    if (jj_3R_25()) return true;</span>
-<span class="fc" id="L1228">    return false;</span>
+<span class="fc bfc" id="L1219" title="All 2 branches covered.">    if (jj_scan_token(EQUAL)) return true;</span>
+<span class="pc bpc" id="L1220" title="1 of 2 branches missed.">    if (jj_3R_25()) return true;</span>
+<span class="fc" id="L1221">    return false;</span>
   }
 
   private boolean jj_3R_42() {
-<span class="fc bfc" id="L1232" title="All 2 branches covered.">    if (jj_scan_token(POW)) return true;</span>
-<span class="pc bpc" id="L1233" title="1 of 2 branches missed.">    if (jj_3R_41()) return true;</span>
-<span class="fc" id="L1234">    return false;</span>
+<span class="fc bfc" id="L1225" title="All 2 branches covered.">    if (jj_scan_token(POW)) return true;</span>
+<span class="pc bpc" id="L1226" title="1 of 2 branches missed.">    if (jj_3R_41()) return true;</span>
+<span class="fc" id="L1227">    return false;</span>
   }
 
   private boolean jj_3R_15() {
-<span class="fc bfc" id="L1238" title="All 2 branches covered.">    if (jj_3R_18()) return true;</span>
+<span class="fc bfc" id="L1231" title="All 2 branches covered.">    if (jj_3R_18()) return true;</span>
     Token xsp;
     while (true) {
-<span class="fc" id="L1241">      xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1242" title="All 2 branches covered.">      if (jj_3R_19()) { jj_scanpos = xsp; break; }</span>
+<span class="fc" id="L1234">      xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1235" title="All 2 branches covered.">      if (jj_3R_19()) { jj_scanpos = xsp; break; }</span>
     }
-<span class="fc" id="L1244">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1245" title="All 2 branches covered.">    if (jj_3R_20()) {</span>
-<span class="fc" id="L1246">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1247" title="All 2 branches covered.">    if (jj_3R_21()) {</span>
-<span class="fc" id="L1248">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1249" title="1 of 2 branches missed.">    if (jj_3R_22()) return true;</span>
+<span class="fc" id="L1237">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1238" title="All 2 branches covered.">    if (jj_3R_20()) {</span>
+<span class="fc" id="L1239">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1240" title="All 2 branches covered.">    if (jj_3R_21()) {</span>
+<span class="fc" id="L1241">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1242" title="1 of 2 branches missed.">    if (jj_3R_22()) return true;</span>
     }
     }
-<span class="fc" id="L1252">    return false;</span>
+<span class="fc" id="L1245">    return false;</span>
   }
 
-  private boolean jj_3R_96() {
-<span class="pc bpc" id="L1256" title="1 of 2 branches missed.">    if (jj_3R_25()) return true;</span>
-<span class="fc" id="L1257">    return false;</span>
+  private boolean jj_3R_97() {
+<span class="pc bpc" id="L1249" title="1 of 2 branches missed.">    if (jj_3R_25()) return true;</span>
+<span class="fc" id="L1250">    return false;</span>
   }
 
   private boolean jj_3R_44() {
     Token xsp;
-<span class="fc" id="L1262">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1263" title="All 2 branches covered.">    if (jj_3_5()) {</span>
-<span class="fc" id="L1264">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1265" title="All 2 branches covered.">    if (jj_3R_47()) return true;</span>
+<span class="fc" id="L1255">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1256" title="All 2 branches covered.">    if (jj_3_5()) {</span>
+<span class="fc" id="L1257">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1258" title="All 2 branches covered.">    if (jj_3R_47()) return true;</span>
     }
-<span class="fc" id="L1267">    return false;</span>
+<span class="fc" id="L1260">    return false;</span>
   }
 
   private boolean jj_3_5() {
-<span class="fc bfc" id="L1271" title="All 2 branches covered.">    if (jj_3R_17()) return true;</span>
+<span class="fc bfc" id="L1264" title="All 2 branches covered.">    if (jj_3R_17()) return true;</span>
     Token xsp;
-<span class="fc" id="L1273">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1274" title="All 2 branches covered.">    if (jj_3R_49()) jj_scanpos = xsp;</span>
-<span class="fc" id="L1275">    return false;</span>
+<span class="fc" id="L1266">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1267" title="All 2 branches covered.">    if (jj_3R_49()) jj_scanpos = xsp;</span>
+<span class="fc" id="L1268">    return false;</span>
   }
 
   private boolean jj_3R_41() {
-<span class="fc bfc" id="L1279" title="All 2 branches covered.">    if (jj_3R_43()) return true;</span>
+<span class="fc bfc" id="L1272" title="All 2 branches covered.">    if (jj_3R_43()) return true;</span>
     Token xsp;
     while (true) {
-<span class="fc" id="L1282">      xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1283" title="All 2 branches covered.">      if (jj_3R_44()) { jj_scanpos = xsp; break; }</span>
+<span class="fc" id="L1275">      xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1276" title="All 2 branches covered.">      if (jj_3R_44()) { jj_scanpos = xsp; break; }</span>
     }
-<span class="fc" id="L1285">    return false;</span>
+<span class="fc" id="L1278">    return false;</span>
   }
 
-  private boolean jj_3R_105() {
-<span class="nc bnc" id="L1289" title="All 2 branches missed.">    if (jj_3R_82()) return true;</span>
-<span class="nc" id="L1290">    return false;</span>
+  private boolean jj_3R_106() {
+<span class="nc bnc" id="L1282" title="All 2 branches missed.">    if (jj_3R_83()) return true;</span>
+<span class="nc" id="L1283">    return false;</span>
   }
 
-  private boolean jj_3R_100() {
-<span class="nc bnc" id="L1294" title="All 2 branches missed.">    if (jj_3R_82()) return true;</span>
-<span class="nc" id="L1295">    return false;</span>
+  private boolean jj_3R_101() {
+<span class="nc bnc" id="L1287" title="All 2 branches missed.">    if (jj_3R_83()) return true;</span>
+<span class="nc" id="L1288">    return false;</span>
   }
 
-  private boolean jj_3R_93() {
-<span class="fc bfc" id="L1299" title="All 2 branches covered.">    if (jj_scan_token(RETURN)) return true;</span>
+  private boolean jj_3R_94() {
+<span class="fc bfc" id="L1292" title="All 2 branches covered.">    if (jj_scan_token(RETURN)) return true;</span>
     Token xsp;
-<span class="fc" id="L1301">    xsp = jj_scanpos;</span>
-<span class="pc bpc" id="L1302" title="1 of 2 branches missed.">    if (jj_3R_96()) jj_scanpos = xsp;</span>
-<span class="fc" id="L1303">    return false;</span>
+<span class="fc" id="L1294">    xsp = jj_scanpos;</span>
+<span class="pc bpc" id="L1295" title="1 of 2 branches missed.">    if (jj_3R_97()) jj_scanpos = xsp;</span>
+<span class="fc" id="L1296">    return false;</span>
   }
 
   private boolean jj_3R_39() {
-<span class="fc bfc" id="L1307" title="All 2 branches covered.">    if (jj_3R_41()) return true;</span>
+<span class="fc bfc" id="L1300" title="All 2 branches covered.">    if (jj_3R_41()) return true;</span>
     Token xsp;
     while (true) {
-<span class="fc" id="L1310">      xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1311" title="All 2 branches covered.">      if (jj_3R_42()) { jj_scanpos = xsp; break; }</span>
+<span class="fc" id="L1303">      xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1304" title="All 2 branches covered.">      if (jj_3R_42()) { jj_scanpos = xsp; break; }</span>
     }
+<span class="fc" id="L1306">    return false;</span>
+  }
+
+  private boolean jj_3R_69() {
+<span class="pc bpc" id="L1310" title="1 of 2 branches missed.">    if (jj_scan_token(LBRACE)) return true;</span>
+<span class="pc bpc" id="L1311" title="1 of 2 branches missed.">    if (jj_3R_82()) return true;</span>
+<span class="pc bpc" id="L1312" title="1 of 2 branches missed.">    if (jj_scan_token(RBRACE)) return true;</span>
 <span class="fc" id="L1313">    return false;</span>
   }
 
-  private boolean jj_3R_68() {
-<span class="pc bpc" id="L1317" title="1 of 2 branches missed.">    if (jj_scan_token(LBRACE)) return true;</span>
-<span class="pc bpc" id="L1318" title="1 of 2 branches missed.">    if (jj_3R_81()) return true;</span>
-<span class="pc bpc" id="L1319" title="1 of 2 branches missed.">    if (jj_scan_token(RBRACE)) return true;</span>
-<span class="fc" id="L1320">    return false;</span>
-  }
-
-  private boolean jj_3R_104() {
-<span class="nc bnc" id="L1324" title="All 2 branches missed.">    if (jj_3R_68()) return true;</span>
-<span class="nc" id="L1325">    return false;</span>
+  private boolean jj_3R_105() {
+<span class="nc bnc" id="L1317" title="All 2 branches missed.">    if (jj_3R_69()) return true;</span>
+<span class="nc" id="L1318">    return false;</span>
   }
 
   private boolean jj_3R_40() {
     Token xsp;
-<span class="fc" id="L1330">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1331" title="All 2 branches covered.">    if (jj_scan_token(11)) {</span>
-<span class="fc" id="L1332">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1333" title="All 2 branches covered.">    if (jj_scan_token(12)) {</span>
-<span class="fc" id="L1334">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1335" title="1 of 2 branches missed.">    if (jj_scan_token(13)) return true;</span>
+<span class="fc" id="L1323">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1324" title="All 2 branches covered.">    if (jj_scan_token(11)) {</span>
+<span class="fc" id="L1325">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1326" title="All 2 branches covered.">    if (jj_scan_token(12)) {</span>
+<span class="fc" id="L1327">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1328" title="1 of 2 branches missed.">    if (jj_scan_token(13)) return true;</span>
     }
     }
-<span class="pc bpc" id="L1338" title="1 of 2 branches missed.">    if (jj_3R_39()) return true;</span>
-<span class="fc" id="L1339">    return false;</span>
+<span class="pc bpc" id="L1331" title="1 of 2 branches missed.">    if (jj_3R_39()) return true;</span>
+<span class="fc" id="L1332">    return false;</span>
   }
 
-  private boolean jj_3R_101() {
-<span class="nc bnc" id="L1343" title="All 2 branches missed.">    if (jj_scan_token(ELSE)) return true;</span>
+  private boolean jj_3R_102() {
+<span class="nc bnc" id="L1336" title="All 2 branches missed.">    if (jj_scan_token(ELSE)) return true;</span>
     Token xsp;
-<span class="nc" id="L1345">    xsp = jj_scanpos;</span>
-<span class="nc bnc" id="L1346" title="All 2 branches missed.">    if (jj_3R_104()) {</span>
-<span class="nc" id="L1347">    jj_scanpos = xsp;</span>
-<span class="nc bnc" id="L1348" title="All 2 branches missed.">    if (jj_3R_105()) return true;</span>
+<span class="nc" id="L1338">    xsp = jj_scanpos;</span>
+<span class="nc bnc" id="L1339" title="All 2 branches missed.">    if (jj_3R_105()) {</span>
+<span class="nc" id="L1340">    jj_scanpos = xsp;</span>
+<span class="nc bnc" id="L1341" title="All 2 branches missed.">    if (jj_3R_106()) return true;</span>
     }
-<span class="nc" id="L1350">    return false;</span>
+<span class="nc" id="L1343">    return false;</span>
   }
 
-  private boolean jj_3R_99() {
-<span class="nc bnc" id="L1354" title="All 2 branches missed.">    if (jj_3R_68()) return true;</span>
-<span class="nc" id="L1355">    return false;</span>
+  private boolean jj_3R_100() {
+<span class="nc bnc" id="L1347" title="All 2 branches missed.">    if (jj_3R_69()) return true;</span>
+<span class="nc" id="L1348">    return false;</span>
   }
 
   private boolean jj_3R_37() {
-<span class="fc bfc" id="L1359" title="All 2 branches covered.">    if (jj_3R_39()) return true;</span>
+<span class="fc bfc" id="L1352" title="All 2 branches covered.">    if (jj_3R_39()) return true;</span>
     Token xsp;
     while (true) {
-<span class="fc" id="L1362">      xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1363" title="All 2 branches covered.">      if (jj_3R_40()) { jj_scanpos = xsp; break; }</span>
+<span class="fc" id="L1355">      xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1356" title="All 2 branches covered.">      if (jj_3R_40()) { jj_scanpos = xsp; break; }</span>
     }
-<span class="fc" id="L1365">    return false;</span>
+<span class="fc" id="L1358">    return false;</span>
   }
 
-  private boolean jj_3R_95() {
-<span class="pc bpc" id="L1369" title="1 of 2 branches missed.">    if (jj_scan_token(IF)) return true;</span>
-<span class="nc bnc" id="L1370" title="All 2 branches missed.">    if (jj_3R_30()) return true;</span>
+  private boolean jj_3R_96() {
+<span class="pc bpc" id="L1362" title="1 of 2 branches missed.">    if (jj_scan_token(IF)) return true;</span>
+<span class="nc bnc" id="L1363" title="All 2 branches missed.">    if (jj_3R_30()) return true;</span>
     Token xsp;
-<span class="nc" id="L1372">    xsp = jj_scanpos;</span>
-<span class="nc bnc" id="L1373" title="All 2 branches missed.">    if (jj_3R_99()) {</span>
-<span class="nc" id="L1374">    jj_scanpos = xsp;</span>
-<span class="nc bnc" id="L1375" title="All 2 branches missed.">    if (jj_3R_100()) return true;</span>
+<span class="nc" id="L1365">    xsp = jj_scanpos;</span>
+<span class="nc bnc" id="L1366" title="All 2 branches missed.">    if (jj_3R_100()) {</span>
+<span class="nc" id="L1367">    jj_scanpos = xsp;</span>
+<span class="nc bnc" id="L1368" title="All 2 branches missed.">    if (jj_3R_101()) return true;</span>
     }
-<span class="nc" id="L1377">    xsp = jj_scanpos;</span>
-<span class="nc bnc" id="L1378" title="All 2 branches missed.">    if (jj_3R_101()) jj_scanpos = xsp;</span>
-<span class="nc" id="L1379">    return false;</span>
-  }
-
-  private boolean jj_3R_79() {
-<span class="fc bfc" id="L1383" title="All 2 branches covered.">    if (jj_scan_token(ASYNC)) return true;</span>
-<span class="fc" id="L1384">    return false;</span>
-  }
-
-  private boolean jj_3R_66() {
-<span class="pc bpc" id="L1388" title="1 of 2 branches missed.">    if (jj_scan_token(ID)) return true;</span>
-<span class="nc" id="L1389">    return false;</span>
+<span class="nc" id="L1370">    xsp = jj_scanpos;</span>
+<span class="nc bnc" id="L1371" title="All 2 branches missed.">    if (jj_3R_102()) jj_scanpos = xsp;</span>
+<span class="nc" id="L1372">    return false;</span>
   }
 
   private boolean jj_3R_80() {
-<span class="fc bfc" id="L1393" title="All 2 branches covered.">    if (jj_scan_token(COMMA)) return true;</span>
-<span class="pc bpc" id="L1394" title="1 of 2 branches missed.">    if (jj_scan_token(ID)) return true;</span>
-<span class="fc" id="L1395">    return false;</span>
+<span class="fc bfc" id="L1376" title="All 2 branches covered.">    if (jj_scan_token(ASYNC)) return true;</span>
+<span class="fc" id="L1377">    return false;</span>
+  }
+
+  private boolean jj_3R_81() {
+<span class="fc bfc" id="L1381" title="All 2 branches covered.">    if (jj_scan_token(COMMA)) return true;</span>
+<span class="pc bpc" id="L1382" title="1 of 2 branches missed.">    if (jj_scan_token(ID)) return true;</span>
+<span class="fc" id="L1383">    return false;</span>
+  }
+
+  private boolean jj_3R_67() {
+<span class="pc bpc" id="L1387" title="1 of 2 branches missed.">    if (jj_scan_token(ID)) return true;</span>
+<span class="nc" id="L1388">    return false;</span>
+  }
+
+  private boolean jj_3R_66() {
+    Token xsp;
+<span class="fc" id="L1393">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1394" title="All 2 branches covered.">    if (jj_3R_79()) {</span>
+<span class="fc" id="L1395">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1396" title="All 2 branches covered.">    if (jj_3R_80()) return true;</span>
+    }
+<span class="fc" id="L1398">    return false;</span>
+  }
+
+  private boolean jj_3R_68() {
+<span class="fc bfc" id="L1402" title="All 2 branches covered.">    if (jj_scan_token(LPAREN)) return true;</span>
+<span class="pc bpc" id="L1403" title="1 of 2 branches missed.">    if (jj_scan_token(ID)) return true;</span>
+    Token xsp;
+    while (true) {
+<span class="fc" id="L1406">      xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1407" title="All 2 branches covered.">      if (jj_3R_81()) { jj_scanpos = xsp; break; }</span>
+    }
+<span class="pc bpc" id="L1409" title="1 of 2 branches missed.">    if (jj_scan_token(RPAREN)) return true;</span>
+<span class="fc" id="L1410">    return false;</span>
+  }
+
+  private boolean jj_3R_79() {
+<span class="fc bfc" id="L1414" title="All 2 branches covered.">    if (jj_scan_token(SYNC)) return true;</span>
+<span class="fc" id="L1415">    return false;</span>
+  }
+
+  private boolean jj_3R_65() {
+<span class="pc bpc" id="L1419" title="1 of 2 branches missed.">    if (jj_scan_token(DETERMINISTIC)) return true;</span>
+<span class="nc" id="L1420">    return false;</span>
   }
 
   private boolean jj_3R_38() {
     Token xsp;
-<span class="fc" id="L1400">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1401" title="All 2 branches covered.">    if (jj_scan_token(7)) {</span>
-<span class="fc" id="L1402">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1403" title="All 2 branches covered.">    if (jj_scan_token(10)) return true;</span>
+<span class="fc" id="L1425">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1426" title="All 2 branches covered.">    if (jj_scan_token(7)) {</span>
+<span class="fc" id="L1427">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1428" title="All 2 branches covered.">    if (jj_scan_token(10)) return true;</span>
     }
-<span class="pc bpc" id="L1405" title="1 of 2 branches missed.">    if (jj_3R_37()) return true;</span>
-<span class="fc" id="L1406">    return false;</span>
+<span class="pc bpc" id="L1430" title="1 of 2 branches missed.">    if (jj_3R_37()) return true;</span>
+<span class="fc" id="L1431">    return false;</span>
   }
 
-  private boolean jj_3R_65() {
+  private boolean jj_3R_60() {
+<span class="fc bfc" id="L1435" title="All 2 branches covered.">    if (jj_scan_token(FUNCTION)) return true;</span>
     Token xsp;
-<span class="fc" id="L1411">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1412" title="All 2 branches covered.">    if (jj_3R_78()) {</span>
-<span class="fc" id="L1413">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1414" title="All 2 branches covered.">    if (jj_3R_79()) return true;</span>
-    }
-<span class="fc" id="L1416">    return false;</span>
-  }
-
-  private boolean jj_3R_67() {
-<span class="fc bfc" id="L1420" title="All 2 branches covered.">    if (jj_scan_token(LPAREN)) return true;</span>
-<span class="pc bpc" id="L1421" title="1 of 2 branches missed.">    if (jj_scan_token(ID)) return true;</span>
-    Token xsp;
-    while (true) {
-<span class="fc" id="L1424">      xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1425" title="All 2 branches covered.">      if (jj_3R_80()) { jj_scanpos = xsp; break; }</span>
-    }
-<span class="pc bpc" id="L1427" title="1 of 2 branches missed.">    if (jj_scan_token(RPAREN)) return true;</span>
-<span class="fc" id="L1428">    return false;</span>
-  }
-
-  private boolean jj_3R_78() {
-<span class="fc bfc" id="L1432" title="All 2 branches covered.">    if (jj_scan_token(SYNC)) return true;</span>
-<span class="fc" id="L1433">    return false;</span>
-  }
-
-  private boolean jj_3R_64() {
-<span class="pc bpc" id="L1437" title="1 of 2 branches missed.">    if (jj_scan_token(DETERMINISTIC)) return true;</span>
-<span class="nc" id="L1438">    return false;</span>
+<span class="fc" id="L1437">    xsp = jj_scanpos;</span>
+<span class="pc bpc" id="L1438" title="1 of 2 branches missed.">    if (jj_3R_65()) jj_scanpos = xsp;</span>
+<span class="fc" id="L1439">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1440" title="All 2 branches covered.">    if (jj_3R_66()) jj_scanpos = xsp;</span>
+<span class="fc" id="L1441">    xsp = jj_scanpos;</span>
+<span class="pc bpc" id="L1442" title="1 of 2 branches missed.">    if (jj_3R_67()) jj_scanpos = xsp;</span>
+<span class="fc" id="L1443">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1444" title="All 2 branches covered.">    if (jj_3R_68()) jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1445" title="1 of 2 branches missed.">    if (jj_3R_69()) return true;</span>
+<span class="fc" id="L1446">    return false;</span>
   }
 
   private boolean jj_3R_35() {
-<span class="fc bfc" id="L1442" title="All 2 branches covered.">    if (jj_3R_37()) return true;</span>
+<span class="fc bfc" id="L1450" title="All 2 branches covered.">    if (jj_3R_37()) return true;</span>
     Token xsp;
     while (true) {
-<span class="fc" id="L1445">      xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1446" title="All 2 branches covered.">      if (jj_3R_38()) { jj_scanpos = xsp; break; }</span>
+<span class="fc" id="L1453">      xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1454" title="All 2 branches covered.">      if (jj_3R_38()) { jj_scanpos = xsp; break; }</span>
     }
-<span class="fc" id="L1448">    return false;</span>
+<span class="fc" id="L1456">    return false;</span>
   }
 
-  private boolean jj_3R_59() {
-<span class="fc bfc" id="L1452" title="All 2 branches covered.">    if (jj_scan_token(FUNCTION)) return true;</span>
+  private boolean jj_3R_104() {
+<span class="pc bpc" id="L1460" title="1 of 2 branches missed.">    if (jj_scan_token(COMMA)) return true;</span>
+<span class="nc bnc" id="L1461" title="All 2 branches missed.">    if (jj_3R_15()) return true;</span>
+<span class="nc" id="L1462">    return false;</span>
+  }
+
+  private boolean jj_3R_99() {
+<span class="pc bpc" id="L1466" title="1 of 2 branches missed.">    if (jj_scan_token(SCL)) return true;</span>
+<span class="pc bpc" id="L1467" title="1 of 2 branches missed.">    if (jj_3R_15()) return true;</span>
     Token xsp;
-<span class="fc" id="L1454">    xsp = jj_scanpos;</span>
-<span class="pc bpc" id="L1455" title="1 of 2 branches missed.">    if (jj_3R_64()) jj_scanpos = xsp;</span>
-<span class="fc" id="L1456">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1457" title="All 2 branches covered.">    if (jj_3R_65()) jj_scanpos = xsp;</span>
-<span class="fc" id="L1458">    xsp = jj_scanpos;</span>
-<span class="pc bpc" id="L1459" title="1 of 2 branches missed.">    if (jj_3R_66()) jj_scanpos = xsp;</span>
-<span class="fc" id="L1460">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1461" title="All 2 branches covered.">    if (jj_3R_67()) jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1462" title="1 of 2 branches missed.">    if (jj_3R_68()) return true;</span>
-<span class="fc" id="L1463">    return false;</span>
+    while (true) {
+<span class="fc" id="L1470">      xsp = jj_scanpos;</span>
+<span class="pc bpc" id="L1471" title="1 of 2 branches missed.">      if (jj_3R_104()) { jj_scanpos = xsp; break; }</span>
+    }
+<span class="fc" id="L1473">    return false;</span>
   }
 
   private boolean jj_3R_103() {
-<span class="pc bpc" id="L1467" title="1 of 2 branches missed.">    if (jj_scan_token(COMMA)) return true;</span>
-<span class="nc bnc" id="L1468" title="All 2 branches missed.">    if (jj_3R_15()) return true;</span>
-<span class="nc" id="L1469">    return false;</span>
+<span class="fc bfc" id="L1477" title="All 2 branches covered.">    if (jj_scan_token(COMMA)) return true;</span>
+<span class="pc bpc" id="L1478" title="1 of 2 branches missed.">    if (jj_3R_15()) return true;</span>
+<span class="fc" id="L1479">    return false;</span>
   }
 
   private boolean jj_3R_98() {
-<span class="pc bpc" id="L1473" title="1 of 2 branches missed.">    if (jj_scan_token(SCL)) return true;</span>
-<span class="pc bpc" id="L1474" title="1 of 2 branches missed.">    if (jj_3R_15()) return true;</span>
+<span class="pc bpc" id="L1483" title="1 of 2 branches missed.">    if (jj_3R_15()) return true;</span>
     Token xsp;
     while (true) {
-<span class="fc" id="L1477">      xsp = jj_scanpos;</span>
-<span class="pc bpc" id="L1478" title="1 of 2 branches missed.">      if (jj_3R_103()) { jj_scanpos = xsp; break; }</span>
+<span class="fc" id="L1486">      xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1487" title="All 2 branches covered.">      if (jj_3R_103()) { jj_scanpos = xsp; break; }</span>
     }
-<span class="fc" id="L1480">    return false;</span>
+<span class="pc bpc" id="L1489" title="1 of 2 branches missed.">    if (jj_scan_token(SCL)) return true;</span>
+<span class="fc" id="L1490">    return false;</span>
   }
 
-  private boolean jj_3R_102() {
-<span class="fc bfc" id="L1484" title="All 2 branches covered.">    if (jj_scan_token(COMMA)) return true;</span>
-<span class="pc bpc" id="L1485" title="1 of 2 branches missed.">    if (jj_3R_15()) return true;</span>
-<span class="fc" id="L1486">    return false;</span>
-  }
-
-  private boolean jj_3R_97() {
-<span class="pc bpc" id="L1490" title="1 of 2 branches missed.">    if (jj_3R_15()) return true;</span>
+  private boolean jj_3R_95() {
+<span class="fc bfc" id="L1494" title="All 2 branches covered.">    if (jj_scan_token(FOR)) return true;</span>
     Token xsp;
-    while (true) {
-<span class="fc" id="L1493">      xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1494" title="All 2 branches covered.">      if (jj_3R_102()) { jj_scanpos = xsp; break; }</span>
-    }
-<span class="pc bpc" id="L1496" title="1 of 2 branches missed.">    if (jj_scan_token(SCL)) return true;</span>
-<span class="fc" id="L1497">    return false;</span>
+<span class="fc" id="L1496">    xsp = jj_scanpos;</span>
+<span class="pc bpc" id="L1497" title="1 of 2 branches missed.">    if (jj_3R_98()) jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1498" title="1 of 2 branches missed.">    if (jj_3R_30()) return true;</span>
+<span class="fc" id="L1499">    xsp = jj_scanpos;</span>
+<span class="pc bpc" id="L1500" title="1 of 2 branches missed.">    if (jj_3R_99()) jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1501" title="1 of 2 branches missed.">    if (jj_3R_69()) return true;</span>
+<span class="fc" id="L1502">    return false;</span>
   }
 
-  private boolean jj_3R_94() {
-<span class="fc bfc" id="L1501" title="All 2 branches covered.">    if (jj_scan_token(FOR)) return true;</span>
-    Token xsp;
-<span class="fc" id="L1503">    xsp = jj_scanpos;</span>
-<span class="pc bpc" id="L1504" title="1 of 2 branches missed.">    if (jj_3R_97()) jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1505" title="1 of 2 branches missed.">    if (jj_3R_30()) return true;</span>
-<span class="fc" id="L1506">    xsp = jj_scanpos;</span>
-<span class="pc bpc" id="L1507" title="1 of 2 branches missed.">    if (jj_3R_98()) jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1508" title="1 of 2 branches missed.">    if (jj_3R_68()) return true;</span>
-<span class="fc" id="L1509">    return false;</span>
-  }
-
-  private boolean jj_3_2() {
-<span class="fc bfc" id="L1513" title="All 2 branches covered.">    if (jj_3R_16()) return true;</span>
-<span class="fc" id="L1514">    return false;</span>
-  }
-
-  private boolean jj_3_1() {
-<span class="fc bfc" id="L1518" title="All 2 branches covered.">    if (jj_3R_15()) return true;</span>
-<span class="fc" id="L1519">    return false;</span>
+  private boolean jj_3R_93() {
+<span class="nc bnc" id="L1506" title="All 2 branches missed.">    if (jj_scan_token(USE)) return true;</span>
+<span class="nc bnc" id="L1507" title="All 2 branches missed.">    if (jj_scan_token(DECIMAL)) return true;</span>
+<span class="nc bnc" id="L1508" title="All 2 branches missed.">    if (jj_scan_token(INTEGER)) return true;</span>
+<span class="nc" id="L1509">    return false;</span>
   }
 
   private boolean jj_3R_92() {
-<span class="nc bnc" id="L1523" title="All 2 branches missed.">    if (jj_scan_token(USE)) return true;</span>
-<span class="nc bnc" id="L1524" title="All 2 branches missed.">    if (jj_scan_token(DECIMAL)) return true;</span>
-<span class="nc bnc" id="L1525" title="All 2 branches missed.">    if (jj_scan_token(INTEGER)) return true;</span>
-<span class="nc" id="L1526">    return false;</span>
+<span class="nc bnc" id="L1513" title="All 2 branches missed.">    if (jj_scan_token(SYNC)) return true;</span>
+<span class="nc bnc" id="L1514" title="All 2 branches missed.">    if (jj_3R_25()) return true;</span>
+<span class="nc" id="L1515">    return false;</span>
+  }
+
+  private boolean jj_3_2() {
+<span class="fc bfc" id="L1519" title="All 2 branches covered.">    if (jj_3R_16()) return true;</span>
+<span class="fc" id="L1520">    return false;</span>
   }
 
   private boolean jj_3R_91() {
-<span class="nc bnc" id="L1530" title="All 2 branches missed.">    if (jj_scan_token(SYNC)) return true;</span>
-<span class="nc bnc" id="L1531" title="All 2 branches missed.">    if (jj_3R_25()) return true;</span>
-<span class="nc" id="L1532">    return false;</span>
+<span class="pc bpc" id="L1524" title="1 of 2 branches missed.">    if (jj_scan_token(SLEEP)) return true;</span>
+<span class="pc bpc" id="L1525" title="1 of 2 branches missed.">    if (jj_3R_25()) return true;</span>
+<span class="fc" id="L1526">    return false;</span>
+  }
+
+  private boolean jj_3_1() {
+<span class="fc bfc" id="L1530" title="All 2 branches covered.">    if (jj_3R_15()) return true;</span>
+<span class="fc" id="L1531">    return false;</span>
   }
 
   private boolean jj_3R_90() {
-<span class="pc bpc" id="L1536" title="1 of 2 branches missed.">    if (jj_scan_token(SLEEP)) return true;</span>
-<span class="pc bpc" id="L1537" title="1 of 2 branches missed.">    if (jj_3R_25()) return true;</span>
-<span class="fc" id="L1538">    return false;</span>
-  }
-
-  private boolean jj_3R_89() {
-<span class="pc bpc" id="L1542" title="1 of 2 branches missed.">    if (jj_3R_95()) return true;</span>
-<span class="nc" id="L1543">    return false;</span>
+<span class="pc bpc" id="L1535" title="1 of 2 branches missed.">    if (jj_3R_96()) return true;</span>
+<span class="nc" id="L1536">    return false;</span>
   }
 
   private boolean jj_3R_36() {
     Token xsp;
-<span class="fc" id="L1548">    xsp = jj_scanpos;</span>
-<span class="pc bpc" id="L1549" title="1 of 2 branches missed.">    if (jj_scan_token(18)) {</span>
-<span class="fc" id="L1550">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1551" title="All 2 branches covered.">    if (jj_scan_token(19)) {</span>
-<span class="fc" id="L1552">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1553" title="1 of 2 branches missed.">    if (jj_scan_token(21)) {</span>
-<span class="fc" id="L1554">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1555" title="1 of 2 branches missed.">    if (jj_scan_token(20)) {</span>
-<span class="fc" id="L1556">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1557" title="1 of 2 branches missed.">    if (jj_scan_token(22)) {</span>
-<span class="fc" id="L1558">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1559" title="1 of 2 branches missed.">    if (jj_scan_token(23)) return true;</span>
+<span class="fc" id="L1541">    xsp = jj_scanpos;</span>
+<span class="pc bpc" id="L1542" title="1 of 2 branches missed.">    if (jj_scan_token(19)) {</span>
+<span class="fc" id="L1543">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1544" title="All 2 branches covered.">    if (jj_scan_token(20)) {</span>
+<span class="fc" id="L1545">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1546" title="1 of 2 branches missed.">    if (jj_scan_token(22)) {</span>
+<span class="fc" id="L1547">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1548" title="1 of 2 branches missed.">    if (jj_scan_token(21)) {</span>
+<span class="fc" id="L1549">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1550" title="1 of 2 branches missed.">    if (jj_scan_token(23)) {</span>
+<span class="fc" id="L1551">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1552" title="1 of 2 branches missed.">    if (jj_scan_token(24)) return true;</span>
     }
     }
     }
     }
     }
-<span class="pc bpc" id="L1565" title="1 of 2 branches missed.">    if (jj_3R_35()) return true;</span>
-<span class="fc" id="L1566">    return false;</span>
+<span class="pc bpc" id="L1558" title="1 of 2 branches missed.">    if (jj_3R_35()) return true;</span>
+<span class="fc" id="L1559">    return false;</span>
+  }
+
+  private boolean jj_3R_89() {
+<span class="fc bfc" id="L1563" title="All 2 branches covered.">    if (jj_3R_95()) return true;</span>
+<span class="fc" id="L1564">    return false;</span>
   }
 
   private boolean jj_3R_88() {
-<span class="fc bfc" id="L1570" title="All 2 branches covered.">    if (jj_3R_94()) return true;</span>
-<span class="fc" id="L1571">    return false;</span>
+<span class="fc bfc" id="L1568" title="All 2 branches covered.">    if (jj_3R_94()) return true;</span>
+<span class="fc" id="L1569">    return false;</span>
   }
 
-  private boolean jj_3R_87() {
-<span class="fc bfc" id="L1575" title="All 2 branches covered.">    if (jj_3R_93()) return true;</span>
-<span class="fc" id="L1576">    return false;</span>
-  }
-
-  private boolean jj_3R_86() {
-<span class="fc bfc" id="L1580" title="All 2 branches covered.">    if (jj_3R_25()) return true;</span>
-<span class="fc" id="L1581">    return false;</span>
-  }
-
-  private boolean jj_3R_85() {
-<span class="pc bpc" id="L1585" title="1 of 2 branches missed.">    if (jj_3R_16()) return true;</span>
-<span class="nc" id="L1586">    return false;</span>
-  }
-
-  private boolean jj_3R_84() {
-<span class="fc bfc" id="L1590" title="All 2 branches covered.">    if (jj_3R_15()) return true;</span>
-<span class="fc" id="L1591">    return false;</span>
-  }
-
-  private boolean jj_3R_82() {
-    Token xsp;
-<span class="fc" id="L1596">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1597" title="All 2 branches covered.">    if (jj_3R_84()) {</span>
-<span class="fc" id="L1598">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1599" title="1 of 2 branches missed.">    if (jj_3R_85()) {</span>
-<span class="fc" id="L1600">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1601" title="All 2 branches covered.">    if (jj_3R_86()) {</span>
-<span class="fc" id="L1602">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1603" title="All 2 branches covered.">    if (jj_3R_87()) {</span>
-<span class="fc" id="L1604">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1605" title="All 2 branches covered.">    if (jj_3R_88()) {</span>
-<span class="fc" id="L1606">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1607" title="1 of 2 branches missed.">    if (jj_3R_89()) {</span>
-<span class="fc" id="L1608">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1609" title="1 of 2 branches missed.">    if (jj_3R_90()) {</span>
-<span class="nc" id="L1610">    jj_scanpos = xsp;</span>
-<span class="nc bnc" id="L1611" title="All 2 branches missed.">    if (jj_3R_91()) {</span>
-<span class="nc" id="L1612">    jj_scanpos = xsp;</span>
-<span class="nc bnc" id="L1613" title="All 2 branches missed.">    if (jj_3R_92()) return true;</span>
-    }
-    }
-    }
-    }
-    }
-    }
-    }
-    }
-<span class="fc" id="L1622">    return false;</span>
-  }
-
-  private boolean jj_3R_32() {
-<span class="fc bfc" id="L1626" title="All 2 branches covered.">    if (jj_3R_35()) return true;</span>
-    Token xsp;
-    while (true) {
-<span class="fc" id="L1629">      xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1630" title="All 2 branches covered.">      if (jj_3R_36()) { jj_scanpos = xsp; break; }</span>
-    }
-<span class="fc" id="L1632">    return false;</span>
+  private boolean jj_3R_64() {
+<span class="pc bpc" id="L1573" title="1 of 2 branches missed.">    if (jj_scan_token(PI)) return true;</span>
+<span class="nc" id="L1574">    return false;</span>
   }
 
   private boolean jj_3R_63() {
-<span class="pc bpc" id="L1636" title="1 of 2 branches missed.">    if (jj_scan_token(PI)) return true;</span>
-<span class="nc" id="L1637">    return false;</span>
+<span class="fc bfc" id="L1578" title="All 2 branches covered.">    if (jj_scan_token(E)) return true;</span>
+<span class="fc" id="L1579">    return false;</span>
   }
 
-  private boolean jj_3R_62() {
-<span class="fc bfc" id="L1641" title="All 2 branches covered.">    if (jj_scan_token(E)) return true;</span>
-<span class="fc" id="L1642">    return false;</span>
+  private boolean jj_3R_32() {
+<span class="fc bfc" id="L1583" title="All 2 branches covered.">    if (jj_3R_35()) return true;</span>
+    Token xsp;
+    while (true) {
+<span class="fc" id="L1586">      xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1587" title="All 2 branches covered.">      if (jj_3R_36()) { jj_scanpos = xsp; break; }</span>
+    }
+<span class="fc" id="L1589">    return false;</span>
+  }
+
+  private boolean jj_3R_87() {
+<span class="fc bfc" id="L1593" title="All 2 branches covered.">    if (jj_3R_25()) return true;</span>
+<span class="fc" id="L1594">    return false;</span>
+  }
+
+  private boolean jj_3R_86() {
+<span class="pc bpc" id="L1598" title="1 of 2 branches missed.">    if (jj_3R_16()) return true;</span>
+<span class="nc" id="L1599">    return false;</span>
+  }
+
+  private boolean jj_3R_78() {
+<span class="pc bpc" id="L1603" title="1 of 2 branches missed.">    if (jj_scan_token(MATCHEXP)) return true;</span>
+<span class="nc" id="L1604">    return false;</span>
+  }
+
+  private boolean jj_3R_85() {
+<span class="fc bfc" id="L1608" title="All 2 branches covered.">    if (jj_3R_15()) return true;</span>
+<span class="fc" id="L1609">    return false;</span>
   }
 
   private boolean jj_3R_83() {
-<span class="fc bfc" id="L1646" title="All 2 branches covered.">    if (jj_scan_token(SCL)) return true;</span>
-<span class="pc bpc" id="L1647" title="1 of 2 branches missed.">    if (jj_3R_82()) return true;</span>
-<span class="fc" id="L1648">    return false;</span>
+    Token xsp;
+<span class="fc" id="L1614">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1615" title="All 2 branches covered.">    if (jj_3R_85()) {</span>
+<span class="fc" id="L1616">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1617" title="1 of 2 branches missed.">    if (jj_3R_86()) {</span>
+<span class="fc" id="L1618">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1619" title="All 2 branches covered.">    if (jj_3R_87()) {</span>
+<span class="fc" id="L1620">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1621" title="All 2 branches covered.">    if (jj_3R_88()) {</span>
+<span class="fc" id="L1622">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1623" title="All 2 branches covered.">    if (jj_3R_89()) {</span>
+<span class="fc" id="L1624">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1625" title="1 of 2 branches missed.">    if (jj_3R_90()) {</span>
+<span class="fc" id="L1626">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1627" title="1 of 2 branches missed.">    if (jj_3R_91()) {</span>
+<span class="nc" id="L1628">    jj_scanpos = xsp;</span>
+<span class="nc bnc" id="L1629" title="All 2 branches missed.">    if (jj_3R_92()) {</span>
+<span class="nc" id="L1630">    jj_scanpos = xsp;</span>
+<span class="nc bnc" id="L1631" title="All 2 branches missed.">    if (jj_3R_93()) return true;</span>
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+<span class="fc" id="L1640">    return false;</span>
   }
 
   private boolean jj_3R_77() {
-<span class="pc bpc" id="L1652" title="1 of 2 branches missed.">    if (jj_scan_token(MATCHEXP)) return true;</span>
-<span class="nc" id="L1653">    return false;</span>
-  }
-
-  private boolean jj_3R_81() {
-<span class="pc bpc" id="L1657" title="1 of 2 branches missed.">    if (jj_3R_82()) return true;</span>
-    Token xsp;
-    while (true) {
-<span class="fc" id="L1660">      xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1661" title="All 2 branches covered.">      if (jj_3R_83()) { jj_scanpos = xsp; break; }</span>
-    }
-<span class="fc" id="L1663">    return false;</span>
+<span class="fc bfc" id="L1644" title="All 2 branches covered.">    if (jj_scan_token(STRING)) return true;</span>
+<span class="fc" id="L1645">    return false;</span>
   }
 
   private boolean jj_3R_76() {
-<span class="fc bfc" id="L1667" title="All 2 branches covered.">    if (jj_scan_token(STRING)) return true;</span>
-<span class="fc" id="L1668">    return false;</span>
-  }
-
-  private boolean jj_3R_75() {
-<span class="pc bpc" id="L1672" title="1 of 2 branches missed.">    if (jj_scan_token(NULL)) return true;</span>
-<span class="nc" id="L1673">    return false;</span>
+<span class="pc bpc" id="L1649" title="1 of 2 branches missed.">    if (jj_scan_token(NULL)) return true;</span>
+<span class="nc" id="L1650">    return false;</span>
   }
 
   private boolean jj_3R_34() {
-<span class="fc bfc" id="L1677" title="All 2 branches covered.">    if (jj_scan_token(COMMA)) return true;</span>
-<span class="pc bpc" id="L1678" title="1 of 2 branches missed.">    if (jj_3R_25()) return true;</span>
-<span class="fc" id="L1679">    return false;</span>
+<span class="fc bfc" id="L1654" title="All 2 branches covered.">    if (jj_scan_token(COMMA)) return true;</span>
+<span class="pc bpc" id="L1655" title="1 of 2 branches missed.">    if (jj_3R_25()) return true;</span>
+<span class="fc" id="L1656">    return false;</span>
+  }
+
+  private boolean jj_3R_75() {
+<span class="pc bpc" id="L1660" title="1 of 2 branches missed.">    if (jj_scan_token(CHARACTER)) return true;</span>
+<span class="nc" id="L1661">    return false;</span>
+  }
+
+  private boolean jj_3R_84() {
+<span class="fc bfc" id="L1665" title="All 2 branches covered.">    if (jj_scan_token(SCL)) return true;</span>
+<span class="pc bpc" id="L1666" title="1 of 2 branches missed.">    if (jj_3R_83()) return true;</span>
+<span class="fc" id="L1667">    return false;</span>
   }
 
   private boolean jj_3R_74() {
-<span class="pc bpc" id="L1683" title="1 of 2 branches missed.">    if (jj_scan_token(CHARACTER)) return true;</span>
-<span class="nc" id="L1684">    return false;</span>
+<span class="pc bpc" id="L1671" title="1 of 2 branches missed.">    if (jj_scan_token(FALSE)) return true;</span>
+<span class="nc" id="L1672">    return false;</span>
+  }
+
+  private boolean jj_3R_82() {
+<span class="pc bpc" id="L1676" title="1 of 2 branches missed.">    if (jj_3R_83()) return true;</span>
+    Token xsp;
+    while (true) {
+<span class="fc" id="L1679">      xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1680" title="All 2 branches covered.">      if (jj_3R_84()) { jj_scanpos = xsp; break; }</span>
+    }
+<span class="fc" id="L1682">    return false;</span>
   }
 
   private boolean jj_3R_73() {
-<span class="pc bpc" id="L1688" title="1 of 2 branches missed.">    if (jj_scan_token(FALSE)) return true;</span>
-<span class="nc" id="L1689">    return false;</span>
-  }
-
-  private boolean jj_3R_69() {
-<span class="fc bfc" id="L1693" title="All 2 branches covered.">    if (jj_scan_token(COMMA)) return true;</span>
-<span class="pc bpc" id="L1694" title="1 of 2 branches missed.">    if (jj_3R_25()) return true;</span>
-<span class="fc" id="L1695">    return false;</span>
+<span class="pc bpc" id="L1686" title="1 of 2 branches missed.">    if (jj_scan_token(TRUE)) return true;</span>
+<span class="nc" id="L1687">    return false;</span>
   }
 
   private boolean jj_3R_72() {
-<span class="pc bpc" id="L1699" title="1 of 2 branches missed.">    if (jj_scan_token(TRUE)) return true;</span>
-<span class="nc" id="L1700">    return false;</span>
+<span class="fc bfc" id="L1691" title="All 2 branches covered.">    if (jj_scan_token(INTEGER)) return true;</span>
+<span class="fc" id="L1692">    return false;</span>
   }
 
-  private boolean jj_3R_71() {
-<span class="fc bfc" id="L1704" title="All 2 branches covered.">    if (jj_scan_token(INTEGER)) return true;</span>
-<span class="fc" id="L1705">    return false;</span>
+  private boolean jj_3R_70() {
+<span class="fc bfc" id="L1696" title="All 2 branches covered.">    if (jj_scan_token(COMMA)) return true;</span>
+<span class="pc bpc" id="L1697" title="1 of 2 branches missed.">    if (jj_3R_25()) return true;</span>
+<span class="fc" id="L1698">    return false;</span>
   }
 
   private boolean jj_3R_33() {
     Token xsp;
-<span class="fc" id="L1710">    xsp = jj_scanpos;</span>
-<span class="pc bpc" id="L1711" title="1 of 2 branches missed.">    if (jj_scan_token(15)) {</span>
-<span class="fc" id="L1712">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1713" title="1 of 2 branches missed.">    if (jj_scan_token(17)) {</span>
-<span class="fc" id="L1714">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1715" title="1 of 2 branches missed.">    if (jj_scan_token(24)) return true;</span>
+<span class="fc" id="L1703">    xsp = jj_scanpos;</span>
+<span class="pc bpc" id="L1704" title="1 of 2 branches missed.">    if (jj_scan_token(15)) {</span>
+<span class="fc" id="L1705">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1706" title="1 of 2 branches missed.">    if (jj_scan_token(17)) {</span>
+<span class="fc" id="L1707">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1708" title="1 of 2 branches missed.">    if (jj_scan_token(25)) return true;</span>
     }
     }
-<span class="nc bnc" id="L1718" title="All 2 branches missed.">    if (jj_3R_32()) return true;</span>
-<span class="nc" id="L1719">    return false;</span>
+<span class="nc bnc" id="L1711" title="All 2 branches missed.">    if (jj_3R_32()) return true;</span>
+<span class="nc" id="L1712">    return false;</span>
   }
 
   private boolean jj_3R_30() {
-<span class="fc bfc" id="L1723" title="All 2 branches covered.">    if (jj_3R_32()) return true;</span>
+<span class="fc bfc" id="L1716" title="All 2 branches covered.">    if (jj_3R_32()) return true;</span>
     Token xsp;
     while (true) {
-<span class="fc" id="L1726">      xsp = jj_scanpos;</span>
-<span class="pc bpc" id="L1727" title="1 of 2 branches missed.">      if (jj_3R_33()) { jj_scanpos = xsp; break; }</span>
+<span class="fc" id="L1719">      xsp = jj_scanpos;</span>
+<span class="pc bpc" id="L1720" title="1 of 2 branches missed.">      if (jj_3R_33()) { jj_scanpos = xsp; break; }</span>
     }
-<span class="fc" id="L1729">    return false;</span>
+<span class="fc" id="L1722">    return false;</span>
   }
 
-  private boolean jj_3R_70() {
-<span class="fc bfc" id="L1733" title="All 2 branches covered.">    if (jj_scan_token(FLOATING_POINT)) return true;</span>
-<span class="fc" id="L1734">    return false;</span>
+  private boolean jj_3R_71() {
+<span class="fc bfc" id="L1726" title="All 2 branches covered.">    if (jj_scan_token(FLOATING_POINT)) return true;</span>
+<span class="fc" id="L1727">    return false;</span>
   }
 
-  private boolean jj_3R_58() {
+  private boolean jj_3R_59() {
     Token xsp;
-<span class="fc" id="L1739">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1740" title="All 2 branches covered.">    if (jj_3R_61()) {</span>
-<span class="fc" id="L1741">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1742" title="All 2 branches covered.">    if (jj_3R_62()) {</span>
-<span class="fc" id="L1743">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1744" title="1 of 2 branches missed.">    if (jj_3R_63()) return true;</span>
+<span class="fc" id="L1732">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1733" title="All 2 branches covered.">    if (jj_3R_62()) {</span>
+<span class="fc" id="L1734">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1735" title="All 2 branches covered.">    if (jj_3R_63()) {</span>
+<span class="fc" id="L1736">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1737" title="1 of 2 branches missed.">    if (jj_3R_64()) return true;</span>
     }
     }
-<span class="fc" id="L1747">    return false;</span>
+<span class="fc" id="L1740">    return false;</span>
   }
 
-  private boolean jj_3R_61() {
+  private boolean jj_3R_62() {
     Token xsp;
-<span class="fc" id="L1752">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1753" title="All 2 branches covered.">    if (jj_3R_70()) {</span>
-<span class="fc" id="L1754">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1755" title="All 2 branches covered.">    if (jj_3R_71()) {</span>
-<span class="fc" id="L1756">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1757" title="1 of 2 branches missed.">    if (jj_3R_72()) {</span>
-<span class="fc" id="L1758">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1759" title="1 of 2 branches missed.">    if (jj_3R_73()) {</span>
-<span class="fc" id="L1760">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1761" title="1 of 2 branches missed.">    if (jj_3R_74()) {</span>
-<span class="fc" id="L1762">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1763" title="1 of 2 branches missed.">    if (jj_3R_75()) {</span>
-<span class="fc" id="L1764">    jj_scanpos = xsp;</span>
-<span class="fc bfc" id="L1765" title="All 2 branches covered.">    if (jj_3R_76()) {</span>
-<span class="fc" id="L1766">    jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1767" title="1 of 2 branches missed.">    if (jj_3R_77()) return true;</span>
+<span class="fc" id="L1745">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1746" title="All 2 branches covered.">    if (jj_3R_71()) {</span>
+<span class="fc" id="L1747">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1748" title="All 2 branches covered.">    if (jj_3R_72()) {</span>
+<span class="fc" id="L1749">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1750" title="1 of 2 branches missed.">    if (jj_3R_73()) {</span>
+<span class="fc" id="L1751">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1752" title="1 of 2 branches missed.">    if (jj_3R_74()) {</span>
+<span class="fc" id="L1753">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1754" title="1 of 2 branches missed.">    if (jj_3R_75()) {</span>
+<span class="fc" id="L1755">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1756" title="1 of 2 branches missed.">    if (jj_3R_76()) {</span>
+<span class="fc" id="L1757">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1758" title="All 2 branches covered.">    if (jj_3R_77()) {</span>
+<span class="fc" id="L1759">    jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1760" title="1 of 2 branches missed.">    if (jj_3R_78()) return true;</span>
     }
     }
     }
@@ -1772,59 +1765,66 @@ String name;
     }
     }
     }
-<span class="fc" id="L1775">    return false;</span>
-  }
-
-  private boolean jj_3R_31() {
-<span class="pc bpc" id="L1779" title="1 of 2 branches missed.">    if (jj_scan_token(CONDITION)) return true;</span>
-<span class="nc bnc" id="L1780" title="All 2 branches missed.">    if (jj_3R_27()) return true;</span>
-<span class="nc bnc" id="L1781" title="All 2 branches missed.">    if (jj_scan_token(CLM)) return true;</span>
-<span class="nc bnc" id="L1782" title="All 2 branches missed.">    if (jj_3R_27()) return true;</span>
-<span class="nc" id="L1783">    return false;</span>
+<span class="fc" id="L1768">    return false;</span>
   }
 
   private boolean jj_3R_23() {
-<span class="fc bfc" id="L1787" title="All 2 branches covered.">    if (jj_3R_25()) return true;</span>
+<span class="fc bfc" id="L1772" title="All 2 branches covered.">    if (jj_3R_25()) return true;</span>
     Token xsp;
     while (true) {
-<span class="fc" id="L1790">      xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1791" title="All 2 branches covered.">      if (jj_3R_34()) { jj_scanpos = xsp; break; }</span>
+<span class="fc" id="L1775">      xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1776" title="All 2 branches covered.">      if (jj_3R_34()) { jj_scanpos = xsp; break; }</span>
     }
-<span class="fc" id="L1793">    return false;</span>
+<span class="fc" id="L1778">    return false;</span>
   }
 
-  private boolean jj_3R_27() {
-<span class="fc bfc" id="L1797" title="All 2 branches covered.">    if (jj_3R_30()) return true;</span>
-    Token xsp;
-<span class="fc" id="L1799">    xsp = jj_scanpos;</span>
-<span class="pc bpc" id="L1800" title="1 of 2 branches missed.">    if (jj_3R_31()) jj_scanpos = xsp;</span>
-<span class="fc" id="L1801">    return false;</span>
-  }
-
-  private boolean jj_3R_60() {
-<span class="pc bpc" id="L1805" title="1 of 2 branches missed.">    if (jj_3R_25()) return true;</span>
-    Token xsp;
-    while (true) {
-<span class="fc" id="L1808">      xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1809" title="All 2 branches covered.">      if (jj_3R_69()) { jj_scanpos = xsp; break; }</span>
-    }
-<span class="fc" id="L1811">    return false;</span>
+  private boolean jj_3R_31() {
+<span class="pc bpc" id="L1782" title="1 of 2 branches missed.">    if (jj_scan_token(CONDITION)) return true;</span>
+<span class="nc bnc" id="L1783" title="All 2 branches missed.">    if (jj_3R_27()) return true;</span>
+<span class="nc bnc" id="L1784" title="All 2 branches missed.">    if (jj_scan_token(CLM)) return true;</span>
+<span class="nc bnc" id="L1785" title="All 2 branches missed.">    if (jj_3R_27()) return true;</span>
+<span class="nc" id="L1786">    return false;</span>
   }
 
   private boolean jj_3R_17() {
-<span class="fc bfc" id="L1815" title="All 2 branches covered.">    if (jj_scan_token(LPAREN)) return true;</span>
+<span class="fc bfc" id="L1790" title="All 2 branches covered.">    if (jj_scan_token(LPAREN)) return true;</span>
     Token xsp;
-<span class="fc" id="L1817">    xsp = jj_scanpos;</span>
-<span class="fc bfc" id="L1818" title="All 2 branches covered.">    if (jj_3R_23()) jj_scanpos = xsp;</span>
-<span class="pc bpc" id="L1819" title="1 of 2 branches missed.">    if (jj_scan_token(RPAREN)) return true;</span>
-<span class="fc" id="L1820">    return false;</span>
+<span class="fc" id="L1792">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1793" title="All 2 branches covered.">    if (jj_3R_23()) jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1794" title="1 of 2 branches missed.">    if (jj_scan_token(RPAREN)) return true;</span>
+<span class="fc" id="L1795">    return false;</span>
+  }
+
+  private boolean jj_3R_27() {
+<span class="fc bfc" id="L1799" title="All 2 branches covered.">    if (jj_3R_30()) return true;</span>
+    Token xsp;
+<span class="fc" id="L1801">    xsp = jj_scanpos;</span>
+<span class="pc bpc" id="L1802" title="1 of 2 branches missed.">    if (jj_3R_31()) jj_scanpos = xsp;</span>
+<span class="fc" id="L1803">    return false;</span>
+  }
+
+  private boolean jj_3R_61() {
+<span class="pc bpc" id="L1807" title="1 of 2 branches missed.">    if (jj_3R_25()) return true;</span>
+    Token xsp;
+    while (true) {
+<span class="fc" id="L1810">      xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1811" title="All 2 branches covered.">      if (jj_3R_70()) { jj_scanpos = xsp; break; }</span>
+    }
+<span class="fc" id="L1813">    return false;</span>
+  }
+
+  private boolean jj_3R_58() {
+<span class="pc bpc" id="L1817" title="1 of 2 branches missed.">    if (jj_scan_token(PIPE)) return true;</span>
+<span class="nc bnc" id="L1818" title="All 2 branches missed.">    if (jj_3R_25()) return true;</span>
+<span class="nc bnc" id="L1819" title="All 2 branches missed.">    if (jj_scan_token(PIPE)) return true;</span>
+<span class="nc" id="L1820">    return false;</span>
   }
 
   private boolean jj_3R_57() {
 <span class="fc bfc" id="L1824" title="All 2 branches covered.">    if (jj_scan_token(LBRACE)) return true;</span>
     Token xsp;
 <span class="fc" id="L1826">    xsp = jj_scanpos;</span>
-<span class="pc bpc" id="L1827" title="1 of 2 branches missed.">    if (jj_3R_60()) jj_scanpos = xsp;</span>
+<span class="pc bpc" id="L1827" title="1 of 2 branches missed.">    if (jj_3R_61()) jj_scanpos = xsp;</span>
 <span class="pc bpc" id="L1828" title="1 of 2 branches missed.">    if (jj_scan_token(RBRACE)) return true;</span>
 <span class="fc" id="L1829">    return false;</span>
   }
@@ -1861,7 +1861,7 @@ String name;
   }
 
   private boolean jj_3R_54() {
-<span class="fc bfc" id="L1864" title="All 2 branches covered.">    if (jj_3R_59()) return true;</span>
+<span class="fc bfc" id="L1864" title="All 2 branches covered.">    if (jj_3R_60()) return true;</span>
 <span class="fc" id="L1865">    return false;</span>
   }
 
@@ -1880,6 +1880,32 @@ String name;
 <span class="fc" id="L1880">    return false;</span>
   }
 
+  private boolean jj_3R_19() {
+<span class="fc bfc" id="L1884" title="All 2 branches covered.">    if (jj_scan_token(COMMA)) return true;</span>
+<span class="pc bpc" id="L1885" title="1 of 2 branches missed.">    if (jj_3R_18()) return true;</span>
+<span class="fc" id="L1886">    return false;</span>
+  }
+
+  private boolean jj_3_3() {
+<span class="fc bfc" id="L1890" title="All 2 branches covered.">    if (jj_3R_17()) return true;</span>
+<span class="fc" id="L1891">    return false;</span>
+  }
+
+  private boolean jj_3R_24() {
+    Token xsp;
+<span class="fc" id="L1896">    xsp = jj_scanpos;</span>
+<span class="fc bfc" id="L1897" title="All 2 branches covered.">    if (jj_3_3()) {</span>
+<span class="fc" id="L1898">    jj_scanpos = xsp;</span>
+<span class="fc bfc" id="L1899" title="All 2 branches covered.">    if (jj_3R_26()) return true;</span>
+    }
+<span class="fc" id="L1901">    return false;</span>
+  }
+
+  private boolean jj_3R_52() {
+<span class="fc bfc" id="L1905" title="All 2 branches covered.">    if (jj_3R_59()) return true;</span>
+<span class="fc" id="L1906">    return false;</span>
+  }
+
   /** Generated Token Manager. */
   public ZCompilerTokenManager token_source;
   JavaCharStream jj_input_stream;
@@ -1890,278 +1916,278 @@ String name;
   private Token jj_scanpos, jj_lastpos;
   private int jj_la;
   private int jj_gen;
-<span class="pc" id="L1893">  final private int[] jj_la1 = new int[43];</span>
+<span class="pc" id="L1919">  final private int[] jj_la1 = new int[43];</span>
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static private int[] jj_la1_2;
   static {
-<span class="fc" id="L1898">      jj_la1_init_0();</span>
-<span class="fc" id="L1899">      jj_la1_init_1();</span>
-<span class="fc" id="L1900">      jj_la1_init_2();</span>
-<span class="fc" id="L1901">   }</span>
+<span class="fc" id="L1924">      jj_la1_init_0();</span>
+<span class="fc" id="L1925">      jj_la1_init_1();</span>
+<span class="fc" id="L1926">      jj_la1_init_2();</span>
+<span class="fc" id="L1927">   }</span>
    private static void jj_la1_init_0() {
-<span class="fc" id="L1903">      jj_la1_0 = new int[] {0x20000000,0x42000400,0x0,0x0,0x0,0x20000000,0x42000400,0x42000400,0x0,0x42000400,0x0,0x10000300,0x40000000,0x0,0x0,0x4000000,0x1028000,0x1028000,0xfc0000,0xfc0000,0x480,0x480,0x3800,0x3800,0x40000000,0x10000,0x0,0x0,0x2000400,0x42000400,0x0,0x42000400,0x40000000,0x0,0x42000400,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x40000000,};</span>
-<span class="fc" id="L1904">   }</span>
+<span class="fc" id="L1929">      jj_la1_0 = new int[] {0x40000000,0x84040400,0x0,0x0,0x0,0x40000000,0x84040400,0x84040400,0x0,0x84040400,0x0,0x20000300,0x80000000,0x0,0x0,0x8000000,0x2028000,0x2028000,0x1f80000,0x1f80000,0x480,0x480,0x3800,0x3800,0x80000000,0x10000,0x0,0x0,0x4000400,0x84040400,0x0,0x84040400,0x80040000,0x0,0x84040400,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x80000000,};</span>
+<span class="fc" id="L1930">   }</span>
    private static void jj_la1_init_1() {
-<span class="fc" id="L1906">      jj_la1_1 = new int[] {0x0,0x453f9781,0x10,0x0,0x10,0x0,0x453f9781,0x453f9781,0x400000,0x441f8401,0x10,0x0,0x24,0x24,0x24,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x24,0x0,0x24,0x24,0x0,0x441f8401,0x10,0x441f8401,0x441f8401,0x10,0x441f8401,0x44038000,0x440f8000,0x800,0x3000,0x3000,0x0,0x10,0x0,};</span>
-<span class="fc" id="L1907">   }</span>
+<span class="fc" id="L1932">      jj_la1_1 = new int[] {0x0,0x8a7f2f02,0x20,0x0,0x20,0x0,0x8a7f2f02,0x8a7f2f02,0x800000,0x883f0802,0x20,0x0,0x48,0x48,0x48,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x48,0x0,0x48,0x48,0x0,0x883f0802,0x20,0x883f0802,0x883f0802,0x20,0x883f0802,0x88070000,0x881f0000,0x1000,0x6000,0x6000,0x0,0x20,0x0,};</span>
+<span class="fc" id="L1933">   }</span>
    private static void jj_la1_init_2() {
-<span class="fc" id="L1909">      jj_la1_2 = new int[] {0x0,0xf,0x0,0x8,0x0,0x0,0xf,0xf,0x0,0xf,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0xf,0x0,0xf,0xf,0x0,0xf,0x7,0x7,0x0,0x0,0x0,0x8,0x0,0x0,};</span>
-<span class="fc" id="L1910">   }</span>
-<span class="pc" id="L1911">  final private JJCalls[] jj_2_rtns = new JJCalls[5];</span>
-<span class="pc" id="L1912">  private boolean jj_rescan = false;</span>
-<span class="pc" id="L1913">  private int jj_gc = 0;</span>
+<span class="fc" id="L1935">      jj_la1_2 = new int[] {0x0,0x1e,0x0,0x10,0x0,0x0,0x1e,0x1e,0x0,0x1e,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1e,0x0,0x1e,0x1e,0x0,0x1e,0xe,0xe,0x0,0x0,0x0,0x10,0x0,0x0,};</span>
+<span class="fc" id="L1936">   }</span>
+<span class="pc" id="L1937">  final private JJCalls[] jj_2_rtns = new JJCalls[5];</span>
+<span class="pc" id="L1938">  private boolean jj_rescan = false;</span>
+<span class="pc" id="L1939">  private int jj_gc = 0;</span>
 
   /** Constructor with InputStream. */
   public ZCompiler(java.io.InputStream stream) {
-<span class="fc" id="L1917">     this(stream, null);</span>
-<span class="fc" id="L1918">  }</span>
+<span class="fc" id="L1943">     this(stream, null);</span>
+<span class="fc" id="L1944">  }</span>
   /** Constructor with InputStream and supplied encoding */
-<span class="fc" id="L1920">  public ZCompiler(java.io.InputStream stream, String encoding) {</span>
-<span class="pc" id="L1921">    try { jj_input_stream = new JavaCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }</span>
-<span class="fc" id="L1922">    token_source = new ZCompilerTokenManager(jj_input_stream);</span>
-<span class="fc" id="L1923">    token = new Token();</span>
-<span class="fc" id="L1924">    token.next = jj_nt = token_source.getNextToken();</span>
-<span class="fc" id="L1925">    jj_gen = 0;</span>
-<span class="fc bfc" id="L1926" title="All 2 branches covered.">    for (int i = 0; i &lt; 43; i++) jj_la1[i] = -1;</span>
-<span class="fc bfc" id="L1927" title="All 2 branches covered.">    for (int i = 0; i &lt; jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();</span>
-<span class="fc" id="L1928">  }</span>
+<span class="fc" id="L1946">  public ZCompiler(java.io.InputStream stream, String encoding) {</span>
+<span class="pc" id="L1947">    try { jj_input_stream = new JavaCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }</span>
+<span class="fc" id="L1948">    token_source = new ZCompilerTokenManager(jj_input_stream);</span>
+<span class="fc" id="L1949">    token = new Token();</span>
+<span class="fc" id="L1950">    token.next = jj_nt = token_source.getNextToken();</span>
+<span class="fc" id="L1951">    jj_gen = 0;</span>
+<span class="fc bfc" id="L1952" title="All 2 branches covered.">    for (int i = 0; i &lt; 43; i++) jj_la1[i] = -1;</span>
+<span class="fc bfc" id="L1953" title="All 2 branches covered.">    for (int i = 0; i &lt; jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();</span>
+<span class="fc" id="L1954">  }</span>
 
   /** Reinitialise. */
   public void ReInit(java.io.InputStream stream) {
-<span class="nc" id="L1932">     ReInit(stream, null);</span>
-<span class="nc" id="L1933">  }</span>
+<span class="nc" id="L1958">     ReInit(stream, null);</span>
+<span class="nc" id="L1959">  }</span>
   /** Reinitialise. */
   public void ReInit(java.io.InputStream stream, String encoding) {
-<span class="nc" id="L1936">    try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }</span>
-<span class="nc" id="L1937">    token_source.ReInit(jj_input_stream);</span>
-<span class="nc" id="L1938">    token = new Token();</span>
-<span class="nc" id="L1939">    token.next = jj_nt = token_source.getNextToken();</span>
-<span class="nc" id="L1940">    jj_gen = 0;</span>
-<span class="nc bnc" id="L1941" title="All 2 branches missed.">    for (int i = 0; i &lt; 43; i++) jj_la1[i] = -1;</span>
-<span class="nc bnc" id="L1942" title="All 2 branches missed.">    for (int i = 0; i &lt; jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();</span>
-<span class="nc" id="L1943">  }</span>
+<span class="nc" id="L1962">    try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }</span>
+<span class="nc" id="L1963">    token_source.ReInit(jj_input_stream);</span>
+<span class="nc" id="L1964">    token = new Token();</span>
+<span class="nc" id="L1965">    token.next = jj_nt = token_source.getNextToken();</span>
+<span class="nc" id="L1966">    jj_gen = 0;</span>
+<span class="nc bnc" id="L1967" title="All 2 branches missed.">    for (int i = 0; i &lt; 43; i++) jj_la1[i] = -1;</span>
+<span class="nc bnc" id="L1968" title="All 2 branches missed.">    for (int i = 0; i &lt; jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();</span>
+<span class="nc" id="L1969">  }</span>
 
   /** Constructor. */
-<span class="nc" id="L1946">  public ZCompiler(java.io.Reader stream) {</span>
-<span class="nc" id="L1947">    jj_input_stream = new JavaCharStream(stream, 1, 1);</span>
-<span class="nc" id="L1948">    token_source = new ZCompilerTokenManager(jj_input_stream);</span>
-<span class="nc" id="L1949">    token = new Token();</span>
-<span class="nc" id="L1950">    token.next = jj_nt = token_source.getNextToken();</span>
-<span class="nc" id="L1951">    jj_gen = 0;</span>
-<span class="nc bnc" id="L1952" title="All 2 branches missed.">    for (int i = 0; i &lt; 43; i++) jj_la1[i] = -1;</span>
-<span class="nc bnc" id="L1953" title="All 2 branches missed.">    for (int i = 0; i &lt; jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();</span>
-<span class="nc" id="L1954">  }</span>
+<span class="nc" id="L1972">  public ZCompiler(java.io.Reader stream) {</span>
+<span class="nc" id="L1973">    jj_input_stream = new JavaCharStream(stream, 1, 1);</span>
+<span class="nc" id="L1974">    token_source = new ZCompilerTokenManager(jj_input_stream);</span>
+<span class="nc" id="L1975">    token = new Token();</span>
+<span class="nc" id="L1976">    token.next = jj_nt = token_source.getNextToken();</span>
+<span class="nc" id="L1977">    jj_gen = 0;</span>
+<span class="nc bnc" id="L1978" title="All 2 branches missed.">    for (int i = 0; i &lt; 43; i++) jj_la1[i] = -1;</span>
+<span class="nc bnc" id="L1979" title="All 2 branches missed.">    for (int i = 0; i &lt; jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();</span>
+<span class="nc" id="L1980">  }</span>
 
   /** Reinitialise. */
   public void ReInit(java.io.Reader stream) {
-<span class="nc" id="L1958">    jj_input_stream.ReInit(stream, 1, 1);</span>
-<span class="nc" id="L1959">    token_source.ReInit(jj_input_stream);</span>
-<span class="nc" id="L1960">    token = new Token();</span>
-<span class="nc" id="L1961">    token.next = jj_nt = token_source.getNextToken();</span>
-<span class="nc" id="L1962">    jj_gen = 0;</span>
-<span class="nc bnc" id="L1963" title="All 2 branches missed.">    for (int i = 0; i &lt; 43; i++) jj_la1[i] = -1;</span>
-<span class="nc bnc" id="L1964" title="All 2 branches missed.">    for (int i = 0; i &lt; jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();</span>
-<span class="nc" id="L1965">  }</span>
+<span class="nc" id="L1984">    jj_input_stream.ReInit(stream, 1, 1);</span>
+<span class="nc" id="L1985">    token_source.ReInit(jj_input_stream);</span>
+<span class="nc" id="L1986">    token = new Token();</span>
+<span class="nc" id="L1987">    token.next = jj_nt = token_source.getNextToken();</span>
+<span class="nc" id="L1988">    jj_gen = 0;</span>
+<span class="nc bnc" id="L1989" title="All 2 branches missed.">    for (int i = 0; i &lt; 43; i++) jj_la1[i] = -1;</span>
+<span class="nc bnc" id="L1990" title="All 2 branches missed.">    for (int i = 0; i &lt; jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();</span>
+<span class="nc" id="L1991">  }</span>
 
   /** Constructor with generated Token Manager. */
-<span class="nc" id="L1968">  public ZCompiler(ZCompilerTokenManager tm) {</span>
-<span class="nc" id="L1969">    token_source = tm;</span>
-<span class="nc" id="L1970">    token = new Token();</span>
-<span class="nc" id="L1971">    token.next = jj_nt = token_source.getNextToken();</span>
-<span class="nc" id="L1972">    jj_gen = 0;</span>
-<span class="nc bnc" id="L1973" title="All 2 branches missed.">    for (int i = 0; i &lt; 43; i++) jj_la1[i] = -1;</span>
-<span class="nc bnc" id="L1974" title="All 2 branches missed.">    for (int i = 0; i &lt; jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();</span>
-<span class="nc" id="L1975">  }</span>
+<span class="nc" id="L1994">  public ZCompiler(ZCompilerTokenManager tm) {</span>
+<span class="nc" id="L1995">    token_source = tm;</span>
+<span class="nc" id="L1996">    token = new Token();</span>
+<span class="nc" id="L1997">    token.next = jj_nt = token_source.getNextToken();</span>
+<span class="nc" id="L1998">    jj_gen = 0;</span>
+<span class="nc bnc" id="L1999" title="All 2 branches missed.">    for (int i = 0; i &lt; 43; i++) jj_la1[i] = -1;</span>
+<span class="nc bnc" id="L2000" title="All 2 branches missed.">    for (int i = 0; i &lt; jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();</span>
+<span class="nc" id="L2001">  }</span>
 
   /** Reinitialise. */
   public void ReInit(ZCompilerTokenManager tm) {
-<span class="nc" id="L1979">    token_source = tm;</span>
-<span class="nc" id="L1980">    token = new Token();</span>
-<span class="nc" id="L1981">    token.next = jj_nt = token_source.getNextToken();</span>
-<span class="nc" id="L1982">    jj_gen = 0;</span>
-<span class="nc bnc" id="L1983" title="All 2 branches missed.">    for (int i = 0; i &lt; 43; i++) jj_la1[i] = -1;</span>
-<span class="nc bnc" id="L1984" title="All 2 branches missed.">    for (int i = 0; i &lt; jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();</span>
-<span class="nc" id="L1985">  }</span>
+<span class="nc" id="L2005">    token_source = tm;</span>
+<span class="nc" id="L2006">    token = new Token();</span>
+<span class="nc" id="L2007">    token.next = jj_nt = token_source.getNextToken();</span>
+<span class="nc" id="L2008">    jj_gen = 0;</span>
+<span class="nc bnc" id="L2009" title="All 2 branches missed.">    for (int i = 0; i &lt; 43; i++) jj_la1[i] = -1;</span>
+<span class="nc bnc" id="L2010" title="All 2 branches missed.">    for (int i = 0; i &lt; jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();</span>
+<span class="nc" id="L2011">  }</span>
 
   private Token jj_consume_token(int kind) throws ParseException {
-<span class="fc" id="L1988">    Token oldToken = token;</span>
-<span class="fc bfc" id="L1989" title="All 2 branches covered.">    if ((token = jj_nt).next != null) jj_nt = jj_nt.next;</span>
-<span class="fc" id="L1990">    else jj_nt = jj_nt.next = token_source.getNextToken();</span>
-<span class="pc bpc" id="L1991" title="1 of 2 branches missed.">    if (token.kind == kind) {</span>
-<span class="fc" id="L1992">      jj_gen++;</span>
-<span class="fc bfc" id="L1993" title="All 2 branches covered.">      if (++jj_gc &gt; 100) {</span>
-<span class="fc" id="L1994">        jj_gc = 0;</span>
-<span class="fc bfc" id="L1995" title="All 2 branches covered.">        for (int i = 0; i &lt; jj_2_rtns.length; i++) {</span>
-<span class="fc" id="L1996">          JJCalls c = jj_2_rtns[i];</span>
-<span class="fc bfc" id="L1997" title="All 2 branches covered.">          while (c != null) {</span>
-<span class="fc bfc" id="L1998" title="All 2 branches covered.">            if (c.gen &lt; jj_gen) c.first = null;</span>
-<span class="fc" id="L1999">            c = c.next;</span>
+<span class="fc" id="L2014">    Token oldToken = token;</span>
+<span class="fc bfc" id="L2015" title="All 2 branches covered.">    if ((token = jj_nt).next != null) jj_nt = jj_nt.next;</span>
+<span class="fc" id="L2016">    else jj_nt = jj_nt.next = token_source.getNextToken();</span>
+<span class="pc bpc" id="L2017" title="1 of 2 branches missed.">    if (token.kind == kind) {</span>
+<span class="fc" id="L2018">      jj_gen++;</span>
+<span class="fc bfc" id="L2019" title="All 2 branches covered.">      if (++jj_gc &gt; 100) {</span>
+<span class="fc" id="L2020">        jj_gc = 0;</span>
+<span class="fc bfc" id="L2021" title="All 2 branches covered.">        for (int i = 0; i &lt; jj_2_rtns.length; i++) {</span>
+<span class="fc" id="L2022">          JJCalls c = jj_2_rtns[i];</span>
+<span class="fc bfc" id="L2023" title="All 2 branches covered.">          while (c != null) {</span>
+<span class="fc bfc" id="L2024" title="All 2 branches covered.">            if (c.gen &lt; jj_gen) c.first = null;</span>
+<span class="fc" id="L2025">            c = c.next;</span>
           }
         }
       }
-<span class="fc" id="L2003">      return token;</span>
+<span class="fc" id="L2029">      return token;</span>
     }
-<span class="nc" id="L2005">    jj_nt = token;</span>
-<span class="nc" id="L2006">    token = oldToken;</span>
-<span class="nc" id="L2007">    jj_kind = kind;</span>
-<span class="nc" id="L2008">    throw generateParseException();</span>
+<span class="nc" id="L2031">    jj_nt = token;</span>
+<span class="nc" id="L2032">    token = oldToken;</span>
+<span class="nc" id="L2033">    jj_kind = kind;</span>
+<span class="nc" id="L2034">    throw generateParseException();</span>
   }
 
-<span class="fc" id="L2011">  static private final class LookaheadSuccess extends java.lang.Error { }</span>
-<span class="pc" id="L2012">  final private LookaheadSuccess jj_ls = new LookaheadSuccess();</span>
+<span class="fc" id="L2037">  static private final class LookaheadSuccess extends java.lang.Error { }</span>
+<span class="pc" id="L2038">  final private LookaheadSuccess jj_ls = new LookaheadSuccess();</span>
   private boolean jj_scan_token(int kind) {
-<span class="fc bfc" id="L2014" title="All 2 branches covered.">    if (jj_scanpos == jj_lastpos) {</span>
-<span class="fc" id="L2015">      jj_la--;</span>
-<span class="fc bfc" id="L2016" title="All 2 branches covered.">      if (jj_scanpos.next == null) {</span>
-<span class="fc" id="L2017">        jj_lastpos = jj_scanpos = jj_scanpos.next = token_source.getNextToken();</span>
+<span class="fc bfc" id="L2040" title="All 2 branches covered.">    if (jj_scanpos == jj_lastpos) {</span>
+<span class="fc" id="L2041">      jj_la--;</span>
+<span class="fc bfc" id="L2042" title="All 2 branches covered.">      if (jj_scanpos.next == null) {</span>
+<span class="fc" id="L2043">        jj_lastpos = jj_scanpos = jj_scanpos.next = token_source.getNextToken();</span>
       } else {
-<span class="fc" id="L2019">        jj_lastpos = jj_scanpos = jj_scanpos.next;</span>
+<span class="fc" id="L2045">        jj_lastpos = jj_scanpos = jj_scanpos.next;</span>
       }
     } else {
-<span class="fc" id="L2022">      jj_scanpos = jj_scanpos.next;</span>
+<span class="fc" id="L2048">      jj_scanpos = jj_scanpos.next;</span>
     }
-<span class="pc bpc" id="L2024" title="1 of 2 branches missed.">    if (jj_rescan) {</span>
-<span class="nc" id="L2025">      int i = 0; Token tok = token;</span>
-<span class="nc bnc" id="L2026" title="All 4 branches missed.">      while (tok != null &amp;&amp; tok != jj_scanpos) { i++; tok = tok.next; }</span>
-<span class="nc bnc" id="L2027" title="All 2 branches missed.">      if (tok != null) jj_add_error_token(kind, i);</span>
+<span class="pc bpc" id="L2050" title="1 of 2 branches missed.">    if (jj_rescan) {</span>
+<span class="nc" id="L2051">      int i = 0; Token tok = token;</span>
+<span class="nc bnc" id="L2052" title="All 4 branches missed.">      while (tok != null &amp;&amp; tok != jj_scanpos) { i++; tok = tok.next; }</span>
+<span class="nc bnc" id="L2053" title="All 2 branches missed.">      if (tok != null) jj_add_error_token(kind, i);</span>
     }
-<span class="fc bfc" id="L2029" title="All 2 branches covered.">    if (jj_scanpos.kind != kind) return true;</span>
-<span class="pc bpc" id="L2030" title="1 of 4 branches missed.">    if (jj_la == 0 &amp;&amp; jj_scanpos == jj_lastpos) throw jj_ls;</span>
-<span class="fc" id="L2031">    return false;</span>
+<span class="fc bfc" id="L2055" title="All 2 branches covered.">    if (jj_scanpos.kind != kind) return true;</span>
+<span class="pc bpc" id="L2056" title="1 of 4 branches missed.">    if (jj_la == 0 &amp;&amp; jj_scanpos == jj_lastpos) throw jj_ls;</span>
+<span class="fc" id="L2057">    return false;</span>
   }
 
 
 /** Get the next Token. */
   final public Token getNextToken() {
-<span class="nc bnc" id="L2037" title="All 2 branches missed.">    if ((token = jj_nt).next != null) jj_nt = jj_nt.next;</span>
-<span class="nc" id="L2038">    else jj_nt = jj_nt.next = token_source.getNextToken();</span>
-<span class="nc" id="L2039">    jj_gen++;</span>
-<span class="nc" id="L2040">    return token;</span>
+<span class="nc bnc" id="L2063" title="All 2 branches missed.">    if ((token = jj_nt).next != null) jj_nt = jj_nt.next;</span>
+<span class="nc" id="L2064">    else jj_nt = jj_nt.next = token_source.getNextToken();</span>
+<span class="nc" id="L2065">    jj_gen++;</span>
+<span class="nc" id="L2066">    return token;</span>
   }
 
 /** Get the specific Token. */
   final public Token getToken(int index) {
-<span class="nc" id="L2045">    Token t = token;</span>
-<span class="nc bnc" id="L2046" title="All 2 branches missed.">    for (int i = 0; i &lt; index; i++) {</span>
-<span class="nc bnc" id="L2047" title="All 2 branches missed.">      if (t.next != null) t = t.next;</span>
-<span class="nc" id="L2048">      else t = t.next = token_source.getNextToken();</span>
+<span class="nc" id="L2071">    Token t = token;</span>
+<span class="nc bnc" id="L2072" title="All 2 branches missed.">    for (int i = 0; i &lt; index; i++) {</span>
+<span class="nc bnc" id="L2073" title="All 2 branches missed.">      if (t.next != null) t = t.next;</span>
+<span class="nc" id="L2074">      else t = t.next = token_source.getNextToken();</span>
     }
-<span class="nc" id="L2050">    return t;</span>
+<span class="nc" id="L2076">    return t;</span>
   }
 
-<span class="pc" id="L2053">  private java.util.List&lt;int[]&gt; jj_expentries = new java.util.ArrayList&lt;int[]&gt;();</span>
+<span class="pc" id="L2079">  private java.util.List&lt;int[]&gt; jj_expentries = new java.util.ArrayList&lt;int[]&gt;();</span>
   private int[] jj_expentry;
-<span class="pc" id="L2055">  private int jj_kind = -1;</span>
-<span class="pc" id="L2056">  private int[] jj_lasttokens = new int[100];</span>
+<span class="pc" id="L2081">  private int jj_kind = -1;</span>
+<span class="pc" id="L2082">  private int[] jj_lasttokens = new int[100];</span>
   private int jj_endpos;
 
   private void jj_add_error_token(int kind, int pos) {
-<span class="nc bnc" id="L2060" title="All 2 branches missed.">    if (pos &gt;= 100) return;</span>
-<span class="nc bnc" id="L2061" title="All 2 branches missed.">    if (pos == jj_endpos + 1) {</span>
-<span class="nc" id="L2062">      jj_lasttokens[jj_endpos++] = kind;</span>
-<span class="nc bnc" id="L2063" title="All 2 branches missed.">    } else if (jj_endpos != 0) {</span>
-<span class="nc" id="L2064">      jj_expentry = new int[jj_endpos];</span>
-<span class="nc bnc" id="L2065" title="All 2 branches missed.">      for (int i = 0; i &lt; jj_endpos; i++) {</span>
-<span class="nc" id="L2066">        jj_expentry[i] = jj_lasttokens[i];</span>
+<span class="nc bnc" id="L2086" title="All 2 branches missed.">    if (pos &gt;= 100) return;</span>
+<span class="nc bnc" id="L2087" title="All 2 branches missed.">    if (pos == jj_endpos + 1) {</span>
+<span class="nc" id="L2088">      jj_lasttokens[jj_endpos++] = kind;</span>
+<span class="nc bnc" id="L2089" title="All 2 branches missed.">    } else if (jj_endpos != 0) {</span>
+<span class="nc" id="L2090">      jj_expentry = new int[jj_endpos];</span>
+<span class="nc bnc" id="L2091" title="All 2 branches missed.">      for (int i = 0; i &lt; jj_endpos; i++) {</span>
+<span class="nc" id="L2092">        jj_expentry[i] = jj_lasttokens[i];</span>
       }
-<span class="nc bnc" id="L2068" title="All 2 branches missed.">      jj_entries_loop: for (java.util.Iterator&lt;?&gt; it = jj_expentries.iterator(); it.hasNext();) {</span>
-<span class="nc" id="L2069">        int[] oldentry = (int[])(it.next());</span>
-<span class="nc bnc" id="L2070" title="All 2 branches missed.">        if (oldentry.length == jj_expentry.length) {</span>
-<span class="nc bnc" id="L2071" title="All 2 branches missed.">          for (int i = 0; i &lt; jj_expentry.length; i++) {</span>
-<span class="nc bnc" id="L2072" title="All 2 branches missed.">            if (oldentry[i] != jj_expentry[i]) {</span>
-<span class="nc" id="L2073">              continue jj_entries_loop;</span>
+<span class="nc bnc" id="L2094" title="All 2 branches missed.">      jj_entries_loop: for (java.util.Iterator&lt;?&gt; it = jj_expentries.iterator(); it.hasNext();) {</span>
+<span class="nc" id="L2095">        int[] oldentry = (int[])(it.next());</span>
+<span class="nc bnc" id="L2096" title="All 2 branches missed.">        if (oldentry.length == jj_expentry.length) {</span>
+<span class="nc bnc" id="L2097" title="All 2 branches missed.">          for (int i = 0; i &lt; jj_expentry.length; i++) {</span>
+<span class="nc bnc" id="L2098" title="All 2 branches missed.">            if (oldentry[i] != jj_expentry[i]) {</span>
+<span class="nc" id="L2099">              continue jj_entries_loop;</span>
             }
           }
-<span class="nc" id="L2076">          jj_expentries.add(jj_expentry);</span>
-<span class="nc" id="L2077">          break jj_entries_loop;</span>
+<span class="nc" id="L2102">          jj_expentries.add(jj_expentry);</span>
+<span class="nc" id="L2103">          break jj_entries_loop;</span>
         }
-<span class="nc" id="L2079">      }</span>
-<span class="nc bnc" id="L2080" title="All 2 branches missed.">      if (pos != 0) jj_lasttokens[(jj_endpos = pos) - 1] = kind;</span>
+<span class="nc" id="L2105">      }</span>
+<span class="nc bnc" id="L2106" title="All 2 branches missed.">      if (pos != 0) jj_lasttokens[(jj_endpos = pos) - 1] = kind;</span>
     }
-<span class="nc" id="L2082">  }</span>
+<span class="nc" id="L2108">  }</span>
 
   /** Generate ParseException. */
   public ParseException generateParseException() {
-<span class="nc" id="L2086">    jj_expentries.clear();</span>
-<span class="nc" id="L2087">    boolean[] la1tokens = new boolean[70];</span>
-<span class="nc bnc" id="L2088" title="All 2 branches missed.">    if (jj_kind &gt;= 0) {</span>
-<span class="nc" id="L2089">      la1tokens[jj_kind] = true;</span>
-<span class="nc" id="L2090">      jj_kind = -1;</span>
+<span class="nc" id="L2112">    jj_expentries.clear();</span>
+<span class="nc" id="L2113">    boolean[] la1tokens = new boolean[71];</span>
+<span class="nc bnc" id="L2114" title="All 2 branches missed.">    if (jj_kind &gt;= 0) {</span>
+<span class="nc" id="L2115">      la1tokens[jj_kind] = true;</span>
+<span class="nc" id="L2116">      jj_kind = -1;</span>
     }
-<span class="nc bnc" id="L2092" title="All 2 branches missed.">    for (int i = 0; i &lt; 43; i++) {</span>
-<span class="nc bnc" id="L2093" title="All 2 branches missed.">      if (jj_la1[i] == jj_gen) {</span>
-<span class="nc bnc" id="L2094" title="All 2 branches missed.">        for (int j = 0; j &lt; 32; j++) {</span>
-<span class="nc bnc" id="L2095" title="All 2 branches missed.">          if ((jj_la1_0[i] &amp; (1&lt;&lt;j)) != 0) {</span>
-<span class="nc" id="L2096">            la1tokens[j] = true;</span>
+<span class="nc bnc" id="L2118" title="All 2 branches missed.">    for (int i = 0; i &lt; 43; i++) {</span>
+<span class="nc bnc" id="L2119" title="All 2 branches missed.">      if (jj_la1[i] == jj_gen) {</span>
+<span class="nc bnc" id="L2120" title="All 2 branches missed.">        for (int j = 0; j &lt; 32; j++) {</span>
+<span class="nc bnc" id="L2121" title="All 2 branches missed.">          if ((jj_la1_0[i] &amp; (1&lt;&lt;j)) != 0) {</span>
+<span class="nc" id="L2122">            la1tokens[j] = true;</span>
           }
-<span class="nc bnc" id="L2098" title="All 2 branches missed.">          if ((jj_la1_1[i] &amp; (1&lt;&lt;j)) != 0) {</span>
-<span class="nc" id="L2099">            la1tokens[32+j] = true;</span>
+<span class="nc bnc" id="L2124" title="All 2 branches missed.">          if ((jj_la1_1[i] &amp; (1&lt;&lt;j)) != 0) {</span>
+<span class="nc" id="L2125">            la1tokens[32+j] = true;</span>
           }
-<span class="nc bnc" id="L2101" title="All 2 branches missed.">          if ((jj_la1_2[i] &amp; (1&lt;&lt;j)) != 0) {</span>
-<span class="nc" id="L2102">            la1tokens[64+j] = true;</span>
+<span class="nc bnc" id="L2127" title="All 2 branches missed.">          if ((jj_la1_2[i] &amp; (1&lt;&lt;j)) != 0) {</span>
+<span class="nc" id="L2128">            la1tokens[64+j] = true;</span>
           }
         }
       }
     }
-<span class="nc bnc" id="L2107" title="All 2 branches missed.">    for (int i = 0; i &lt; 70; i++) {</span>
-<span class="nc bnc" id="L2108" title="All 2 branches missed.">      if (la1tokens[i]) {</span>
-<span class="nc" id="L2109">        jj_expentry = new int[1];</span>
-<span class="nc" id="L2110">        jj_expentry[0] = i;</span>
-<span class="nc" id="L2111">        jj_expentries.add(jj_expentry);</span>
+<span class="nc bnc" id="L2133" title="All 2 branches missed.">    for (int i = 0; i &lt; 71; i++) {</span>
+<span class="nc bnc" id="L2134" title="All 2 branches missed.">      if (la1tokens[i]) {</span>
+<span class="nc" id="L2135">        jj_expentry = new int[1];</span>
+<span class="nc" id="L2136">        jj_expentry[0] = i;</span>
+<span class="nc" id="L2137">        jj_expentries.add(jj_expentry);</span>
       }
     }
-<span class="nc" id="L2114">    jj_endpos = 0;</span>
-<span class="nc" id="L2115">    jj_rescan_token();</span>
-<span class="nc" id="L2116">    jj_add_error_token(0, 0);</span>
-<span class="nc" id="L2117">    int[][] exptokseq = new int[jj_expentries.size()][];</span>
-<span class="nc bnc" id="L2118" title="All 2 branches missed.">    for (int i = 0; i &lt; jj_expentries.size(); i++) {</span>
-<span class="nc" id="L2119">      exptokseq[i] = jj_expentries.get(i);</span>
+<span class="nc" id="L2140">    jj_endpos = 0;</span>
+<span class="nc" id="L2141">    jj_rescan_token();</span>
+<span class="nc" id="L2142">    jj_add_error_token(0, 0);</span>
+<span class="nc" id="L2143">    int[][] exptokseq = new int[jj_expentries.size()][];</span>
+<span class="nc bnc" id="L2144" title="All 2 branches missed.">    for (int i = 0; i &lt; jj_expentries.size(); i++) {</span>
+<span class="nc" id="L2145">      exptokseq[i] = jj_expentries.get(i);</span>
     }
-<span class="nc" id="L2121">    return new ParseException(token, exptokseq, tokenImage);</span>
+<span class="nc" id="L2147">    return new ParseException(token, exptokseq, tokenImage);</span>
   }
 
   /** Enable tracing. */
   final public void enable_tracing() {
-<span class="nc" id="L2126">  }</span>
+<span class="nc" id="L2152">  }</span>
 
   /** Disable tracing. */
   final public void disable_tracing() {
-<span class="nc" id="L2130">  }</span>
+<span class="nc" id="L2156">  }</span>
 
   private void jj_rescan_token() {
-<span class="nc" id="L2133">    jj_rescan = true;</span>
-<span class="nc bnc" id="L2134" title="All 2 branches missed.">    for (int i = 0; i &lt; 5; i++) {</span>
+<span class="nc" id="L2159">    jj_rescan = true;</span>
+<span class="nc bnc" id="L2160" title="All 2 branches missed.">    for (int i = 0; i &lt; 5; i++) {</span>
     try {
-<span class="nc" id="L2136">      JJCalls p = jj_2_rtns[i];</span>
+<span class="nc" id="L2162">      JJCalls p = jj_2_rtns[i];</span>
       do {
-<span class="nc bnc" id="L2138" title="All 2 branches missed.">        if (p.gen &gt; jj_gen) {</span>
-<span class="nc" id="L2139">          jj_la = p.arg; jj_lastpos = jj_scanpos = p.first;</span>
-<span class="nc bnc" id="L2140" title="All 6 branches missed.">          switch (i) {</span>
-<span class="nc" id="L2141">            case 0: jj_3_1(); break;</span>
-<span class="nc" id="L2142">            case 1: jj_3_2(); break;</span>
-<span class="nc" id="L2143">            case 2: jj_3_3(); break;</span>
-<span class="nc" id="L2144">            case 3: jj_3_4(); break;</span>
-<span class="nc" id="L2145">            case 4: jj_3_5(); break;</span>
+<span class="nc bnc" id="L2164" title="All 2 branches missed.">        if (p.gen &gt; jj_gen) {</span>
+<span class="nc" id="L2165">          jj_la = p.arg; jj_lastpos = jj_scanpos = p.first;</span>
+<span class="nc bnc" id="L2166" title="All 6 branches missed.">          switch (i) {</span>
+<span class="nc" id="L2167">            case 0: jj_3_1(); break;</span>
+<span class="nc" id="L2168">            case 1: jj_3_2(); break;</span>
+<span class="nc" id="L2169">            case 2: jj_3_3(); break;</span>
+<span class="nc" id="L2170">            case 3: jj_3_4(); break;</span>
+<span class="nc" id="L2171">            case 4: jj_3_5(); break;</span>
           }
         }
-<span class="nc" id="L2148">        p = p.next;</span>
-<span class="nc bnc" id="L2149" title="All 2 branches missed.">      } while (p != null);</span>
-<span class="nc" id="L2150">      } catch(LookaheadSuccess ls) { }</span>
+<span class="nc" id="L2174">        p = p.next;</span>
+<span class="nc bnc" id="L2175" title="All 2 branches missed.">      } while (p != null);</span>
+<span class="nc" id="L2176">      } catch(LookaheadSuccess ls) { }</span>
     }
-<span class="nc" id="L2152">    jj_rescan = false;</span>
-<span class="nc" id="L2153">  }</span>
+<span class="nc" id="L2178">    jj_rescan = false;</span>
+<span class="nc" id="L2179">  }</span>
 
   private void jj_save(int index, int xla) {
-<span class="fc" id="L2156">    JJCalls p = jj_2_rtns[index];</span>
-<span class="fc bfc" id="L2157" title="All 2 branches covered.">    while (p.gen &gt; jj_gen) {</span>
-<span class="fc bfc" id="L2158" title="All 2 branches covered.">      if (p.next == null) { p = p.next = new JJCalls(); break; }</span>
-<span class="fc" id="L2159">      p = p.next;</span>
+<span class="fc" id="L2182">    JJCalls p = jj_2_rtns[index];</span>
+<span class="fc bfc" id="L2183" title="All 2 branches covered.">    while (p.gen &gt; jj_gen) {</span>
+<span class="fc bfc" id="L2184" title="All 2 branches covered.">      if (p.next == null) { p = p.next = new JJCalls(); break; }</span>
+<span class="fc" id="L2185">      p = p.next;</span>
     }
-<span class="fc" id="L2161">    p.gen = jj_gen + xla - jj_la; p.first = token; p.arg = xla;</span>
-<span class="fc" id="L2162">  }</span>
+<span class="fc" id="L2187">    p.gen = jj_gen + xla - jj_la; p.first = token; p.arg = xla;</span>
+<span class="fc" id="L2188">  }</span>
 
-<span class="fc" id="L2164">  static final class JJCalls {</span>
+<span class="fc" id="L2190">  static final class JJCalls {</span>
     int gen;
     Token first;
     int arg;

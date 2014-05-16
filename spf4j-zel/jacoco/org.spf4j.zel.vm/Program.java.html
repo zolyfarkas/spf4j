@@ -315,16 +315,16 @@ public final class Program implements Serializable {
 
     public static Object executeAsync(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
-<span class="nc" id="L318">        final VMExecutor.Suspendable&lt;Object&gt; execution = ectx.getCallable();</span>
-<span class="nc bnc" id="L319" title="All 2 branches missed.">        if (ectx.execService != null) {</span>
-<span class="nc bnc" id="L320" title="All 2 branches missed.">            if (ectx.isChildContext()) {</span>
-<span class="nc" id="L321">                return ectx.execService.submitInternal(VMExecutor.synchronize(execution));</span>
+<span class="fc" id="L318">        final VMExecutor.Suspendable&lt;Object&gt; execution = ectx.getCallable();</span>
+<span class="fc bfc" id="L319" title="All 2 branches covered.">        if (ectx.execService != null) {</span>
+<span class="pc bpc" id="L320" title="1 of 2 branches missed.">            if (ectx.isChildContext()) {</span>
+<span class="fc" id="L321">                return ectx.execService.submitInternal(VMExecutor.synchronize(execution));</span>
             } else {
 <span class="nc" id="L323">                return ectx.execService.submit(VMExecutor.synchronize(execution));</span>
             }
         } else {
             try {
-<span class="nc" id="L327">                return execution.call();</span>
+<span class="fc" id="L327">                return execution.call();</span>
 <span class="nc" id="L328">            } catch (SuspendedException ex) {</span>
 <span class="nc" id="L329">                throw new RuntimeException(ex);</span>
             }

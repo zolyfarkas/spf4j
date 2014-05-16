@@ -25,30 +25,29 @@ public final class CompileContext implements ParsingContext {
     private final ProgramBuilder prog;
     
     private final MemoryBuilder staticMemBuilder;
+    
+    private Instruction last;
 
-<span class="fc" id="L29">    public CompileContext(final MemoryBuilder staticMemBuilder) {</span>
-<span class="fc" id="L30">        this.prog = new ProgramBuilder(staticMemBuilder);</span>
-<span class="fc" id="L31">        this.staticMemBuilder = staticMemBuilder;</span>
-<span class="fc" id="L32">    }</span>
+<span class="fc" id="L31">    public CompileContext(final MemoryBuilder staticMemBuilder) {</span>
+<span class="fc" id="L32">        this.prog = new ProgramBuilder(staticMemBuilder);</span>
+<span class="fc" id="L33">        this.staticMemBuilder = staticMemBuilder;</span>
+<span class="fc" id="L34">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     @Override
     public void generateCode(final Instruction... args) {
-<span class="pc bpc" id="L37" title="1 of 2 branches missed.">        if (args == null) {</span>
-<span class="nc" id="L38">            prog.add(null);</span>
-        } else {
-<span class="fc" id="L40">            prog.addAll(args);</span>
-        }
-<span class="fc" id="L42">    }</span>
+<span class="fc" id="L39">        prog.addAll(args);</span>
+<span class="fc" id="L40">        last = args[args.length - 1];</span>
+<span class="fc" id="L41">    }</span>
 
     @Override
     public void generateCodeAll(final ParsingContext parsingContext) {
-<span class="fc" id="L46">        prog.addAll(parsingContext.getProgramBuilder());</span>
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L45">        prog.addAll(parsingContext.getProgramBuilder());</span>
+<span class="fc" id="L46">    }</span>
 
     @Override
     public int getAddress() {
-<span class="fc" id="L51">        return prog.size();</span>
+<span class="fc" id="L50">        return prog.size();</span>
     }
 
     /**
@@ -58,23 +57,28 @@ public final class CompileContext implements ParsingContext {
      */
     @Override
     public void process(final Object obj) {
-<span class="nc" id="L61">    }</span>
+<span class="nc" id="L60">    }</span>
 
 
     @Override
     public ProgramBuilder getProgramBuilder() {
-<span class="fc" id="L66">        return prog;</span>
+<span class="fc" id="L65">        return prog;</span>
     }
 
     @Override
     public CompileContext createSubContext() {
-<span class="fc" id="L71">        return new CompileContext(staticMemBuilder);</span>
+<span class="fc" id="L70">        return new CompileContext(staticMemBuilder);</span>
     }
 
     @Override
     public void staticSymbol(final String name, final Object object) {
-<span class="fc" id="L76">        staticMemBuilder.addSymbol(name, object);</span>
-<span class="fc" id="L77">    }</span>
+<span class="fc" id="L75">        staticMemBuilder.addSymbol(name, object);</span>
+<span class="fc" id="L76">    }</span>
+
+    @Override
+    public Instruction getLast() {
+<span class="fc" id="L80">       return last;</span>
+    }
 
 
 }
