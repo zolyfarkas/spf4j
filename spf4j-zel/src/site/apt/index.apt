@@ -18,10 +18,12 @@ The Z Expression Language
 
    
   6. ZEL uses the last value out principle, expressions will return the last evaluated expression.
-     There is a return keyword that can also be used
+     There is a return keyword that can also be used but it is optional
 
   7. Expressions are compiled providing decent execution performance. 
-     (Outperforms SPEL(Spring) by a few orders of magnitude, slightly slower(for now) than MVEL and Groovy)
+     The concurrency features in Zel enable you to easier write code that takes advantage of multi core systems.
+     (Outperforms SPEL(Spring) by a few orders of magnitude, slightly slower(simple single threaded benchmarks)
+     than MVEL and Groovy)
 
   8. Implemented using javaCC
 
@@ -48,9 +50,9 @@ EX4:    // fibonacci recursive definition executes in O(n)
         // deterministic function results are automatically memorized
         
         func det fib (x) { fib(x-1) + fib(x-2) }
-        fib(0) = 0;
-        fib(1) = 1;
-        fib(200)
+        fib(0) = 0; // memorize result
+        fib(1) = 1; // memorize result
+        out(fib(200)) 
 
 EX5:    // Async programming.
         // Zel function invocations are async by default.
@@ -60,7 +62,7 @@ EX5:    // Async programming.
             out(x, " finished\n");
             return x
         };
-        out(first(replica(1), replica(2), replica(3)), " finished first\n");
+        out(first(replica(1), replica(2), replica(3)), " finished first\n"); // output result of first invocation that finishes
 
 EX6:    // Explicit ASync function execution.
         // Java method invocation are sync by default
@@ -74,7 +76,7 @@ EX6:    // Explicit ASync function execution.
             }
         }
     
-        String prog = "f(f(1, 2)&,f(3, 4)&)&";
+        String prog = "f(f(1, 2)&,f(3, 4)&)&"; // execute f asynchronously.
         Number result = (Number) Program.compile(prog, "f").execute(new JavaMethodCall(TestF.class, "f"));
 
 
@@ -105,7 +107,7 @@ EX7:    // Async programming, parallel PI
               part[i] = piPart(k, k + range);
               k = k + range
             };
-            part[i] = piPart(k, x);
+            part[i] = piPart(k, x); // async call
             for i = 0, result = 0; i < breakup; i = i + 1 {
                result = result + part[i] 
             };
@@ -125,8 +127,8 @@ EX8:    // Channels!
             };
             out("fin(", nr, ",", sum, ")") 
         };
-        prod(ch); // start producer
-        for i = 0; i < 10; i++ { cons(ch, i) } //start consumers
+        prod(ch)&; // start producer
+        for i = 0; i < 10; i++ { cons(ch, i)& } //start consumers
 
 EX9:    // Parallel sort!
 
@@ -153,7 +155,7 @@ EX9:    // Parallel sort!
 
         qSortP(x, 0, x.length)
 
-  EX10: // functions can return multiple values
+  EX10: // multi-var assignement support
 
         func minmax (arr) {
             mi = arr[0]; ma = mi;
@@ -168,7 +170,7 @@ EX9:    // Parallel sort!
             ret {mi, ma}
          };
          x = {1, 2, 3, 8, 0};
-         _min, _max = minmax(x);
+         _min, _max = minmax(x); // multi var assignement
          out(_min, _max); 
 
 

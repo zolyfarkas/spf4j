@@ -36,8 +36,8 @@ public final  class ChannelTest {
                     + "for c = ch.read(); c != EOF; c = ch.read() {"
                     + " out(c, \",\"); sum++ };"
                     + " out(\"fin(\", nr, \",\", sum,\")\") };"
-                    + "prod(ch); "
-                    + "for i = 0; i < 10; i++ { cons(ch, i) } ";
+                    + "prod(ch)&; "
+                    + "for i = 0; i < 10; i++ { cons(ch, i)& } ";
         
 //        String prog =
 //                     "func prod(ch) { out(\"A\"); for i = 0; i < 10 ; i++ { out(i); ch.write(i) }; out(\"B\")}; "
