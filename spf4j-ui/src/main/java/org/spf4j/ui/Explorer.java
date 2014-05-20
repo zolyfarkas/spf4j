@@ -154,11 +154,7 @@ public class Explorer extends javax.swing.JFrame {
                     return true;
                 } else if (f.isFile()) {
                     String name = f.getName();
-                    if (name.endsWith("tsdb") || name.endsWith("ssdump")) {
-                        return true;
-                    } else {
-                        return false;
-                    }
+                    return (name.endsWith("tsdb") || name.endsWith("ssdump"));
                 } else {
                     return false;
                 }
