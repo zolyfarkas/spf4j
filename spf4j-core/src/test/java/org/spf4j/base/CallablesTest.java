@@ -69,6 +69,26 @@ public final class CallablesTest {
         Assert.assertTrue("Operation has to take at least 10 ms", elapsedTime > 10L);
     }
 
+    
+    @Test(expected = RuntimeException.class)
+    public void testExecuteWithRetryTimeout() throws Exception {
+        System.out.println("executeWithRetryTimeout");
+        Integer result = Callables.executeWithRetry(new Callable<Integer>() {
+            private int count;
+
+            @Override
+            public Integer call() throws Exception {
+                Thread.sleep(2000);
+                count++;
+                if (count < 5) {
+                    throw new RuntimeException("Aaaaaaaaaaa" + count);
+                }
+                return 1;
+            }
+        }, 1, 10, 10, 1000);
+        Assert.assertEquals(1L, result.longValue());
+    }
+    
     /**
      * Test of executeWithRetry method, of class Callables.
      */

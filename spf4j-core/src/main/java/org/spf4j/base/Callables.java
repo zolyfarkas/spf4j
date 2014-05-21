@@ -64,8 +64,7 @@ public final class Callables {
         private final int waitMillis;
         private int count;
 
-        public RetryPause(final int nrImmediateRetries, final int nrTotalRetries, final int retryWaitMillis)
-        {
+        public RetryPause(final int nrImmediateRetries, final int nrTotalRetries, final int retryWaitMillis) {
             assert (nrImmediateRetries <= nrTotalRetries);
             this.nrImmediateRetries = nrImmediateRetries;
             this.nrTotalRetries = nrTotalRetries;
@@ -86,19 +85,44 @@ public final class Callables {
         
     }
     
-    /**
-     * Probably the more used retry use case.
-     * specifying a number of immediate retries
-     * and delayed retries.
-     * 
-     * @param <T>
-     * @param what
-     * @param nrImmediateRetries
-     * @param nrTotalRetries
-     * @param retryWaitMillis
-     * @return
-     * @throws InterruptedException
-     */
+    
+    public static final class RetryPauseWithTimeout implements Callable<Boolean> {
+
+        private final int nrImmediateRetries;
+        private final int nrTotalRetries;
+        private final int waitMillis;
+        private final int timeoutMillis;
+        private int count;
+        private final long startTime;
+
+        public RetryPauseWithTimeout(final int nrImmediateRetries, final int nrTotalRetries,
+                final int retryWaitMillis, final int timeoutMillis) {
+            assert (nrImmediateRetries <= nrTotalRetries);
+            this.nrImmediateRetries = nrImmediateRetries;
+            this.nrTotalRetries = nrTotalRetries;
+            this.waitMillis = retryWaitMillis;
+            this.timeoutMillis = timeoutMillis;
+            startTime = System.currentTimeMillis();
+        }
+           
+        @Override
+        public Boolean call() throws Exception {
+           long now = System.currentTimeMillis();
+           if (now - startTime > timeoutMillis) {
+               return Boolean.FALSE;
+           }
+           if (count >= nrTotalRetries) {
+               return Boolean.FALSE;
+           }
+           if (count >= nrImmediateRetries) {
+               Thread.sleep(waitMillis);
+           }
+           count++;
+           return Boolean.TRUE;
+        }
+        
+    }
+    
     
     public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
             final int nrTotalRetries, final int retryWaitMillis)
@@ -122,7 +146,35 @@ public final class Callables {
                retryOnReturnVal, retryOnException);
     }
     
-     
+
+    public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
+            final int nrTotalRetries, final int retryWaitMillis, final int timeoutMillis)
+            throws InterruptedException {
+       return executeWithRetry(what, new RetryPauseWithTimeout(
+               nrImmediateRetries, nrTotalRetries, retryWaitMillis, timeoutMillis),
+               NORETRY_FOR_RESULT, RETRY_FOR_ANY_EXCEPTION);
+    }
+    
+    public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
+            final int nrTotalRetries, final int retryWaitMillis ,  final int timeoutMillis,
+            final Predicate<Exception> retryOnException)
+            throws InterruptedException {
+       return executeWithRetry(what, new RetryPauseWithTimeout(
+               nrImmediateRetries, nrTotalRetries, retryWaitMillis, timeoutMillis),
+               NORETRY_FOR_RESULT, retryOnException);
+    }
+    
+   public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
+            final int nrTotalRetries, final int retryWaitMillis,  final int timeoutMillis,
+            final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
+            throws InterruptedException {
+       return executeWithRetry(what, new RetryPauseWithTimeout(
+               nrImmediateRetries, nrTotalRetries, retryWaitMillis, timeoutMillis),
+               retryOnReturnVal, retryOnException);
+    }
+   
+   
+   
     /**
      * Naive implementation of execution with retry logic.
      * a callable will be executed and retry attempted in current thread if the result and exception predicates.
