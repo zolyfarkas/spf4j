@@ -95,6 +95,7 @@ TOKEN : /* OPERATORS & KEYWORDS*/
   |	< DOT: "." >
   |	< CONTEXT: "context">
   |	< RETURN: ("return" | "ret")>
+  |	< MEMORY: ("memory" | "mem")>
   |	< SLEEP: "sleep">
   |	< FOR: "for">
   |	< FUNCTION: ("function" | "func")>
@@ -230,7 +231,7 @@ void mainprogram(ParsingContext context) :
 {
 }
 { 
- program(context)
+ (program(context)) ?
  {context.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);}
  <EOF>
 }
@@ -635,6 +636,7 @@ void constant(ParsingContext context) :
     )
     | <E> {context.generateCode(new PUSH(Math.E));}
     | <PI> {context.generateCode(new PUSH(Math.PI));}
+    | <MEMORY> {context.generateCode(PUSHM.INSTANCE);}
 }
 
 JAVACODE

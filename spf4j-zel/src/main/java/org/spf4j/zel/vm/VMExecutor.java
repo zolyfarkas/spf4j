@@ -38,11 +38,6 @@ public final class VMExecutor {
     
     
     public static class Lazy {
-//         private static final ThreadPoolExecutor DEF_EXEC =
-//        new ThreadPoolExecutor(org.spf4j.base.Runtime.NR_PROCESSORS,
-//                                      org.spf4j.base.Runtime.NR_PROCESSORS,
-//                                      60, TimeUnit.SECONDS,
-//                                      new LinkedBlockingQueue<Runnable>());
         
          private static final SimpleExecutor DEF_EXEC = new SimpleExecutor();
          static {

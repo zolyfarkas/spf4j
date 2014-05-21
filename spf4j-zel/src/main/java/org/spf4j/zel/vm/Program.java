@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -37,6 +38,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import org.spf4j.base.Pair;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.instr.LODAX;
 import org.spf4j.zel.instr.LODAXF;
@@ -86,39 +88,44 @@ public final class Program implements Serializable {
     private final boolean hasDeterministicFunctions;
     private final Object[] globalMem;
     private final int localMemSize;
+    private final Map<String, Integer> localSymbolTable;
 
-    /**
-     * initializes program with an array of objects.
-     *
-     * @param objs
-     * @param start
-     * @param end
-     * @param progType
-     * @param parameterNames
-     */
-    Program(final Map<String, Integer> globalTable, final Object[] globalMem,
-            @Nonnull final Object[] objs, @Nonnegative final int start,
+
+    Program(final Map<String, Integer> globalTable, final Object[] globalMem, 
+            @Nonnull final Instruction[] objs, @Nonnegative final int start,
+            @Nonnegative final int end, final Type progType, final ExecutionType execType,
+            final boolean hasDeterministicFunctions, final String... parameterNames) throws CompileException {
+        this(globalTable, globalMem, Collections.EMPTY_MAP,
+                objs, start, end, progType, execType, hasDeterministicFunctions, parameterNames);
+    
+    }
+    
+    Program(final Map<String, Integer> globalTable, final Object[] globalMem, final Map<String, Integer> localTable,
+            @Nonnull final Instruction[] objs, @Nonnegative final int start,
             @Nonnegative final int end, final Type progType, final ExecutionType execType,
             final boolean hasDeterministicFunctions, final String... parameterNames) throws CompileException {
         this.globalMem = globalMem;
         int length = end - start;
-        instructions = new Instruction[length];
+        this.instructions = new Instruction[length];
         System.arraycopy(objs, start, instructions, 0, length);
         this.type = progType;
-        id = ProgramBuilder.generateID();
+        this.id = ProgramBuilder.generateID();
         this.parameterNames = parameterNames;
         this.execType = execType;
         this.hasDeterministicFunctions = hasDeterministicFunctions;
-        Map<String, Integer> symbolTable = buildSymTable(parameterNames, length, globalTable);
-        localMemSize = symbolTable.size();
+        this.localSymbolTable = buildLocalSymTable(parameterNames, length, globalTable, localTable);
+        this.localMemSize = localSymbolTable.size();
     }
 
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(
             { "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "ITC_INHERITANCE_TYPE_CHECKING" })
-    private Map<String, Integer> buildSymTable(final String[] parameterNames1,
-            final int length, final Map<String, Integer> globalTable) throws CompileException {
-        Map<String, Integer> symbolTable = new HashMap<String, Integer>(parameterNames1.length);
-        int i = 0;
+    private Map<String, Integer> buildLocalSymTable(final String[] parameterNames1,
+            final int length, final Map<String, Integer> globalTable,
+            Map<String, Integer> addTo) throws CompileException {
+        final int addToSize = addTo.size();
+        Map<String, Integer> symbolTable = new HashMap<String, Integer>(addToSize + parameterNames1.length);
+        symbolTable.putAll(addTo);
+        int i = addToSize;
         for (String param : parameterNames1) {
             Integer existing = symbolTable.put(param, i++);
             if (existing != null) {
@@ -163,7 +170,10 @@ public final class Program implements Serializable {
         }
         return symbolTable;
     }
-    
+
+    public Map<String, Integer> getLocalSymbolTable() {
+        return localSymbolTable;
+    }
     
     public int getLocalMemSize() {
        return localMemSize;
@@ -214,13 +224,6 @@ public final class Program implements Serializable {
         return execType;
     }
 
-    /**
-     * create a compiled Z Byte Code
-     *
-     * @param zExpr String
-     * @throws com.zoltran.z.vm.ParseException
-     * @return Program
-     */
     public static Program compile(@Nonnull final String zExpr, @Nonnull final String... varNames)
             throws CompileException {
 
@@ -233,6 +236,22 @@ public final class Program implements Serializable {
             throw new CompileException(ex);
         }
         return cc.getProgramBuilder().toProgram(varNames);
+    }
+    
+    
+    static Program compile(@Nonnull final String zExpr, final Map<String, Integer> localTable,
+            @Nonnull final String... varNames)
+            throws CompileException {
+
+        CompileContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());
+        try {
+            ZCompiler.compile(zExpr, cc);
+        } catch (TokenMgrError err) {
+            throw new CompileException(err);
+        } catch (ParseException ex) {
+            throw new CompileException(ex);
+        }
+        return cc.getProgramBuilder().toProgram(varNames, localTable);
     }
 
     public Object execute() throws ZExecutionException, InterruptedException {
@@ -270,11 +289,6 @@ public final class Program implements Serializable {
         ZEL_GLOBAL_FUNC.addSymbol("EOF", Channel.EOF);
     }
 
-    /**
-     * Execute the program with the provided memory and input / output streams when a exec service is specified this
-     * function will return a Future Also it is recomended that a thread safe memory is used in case your functions will
-     * modify the memory (not recomended)
-     */
     public Object execute(@Nullable final VMExecutor execService,
             @Nullable final InputStream in,
             @Nullable final PrintStream out,
@@ -285,6 +299,26 @@ public final class Program implements Serializable {
         System.arraycopy(args, 0, ectx.mem, 0, args.length);
         try {
             return execute(ectx);
+        } finally {
+            if (err != null) {
+                err.flush();
+            }
+            if (out != null) {
+                out.flush();
+            }
+        }
+    }
+    
+    public Pair<Object, ExecutionContext> executeX(@Nullable final VMExecutor execService,
+            @Nullable final InputStream in,
+            @Nullable final PrintStream out,
+            @Nullable final PrintStream err,
+            final Object... args)
+            throws ZExecutionException, InterruptedException {
+        final ExecutionContext ectx = new ExecutionContext(this, globalMem, in, out, err, execService);
+        System.arraycopy(args, 0, ectx.mem, 0, args.length);
+        try {
+            return Pair.of(execute(ectx), ectx);
         } finally {
             if (err != null) {
                 err.flush();
@@ -448,6 +482,8 @@ public final class Program implements Serializable {
             throws IOException, ZExecutionException, InterruptedException {
         System.out.println("ZEL Shell");
         boolean terminated = false;
+        Map<String, Integer> localSymTable = Collections.EMPTY_MAP;
+        Object [] mem = new Object [] {};
         InputStreamReader inp = new InputStreamReader(System.in, Charsets.UTF_8);
         BufferedReader br = new BufferedReader(inp);
         while (!terminated) {
@@ -458,7 +494,12 @@ public final class Program implements Serializable {
                     terminated = true;
                 } else {
                     try {
-                        System.out.println(Program.compile(line).execute(System.in, System.out, System.err));
+                        final Program prog = Program.compile(line, localSymTable);
+                        localSymTable = prog.getLocalSymbolTable();
+                        Pair<Object, ExecutionContext> res = prog.executeX(
+                                VMExecutor.Lazy.DEFAULT, System.in, System.out, System.err, mem);
+                        System.out.println("result>" + res.getFirst());
+                        mem = res.getSecond().mem;
                     } catch (CompileException ex) {
                         System.out.println("Syntax Error: " + Throwables.getStackTraceAsString(ex));
                     } catch (ZExecutionException ex) {

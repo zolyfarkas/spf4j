@@ -21,6 +21,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -246,15 +247,21 @@ public final class ProgramBuilder {
     }
     
     public Program toProgram(final String[] parameterNames) throws CompileException {
+       return toProgram(parameterNames, Collections.EMPTY_MAP);
+    }
+    
+    public Program toProgram(final String[] parameterNames, final Map<String, Integer> localTable)
+            throws CompileException {
         intern(instructions);
         intern(parameterNames);
         Pair<Object[], Map<String, Integer>> build = staticMemBuilder.build();
-        return new Program(build.getSecond(), build.getFirst(), instructions, 0, instrNumber, type,
+        return new Program(build.getSecond(), build.getFirst(), localTable, instructions, 0, instrNumber, type,
                 this.execType == Program.ExecutionType.ASYNC || hasAsyncCalls()
                         ? (this.execType == null ? Program.ExecutionType.ASYNC : this.execType)
                         : Program.ExecutionType.SYNC,
                 hasDeterministicFunctions(), parameterNames);
     }
+
     
     
     public Program toProgram(final List<String> parameterNames) throws CompileException {
