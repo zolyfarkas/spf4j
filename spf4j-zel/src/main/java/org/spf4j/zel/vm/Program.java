@@ -91,7 +91,7 @@ public final class Program implements Serializable {
     private final Map<String, Integer> localSymbolTable;
 
 
-    Program(final Map<String, Integer> globalTable, final Object[] globalMem, 
+    Program(final Map<String, Integer> globalTable, final Object[] globalMem,
             @Nonnull final Instruction[] objs, @Nonnegative final int start,
             @Nonnegative final int end, final Type progType, final ExecutionType execType,
             final boolean hasDeterministicFunctions, final String... parameterNames) throws CompileException {
@@ -121,7 +121,7 @@ public final class Program implements Serializable {
             { "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "ITC_INHERITANCE_TYPE_CHECKING" })
     private Map<String, Integer> buildLocalSymTable(final String[] parameterNames1,
             final int length, final Map<String, Integer> globalTable,
-            Map<String, Integer> addTo) throws CompileException {
+            final Map<String, Integer> addTo) throws CompileException {
         final int addToSize = addTo.size();
         Map<String, Integer> symbolTable = new HashMap<String, Integer>(addToSize + parameterNames1.length);
         symbolTable.putAll(addTo);
