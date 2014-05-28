@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.PushbackReader;
 import java.io.Reader;
 import java.io.Writer;
-import java.nio.charset.Charset;
 import java.util.Iterator;
 import org.spf4j.base.Strings;
 
@@ -69,7 +68,7 @@ public final class Csv {
         T eof();
     }
 
-    public static <T> T readSkipBom(final Reader preader, final Charset charset,
+    public static <T> T readSkipBom(final Reader preader,
         final CsvHandler<T> handler) throws IOException {
         PushbackReader reader = new PushbackReader(preader);
         int firstChar = reader.read();

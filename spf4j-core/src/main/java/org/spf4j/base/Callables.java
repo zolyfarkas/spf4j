@@ -193,15 +193,17 @@ public final class Callables {
             throws InterruptedException {
         T result = null;
         Exception ex = null;
+        Exception lastEx = null;
         try {
             result = what.call();
         } catch (InterruptedException ex1) {
                throw ex1;
         } catch (Exception e) {
             ex = e;
+            lastEx = e;
         }
         Exception prevEx = ex;
-        while ((ex != null && retryOnException.apply(ex)) || retryOnReturnVal.apply(result)) {
+        while ((lastEx != null && retryOnException.apply(lastEx)) || retryOnReturnVal.apply(result)) {
             if (Thread.interrupted()) {
                 throw new InterruptedException();
             }
@@ -217,11 +219,13 @@ public final class Callables {
             }
             ex = null;
             result = null;
+            lastEx = null;
             try {
                 result = what.call();
             } catch (InterruptedException ex1) {
                throw ex1;
             } catch (Exception e) {
+                lastEx = e;
                 if (prevEx != null) {
                     e = Throwables.suppress(e, prevEx);
                     prevEx = e;
@@ -229,7 +233,9 @@ public final class Callables {
                 ex = e;
             }
         }
-        if (ex != null) {
+        if (ex instanceof RuntimeException) {
+            throw (RuntimeException) ex;
+        } else if (ex != null) {
             throw new RuntimeException(ex);
         }
         return result;

@@ -68,7 +68,64 @@ public final class CallablesTest {
         Assert.assertEquals(1L, result.longValue());
         Assert.assertTrue("Operation has to take at least 10 ms", elapsedTime > 10L);
     }
+    
+    @Test
+    public void testExecuteWithRetryFailureTest() throws Exception {
+        System.out.println("executeWithRetry");
+        try {
+            Integer result = Callables.executeWithRetry(new Callable<Integer>() {
+                private int count;
 
+                @Override
+                public Integer call() throws Exception {
+                    count++;
+                    if (count < 100) {
+                        throw new RuntimeException("Aaaaaaaaaaa" + count);
+                    }
+
+                    return 1;
+                }
+            }, 1, 10, 10);
+            Assert.fail("Should not get here");
+        } catch (Exception e) {
+            Assert.assertEquals(1, Throwables.getSuppressed(e).length);
+        }
+
+    }
+
+    
+    @Test
+    public void testSuppression() throws Exception {
+        System.out.println("executeWithRetry");
+        long startTime = System.currentTimeMillis();
+        Integer result = Callables.executeWithRetry(new Callable<Integer>() {
+            private int count;
+
+            @Override
+            public Integer call() throws Exception {
+                count++;
+                if (count < 5) {
+                    throw new RuntimeException("Aaaaaaaaaaa" + count);
+                }
+
+                return 1;
+            }
+        }, 1, 10, 10, new Predicate<Exception>() {
+
+            @Override
+            public boolean apply(final Exception input) {
+                final Throwable[] suppressed = Throwables.getSuppressed(input);
+                if (suppressed.length > 0) {
+                    throw new RuntimeException();
+                }
+                return true;
+            }
+        });
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        Assert.assertEquals(1L, result.longValue());
+        Assert.assertTrue("Operation has to take at least 10 ms", elapsedTime > 10L);
+    }
+    
     
     @Test(expected = RuntimeException.class)
     public void testExecuteWithRetryTimeout() throws Exception {

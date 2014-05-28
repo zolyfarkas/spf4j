@@ -30,6 +30,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
@@ -199,11 +200,13 @@ public final class Throwables {
      * @param suppressed
      * @return
      */
+    @CheckReturnValue
     public static <T extends Throwable> T suppress(final T t, final Throwable suppressed) {
         if (ADD_SUPPRESSED != null) {
             try {
-                ADD_SUPPRESSED.invoke(t, suppressed);
-                return t;
+                T clone = clone(t);
+                ADD_SUPPRESSED.invoke(clone, suppressed);
+                return clone;
             } catch (IllegalAccessException ex) {
                 throw new RuntimeException(ex);
             } catch (IllegalArgumentException ex) {
