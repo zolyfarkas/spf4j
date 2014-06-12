@@ -84,7 +84,8 @@ public final class SimpleStackCollectorTest {
 
         System.out.println("mx = " + mxTime);
         System.out.println("simple = " + simpleTime);
-        Assert.assertTrue(mxTime < simpleTime);
+        Assert.assertTrue("cond " + mxTime + " <= " + simpleTime,
+                mxTime <= simpleTime);
         double relativeDiff = Math.abs(1 - (double) mxTime / simpleTime);
         System.out.println("relDiff = " + relativeDiff);
         Assert.assertTrue(relativeDiff > 0.05); // should be at least a 5% improovement

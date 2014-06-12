@@ -18,8 +18,8 @@
  */
 package org.spf4j.perf.aspects;
 
-import org.spf4j.perf.annotations.RecorderSourceInstance;
-import org.spf4j.perf.annotations.PerformanceMonitor;
+import org.spf4j.annotations.RecorderSourceInstance;
+import org.spf4j.annotations.PerformanceMonitor;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;

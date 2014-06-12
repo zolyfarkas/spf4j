@@ -27,8 +27,8 @@ import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.UnboundedLoadingCache;
-import org.spf4j.perf.annotations.PerformanceMonitor;
-import org.spf4j.perf.annotations.RecorderSourceInstance;
+import org.spf4j.annotations.PerformanceMonitor;
+import org.spf4j.annotations.RecorderSourceInstance;
 
 /**
  * Aspect that measures execution time and does performance logging
@@ -49,7 +49,7 @@ public final class PerformanceMonitorAspect {
         }
     });
 
-    @Around(value = "execution(@org.spf4j.perf.annotations.PerformanceMonitor * *(..)) && @annotation(annot)",
+    @Around(value = "execution(@org.spf4j.annotations.PerformanceMonitor * *(..)) && @annotation(annot)",
             argNames = "pjp,annot")
     public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final PerformanceMonitor annot)
             throws Throwable {
