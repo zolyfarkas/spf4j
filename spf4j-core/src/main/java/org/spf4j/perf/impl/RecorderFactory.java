@@ -16,18 +16,14 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.perf;
+package org.spf4j.perf.impl;
 
-import org.spf4j.perf.impl.CountingRecorder;
-import org.spf4j.perf.impl.MinMaxAvgRecorder;
-import org.spf4j.perf.impl.QuantizedRecorder;
-import org.spf4j.perf.impl.ScalableMeasurementRecorder;
-import org.spf4j.perf.impl.ScalableMeasurementRecorderSource;
 import org.spf4j.perf.impl.mdb.tsdb.TSDBMeasurementDatabase;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import org.spf4j.base.AbstractRunnable;
-import org.spf4j.perf.impl.DirectRecorder;
+import org.spf4j.perf.MeasurementRecorder;
+import org.spf4j.perf.MeasurementRecorderSource;
 
 /**
  *

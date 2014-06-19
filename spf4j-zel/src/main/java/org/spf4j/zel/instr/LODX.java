@@ -18,9 +18,10 @@
 package org.spf4j.zel.instr;
 
 import org.spf4j.zel.vm.ExecutionContext;
+import org.spf4j.zel.vm.ZExecutionException;
 
 
-public final class LODX extends Instruction {
+public final class LODX extends Instruction implements RValRef {
 
     private static final long serialVersionUID = 1257172216541960034L;
 
@@ -31,9 +32,24 @@ public final class LODX extends Instruction {
         this.symbol = symbol;
     }
     
+    
+    public static Object readFrom(final String symbol, final ExecutionContext context) throws ZExecutionException {
+        Integer addr  = context.code.getLocalSymbolTable().get(symbol);
+        if (addr == null) {
+            addr = context.code.getGlobalSymbolTable().get(symbol);
+            if (addr == null) {
+                throw new ZExecutionException("unalocated symbol encountered " + symbol);
+            }
+            return context.globalMem[addr];
+        } else {
+            return context.mem[addr];
+        }
+    }
+    
     @Override
-    public int execute(final ExecutionContext context) {
-        throw new UnsupportedOperationException();
+    public int execute(final ExecutionContext context) throws ZExecutionException {
+        context.push(readFrom(symbol, context));
+        return 1;
     }
  
     public String getSymbol() {

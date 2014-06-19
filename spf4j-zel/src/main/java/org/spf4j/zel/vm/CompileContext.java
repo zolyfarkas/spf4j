@@ -20,6 +20,7 @@ package org.spf4j.zel.vm;
 import org.spf4j.zel.instr.Instruction;
 
 
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("CD_CIRCULAR_DEPENDENCY")
 public final class CompileContext implements ParsingContext {
 
     private final ProgramBuilder prog;

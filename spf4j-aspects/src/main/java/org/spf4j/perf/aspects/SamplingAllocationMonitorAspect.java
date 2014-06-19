@@ -20,7 +20,7 @@ package org.spf4j.perf.aspects;
 
 import org.spf4j.base.InstrumentationHelper;
 import org.spf4j.perf.MeasurementRecorderSource;
-import org.spf4j.perf.RecorderFactory;
+import org.spf4j.perf.impl.RecorderFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;

@@ -17,6 +17,7 @@
  */
 package org.spf4j.perf;
 
+import org.spf4j.perf.impl.RecorderFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintWriter;

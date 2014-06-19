@@ -28,7 +28,7 @@ import javax.swing.filechooser.FileFilter;
  *
  * @author zoly
  */
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("FCBL_FIELD_COULD_BE_LOCAL")
+@edu.umd.cs.findbugs.annotations.SuppressWarnings({"FCBL_FIELD_COULD_BE_LOCAL", "UP_UNUSED_PARAMETER"})
 public class Explorer extends javax.swing.JFrame {
 
     /**

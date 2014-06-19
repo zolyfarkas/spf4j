@@ -19,7 +19,7 @@
 package org.spf4j.annotations;
 
 import org.spf4j.perf.MeasurementRecorderSource;
-import org.spf4j.perf.RecorderFactory;
+import org.spf4j.perf.impl.RecorderFactory;
 import org.spf4j.perf.impl.NopMeasurementRecorderSource;
 
 /**

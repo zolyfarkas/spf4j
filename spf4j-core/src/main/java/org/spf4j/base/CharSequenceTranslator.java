@@ -68,14 +68,6 @@ public abstract class CharSequenceTranslator {
         }
     }
 
-
-    public final CharSequenceTranslator with(final CharSequenceTranslator... translators) {
-        final CharSequenceTranslator[] newArray = new CharSequenceTranslator[translators.length + 1];
-        newArray[0] = this;
-        System.arraycopy(translators, 0, newArray, 1, translators.length);
-        return new AggregateTranslator(newArray);
-    }
-
     /**
      * <p>Returns an upper case hexadecimal <code>String</code> for the given
      * character.</p>

@@ -30,6 +30,8 @@ import javax.annotation.concurrent.Immutable;
  * @author zoly
  */
 @Immutable
+// using racy single check idiom makes findbugs think the Method obejct is mutable...
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("JCIP_FIELD_ISNT_FINAL_IN_IMMUTABLE_CLASS")
 public final class Method {
 
     private final String declaringClass;
@@ -100,10 +102,7 @@ public final class Method {
         if ((this.methodName == null) ? (other.methodName != null) : !this.methodName.equals(other.methodName)) {
             return false;
         }
-        if (this.id != other.id) {
-            return false;
-        }
-        return true;
+        return this.id == other.id;
     }
 
     @Override
@@ -162,6 +161,5 @@ public final class Method {
         }
         return result;
     }
-    
     
 }

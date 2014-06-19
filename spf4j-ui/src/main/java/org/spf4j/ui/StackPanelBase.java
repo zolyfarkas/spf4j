@@ -133,9 +133,10 @@ public abstract class StackPanelBase extends JPanel
     
     @Override
     public final void actionPerformed(final ActionEvent e) {
-        if (e.getActionCommand().equals("FILTER")) {
+        final String actionCommand = e.getActionCommand();
+        if ("FILTER".equals(actionCommand)) {
             filter();
-        } else if (e.getActionCommand().equals("COPY")) {
+        } else if ("COPY".equals(actionCommand)) {
             final String detail = getDetail(new Point(xx, yy));
             java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().setContents(
                     new Transferable() {

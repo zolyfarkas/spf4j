@@ -17,10 +17,12 @@
  */
 package org.spf4j.zel.instr;
 
+import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
+import org.spf4j.zel.vm.ZExecutionException;
 
 
-public final class LODAX extends Instruction {
+public final class LODAX extends Instruction implements LValRef {
 
     private static final long serialVersionUID = 1257172216541960034L;
 
@@ -29,10 +31,38 @@ public final class LODAX extends Instruction {
     public LODAX(final String symbol) {
         this.symbol = symbol;
     }
+    
+    
+    public static void writeTo(final String symbol, final ExecutionContext context, final Object what)
+            throws ZExecutionException {
+        Integer addr  = context.code.getLocalSymbolTable().get(symbol);
+        if (addr == null) {
+            addr = context.code.getGlobalSymbolTable().get(symbol);
+            if (addr == null) {
+                throw new ZExecutionException("unalocated symbol encountered " + symbol);
+            }
+            context.globalMem[addr] = what;
+        } else {
+            context.mem[addr] = what;
+        }
+    }
 
     @Override
     public int execute(final ExecutionContext context) {
-        throw new UnsupportedOperationException();
+           
+        context.push(new AssignableValue() {
+
+            @Override
+            public void assign(final Object object) throws ZExecutionException {
+                writeTo(symbol, context, object);
+            }
+
+            @Override
+            public Object get() throws ZExecutionException {
+                return LODX.readFrom(symbol, context);
+            }
+        });
+        return 1;
     }
 
     public String getSymbol() {

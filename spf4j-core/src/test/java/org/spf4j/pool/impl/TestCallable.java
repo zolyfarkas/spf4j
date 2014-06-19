@@ -36,7 +36,7 @@ public final class TestCallable implements Callable<Integer> {
             public void handle(final ExpensiveTestObject object) throws IOException {
                 object.doStuff();
             }
-        }, pool, IOException.class);
+        }, pool);
         return testNr;
     }
     

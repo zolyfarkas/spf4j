@@ -40,10 +40,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import org.spf4j.base.Pair;
 import org.spf4j.zel.instr.Instruction;
-import org.spf4j.zel.instr.LODAX;
-import org.spf4j.zel.instr.LODAXF;
-import org.spf4j.zel.instr.LODX;
-import org.spf4j.zel.instr.LODXF;
+import org.spf4j.zel.instr.LValRef;
 import org.spf4j.zel.instr.var.ARRAY;
 import org.spf4j.zel.instr.var.INT;
 import org.spf4j.zel.instr.var.LOG;
@@ -84,21 +81,11 @@ public final class Program implements Serializable {
     private final int id; // program ID, unique ID identifying the program
 
     private final Instruction[] instructions;
-    private final String[] parameterNames;
     private final boolean hasDeterministicFunctions;
     private final Object[] globalMem;
     private final int localMemSize;
     private final Map<String, Integer> localSymbolTable;
-
-
-    Program(final Map<String, Integer> globalTable, final Object[] globalMem,
-            @Nonnull final Instruction[] objs, @Nonnegative final int start,
-            @Nonnegative final int end, final Type progType, final ExecutionType execType,
-            final boolean hasDeterministicFunctions, final String... parameterNames) throws CompileException {
-        this(globalTable, globalMem, Collections.EMPTY_MAP,
-                objs, start, end, progType, execType, hasDeterministicFunctions, parameterNames);
-    
-    }
+    private final Map<String, Integer> globalSymbolTable;
     
     Program(final Map<String, Integer> globalTable, final Object[] globalMem, final Map<String, Integer> localTable,
             @Nonnull final Instruction[] objs, @Nonnegative final int start,
@@ -110,21 +97,37 @@ public final class Program implements Serializable {
         System.arraycopy(objs, start, instructions, 0, length);
         this.type = progType;
         this.id = ProgramBuilder.generateID();
-        this.parameterNames = parameterNames;
         this.execType = execType;
         this.hasDeterministicFunctions = hasDeterministicFunctions;
-        this.localSymbolTable = buildLocalSymTable(parameterNames, length, globalTable, localTable);
+        this.localSymbolTable = buildLocalSymTable(objs, parameterNames, length, globalTable, localTable);
         this.localMemSize = localSymbolTable.size();
+        this.globalSymbolTable = globalTable;
     }
+    
+    Program(final Map<String, Integer> globalTable, final Object[] globalMem, final Map<String, Integer> localTable,
+            @Nonnull final Instruction[] instructions, final Type progType, final ExecutionType execType,
+            final boolean hasDeterministicFunctions) throws CompileException {
+        this.globalMem = globalMem;
+        this.instructions = instructions;
+        this.type = progType;
+        this.id = ProgramBuilder.generateID();
+        this.execType = execType;
+        this.hasDeterministicFunctions = hasDeterministicFunctions;
+        this.localSymbolTable = localTable;
+        this.localMemSize = localSymbolTable.size();
+        this.globalSymbolTable = globalTable;
+    }
+    
+    
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(
-            { "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "ITC_INHERITANCE_TYPE_CHECKING" })
-    private Map<String, Integer> buildLocalSymTable(final String[] parameterNames1,
+    private static Map<String, Integer> buildLocalSymTable(final Instruction [] instructions,
+            final String[] parameterNames1,
             final int length, final Map<String, Integer> globalTable,
             final Map<String, Integer> addTo) throws CompileException {
         final int addToSize = addTo.size();
         Map<String, Integer> symbolTable = new HashMap<String, Integer>(addToSize + parameterNames1.length);
         symbolTable.putAll(addTo);
+        // allocate program params
         int i = addToSize;
         for (String param : parameterNames1) {
             Integer existing = symbolTable.put(param, i++);
@@ -132,43 +135,26 @@ public final class Program implements Serializable {
                 throw new CompileException("Duplicate parameter defined: " + param);
             }
         }
+        // allocate variables used in Program
         for (int j = 0; j < length; j++) {
             Instruction code = instructions[j];
-            if (code instanceof LODX) {
-                String ref = ((LODX) code).getSymbol();
+            if (code instanceof LValRef) {
+                String ref = ((LValRef) code).getSymbol();
                 Integer idxr = symbolTable.get(ref);
-                Address adr;
-                if (idxr == null) {
-                    idxr = globalTable.get(ref);
-                    if (idxr == null) {
-                        throw new CompileException("undefined variable: " + ref);
-                    } else {
-                        adr = new Address(idxr, Address.Scope.GLOBAL);
-                    }
-                } else {
-                    adr = new Address(idxr, Address.Scope.LOCAL);
-                }
-                instructions[j] = new LODXF(adr);
-            } else if (code instanceof LODAX) {
-                String ref = ((LODAX) code).getSymbol();
-                Integer idxr = symbolTable.get(ref);
-                Address adr;
                 if (idxr == null) {
                     idxr = globalTable.get(ref);
                     if (idxr == null) {
                         idxr = i++;
                         symbolTable.put(ref, idxr);
-                        adr = new Address(idxr, Address.Scope.LOCAL);
-                    } else {
-                        adr = new Address(idxr, Address.Scope.GLOBAL);
                     }
-                } else {
-                    adr = new Address(idxr, Address.Scope.LOCAL);
                 }
-                instructions[j] = new LODAXF(adr);
             }
         }
         return symbolTable;
+    }
+
+    public Map<String, Integer> getGlobalSymbolTable() {
+        return globalSymbolTable;
     }
 
     public Map<String, Integer> getLocalSymbolTable() {
@@ -179,9 +165,16 @@ public final class Program implements Serializable {
        return localMemSize;
     }
 
+    Object[] getGlobalMem() {
+        return globalMem;
+    }
+    
+    
+    
+    
     @Override
     @CheckReturnValue
-    public boolean equals(@Nullable final Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }
@@ -227,7 +220,7 @@ public final class Program implements Serializable {
     public static Program compile(@Nonnull final String zExpr, @Nonnull final String... varNames)
             throws CompileException {
 
-        CompileContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());
+        ParsingContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());
         try {
             ZCompiler.compile(zExpr, cc);
         } catch (TokenMgrError err) {
@@ -235,7 +228,7 @@ public final class Program implements Serializable {
         } catch (ParseException ex) {
             throw new CompileException(ex);
         }
-        return cc.getProgramBuilder().toProgram(varNames);
+        return RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram(varNames));
     }
     
     
@@ -243,7 +236,7 @@ public final class Program implements Serializable {
             @Nonnull final String... varNames)
             throws CompileException {
 
-        CompileContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());
+        ParsingContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());
         try {
             ZCompiler.compile(zExpr, cc);
         } catch (TokenMgrError err) {
@@ -531,10 +524,6 @@ public final class Program implements Serializable {
      */
     public Program.Type getType() {
         return type;
-    }
-
-    String[] getParameterNames() {
-        return parameterNames;
     }
 
     public boolean contains(final Class<? extends Instruction> instr) {

@@ -52,11 +52,11 @@ public final class ZStackPanel extends StackPanelBase {
 
     @Override
     public int paint(final Graphics2D gr, final double width, final double rowHeight) {
-        paintGraph(Method.ROOT, gr, 0, 0, (int) width, rowHeight);
+        paintGraph(gr, 0, 0, (int) width, rowHeight);
         return (int) totalHeight;
     }
 
-    private void paintGraph(final Method method,
+    private void paintGraph(
             final Graphics2D g2, final int x, final int y, final double areaWidth, final double rowHeight) {
 
         graph = completeGraph.copy();
@@ -213,15 +213,16 @@ public final class ZStackPanel extends StackPanelBase {
         List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{location.x, location.y}, new float[]{0, 0});
         if (tips.size() >= 1) {
             final Pair<Method, Integer> node = tips.get(0);
+            final Method method = node.getFirst();
             final Map<SampleNode.InvocationCount, Method> incomming =
-                    graph.getEdges(node.getFirst()).getIncomming();
+                    graph.getEdges(method).getIncomming();
             StringBuilder sb = new StringBuilder();
-            sb.append(node.getFirst()).append('-').append(node.getSecond())
+            sb.append(method).append('-').append(node.getSecond())
                     .append("\n invoked from: ");
             appendEdgeInfo(incomming, sb);
             sb.append("\n invoking: ");
             final Map<SampleNode.InvocationCount, Method> outgoing =
-                    graph.getEdges(node.getFirst()).getOutgoing();
+                    graph.getEdges(method).getOutgoing();
             appendEdgeInfo(outgoing, sb);
             return sb.toString();
         } else {

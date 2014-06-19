@@ -20,7 +20,9 @@ package org.spf4j.zel.vm;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -49,17 +51,26 @@ public final class QSortTest {
             testArray[i] = random.nextInt();
         }
         
+        Integer [] resultPar = null;
         for (int i = 0; i < 3; i++) {
             long startTime = System.currentTimeMillis();
-            p.execute(new Object [] {testArray.clone()});
+            resultPar = testArray.clone();
+            p.execute(new Object [] {resultPar});
             System.out.println("Parallel exec time = " + (System.currentTimeMillis() - startTime));
         }
         
+        Integer [] resultSt = null;
         for (int i = 0; i < 3; i++) {
             long startTime = System.currentTimeMillis();
-            p.executeSingleThreaded(new Object [] {testArray.clone()});
+            resultSt = testArray.clone();
+            p.executeSingleThreaded(new Object [] {resultSt});
             System.out.println("ST exec time = " + (System.currentTimeMillis() - startTime));
         }
+        
+        Arrays.sort(testArray);
+        
+        Assert.assertArrayEquals((Object []) resultSt, (Object []) resultPar);
+        Assert.assertArrayEquals((Object []) resultSt, testArray);
     }
     
 }

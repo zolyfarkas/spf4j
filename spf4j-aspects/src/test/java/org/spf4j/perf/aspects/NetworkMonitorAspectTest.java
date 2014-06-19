@@ -17,7 +17,7 @@
  */
 package org.spf4j.perf.aspects;
 
-import org.spf4j.perf.RecorderFactory;
+import org.spf4j.perf.impl.RecorderFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

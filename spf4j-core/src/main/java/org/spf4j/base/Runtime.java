@@ -74,7 +74,7 @@ public final class Runtime {
     private static final File FD_FOLDER = new File("/proc/" + PID + "/fd");
     
     public static boolean isMacOsx() {
-        return OS_NAME.equals(MAC_OS_X_OS_NAME);
+        return MAC_OS_X_OS_NAME.equals(OS_NAME);
     }
     
     public static boolean isWindows() {

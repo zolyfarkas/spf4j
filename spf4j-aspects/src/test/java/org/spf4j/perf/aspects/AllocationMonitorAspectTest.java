@@ -19,7 +19,7 @@
 package org.spf4j.perf.aspects;
 
 import com.google.common.base.Strings;
-import org.spf4j.perf.RecorderFactory;
+import org.spf4j.perf.impl.RecorderFactory;
 import java.io.IOException;
 import org.junit.Test;
 import org.spf4j.perf.io.OpenFilesSampler;

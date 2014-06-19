@@ -26,7 +26,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.spf4j.perf.io.MeasuredInputStream;
 import org.spf4j.perf.io.MeasuredOutputStream;
 import org.spf4j.perf.MeasurementRecorderSource;
-import org.spf4j.perf.RecorderFactory;
+import org.spf4j.perf.impl.RecorderFactory;
 
 /**
  * Aspect that intercepts and records to a tsdb all network read/writes.

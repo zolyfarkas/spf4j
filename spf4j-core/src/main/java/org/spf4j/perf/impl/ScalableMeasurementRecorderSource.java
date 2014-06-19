@@ -36,6 +36,8 @@ import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
 
 @ThreadSafe
+// a recorder instance is tipically alive for the entire life of the process
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
 public final class ScalableMeasurementRecorderSource implements
         MeasurementRecorderSource, EntityMeasurementsSource, Closeable {
 
@@ -50,7 +52,7 @@ public final class ScalableMeasurementRecorderSource implements
     private final ScheduledFuture<?> samplingFuture;
     private final MeasurementProcessor processorTemplate;
     
-    public ScalableMeasurementRecorderSource(final MeasurementProcessor processor,
+    ScalableMeasurementRecorderSource(final MeasurementProcessor processor,
             final int sampleTimeMillis, final MeasurementDatabase database) {
         this.processorTemplate = processor;
         measurementProcessorMap = new HashMap<Thread, Map<Object, MeasurementProcessor>>();

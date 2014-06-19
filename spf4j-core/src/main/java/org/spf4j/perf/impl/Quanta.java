@@ -18,6 +18,7 @@
 package org.spf4j.perf.impl;
 
 import java.io.Serializable;
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -34,19 +35,19 @@ public final class Quanta implements Comparable<Quanta>, Serializable {
         this.intervalEnd = intervalEnd;
     }
 
-    public Quanta(final String stringVariant) {
+    public Quanta(@Nonnull final String stringVariant) {
         int undLocation = stringVariant.indexOf('_');
         if (undLocation < 0) {
             throw new IllegalArgumentException("Invalid Quanta DataSource " + stringVariant);
         }
         String startStr = stringVariant.substring(1, undLocation);
         String endStr = stringVariant.substring(undLocation + 1);
-        if (startStr.equals("NI")) {
+        if ("NI".equals(startStr)) {
             this.intervalStart = Long.MIN_VALUE;
         } else {
             this.intervalStart = Long.parseLong(startStr);
         }
-        if (endStr.equals("PI")) {
+        if ("PI".equals(endStr)) {
             this.intervalEnd = Long.MAX_VALUE;
         } else {
             this.intervalEnd = Long.parseLong(endStr);
@@ -106,8 +107,5 @@ public final class Quanta implements Comparable<Quanta>, Serializable {
         final Quanta other = (Quanta) obj;
         return this.compareTo(other) == 0;
     }
-    
-    
-    
 
 }

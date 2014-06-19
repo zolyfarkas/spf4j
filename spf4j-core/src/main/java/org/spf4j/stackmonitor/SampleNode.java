@@ -246,11 +246,6 @@ public final class SampleNode {
             public void handle(final Method pfrom, final Method pto, final int count,
                     final Map<Method, Integer> ancestors) {
 
-                if (pto.getMethodName().equals("write")
-                        && pto.getDeclaringClass().endsWith("TeeOutputStream")) {
-                    System.out.println();
-                }
-
                 Method from = pfrom;
                 Method to = pto;
                 Integer val = ancestors.get(from);
@@ -261,8 +256,7 @@ public final class SampleNode {
                 if (val != null) {
                     to = to.withId(val);
                 }
-
-
+                
                 InvocationCount ic = result.getEdge(from, to);
 
                 if (ic == null) {

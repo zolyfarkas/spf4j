@@ -46,7 +46,7 @@ import org.spf4j.perf.tsdb.TimeSeriesDatabase;
  *
  * @author zoly
  */
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("FCBL_FIELD_COULD_BE_LOCAL")
+@edu.umd.cs.findbugs.annotations.SuppressWarnings({"FCBL_FIELD_COULD_BE_LOCAL"})
 public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
 
     private final TimeSeriesDatabase tsDb;
@@ -194,6 +194,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("UP_UNUSED_PARAMETER")
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         TreePath[] selectionPaths = measurementTree.getSelectionPaths();
         JPanel content = new JPanel();
@@ -210,6 +211,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         chartPannel.repaint();
     }//GEN-LAST:event_jButton1ActionPerformed
 
+        @edu.umd.cs.findbugs.annotations.SuppressWarnings("UP_UNUSED_PARAMETER")
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         TreePath[] selectionPaths = measurementTree.getSelectionPaths();
         List<String> selectedTables = getSelectedTables(selectionPaths);

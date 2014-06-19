@@ -51,7 +51,7 @@ public final class Template<T, E extends Exception> {
             public Void call() throws ObjectReturnException, ObjectDisposeException,
                     ObjectCreationException, ObjectBorrowException,
                     InterruptedException, TimeoutException, E  {
-                doOnPooledObject(handler, pool, exceptionClasz);
+                doOnPooledObject(handler, pool);
                 return null;
             }
         }, nrImmediateRetries, nrTotalRetries, retryWaitMillis);
@@ -61,7 +61,7 @@ public final class Template<T, E extends Exception> {
     //findbugs does not know about supress in spf4j
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
     public static <T, E extends Exception> void doOnPooledObject(final Handler<T, E> handler,
-            final ObjectPool<T> pool, final Class<E> clasz)
+            final ObjectPool<T> pool)
             throws ObjectReturnException, ObjectCreationException,
             ObjectBorrowException, InterruptedException, TimeoutException, E {
         T object = pool.borrowObject();

@@ -25,7 +25,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.spf4j.perf.io.MeasuredFileInputStream;
 import org.spf4j.perf.io.MeasuredFileOutputStream;
 import org.spf4j.perf.MeasurementRecorderSource;
-import org.spf4j.perf.RecorderFactory;
+import org.spf4j.perf.impl.RecorderFactory;
 
 /**
  * Aspect that intercepts File Read and File Write.

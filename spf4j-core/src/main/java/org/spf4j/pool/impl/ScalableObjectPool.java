@@ -27,6 +27,8 @@ import java.util.concurrent.TimeoutException;
  *
  * @author zoly
  */
+// a pool instance is tipically alive for the entire life of the process
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
 final class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<ObjectHolder<T>> {
 
     private final SimpleSmartObjectPool<ObjectHolder<T>> globalPool;

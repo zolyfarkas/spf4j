@@ -48,7 +48,7 @@ final class Header {
             byte[] bType = new byte[4];
             raf.readFully(bType);
             this.type = new String(bType, Charsets.US_ASCII);
-            if (!this.type.equals(TYPE)) {
+            if (!TYPE.equals(this.type)) {
                 throw new IOException("Invalid File Type " + this.type);
             }
             this.version = raf.readInt();

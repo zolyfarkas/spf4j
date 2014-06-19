@@ -69,8 +69,8 @@ public final class JdbcConnectionFactory  implements ObjectPool.Factory<Connecti
 
             
             @Override
-            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                if (method.getName().equals("close")) {
+            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Exception {
+                if ("close".equals(method.getName())) {
                     pool.returnObject((Connection) proxy, ex);
                     ex = null;
                     return null;

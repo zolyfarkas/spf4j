@@ -60,11 +60,10 @@ public final class Channel {
     
     public void close() {
         synchronized (this) {
-            VMFuture<Object> reader = readers.poll();
-            while (reader != null) {
+            VMFuture<Object> reader;
+            while ((reader = readers.poll()) != null) {
                 reader.setResult(EOF);
                 exec.resumeSuspendables(reader);
-                reader = readers.poll();
             }
             queue.add(EOF);
             closed = true;

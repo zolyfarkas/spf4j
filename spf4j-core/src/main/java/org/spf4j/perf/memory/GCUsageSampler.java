@@ -22,7 +22,7 @@ import java.lang.management.GarbageCollectorMXBean;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.perf.MeasurementRecorder;
-import org.spf4j.perf.RecorderFactory;
+import org.spf4j.perf.impl.RecorderFactory;
 import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;

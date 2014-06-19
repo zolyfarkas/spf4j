@@ -184,15 +184,17 @@ public final class TSDBMeasurementDatabase
             }
             Multimap<String, TSTable> counters = getCounters(columnsInfo);
             for (Map.Entry<String, Collection<TSTable>> entry : counters.asMap().entrySet()) {
-                long[][] timestamps = new long[entry.getValue().size()][];
-                double[][] cdata = new double[entry.getValue().size()][];
-                double[][] cdata2 = new double[entry.getValue().size()][];
+                Collection<TSTable> tables = entry.getValue();
+                int l = tables.size();
+                long[][] timestamps = new long[l][];
+                double[][] cdata = new double[l][];
+                double[][] cdata2 = new double[l][];
                 int i = 0;
                 String[] measurementNames = new String[cdata.length];
                 String[] measurementNames2 = new String[cdata2.length];
                 String uom1 = "count";
                 String uom2 = "";
-                for (TSTable colInfo : entry.getValue()) {
+                for (TSTable colInfo : tables) {
                     Pair<long[], long[][]> data = database.read(colInfo.getTableName(), startTimeMillis, endTimeMillis);
                     timestamps[i] = data.getFirst();
                     cdata[i] = Arrays.getColumnAsDoubles(data.getSecond(), colInfo.getColumnIndex("count"));
@@ -236,8 +238,8 @@ public final class TSDBMeasurementDatabase
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
     public static boolean isCounterOnly(final TSTable info) {
         String[] columns = info.getColumnNames();
-        return columns.length == 2 && columns[0].equals("count")
-                && columns[1].equals("total");
+        return columns.length == 2 && "count".equals(columns[0])
+                && "total".equals(columns[1]);
     }
 
     public static boolean canGenerateMinMaxAvgCount(final TSTable info) {

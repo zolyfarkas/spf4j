@@ -40,6 +40,8 @@ import org.slf4j.LoggerFactory;
  * @author zoly
  */
 @ThreadSafe
+// a recorder instance is tipically alive for the entire life of the process
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
 public final class ScalableMeasurementRecorder implements MeasurementRecorder, EntityMeasurements, Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);
@@ -49,7 +51,8 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
     private final ScheduledFuture<?> samplingFuture;
     private final MeasurementProcessor processorTemplate;
 
-    public ScalableMeasurementRecorder(final MeasurementProcessor processor, final int sampleTimeMillis,
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
+    ScalableMeasurementRecorder(final MeasurementProcessor processor, final int sampleTimeMillis,
             final MeasurementDatabase database) {
         threadLocalRecorders = new HashMap<Thread, MeasurementProcessor>();
         processorTemplate = processor;
@@ -129,7 +132,7 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
     }
 
     @Override
-    protected void finalize() throws Throwable {
+    protected void finalize() throws Throwable  {
         try {
             super.finalize();
         } finally {

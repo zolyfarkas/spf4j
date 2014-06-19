@@ -18,9 +18,7 @@
 package org.spf4j.zel.instr;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.Arrays;
-import javax.annotation.Nullable;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
@@ -63,28 +61,5 @@ public abstract class Instruction implements Serializable {
         }
     }
 
-
-    @Nullable
-    public static Instruction getInstruction(final String packageName, final String instrName) {
-        Class<Instruction> clasz;
-        try {
-            clasz = (Class<Instruction>) Class.forName(packageName + "." + instrName);
-        } catch (ClassNotFoundException ex) {
-            return null;
-        }
-        Field[] fields = clasz.getFields();
-        for (Field field : fields) {
-            if (field.getName().equalsIgnoreCase("instance")) {
-                try {
-                    return (Instruction) field.get(null);
-                } catch (IllegalArgumentException ex) {
-                    throw new RuntimeException(ex);
-                } catch (IllegalAccessException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-        }
-        return null;
-    }
 
 }

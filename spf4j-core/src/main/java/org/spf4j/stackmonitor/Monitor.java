@@ -86,7 +86,7 @@ public final class Monitor {
         
         int sepPos = args.length;
         for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("--")) {
+            if ("--".equals(args[i])) {
                 sepPos = i;
                 break;
             }
