@@ -30,7 +30,7 @@ import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
  *
  * @author zoly
  */
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("FCBL_FIELD_COULD_BE_LOCAL")
+@edu.umd.cs.findbugs.annotations.SuppressFBWarnings("FCBL_FIELD_COULD_BE_LOCAL")
 public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
 
     private SampleNode samples;

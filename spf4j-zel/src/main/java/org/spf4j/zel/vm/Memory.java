@@ -17,7 +17,7 @@
  */
 package org.spf4j.zel.vm;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
 
 /**
@@ -30,7 +30,7 @@ public final class Memory {
     
     private final Map<String, Integer> symbolTable;
 
-    @SuppressWarnings("EI_EXPOSE_REP2")
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public Memory(final Object[] mem, final Map<String, Integer> symbolTable) {
         this.mem = mem;
         this.symbolTable = symbolTable;
