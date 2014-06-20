@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  */
 @ThreadSafe
 // a recorder instance is tipically alive for the entire life of the process
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
+@edu.umd.cs.findbugs.annotations.SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
 public final class ScalableMeasurementRecorder implements MeasurementRecorder, EntityMeasurements, Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);
