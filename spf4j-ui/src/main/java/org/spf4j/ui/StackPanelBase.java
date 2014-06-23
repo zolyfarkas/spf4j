@@ -59,7 +59,7 @@ public abstract class StackPanelBase extends JPanel
     protected int xx;
     protected int yy;    
     //CHECKSTYLE:ON
-    private JPopupMenu menu;
+    private final JPopupMenu menu;
 
     public static final Color LINK_COLOR = new Color(128, 128, 128, 128);
     
