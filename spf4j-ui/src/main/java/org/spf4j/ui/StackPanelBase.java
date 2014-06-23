@@ -76,7 +76,7 @@ public abstract class StackPanelBase extends JPanel
     
         // disable finbugs since I don't care about internationalization for now.
     @edu.umd.cs.findbugs.annotations.SuppressWarnings
-    public static JPopupMenu buildPopupMenu(final ActionListener listener) {
+    private static JPopupMenu buildPopupMenu(final ActionListener listener) {
         JPopupMenu result = new JPopupMenu("Actions");
         JMenuItem filter = new JMenuItem("Filter");
         filter.setActionCommand("FILTER");
