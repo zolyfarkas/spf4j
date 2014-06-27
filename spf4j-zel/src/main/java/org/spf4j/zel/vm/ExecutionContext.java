@@ -17,7 +17,6 @@
  */
 package org.spf4j.zel.vm;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.math.MathContext;
@@ -125,8 +124,16 @@ public final class ExecutionContext {
      * @param out
      * @param err
      */
-    @SuppressWarnings("EI_EXPOSE_REP2")
-    public ExecutionContext(final Program program, final Object[] globalMem,
+     ExecutionContext(final Program program, final Object[] globalMem,
+            @Nullable final InputStream in, @Nullable final PrintStream out, @Nullable final PrintStream err,
+            @Nullable final VMExecutor execService) {
+        this(program, globalMem, program.hasDeterministicFunctions() ? new SimpleResultCache() : null,
+                in, out, err, execService);
+    }
+    
+    
+    ExecutionContext(final Program program, final Object[] globalMem,
+            @Nullable final ResultCache resultCache,
             @Nullable final InputStream in, @Nullable final PrintStream out, @Nullable final PrintStream err,
             @Nullable final VMExecutor execService) {
         this.code = program;
@@ -138,11 +145,7 @@ public final class ExecutionContext {
         this.ip = 0;
         this.mem = new Object[program.getLocalMemSize()];
         this.globalMem = globalMem;
-        if (program.hasDeterministicFunctions()) {
-            this.resultCache = new SimpleResultCache();
-        } else {
-            this.resultCache = null;
-        }
+        this.resultCache = resultCache;
         isChildContext = false;
     }
 
@@ -357,11 +360,14 @@ public final class ExecutionContext {
 
     @Override
     public String toString() {
-        return "ExecutionContext{" + "execService=" + execService + ", resultCache="
-                + resultCache + ", memory=" + Arrays.toString(mem)
-                + ", code=" + code + ", ip=" + ip + ", terminated=" + terminated
-                + ", stack=" + stack + ", in=" + in
-                + ", out=" + out + ", err=" + err + '}';
+        return "ExecutionContext{" + "execService=" + execService + ",\nresultCache="
+                + resultCache + ",\nmemory=" + Arrays.toString(mem)
+                + ",\nlocalSymbolTable=" + code.getLocalSymbolTable()
+                + ",\nglobalMem=" + Arrays.toString(globalMem)
+                + ",\nglobalSymbolTable=" + code.getGlobalSymbolTable()
+                + ",\ncode=" + code + ", ip=" + ip + ", terminated=" + terminated
+                + ",\nstack=" + stack + ", in=" + in
+                + ",\nout=" + out + ", err=" + err + '}';
     }
 
     public boolean isChildContext() {

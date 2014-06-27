@@ -38,7 +38,7 @@ public final  class MemoryBuilder {
         symbolTable = new HashMap<String, Integer>();
     }
 
-    private MemoryBuilder(final List<Object> memory, final Map<String, Integer> symbolTable) {
+    MemoryBuilder(final List<Object> memory, final Map<String, Integer> symbolTable) {
         this.memory = memory;
         this.symbolTable = symbolTable;
         this.idx = memory.size();

@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -232,11 +234,15 @@ public final class Program implements Serializable {
     }
     
     
-    static Program compile(@Nonnull final String zExpr, final Map<String, Integer> localTable,
+    static Program compile(@Nonnull final String zExpr,
+            final Map<String, Integer> localTable,
+            final Object [] globalMem,
+            final Map<String, Integer> globalTable,
             @Nonnull final String... varNames)
             throws CompileException {
 
-        ParsingContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());
+        ParsingContext cc = new CompileContext(new MemoryBuilder(
+                new ArrayList<Object>(Arrays.asList(globalMem)), globalTable));
         try {
             ZCompiler.compile(zExpr, cc);
         } catch (TokenMgrError err) {
@@ -306,9 +312,10 @@ public final class Program implements Serializable {
             @Nullable final InputStream in,
             @Nullable final PrintStream out,
             @Nullable final PrintStream err,
+            final ResultCache resultCache,
             final Object... args)
             throws ZExecutionException, InterruptedException {
-        final ExecutionContext ectx = new ExecutionContext(this, globalMem, in, out, err, execService);
+        final ExecutionContext ectx = new ExecutionContext(this, globalMem, resultCache, in, out, err, execService);
         System.arraycopy(args, 0, ectx.mem, 0, args.length);
         try {
             return Pair.of(execute(ectx), ectx);
@@ -476,7 +483,11 @@ public final class Program implements Serializable {
         System.out.println("ZEL Shell");
         boolean terminated = false;
         Map<String, Integer> localSymTable = Collections.EMPTY_MAP;
+        Pair<Object[], Map<String, Integer>> gmemPair = ZEL_GLOBAL_FUNC.build();
+        Map<String, Integer> globalSymTable = gmemPair.getSecond();
         Object [] mem = new Object [] {};
+        Object [] gmem = gmemPair.getFirst();
+        ResultCache resCache = new SimpleResultCache();
         InputStreamReader inp = new InputStreamReader(System.in, Charsets.UTF_8);
         BufferedReader br = new BufferedReader(inp);
         while (!terminated) {
@@ -487,12 +498,16 @@ public final class Program implements Serializable {
                     terminated = true;
                 } else {
                     try {
-                        final Program prog = Program.compile(line, localSymTable);
+                        final Program prog = Program.compile(line, localSymTable, gmem, globalSymTable);
                         localSymTable = prog.getLocalSymbolTable();
+                        globalSymTable = prog.getGlobalSymbolTable();
+                        gmem = prog.getGlobalMem();
                         Pair<Object, ExecutionContext> res = prog.executeX(
-                                VMExecutor.Lazy.DEFAULT, System.in, System.out, System.err, mem);
+                                VMExecutor.Lazy.DEFAULT, System.in, System.out, System.err, resCache, mem);
                         System.out.println("result>" + res.getFirst());
-                        mem = res.getSecond().mem;
+                        final ExecutionContext execCtx = res.getSecond();
+                        mem = execCtx.mem;
+                        resCache = execCtx.resultCache;
                     } catch (CompileException ex) {
                         System.out.println("Syntax Error: " + Throwables.getStackTraceAsString(ex));
                     } catch (ZExecutionException ex) {

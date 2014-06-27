@@ -140,6 +140,26 @@ public final class Arrays {
         return copy;
     }
     
+    public static <T> T[] concat(final T[] ... arrays) {
+        if (arrays.length < 2) {
+            throw new IllegalArgumentException("You should concatenate at least 2 arrays");
+        }
+        int newLength = 0;
+        for (T[] arr : arrays) {
+            newLength += arr.length;
+        }
+        Class<?> newType = arrays[0].getClass();
+        T[] result = ((Object) newType == (Object) Object[].class)
+            ? (T[]) new Object[newLength]
+            : (T[]) Array.newInstance(newType.getComponentType(), newLength);
+        int destIdx = 0;
+        for (T[] arr : arrays) {
+            System.arraycopy(arr, 0, result, destIdx, arr.length);
+            destIdx += arr.length;
+        }
+        return result;
+    }
+    
     public static final Object [] EMPTY_OBJ_ARRAY = new Object [] {};
     
 }

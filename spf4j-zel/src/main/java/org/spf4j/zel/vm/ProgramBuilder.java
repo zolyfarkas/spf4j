@@ -255,8 +255,18 @@ public final class ProgramBuilder {
         intern(instructions);
         intern(parameterNames);
         Pair<Object[], Map<String, Integer>> build = staticMemBuilder.build();
+        boolean hasAsyncPrograms = false;
+        for (Object obj : build.getFirst()) {
+            if (obj instanceof Program) {
+                Program prog = (Program) obj;
+                if (prog.getExecType() == Program.ExecutionType.ASYNC) {
+                    hasAsyncPrograms = true;
+                    break;
+                }
+            }
+        }
         return new Program(build.getSecond(), build.getFirst(), localTable, instructions, 0, instrNumber, type,
-                this.execType == Program.ExecutionType.ASYNC || hasAsyncCalls()
+                hasAsyncPrograms || this.execType == Program.ExecutionType.ASYNC || hasAsyncCalls()
                         ? (this.execType == null ? Program.ExecutionType.ASYNC : this.execType)
                         : Program.ExecutionType.SYNC,
                 hasDeterministicFunctions(), parameterNames);
