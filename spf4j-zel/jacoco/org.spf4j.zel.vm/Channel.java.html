@@ -60,22 +60,21 @@ public final class Channel {
     
     public void close() {
 <span class="fc" id="L62">        synchronized (this) {</span>
-<span class="fc" id="L63">            VMFuture&lt;Object&gt; reader = readers.poll();</span>
-<span class="pc bpc" id="L64" title="1 of 2 branches missed.">            while (reader != null) {</span>
+            VMFuture&lt;Object&gt; reader;
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">            while ((reader = readers.poll()) != null) {</span>
 <span class="nc" id="L65">                reader.setResult(EOF);</span>
 <span class="nc" id="L66">                exec.resumeSuspendables(reader);</span>
-<span class="nc" id="L67">                reader = readers.poll();</span>
             }
-<span class="fc" id="L69">            queue.add(EOF);</span>
-<span class="fc" id="L70">            closed = true;</span>
-<span class="pc" id="L71">        }</span>
-<span class="fc" id="L72">    }</span>
+<span class="fc" id="L68">            queue.add(EOF);</span>
+<span class="fc" id="L69">            closed = true;</span>
+<span class="pc" id="L70">        }</span>
+<span class="fc" id="L71">    }</span>
 
-<span class="fc" id="L74">    public static class Factory implements Method {</span>
+<span class="fc" id="L73">    public static class Factory implements Method {</span>
 
         @Override
         public final Object invoke(final ExecutionContext context, final Object[] parameters) throws Exception {
-<span class="fc" id="L78">            return new Channel(context.execService);</span>
+<span class="fc" id="L77">            return new Channel(context.execService);</span>
         }
 
     }

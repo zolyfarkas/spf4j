@@ -21,6 +21,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,134 +46,134 @@ public final class ProgramBuilder {
     
     private Program.ExecutionType execType;
 
-<span class="fc" id="L48">    private static final AtomicInteger COUNTER = new AtomicInteger();</span>
+<span class="fc" id="L49">    private static final AtomicInteger COUNTER = new AtomicInteger();</span>
     
     private final Interner&lt;String&gt; stringInterner;
     
     private final MemoryBuilder staticMemBuilder;
     
     public static int generateID() {
-<span class="fc" id="L55">        return COUNTER.getAndIncrement();</span>
+<span class="fc" id="L56">        return COUNTER.getAndIncrement();</span>
     }
     /**
      * initializes the program
      */
-<span class="fc" id="L60">    public ProgramBuilder(final MemoryBuilder staticMemBuilder) {</span>
-<span class="fc" id="L61">        this.staticMemBuilder = staticMemBuilder;</span>
-<span class="fc" id="L62">        instructions = new Instruction[DEFAULT_SIZE];</span>
-<span class="fc" id="L63">        instrNumber = 0;</span>
-<span class="fc" id="L64">        type = Program.Type.NONDETERMINISTIC;</span>
-<span class="fc" id="L65">        execType = null; //Program.ExecutionType.ASYNC;</span>
-<span class="fc" id="L66">        stringInterner = Interners.newStrongInterner();</span>
-<span class="fc" id="L67">    }</span>
+<span class="fc" id="L61">    public ProgramBuilder(final MemoryBuilder staticMemBuilder) {</span>
+<span class="fc" id="L62">        this.staticMemBuilder = staticMemBuilder;</span>
+<span class="fc" id="L63">        instructions = new Instruction[DEFAULT_SIZE];</span>
+<span class="fc" id="L64">        instrNumber = 0;</span>
+<span class="fc" id="L65">        type = Program.Type.NONDETERMINISTIC;</span>
+<span class="fc" id="L66">        execType = null; //Program.ExecutionType.ASYNC;</span>
+<span class="fc" id="L67">        stringInterner = Interners.newStrongInterner();</span>
+<span class="fc" id="L68">    }</span>
     
     public void intern(final Object[] array) {
-<span class="fc bfc" id="L70" title="All 2 branches covered.">        for (int i = 0; i &lt; array.length; i++) {</span>
-<span class="fc" id="L71">            Object obj = array[i];</span>
-<span class="fc bfc" id="L72" title="All 2 branches covered.">            if (obj instanceof String) {</span>
-<span class="fc" id="L73">                    array[i] = stringInterner.intern((String) obj);</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        for (int i = 0; i &lt; array.length; i++) {</span>
+<span class="fc" id="L72">            Object obj = array[i];</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">            if (obj instanceof String) {</span>
+<span class="fc" id="L74">                    array[i] = stringInterner.intern((String) obj);</span>
             }
         }
-<span class="fc" id="L76">    }</span>
+<span class="fc" id="L77">    }</span>
     
     /**
      * @return the type
      */
     public Program.Type getType() {
-<span class="nc" id="L82">        return type;</span>
+<span class="nc" id="L83">        return type;</span>
     }
 
     /**
      * @param type the type to set
      */
     public ProgramBuilder setType(final Program.Type ptype) {
-<span class="fc" id="L89">        this.type = ptype;</span>
-<span class="fc" id="L90">        return this;</span>
+<span class="fc" id="L90">        this.type = ptype;</span>
+<span class="fc" id="L91">        return this;</span>
     }
     
     public ProgramBuilder setExecType(final Program.ExecutionType pexecType) {
-<span class="fc" id="L94">        this.execType = pexecType;</span>
-<span class="fc" id="L95">        return this;</span>
+<span class="fc" id="L95">        this.execType = pexecType;</span>
+<span class="fc" id="L96">        return this;</span>
     }
     
     
 
     public ProgramBuilder add(final Instruction object) {
-<span class="nc" id="L101">        ensureCapacity(instrNumber + 1);</span>
-<span class="nc" id="L102">        instructions[instrNumber++] = object;</span>
-<span class="nc" id="L103">        return this;</span>
+<span class="nc" id="L102">        ensureCapacity(instrNumber + 1);</span>
+<span class="nc" id="L103">        instructions[instrNumber++] = object;</span>
+<span class="nc" id="L104">        return this;</span>
     }
     
     public boolean contains(final Class&lt;? extends Instruction&gt; instr) {
-<span class="nc" id="L107">        Boolean res = itterate(new Function&lt;Object, Boolean&gt;() {</span>
+<span class="nc" id="L108">        Boolean res = itterate(new Function&lt;Object, Boolean&gt;() {</span>
 
             @Override
             @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;TBP_TRISTATE_BOOLEAN_PATTERN&quot;)
             public Boolean apply(final Object input) {
-<span class="nc bnc" id="L112" title="All 2 branches missed.">                if (input.getClass() == instr) {</span>
-<span class="nc" id="L113">                    return Boolean.TRUE;</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">                if (input.getClass() == instr) {</span>
+<span class="nc" id="L114">                    return Boolean.TRUE;</span>
                 }
-<span class="nc" id="L115">                return null;</span>
+<span class="nc" id="L116">                return null;</span>
             }
         });
-<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (res == null) {</span>
-<span class="nc" id="L119">            return false;</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (res == null) {</span>
+<span class="nc" id="L120">            return false;</span>
         }
-<span class="nc" id="L121">        return res;</span>
+<span class="nc" id="L122">        return res;</span>
     }
     
     public &lt;T&gt; T itterate(final Function&lt;Object, T&gt; func) {
-<span class="fc bfc" id="L125" title="All 2 branches covered.">         for (int i = 0; i &lt; instrNumber; i++) {</span>
-<span class="fc" id="L126">            Instruction code = instructions[i];</span>
-<span class="fc" id="L127">            T res = func.apply(code);</span>
-<span class="fc bfc" id="L128" title="All 2 branches covered.">            if (res != null) {</span>
-<span class="fc" id="L129">                return res;</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">         for (int i = 0; i &lt; instrNumber; i++) {</span>
+<span class="fc" id="L127">            Instruction code = instructions[i];</span>
+<span class="fc" id="L128">            T res = func.apply(code);</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">            if (res != null) {</span>
+<span class="fc" id="L130">                return res;</span>
             }
-<span class="fc bfc" id="L131" title="All 2 branches covered.">            for (Object param : code.getParameters()) {</span>
-<span class="fc" id="L132">                res = func.apply(param);</span>
-<span class="fc bfc" id="L133" title="All 2 branches covered.">                if (res != null) {</span>
-<span class="fc" id="L134">                   return res;</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">            for (Object param : code.getParameters()) {</span>
+<span class="fc" id="L133">                res = func.apply(param);</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">                if (res != null) {</span>
+<span class="fc" id="L135">                   return res;</span>
                 }
-<span class="fc bfc" id="L136" title="All 2 branches covered.">                if (param instanceof Program) {</span>
-<span class="fc" id="L137">                    res = ((Program) param).itterate(func);</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">                if (param instanceof Program) {</span>
+<span class="fc" id="L138">                    res = ((Program) param).itterate(func);</span>
                 }
-<span class="pc bpc" id="L139" title="1 of 2 branches missed.">                if (res != null) {</span>
-<span class="nc" id="L140">                   return res;</span>
+<span class="pc bpc" id="L140" title="1 of 2 branches missed.">                if (res != null) {</span>
+<span class="nc" id="L141">                   return res;</span>
                 }
                 
             }
         }
-<span class="fc" id="L145">        return null;</span>
+<span class="fc" id="L146">        return null;</span>
     }
     
     
 
     public ProgramBuilder set(final int idx, final Instruction object) {
-<span class="nc" id="L151">        ensureCapacity(idx + 1);</span>
-<span class="nc" id="L152">        instructions[idx] = object;</span>
-<span class="nc" id="L153">        instrNumber = Math.max(idx + 1, instrNumber);</span>
-<span class="nc" id="L154">        return this;</span>
+<span class="nc" id="L152">        ensureCapacity(idx + 1);</span>
+<span class="nc" id="L153">        instructions[idx] = object;</span>
+<span class="nc" id="L154">        instrNumber = Math.max(idx + 1, instrNumber);</span>
+<span class="nc" id="L155">        return this;</span>
     }
 
     public ProgramBuilder addAll(final Instruction[] objects) {
-<span class="fc" id="L158">        ensureCapacity(instrNumber + objects.length);</span>
-<span class="fc" id="L159">        System.arraycopy(objects, 0, instructions, instrNumber, objects.length);</span>
-<span class="fc" id="L160">        instrNumber += objects.length;</span>
-<span class="fc" id="L161">        return this;</span>
+<span class="fc" id="L159">        ensureCapacity(instrNumber + objects.length);</span>
+<span class="fc" id="L160">        System.arraycopy(objects, 0, instructions, instrNumber, objects.length);</span>
+<span class="fc" id="L161">        instrNumber += objects.length;</span>
+<span class="fc" id="L162">        return this;</span>
     }
 
     public ProgramBuilder setAll(final int idx, final Object[] objects) {
-<span class="nc" id="L165">        ensureCapacity(idx + objects.length);</span>
-<span class="nc" id="L166">        System.arraycopy(objects, 0, instructions, idx, objects.length);</span>
-<span class="nc" id="L167">        instrNumber = Math.max(objects.length + idx, instrNumber);</span>
-<span class="nc" id="L168">        return this;</span>
+<span class="nc" id="L166">        ensureCapacity(idx + objects.length);</span>
+<span class="nc" id="L167">        System.arraycopy(objects, 0, instructions, idx, objects.length);</span>
+<span class="nc" id="L168">        instrNumber = Math.max(objects.length + idx, instrNumber);</span>
+<span class="nc" id="L169">        return this;</span>
     }
 
     public ProgramBuilder addAll(final ProgramBuilder opb) {
-<span class="fc" id="L172">        ensureCapacity(instrNumber + opb.instrNumber);</span>
-<span class="fc" id="L173">        System.arraycopy(opb.instructions, 0, instructions, instrNumber, opb.instrNumber);</span>
-<span class="fc" id="L174">        instrNumber += opb.instrNumber;</span>
-<span class="fc" id="L175">        return this;</span>
+<span class="fc" id="L173">        ensureCapacity(instrNumber + opb.instrNumber);</span>
+<span class="fc" id="L174">        System.arraycopy(opb.instructions, 0, instructions, instrNumber, opb.instrNumber);</span>
+<span class="fc" id="L175">        instrNumber += opb.instrNumber;</span>
+<span class="fc" id="L176">        return this;</span>
     }
 
     /**
@@ -182,83 +183,99 @@ public final class ProgramBuilder {
      * @param minCapacity the desired minimum capacity
      */
     private void ensureCapacity(final int minCapacity) {
-<span class="fc" id="L185">        int oldCapacity = instructions.length;</span>
-<span class="fc bfc" id="L186" title="All 2 branches covered.">        if (minCapacity &gt; oldCapacity) {</span>
-<span class="fc" id="L187">            int newCapacity = (oldCapacity * 3) / 2 + 1;</span>
-<span class="fc bfc" id="L188" title="All 2 branches covered.">            if (newCapacity &lt; minCapacity) {</span>
-<span class="fc" id="L189">                newCapacity = minCapacity;</span>
+<span class="fc" id="L186">        int oldCapacity = instructions.length;</span>
+<span class="fc bfc" id="L187" title="All 2 branches covered.">        if (minCapacity &gt; oldCapacity) {</span>
+<span class="fc" id="L188">            int newCapacity = (oldCapacity * 3) / 2 + 1;</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">            if (newCapacity &lt; minCapacity) {</span>
+<span class="fc" id="L190">                newCapacity = minCapacity;</span>
             }
-<span class="fc" id="L191">            instructions = Arrays.copyOf(instructions, newCapacity);</span>
+<span class="fc" id="L192">            instructions = Arrays.copyOf(instructions, newCapacity);</span>
         }
-<span class="fc" id="L193">    }</span>
+<span class="fc" id="L194">    }</span>
 
     public int size() {
-<span class="fc" id="L196">        return instrNumber;</span>
+<span class="fc" id="L197">        return instrNumber;</span>
     }
 
     public Object[] toArray() {
-<span class="nc" id="L200">        return Arrays.copyOf(instructions, instrNumber);</span>
+<span class="nc" id="L201">        return Arrays.copyOf(instructions, instrNumber);</span>
     }
 
     public boolean hasDeterministicFunctions() {
-<span class="fc" id="L204">        Boolean hasDetFuncs = itterate(new Function&lt;Object, Boolean&gt;() {</span>
+<span class="fc" id="L205">        Boolean hasDetFuncs = itterate(new Function&lt;Object, Boolean&gt;() {</span>
 
             @Override
             @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;TBP_TRISTATE_BOOLEAN_PATTERN&quot;)
             public Boolean apply(final Object input) {
-<span class="fc bfc" id="L209" title="All 2 branches covered.">                if (input instanceof Program) {</span>
-<span class="fc" id="L210">                    Program prog = (Program) input;</span>
-<span class="pc bpc" id="L211" title="1 of 4 branches missed.">                    if (prog.getType() == Program.Type.DETERMINISTIC</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">                if (input instanceof Program) {</span>
+<span class="fc" id="L211">                    Program prog = (Program) input;</span>
+<span class="pc bpc" id="L212" title="1 of 4 branches missed.">                    if (prog.getType() == Program.Type.DETERMINISTIC</span>
                             || prog.hasDeterministicFunctions()) {
-<span class="fc" id="L213">                        return Boolean.TRUE;</span>
+<span class="fc" id="L214">                        return Boolean.TRUE;</span>
                     }
                 }
-<span class="fc" id="L216">                return null;</span>
+<span class="fc" id="L217">                return null;</span>
             }
         });
-<span class="fc bfc" id="L219" title="All 2 branches covered.">        if (hasDetFuncs == null) {</span>
-<span class="fc" id="L220">            hasDetFuncs = Boolean.FALSE;</span>
+<span class="fc bfc" id="L220" title="All 2 branches covered.">        if (hasDetFuncs == null) {</span>
+<span class="fc" id="L221">            hasDetFuncs = Boolean.FALSE;</span>
         }
-<span class="fc" id="L222">        return hasDetFuncs;</span>
+<span class="fc" id="L223">        return hasDetFuncs;</span>
     }
     
     public boolean hasAsyncCalls() {
-<span class="fc" id="L226">         Boolean hasAsyncCalls = itterate(new Function&lt;Object, Boolean&gt;() {</span>
+<span class="fc" id="L227">         Boolean hasAsyncCalls = itterate(new Function&lt;Object, Boolean&gt;() {</span>
             @Override
             @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;TBP_TRISTATE_BOOLEAN_PATTERN&quot;)
             public Boolean apply(final Object input) {
-<span class="fc bfc" id="L230" title="All 2 branches covered.">                if (input instanceof Program) {</span>
-<span class="fc" id="L231">                    Program prog = (Program) input;</span>
-<span class="fc bfc" id="L232" title="All 2 branches covered.">                    if (prog.getExecType() == Program.ExecutionType.ASYNC) {</span>
-<span class="fc" id="L233">                        return Boolean.TRUE;</span>
+<span class="fc bfc" id="L231" title="All 2 branches covered.">                if (input instanceof Program) {</span>
+<span class="fc" id="L232">                    Program prog = (Program) input;</span>
+<span class="fc bfc" id="L233" title="All 2 branches covered.">                    if (prog.getExecType() == Program.ExecutionType.ASYNC) {</span>
+<span class="fc" id="L234">                        return Boolean.TRUE;</span>
                     }
-<span class="fc bfc" id="L235" title="All 2 branches covered.">                } else if (input == CALLA.INSTANCE) {</span>
-<span class="fc" id="L236">                    return Boolean.TRUE;</span>
+<span class="fc bfc" id="L236" title="All 2 branches covered.">                } else if (input == CALLA.INSTANCE) {</span>
+<span class="fc" id="L237">                    return Boolean.TRUE;</span>
                 }
-<span class="fc" id="L238">                return null;</span>
+<span class="fc" id="L239">                return null;</span>
             }
         });
-<span class="fc bfc" id="L241" title="All 2 branches covered.">        if (hasAsyncCalls == null) {</span>
+<span class="fc bfc" id="L242" title="All 2 branches covered.">        if (hasAsyncCalls == null) {</span>
             
-<span class="fc" id="L243">            return false;</span>
+<span class="fc" id="L244">            return false;</span>
         }
-<span class="fc" id="L245">        return hasAsyncCalls;</span>
+<span class="fc" id="L246">        return hasAsyncCalls;</span>
     }
     
     public Program toProgram(final String[] parameterNames) throws CompileException {
-<span class="fc" id="L249">        intern(instructions);</span>
-<span class="fc" id="L250">        intern(parameterNames);</span>
-<span class="fc" id="L251">        Pair&lt;Object[], Map&lt;String, Integer&gt;&gt; build = staticMemBuilder.build();</span>
-<span class="fc bfc" id="L252" title="All 6 branches covered.">        return new Program(build.getSecond(), build.getFirst(), instructions, 0, instrNumber, type,</span>
-                this.execType == Program.ExecutionType.ASYNC || hasAsyncCalls()
+<span class="fc" id="L250">       return toProgram(parameterNames, Collections.EMPTY_MAP);</span>
+    }
+    
+    public Program toProgram(final String[] parameterNames, final Map&lt;String, Integer&gt; localTable)
+            throws CompileException {
+<span class="fc" id="L255">        intern(instructions);</span>
+<span class="fc" id="L256">        intern(parameterNames);</span>
+<span class="fc" id="L257">        Pair&lt;Object[], Map&lt;String, Integer&gt;&gt; build = staticMemBuilder.build();</span>
+<span class="fc" id="L258">        boolean hasAsyncPrograms = false;</span>
+<span class="fc bfc" id="L259" title="All 2 branches covered.">        for (Object obj : build.getFirst()) {</span>
+<span class="fc bfc" id="L260" title="All 2 branches covered.">            if (obj instanceof Program) {</span>
+<span class="fc" id="L261">                Program prog = (Program) obj;</span>
+<span class="pc bpc" id="L262" title="1 of 2 branches missed.">                if (prog.getExecType() == Program.ExecutionType.ASYNC) {</span>
+<span class="fc" id="L263">                    hasAsyncPrograms = true;</span>
+<span class="fc" id="L264">                    break;</span>
+                }
+            }
+        }
+<span class="fc bfc" id="L268" title="All 8 branches covered.">        return new Program(build.getSecond(), build.getFirst(), localTable, instructions, 0, instrNumber, type,</span>
+                hasAsyncPrograms || this.execType == Program.ExecutionType.ASYNC || hasAsyncCalls()
                         ? (this.execType == null ? Program.ExecutionType.ASYNC : this.execType)
                         : Program.ExecutionType.SYNC,
                 hasDeterministicFunctions(), parameterNames);
     }
+
     
     
     public Program toProgram(final List&lt;String&gt; parameterNames) throws CompileException {
-<span class="fc" id="L261">        return toProgram(parameterNames.toArray(new String[parameterNames.size()]));</span>
+<span class="fc" id="L278">        return toProgram(parameterNames.toArray(new String[parameterNames.size()]));</span>
     }
 
 }

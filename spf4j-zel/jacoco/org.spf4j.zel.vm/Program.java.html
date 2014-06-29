@@ -27,6 +27,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -37,11 +40,9 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import org.spf4j.base.Pair;
 import org.spf4j.zel.instr.Instruction;
-import org.spf4j.zel.instr.LODAX;
-import org.spf4j.zel.instr.LODAXF;
-import org.spf4j.zel.instr.LODX;
-import org.spf4j.zel.instr.LODXF;
+import org.spf4j.zel.instr.LValRef;
 import org.spf4j.zel.instr.var.ARRAY;
 import org.spf4j.zel.instr.var.INT;
 import org.spf4j.zel.instr.var.LOG;
@@ -68,13 +69,13 @@ public final class Program implements Serializable {
 
     static final long serialVersionUID = 748365748433474932L;
 
-<span class="pc" id="L71">    public enum Type {</span>
-<span class="fc" id="L72">        DETERMINISTIC, NONDETERMINISTIC</span>
+<span class="pc" id="L72">    public enum Type {</span>
+<span class="fc" id="L73">        DETERMINISTIC, NONDETERMINISTIC</span>
     };
 
-<span class="pc" id="L75">    public enum ExecutionType {</span>
-<span class="fc" id="L76">        SYNC,</span>
-<span class="fc" id="L77">        ASYNC</span>
+<span class="pc" id="L76">    public enum ExecutionType {</span>
+<span class="fc" id="L77">        SYNC,</span>
+<span class="fc" id="L78">        ASYNC</span>
     }
 
     private final Type type;
@@ -82,114 +83,118 @@ public final class Program implements Serializable {
     private final int id; // program ID, unique ID identifying the program
 
     private final Instruction[] instructions;
-    private final String[] parameterNames;
     private final boolean hasDeterministicFunctions;
     private final Object[] globalMem;
     private final int localMemSize;
-
-    /**
-     * initializes program with an array of objects.
-     *
-     * @param objs
-     * @param start
-     * @param end
-     * @param progType
-     * @param parameterNames
-     */
-    Program(final Map&lt;String, Integer&gt; globalTable, final Object[] globalMem,
-            @Nonnull final Object[] objs, @Nonnegative final int start,
-            @Nonnegative final int end, final Type progType, final ExecutionType execType,
-<span class="fc" id="L102">            final boolean hasDeterministicFunctions, final String... parameterNames) throws CompileException {</span>
-<span class="fc" id="L103">        this.globalMem = globalMem;</span>
-<span class="fc" id="L104">        int length = end - start;</span>
-<span class="fc" id="L105">        instructions = new Instruction[length];</span>
-<span class="fc" id="L106">        System.arraycopy(objs, start, instructions, 0, length);</span>
-<span class="fc" id="L107">        this.type = progType;</span>
-<span class="fc" id="L108">        id = ProgramBuilder.generateID();</span>
-<span class="fc" id="L109">        this.parameterNames = parameterNames;</span>
-<span class="fc" id="L110">        this.execType = execType;</span>
-<span class="fc" id="L111">        this.hasDeterministicFunctions = hasDeterministicFunctions;</span>
-<span class="fc" id="L112">        Map&lt;String, Integer&gt; symbolTable = buildSymTable(parameterNames, length, globalTable);</span>
-<span class="fc" id="L113">        localMemSize = symbolTable.size();</span>
-<span class="fc" id="L114">    }</span>
-
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(
-            { &quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;, &quot;ITC_INHERITANCE_TYPE_CHECKING&quot; })
-    private Map&lt;String, Integer&gt; buildSymTable(final String[] parameterNames1,
-            final int length, final Map&lt;String, Integer&gt; globalTable) throws CompileException {
-<span class="fc" id="L120">        Map&lt;String, Integer&gt; symbolTable = new HashMap&lt;String, Integer&gt;(parameterNames1.length);</span>
-<span class="fc" id="L121">        int i = 0;</span>
-<span class="fc bfc" id="L122" title="All 2 branches covered.">        for (String param : parameterNames1) {</span>
-<span class="fc" id="L123">            Integer existing = symbolTable.put(param, i++);</span>
-<span class="pc bpc" id="L124" title="1 of 2 branches missed.">            if (existing != null) {</span>
-<span class="nc" id="L125">                throw new CompileException(&quot;Duplicate parameter defined: &quot; + param);</span>
-            }
-        }
-<span class="fc bfc" id="L128" title="All 2 branches covered.">        for (int j = 0; j &lt; length; j++) {</span>
-<span class="fc" id="L129">            Instruction code = instructions[j];</span>
-<span class="fc bfc" id="L130" title="All 2 branches covered.">            if (code instanceof LODX) {</span>
-<span class="fc" id="L131">                String ref = ((LODX) code).getSymbol();</span>
-<span class="fc" id="L132">                Integer idxr = symbolTable.get(ref);</span>
-                Address adr;
-<span class="fc bfc" id="L134" title="All 2 branches covered.">                if (idxr == null) {</span>
-<span class="fc" id="L135">                    idxr = globalTable.get(ref);</span>
-<span class="pc bpc" id="L136" title="1 of 2 branches missed.">                    if (idxr == null) {</span>
-<span class="nc" id="L137">                        throw new CompileException(&quot;undefined variable: &quot; + ref);</span>
-                    } else {
-<span class="fc" id="L139">                        adr = new Address(idxr, Address.Scope.GLOBAL);</span>
-                    }
-                } else {
-<span class="fc" id="L142">                    adr = new Address(idxr, Address.Scope.LOCAL);</span>
-                }
-<span class="fc" id="L144">                instructions[j] = new LODXF(adr);</span>
-<span class="fc bfc" id="L145" title="All 2 branches covered.">            } else if (code instanceof LODAX) {</span>
-<span class="fc" id="L146">                String ref = ((LODAX) code).getSymbol();</span>
-<span class="fc" id="L147">                Integer idxr = symbolTable.get(ref);</span>
-                Address adr;
-<span class="fc bfc" id="L149" title="All 2 branches covered.">                if (idxr == null) {</span>
-<span class="fc" id="L150">                    idxr = globalTable.get(ref);</span>
-<span class="fc bfc" id="L151" title="All 2 branches covered.">                    if (idxr == null) {</span>
-<span class="fc" id="L152">                        idxr = i++;</span>
-<span class="fc" id="L153">                        symbolTable.put(ref, idxr);</span>
-<span class="fc" id="L154">                        adr = new Address(idxr, Address.Scope.LOCAL);</span>
-                    } else {
-<span class="fc" id="L156">                        adr = new Address(idxr, Address.Scope.GLOBAL);</span>
-                    }
-                } else {
-<span class="fc" id="L159">                    adr = new Address(idxr, Address.Scope.LOCAL);</span>
-                }
-<span class="fc" id="L161">                instructions[j] = new LODAXF(adr);</span>
-            }
-        }
-<span class="fc" id="L164">        return symbolTable;</span>
-    }
+    private final Map&lt;String, Integer&gt; localSymbolTable;
+    private final Map&lt;String, Integer&gt; globalSymbolTable;
     
+    Program(final Map&lt;String, Integer&gt; globalTable, final Object[] globalMem, final Map&lt;String, Integer&gt; localTable,
+            @Nonnull final Instruction[] objs, @Nonnegative final int start,
+            @Nonnegative final int end, final Type progType, final ExecutionType execType,
+<span class="fc" id="L95">            final boolean hasDeterministicFunctions, final String... parameterNames) throws CompileException {</span>
+<span class="fc" id="L96">        this.globalMem = globalMem;</span>
+<span class="fc" id="L97">        int length = end - start;</span>
+<span class="fc" id="L98">        this.instructions = new Instruction[length];</span>
+<span class="fc" id="L99">        System.arraycopy(objs, start, instructions, 0, length);</span>
+<span class="fc" id="L100">        this.type = progType;</span>
+<span class="fc" id="L101">        this.id = ProgramBuilder.generateID();</span>
+<span class="fc" id="L102">        this.execType = execType;</span>
+<span class="fc" id="L103">        this.hasDeterministicFunctions = hasDeterministicFunctions;</span>
+<span class="fc" id="L104">        this.localSymbolTable = buildLocalSymTable(objs, parameterNames, length, globalTable, localTable);</span>
+<span class="fc" id="L105">        this.localMemSize = localSymbolTable.size();</span>
+<span class="fc" id="L106">        this.globalSymbolTable = globalTable;</span>
+<span class="fc" id="L107">    }</span>
+    
+    Program(final Map&lt;String, Integer&gt; globalTable, final Object[] globalMem, final Map&lt;String, Integer&gt; localTable,
+            @Nonnull final Instruction[] instructions, final Type progType, final ExecutionType execType,
+<span class="fc" id="L111">            final boolean hasDeterministicFunctions) throws CompileException {</span>
+<span class="fc" id="L112">        this.globalMem = globalMem;</span>
+<span class="fc" id="L113">        this.instructions = instructions;</span>
+<span class="fc" id="L114">        this.type = progType;</span>
+<span class="fc" id="L115">        this.id = ProgramBuilder.generateID();</span>
+<span class="fc" id="L116">        this.execType = execType;</span>
+<span class="fc" id="L117">        this.hasDeterministicFunctions = hasDeterministicFunctions;</span>
+<span class="fc" id="L118">        this.localSymbolTable = localTable;</span>
+<span class="fc" id="L119">        this.localMemSize = localSymbolTable.size();</span>
+<span class="fc" id="L120">        this.globalSymbolTable = globalTable;</span>
+<span class="fc" id="L121">    }</span>
+    
+    
+
+    private static Map&lt;String, Integer&gt; buildLocalSymTable(final Instruction [] instructions,
+            final String[] parameterNames1,
+            final int length, final Map&lt;String, Integer&gt; globalTable,
+            final Map&lt;String, Integer&gt; addTo) throws CompileException {
+<span class="fc" id="L129">        final int addToSize = addTo.size();</span>
+<span class="fc" id="L130">        Map&lt;String, Integer&gt; symbolTable = new HashMap&lt;String, Integer&gt;(addToSize + parameterNames1.length);</span>
+<span class="fc" id="L131">        symbolTable.putAll(addTo);</span>
+        // allocate program params
+<span class="fc" id="L133">        int i = addToSize;</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">        for (String param : parameterNames1) {</span>
+<span class="fc" id="L135">            Integer existing = symbolTable.put(param, i++);</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">            if (existing != null) {</span>
+<span class="nc" id="L137">                throw new CompileException(&quot;Duplicate parameter defined: &quot; + param);</span>
+            }
+        }
+        // allocate variables used in Program
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        for (int j = 0; j &lt; length; j++) {</span>
+<span class="fc" id="L142">            Instruction code = instructions[j];</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">            if (code instanceof LValRef) {</span>
+<span class="fc" id="L144">                String ref = ((LValRef) code).getSymbol();</span>
+<span class="fc" id="L145">                Integer idxr = symbolTable.get(ref);</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">                if (idxr == null) {</span>
+<span class="fc" id="L147">                    idxr = globalTable.get(ref);</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">                    if (idxr == null) {</span>
+<span class="fc" id="L149">                        idxr = i++;</span>
+<span class="fc" id="L150">                        symbolTable.put(ref, idxr);</span>
+                    }
+                }
+            }
+        }
+<span class="fc" id="L155">        return symbolTable;</span>
+    }
+
+    public Map&lt;String, Integer&gt; getGlobalSymbolTable() {
+<span class="fc" id="L159">        return globalSymbolTable;</span>
+    }
+
+    public Map&lt;String, Integer&gt; getLocalSymbolTable() {
+<span class="fc" id="L163">        return localSymbolTable;</span>
+    }
     
     public int getLocalMemSize() {
-<span class="fc" id="L169">       return localMemSize;</span>
+<span class="fc" id="L167">       return localMemSize;</span>
     }
 
+    Object[] getGlobalMem() {
+<span class="fc" id="L171">        return globalMem;</span>
+    }
+    
+    
+    
+    
     @Override
     @CheckReturnValue
-    public boolean equals(@Nullable final Object obj) {
-<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L176">            return false;</span>
+    public boolean equals(final Object obj) {
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L181">            return false;</span>
         }
-<span class="nc bnc" id="L178" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L179">            return false;</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L184">            return false;</span>
         }
-<span class="nc" id="L181">        final Program other = (Program) obj;</span>
-<span class="nc bnc" id="L182" title="All 2 branches missed.">        return (this.id == other.id);</span>
+<span class="nc" id="L186">        final Program other = (Program) obj;</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        return (this.id == other.id);</span>
     }
 
     @Override
     @CheckReturnValue
     public int hashCode() {
-<span class="fc" id="L188">        return this.id;</span>
+<span class="fc" id="L193">        return this.id;</span>
     }
 
     public boolean hasDeterministicFunctions() {
-<span class="fc" id="L192">        return hasDeterministicFunctions;</span>
+<span class="fc" id="L197">        return hasDeterministicFunctions;</span>
     }
 
     /**
@@ -197,136 +202,165 @@ public final class Program implements Serializable {
      */
     @CheckReturnValue
     public Object get(final int i) {
-<span class="nc" id="L200">        return instructions[i];</span>
+<span class="nc" id="L205">        return instructions[i];</span>
     }
 
     @CheckReturnValue
     Object[] toArray() {
-<span class="nc" id="L205">        return instructions.clone();</span>
+<span class="nc" id="L210">        return instructions.clone();</span>
     }
 
     @CheckReturnValue
     public int size() {
-<span class="nc" id="L210">        return instructions.length;</span>
+<span class="nc" id="L215">        return instructions.length;</span>
     }
 
     public ExecutionType getExecType() {
-<span class="fc" id="L214">        return execType;</span>
+<span class="fc" id="L219">        return execType;</span>
     }
 
-    /**
-     * create a compiled Z Byte Code
-     *
-     * @param zExpr String
-     * @throws com.zoltran.z.vm.ParseException
-     * @return Program
-     */
     public static Program compile(@Nonnull final String zExpr, @Nonnull final String... varNames)
             throws CompileException {
 
-<span class="fc" id="L227">        CompileContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());</span>
+<span class="fc" id="L225">        ParsingContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());</span>
         try {
-<span class="fc" id="L229">            ZCompiler.compile(zExpr, cc);</span>
-<span class="nc" id="L230">        } catch (TokenMgrError err) {</span>
-<span class="nc" id="L231">            throw new CompileException(err);</span>
-<span class="nc" id="L232">        } catch (ParseException ex) {</span>
-<span class="nc" id="L233">            throw new CompileException(ex);</span>
-<span class="fc" id="L234">        }</span>
-<span class="fc" id="L235">        return cc.getProgramBuilder().toProgram(varNames);</span>
+<span class="fc" id="L227">            ZCompiler.compile(zExpr, cc);</span>
+<span class="nc" id="L228">        } catch (TokenMgrError err) {</span>
+<span class="nc" id="L229">            throw new CompileException(err);</span>
+<span class="nc" id="L230">        } catch (ParseException ex) {</span>
+<span class="nc" id="L231">            throw new CompileException(ex);</span>
+<span class="fc" id="L232">        }</span>
+<span class="fc" id="L233">        return RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram(varNames));</span>
+    }
+    
+    
+    static Program compile(@Nonnull final String zExpr,
+            final Map&lt;String, Integer&gt; localTable,
+            final Object [] globalMem,
+            final Map&lt;String, Integer&gt; globalTable,
+            @Nonnull final String... varNames)
+            throws CompileException {
+
+<span class="nc" id="L244">        ParsingContext cc = new CompileContext(new MemoryBuilder(</span>
+                new ArrayList&lt;Object&gt;(Arrays.asList(globalMem)), globalTable));
+        try {
+<span class="nc" id="L247">            ZCompiler.compile(zExpr, cc);</span>
+<span class="nc" id="L248">        } catch (TokenMgrError err) {</span>
+<span class="nc" id="L249">            throw new CompileException(err);</span>
+<span class="nc" id="L250">        } catch (ParseException ex) {</span>
+<span class="nc" id="L251">            throw new CompileException(ex);</span>
+<span class="nc" id="L252">        }</span>
+<span class="nc" id="L253">        return cc.getProgramBuilder().toProgram(varNames, localTable);</span>
     }
 
     public Object execute() throws ZExecutionException, InterruptedException {
-<span class="fc" id="L239">        return execute(System.in, System.out, System.err);</span>
+<span class="fc" id="L257">        return execute(System.in, System.out, System.err);</span>
     }
 
     public Object execute(final Object... args) throws ZExecutionException, InterruptedException {
-<span class="fc" id="L243">        return execute(System.in, System.out, System.err, args);</span>
+<span class="fc" id="L261">        return execute(System.in, System.out, System.err, args);</span>
     }
 
     public Object execute(@Nonnull final ExecutorService execService,
             final Object... args) throws ZExecutionException, InterruptedException {
-<span class="fc" id="L248">        return execute(new VMExecutor(execService), System.in, System.out, System.err, args);</span>
+<span class="fc" id="L266">        return execute(new VMExecutor(execService), System.in, System.out, System.err, args);</span>
     }
     
     public Object executeSingleThreaded(final Object... args) throws ZExecutionException, InterruptedException {
-<span class="fc" id="L252">        return execute(null, System.in, System.out, System.err, args);</span>
+<span class="fc" id="L270">        return execute(null, System.in, System.out, System.err, args);</span>
     }
 
 
     private static final MemoryBuilder ZEL_GLOBAL_FUNC;
 
     static {
-<span class="fc" id="L259">        ZEL_GLOBAL_FUNC = new MemoryBuilder();</span>
-<span class="fc" id="L260">        ZEL_GLOBAL_FUNC.addSymbol(&quot;out&quot;, OUT.INSTANCE);</span>
-<span class="fc" id="L261">        ZEL_GLOBAL_FUNC.addSymbol(&quot;sqrt&quot;, SQRT.INSTANCE);</span>
-<span class="fc" id="L262">        ZEL_GLOBAL_FUNC.addSymbol(&quot;int&quot;, INT.INSTANCE);</span>
-<span class="fc" id="L263">        ZEL_GLOBAL_FUNC.addSymbol(&quot;log&quot;, LOG.INSTANCE);</span>
-<span class="fc" id="L264">        ZEL_GLOBAL_FUNC.addSymbol(&quot;log10&quot;, LOG.INSTANCE);</span>
-<span class="fc" id="L265">        ZEL_GLOBAL_FUNC.addSymbol(&quot;min&quot;, MIN.INSTANCE);</span>
-<span class="fc" id="L266">        ZEL_GLOBAL_FUNC.addSymbol(&quot;max&quot;, MAX.INSTANCE);</span>
-<span class="fc" id="L267">        ZEL_GLOBAL_FUNC.addSymbol(&quot;array&quot;, ARRAY.INSTANCE);</span>
-<span class="fc" id="L268">        ZEL_GLOBAL_FUNC.addSymbol(&quot;random&quot;, RANDOM.INSTANCE);</span>
-<span class="fc" id="L269">        ZEL_GLOBAL_FUNC.addSymbol(&quot;channel&quot;, new Channel.Factory());</span>
-<span class="fc" id="L270">        ZEL_GLOBAL_FUNC.addSymbol(&quot;EOF&quot;, Channel.EOF);</span>
-<span class="fc" id="L271">    }</span>
+<span class="fc" id="L277">        ZEL_GLOBAL_FUNC = new MemoryBuilder();</span>
+<span class="fc" id="L278">        ZEL_GLOBAL_FUNC.addSymbol(&quot;out&quot;, OUT.INSTANCE);</span>
+<span class="fc" id="L279">        ZEL_GLOBAL_FUNC.addSymbol(&quot;sqrt&quot;, SQRT.INSTANCE);</span>
+<span class="fc" id="L280">        ZEL_GLOBAL_FUNC.addSymbol(&quot;int&quot;, INT.INSTANCE);</span>
+<span class="fc" id="L281">        ZEL_GLOBAL_FUNC.addSymbol(&quot;log&quot;, LOG.INSTANCE);</span>
+<span class="fc" id="L282">        ZEL_GLOBAL_FUNC.addSymbol(&quot;log10&quot;, LOG.INSTANCE);</span>
+<span class="fc" id="L283">        ZEL_GLOBAL_FUNC.addSymbol(&quot;min&quot;, MIN.INSTANCE);</span>
+<span class="fc" id="L284">        ZEL_GLOBAL_FUNC.addSymbol(&quot;max&quot;, MAX.INSTANCE);</span>
+<span class="fc" id="L285">        ZEL_GLOBAL_FUNC.addSymbol(&quot;array&quot;, ARRAY.INSTANCE);</span>
+<span class="fc" id="L286">        ZEL_GLOBAL_FUNC.addSymbol(&quot;random&quot;, RANDOM.INSTANCE);</span>
+<span class="fc" id="L287">        ZEL_GLOBAL_FUNC.addSymbol(&quot;channel&quot;, new Channel.Factory());</span>
+<span class="fc" id="L288">        ZEL_GLOBAL_FUNC.addSymbol(&quot;EOF&quot;, Channel.EOF);</span>
+<span class="fc" id="L289">    }</span>
 
-    /**
-     * Execute the program with the provided memory and input / output streams when a exec service is specified this
-     * function will return a Future Also it is recomended that a thread safe memory is used in case your functions will
-     * modify the memory (not recomended)
-     */
     public Object execute(@Nullable final VMExecutor execService,
             @Nullable final InputStream in,
             @Nullable final PrintStream out,
             @Nullable final PrintStream err,
             final Object... args)
             throws ZExecutionException, InterruptedException {
-<span class="fc" id="L284">        final ExecutionContext ectx = new ExecutionContext(this, globalMem, in, out, err, execService);</span>
-<span class="fc" id="L285">        System.arraycopy(args, 0, ectx.mem, 0, args.length);</span>
+<span class="fc" id="L297">        final ExecutionContext ectx = new ExecutionContext(this, globalMem, in, out, err, execService);</span>
+<span class="fc" id="L298">        System.arraycopy(args, 0, ectx.mem, 0, args.length);</span>
         try {
-<span class="fc" id="L287">            return execute(ectx);</span>
+<span class="fc" id="L300">            return execute(ectx);</span>
         } finally {
-<span class="pc bpc" id="L289" title="3 of 4 branches missed.">            if (err != null) {</span>
-<span class="pc" id="L290">                err.flush();</span>
+<span class="pc bpc" id="L302" title="3 of 4 branches missed.">            if (err != null) {</span>
+<span class="pc" id="L303">                err.flush();</span>
             }
-<span class="pc bpc" id="L292" title="3 of 4 branches missed.">            if (out != null) {</span>
-<span class="pc" id="L293">                out.flush();</span>
+<span class="pc bpc" id="L305" title="3 of 4 branches missed.">            if (out != null) {</span>
+<span class="pc" id="L306">                out.flush();</span>
+            }
+        }
+    }
+    
+    public Pair&lt;Object, ExecutionContext&gt; executeX(@Nullable final VMExecutor execService,
+            @Nullable final InputStream in,
+            @Nullable final PrintStream out,
+            @Nullable final PrintStream err,
+            final ResultCache resultCache,
+            final Object... args)
+            throws ZExecutionException, InterruptedException {
+<span class="nc" id="L318">        final ExecutionContext ectx = new ExecutionContext(this, globalMem, resultCache, in, out, err, execService);</span>
+<span class="nc" id="L319">        System.arraycopy(args, 0, ectx.mem, 0, args.length);</span>
+        try {
+<span class="nc" id="L321">            return Pair.of(execute(ectx), ectx);</span>
+        } finally {
+<span class="nc bnc" id="L323" title="All 4 branches missed.">            if (err != null) {</span>
+<span class="nc" id="L324">                err.flush();</span>
+            }
+<span class="nc bnc" id="L326" title="All 4 branches missed.">            if (out != null) {</span>
+<span class="nc" id="L327">                out.flush();</span>
             }
         }
     }
 
     public static Object executeSyncOrAsync(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
-<span class="fc" id="L300">        final VMExecutor.Suspendable&lt;Object&gt; execution = ectx.getCallable();</span>
-<span class="pc bpc" id="L301" title="1 of 4 branches missed.">        if (ectx.execService != null &amp;&amp; ectx.code.getExecType() == ExecutionType.ASYNC) {</span>
-<span class="fc bfc" id="L302" title="All 2 branches covered.">            if (ectx.isChildContext()) {</span>
-<span class="fc" id="L303">                return ectx.execService.submitInternal(VMExecutor.synchronize(execution));</span>
+<span class="fc" id="L334">        final VMExecutor.Suspendable&lt;Object&gt; execution = ectx.getCallable();</span>
+<span class="pc bpc" id="L335" title="1 of 4 branches missed.">        if (ectx.execService != null &amp;&amp; ectx.code.getExecType() == ExecutionType.ASYNC) {</span>
+<span class="fc bfc" id="L336" title="All 2 branches covered.">            if (ectx.isChildContext()) {</span>
+<span class="fc" id="L337">                return ectx.execService.submitInternal(VMExecutor.synchronize(execution));</span>
             } else {
-<span class="fc" id="L305">                return ectx.execService.submit(VMExecutor.synchronize(execution));</span>
+<span class="fc" id="L339">                return ectx.execService.submit(VMExecutor.synchronize(execution));</span>
             }
         } else {
             try {
-<span class="fc" id="L309">                return execution.call();</span>
-<span class="nc" id="L310">            } catch (SuspendedException ex) {</span>
-<span class="nc" id="L311">                throw new RuntimeException(ex);</span>
+<span class="fc" id="L343">                return execution.call();</span>
+<span class="nc" id="L344">            } catch (SuspendedException ex) {</span>
+<span class="nc" id="L345">                throw new RuntimeException(ex);</span>
             }
         }
     }
 
     public static Object executeAsync(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
-<span class="fc" id="L318">        final VMExecutor.Suspendable&lt;Object&gt; execution = ectx.getCallable();</span>
-<span class="fc bfc" id="L319" title="All 2 branches covered.">        if (ectx.execService != null) {</span>
-<span class="pc bpc" id="L320" title="1 of 2 branches missed.">            if (ectx.isChildContext()) {</span>
-<span class="fc" id="L321">                return ectx.execService.submitInternal(VMExecutor.synchronize(execution));</span>
+<span class="fc" id="L352">        final VMExecutor.Suspendable&lt;Object&gt; execution = ectx.getCallable();</span>
+<span class="fc bfc" id="L353" title="All 2 branches covered.">        if (ectx.execService != null) {</span>
+<span class="pc bpc" id="L354" title="1 of 2 branches missed.">            if (ectx.isChildContext()) {</span>
+<span class="fc" id="L355">                return ectx.execService.submitInternal(VMExecutor.synchronize(execution));</span>
             } else {
-<span class="nc" id="L323">                return ectx.execService.submit(VMExecutor.synchronize(execution));</span>
+<span class="nc" id="L357">                return ectx.execService.submit(VMExecutor.synchronize(execution));</span>
             }
         } else {
             try {
-<span class="fc" id="L327">                return execution.call();</span>
-<span class="nc" id="L328">            } catch (SuspendedException ex) {</span>
-<span class="nc" id="L329">                throw new RuntimeException(ex);</span>
+<span class="fc" id="L361">                return execution.call();</span>
+<span class="nc" id="L362">            } catch (SuspendedException ex) {</span>
+<span class="nc" id="L363">                throw new RuntimeException(ex);</span>
             }
         }
     }
@@ -334,33 +368,33 @@ public final class Program implements Serializable {
     public static Object executeSync(@Nonnull final ExecutionContext ectx) throws
             ZExecutionException, InterruptedException {
         try {
-<span class="nc" id="L337">            return ectx.getCallable().call();</span>
-<span class="nc" id="L338">        } catch (SuspendedException ex) {</span>
-<span class="nc" id="L339">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L371">            return ectx.getCallable().call();</span>
+<span class="nc" id="L372">        } catch (SuspendedException ex) {</span>
+<span class="nc" id="L373">            throw new RuntimeException(ex);</span>
         }
     }
 
     public static Object execute(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
-<span class="fc" id="L345">        Object result = executeSyncOrAsync(ectx);</span>
-<span class="fc bfc" id="L346" title="All 2 branches covered.">        if (result instanceof Future) {</span>
+<span class="fc" id="L379">        Object result = executeSyncOrAsync(ectx);</span>
+<span class="fc bfc" id="L380" title="All 2 branches covered.">        if (result instanceof Future) {</span>
             try {
-<span class="fc" id="L348">                return ((Future&lt;Object&gt;) result).get();</span>
-<span class="nc" id="L349">            } catch (ExecutionException ex) {</span>
-<span class="nc" id="L350">                throw new ZExecutionException(ex);</span>
+<span class="fc" id="L382">                return ((Future&lt;Object&gt;) result).get();</span>
+<span class="nc" id="L383">            } catch (ExecutionException ex) {</span>
+<span class="nc" id="L384">                throw new ZExecutionException(ex);</span>
             }
         } else {
-<span class="fc" id="L353">            return result;</span>
+<span class="fc" id="L387">            return result;</span>
         }
     }
 
     public Object execute(@Nonnull final InputStream in,
             @Nonnull final PrintStream out, @Nonnull final PrintStream err, final Object... args)
             throws ZExecutionException, InterruptedException {
-<span class="fc bfc" id="L360" title="All 2 branches covered.">        if (execType == ExecutionType.SYNC) {</span>
-<span class="fc" id="L361">            return execute((VMExecutor) null, in, out, err, args);</span>
+<span class="fc bfc" id="L394" title="All 2 branches covered.">        if (execType == ExecutionType.SYNC) {</span>
+<span class="fc" id="L395">            return execute((VMExecutor) null, in, out, err, args);</span>
         } else {
-<span class="fc" id="L363">            return execute(VMExecutor.Lazy.DEFAULT, in, out, err, args);</span>
+<span class="fc" id="L397">            return execute(VMExecutor.Lazy.DEFAULT, in, out, err, args);</span>
         }
     }
 
@@ -374,7 +408,7 @@ public final class Program implements Serializable {
      */
     public static Object getValue(@Nonnull final java.util.Map mem, @Nonnull final String name)
             throws CompileException, ZExecutionException, InterruptedException, ExecutionException {
-<span class="nc" id="L377">        return Program.compile(name + &quot;;&quot;).execute(mem);</span>
+<span class="nc" id="L411">        return Program.compile(name + &quot;;&quot;).execute(mem);</span>
     }
 
     /**
@@ -390,8 +424,8 @@ public final class Program implements Serializable {
     public static void addValue(@Nonnull final java.util.Map mem, @Nonnull final String name,
             final Object value)
             throws CompileException, ZExecutionException, InterruptedException, ExecutionException {
-<span class="nc" id="L393">        Program.compile(name + &quot;=&quot; + value + &quot;;&quot;).execute(mem);</span>
-<span class="nc" id="L394">    }</span>
+<span class="nc" id="L427">        Program.compile(name + &quot;=&quot; + value + &quot;;&quot;).execute(mem);</span>
+<span class="nc" id="L428">    }</span>
 
     /**
      * build indentation string
@@ -401,11 +435,11 @@ public final class Program implements Serializable {
      */
     @CheckReturnValue
     public static String strIndent(@Nonnegative final int indent) {
-<span class="nc" id="L404">        StringBuilder result = new StringBuilder();</span>
-<span class="nc bnc" id="L405" title="All 2 branches missed.">        for (int i = 0; i &lt; indent; i++) {</span>
-<span class="nc" id="L406">            result.append(' ');</span>
+<span class="nc" id="L438">        StringBuilder result = new StringBuilder();</span>
+<span class="nc bnc" id="L439" title="All 2 branches missed.">        for (int i = 0; i &lt; indent; i++) {</span>
+<span class="nc" id="L440">            result.append(' ');</span>
         }
-<span class="nc" id="L408">        return result.toString();</span>
+<span class="nc" id="L442">        return result.toString();</span>
     }
 
     /**
@@ -420,22 +454,22 @@ public final class Program implements Serializable {
     @SuppressWarnings(&quot;unchecked&quot;)
     @CheckReturnValue
     public static String dumpCore(final String name, final Object mem, final int indent, final int maxIndent) {
-<span class="nc bnc" id="L423" title="All 2 branches missed.">        if (mem == null) {</span>
-<span class="nc" id="L424">            return &quot;&quot;;</span>
+<span class="nc bnc" id="L457" title="All 2 branches missed.">        if (mem == null) {</span>
+<span class="nc" id="L458">            return &quot;&quot;;</span>
         }
-<span class="nc bnc" id="L426" title="All 4 branches missed.">        if (maxIndent &gt; 0 &amp;&amp; indent &gt; maxIndent) {</span>
-<span class="nc" id="L427">            return &quot;&quot;;</span>
+<span class="nc bnc" id="L460" title="All 4 branches missed.">        if (maxIndent &gt; 0 &amp;&amp; indent &gt; maxIndent) {</span>
+<span class="nc" id="L461">            return &quot;&quot;;</span>
         }
-<span class="nc" id="L429">        StringBuilder result = new StringBuilder();</span>
-<span class="nc bnc" id="L430" title="All 2 branches missed.">        if (mem instanceof java.util.Map) {</span>
-<span class="nc" id="L431">            result.append(strIndent(indent)).append(name).append('\n');</span>
-<span class="nc bnc" id="L432" title="All 2 branches missed.">            for (Map.Entry&lt;Object, Object&gt; elem : ((Map&lt;Object, Object&gt;) mem).entrySet()) {</span>
-<span class="nc" id="L433">                result.append(dumpCore(elem.getKey().toString(), elem.getValue(), indent + 1, maxIndent));</span>
-<span class="nc" id="L434">            }</span>
+<span class="nc" id="L463">        StringBuilder result = new StringBuilder();</span>
+<span class="nc bnc" id="L464" title="All 2 branches missed.">        if (mem instanceof java.util.Map) {</span>
+<span class="nc" id="L465">            result.append(strIndent(indent)).append(name).append('\n');</span>
+<span class="nc bnc" id="L466" title="All 2 branches missed.">            for (Map.Entry&lt;Object, Object&gt; elem : ((Map&lt;Object, Object&gt;) mem).entrySet()) {</span>
+<span class="nc" id="L467">                result.append(dumpCore(elem.getKey().toString(), elem.getValue(), indent + 1, maxIndent));</span>
+<span class="nc" id="L468">            }</span>
         } else {
-<span class="nc" id="L436">            result.append(strIndent(indent)).append(name).append('=').append(mem).append('\n');</span>
+<span class="nc" id="L470">            result.append(strIndent(indent)).append(name).append('=').append(mem).append('\n');</span>
         }
-<span class="nc" id="L438">        return result.toString();</span>
+<span class="nc" id="L472">        return result.toString();</span>
     }
 
     /**
@@ -446,98 +480,109 @@ public final class Program implements Serializable {
      */
     public static void main(final String[] args)
             throws IOException, ZExecutionException, InterruptedException {
-<span class="nc" id="L449">        System.out.println(&quot;ZEL Shell&quot;);</span>
-<span class="nc" id="L450">        boolean terminated = false;</span>
-<span class="nc" id="L451">        InputStreamReader inp = new InputStreamReader(System.in, Charsets.UTF_8);</span>
-<span class="nc" id="L452">        BufferedReader br = new BufferedReader(inp);</span>
-<span class="nc bnc" id="L453" title="All 2 branches missed.">        while (!terminated) {</span>
-<span class="nc" id="L454">            System.out.print(&quot;zel&gt;&quot;);</span>
-<span class="nc" id="L455">            String line = br.readLine();</span>
-<span class="nc bnc" id="L456" title="All 2 branches missed.">            if (line != null) {</span>
-<span class="nc bnc" id="L457" title="All 2 branches missed.">                if (line.toUpperCase().startsWith(&quot;QUIT&quot;)) {</span>
-<span class="nc" id="L458">                    terminated = true;</span>
+<span class="nc" id="L483">        System.out.println(&quot;ZEL Shell&quot;);</span>
+<span class="nc" id="L484">        boolean terminated = false;</span>
+<span class="nc" id="L485">        Map&lt;String, Integer&gt; localSymTable = Collections.EMPTY_MAP;</span>
+<span class="nc" id="L486">        Pair&lt;Object[], Map&lt;String, Integer&gt;&gt; gmemPair = ZEL_GLOBAL_FUNC.build();</span>
+<span class="nc" id="L487">        Map&lt;String, Integer&gt; globalSymTable = gmemPair.getSecond();</span>
+<span class="nc" id="L488">        Object [] mem = new Object [] {};</span>
+<span class="nc" id="L489">        Object [] gmem = gmemPair.getFirst();</span>
+<span class="nc" id="L490">        ResultCache resCache = new SimpleResultCache();</span>
+<span class="nc" id="L491">        InputStreamReader inp = new InputStreamReader(System.in, Charsets.UTF_8);</span>
+<span class="nc" id="L492">        BufferedReader br = new BufferedReader(inp);</span>
+<span class="nc bnc" id="L493" title="All 2 branches missed.">        while (!terminated) {</span>
+<span class="nc" id="L494">            System.out.print(&quot;zel&gt;&quot;);</span>
+<span class="nc" id="L495">            String line = br.readLine();</span>
+<span class="nc bnc" id="L496" title="All 2 branches missed.">            if (line != null) {</span>
+<span class="nc bnc" id="L497" title="All 2 branches missed.">                if (line.toUpperCase().startsWith(&quot;QUIT&quot;)) {</span>
+<span class="nc" id="L498">                    terminated = true;</span>
                 } else {
                     try {
-<span class="nc" id="L461">                        System.out.println(Program.compile(line).execute(System.in, System.out, System.err));</span>
-<span class="nc" id="L462">                    } catch (CompileException ex) {</span>
-<span class="nc" id="L463">                        System.out.println(&quot;Syntax Error: &quot; + Throwables.getStackTraceAsString(ex));</span>
-<span class="nc" id="L464">                    } catch (ZExecutionException ex) {</span>
-<span class="nc" id="L465">                        System.out.println(&quot;Execution Error: &quot; + Throwables.getStackTraceAsString(ex));</span>
-<span class="nc" id="L466">                    }</span>
+<span class="nc" id="L501">                        final Program prog = Program.compile(line, localSymTable, gmem, globalSymTable);</span>
+<span class="nc" id="L502">                        localSymTable = prog.getLocalSymbolTable();</span>
+<span class="nc" id="L503">                        globalSymTable = prog.getGlobalSymbolTable();</span>
+<span class="nc" id="L504">                        gmem = prog.getGlobalMem();</span>
+<span class="nc" id="L505">                        Pair&lt;Object, ExecutionContext&gt; res = prog.executeX(</span>
+                                VMExecutor.Lazy.DEFAULT, System.in, System.out, System.err, resCache, mem);
+<span class="nc" id="L507">                        System.out.println(&quot;result&gt;&quot; + res.getFirst());</span>
+<span class="nc" id="L508">                        final ExecutionContext execCtx = res.getSecond();</span>
+<span class="nc" id="L509">                        mem = execCtx.mem;</span>
+<span class="nc" id="L510">                        resCache = execCtx.resultCache;</span>
+<span class="nc" id="L511">                    } catch (CompileException ex) {</span>
+<span class="nc" id="L512">                        System.out.println(&quot;Syntax Error: &quot; + Throwables.getStackTraceAsString(ex));</span>
+<span class="nc" id="L513">                    } catch (ZExecutionException ex) {</span>
+<span class="nc" id="L514">                        System.out.println(&quot;Execution Error: &quot; + Throwables.getStackTraceAsString(ex));</span>
+<span class="nc" id="L515">                    }</span>
                 }
             }
-<span class="nc" id="L469">        }</span>
-<span class="nc" id="L470">    }</span>
+<span class="nc" id="L518">        }</span>
+<span class="nc" id="L519">    }</span>
 
     @Override
     public String toString() {
-<span class="fc" id="L474">        StringBuilder result = new StringBuilder();</span>
-<span class="fc" id="L475">        result.append(&quot;Program: \n&quot;);</span>
-<span class="fc bfc" id="L476" title="All 2 branches covered.">        for (int i = 0; i &lt; instructions.length; i++) {</span>
-<span class="fc" id="L477">            Object obj = instructions[i];</span>
-<span class="fc" id="L478">            result.append(Strings.padEnd(Integer.toString(i), 8, ' '));</span>
-<span class="fc" id="L479">            result.append(':');</span>
-<span class="fc" id="L480">            result.append(obj);</span>
-<span class="fc" id="L481">            result.append('\n');</span>
+<span class="fc" id="L523">        StringBuilder result = new StringBuilder();</span>
+<span class="fc" id="L524">        result.append(&quot;Program: \n&quot;);</span>
+<span class="fc bfc" id="L525" title="All 2 branches covered.">        for (int i = 0; i &lt; instructions.length; i++) {</span>
+<span class="fc" id="L526">            Object obj = instructions[i];</span>
+<span class="fc" id="L527">            result.append(Strings.padEnd(Integer.toString(i), 8, ' '));</span>
+<span class="fc" id="L528">            result.append(':');</span>
+<span class="fc" id="L529">            result.append(obj);</span>
+<span class="fc" id="L530">            result.append('\n');</span>
         }
-<span class="fc" id="L483">        result.append(&quot;execType = &quot; + this.execType + &quot;\n&quot;);</span>
-<span class="fc" id="L484">        result.append(&quot;type = &quot; + this.type + &quot;\n&quot;);</span>
-<span class="fc" id="L485">        return result.toString();</span>
+<span class="fc" id="L532">        result.append(&quot;execType = &quot; + this.execType + &quot;\n&quot;);</span>
+<span class="fc" id="L533">        result.append(&quot;type = &quot; + this.type + &quot;\n&quot;);</span>
+<span class="fc" id="L534">        return result.toString();</span>
     }
 
     /**
      * @return the type
      */
     public Program.Type getType() {
-<span class="fc" id="L492">        return type;</span>
-    }
-
-    String[] getParameterNames() {
-<span class="nc" id="L496">        return parameterNames;</span>
+<span class="fc" id="L541">        return type;</span>
     }
 
     public boolean contains(final Class&lt;? extends Instruction&gt; instr) {
-<span class="nc" id="L500">        Boolean res = itterate(new Function&lt;Object, Boolean&gt;() {</span>
+<span class="nc" id="L545">        Boolean res = itterate(new Function&lt;Object, Boolean&gt;() {</span>
             @Override
             @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;TBP_TRISTATE_BOOLEAN_PATTERN&quot;)
             public Boolean apply(final Object input) {
-<span class="nc bnc" id="L504" title="All 2 branches missed.">                if (input.getClass() == instr) {</span>
-<span class="nc" id="L505">                    return Boolean.TRUE;</span>
+<span class="nc bnc" id="L549" title="All 2 branches missed.">                if (input.getClass() == instr) {</span>
+<span class="nc" id="L550">                    return Boolean.TRUE;</span>
                 }
-<span class="nc" id="L507">                return null;</span>
+<span class="nc" id="L552">                return null;</span>
             }
         });
-<span class="nc bnc" id="L510" title="All 2 branches missed.">        if (res == null) {</span>
-<span class="nc" id="L511">            return false;</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">        if (res == null) {</span>
+<span class="nc" id="L556">            return false;</span>
         }
-<span class="nc" id="L513">        return res;</span>
+<span class="nc" id="L558">        return res;</span>
     }
 
     @Nullable
     public &lt;T&gt; T itterate(final Function&lt;Object, T&gt; func) {
-<span class="fc bfc" id="L518" title="All 2 branches covered.">        for (Instruction code : instructions) {</span>
-<span class="fc" id="L519">            T res = func.apply(code);</span>
-<span class="pc bpc" id="L520" title="1 of 2 branches missed.">            if (res != null) {</span>
-<span class="nc" id="L521">                return res;</span>
+<span class="fc bfc" id="L563" title="All 2 branches covered.">        for (Instruction code : instructions) {</span>
+<span class="fc" id="L564">            T res = func.apply(code);</span>
+<span class="pc bpc" id="L565" title="1 of 2 branches missed.">            if (res != null) {</span>
+<span class="nc" id="L566">                return res;</span>
             }
-<span class="fc bfc" id="L523" title="All 2 branches covered.">            for (Object param : code.getParameters()) {</span>
-<span class="fc" id="L524">                res = func.apply(param);</span>
-<span class="pc bpc" id="L525" title="1 of 2 branches missed.">                if (res != null) {</span>
-<span class="nc" id="L526">                   return res;</span>
+<span class="fc bfc" id="L568" title="All 2 branches covered.">            for (Object param : code.getParameters()) {</span>
+<span class="fc" id="L569">                res = func.apply(param);</span>
+<span class="pc bpc" id="L570" title="1 of 2 branches missed.">                if (res != null) {</span>
+<span class="nc" id="L571">                   return res;</span>
                 }
-<span class="fc bfc" id="L528" title="All 2 branches covered.">                if (param instanceof Program) {</span>
-<span class="fc" id="L529">                    res = ((Program) param).itterate(func);</span>
+<span class="fc bfc" id="L573" title="All 2 branches covered.">                if (param instanceof Program) {</span>
+<span class="fc" id="L574">                    res = ((Program) param).itterate(func);</span>
                 }
-<span class="pc bpc" id="L531" title="1 of 2 branches missed.">                if (res != null) {</span>
-<span class="nc" id="L532">                    return res;</span>
+<span class="pc bpc" id="L576" title="1 of 2 branches missed.">                if (res != null) {</span>
+<span class="nc" id="L577">                    return res;</span>
                 }
             }
         }
-<span class="fc" id="L536">        return null;</span>
+<span class="fc" id="L581">        return null;</span>
     }
 
     Instruction[] getInstructions() {
-<span class="fc" id="L540">        return instructions;</span>
+<span class="fc" id="L585">        return instructions;</span>
     }
 
 }

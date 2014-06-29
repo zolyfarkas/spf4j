@@ -18,9 +18,7 @@
 package org.spf4j.zel.instr;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.Arrays;
-import javax.annotation.Nullable;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
@@ -33,7 +31,7 @@ import org.spf4j.zel.vm.ZExecutionException;
  *
  * @author zoly
  */
-<span class="fc" id="L36">public abstract class Instruction implements Serializable {</span>
+<span class="fc" id="L34">public abstract class Instruction implements Serializable {</span>
 
     /**
      * Instruction execution
@@ -56,36 +54,13 @@ import org.spf4j.zel.vm.ZExecutionException;
      */
     @Override
     public final String toString() {
-<span class="fc bfc" id="L59" title="All 2 branches covered.">        if (getParameters().length &gt; 0) {</span>
-<span class="fc" id="L60">           return this.getClass().getSimpleName() + &quot;(&quot; + Arrays.toString(getParameters()) + &quot;)&quot;;</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (getParameters().length &gt; 0) {</span>
+<span class="fc" id="L58">           return this.getClass().getSimpleName() + &quot;(&quot; + Arrays.toString(getParameters()) + &quot;)&quot;;</span>
         } else {
-<span class="fc" id="L62">            return this.getClass().getSimpleName();</span>
+<span class="fc" id="L60">            return this.getClass().getSimpleName();</span>
         }
     }
 
-
-    @Nullable
-    public static Instruction getInstruction(final String packageName, final String instrName) {
-        Class&lt;Instruction&gt; clasz;
-        try {
-<span class="nc" id="L71">            clasz = (Class&lt;Instruction&gt;) Class.forName(packageName + &quot;.&quot; + instrName);</span>
-<span class="nc" id="L72">        } catch (ClassNotFoundException ex) {</span>
-<span class="nc" id="L73">            return null;</span>
-<span class="nc" id="L74">        }</span>
-<span class="nc" id="L75">        Field[] fields = clasz.getFields();</span>
-<span class="nc bnc" id="L76" title="All 2 branches missed.">        for (Field field : fields) {</span>
-<span class="nc bnc" id="L77" title="All 2 branches missed.">            if (field.getName().equalsIgnoreCase(&quot;instance&quot;)) {</span>
-                try {
-<span class="nc" id="L79">                    return (Instruction) field.get(null);</span>
-<span class="nc" id="L80">                } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L81">                    throw new RuntimeException(ex);</span>
-<span class="nc" id="L82">                } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L83">                    throw new RuntimeException(ex);</span>
-                }
-            }
-        }
-<span class="nc" id="L87">        return null;</span>
-    }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>

@@ -18,31 +18,47 @@
 package org.spf4j.zel.instr;
 
 import org.spf4j.zel.vm.ExecutionContext;
+import org.spf4j.zel.vm.ZExecutionException;
 
 
-public final class LODX extends Instruction {
+public final class LODX extends Instruction implements RValRef {
 
     private static final long serialVersionUID = 1257172216541960034L;
 
     
     private final String symbol;
     
-<span class="fc" id="L30">    public LODX(final String symbol) {</span>
-<span class="fc" id="L31">        this.symbol = symbol;</span>
-<span class="fc" id="L32">    }</span>
+<span class="fc" id="L31">    public LODX(final String symbol) {</span>
+<span class="fc" id="L32">        this.symbol = symbol;</span>
+<span class="fc" id="L33">    }</span>
+    
+    
+    public static Object readFrom(final String symbol, final ExecutionContext context) throws ZExecutionException {
+<span class="fc" id="L37">        Integer addr  = context.code.getLocalSymbolTable().get(symbol);</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        if (addr == null) {</span>
+<span class="fc" id="L39">            addr = context.code.getGlobalSymbolTable().get(symbol);</span>
+<span class="pc bpc" id="L40" title="1 of 2 branches missed.">            if (addr == null) {</span>
+<span class="nc" id="L41">                throw new ZExecutionException(&quot;unalocated symbol encountered &quot; + symbol);</span>
+            }
+<span class="fc" id="L43">            return context.globalMem[addr];</span>
+        } else {
+<span class="fc" id="L45">            return context.mem[addr];</span>
+        }
+    }
     
     @Override
-    public int execute(final ExecutionContext context) {
-<span class="nc" id="L36">        throw new UnsupportedOperationException();</span>
+    public int execute(final ExecutionContext context) throws ZExecutionException {
+<span class="fc" id="L51">        context.push(readFrom(symbol, context));</span>
+<span class="fc" id="L52">        return 1;</span>
     }
  
     public String getSymbol() {
-<span class="fc" id="L40">        return symbol;</span>
+<span class="fc" id="L56">        return symbol;</span>
     }
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L45">        return new Object [] {symbol};</span>
+<span class="fc" id="L61">        return new Object [] {symbol};</span>
     }
     
 }
