@@ -111,4 +111,20 @@ public final class Strings {
     }
     
     
+    public static String withFirstCharLower(final String str) {
+        if (str.isEmpty()) {
+            return str;
+        }
+        if (Character.isLowerCase(str.charAt(0))) {
+            return str;
+        }
+        int l = str.length();
+        StringBuilder result = new StringBuilder(l);
+        result.append(Character.toLowerCase(str.charAt(0)));
+        for (int i = 1; i < l; i++) {
+            result.append(str.charAt(i));
+        }
+        return result.toString();
+    }
+    
 }

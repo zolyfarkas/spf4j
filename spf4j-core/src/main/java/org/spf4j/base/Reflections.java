@@ -2,6 +2,7 @@ package org.spf4j.base;
 
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -29,6 +30,33 @@ public final class Reflections {
         PRIMITIVE_MAP.put(long.class, Long.class);
         PRIMITIVE_MAP.put(float.class, Float.class);
         PRIMITIVE_MAP.put(double.class, Double.class);
+    }
+    
+    
+    public static Class<?> primitiveToWrapper(final Class<?> clasz) {
+        if (clasz.isPrimitive()) {
+            return PRIMITIVE_MAP.get(clasz);
+        } else {
+            return clasz;
+        }
+    }
+    
+    
+    public static Object getAnnotationAttribute(@Nonnull final Annotation annot, @Nonnull final String attributeName) {
+        for (Method method : annot.annotationType().getDeclaredMethods()) {
+            if (method.getName().equals(attributeName)) {
+                try {
+                    return method.invoke(annot);
+                } catch (IllegalAccessException ex) {
+                    throw new RuntimeException(ex);
+                } catch (IllegalArgumentException ex) {
+                    throw new RuntimeException(ex);
+                } catch (InvocationTargetException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        }
+        throw new IllegalArgumentException(attributeName + " attribute is not present on annotation " + annot);
     }
 
     public static Method getCompatibleMethod(final Class<?> c,
