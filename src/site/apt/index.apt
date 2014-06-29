@@ -161,6 +161,46 @@ Callable<?> monitoredCallable =
 
 +---------------------------------------------------
 
+* 4.5 Export any object attribute to JMX
+
+You can annotate with @JmxExport all getters and setters, this way you can export them via JMX like:
+
++---------------------------------------------------
+
+    public static final class JmxTest {
+            
+        private volatile String stringVal;
+
+        @JmxExport
+        public String getStringVal() {
+            return stringVal;
+        }
+
+        @JmxExport
+        public void setStringVal(final String stringVal) {
+            this.stringVal = stringVal;
+        }
+        
+        private static volatile String testStr;
+
+        @JmxExport
+        public static String getTestStr() {
+            return testStr;
+        }
+
+        public static void setTestStr(final String testStr) {
+            JmxTest2.testStr = testStr;
+        }     
+        
+    }
+...
+        JmxTest testObj = new JmxTest();
+        Registry.export("test", "Test", testObj);
+
+ 
++---------------------------------------------------
+
+
 5.Performance Profiling
 
 * 5.1. Why another profiling library?
