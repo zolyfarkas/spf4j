@@ -82,6 +82,12 @@ public final class RegistryTest {
             JmxTest2.testStr = testStr;
         }
         
+        @JmxExport(description = "test operation")
+        public String doStuff(@JmxExport(name = "what", description = "some param") final String what,
+                final String where) {
+            return "Doing " + what + " " + where;
+        }
+        
         
     }
     
@@ -123,7 +129,8 @@ public final class RegistryTest {
         JmxTest testObj = new JmxTest();
         JmxTest2 testObj2 = new JmxTest2();
         Registry.export("test", "Test", testObj, testObj2);
-        
+        Registry.export("test", "TestStatic", JmxTest2.class);
+   
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "JmxTest.booleanFlag", true);
        
@@ -154,6 +161,10 @@ public final class RegistryTest {
         Object ret4 = Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "JmxTest2.testStr");
         Assert.assertEquals("bubu", ret4);
+        
+        Object ret5 = Client.callOperation("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+                "test", "Test", "JmxTest2.doStuff", "a", "b");
+        Assert.assertEquals("Doing a b", ret5);
         
     }
 

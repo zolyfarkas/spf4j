@@ -2,23 +2,20 @@ package org.spf4j.jmx;
 
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.management.DynamicMBean;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
-import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 import org.spf4j.base.Reflections;
 import org.spf4j.base.Strings;
-import org.spf4j.base.Throwables;
 
 public final class Registry {
     
@@ -47,153 +44,46 @@ public final class Registry {
         }
     }
 
-    static class ExportedValueImpl implements ExportedValue<Object> {
-        private final String name;
-        private final String description;
-        private final Method getMethod;
-        private final Method setMethod;
-        private final Object object;
-        private final Class<?> valueClass;
-
-        ExportedValueImpl(@Nonnull final String name, @Nullable final String description,
-                @Nullable final Method getMethod, @Nullable final Method setMethod,
-                @Nullable final Object object, @Nonnull final Class<?> valueClass) {
-            this.name = name;
-            this.description = description;
-            this.getMethod = getMethod;
-            this.setMethod = setMethod;
-            this.object = object;
-            this.valueClass = valueClass;
-        }
-
-        public ExportedValueImpl withSetter(@Nonnull final Method psetMethod) {
-            return new ExportedValueImpl(name, description, getMethod, psetMethod, object, valueClass);
-        }
-        
-        public ExportedValueImpl withGetter(@Nonnull final Method pgetMethod, @Nonnull final String pdescription) {
-            return new ExportedValueImpl(name, pdescription, pgetMethod, setMethod, object, valueClass);
-        }
-        
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public String getDescription() {
-            return description;
-        }
-
-        @Override
-        @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
-        public Object get() {
-            try {
-                return getMethod.invoke(object);
-            } catch (IllegalAccessException ex) {
-                throw new RuntimeException(ex);
-            } catch (IllegalArgumentException ex) {
-                throw new RuntimeException(ex);
-            } catch (InvocationTargetException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-
-        @Override
-        @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
-        public void set(final Object value) throws InvalidAttributeValueException {
-            if (setMethod == null) {
-                throw new InvalidAttributeValueException(name + " is a read only attribute ");
-            }
-            try {
-                setMethod.invoke(object, value);
-            } catch (IllegalAccessException ex) {
-                throw new RuntimeException(ex);
-            } catch (IllegalArgumentException ex) {
-                throw Throwables.suppress(new InvalidAttributeValueException(name + " has an invalid type "), ex);
-            } catch (InvocationTargetException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-
-        @Override
-        public boolean isWriteable() {
-            return setMethod != null;
-        }
-
-        @Override
-        public Class<? extends Object> getValueClass() {
-            return valueClass;
-        }
-        
-        public boolean isValid() {
-            return getMethod != null;
-        }
-
-        @Override
-        public String toString() {
-            return "ExportedValueImpl{" + "name=" + name + ", description=" + description
-                    + ", getMethod=" + getMethod + ", setMethod=" + setMethod
-                    + ", object=" + object + ", valueClass=" + valueClass + '}';
-        }
-        
-        
-    }
     
     
     public static void export(final String packageName, final String mbeanName, final Object ... objects) {
         
-        Map<String, ExportedValueImpl> exported = new HashMap<String, ExportedValueImpl>();
-        boolean prependClass = objects.length > 1;
+        Map<String, ExportedValueImpl> exportedAttributes = new HashMap<String, ExportedValueImpl>();
+        Map<String, ExportedOperationImpl> exportedOps = new HashMap<String, ExportedOperationImpl>();
+        boolean haveToPrependClass = objects.length > 1;
         for (Object object : objects) {
-            for (Method method : object.getClass().getMethods()) {
-                method.setAccessible(true); // this is to speed up invocation
-                Annotation [] annotations = method.getAnnotations();
-                for (Annotation annot : annotations) {
-                    if (annot.annotationType() == JmxExport.class) {
-                        String methodName = method.getName();
-                        if (methodName.startsWith("get")) {
-                            String valueName = methodName.substring("get".length());
-                            valueName = Strings.withFirstCharLower(valueName);
-                            if (prependClass) {
-                                valueName = object.getClass().getSimpleName() + "." + valueName;
+ 
+            if (object instanceof Class) {
+                for (Method method : ((Class<?>) object).getMethods()) {
+                    if (Modifier.isStatic(method.getModifiers())) {
+                        Annotation [] annotations = method.getAnnotations();
+                        for (Annotation annot : annotations) {
+                            if (annot.annotationType() == JmxExport.class) {
+                                exportMethod(method, haveToPrependClass ? ((Class) object).getSimpleName() : null,
+                                        null, exportedAttributes, exportedOps, annot);
                             }
-                            addGetter(valueName, exported, annot, method, object);
-                        } else if (methodName.startsWith("is")) {
-                            String valueName = methodName.substring("is".length());
-                            valueName = Strings.withFirstCharLower(valueName);
-                            if (prependClass) {
-                                valueName = object.getClass().getSimpleName() + "." + valueName;
-                            }
-                            addGetter(valueName, exported, annot, method, object);
-                        } else if (methodName.startsWith("set")) {
-                            String valueName = methodName.substring("set".length());
-                            valueName = Strings.withFirstCharLower(valueName);
-                            if (prependClass) {
-                                valueName = object.getClass().getSimpleName() + "." + valueName;
-                            }
-                            ExportedValueImpl existing = exported.get(valueName);
-                            if (existing == null) {
-                                existing = new ExportedValueImpl(valueName, null,
-                                    null, method, object, method.getParameterTypes()[0]);
-                            } else {
-                                if (existing.getValueClass() != method.getParameterTypes()[0]) {
-                                    throw new IllegalArgumentException(
-                                            "Getter and setter icorrectly defined " + existing + " " + method);
-                                }
-                                existing = existing.withSetter(method);
-                            }
-                            exported.put(valueName, existing);
+                        }
+                    }
+                }
+            } else {
+                for (Method method : object.getClass().getMethods()) {
+                    Annotation [] annotations = method.getAnnotations();
+                    for (Annotation annot : annotations) {
+                        if (annot.annotationType() == JmxExport.class) {
+                            exportMethod(method, haveToPrependClass ? object.getClass().getSimpleName() : null,
+                                    object, exportedAttributes, exportedOps, annot);
                         }
                     }
                 }
             }
+            
         }
-        if (exported.isEmpty()) {
+        if (exportedAttributes.isEmpty() && exportedOps.isEmpty()) {
             return;
         }
-        ExportedValue<?> [] values = new ExportedValue[exported.size()];
+        ExportedValue<?> [] values = new ExportedValue[exportedAttributes.size()];
         int i = 0;
-        for (ExportedValueImpl expVal : exported.values()) {
+        for (ExportedValueImpl expVal : exportedAttributes.values()) {
             if (expVal.isValid()) {
                 values[i++] = expVal;
             } else {
@@ -201,8 +91,60 @@ public final class Registry {
             }
         }
         
-        ExportedValuesMBean mbean = new ExportedValuesMBean(packageName, mbeanName, values);
+        ExportedValuesMBean mbean = new ExportedValuesMBean(packageName, mbeanName, values,
+                        exportedOps.values().toArray(new ExportedOperation [exportedOps.size()]));
         register(mbean.getObjectName(), mbean);
+    }
+
+    private static void exportMethod(final Method method, @Nullable final String prependClass,
+            @Nullable final Object object, final Map<String, ExportedValueImpl> exportedAttributes,
+            final Map<String, ExportedOperationImpl> exportedOps, final Annotation annot) {
+        method.setAccessible(true); // this is to speed up invocation
+        String methodName = method.getName();
+        int nrParams = method.getParameterTypes().length;
+        if (methodName.startsWith("get") && nrParams == 0) {
+            String valueName = methodName.substring("get".length());
+            valueName = Strings.withFirstCharLower(valueName);
+            if (prependClass != null) {
+                valueName = prependClass + "." + valueName;
+            }
+            addGetter(valueName, exportedAttributes, annot, method, object);
+        } else if (methodName.startsWith("is") && nrParams == 0) {
+            String valueName = methodName.substring("is".length());
+            valueName = Strings.withFirstCharLower(valueName);
+            if (prependClass != null) {
+                valueName = prependClass + "." + valueName;
+            }
+            addGetter(valueName, exportedAttributes, annot, method, object);
+        } else if (methodName.startsWith("set") && nrParams == 1) {
+            String valueName = methodName.substring("set".length());
+            valueName = Strings.withFirstCharLower(valueName);
+            if (prependClass != null) {
+                valueName = prependClass + "." + valueName;
+            }
+            ExportedValueImpl existing = exportedAttributes.get(valueName);
+            if (existing == null) {
+                existing = new ExportedValueImpl(valueName, null,
+                        null, method, object, method.getParameterTypes()[0]);
+            } else {
+                if (existing.getValueClass() != method.getParameterTypes()[0]) {
+                    throw new IllegalArgumentException(
+                            "Getter and setter icorrectly defined " + existing + " " + method);
+                }
+                existing = existing.withSetter(method);
+            }
+            exportedAttributes.put(valueName, existing);
+        } else {
+            String opName = methodName;
+            if (prependClass != null) {
+                opName = prependClass + "." + opName;
+            }
+            ExportedOperationImpl existing = exportedOps.put(opName, new ExportedOperationImpl(opName,
+                    (String) Reflections.getAnnotationAttribute(annot, "description"), method, object));
+            if (existing != null) {
+                throw new IllegalArgumentException("exporting operations with same name not supported: " + opName);
+            }
+        }
     }
 
     private static void addGetter(final String valueName,

@@ -42,13 +42,13 @@ public final class TestZelVsSpel {
         Expression exp = parser.parseExpression("['a']-['b']");
 
         long t1 = System.currentTimeMillis();
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 100; i++) {
             actualReturn = (java.lang.Number) p1.execute(3, 2);
         }
         long t2 = System.currentTimeMillis();
         System.out.println("precompiled via zel: " + (t2 - t1));
        
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 100; i++) {
             Map vars = new HashMap();
             vars.put("a", Integer.valueOf(3));
             vars.put("b", Integer.valueOf(2));

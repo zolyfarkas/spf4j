@@ -14,6 +14,8 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanException;
 import javax.management.MBeanInfo;
+import javax.management.MBeanOperationInfo;
+import javax.management.MBeanParameterInfo;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
@@ -25,17 +27,24 @@ class ExportedValuesMBean implements DynamicMBean {
   
     private static final Pattern INVALID_CHARS = Pattern.compile("[^a-zA-Z0-9_\\-\\.]");
 
-    private final Map<String, ExportedValue<?>> exported;
+    private final Map<String, ExportedValue<?>> exportedValues;
+    
+    private final Map<String, ExportedOperation> exportedOperations;
 
     private final ObjectName objectName;
 
     private final MBeanInfo beanInfo;
 
 
-    ExportedValuesMBean(final String domain, final String name, final ExportedValue<?> ... exported) {
-        this.exported = new HashMap<String, ExportedValue<?>>(exported.length);
+    ExportedValuesMBean(final String domain, final String name,
+            final ExportedValue<?> [] exported, final ExportedOperation [] operations) {
+        this.exportedValues = new HashMap<String, ExportedValue<?>>(exported.length);
         for (ExportedValue<?> val : exported) {
-            this.exported.put(val.getName(), val);
+            this.exportedValues.put(val.getName(), val);
+        }
+        this.exportedOperations = new HashMap<String, ExportedOperation>(exported.length);
+        for (ExportedOperation op : operations) {
+            this.exportedOperations.put(op.getName(), op);
         }
         this.objectName = createObjectName(domain, name);
         this.beanInfo = createBeanInfo();
@@ -51,7 +60,7 @@ class ExportedValuesMBean implements DynamicMBean {
     /** {@inheritDoc} */
     @Override
     public Object getAttribute(final String name) throws AttributeNotFoundException {
-        ExportedValue<?> result = exported.get(name);
+        ExportedValue<?> result = exportedValues.get(name);
         if (result == null) {
             throw new AttributeNotFoundException(name);
         }
@@ -63,7 +72,7 @@ class ExportedValuesMBean implements DynamicMBean {
     public void setAttribute(final Attribute attribute)
             throws InvalidAttributeValueException, MBeanException, AttributeNotFoundException {
         String name = attribute.getName();
-        ExportedValue<Object> result = (ExportedValue<Object>) exported.get(name);
+        ExportedValue<Object> result = (ExportedValue<Object>) exportedValues.get(name);
         if (result == null) {
             throw new AttributeNotFoundException(name);
         }
@@ -75,7 +84,7 @@ class ExportedValuesMBean implements DynamicMBean {
     public AttributeList getAttributes(final String[] names) {
         AttributeList list = new AttributeList(names.length);
         for (String name : names) {
-            list.add(new Attribute(name, exported.get(name).get()));
+            list.add(new Attribute(name, exportedValues.get(name).get()));
         }
         return list;
     }
@@ -85,7 +94,7 @@ class ExportedValuesMBean implements DynamicMBean {
     public AttributeList setAttributes(final AttributeList list) {
         AttributeList result = new AttributeList(list.size());
         for (Attribute attr : list.asList()) {
-            ExportedValue<Object> eval = (ExportedValue<Object>) exported.get(attr.getName());
+            ExportedValue<Object> eval = (ExportedValue<Object>) exportedValues.get(attr.getName());
             if (eval != null) {
                 try {
                     eval.set(attr.getValue());
@@ -102,7 +111,7 @@ class ExportedValuesMBean implements DynamicMBean {
     @Override
     public Object invoke(final String name, final Object[] args, final String[] sig)
             throws MBeanException, ReflectionException {
-        throw new UnsupportedOperationException("invoke is not implemented");
+        return exportedOperations.get(name).invoke(args);
     }
 
     /** {@inheritDoc} */
@@ -125,17 +134,24 @@ class ExportedValuesMBean implements DynamicMBean {
     }
 
     private MBeanInfo createBeanInfo() {
-        MBeanAttributeInfo[] attrs = new MBeanAttributeInfo[exported.size()];
+        MBeanAttributeInfo[] attrs = new MBeanAttributeInfo[exportedValues.size()];
         int i = 0;
-        for (ExportedValue<?> val : exported.values()) {
+        for (ExportedValue<?> val : exportedValues.values()) {
             attrs[i++] = createAttributeInfo(val);
+        }
+        MBeanOperationInfo[] operations = new MBeanOperationInfo[exportedOperations.size()];
+        i = 0;
+        for (ExportedOperation op : exportedOperations.values()) {
+            MBeanParameterInfo [] paramInfos = op.getParameterInfos();
+            operations[i++] = new MBeanOperationInfo(op.getName(), op.getDescription(),
+                    paramInfos, op.getReturnType().getName(), MBeanOperationInfo.UNKNOWN);
         }
         return new MBeanInfo(
                 this.getClass().getName(),
-                "MonitorMBean",
+                "JmxMBean",
                 attrs,
                 null,  // constructors
-                null,  // operators
+                operations,  // operations
                 null); // notifications
     }
 
