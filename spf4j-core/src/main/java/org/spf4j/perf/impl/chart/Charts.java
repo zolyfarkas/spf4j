@@ -53,6 +53,7 @@ public final class Charts {
         xAxis.setStandardTickUnits(dataSet.createXTickUnits());
         xAxis.setLowerMargin(0);
         xAxis.setUpperMargin(0);
+        xAxis.setVerticalTickLabels(true);
         NumberAxis yAxis = new NumberAxis(uom);
         yAxis.setStandardTickUnits(dataSet.createYTickUnits());
         yAxis.setLowerMargin(0);

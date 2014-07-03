@@ -193,32 +193,32 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
             time += stepMillis;
         }
         tux.add(new NumberTickUnitImpl(1, timestamps, stepMillis, formatter)); // base
-        long nr = 5 / stepMillis;
+        long nr = 5000L / stepMillis;
         if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, formatter));
         }
         
-        nr = 15 / stepMillis;
+        nr = 15000L / stepMillis;
         if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, formatter));
         }
         // minute
-        nr = 60 / stepMillis;
+        nr = 60000L / stepMillis;
         if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));
         }
         // 15 minute
-        nr = 900 / stepMillis;
+        nr = 900000L / stepMillis;
         if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));
         }
         // hour
-        nr = 3600 / stepMillis;
+        nr = 3600000L / stepMillis;
         if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, shortFormat));
         }
         // 6 hour
-        nr = 21600 / stepMillis;
+        nr = 21600000L / stepMillis;
         if (nr > 1) {
             tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, shortFormat));
         }
@@ -305,11 +305,8 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
             if (this.stepMillis != other.stepMillis) {
                 return false;
             }
-            if (this.formatter != other.formatter
-                    && (this.formatter == null || !this.formatter.equals(other.formatter))) {
-                return false;
-            }
-            return true;
+            return !(this.formatter != other.formatter
+                    && (this.formatter == null || !this.formatter.equals(other.formatter)));
         }
         
         
