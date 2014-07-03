@@ -183,6 +183,10 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
 
     public TickUnits createXTickUnits() {
         TickUnits tux = new TickUnits();
+        if (data.length == 0) {
+            return tux;
+        }
+        
         final DateTimeFormatter formatter = ISODateTimeFormat.dateHourMinuteSecond();
         final DateTimeFormatter shortFormat = ISODateTimeFormat.dateHour();
         final DateTimeFormatter mediumFormat = ISODateTimeFormat.dateHourMinute();

@@ -23,10 +23,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
@@ -59,8 +62,13 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         Collection<TSTable> columnsInfo = tsDb.getTSTables();
         Map<String, DefaultMutableTreeNode> gNodes = new HashMap<String, DefaultMutableTreeNode>();
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(databaseFile);
+        long startDate = System.currentTimeMillis();
         for (TSTable info : columnsInfo) {
             String groupName = info.getTableName();
+            long tableStart = tsDb.readStartDate(groupName);
+            if (tableStart < startDate) {
+                startDate = tableStart;
+            }
             Pair<String, String> pair = Pair.from(groupName);
             if (pair == null) {
                 DefaultMutableTreeNode child = new DefaultMutableTreeNode(groupName);
@@ -81,12 +89,11 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
                     child.add(new DefaultMutableTreeNode(colName));
                 }
                 gNode.add(child);
-
-
             }
         }
         measurementTree.setModel(new DefaultTreeModel(root));
         measurementTree.setVisible(true);
+        this.startDate.setValue(new Date(startDate));
     }
 
     /**
@@ -102,10 +109,12 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         measurementTree = new javax.swing.JTree();
+        chartPannel = new javax.swing.JScrollPane();
         jToolBar1 = new javax.swing.JToolBar();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
-        chartPannel = new javax.swing.JScrollPane();
+        startDate = new javax.swing.JSpinner();
+        endDate = new javax.swing.JSpinner();
 
         org.jdesktop.layout.GroupLayout rightPanelLayout = new org.jdesktop.layout.GroupLayout(rightPanel);
         rightPanel.setLayout(rightPanelLayout);
@@ -123,11 +132,29 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         setResizable(true);
 
         mainSplitPannel.setDividerSize(5);
+        mainSplitPannel.setPreferredSize(new java.awt.Dimension(600, 500));
 
         measurementTree.setAutoscrolls(true);
         jScrollPane1.setViewportView(measurementTree);
 
-        jToolBar1.setFloatable(false);
+        org.jdesktop.layout.GroupLayout jPanel2Layout = new org.jdesktop.layout.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanel2Layout.createSequentialGroup()
+                .add(jScrollPane1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 213, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(0, 0, Short.MAX_VALUE))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel2Layout.createSequentialGroup()
+                .add(0, 0, Short.MAX_VALUE)
+                .add(jScrollPane1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 942, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+        );
+
+        mainSplitPannel.setLeftComponent(jPanel2);
+        mainSplitPannel.setRightComponent(chartPannel);
+
         jToolBar1.setRollover(true);
 
         jButton1.setText("Plot");
@@ -152,41 +179,36 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         });
         jToolBar1.add(jButton2);
 
-        org.jdesktop.layout.GroupLayout jPanel2Layout = new org.jdesktop.layout.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .add(jToolBar1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-            .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jPanel2Layout.createSequentialGroup()
-                .add(jToolBar1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 444, Short.MAX_VALUE))
-        );
+        startDate.setModel(new javax.swing.SpinnerDateModel());
+        startDate.setEditor(new javax.swing.JSpinner.DateEditor(startDate, "yyyy-MM-dd HH:mm:ss"));
+        startDate.setMinimumSize(new java.awt.Dimension(200, 28));
+        startDate.setName(""); // NOI18N
+        jToolBar1.add(startDate);
 
-        mainSplitPannel.setLeftComponent(jPanel2);
-        mainSplitPannel.setRightComponent(chartPannel);
+        endDate.setModel(new javax.swing.SpinnerDateModel());
+        endDate.setEditor(new javax.swing.JSpinner.DateEditor(endDate, "yyyy-MM-dd HH:mm:ss"));
+        jToolBar1.add(endDate);
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+            .add(layout.createSequentialGroup()
                 .addContainerGap()
-                .add(mainSplitPannel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
-                .addContainerGap())
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(layout.createSequentialGroup()
+                        .add(jToolBar1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 479, Short.MAX_VALUE)
+                        .add(236, 236, 236))
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                        .add(mainSplitPannel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
-                .add(mainSplitPannel)
-                .addContainerGap())
+                .add(jToolBar1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(mainSplitPannel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 667, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -229,6 +251,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_jButton2ActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane chartPannel;
+    private javax.swing.JSpinner endDate;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JPanel jPanel2;
@@ -237,10 +260,14 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
     private javax.swing.JSplitPane mainSplitPannel;
     private javax.swing.JTree measurementTree;
     private javax.swing.JPanel rightPanel;
+    private javax.swing.JSpinner startDate;
     // End of variables declaration//GEN-END:variables
 
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
-    private static List<String> getSelectedTables(final TreePath[] selectionPaths) {
+    private static List<String> getSelectedTables(@Nullable final TreePath[] selectionPaths) {
+        if (selectionPaths == null) {
+            return Collections.EMPTY_LIST;
+        }
         List<String> result = new ArrayList<String>();
         for (TreePath path : selectionPaths) {
             Object[] pathArr = path.getPath();
@@ -267,26 +294,37 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
 
     private void addChartToPanel(final String tableName, final JPanel content) throws IOException {
         TSTable info = tsDb.getTSTable(tableName);
+         long startTime = ((Date) startDate.getValue()).getTime();
+         long endTime = ((Date) endDate.getValue()).getTime();
         if (TSDBMeasurementDatabase.canGenerateHeatChart(info)) {
-            JFreeChart chart = tsDb.createHeatJFreeChart(info.getTableName());
+            JFreeChart chart = tsDb.createHeatJFreeChart(info.getTableName(),
+                    startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);
             pannel.setPreferredSize(new Dimension(600, 1024));
+            pannel.setDomainZoomable(false);
+            pannel.setMouseZoomable(false);
+            pannel.setRangeZoomable(false);
+            pannel.setZoomAroundAnchor(false);
+            pannel.setZoomInFactor(1);
+            pannel.setZoomOutFactor(1);
             content.add(pannel);
         }
         if (TSDBMeasurementDatabase.canGenerateMinMaxAvgCount(info)) {
-            JFreeChart chart = tsDb.createMinMaxAvgJFreeChart(info.getTableName());
+            JFreeChart chart = tsDb.createMinMaxAvgJFreeChart(info.getTableName(),
+                    startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);
             pannel.setPreferredSize(new Dimension(600, 1024));
             content.add(pannel);
 
         }
         if (TSDBMeasurementDatabase.canGenerateCount(info)) {
-            JFreeChart chart = tsDb.createCountJFreeChart(info.getTableName());
+            JFreeChart chart = tsDb.createCountJFreeChart(info.getTableName(),
+                    startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);
             pannel.setPreferredSize(new Dimension(600, 1024));
             content.add(pannel);
         } else {
-            List<JFreeChart> createJFreeCharts = tsDb.createJFreeCharts(info.getTableName());
+            List<JFreeChart> createJFreeCharts = tsDb.createJFreeCharts(info.getTableName(), startTime, endTime);
             for (JFreeChart chart : createJFreeCharts) {
                 ChartPanel pannel = new ChartPanel(chart);
                 pannel.setPreferredSize(new Dimension(600, 1024));

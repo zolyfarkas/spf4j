@@ -203,6 +203,29 @@ public final class TimeSeriesDatabase implements Closeable {
     public synchronized Pair<long[], long[][]> readAll(final String tableName) throws IOException {
         return read(tableName, 0, Long.MAX_VALUE);
     }
+
+    
+    public synchronized long readStartDate(final String tableName) throws IOException {
+         TSTable info = groups.get(tableName);
+        if (info.getFirstDataFragment() > 0) {
+            DataFragment frag;
+            long nextFragmentLocation = info.getFirstDataFragment();
+            file.seek(nextFragmentLocation);
+            frag = new DataFragment(file);
+            return frag.getStartTimeMillis();
+        } else {
+            return -1;
+        }
+    }
+    
+    /**
+     * Read measurements from table.
+     * @param tableName
+     * @param startTime start time including
+     * @param endTime end time including
+     * @return
+     * @throws IOException
+     */
     
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("LII_LIST_INDEXED_ITERATING")
     public synchronized Pair<long[], long[][]> read(final String tableName,
@@ -218,12 +241,12 @@ public final class TimeSeriesDatabase implements Closeable {
                 file.seek(nextFragmentLocation);
                 frag = new DataFragment(file);
                 long fragStartTime = frag.getStartTimeMillis();
-                if (fragStartTime > startTime) {
+                if (fragStartTime >= startTime) {
                     TIntArrayList fragTimestamps = frag.getTimestamps();
                     int nr = 0;
                     for (int i = 0; i < fragTimestamps.size(); i++) {
                         long ts = fragStartTime + fragTimestamps.get(i);
-                        if (ts < endTime) {
+                        if (ts <= endTime) {
                             timeStamps.add(ts);
                             nr++;
                         } else {
@@ -253,26 +276,46 @@ public final class TimeSeriesDatabase implements Closeable {
     }
     
     public JFreeChart createHeatJFreeChart(final String tableName) throws IOException {
+        return createHeatJFreeChart(tableName, 0, Long.MAX_VALUE);
+    }
+    
+    public JFreeChart createHeatJFreeChart(final String tableName, final long startTime,
+            final long endTime) throws IOException {
         TSTable info = this.getTSTable(tableName);
-        Pair<long[], long[][]> data = this.readAll(tableName);
+        Pair<long[], long[][]> data = this.read(tableName, startTime, endTime);
         return createHeatJFreeChart(data, info);
     }
     
     public JFreeChart createMinMaxAvgJFreeChart(final String tableName) throws IOException {
-        TSTable info = this.getTSTable(tableName);
-        Pair<long[], long[][]> data = this.readAll(tableName);
-        return createMinMaxAvgJFreeChart(data, info);
+        return createMinMaxAvgJFreeChart(tableName, 0, Long.MAX_VALUE);
     }
     
-    public JFreeChart createCountJFreeChart(final String tableName) throws IOException {
+    public JFreeChart createMinMaxAvgJFreeChart(final String tableName, final long startTime,
+            final long endTime) throws IOException {
         TSTable info = this.getTSTable(tableName);
-        Pair<long[], long[][]> data = this.readAll(tableName);
+        Pair<long[], long[][]> data = this.read(tableName, startTime, endTime);
+        return createMinMaxAvgJFreeChart(data, info);
+    }
+
+    public JFreeChart createCountJFreeChart(final String tableName) throws IOException {
+        return createCountJFreeChart(tableName, 0, Long.MAX_VALUE);
+    }
+    
+    public JFreeChart createCountJFreeChart(final String tableName, final long startTime,
+            final long endTime) throws IOException {
+        TSTable info = this.getTSTable(tableName);
+        Pair<long[], long[][]> data = this.read(tableName, startTime, endTime);
         return createCountJFreeChart(data, info);
     }
     
     public List<JFreeChart> createJFreeCharts(final String tableName) throws IOException {
+        return createJFreeCharts(tableName, 0, Long.MAX_VALUE);
+    }
+    
+    public List<JFreeChart> createJFreeCharts(final String tableName, final long startTime,
+            final long endTime) throws IOException {
         TSTable info = this.getTSTable(tableName);
-        Pair<long[], long[][]> data = this.readAll(tableName);
+        Pair<long[], long[][]> data = this.read(tableName, startTime, endTime);
         return createJFreeCharts(data, info);
     }
     
