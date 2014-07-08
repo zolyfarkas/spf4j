@@ -173,7 +173,7 @@ public final class Registry {
         } else {
             String opName = methodName;
             String nameOverwrite = (String) Reflections.getAnnotationAttribute(annot, "name");
-            if (!nameOverwrite.equals("")) {
+            if (!"".equals(nameOverwrite)) {
                 opName = nameOverwrite;
             }
             if (prependClass != null) {

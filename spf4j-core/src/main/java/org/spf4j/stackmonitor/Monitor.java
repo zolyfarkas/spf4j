@@ -20,11 +20,6 @@ package org.spf4j.stackmonitor;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
@@ -64,15 +59,11 @@ public final class Monitor {
         
         
     }
-    private static volatile boolean generatedAndDisposed;
 
-    public static void main(final String[] args) throws ClassNotFoundException, NoSuchMethodException,
-            IllegalAccessException, InvocationTargetException, IOException,
-            MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException,
-            NotCompliantMBeanException, InterruptedException {
-
-        generatedAndDisposed = false;
-        
+    public static void main(final String[] args)
+            throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
+            InvocationTargetException  {
+      
         int sepPos = args.length;
         for (int i = 0; i < args.length; i++) {
             if ("--".equals(args[i])) {
@@ -106,7 +97,7 @@ public final class Monitor {
         Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable() {
 
             @Override
-            public void doRun() throws InterruptedException, IOException, InstanceNotFoundException {
+            public void doRun() throws InterruptedException, IOException {
                 sampler.stop();
                 sampler.dumpToFile();
                 sampler.dispose();
