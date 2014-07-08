@@ -17,34 +17,24 @@
  */
 package org.spf4j.stackmonitor;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectName;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.MutableHolder;
+import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
 import org.spf4j.perf.memory.GCUsageSampler;
 import org.spf4j.stackmonitor.proto.Converter;
 
@@ -55,14 +45,12 @@ import org.spf4j.stackmonitor.proto.Converter;
  * @author zoly
  */
 @ThreadSafe
-public final class Sampler implements SamplerMBean {
+public final class Sampler {
 
     private volatile boolean stopped;
     private volatile int sampleTimeMillis;
     private volatile int dumpTimeMillis;
-    private volatile boolean isJmxRegistered;
     private final StackCollector stackCollector;
-    private final ObjectName name;
     private volatile long lastDumpTime = System.currentTimeMillis();
     
     @GuardedBy("this")
@@ -93,27 +81,18 @@ public final class Sampler implements SamplerMBean {
         this.sampleTimeMillis = sampleTimeMillis;
         this.dumpTimeMillis = dumpTimeMillis;
         this.stackCollector = collector;
-        try {
-            this.name = new ObjectName("SPF4J:name=StackSampler");
-        } catch (MalformedObjectNameException ex) {
-            throw new RuntimeException(ex);
-        }
-        this.isJmxRegistered = false;
         this.filePrefix = dumpFolder + File.separator + dumpFilePrefix;
     }
 
-    public void registerJmx()
-            throws MalformedObjectNameException, InstanceAlreadyExistsException,
-            MBeanRegistrationException, NotCompliantMBeanException {
-        ManagementFactory.getPlatformMBeanServer().registerMBean(this, name);
-        isJmxRegistered = true;
+    public void registerJmx() {
+        Registry.export(this);
     }
 
     private static final StackTraceElement [] GC_FAKE_STACK = new StackTraceElement[] {
         new StackTraceElement("java.lang.System", "gc", "System.java", -1)
     };
     
-    @Override
+    @JmxExport(description = "start stack sampling")
     public synchronized void start() {
         if (stopped) {
             stopped = false;
@@ -166,9 +145,10 @@ public final class Sampler implements SamplerMBean {
         }
 
     }
+    
     private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();
 
-    @Override
+    @JmxExport(description = "save stack samples to file")
     public String dumpToFile() throws IOException {
         return dumpToFile(null);
     }
@@ -181,8 +161,10 @@ public final class Sampler implements SamplerMBean {
      * @throws IOException
      */
     
-    @Override
-    public synchronized String dumpToFile(@Nullable final String id) throws IOException {
+    @JmxExport(name = "dumpToSpecificFile", description = "save stack samples to file")
+    public synchronized String dumpToFile(
+            @JmxExport(name = "fileName", description = "the file name to save to")
+            @Nullable final String id) throws IOException {
         final MutableHolder<String> result = new MutableHolder<String>();
         stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
             @Override
@@ -212,56 +194,8 @@ public final class Sampler implements SamplerMBean {
         return result.getValue();
     }
 
-    @Override
-    public synchronized void generateHtmlMonitorReport(final String fileName, final int chartWidth, final int maxDepth)
-            throws IOException {
-        final Writer writer
-                = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
-        try {
-            writer.append("<html>");
 
-            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
-                @Override
-                public SampleNode apply(final SampleNode input) {
-                    if (input != null) {
-                        SampleNode finput = input;
-                        try {
-                            writer.append("<h1>Total stats</h1>");
-                            StackVisualizer.generateHtmlTable(writer, Method.ROOT, finput, chartWidth, maxDepth);
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    }
-                    return input;
-                }
-            });
-
-
-            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
-                @Override
-                public SampleNode apply(final SampleNode input) {
-                    if (input != null) {
-                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);
-                        try {
-                            writer.append("<h1>CPU stats</h1>");
-                            StackVisualizer.generateHtmlTable(writer, Method.ROOT, finput, chartWidth, maxDepth);
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    }
-                    return input;
-                }
-            });
-
-            writer.append("</html>");
-
-        } finally {
-            writer.close();
-        }
-
-    }
-
-    @Override
+    @JmxExport(description = "stop stack sampling")
     public synchronized void stop() throws InterruptedException {
         if (!stopped) {
             stopped = true;
@@ -269,36 +203,23 @@ public final class Sampler implements SamplerMBean {
         }
     }
 
-    @Override
+    @JmxExport(description = "stack sample time in milliseconds")
     public int getSampleTimeMillis() {
         return sampleTimeMillis;
     }
 
-    @Override
+    @JmxExport
     public void setSampleTimeMillis(final int sampleTimeMillis) {
         this.sampleTimeMillis = sampleTimeMillis;
     }
 
-    @Override
+    @JmxExport(description = "is the stack sampling stopped")
     public boolean isStopped() {
         return stopped;
     }
 
-    @Override
-    public List<String> generate(final Properties props) throws IOException {
-        int width = Integer.parseInt(props.getProperty("width", "1200"));
-        int maxDepth = Integer.parseInt(props.getProperty("maxDepth", "1200"));
-        String fileName = File.createTempFile("stack", ".html").getAbsolutePath();
-        generateHtmlMonitorReport(fileName, width, maxDepth);
-        return Arrays.asList(fileName);
-    }
 
-    @Override
-    public List<String> getParameters() {
-        return Arrays.asList("width");
-    }
-
-    @Override
+    @JmxExport(description = "clear in memeory collected stack samples")
     public void clear() {
         stackCollector.clear();
     }
@@ -308,133 +229,19 @@ public final class Sampler implements SamplerMBean {
     }
 
     @PreDestroy
-    public void dispose() throws InterruptedException, InstanceNotFoundException {
+    public void dispose() throws InterruptedException {
         stop();
-        try {
-            if (isJmxRegistered) {
-                ManagementFactory.getPlatformMBeanServer().unregisterMBean(name);
-            }
-        } catch (InstanceNotFoundException ex) {
-            throw new RuntimeException(ex);
-        } catch (MBeanRegistrationException ex) {
-            throw new RuntimeException(ex);
-        }
+        Registry.unregister(this);
     }
 
-    @Override
-    public void generateCpuSvg(final String fileName, final int chartWidth, final int maxDepth) throws IOException {
-        final Writer writer
-                = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
-        try {
-
-            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
-                @Override
-                public SampleNode apply(final SampleNode input) {
-                    if (input != null) {
-                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);
-                        try {
-                            StackVisualizer.generateSvg(writer, Method.ROOT, finput, 0, 0, chartWidth, maxDepth, "a");
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    }
-                    return input;
-                }
-            });
-        } finally {
-            writer.close();
-        }
-    }
-
-    @Override
-    public void generateTotalSvg(final String fileName, final int chartWidth, final int maxDepth) throws IOException {
-        final Writer writer
-                = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
-        try {
-
-            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
-                @Override
-                public SampleNode apply(final SampleNode input) {
-                    if (input != null) {
-
-                        try {
-                            StackVisualizer.generateSvg(writer, Method.ROOT, input, 0, 0, chartWidth, maxDepth, "b");
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    }
-                    return input;
-                }
-            });
-        } finally {
-            writer.close();
-        }
-    }
-
-    @Override
-    public void generateSvgHtmlMonitorReport(final String fileName, final int chartWidth, final int maxDepth)
-            throws IOException {
-        final Writer writer
-                = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), Charsets.UTF_8));
-        try {
-            writer.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-                    + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\""
-                    + " \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n");
-            writer.append("<html>");
 
 
-            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
-                @Override
-                public SampleNode apply(final SampleNode input) {
-                    if (input != null) {
-
-                        try {
-                            writer.append("<h1>Total stats</h1>");
-                            StackVisualizer.generateSvg(writer, Method.ROOT, input, 0, 0, chartWidth, maxDepth, "a");
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
-
-                    }
-                    return input;
-                }
-            });
-
-
-            stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
-                @Override
-                public SampleNode apply(final SampleNode input) {
-                    if (input != null) {
-                        SampleNode finput = input.filteredBy(WaitMethodClassifier.INSTANCE);
-                        if (finput != null) {
-                            try {
-                                writer.append("<h1>CPU stats</h1>");
-                                StackVisualizer.generateSvg(writer, Method.ROOT,
-                                        finput, 0, 0, chartWidth, maxDepth, "b");
-                            } catch (IOException ex) {
-                                throw new RuntimeException(ex);
-                            }
-                        }
-                    }
-                    return input;
-                }
-            });
-
-
-            writer.append("</html>");
-
-        } finally {
-            writer.close();
-        }
-
-    }
-
-    @Override
+    @JmxExport(description = "interval in milliseconds to save stack stamples periodically")
     public int getDumpTimeMillis() {
         return dumpTimeMillis;
     }
 
-    @Override
+    @JmxExport
     public void setDumpTimeMillis(final int dumpTimeMillis) {
         this.dumpTimeMillis = dumpTimeMillis;
     }

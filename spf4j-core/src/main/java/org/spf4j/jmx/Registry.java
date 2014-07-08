@@ -44,7 +44,43 @@ public final class Registry {
         }
     }
 
+    public static void unregister(final Object object) {
+        final Class<? extends Object> aClass = object.getClass();
+        unregister(aClass.getPackage().getName(), aClass.getSimpleName());
+    }
+
+    public static void unregister(final Class<?> object) {
+        unregister(object.getPackage().getName(), object.getSimpleName());
+    }
+
+    public static void unregister(final String packageName, final String mbeanName) {
+        ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
+        if (MBEAN_SERVER.isRegistered(objectName)) {
+            try {
+                MBEAN_SERVER.unregisterMBean(objectName);
+            } catch (InstanceNotFoundException ex) {
+                throw new RuntimeException(ex);
+            } catch (MBeanRegistrationException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        try {
+            MBEAN_SERVER.unregisterMBean(objectName);
+        } catch (InstanceNotFoundException ex) {
+            throw new RuntimeException(ex);
+        } catch (MBeanRegistrationException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public static void export(final Object object) {
+        final Class<? extends Object> aClass = object.getClass();
+        export(aClass.getPackage().getName(), aClass.getSimpleName(), object);
+    }
     
+    public static void export(final Class<?> object) {
+        export(object.getPackage().getName(), object.getSimpleName(), object);
+    }
     
     public static void export(final String packageName, final String mbeanName, final Object ... objects) {
         
@@ -136,6 +172,10 @@ public final class Registry {
             exportedAttributes.put(valueName, existing);
         } else {
             String opName = methodName;
+            String nameOverwrite = (String) Reflections.getAnnotationAttribute(annot, "name");
+            if (!nameOverwrite.equals("")) {
+                opName = nameOverwrite;
+            }
             if (prependClass != null) {
                 opName = prependClass + "." + opName;
             }

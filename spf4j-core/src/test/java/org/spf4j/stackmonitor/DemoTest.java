@@ -18,21 +18,14 @@
  */
 package org.spf4j.stackmonitor;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.kohsuke.args4j.CmdLineException;
 
 public final class DemoTest {
 
@@ -49,17 +42,11 @@ public final class DemoTest {
     }
 
     @Test
-    public void testJmx() throws ClassNotFoundException, NoSuchMethodException,
-            IllegalAccessException, InvocationTargetException,
-            IOException, CmdLineException, InterruptedException, MalformedObjectNameException,
-            InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
-        String report1 = File.createTempFile("stackSample", ".html").getPath();
-        String report2 = File.createTempFile("stackSample", ".html").getPath();
+    public void testJmx() throws InterruptedException, IOException {
         Sampler sampler = new Sampler(new SimpleStackCollector());
         sampler.start();
         main(new String[]{});
-        sampler.generateSvgHtmlMonitorReport(report1, 1000, 100);
-        sampler.generateHtmlMonitorReport(report2, 1000, 100);
+        sampler.dumpToFile();
         sampler.stop();
     }
     private static volatile boolean stopped;
@@ -90,8 +77,7 @@ public final class DemoTest {
                             doStuff();
                             Thread.sleep(1);
                         }
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
 

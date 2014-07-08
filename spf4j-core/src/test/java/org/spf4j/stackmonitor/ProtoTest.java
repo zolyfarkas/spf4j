@@ -103,8 +103,7 @@ public final class ProtoTest {
         } finally {
             fis.close();
         }
-        String report = File.createTempFile("stackSample", ".html").getPath();
-        anotherOne.generateHtmlMonitorReport(report, 1000, 25);
+        String report = anotherOne.dumpToFile();
         System.out.println(report);
     }
 }

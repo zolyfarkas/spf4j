@@ -27,7 +27,13 @@ import org.spf4j.stackmonitor.proto.Converter;
 import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
 
 /**
- *
+ * will need to add some standard filtering:
+ * 
+ * Pair.of(sun.misc.Unsafe.class.getName(), "park"));
+ * Pair.of(java.lang.Object.class.getName(), "wait"));
+ * Pair.of(java.lang.Thread.class.getName(), "sleep"));
+ * Pair.of("java.net.PlainSocketImpl", "socketAccept"));
+ * Pair.of("java.net.PlainSocketImpl", "socketConnect"));
  * @author zoly
  */
 @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("FCBL_FIELD_COULD_BE_LOCAL")
