@@ -141,9 +141,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel2Layout.createSequentialGroup()
-                .add(jScrollPane1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 213, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .add(0, 0, Short.MAX_VALUE))
+            .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -153,6 +151,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         mainSplitPannel.setLeftComponent(jPanel2);
         mainSplitPannel.setRightComponent(chartPannel);
 
+        jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
 
         jButton1.setText("Plot");
@@ -299,7 +298,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
             JFreeChart chart = tsDb.createHeatJFreeChart(info.getTableName(),
                     startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);
-            pannel.setPreferredSize(new Dimension(600, 1024));
+            pannel.setPreferredSize(new Dimension(600, 600));
             pannel.setDomainZoomable(false);
             pannel.setMouseZoomable(false);
             pannel.setRangeZoomable(false);
@@ -312,7 +311,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
             JFreeChart chart = tsDb.createMinMaxAvgJFreeChart(info.getTableName(),
                     startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);
-            pannel.setPreferredSize(new Dimension(600, 1024));
+            pannel.setPreferredSize(new Dimension(600, 600));
             content.add(pannel);
 
         }
@@ -320,13 +319,13 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
             JFreeChart chart = tsDb.createCountJFreeChart(info.getTableName(),
                     startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);
-            pannel.setPreferredSize(new Dimension(600, 1024));
+            pannel.setPreferredSize(new Dimension(600, 600));
             content.add(pannel);
         } else {
             List<JFreeChart> createJFreeCharts = tsDb.createJFreeCharts(info.getTableName(), startTime, endTime);
             for (JFreeChart chart : createJFreeCharts) {
                 ChartPanel pannel = new ChartPanel(chart);
-                pannel.setPreferredSize(new Dimension(600, 1024));
+                pannel.setPreferredSize(new Dimension(600, 600));
                 content.add(pannel);
             }
         }
