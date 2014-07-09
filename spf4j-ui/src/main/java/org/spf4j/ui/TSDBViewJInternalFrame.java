@@ -298,7 +298,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
             JFreeChart chart = tsDb.createHeatJFreeChart(info.getTableName(),
                     startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);
-            pannel.setPreferredSize(new Dimension(600, 600));
+            pannel.setPreferredSize(new Dimension(600, 800));
             pannel.setDomainZoomable(false);
             pannel.setMouseZoomable(false);
             pannel.setRangeZoomable(false);
