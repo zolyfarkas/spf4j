@@ -25,7 +25,7 @@ import org.spf4j.base.Arrays;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.base.Pair;
 import org.spf4j.perf.EntityMeasurementsInfo;
-import org.spf4j.perf.MeasurementDatabase;
+import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.impl.chart.Charts;
 import org.spf4j.perf.tsdb.TSTable;
 import org.spf4j.perf.tsdb.TimeSeriesDatabase;
@@ -45,16 +45,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.imageio.ImageIO;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectName;
 import org.jfree.chart.JFreeChart;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
 
 /**
  *
@@ -62,7 +59,7 @@ import org.slf4j.LoggerFactory;
  */
 @ThreadSafe
 public final class TSDBMeasurementDatabase
-    implements MeasurementDatabase, Closeable, TSDBMeasurementDatabaseMBean {
+    implements MeasurementStore, Closeable {
 
     private final TimeSeriesDatabase database;
     private volatile ScheduledFuture<?> future;
@@ -73,10 +70,9 @@ public final class TSDBMeasurementDatabase
     }
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
 
-    public void registerJmx() throws MalformedObjectNameException, InstanceAlreadyExistsException,
-            MBeanRegistrationException, NotCompliantMBeanException {
-        ManagementFactory.getPlatformMBeanServer().registerMBean(this,
-                new ObjectName("SPF4J:name=TSDBMeasurementDatabase" + COUNTER.getAndIncrement()));
+    public void registerJmx() {
+            Registry.export(TSDBMeasurementDatabase.class.getName(),
+                    new File(database.getDBFilePath()).getName(), this);
     }
 
     public void closeOnShutdown() {
@@ -146,7 +142,7 @@ public final class TSDBMeasurementDatabase
         return result.toString();
     }
 
-    @Override
+    @JmxExport(description = "generate charts for all measurements")
     public List<String> generateCharts(final int width, final int height) throws IOException {
         long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
         long endTime = System.currentTimeMillis();
@@ -164,7 +160,8 @@ public final class TSDBMeasurementDatabase
      * @return
      * @throws IOException
      */
-    @Override
+    @JmxExport(name = "generateChartsInterval",
+            description = "generate charts for all measurements in specified interval")
     public List<String> generateCharts(final long startTimeMillis, final long endTimeMillis,
             final int width, final int height) throws IOException {
         try {
@@ -340,7 +337,7 @@ public final class TSDBMeasurementDatabase
         return java.util.Arrays.asList("width", "height", "startTime", "endTime");
     }
 
-    @Override
+    @JmxExport(description = "flush out buffers")
     public void flush() throws IOException {
         database.flush();
     }

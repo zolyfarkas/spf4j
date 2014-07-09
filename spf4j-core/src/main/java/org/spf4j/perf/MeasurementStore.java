@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -15,26 +15,22 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.perf.impl.mdb.tsdb;
+package org.spf4j.perf;
 
+import org.spf4j.base.ReportGenerator;
 import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
 
-
-
-
-public interface TSDBMeasurementDatabaseMBean {
-
-    List<String> generate(Properties props) throws IOException;
-
-    List<String> generateCharts(int width, int height) throws IOException;
+/**
+ *
+ * @author zoly
+ */
+public interface MeasurementStore extends ReportGenerator {
     
-    List<String> generateCharts(long startTimeMillis, long endTimeMillis, int width, int height) throws IOException;
-
-    List<String> getParameters();
+    void alocateMeasurements(EntityMeasurementsInfo measurement, int sampleTimeMillis)
+            throws IOException;
     
-    void flush()  throws IOException;
+    void saveMeasurements(EntityMeasurementsInfo measurementInfo, long [] measurements,
+            long timeStampMillis, int sampleTimeMillis)
+            throws IOException;
     
 }
-

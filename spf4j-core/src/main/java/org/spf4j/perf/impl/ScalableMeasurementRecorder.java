@@ -21,7 +21,7 @@ import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.perf.EntityMeasurements;
 import org.spf4j.perf.EntityMeasurementsInfo;
-import org.spf4j.perf.MeasurementDatabase;
+import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MeasurementProcessor;
 import org.spf4j.perf.MeasurementRecorder;
 import java.io.Closeable;
@@ -53,7 +53,7 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
 
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
     ScalableMeasurementRecorder(final MeasurementProcessor processor, final int sampleTimeMillis,
-            final MeasurementDatabase database) {
+            final MeasurementStore database) {
         threadLocalRecorders = new HashMap<Thread, MeasurementProcessor>();
         processorTemplate = processor;
         threadLocalRecorder = new ThreadLocal<MeasurementProcessor>() {

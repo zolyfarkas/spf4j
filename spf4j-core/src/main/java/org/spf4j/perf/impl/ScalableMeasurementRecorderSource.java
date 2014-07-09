@@ -30,7 +30,7 @@ import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.base.Pair;
 import org.spf4j.perf.EntityMeasurements;
 import org.spf4j.perf.EntityMeasurementsSource;
-import org.spf4j.perf.MeasurementDatabase;
+import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MeasurementProcessor;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
@@ -53,7 +53,7 @@ public final class ScalableMeasurementRecorderSource implements
     private final MeasurementProcessor processorTemplate;
     
     ScalableMeasurementRecorderSource(final MeasurementProcessor processor,
-            final int sampleTimeMillis, final MeasurementDatabase database) {
+            final int sampleTimeMillis, final MeasurementStore database) {
         this.processorTemplate = processor;
         measurementProcessorMap = new HashMap<Thread, Map<Object, MeasurementProcessor>>();
         threadLocalMeasurementProcessorMap = new ThreadLocal<Map<Object, MeasurementProcessor>>() {

@@ -20,7 +20,7 @@ package org.spf4j.perf.impl;
 
 import java.io.IOException;
 import org.spf4j.perf.EntityMeasurementsInfo;
-import org.spf4j.perf.MeasurementDatabase;
+import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MeasurementRecorder;
 
 /**
@@ -31,12 +31,12 @@ public final class DirectRecorder implements MeasurementRecorder {
     
     private final EntityMeasurementsInfo info;
     private static final String[] MEASUREMENTS = {"value"};
-    private final MeasurementDatabase database;
+    private final MeasurementStore database;
     private final int sampleTimeMillis;
 
     
     public DirectRecorder(final Object measuredEntity, final String unitOfMeasurement,
-            final int sampleTimeMillis, final MeasurementDatabase database) {
+            final int sampleTimeMillis, final MeasurementStore database) {
         this.info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement,
                 MEASUREMENTS, new String[]{unitOfMeasurement});
         this.database = database;
