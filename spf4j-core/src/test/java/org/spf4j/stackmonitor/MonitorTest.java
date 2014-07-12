@@ -67,7 +67,7 @@ public final class MonitorTest {
             InterruptedException, MalformedObjectNameException, InstanceAlreadyExistsException,
             MBeanRegistrationException, NotCompliantMBeanException {
         String report = File.createTempFile("stackSample", ".html").getPath();
-        Monitor.main(new String[]{"-f", report, "-ss", "-si", "10", "-w", "600", "-main",
+        Monitor.main(new String[]{"-ss", "-si", "10", "-main",
             MonitorTest.class.getName()});
         System.out.println(report);
     }
