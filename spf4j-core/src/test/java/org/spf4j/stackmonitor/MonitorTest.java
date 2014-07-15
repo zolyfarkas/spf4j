@@ -72,39 +72,9 @@ public final class MonitorTest {
         System.out.println(report);
     }
 
-    @Test(timeout = 20000)
-    @Ignore
-    public void testApphtml() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException,
-            InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException,
-            InterruptedException, InstanceNotFoundException {
-        String report = File.createTempFile("stackSampleHtml", ".html").getPath();
-        Monitor.main(new String[]{"-nosvg", "-f", report, "-ss", "-si", "10", "-w", "600", "-main",
-            MonitorTest.class.getName()});
-        System.out.println(report);
-    }
 
-    @Test(timeout = 20000)
-    @Ignore
-    public void testApp2() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException, IOException, CmdLineException, MalformedObjectNameException,
-            InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException,
-            InterruptedException {
-        String report = File.createTempFile("stackSampleSimple", ".html").getPath();
-        Monitor.main(new String[]{"-f", report, "-ss", "-si", "10", "-w", "600", "-main", MonitorTest.class.getName()});
-        System.out.println(report);
-    }
 
-    @Test(timeout = 20000)
-    @Ignore
-    public void testApp() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException, IOException, CmdLineException,
-            MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException,
-            NotCompliantMBeanException, InterruptedException, InstanceNotFoundException {
-        String report = File.createTempFile("stackSample", ".html").getPath();
-        Monitor.main(new String[]{"-f", report, "-ss", "-si", "10", "-w", "600", "-main", MonitorTest.class.getName()});
-        System.out.println(report);
-    }
+
     private static volatile boolean stopped;
 
     public static void main(final String[] args) throws InterruptedException {

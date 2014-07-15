@@ -26,10 +26,34 @@ public final class IntMath {
     private IntMath() { }
     
     public static int closestPowerOf2(final int number) {
-        int capacity = 1;
-        while (capacity < number) {
-            capacity <<= 1;
-        }
-        return capacity;
+        return number == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(number - 1);
     }
+    
+    public static final class XorShift32 {
+        // XorShift128 PRNG with a 2^32-1 period.
+        private int x = System.identityHashCode(this);
+
+        public int nextInt() {
+            x ^= (x << 6);
+            x ^= (x >>> 21);
+            return x ^ (x << 7);
+        }
+    }
+
+    public static final class XorShift128 {
+        // XorShift128 PRNG with a 2^128-1 period.
+        private int x = System.identityHashCode(this);
+        private int y = -938745813;
+        private int z = 452465366;
+        private int w = 1343246171;
+
+        public int nextInt() {
+            int t = x ^ (x << 15);
+            x = y; y = z; z = w;
+            w = (w ^ (w >>> 21)) ^ (t ^ (t >>> 4));
+            return w;
+        }
+    }
+    
+    
 }

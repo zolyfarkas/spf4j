@@ -32,6 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.IntMath;
 import org.spf4j.base.MutableHolder;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
@@ -41,6 +42,9 @@ import org.spf4j.stackmonitor.proto.Converter;
 /**
  * Utility to sample stack traces.
  * Stack traces can be persisted for later analysis.
+ * 
+ * please read http://sape.inf.usi.ch/sites/default/files/publication/pldi10.pdf
+ * pure java stack sampling will probably have safepoint bias.
  * 
  * @author zoly
  */
@@ -92,12 +96,13 @@ public final class Sampler {
         new StackTraceElement("java.lang.System", "gc", "System.java", -1)
     };
     
+    private final IntMath.XorShift32 random = new IntMath.XorShift32();
+    
     @JmxExport(description = "start stack sampling")
     public synchronized void start() {
         if (stopped) {
             stopped = false;
             final int stMillis = sampleTimeMillis;
-            final int dumpCount = dumpTimeMillis / stMillis;
             final List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
             samplingThread = new Thread(new AbstractRunnable() {
                 
@@ -105,14 +110,15 @@ public final class Sampler {
                 @Override
                 public void doRun() throws IOException, InterruptedException {
                     final Thread samplerThread = Thread.currentThread();
-                    int dumpCounter = 0;
+                    int dumpCounterMs = 0;
                     int coarseCounter = 0;
                     int coarseCount = 2000 / stMillis;
                     boolean lstopped = stopped;
                     long prevGcTime = 0;
+                    int sleepTime = 0;
                     while (!lstopped) {
                         stackCollector.sample(samplerThread);
-                        dumpCounter++;
+                        dumpCounterMs += sleepTime;
                         coarseCounter++;
                         if (coarseCounter >= coarseCount) {
                             coarseCounter = 0;
@@ -120,22 +126,23 @@ public final class Sampler {
                             long gcTime = GCUsageSampler.getGCTime(gcBeans);
                             if (gcTime > prevGcTime) {
                                 int fakeSamples = (int) ((gcTime - prevGcTime)) / stMillis;
-                                for (int i = 0; i < fakeSamples; i++) {
+                                for (int i = 0; i < fakeSamples; i++) { // can be optimized
                                     stackCollector.addSample(GC_FAKE_STACK);
                                 }
                                 prevGcTime = gcTime;
                             }
                         }
-                        if (dumpCounter >= dumpCount) {
+                        if (dumpCounterMs >= dumpTimeMillis) {
                             long timeSinceLastDump = System.currentTimeMillis() - lastDumpTime;
                             if (timeSinceLastDump >= dumpTimeMillis) {
-                                dumpCounter = 0;
+                                dumpCounterMs = 0;
                                 dumpToFile();
                             } else {
-                                dumpCounter -= (dumpTimeMillis - timeSinceLastDump) / stMillis;
+                                dumpCounterMs -= dumpTimeMillis - timeSinceLastDump;
                             }
                         }
-                        Thread.sleep(stMillis);
+                        sleepTime = stMillis + random.nextInt() % stMillis;
+                        Thread.sleep(sleepTime);
                    }
                 }
             }, "Stack Sampling Thread");

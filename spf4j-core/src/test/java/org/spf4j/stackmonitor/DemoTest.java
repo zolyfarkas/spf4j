@@ -46,7 +46,8 @@ public final class DemoTest {
         Sampler sampler = new Sampler(new SimpleStackCollector());
         sampler.start();
         main(new String[]{});
-        sampler.dumpToFile();
+        String fileName = sampler.dumpToFile();
+        System.out.println("Samples saved to " + fileName);
         sampler.stop();
     }
     private static volatile boolean stopped;
