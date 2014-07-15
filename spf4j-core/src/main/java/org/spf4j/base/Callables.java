@@ -89,29 +89,21 @@ public final class Callables {
     public static final class RetryPauseWithTimeout implements Callable<Boolean> {
 
         private final int nrImmediateRetries;
-        private final int nrTotalRetries;
         private final int waitMillis;
-        private final int timeoutMillis;
+        private final TimeoutCallable callable;
         private int count;
-        private final long startTime;
 
-        public RetryPauseWithTimeout(final int nrImmediateRetries, final int nrTotalRetries,
-                final int retryWaitMillis, final int timeoutMillis) {
-            assert (nrImmediateRetries <= nrTotalRetries);
+        public RetryPauseWithTimeout(final int nrImmediateRetries,
+                final int retryWaitMillis, final TimeoutCallable callable) {
             this.nrImmediateRetries = nrImmediateRetries;
-            this.nrTotalRetries = nrTotalRetries;
             this.waitMillis = retryWaitMillis;
-            this.timeoutMillis = timeoutMillis;
-            startTime = System.currentTimeMillis();
+            this.callable = callable;
         }
            
         @Override
         public Boolean call() throws Exception {
            long now = System.currentTimeMillis();
-           if (now - startTime > timeoutMillis) {
-               return Boolean.FALSE;
-           }
-           if (count >= nrTotalRetries) {
+           if (now  >= callable.getDeadline()) {
                return Boolean.FALSE;
            }
            if (count >= nrImmediateRetries) {
@@ -147,31 +139,54 @@ public final class Callables {
     }
     
 
-    public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
-            final int nrTotalRetries, final int retryWaitMillis, final int timeoutMillis)
+    public static <T> T executeWithRetry(final TimeoutCallable<T> what, final int nrImmediateRetries,
+            final int retryWaitMillis)
             throws InterruptedException {
        return executeWithRetry(what, new RetryPauseWithTimeout(
-               nrImmediateRetries, nrTotalRetries, retryWaitMillis, timeoutMillis),
+               nrImmediateRetries, retryWaitMillis, what),
                NORETRY_FOR_RESULT, RETRY_FOR_ANY_EXCEPTION);
     }
     
-    public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
-            final int nrTotalRetries, final int retryWaitMillis ,  final int timeoutMillis,
+    public static <T> T executeWithRetry(final TimeoutCallable<T> what, final int nrImmediateRetries,
+            final int retryWaitMillis ,
             final Predicate<Exception> retryOnException)
             throws InterruptedException {
        return executeWithRetry(what, new RetryPauseWithTimeout(
-               nrImmediateRetries, nrTotalRetries, retryWaitMillis, timeoutMillis),
+               nrImmediateRetries, retryWaitMillis, what),
                NORETRY_FOR_RESULT, retryOnException);
     }
     
-   public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
-            final int nrTotalRetries, final int retryWaitMillis,  final int timeoutMillis,
+   public static <T> T executeWithRetry(final TimeoutCallable<T> what, final int nrImmediateRetries,
+             final int retryWaitMillis,
             final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
             throws InterruptedException {
        return executeWithRetry(what, new RetryPauseWithTimeout(
-               nrImmediateRetries, nrTotalRetries, retryWaitMillis, timeoutMillis),
+               nrImmediateRetries, retryWaitMillis, what),
                retryOnReturnVal, retryOnException);
     }
+      
+   public abstract static class TimeoutCallable<T> implements Callable<T> {
+       
+       private final long mdeadline;
+       
+       public TimeoutCallable(final int timeoutMillis) {
+           mdeadline = System.currentTimeMillis() + timeoutMillis;
+       }
+       
+       
+       @Override
+       public final T call() throws Exception {
+           return call(mdeadline);
+       }
+   
+       public abstract T call(final long deadline) throws Exception;
+
+       public final long getDeadline() {
+            return mdeadline;
+       }
+       
+       
+   }
    
    
    

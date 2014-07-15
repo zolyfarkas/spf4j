@@ -18,13 +18,13 @@
  */
 package org.spf4j.aspects;
 
-import java.util.concurrent.Callable;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.spf4j.annotations.Retry;
 import org.spf4j.annotations.VoidPredicate;
 import org.spf4j.base.Callables;
+import org.spf4j.base.Callables.TimeoutCallable;
 
 /**
  * Aspect that measures execution time and does performance logging for all methods annotated with: PerformanceMonitor
@@ -35,23 +35,42 @@ import org.spf4j.base.Callables;
 @Aspect
 public final class RetryAspect {
 
+    
+    private static final ThreadLocal<Long> DEADLINE = new ThreadLocal<Long>() {
+
+        @Override
+        protected Long initialValue() {
+            return Long.MAX_VALUE;
+        }
+
+    };
+    
+    
+    public static long getDeadline() {
+        return DEADLINE.get();
+    }
+    
     @Around(value = "execution(@org.spf4j.annotations.Retry * *(..)) && @annotation(annot)",
             argNames = "pjp,annot")
     public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final Retry annot)
             throws Throwable {
 
-        return Callables.executeWithRetry(new Callable<Object>() {
+        return Callables.executeWithRetry(new TimeoutCallable<Object>(annot.timeoutMillis()) {
 
             @Override
-            public Object call() throws Exception {
+            public Object call(final long dealine) throws Exception {
+                DEADLINE.set(dealine);
                 try {
                     return pjp.proceed();
+                } catch (Exception e) {
+                  throw e;
                 } catch (Throwable ex) {
-                    throw new Exception(ex);
+                    throw new Error(ex);
+                } finally {
+                    DEADLINE.set(Long.MAX_VALUE);
                 }
             }
-        }, annot.immediateRetries(), annot.totalRetries(), annot.retryDelayMillis(),
-                annot.timeoutMillis(),
+        }, annot.immediateRetries(), annot.retryDelayMillis(),
                 annot.exRetry() == VoidPredicate.class ? Callables.RETRY_FOR_ANY_EXCEPTION
                         : annot.exRetry().newInstance());
 

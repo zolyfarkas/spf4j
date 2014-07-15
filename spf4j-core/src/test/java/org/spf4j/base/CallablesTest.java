@@ -21,6 +21,7 @@ import com.google.common.base.Predicate;
 import java.util.concurrent.Callable;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.base.Callables.TimeoutCallable;
 
 /**
  *
@@ -134,11 +135,11 @@ public final class CallablesTest {
     @Test(expected = RuntimeException.class)
     public void testExecuteWithRetryTimeout() throws Exception {
         System.out.println("executeWithRetryTimeout");
-        Integer result = Callables.executeWithRetry(new Callable<Integer>() {
+        Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer>(1000) {
             private int count;
 
             @Override
-            public Integer call() throws Exception {
+            public Integer call(final long deadline) throws Exception {
                 Thread.sleep(2000);
                 count++;
                 if (count < 5) {
@@ -146,7 +147,7 @@ public final class CallablesTest {
                 }
                 return 1;
             }
-        }, 1, 10, 10, 1000);
+        }, 1, 10);
         Assert.assertEquals(1L, result.longValue());
     }
     

@@ -29,7 +29,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Retry {
     int immediateRetries() default 5;
-    int totalRetries() default 10;
     int retryDelayMillis() default 1000;
     int timeoutMillis() default 300000;
     Class<? extends Predicate<Exception>> exRetry() default VoidPredicate.class;
