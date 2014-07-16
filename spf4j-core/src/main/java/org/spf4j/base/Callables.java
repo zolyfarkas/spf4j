@@ -20,6 +20,7 @@ package org.spf4j.base;
 
 import com.google.common.base.Predicate;
 import java.util.concurrent.Callable;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,12 +93,16 @@ public final class Callables {
         private final int waitMillis;
         private final TimeoutCallable callable;
         private int count;
+        private final Callable<Boolean> doBeforeRetry;
+        
 
         public RetryPauseWithTimeout(final int nrImmediateRetries,
-                final int retryWaitMillis, final TimeoutCallable callable) {
+                final int retryWaitMillis, final TimeoutCallable callable,
+                @Nullable final Callable<Boolean> doBeforeRetry) {
             this.nrImmediateRetries = nrImmediateRetries;
             this.waitMillis = retryWaitMillis;
             this.callable = callable;
+            this.doBeforeRetry = doBeforeRetry;
         }
            
         @Override
@@ -110,6 +115,9 @@ public final class Callables {
                Thread.sleep(waitMillis);
            }
            count++;
+           if (doBeforeRetry != null) {
+               return doBeforeRetry.call();
+           }
            return Boolean.TRUE;
         }
         
@@ -143,7 +151,7 @@ public final class Callables {
             final int retryWaitMillis)
             throws InterruptedException {
        return executeWithRetry(what, new RetryPauseWithTimeout(
-               nrImmediateRetries, retryWaitMillis, what),
+               nrImmediateRetries, retryWaitMillis, what, null),
                NORETRY_FOR_RESULT, RETRY_FOR_ANY_EXCEPTION);
     }
     
@@ -152,19 +160,28 @@ public final class Callables {
             final Predicate<Exception> retryOnException)
             throws InterruptedException {
        return executeWithRetry(what, new RetryPauseWithTimeout(
-               nrImmediateRetries, retryWaitMillis, what),
+               nrImmediateRetries, retryWaitMillis, what, null),
                NORETRY_FOR_RESULT, retryOnException);
     }
     
-   public static <T> T executeWithRetry(final TimeoutCallable<T> what, final int nrImmediateRetries,
-             final int retryWaitMillis,
+    public static <T> T executeWithRetry(final TimeoutCallable<T> what, final int nrImmediateRetries,
+            final int retryWaitMillis,
             final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
             throws InterruptedException {
-       return executeWithRetry(what, new RetryPauseWithTimeout(
-               nrImmediateRetries, retryWaitMillis, what),
-               retryOnReturnVal, retryOnException);
+        return executeWithRetry(what, new RetryPauseWithTimeout(
+                nrImmediateRetries, retryWaitMillis, what, null),
+                retryOnReturnVal, retryOnException);
     }
-      
+    
+    public static <T> T executeWithRetry(final TimeoutCallable<T> what, final Callable<Boolean> doBeforeRetry,
+            final int nrImmediateRetries, final int retryWaitMillis,
+            final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
+            throws InterruptedException {
+        return executeWithRetry(what, new RetryPauseWithTimeout(
+                nrImmediateRetries, retryWaitMillis, what, doBeforeRetry),
+                retryOnReturnVal, retryOnException);
+    }
+    
    public abstract static class TimeoutCallable<T> implements Callable<T> {
        
        private final long mdeadline;
