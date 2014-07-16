@@ -59,7 +59,7 @@ public final class CallablesTest {
             public Integer call() throws Exception {
                 count++;
                 if (count < 5) {
-                    throw new RuntimeException("Aaaaaaaaaaa" + count);
+                    throw new Exception("Aaaaaaaaaaa" + count);
                 }
 
                 return 1;
@@ -81,7 +81,7 @@ public final class CallablesTest {
                 public Integer call() throws Exception {
                     count++;
                     if (count < 100) {
-                        throw new RuntimeException("Aaaaaaaaaaa" + count);
+                        throw new Exception("Aaaaaaaaaaa" + count);
                     }
 
                     return 1;
@@ -90,9 +90,9 @@ public final class CallablesTest {
             Assert.fail("Should not get here");
         } catch (Exception e) {
             if (Runtime.JAVA_VERSION.startsWith("1.6")) {
-                Assert.assertEquals(10, Throwables.getSuppressed(e).length);
+                Assert.assertEquals(10, Throwables.getSuppressed(e.getCause()).length);
             } else {
-                Assert.assertEquals(1, Throwables.getSuppressed(e).length);
+                Assert.assertEquals(1, Throwables.getSuppressed(e.getCause()).length);
             }
         }
 
@@ -110,7 +110,7 @@ public final class CallablesTest {
             public Integer call() throws Exception {
                 count++;
                 if (count < 5) {
-                    throw new RuntimeException("Aaaaaaaaaaa" + count);
+                    throw new Exception("Aaaaaaaaaaa" + count);
                 }
 
                 return 1;
@@ -143,7 +143,7 @@ public final class CallablesTest {
                 Thread.sleep(2000);
                 count++;
                 if (count < 5) {
-                    throw new RuntimeException("Aaaaaaaaaaa" + count);
+                    throw new Exception("Aaaaaaaaaaa" + count);
                 }
                 return 1;
             }
@@ -188,7 +188,7 @@ public final class CallablesTest {
         @Override
         public Integer call() throws Exception {
             count++;
-            throw new RuntimeException("Aaaaaaaaaaa" + count);
+            throw new Exception("Aaaaaaaaaaa" + count);
         }
 
         public int getCount() {
