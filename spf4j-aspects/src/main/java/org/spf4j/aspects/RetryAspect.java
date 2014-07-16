@@ -71,7 +71,7 @@ public final class RetryAspect {
                 }
             }
         }, annot.immediateRetries(), annot.retryDelayMillis(),
-                annot.exRetry() == VoidPredicate.class ? Callables.RETRY_FOR_ANY_EXCEPTION
+                annot.exRetry() == VoidPredicate.class ? Callables.DEFAULT_EXCEPTION_RETRY
                         : annot.exRetry().newInstance());
 
     }

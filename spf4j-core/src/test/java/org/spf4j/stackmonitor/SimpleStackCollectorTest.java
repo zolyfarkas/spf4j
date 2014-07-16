@@ -72,10 +72,11 @@ public final class SimpleStackCollectorTest {
     }
     
     @Test
+    @Ignore
     public void testPerformance() throws InterruptedException {
         List<Thread> startTestThreads = DemoTest.startTestThreads(50);
         SimpleStackCollector simple = new SimpleStackCollector();
-        FastStackCollector7 mx = new FastStackCollector7();
+        FastStackCollector mx = new FastStackCollector();
         testPerf(simple, 10000);
         testPerf(mx, 10000);
         System.gc();
