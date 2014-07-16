@@ -132,7 +132,7 @@ public final class ObjectPoolBuilderTest {
         ExecutorService execService = Executors.newFixedThreadPool(10);
         BlockingQueue<Future<Integer>> completionQueue = new LinkedBlockingDeque<Future<Integer>>();
         RetryExecutor<Integer> exec
-                = new RetryExecutor<Integer>(execService, 8, 16, 5000, Callables.RETRY_FOR_ANY_EXCEPTION,
+                = new RetryExecutor<Integer>(execService, 8, 16, 5000, Callables.DEFAULT_EXCEPTION_RETRY,
                  completionQueue);
         int nrTests = 1000;        
         for (int i = 0; i < nrTests; i++) {

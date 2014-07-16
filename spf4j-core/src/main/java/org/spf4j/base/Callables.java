@@ -19,7 +19,10 @@
 package org.spf4j.base;
 
 import com.google.common.base.Predicate;
+import java.sql.SQLException;
+import java.sql.SQLTransientException;
 import java.util.concurrent.Callable;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
@@ -50,9 +53,17 @@ public final class Callables {
         }
     };
 
-   public static final Predicate<Exception> RETRY_FOR_ANY_EXCEPTION = new Predicate<Exception>() {
+   public static final Predicate<Exception> DEFAULT_EXCEPTION_RETRY = new Predicate<Exception>() {
         @Override
-        public boolean apply(final Exception input) {
+        public boolean apply(@Nonnull final Exception input) {
+            Throwable rootCause = com.google.common.base.Throwables.getRootCause(input);
+            if (rootCause instanceof RuntimeException) {
+                return false;
+            }
+            if (rootCause instanceof SQLException
+                    && !(rootCause instanceof SQLTransientException)) {
+                return false;
+            }
             LOG.debug("Exception encountered, retrying...", input);
             return true;
         }
@@ -128,7 +139,7 @@ public final class Callables {
             final int nrTotalRetries, final int retryWaitMillis)
             throws InterruptedException {
        return executeWithRetry(what, new RetryPause(nrImmediateRetries, nrTotalRetries, retryWaitMillis),
-               NORETRY_FOR_RESULT, RETRY_FOR_ANY_EXCEPTION);
+               NORETRY_FOR_RESULT, DEFAULT_EXCEPTION_RETRY);
     }
     
     public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
@@ -152,7 +163,7 @@ public final class Callables {
             throws InterruptedException {
        return executeWithRetry(what, new RetryPauseWithTimeout(
                nrImmediateRetries, retryWaitMillis, what, null),
-               NORETRY_FOR_RESULT, RETRY_FOR_ANY_EXCEPTION);
+               NORETRY_FOR_RESULT, DEFAULT_EXCEPTION_RETRY);
     }
     
     public static <T> T executeWithRetry(final TimeoutCallable<T> what, final int nrImmediateRetries,

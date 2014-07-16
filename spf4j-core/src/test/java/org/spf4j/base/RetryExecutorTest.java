@@ -39,7 +39,7 @@ public final class RetryExecutorTest {
     public void testSubmitCallable() throws InterruptedException, ExecutionException {
         System.out.println("submit");
         RetryExecutor instance = new RetryExecutor(Executors.newFixedThreadPool(10), 3,
-                10, 100, Callables.RETRY_FOR_ANY_EXCEPTION, null);
+                10, 100, Callables.DEFAULT_EXCEPTION_RETRY, null);
         Future result = instance.submit(new Callable<Integer>() {
 
             private int count;
@@ -48,7 +48,7 @@ public final class RetryExecutorTest {
                 System.out.println("exec " + count + " st " + System.currentTimeMillis());
                 count++;
                 if (count < 5) {
-                    throw new RuntimeException("Aaaaaaaaaaa" + count);
+                    throw new Exception("Aaaaaaaaaaa" + count);
                 }
                     
                 return 1;

@@ -177,7 +177,7 @@ public final class CallablesTest {
                 return t > 0;
             }
         },
-                Callables.RETRY_FOR_ANY_EXCEPTION);
+                Callables.DEFAULT_EXCEPTION_RETRY);
         Assert.assertEquals(4, callableImpl.getCount());
     }
 
