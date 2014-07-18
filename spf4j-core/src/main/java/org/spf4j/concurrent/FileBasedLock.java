@@ -38,18 +38,19 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public final class FileBasedLock implements Lock, java.io.Closeable {
 
-    public static final Map<File, Lock> LOCKS = new HashMap<File, Lock>();
+    public static final Map<String, Lock> JVM_LOCKS = new HashMap<String, Lock>();
     private final RandomAccessFile file;
     private final Lock jvmLock;
     private FileLock fileLock;
 
     public FileBasedLock(final File lockFile) throws FileNotFoundException {
         file = new RandomAccessFile(lockFile, "rws");
-        synchronized (LOCKS) {
-            Lock lock = LOCKS.get(lockFile);
+        String filePath = lockFile.getPath();
+        synchronized (JVM_LOCKS) {
+            Lock lock = JVM_LOCKS.get(filePath);
             if (lock == null) {
                 lock = new ReentrantLock();
-                LOCKS.put(lockFile, lock);
+                JVM_LOCKS.put(filePath, lock);
             }
             jvmLock = lock;
         }
@@ -82,7 +83,13 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
                 //CHECKSTYLE:ON
                 Thread.sleep(1);
             }
+            if (Thread.interrupted()) {
+                throw new InterruptedException();
+            }
             writeHolderInfo();
+        } catch (InterruptedException ex) {
+            jvmLock.unlock();
+            throw ex;
         } catch (IOException ex) {
             jvmLock.unlock();
             throw new RuntimeException(ex);
@@ -130,12 +137,18 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
                     Thread.sleep(1);
                     waitTime++;
                 }
+                if (Thread.interrupted()) {
+                    throw new InterruptedException();
+                }
                 if (fileLock != null) {
                     writeHolderInfo();
                     return true;
                 } else {
                     return false;
                 }
+            } catch (InterruptedException ex) {
+                jvmLock.unlock();
+                throw ex;
             } catch (IOException ex) {
                 jvmLock.unlock();
                 throw new RuntimeException(ex);

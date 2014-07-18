@@ -17,6 +17,7 @@
  */
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author zoly
  */
+@SuppressFBWarnings("VO_VOLATILE_REFERENCE_TO_ARRAY")
 public final class SimpleExecutor implements Executor {
 
     private final BlockingQueue<Runnable> queuedTasks;

@@ -21,7 +21,6 @@ package org.spf4j.pool;
 import org.spf4j.base.Handler;
 import org.spf4j.base.Callables;
 import org.spf4j.base.Throwables;
-import java.lang.reflect.ParameterizedType;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 
@@ -31,7 +30,6 @@ public final class Template<T, E extends Exception> {
     private final int nrImmediateRetries;
     private final int nrTotalRetries;
     private final int retryWaitMillis;
-    private final Class<E> exceptionClasz;
 
     public Template(final ObjectPool<T> pool, final int nrImmediateRetries,
             final int nrTotalRetries, final int retryWaitMillis) {
@@ -39,8 +37,6 @@ public final class Template<T, E extends Exception> {
         this.nrImmediateRetries = nrImmediateRetries;
         this.nrTotalRetries = nrTotalRetries;
         this.retryWaitMillis = retryWaitMillis;
-        exceptionClasz = (Class<E>) ((ParameterizedType) getClass()
-                .getGenericSuperclass()).getActualTypeArguments()[0];
     }
 
     // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES

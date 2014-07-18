@@ -157,8 +157,9 @@ public final class Throwables {
         }
         List<Throwable> newRootCauseChain = com.google.common.base.Throwables.getCausalChain(newRootCause);
         int newChainIdx = 0;
-        if (chainedExNr + newRootCauseChain.size() > MAX_THROWABLE_CHAIN) {
-            newChainIdx = newRootCauseChain.size() - (MAX_THROWABLE_CHAIN - chainedExNr);
+        final int size = newRootCauseChain.size();
+        if (chainedExNr + size > MAX_THROWABLE_CHAIN) {
+            newChainIdx = size - (MAX_THROWABLE_CHAIN - chainedExNr);
             LOG.warn("Trimming exception at {} ", newChainIdx, newRootCause);
         }
         T result = clone(t);

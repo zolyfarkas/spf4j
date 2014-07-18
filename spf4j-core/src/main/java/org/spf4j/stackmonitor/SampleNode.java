@@ -197,7 +197,7 @@ public final class SampleNode {
         if (subNodes != null) {
             Integer val = ancestors.get(to);
             if (val != null) {
-                val++;
+                val = val + 1;
             } else {
                 val = 1;
             }

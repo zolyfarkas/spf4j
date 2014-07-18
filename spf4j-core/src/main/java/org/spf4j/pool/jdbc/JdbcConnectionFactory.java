@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLDataException;
 import java.sql.SQLException;
 import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectDisposeException;
@@ -96,11 +97,15 @@ public final class JdbcConnectionFactory  implements ObjectPool.Factory<Connecti
         }
     }
 
+    
     @Override
     public Exception validate(final Connection object, final Exception e) {
         try {
-            object.isValid(60);
-            return null;
+            if (!object.isValid(60)) {
+                return new SQLDataException("Connection validation failed for " + object, e);
+            } else {
+                return null;
+            }
         } catch (SQLException ex) {
             return ex;
         }

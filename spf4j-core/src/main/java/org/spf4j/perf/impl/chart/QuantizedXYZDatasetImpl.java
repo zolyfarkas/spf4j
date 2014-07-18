@@ -196,35 +196,35 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
             timestamps[i] = time;
             time += stepMillis;
         }
-        tux.add(new NumberTickUnitImpl(1, timestamps, stepMillis, formatter)); // base
+        tux.add(new TimestampTickUnitImpl(1, timestamps, stepMillis, formatter)); // base
         long nr = 5000L / stepMillis;
         if (nr > 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, formatter));
+            tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, formatter));
         }
         
         nr = 15000L / stepMillis;
         if (nr > 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, formatter));
+            tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, formatter));
         }
         // minute
         nr = 60000L / stepMillis;
         if (nr > 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));
+            tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));
         }
         // 15 minute
         nr = 900000L / stepMillis;
         if (nr > 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));
+            tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));
         }
         // hour
         nr = 3600000L / stepMillis;
         if (nr > 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, shortFormat));
+            tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, shortFormat));
         }
         // 6 hour
         nr = 21600000L / stepMillis;
         if (nr > 1) {
-            tux.add(new NumberTickUnitImpl(nr, timestamps, stepMillis, shortFormat));
+            tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, shortFormat));
         }
 
         return tux;
@@ -233,88 +233,10 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
     public TickUnits createYTickUnits() {
         TickUnits tu = new TickUnits();
         final List<ComparablePair<Quanta, Integer>> lquantas = this.getQuantas();
-        tu.add(new NumberTickUnit(1) {
-
-            @Override
-            public String valueToString(final double value) {
-                int idx = (int) Math.round(value);
-                if (idx < 0) {
-                    return "NI";
-                } else if (idx >= lquantas.size()) {
-                    return "PI";
-                }
-                long val = lquantas.get(idx).getFirst().getIntervalStart();
-                if (val == Long.MIN_VALUE) {
-                    return "NI";
-                } else {
-                    return Long.toString(val);
-                }
-            }
-        });
+        tu.add(new QuantizedNumberTickUnit(1, lquantas));
         return tu;
     }
 
     
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("NFF_NON_FUNCTIONAL_FIELD")
-    private static class NumberTickUnitImpl extends NumberTickUnit {
-
-        private static final long serialVersionUID = 0L;
-        
-        private final long[] timestamps;
-        private final long stepMillis;
-        private final transient DateTimeFormatter formatter;
-
-        public NumberTickUnitImpl(final double size, final long[] timestamps,
-                final long stepMillis, final DateTimeFormatter formatter) {
-            super(size);
-            this.timestamps = timestamps;
-            this.formatter = formatter;
-            this.stepMillis = stepMillis;
-        }
-
-        @Override
-        public String valueToString(final double value) {
-            int ival = (int) Math.round(value);
-            long val;
-            if (ival >= timestamps.length) {
-                val = timestamps[timestamps.length - 1] + stepMillis * (ival - timestamps.length + 1);
-            } else if (ival < 0) {
-                val = timestamps[0] + ival * stepMillis;
-            } else {
-                val = timestamps[ival];
-            }
-            return formatter.print(val);
-        }
-
-        @Override
-        public int hashCode() {
-            int hash = 7;
-            hash = 89 * hash + java.util.Arrays.hashCode(this.timestamps);
-            hash = 89 * hash + (int) (this.stepMillis ^ (this.stepMillis >>> 32));
-            return 89 * hash + (this.formatter != null ? this.formatter.hashCode() : 0);
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            final NumberTickUnitImpl other = (NumberTickUnitImpl) obj;
-            if (!java.util.Arrays.equals(this.timestamps, other.timestamps)) {
-                return false;
-            }
-            if (this.stepMillis != other.stepMillis) {
-                return false;
-            }
-            return !(this.formatter != other.formatter
-                    && (this.formatter == null || !this.formatter.equals(other.formatter)));
-        }
-        
-        
-        
-        
-    }
+    private static final long serialVersionUID = 1L;
 }
