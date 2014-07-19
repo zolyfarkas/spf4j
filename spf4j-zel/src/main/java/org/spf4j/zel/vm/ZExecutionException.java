@@ -22,7 +22,7 @@ public final class ZExecutionException extends Exception {
     static final long serialVersionUID = 8823469923479284L;
 
     public ZExecutionException(final String message, final Exception e,
-            final ExecutionContext context) {
+            final String context) {
         super(message, e);
         this.context = context;
     }
@@ -47,14 +47,14 @@ public final class ZExecutionException extends Exception {
     /**
      * the execution context in which the exception happened
      */
-    private final ExecutionContext context;
+    private final String context;
 
     /**
      * the execution context where the exception happened
      *
      * @return
      */
-    public ExecutionContext getContext() {
+    public String getContext() {
         return context;
     }
 

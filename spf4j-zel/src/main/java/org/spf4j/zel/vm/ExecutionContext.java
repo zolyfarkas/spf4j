@@ -40,7 +40,7 @@ import static org.spf4j.zel.vm.Program.ExecutionType.SYNC;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class ExecutionContext implements Serializable {
+public final class ExecutionContext {
     
     private static final long serialVersionUID = 1L;
 
