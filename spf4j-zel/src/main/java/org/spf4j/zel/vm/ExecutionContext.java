@@ -19,6 +19,7 @@ package org.spf4j.zel.vm;
 
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +40,9 @@ import static org.spf4j.zel.vm.Program.ExecutionType.SYNC;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class ExecutionContext {
+public final class ExecutionContext implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
 
     //CHECKSTYLE:OFF
     public MathContext mathContext;
@@ -75,17 +78,17 @@ public final class ExecutionContext {
     /**
      * Standard Input
      */
-    public final InputStream in;
+    public transient final InputStream in;
 
     /**
      * Standard Output
      */
-    public final PrintStream out;
+    public transient final PrintStream out;
 
     /**
      * Standard Error Output
      */
-    public final PrintStream err;
+    public transient final PrintStream err;
 
     List<VMFuture<Object>> suspendedAt;
     //CHECKSTYLE:ON
@@ -173,8 +176,11 @@ public final class ExecutionContext {
                     }
                 } catch (SuspendedException e) {
                     throw e;
-                } catch (Exception e) {
+                } catch (ZExecutionException e) {
+                    // TODO: a better frame description should be added.
                     throw new ZExecutionException("Program exec failed, state:" + ExecutionContext.this, e);
+                } catch (InterruptedException e) {
+                    throw e;
                 }
             }
 

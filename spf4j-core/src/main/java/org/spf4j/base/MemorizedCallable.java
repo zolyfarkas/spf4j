@@ -29,12 +29,9 @@ public final class MemorizedCallable<V> implements Callable<V> {
     
     private final Callable<V> callable;
     
-    private final Object sync;
-
     public MemorizedCallable(final Callable<V> callable) {
         this.callable = callable;
         value = null;
-        sync = new Object();
     }
     
     
@@ -43,7 +40,7 @@ public final class MemorizedCallable<V> implements Callable<V> {
     public V call() throws Exception {
         V result = value;
         if (result == null) {
-            synchronized (sync) {
+            synchronized (this) {
                 result = value;
                 if (result == null) {
                     result = callable.call();

@@ -44,8 +44,9 @@ public final class Operators {
         for (int i = 0; i < OPS.length; i++) {
             OPS[i] = new HashMap<Class<?>, Operator<Object, Object, Object>>();
         }
-        Set<String> ops = new HashSet<String>(Operator.Enum.values().length);
-        for (Operator.Enum en : Operator.Enum.values()) {
+        final Operator.Enum[] operators = Operator.Enum.values();
+        Set<String> ops = new HashSet<String>(operators.length);
+        for (Operator.Enum en : operators) {
             ops.add(en.toString());
         }
         for (Class<?> impl : IMPLS) {

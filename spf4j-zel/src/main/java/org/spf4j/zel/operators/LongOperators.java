@@ -19,7 +19,8 @@ public final class LongOperators {
     public static final class Add implements Operator<Long, Number, Number> {
 
         @Override
-        public Number op(final Long a, final Number b) {
+        public Number op(final Long pa, final Number b) {
+            final long a = pa;
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
@@ -47,7 +48,8 @@ public final class LongOperators {
     public static final class Sub implements Operator<Long, Number, Number> {
 
         @Override
-        public Number op(final Long a, final Number b) {
+        public Number op(final Long pa, final Number b) {
+            final long a = pa;
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
@@ -75,12 +77,13 @@ public final class LongOperators {
     public static final class Mul implements Operator<Long, Number, Number> {
 
         @Override
-        public Number op(final Long a, final Number b) {
+        public Number op(final Long pa, final Number b) {
+            final long a = pa;
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
                 
-                Long bb = b.longValue();
+                long bb = b.longValue();
                 int leadingZeros = Long.numberOfLeadingZeros(a) + Long.numberOfLeadingZeros(~a)
                         + Long.numberOfLeadingZeros(bb) + Long.numberOfLeadingZeros(~bb);
 
@@ -115,7 +118,8 @@ public final class LongOperators {
     public static final class Div implements Operator<Long, Number, Number> {
 
         @Override
-        public Number op(final Long a, final Number b) {
+        public Number op(final Long pa, final Number b) {
+            long a = pa;
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
@@ -137,7 +141,8 @@ public final class LongOperators {
     public static final class Mod implements Operator<Long, Number, Number> {
 
         @Override
-        public Number op(final Long a, final Number b) {
+        public Number op(final Long pa, final Number b) {
+            long a = pa;
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
@@ -159,7 +164,8 @@ public final class LongOperators {
     public static final class Pow implements Operator<Long, Number, Number> {
 
         @Override
-        public Number op(final Long a, final Number b) {
+        public Number op(final Long pa, final Number b) {
+            long a = pa;
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {

@@ -67,7 +67,7 @@ import org.spf4j.zel.vm.gen.ZCompiler;
 @Immutable
 public final class Program implements Serializable {
 
-    static final long serialVersionUID = 748365748433474932L;
+    private static final long serialVersionUID = 748365748433474932L;
 
     public enum Type {
         DETERMINISTIC, NONDETERMINISTIC
