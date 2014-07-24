@@ -105,7 +105,7 @@ public final class Callables {
         private final TimeoutCallable callable;
         private int count;
         private final Callable<Boolean> doBeforeRetry;
-        
+        private IntMath.XorShift32 random;
 
         public RetryPauseWithTimeout(final int nrImmediateRetries,
                 final int retryWaitMillis, final TimeoutCallable callable,
@@ -123,7 +123,11 @@ public final class Callables {
                return Boolean.FALSE;
            }
            if (count >= nrImmediateRetries) {
-               Thread.sleep(waitMillis);
+               if (random == null) {
+                   // This might belong in a thread local.
+                   random = new IntMath.XorShift32();
+               }
+               Thread.sleep(waitMillis + random.nextInt() % waitMillis);
            }
            count++;
            if (doBeforeRetry != null) {
@@ -293,6 +297,5 @@ public final class Callables {
             }
         };
     }
-    
     
 }
