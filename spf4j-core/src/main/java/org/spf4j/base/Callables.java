@@ -15,7 +15,6 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.base;
 
 import com.google.common.base.Predicate;
@@ -30,12 +29,14 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for executing stuff with retry logic.
+ *
  * @author zoly
  */
 @ParametersAreNonnullByDefault
 public final class Callables {
 
-    private Callables() { }
+    private Callables() {
+    }
 
     private static final Logger LOG = LoggerFactory.getLogger(Callables.class);
 
@@ -53,7 +54,7 @@ public final class Callables {
         }
     };
 
-   public static final Predicate<Exception> DEFAULT_EXCEPTION_RETRY = new Predicate<Exception>() {
+    public static final Predicate<Exception> DEFAULT_EXCEPTION_RETRY = new Predicate<Exception>() {
         @Override
         public boolean apply(@Nonnull final Exception input) {
             Throwable rootCause = com.google.common.base.Throwables.getRootCause(input);
@@ -69,7 +70,7 @@ public final class Callables {
         }
     };
 
-    public static final class RetryPause implements Callable<Boolean> {
+    public static final class RetryPause<T> implements PreRetryCallback<T> {
 
         private final int nrImmediateRetries;
         private final int nrTotalRetries;
@@ -82,152 +83,182 @@ public final class Callables {
             this.nrTotalRetries = nrTotalRetries;
             this.waitMillis = retryWaitMillis;
         }
-           
+
         @Override
-        public Boolean call() throws Exception {
-           if (count >= nrTotalRetries) {
-               return Boolean.FALSE;
-           }
-           if (count >= nrImmediateRetries) {
-               Thread.sleep(waitMillis);
-           }
-           count++;
-           return Boolean.TRUE;
+        public boolean call(final Exception lastException, final T lastResult) throws InterruptedException {
+            if (count >= nrTotalRetries) {
+                return false;
+            }
+            if (count >= nrImmediateRetries) {
+                Thread.sleep(waitMillis);
+            }
+            count++;
+            return true;
         }
-        
+
     }
-    
-    
-    public static final class RetryPauseWithTimeout implements Callable<Boolean> {
+
+    public static final class RetryPauseWithTimeout<T> implements PreRetryCallback<T> {
 
         private final int nrImmediateRetries;
         private final int waitMillis;
         private final TimeoutCallable callable;
         private int count;
-        private final Callable<Boolean> doBeforeRetry;
+        private final PreRetryCallback<T> doBeforeRetry;
         private IntMath.XorShift32 random;
 
         public RetryPauseWithTimeout(final int nrImmediateRetries,
                 final int retryWaitMillis, final TimeoutCallable callable,
-                @Nullable final Callable<Boolean> doBeforeRetry) {
+                @Nullable final PreRetryCallback<T> doBeforeRetry) {
             this.nrImmediateRetries = nrImmediateRetries;
             this.waitMillis = retryWaitMillis;
             this.callable = callable;
             this.doBeforeRetry = doBeforeRetry;
         }
-           
+
         @Override
-        public Boolean call() throws Exception {
-           long now = System.currentTimeMillis();
-           if (now  >= callable.getDeadline()) {
-               return Boolean.FALSE;
-           }
-           if (count >= nrImmediateRetries) {
-               if (random == null) {
-                   // This might belong in a thread local.
-                   random = new IntMath.XorShift32();
-               }
-               Thread.sleep(waitMillis + random.nextInt() % waitMillis);
-           }
-           count++;
-           if (doBeforeRetry != null) {
-               return doBeforeRetry.call();
-           }
-           return Boolean.TRUE;
+        public boolean call(final Exception lastException, final T lastResult) throws InterruptedException {
+            long now = System.currentTimeMillis();
+            if (now >= callable.getDeadline()) {
+                return Boolean.FALSE;
+            }
+            if (count >= nrImmediateRetries) {
+                if (random == null) {
+                    // This might belong in a thread local.
+                    random = new IntMath.XorShift32();
+                }
+                Thread.sleep(waitMillis + random.nextInt() % waitMillis);
+            }
+            count++;
+            if (doBeforeRetry != null) {
+                return doBeforeRetry.call(lastException, lastResult);
+            }
+            return Boolean.TRUE;
         }
-        
+
     }
-    
-    
+
     public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
             final int nrTotalRetries, final int retryWaitMillis)
             throws InterruptedException {
-       return executeWithRetry(what, new RetryPause(nrImmediateRetries, nrTotalRetries, retryWaitMillis),
-               NORETRY_FOR_RESULT, DEFAULT_EXCEPTION_RETRY);
+        return executeWithRetry(what, new RetryPause<T>(nrImmediateRetries, nrTotalRetries, retryWaitMillis),
+                NORETRY_FOR_RESULT, DEFAULT_EXCEPTION_RETRY);
     }
-    
+
     public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
-            final int nrTotalRetries, final int retryWaitMillis , final Predicate<Exception> retryOnException)
+            final int nrTotalRetries, final int retryWaitMillis, final Predicate<Exception> retryOnException)
             throws InterruptedException {
-       return executeWithRetry(what, new RetryPause(nrImmediateRetries, nrTotalRetries, retryWaitMillis),
-               NORETRY_FOR_RESULT, retryOnException);
+        return executeWithRetry(what, new RetryPause<T>(nrImmediateRetries, nrTotalRetries, retryWaitMillis),
+                NORETRY_FOR_RESULT, retryOnException);
     }
-    
-   public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
+
+    public static <T> T executeWithRetry(final Callable<T> what, final int nrImmediateRetries,
             final int nrTotalRetries, final int retryWaitMillis, final Predicate<? super T> retryOnReturnVal,
             final Predicate<Exception> retryOnException)
             throws InterruptedException {
-       return executeWithRetry(what, new RetryPause(nrImmediateRetries, nrTotalRetries, retryWaitMillis),
-               retryOnReturnVal, retryOnException);
+        return executeWithRetry(what, new RetryPause<T>(nrImmediateRetries, nrTotalRetries, retryWaitMillis),
+                retryOnReturnVal, retryOnException);
     }
-    
 
     public static <T> T executeWithRetry(final TimeoutCallable<T> what, final int nrImmediateRetries,
             final int retryWaitMillis)
             throws InterruptedException {
-       return executeWithRetry(what, new RetryPauseWithTimeout(
-               nrImmediateRetries, retryWaitMillis, what, null),
-               NORETRY_FOR_RESULT, DEFAULT_EXCEPTION_RETRY);
+        return executeWithRetry(what, new RetryPauseWithTimeout<T>(
+                nrImmediateRetries, retryWaitMillis, what, null),
+                NORETRY_FOR_RESULT, DEFAULT_EXCEPTION_RETRY);
     }
-    
+
     public static <T> T executeWithRetry(final TimeoutCallable<T> what, final int nrImmediateRetries,
-            final int retryWaitMillis ,
+            final int retryWaitMillis,
             final Predicate<Exception> retryOnException)
             throws InterruptedException {
-       return executeWithRetry(what, new RetryPauseWithTimeout(
-               nrImmediateRetries, retryWaitMillis, what, null),
-               NORETRY_FOR_RESULT, retryOnException);
+        return executeWithRetry(what, new RetryPauseWithTimeout<T>(
+                nrImmediateRetries, retryWaitMillis, what, null),
+                NORETRY_FOR_RESULT, retryOnException);
     }
-    
+
     public static <T> T executeWithRetry(final TimeoutCallable<T> what, final int nrImmediateRetries,
             final int retryWaitMillis,
             final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
             throws InterruptedException {
-        return executeWithRetry(what, new RetryPauseWithTimeout(
+        return executeWithRetry(what, new RetryPauseWithTimeout<T>(
                 nrImmediateRetries, retryWaitMillis, what, null),
                 retryOnReturnVal, retryOnException);
     }
-    
-    public static <T> T executeWithRetry(final TimeoutCallable<T> what, final Callable<Boolean> doBeforeRetry,
+
+    public static <T> T executeWithRetry(final TimeoutCallable<T> what, final PreRetryCallback<T> doBeforeRetry,
             final int nrImmediateRetries, final int retryWaitMillis,
             final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
             throws InterruptedException {
-        return executeWithRetry(what, new RetryPauseWithTimeout(
+        return executeWithRetry(what, new RetryPauseWithTimeout<T>(
                 nrImmediateRetries, retryWaitMillis, what, doBeforeRetry),
                 retryOnReturnVal, retryOnException);
     }
-    
-   public abstract static class TimeoutCallable<T> implements Callable<T> {
-       
-       private final long mdeadline;
-       
-       public TimeoutCallable(final int timeoutMillis) {
-           mdeadline = System.currentTimeMillis() + timeoutMillis;
-       }
-       
-       
-       @Override
-       public final T call() throws Exception {
-           return call(mdeadline);
-       }
-   
-       public abstract T call(final long deadline) throws Exception;
 
-       public final long getDeadline() {
+    public abstract static class TimeoutCallable<T> implements Callable<T> {
+
+        private final long mdeadline;
+
+        public TimeoutCallable(final int timeoutMillis) {
+            mdeadline = System.currentTimeMillis() + timeoutMillis;
+        }
+
+        @Override
+        public final T call() throws Exception {
+            return call(mdeadline);
+        }
+
+        public abstract T call(final long deadline) throws Exception;
+
+        public final long getDeadline() {
             return mdeadline;
-       }
-       
-       
-   }
-   
-   
-   
+        }
+
+    }
+
+    public static <T> T executeWithRetry(final Callable<T> what, final Callable<Boolean> doBeforeRetry,
+            final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
+            throws InterruptedException {
+        return executeWithRetry(what, (PreRetryCallback<T>) callableToPreRetryCallback(doBeforeRetry),
+                retryOnReturnVal, retryOnException);
+    }
+
+    public static <T> PreRetryCallback<T> callableToPreRetryCallback(final Callable<Boolean> doBeforeRetry) {
+        return new PreRetryCallback<T>() {
+
+            @Override
+            public boolean call(final Exception lastException, final T lastResult) throws InterruptedException {
+                try {
+                    return doBeforeRetry.call();
+                } catch (InterruptedException ex) {
+                    throw ex;
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        };
+    }
+
+    public interface PreRetryCallback<T> {
+
+        /**
+         * This is executed before doing a retry. any delay, or other retry logic is done here.
+         *
+         * @param lastException - last exception encountered, if null, retry does not happen because of exception.
+         * @param lastResult - if lastException is null this value represents the last returned result.
+         * @return
+         * @throws InterruptedException
+         */
+        boolean call(Exception lastException, T lastResult)
+                throws InterruptedException;
+
+    }
+
     /**
-     * Naive implementation of execution with retry logic.
-     * a callable will be executed and retry attempted in current thread if the result and exception predicates.
-     * before retry, a callable can be executed that can abort the retry
+     * Naive implementation of execution with retry logic. a callable will be executed and retry attempted in current
+     * thread if the result and exception predicates. before retry, a callable can be executed that can abort the retry
      * and finish the function with the previous result.
-     * 
+     *
      * @param what
      * @param doBeforeRetry
      * @param retryOnReturnVal
@@ -235,59 +266,54 @@ public final class Callables {
      * @return
      * @throws InterruptedException
      */
-    public static <T> T executeWithRetry(final Callable<T> what, final Callable<Boolean> doBeforeRetry,
+    public static <T> T executeWithRetry(final Callable<T> what, final PreRetryCallback<T> doBeforeRetry,
             final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
             throws InterruptedException {
         T result = null;
-        Exception ex = null;
-        Exception lastEx = null;
+        Exception lastEx = null; // last exception
         try {
             result = what.call();
         } catch (InterruptedException ex1) {
-               throw ex1;
+            throw ex1;
         } catch (Exception e) {
-            ex = e;
             lastEx = e;
         }
-        Exception prevEx = ex;
+        Exception lastExChain = lastEx; // last exception chained with all previous exceptions
         while ((lastEx != null && retryOnException.apply(lastEx)) || retryOnReturnVal.apply(result)) {
             if (Thread.interrupted()) {
+                Thread.currentThread().interrupt();
                 throw new InterruptedException();
             }
-            try {
-                boolean retry = doBeforeRetry.call();
-                if (!retry) {
-                    break;
-                }
-            } catch (InterruptedException ex1) {
-               throw ex1;
-            }  catch (Exception ex1) {
-                throw new RuntimeException(ex1);
+            boolean retry = doBeforeRetry.call(lastEx, result);
+            if (!retry) {
+                break;
             }
-            ex = null;
+
             result = null;
             lastEx = null;
             try {
                 result = what.call();
             } catch (InterruptedException ex1) {
-               throw ex1;
+                throw ex1;
             } catch (Exception e) {
                 lastEx = e;
-                if (prevEx != null) {
-                    e = Throwables.suppress(e, prevEx);
-                    prevEx = e;
+                if (lastExChain != null) {
+                    lastExChain = Throwables.suppress(e, lastExChain);
+                } else {
+                    lastExChain = e;
                 }
-                ex = e;
             }
         }
-        if (ex instanceof RuntimeException) {
-            throw (RuntimeException) ex;
-        } else if (ex != null) {
-            throw new RuntimeException(ex);
+        if (lastEx != null) {
+            if (lastExChain instanceof RuntimeException) {
+                throw (RuntimeException) lastExChain;
+            } else {
+                throw new RuntimeException(lastExChain);
+            }
         }
         return result;
     }
-    
+
     public static <T> Callable<T> synchronize(final Callable<T> callable) {
         return new Callable<T>() {
 
@@ -297,5 +323,5 @@ public final class Callables {
             }
         };
     }
-    
+
 }
