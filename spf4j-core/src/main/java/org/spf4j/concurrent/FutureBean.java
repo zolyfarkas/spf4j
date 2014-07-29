@@ -90,7 +90,7 @@ public class FutureBean<T> implements Future<T> {
 
     public final synchronized void setResult(final T result) {
         if (resultStore != null) {
-            throw new IllegalStateException("cannot set result multiple times");
+            throw new IllegalStateException("cannot set result multiple times " +  result);
         }
         resultStore = Pair.of(result, (ExecutionException) null);
         done();
@@ -99,7 +99,7 @@ public class FutureBean<T> implements Future<T> {
     
     public final synchronized void setExceptionResult(final ExecutionException result) {
         if (resultStore != null) {
-            throw new IllegalStateException("cannot set result multiple times");
+            throw new IllegalStateException("cannot set result multiple times " + result);
         }
         resultStore = Pair.of(null, (ExecutionException) result);
         done();

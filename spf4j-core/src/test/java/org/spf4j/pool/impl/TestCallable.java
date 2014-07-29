@@ -33,10 +33,10 @@ public final class TestCallable implements Callable<Integer> {
             TimeoutException, ObjectReturnException, ObjectDisposeException, IOException {
         Template.doOnPooledObject(new Handler<ExpensiveTestObject, IOException>() {
             @Override
-            public void handle(final ExpensiveTestObject object) throws IOException {
+            public void handle(final ExpensiveTestObject object, final long deadline) throws IOException {
                 object.doStuff();
             }
-        }, pool);
+        }, pool, 60000);
         return testNr;
     }
     

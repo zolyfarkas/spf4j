@@ -65,13 +65,14 @@ public final class RTree<T> {
 
     private static final float DIM_FACTOR = -2.0f;
     private static final float FUDGE_FACTOR = 1.001f;
+    private static final float INIT_COORD = (float) Math.sqrt(Float.MAX_VALUE);
     
     private Node buildRoot(final boolean asLeaf) {
         float[] initCoords = new float[numDims];
         float[] initDimensions = new float[numDims];
         for (int i = 0; i < this.numDims; i++) {
-            initCoords[i] = (float) Math.sqrt(Float.MAX_VALUE);
-            initDimensions[i] = DIM_FACTOR * (float) Math.sqrt(Float.MAX_VALUE);
+            initCoords[i] = INIT_COORD;
+            initDimensions[i] = DIM_FACTOR * INIT_COORD;
         }
         return new Node(initCoords, initDimensions, asLeaf);
     }
@@ -343,14 +344,16 @@ public final class RTree<T> {
         nn[1].children.add(ss[1]);
         tighten(nn);
         while (!cc.isEmpty()) {
-            if ((nn[0].children.size() >= minEntries)
-                    && (nn[1].children.size() + cc.size() == minEntries)) {
+            final int size0 = nn[0].children.size();
+            final int size1 = nn[1].children.size();
+            if ((size0 >= minEntries)
+                    && (size1 + cc.size() == minEntries)) {
                 nn[1].children.addAll(cc);
                 cc.clear();
                 tighten(nn); // Not sure this is required.
                 return nn;
-            } else if ((nn[1].children.size() >= minEntries)
-                    && (nn[0].children.size() + cc.size() == minEntries)) {
+            } else if ((size1 >= minEntries)
+                    && (size0 + cc.size() == minEntries)) {
                 nn[0].children.addAll(cc);
                 cc.clear();
                 tighten(nn); // Not sure this is required.
@@ -372,9 +375,9 @@ public final class RTree<T> {
                 } else if (e0 > a1) {
                     preferred = nn[1];
                 } else {
-                    if (nn[0].children.size() < nn[1].children.size()) {
+                    if (size0 < size1) {
                         preferred = nn[0];
-                    } else if (nn[0].children.size() > nn[1].children.size()) {
+                    } else if (size0 > size1) {
                         preferred = nn[1];
                     } else {
                         preferred = nn[(int) Math.round(Math.random())];

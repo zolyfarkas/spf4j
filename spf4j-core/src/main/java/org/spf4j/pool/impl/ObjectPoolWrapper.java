@@ -65,7 +65,7 @@ final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<ObjectHolde
         T result = pool.borrowObject();
         try {
             if (borrowHook != null) {
-                borrowHook.handle(result);
+                borrowHook.handle(result, Long.MAX_VALUE);
             }
             return result;
         } catch (Exception e) {
@@ -82,7 +82,7 @@ final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<ObjectHolde
     public void returnObject(final T object, final Exception e) {
         try {
             if (returnHook != null) {
-                returnHook.handle(object);
+                returnHook.handle(object, Long.MAX_VALUE);
             }
         } catch (Exception ex) {
             LOG.error("Error while handling object {} ", object, ex);
@@ -92,7 +92,7 @@ final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<ObjectHolde
     }
 
     @Override
-    public void dispose() throws ObjectDisposeException {
+    public void dispose() throws ObjectDisposeException, InterruptedException {
         pool.dispose();
     }
 

@@ -147,7 +147,7 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     }
 
     @Override
-    public void dispose() throws ObjectDisposeException {
+    public void dispose() throws ObjectDisposeException, InterruptedException {
         lock.lock();
         try {
             maxSize = 0;
@@ -177,8 +177,12 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
             if (exception != null) {
                 throw exception;
             }
-        } catch (Exception e) {
+        } catch (InterruptedException e) { 
+            throw e;
+        } catch (TimeoutException e) {
             throw new ObjectDisposeException(e);
+        } catch (RuntimeException e) {
+            throw e;
         } finally {
             lock.unlock();
         }

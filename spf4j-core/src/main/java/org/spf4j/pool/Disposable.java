@@ -22,5 +22,5 @@ package org.spf4j.pool;
  * @author zoly
  */
 public interface Disposable {
-    void dispose() throws ObjectDisposeException;
+    void dispose() throws ObjectDisposeException, InterruptedException;
 }

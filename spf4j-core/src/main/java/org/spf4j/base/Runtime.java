@@ -58,10 +58,12 @@ public final class Runtime {
     public static final int PID;
     public static final String OS_NAME;
     public static final String PROCESS_NAME;
-    public static final int NR_PROCESSORS = java.lang.Runtime.getRuntime().availableProcessors();
+    public static final int NR_PROCESSORS;
     public static final String JAVA_VERSION = System.getProperty("java.version");
 
     static {
+        final java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
+        NR_PROCESSORS = runtime.availableProcessors();
         PROCESS_NAME = ManagementFactory.getRuntimeMXBean().getName();
         int atIdx = PROCESS_NAME.indexOf('@');
         if (atIdx < 0) {
@@ -70,6 +72,21 @@ public final class Runtime {
             PID = Integer.parseInt(PROCESS_NAME.substring(0, atIdx));
         }
         OS_NAME = System.getProperty("os.name");
+        
+        runtime.addShutdownHook(new Thread(new AbstractRunnable(false) {
+            @Override
+            public void doRun() throws Exception {
+                synchronized (SHUTDOWN_HOOKS) {
+                    for (Runnable runnable : SHUTDOWN_HOOKS) {
+                        try {
+                            runnable.run();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }, "tsdb shutdown"));
     }
     public static final String MAC_OS_X_OS_NAME = "Mac OS X";
     private static final File FD_FOLDER = new File("/proc/" + PID + "/fd");
@@ -185,7 +202,7 @@ public final class Runtime {
         public StringBuilderCharHandler() {
             builder = new StringBuilder();
         }
-        private StringBuilder builder;
+        private final StringBuilder builder;
 
         @Override
         public void handleStdOut(final int c) {
@@ -204,22 +221,6 @@ public final class Runtime {
     }
     private static final LinkedList<Runnable> SHUTDOWN_HOOKS = new LinkedList<Runnable>();
 
-    static {
-        java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(false) {
-            @Override
-            public void doRun() throws Exception {
-                synchronized (SHUTDOWN_HOOKS) {
-                    for (Runnable runnable : SHUTDOWN_HOOKS) {
-                        try {
-                            runnable.run();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-        }, "tsdb shutdown"));
-    }
 
     public static void addHookAtBeginning(final Runnable runnable) {
         synchronized (SHUTDOWN_HOOKS) {

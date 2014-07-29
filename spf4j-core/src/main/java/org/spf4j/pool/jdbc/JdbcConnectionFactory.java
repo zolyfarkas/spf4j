@@ -19,6 +19,7 @@ package org.spf4j.pool.jdbc;
 
 import com.google.common.annotations.Beta;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
@@ -78,7 +79,16 @@ public final class JdbcConnectionFactory  implements ObjectPool.Factory<Connecti
                 } else {
                     try {
                         return method.invoke(conn, args);
-                    } catch (Exception e) {
+                    } catch (IllegalAccessException e) {
+                        ex = e;
+                        throw e;
+                    } catch (IllegalArgumentException e) {
+                        ex = e;
+                        throw e;
+                    } catch (InvocationTargetException e) {
+                        ex = e;
+                        throw e;
+                    } catch (RuntimeException e) {
                         ex = e;
                         throw e;
                     }

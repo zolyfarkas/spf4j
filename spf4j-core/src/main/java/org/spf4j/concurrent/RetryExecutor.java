@@ -236,10 +236,11 @@ public class RetryExecutor<T> implements ExecutorService {
             while (!managerThread.isInterrupted()) {
                 try {
                     FailedExecutionResult event = executionEvents.take();
+                    final Callable<Object> callable = event.getCallable();
                     if (event.isIsExecution()) {
-                        executionService.execute(new RetryableCallable<Object>(event.getCallable(), event.getFuture()));
+                        executionService.execute(new RetryableCallable<Object>(callable, event.getFuture()));
                     } else {
-                        Pair<Integer, ExecutionException> attemptsInfo = executionAttempts.get(event.getCallable());
+                        Pair<Integer, ExecutionException> attemptsInfo = executionAttempts.get(callable);
                         if (attemptsInfo == null) {
                             attemptsInfo = Pair.of(1, event.getException());
                         } else {
@@ -252,16 +253,16 @@ public class RetryExecutor<T> implements ExecutorService {
                         }
                         int nrAttempts = attemptsInfo.getFirst();
                         if (nrAttempts > nrTotalRetries) {
-                            executionAttempts.remove(event.getCallable());
+                            executionAttempts.remove(callable);
                             event.getFuture().setExceptionResult(attemptsInfo.getSecond());
                         } else if (nrAttempts > nrImmediateRetries) {
-                            executionAttempts.put(event.getCallable(), attemptsInfo);
-                            executionEvents.put(new FailedExecutionResult(attemptsInfo.getSecond(), event.getFuture(),
-                                    event.getCallable(), delayMillis, true));
+                            executionAttempts.put(callable, attemptsInfo);
+                            executionEvents.put(new FailedExecutionResult(attemptsInfo.getSecond(),
+                                    event.getFuture(), callable, delayMillis, true));
                         } else {
-                            executionAttempts.put(event.getCallable(), attemptsInfo);
+                            executionAttempts.put(callable, attemptsInfo);
                             executionService.execute(
-                                    new RetryableCallable<Object>(event.getCallable(), event.getFuture()));
+                                    new RetryableCallable<Object>(callable, event.getFuture()));
                         }
                     }
 

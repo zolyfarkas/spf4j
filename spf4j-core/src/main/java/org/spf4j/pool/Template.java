@@ -18,51 +18,52 @@
  */
 package org.spf4j.pool;
 
-import org.spf4j.base.Handler;
-import org.spf4j.base.Callables;
-import org.spf4j.base.Throwables;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
+import org.spf4j.base.Callables;
+import org.spf4j.base.Callables.TimeoutCallable;
+import org.spf4j.base.Handler;
+import org.spf4j.base.Throwables;
 
 public final class Template<T, E extends Exception> {
 
     private final ObjectPool<T> pool;
     private final int nrImmediateRetries;
-    private final int nrTotalRetries;
     private final int retryWaitMillis;
+    private final int timeout;
 
     public Template(final ObjectPool<T> pool, final int nrImmediateRetries,
-            final int nrTotalRetries, final int retryWaitMillis) {
+             final int retryWaitMillis, final int timeout) {
         this.pool = pool;
         this.nrImmediateRetries = nrImmediateRetries;
-        this.nrTotalRetries = nrTotalRetries;
         this.retryWaitMillis = retryWaitMillis;
+        this.timeout = timeout;
     }
 
     // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
     public void doOnPooledObject(final Handler<T, E> handler)
             throws ObjectCreationException, InterruptedException, TimeoutException {
-        Callables.executeWithRetry(new Callable<Void>() {
+        Callables.executeWithRetry(new TimeoutCallable<Void>(timeout) {
+
             @Override
-            public Void call() throws ObjectReturnException, ObjectDisposeException,
-                    ObjectCreationException, ObjectBorrowException,
-                    InterruptedException, TimeoutException, E  {
-                doOnPooledObject(handler, pool);
+            public Void call(final long deadline)
+                    throws ObjectReturnException, ObjectCreationException,
+                    ObjectBorrowException, InterruptedException, TimeoutException, E {
+                doOnPooledObject(handler, pool, deadline);
                 return null;
             }
-        }, nrImmediateRetries, nrTotalRetries, retryWaitMillis);
+        }, nrImmediateRetries, retryWaitMillis);
 
     }
 
     //findbugs does not know about supress in spf4j
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
     public static <T, E extends Exception> void doOnPooledObject(final Handler<T, E> handler,
-            final ObjectPool<T> pool)
+            final ObjectPool<T> pool, final long deadline)
             throws ObjectReturnException, ObjectCreationException,
             ObjectBorrowException, InterruptedException, TimeoutException, E {
         T object = pool.borrowObject();
         try {
-            handler.handle(object);
+            handler.handle(object, deadline);
         } catch (Exception e) {
             try {
                 pool.returnObject(object, e);

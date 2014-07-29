@@ -61,7 +61,7 @@ final class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<ObjectHold
     }
 
     @Override
-    public void dispose() throws ObjectDisposeException {
+    public void dispose() throws ObjectDisposeException, InterruptedException {
         globalPool.dispose();
     }
 

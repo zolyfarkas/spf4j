@@ -106,7 +106,7 @@ public final class Csv {
             if (c == '\r') {
                 int c2 = reader.read();
                 if (c2 != '\n') {
-                    throw new IOException("\\r\\n expected");
+                    throw new IOException("\\r\\n expected instead of " + c + c2);
                 }
                 handler.endRow();
                 start = true;
