@@ -91,9 +91,9 @@ public final class CallablesTest {
             Assert.fail("Should not get here");
         } catch (Exception e) {
             if (Runtime.JAVA_VERSION.startsWith("1.6")) {
-                Assert.assertEquals(10, Throwables.getSuppressed(e).length);
+                Assert.assertEquals(10, Throwables.getSuppressed(e.getCause()).length);
             } else {
-                Assert.assertEquals(1, Throwables.getSuppressed(e).length);
+                Assert.assertEquals(1, Throwables.getSuppressed(e.getCause()).length);
             }
         }
 
