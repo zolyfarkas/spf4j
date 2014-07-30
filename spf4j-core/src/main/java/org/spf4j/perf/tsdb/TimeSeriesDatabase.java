@@ -70,7 +70,7 @@ public final class TimeSeriesDatabase implements Closeable {
     private final Map<String, DataFragment> writeDataFragments;
     private final String pathToDatabaseFile;
     
-    public TimeSeriesDatabase(final String pathToDatabaseFile, final byte[] metaData) throws IOException {
+    public TimeSeriesDatabase(final String pathToDatabaseFile, final byte... metaData) throws IOException {
         this.pathToDatabaseFile = pathToDatabaseFile;
         file = new RandomAccessFile(pathToDatabaseFile, "rw");
         // read or create header

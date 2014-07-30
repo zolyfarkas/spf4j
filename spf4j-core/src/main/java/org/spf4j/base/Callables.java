@@ -194,6 +194,8 @@ public final class Callables {
                     return doBeforeRetry.call();
                 } catch (InterruptedException ex) {
                     throw ex;
+                }  catch (RuntimeException ex) {
+                    throw ex;
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }

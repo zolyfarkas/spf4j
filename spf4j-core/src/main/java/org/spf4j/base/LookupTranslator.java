@@ -61,8 +61,9 @@ public final class LookupTranslator extends CharSequenceTranslator {
     @Override
     public int translate(final CharSequence input, final int index, final Writer out) throws IOException {
         int max = longest;
-        if (index + longest > input.length()) {
-            max = input.length() - index;
+        final int l = input.length();
+        if (index + longest > l) {
+            max = l - index;
         }
         // descend so as to get a greedy algorithm
         for (int i = max; i >= shortest; i--) {

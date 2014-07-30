@@ -194,9 +194,17 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
             try {
                 factory.dispose(obj);
             } catch (ObjectDisposeException ex) {
-                result = Throwables.suppress(ex, result);
+                if (result == null) {
+                    result = ex;
+                } else {
+                    result = Throwables.suppress(ex, result);
+                }
             } catch (Exception ex) {
-                result = Throwables.suppress(new ObjectDisposeException(ex), result);
+                if (result == null) {
+                    result = new ObjectDisposeException(ex);
+                } else {
+                    result = Throwables.suppress(new ObjectDisposeException(ex), result);
+                }
             }
         }
         availableObjects.clear();

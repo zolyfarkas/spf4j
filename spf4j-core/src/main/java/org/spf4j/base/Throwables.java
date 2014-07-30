@@ -31,6 +31,7 @@ import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
@@ -202,7 +203,7 @@ public final class Throwables {
      * @return
      */
     @CheckReturnValue
-    public static <T extends Throwable> T suppress(final T t, final Throwable suppressed) {
+    public static <T extends Throwable> T suppress(final T t, @Nonnull final Throwable suppressed) {
         if (ADD_SUPPRESSED != null) {
             try {
                 T clone = clone(t);

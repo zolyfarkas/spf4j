@@ -42,7 +42,7 @@ public final class SampleNode {
         }
     }
     
-    public static SampleNode createSampleNode(final StackTraceElement[] stackTrace) {
+    public static SampleNode createSampleNode(final StackTraceElement... stackTrace) {
         SampleNode result = new SampleNode(1, null);
         SampleNode prevResult = result;
         for (int i = stackTrace.length - 1; i >= 0; i--) {
@@ -58,7 +58,7 @@ public final class SampleNode {
     }
     
     
-    public static void addToSampleNode(final SampleNode node, final StackTraceElement[] stackTrace) {
+    public static void addToSampleNode(final SampleNode node, final StackTraceElement... stackTrace) {
         SampleNode prevResult = node;
         prevResult.sampleCount++;
         for (int i = stackTrace.length - 1; i >= 0; i--) {
