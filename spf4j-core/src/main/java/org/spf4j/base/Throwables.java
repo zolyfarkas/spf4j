@@ -203,7 +203,7 @@ public final class Throwables {
      * @return
      */
     @CheckReturnValue
-    public static <T extends Throwable> T suppress(final T t, @Nonnull final Throwable suppressed) {
+    public static <T extends Throwable> T suppress(@Nonnull final T t, @Nonnull final Throwable suppressed) {
         if (ADD_SUPPRESSED != null) {
             try {
                 T clone = clone(t);

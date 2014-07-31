@@ -80,6 +80,7 @@ public final class Callables {
         private int count;
         private final PreRetryCallback<T> doBeforeRetry;
         private IntMath.XorShift32 random;
+        private int prevWaitMillis;
         private int waitMillis;
 
         public RetryPauseWithTimeout(final int nrImmediateRetries,
@@ -89,6 +90,7 @@ public final class Callables {
             this.maxWaitMillis = maxRetryWaitMillis;
             this.callable = callable;
             this.doBeforeRetry = doBeforeRetry;
+            this.prevWaitMillis = 0;
             this.waitMillis = 1;
         }
 
@@ -103,9 +105,11 @@ public final class Callables {
                     // This might belong in a thread local.
                     random = new IntMath.XorShift32();
                 }
-                Thread.sleep(waitMillis + random.nextInt() % waitMillis);
+                Thread.sleep(waitMillis - Math.abs(random.nextInt() % waitMillis));
                 if (waitMillis < maxWaitMillis) {
-                    waitMillis <<= 1;
+                    int tmp = waitMillis;
+                    waitMillis = waitMillis + prevWaitMillis;
+                    prevWaitMillis = tmp;
                 }
                 if (waitMillis > maxWaitMillis) {
                     waitMillis = maxWaitMillis;
@@ -148,6 +152,19 @@ public final class Callables {
                 retryOnReturnVal, retryOnException);
     }
 
+    /**
+     * After the immediate retries are done,
+     * delayed retry with randomized Fibonacci values up to the specified max is executed.
+     * @param <T>
+     * @param what
+     * @param doBeforeRetry
+     * @param nrImmediateRetries
+     * @param maxWaitMillis
+     * @param retryOnReturnVal
+     * @param retryOnException
+     * @return
+     * @throws InterruptedException
+     */
     public static <T> T executeWithRetry(final TimeoutCallable<T> what, final PreRetryCallback<T> doBeforeRetry,
             final int nrImmediateRetries, final int maxWaitMillis,
             final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)

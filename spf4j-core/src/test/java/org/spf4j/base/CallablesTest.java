@@ -81,7 +81,7 @@ public final class CallablesTest {
                 @Override
                 public Integer call(final long deadline) throws Exception {
                     count++;
-                    if (count < 100) {
+                    if (count < 200) {
                         throw new IOException("Aaaaaaaaaaa" + count);
                     }
 
@@ -110,7 +110,7 @@ public final class CallablesTest {
             @Override
             public Integer call(final long deadline) throws Exception {
                 count++;
-                if (count < 5) {
+                if (count < 10) {
                     throw new IOException("Aaaaaaaaaaa" + count);
                 }
 
@@ -151,6 +151,26 @@ public final class CallablesTest {
         }, 1, 10);
         Assert.assertEquals(1L, result.longValue());
     }
+    
+    @Test(expected = RuntimeException.class)
+    public void testExecuteWithRetryTimeout2() throws Exception {
+        System.out.println("executeWithRetryTimeout2");
+        Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer>(1000) {
+            private int count;
+
+            @Override
+            public Integer call(final long deadline) throws Exception {
+                System.out.println("Exec at " + System.currentTimeMillis());
+                count++;
+                if (count < 200) {
+                    throw new IOException("Aaaaaaaaaaa" + count);
+                }
+                return 1;
+            }
+        }, 0, 100);
+        Assert.assertEquals(1L, result.longValue());
+    }
+    
     
     /**
      * Test of executeWithRetry method, of class Callables.
