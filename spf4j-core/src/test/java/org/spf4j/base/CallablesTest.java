@@ -19,7 +19,6 @@ package org.spf4j.base;
 
 import com.google.common.base.Predicate;
 import java.io.IOException;
-import java.util.concurrent.Callable;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.Callables.TimeoutCallable;
