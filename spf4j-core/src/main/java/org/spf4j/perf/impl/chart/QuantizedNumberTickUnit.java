@@ -37,8 +37,7 @@ public final class QuantizedNumberTickUnit extends NumberTickUnit {
     @Override
     public int hashCode() {
         int hash = 3;
-        hash = 37 * hash + (this.quantas != null ? this.quantas.hashCode() : 0);
-        return hash;
+        return 37 * hash + (this.quantas != null ? this.quantas.hashCode() : 0);
     }
 
     @Override

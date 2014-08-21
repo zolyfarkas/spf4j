@@ -70,7 +70,7 @@ final class ScalableObjectPool<T> implements ObjectPool<T>,  Scanable<ObjectHold
         return globalPool.scan(handler);
     }
     
-    public void requestReturnFromBorrowersIfNotInUse() {
+    public void requestReturnFromBorrowersIfNotInUse() throws InterruptedException {
         globalPool.requestReturnFromBorrowersIfNotInUse();
     }
 

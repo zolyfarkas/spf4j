@@ -206,31 +206,35 @@ public final class QuantizedRecorder implements MeasurementProcessor {
     @Override
     public EntityMeasurements aggregate(final EntityMeasurements mSource) {
 
-        QuantizedRecorder other = (QuantizedRecorder) mSource;
-        long[] quantizedM;
-        long minMeasurementM;
-        long maxMeasurementM;
-        long measurementCountM;
-        long measurementTotalM;
-        synchronized (this) {
-            quantizedM = quatizedMeasurements.clone();
-            minMeasurementM = this.minMeasurement;
-            maxMeasurementM = this.maxMeasurement;
-            measurementCountM = this.measurementCount;
-            measurementTotalM = this.measurementTotal;
-        }
-        QuantizedRecorder otherClone =  other.createClone();
-        final long[] lQuatizedMeas = otherClone.getQuatizedMeasurements();
-        for (int i = 0; i < quantizedM.length; i++) {
+        if (mSource instanceof QuantizedRecorder) {
+            QuantizedRecorder other = (QuantizedRecorder) mSource;
+            long[] quantizedM;
+            long minMeasurementM;
+            long maxMeasurementM;
+            long measurementCountM;
+            long measurementTotalM;
+            synchronized (this) {
+                quantizedM = quatizedMeasurements.clone();
+                minMeasurementM = this.minMeasurement;
+                maxMeasurementM = this.maxMeasurement;
+                measurementCountM = this.measurementCount;
+                measurementTotalM = this.measurementTotal;
+            }
+            QuantizedRecorder otherClone =  other.createClone();
+            final long[] lQuatizedMeas = otherClone.getQuatizedMeasurements();
+            for (int i = 0; i < quantizedM.length; i++) {
 
-            quantizedM[i] += lQuatizedMeas[i];
+                quantizedM[i] += lQuatizedMeas[i];
+            }
+            return new QuantizedRecorder(info, factor, lowerMagnitude, higherMagnitude,
+                    Math.min(minMeasurementM, otherClone.getMinMeasurement()),
+                    Math.max(maxMeasurementM, otherClone.getMaxMeasurement()),
+                    measurementCountM + otherClone.getMeasurementCount(),
+                    measurementTotalM + otherClone.getMeasurementTotal(),
+                    quantasPerMagnitude, magnitudes, quantizedM);
+        } else {
+            throw new IllegalArgumentException("Cannot aggregate " + this + " with " + mSource);
         }
-        return new QuantizedRecorder(info, factor, lowerMagnitude, higherMagnitude,
-                Math.min(minMeasurementM, otherClone.getMinMeasurement()),
-                Math.max(maxMeasurementM, otherClone.getMaxMeasurement()),
-                measurementCountM + otherClone.getMeasurementCount(),
-                measurementTotalM + otherClone.getMeasurementTotal(),
-                quantasPerMagnitude, magnitudes, quantizedM);
 
 
     }

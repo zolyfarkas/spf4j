@@ -18,6 +18,7 @@
 package org.spf4j.concurrent;
 
 import com.google.common.base.Charsets;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -58,6 +59,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     }
 
     @Override
+    @SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
     public void lock() {
         jvmLock.lock();
         try {
@@ -72,8 +74,8 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
         }
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
     @Override
+    @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "EXS_EXCEPTION_SOFTENING_HAS_CHECKED", "MDM_THREAD_YIELD" })
     public void lockInterruptibly() throws InterruptedException {
         jvmLock.lockInterruptibly();
         try {
@@ -100,6 +102,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     }
 
     @Override
+    @SuppressFBWarnings("MDM_THREAD_FAIRNESS")
     public boolean tryLock() {
         if (jvmLock.tryLock()) {
             try {
@@ -122,10 +125,10 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
         }
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
+    @SuppressFBWarnings({"EXS_EXCEPTION_SOFTENING_HAS_CHECKED", "MDM_THREAD_YIELD" })
     @Override
     public boolean tryLock(final long time, final TimeUnit unit) throws InterruptedException {
-        if (jvmLock.tryLock()) {
+        if (jvmLock.tryLock(time, unit)) {
             try {
                 long waitTime = 0;
                 long maxWaitTime = unit.toMillis(time);

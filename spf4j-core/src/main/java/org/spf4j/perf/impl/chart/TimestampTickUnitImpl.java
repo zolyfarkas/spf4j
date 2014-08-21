@@ -1,14 +1,34 @@
 
+ /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
 package org.spf4j.perf.impl.chart;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.joda.time.format.DateTimeFormatter;
 
 /**
- *
+ * This class although implements Serializable is not implemented correctly to serialize.
+ * Since I do not intend to serialize this, I will skip the proper implementation.
  * @author zoly
  */
-@edu.umd.cs.findbugs.annotations.SuppressWarnings(value = "NFF_NON_FUNCTIONAL_FIELD")
+@SuppressFBWarnings({"NFF_NON_FUNCTIONAL_FIELD", "SE_TRANSIENT_FIELD_NOT_RESTORED" })
 class TimestampTickUnitImpl extends NumberTickUnit {
     private static final long serialVersionUID = 0L;
     private final long[] timestamps;
@@ -22,6 +42,7 @@ class TimestampTickUnitImpl extends NumberTickUnit {
         this.formatter = formatter;
         this.stepMillis = stepMillis;
     }
+
 
     @Override
     public String valueToString(final double value) {

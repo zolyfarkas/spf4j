@@ -5,6 +5,7 @@
  */
 package org.spf4j.ds;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashSet;
@@ -20,12 +21,13 @@ import javax.annotation.Nonnull;
  *
  * This class is not thread-safe.
  * Z TODO: I have cleaned up a bit this class, but there is a lot more to do here
- * this class implementation is not clean in several places.
+ * this class implementation is not clean in several places. (see findbugs supressions)
  *
  * @param <T> the type of entry to store in this RTree.
  */
 
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
+@SuppressFBWarnings({"CLI_CONSTANT_LIST_INDEX", "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
+    "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS" })
 public final class RTree<T> {
 
     public enum SeedPicker {
@@ -333,52 +335,54 @@ public final class RTree<T> {
         // of a single node.  Left as-is for now for readability.
         @SuppressWarnings("unchecked")
         Node[] nn = new RTree.Node[]{n, new Node(n.coords, n.dimensions, n.leaf)};
-        nn[1].parent = n.parent;
-        if (nn[1].parent != null) {
-            nn[1].parent.children.add(nn[1]);
+        final Node nn1 = nn[1];
+        nn1.parent = n.parent;
+        if (nn1.parent != null) {
+            nn1.parent.children.add(nn1);
         }
         LinkedList<Node> cc = new LinkedList<Node>(n.children);
         n.children.clear();
         Node[] ss = seedPicker == SeedPicker.LINEAR ? lPickSeeds(cc) : qPickSeeds(cc);
-        nn[0].children.add(ss[0]);
-        nn[1].children.add(ss[1]);
+        final Node nn0 = nn[0];
+        nn0.children.add(ss[0]);
+        nn1.children.add(ss[1]);
         tighten(nn);
         while (!cc.isEmpty()) {
-            final int size0 = nn[0].children.size();
-            final int size1 = nn[1].children.size();
+            final int size0 = nn0.children.size();
+            final int size1 = nn1.children.size();
             if ((size0 >= minEntries)
                     && (size1 + cc.size() == minEntries)) {
-                nn[1].children.addAll(cc);
+                nn1.children.addAll(cc);
                 cc.clear();
                 tighten(nn); // Not sure this is required.
                 return nn;
             } else if ((size1 >= minEntries)
                     && (size0 + cc.size() == minEntries)) {
-                nn[0].children.addAll(cc);
+                nn0.children.addAll(cc);
                 cc.clear();
                 tighten(nn); // Not sure this is required.
                 return nn;
             }
             Node c = seedPicker == SeedPicker.LINEAR ? lPickNext(cc) : qPickNext(cc, nn);
             Node preferred;
-            float e0 = getRequiredExpansion(nn[0].coords, nn[0].dimensions, c);
-            float e1 = getRequiredExpansion(nn[1].coords, nn[1].dimensions, c);
+            float e0 = getRequiredExpansion(nn0.coords, nn0.dimensions, c);
+            float e1 = getRequiredExpansion(nn1.coords, nn1.dimensions, c);
             if (e0 < e1) {
-                preferred = nn[0];
+                preferred = nn0;
             } else if (e0 > e1) {
-                preferred = nn[1];
+                preferred = nn1;
             } else {
-                float a0 = getArea(nn[0].dimensions);
-                float a1 = getArea(nn[1].dimensions);
+                float a0 = getArea(nn0.dimensions);
+                float a1 = getArea(nn1.dimensions);
                 if (a0 < a1) {
-                    preferred = nn[0];
+                    preferred = nn0;
                 } else if (e0 > a1) {
-                    preferred = nn[1];
+                    preferred = nn1;
                 } else {
                     if (size0 < size1) {
-                        preferred = nn[0];
+                        preferred = nn0;
                     } else if (size0 > size1) {
-                        preferred = nn[1];
+                        preferred = nn1;
                     } else {
                         preferred = nn[(int) Math.round(Math.random())];
                     }
@@ -404,8 +408,10 @@ public final class RTree<T> {
                 float n2a = getArea(n2.dimensions);
                 float ja = 1.0f;
                 for (int i = 0; i < numDims; i++) {
-                    float jc0 = Math.min(n1.coords[i], n2.coords[i]);
-                    float jc1 = Math.max(n1.coords[i] + n1.dimensions[i], n2.coords[i] + n2.dimensions[i]);
+                    final float n1coordsi = n1.coords[i];
+                    final float n2coordsi = n2.coords[i];
+                    float jc0 = Math.min(n1coordsi, n2coordsi);
+                    float jc1 = Math.max(n1coordsi + n1.dimensions[i], n2coordsi + n2.dimensions[i]);
                     ja *= (jc1 - jc0);
                 }
                 float waste = ja - n1a - n2a;

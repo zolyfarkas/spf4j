@@ -72,12 +72,16 @@ public final class MinMaxAvgRecorder
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
     @Override
     public EntityMeasurements aggregate(final EntityMeasurements mSource) {
-        MinMaxAvgRecorder other = (MinMaxAvgRecorder) mSource;
-        long [] measurements = other.getMeasurements();
-        synchronized (this) {
-            return new MinMaxAvgRecorder(this.info.getMeasuredEntity(), this.info.getUnitOfMeasurement(),
-                counter + measurements[0], total + measurements[1],
-                Math.min(min, measurements[2]), Math.max(max, measurements[3]));
+        if (mSource instanceof MinMaxAvgRecorder) {
+            MinMaxAvgRecorder other = (MinMaxAvgRecorder) mSource;
+            long [] measurements = other.getMeasurements();
+            synchronized (this) {
+                return new MinMaxAvgRecorder(this.info.getMeasuredEntity(), this.info.getUnitOfMeasurement(),
+                    counter + measurements[0], total + measurements[1],
+                    Math.min(min, measurements[2]), Math.max(max, measurements[3]));
+            }
+        } else {
+           throw new IllegalArgumentException("Cannot aggregate " + this + " with " + mSource);
         }
     }
 

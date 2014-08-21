@@ -18,19 +18,27 @@
  */
 package org.spf4j.jmx;
 
-import javax.management.InvalidAttributeValueException;
+import java.beans.ConstructorProperties;
 
-public interface ExportedValue<T> {
+
+public final class TestBean {
+
+    private final int intVal;
+    private final String strVal;
+
+    @ConstructorProperties({"intVal", "strVal" })
+    public TestBean(final int intVal, final String strVal) {
+        this.intVal = intVal;
+        this.strVal = strVal;
+    }
+
+    public int getIntVal() {
+        return intVal;
+    }
+
+    public String getStrVal() {
+        return strVal;
+    }
     
-    String getName();
     
-    String getDescription();
-    
-    T get();
-    
-    void set(T value) throws InvalidAttributeValueException;
-    
-    boolean isWriteable();
-    
-    Class<? extends T> getValueClass();
 }

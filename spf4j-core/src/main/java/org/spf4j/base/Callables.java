@@ -18,6 +18,7 @@
 package org.spf4j.base;
 
 import com.google.common.base.Predicate;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.sql.SQLTransientException;
 import java.util.concurrent.Callable;
@@ -76,7 +77,7 @@ public final class Callables {
 
         private final int nrImmediateRetries;
         private final int maxWaitMillis;
-        private final TimeoutCallable callable;
+        private final long deadline;
         private int count;
         private final PreRetryCallback<T> doBeforeRetry;
         private IntMath.XorShift32 random;
@@ -84,20 +85,22 @@ public final class Callables {
         private int waitMillis;
 
         public RetryPauseWithTimeout(final int nrImmediateRetries,
-                final int maxRetryWaitMillis, final TimeoutCallable callable,
+                final int maxRetryWaitMillis, final long deadline,
                 @Nullable final PreRetryCallback<T> doBeforeRetry) {
             this.nrImmediateRetries = nrImmediateRetries;
             this.maxWaitMillis = maxRetryWaitMillis;
-            this.callable = callable;
+            this.deadline = deadline;
             this.doBeforeRetry = doBeforeRetry;
             this.prevWaitMillis = 0;
             this.waitMillis = 1;
+            this.count = 0;
         }
 
         @Override
+        @SuppressFBWarnings("MDM_THREAD_YIELD")
         public boolean call(final Exception lastException, final T lastResult) throws InterruptedException {
             long now = System.currentTimeMillis();
-            if (now >= callable.getDeadline()) {
+            if (now >= deadline) {
                 return false;
             }
             if (count >= nrImmediateRetries) {
@@ -130,7 +133,7 @@ public final class Callables {
             final int maxRetryWaitMillis)
             throws InterruptedException {
         return executeWithRetry(what, new RetryPauseWithTimeout<T>(
-                nrImmediateRetries, maxRetryWaitMillis, what, null),
+                nrImmediateRetries, maxRetryWaitMillis, what.getDeadline(), null),
                 NORETRY_FOR_RESULT, DEFAULT_EXCEPTION_RETRY);
     }
 
@@ -139,7 +142,7 @@ public final class Callables {
             final Predicate<Exception> retryOnException)
             throws InterruptedException {
         return executeWithRetry(what, new RetryPauseWithTimeout<T>(
-                nrImmediateRetries, maxRetryWaitMillis, what, null),
+                nrImmediateRetries, maxRetryWaitMillis, what.getDeadline(), null),
                 NORETRY_FOR_RESULT, retryOnException);
     }
 
@@ -148,7 +151,7 @@ public final class Callables {
             final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
             throws InterruptedException {
         return executeWithRetry(what, new RetryPauseWithTimeout<T>(
-                nrImmediateRetries, maxRetryWaitMillis, what, null),
+                nrImmediateRetries, maxRetryWaitMillis, what.getDeadline(), null),
                 retryOnReturnVal, retryOnException);
     }
 
@@ -170,7 +173,7 @@ public final class Callables {
             final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
             throws InterruptedException {
         return executeWithRetry(what, new RetryPauseWithTimeout<T>(
-                nrImmediateRetries, maxWaitMillis, what, doBeforeRetry),
+                nrImmediateRetries, maxWaitMillis, what.getDeadline(), doBeforeRetry),
                 retryOnReturnVal, retryOnException);
     }
 

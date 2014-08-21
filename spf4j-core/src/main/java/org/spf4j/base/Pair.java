@@ -20,7 +20,10 @@ package org.spf4j.base;
 
 import org.spf4j.io.Csv;
 import com.google.common.base.Objects;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -32,40 +35,57 @@ public class Pair<A, B> {
         this.first = first;
         this.second = second;
     }
-    
+
     public static <A, B> Pair<A, B> of(final A first, final B second) {
         return new Pair<A, B>(first, second);
     }
-    
+
     /**
      * Creates a pair from a (str1,str2) pair.
+     *
      * @param stringPair
      * @return null if this is not a pair.
      */
+    @Nullable
     public static Pair<String, String> from(final String stringPair) {
-        if (!stringPair.startsWith("(") || !stringPair.endsWith(")")) {
+        if (!stringPair.startsWith(PREFIX) || !stringPair.endsWith(SUFFIX)) {
             return null;
         }
         int commaIdx = stringPair.indexOf(',');
         if (commaIdx < 0) {
             return null;
         }
+
+        StringReader sr = new StringReader(
+                stringPair.substring(PREFIX.length(), stringPair.length() - SUFFIX.length()));
         StringBuilder first = new StringBuilder();
-        int idx = Csv.readCsvElement(stringPair, 1, first);
-        if (stringPair.charAt(idx) != ',') {
-            return null;
-        }
         StringBuilder second = new StringBuilder();
-        Csv.readCsvElement(stringPair, idx + 1, stringPair.length() - 1, second);
+        int comma;
+        try {
+            comma = Csv.readCsvElement(sr, first);
+            if (comma != ',') {
+                return null;
+            }
+
+            int last = Csv.readCsvElement(sr, second);
+            if (last >= 0) {
+                return null;
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
         return Pair.of(first.toString(), second.toString());
     }
-        
+    private static final String SUFFIX = ")";
+    
+    private static final String PREFIX = "(";
+
     //CHECKSTYLE:OFF
     protected final A first;
-    
+
     protected final B second;
     //CHECKSTYLE:ON
-    
+
     public final A getFirst() {
         return first;
     }
@@ -86,10 +106,7 @@ public class Pair<A, B> {
         if (this.first != other.first && (this.first == null || !this.first.equals(other.first))) {
             return false;
         }
-        if (this.second != other.second && (this.second == null || !this.second.equals(other.second))) {
-            return false;
-        }
-        return true;
+        return (!(this.second != other.second && (this.second == null || !this.second.equals(other.second))));
     }
 
     @Override
@@ -99,13 +116,12 @@ public class Pair<A, B> {
 
     @Override
     public final String toString() {
-        return "(" + Csv.toCsvElement(first.toString())
+        return PREFIX + Csv.toCsvElement(first.toString())
                 + "," + Csv.toCsvElement(second.toString()) + ')';
     }
-    
+
     public final List<Object> toList() {
         return java.util.Arrays.asList(first, second);
     }
-    
-    
+
 }

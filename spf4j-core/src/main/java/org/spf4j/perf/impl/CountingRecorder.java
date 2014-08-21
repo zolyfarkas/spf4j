@@ -59,11 +59,15 @@ public final class CountingRecorder
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
     @Override
     public EntityMeasurements aggregate(final EntityMeasurements mSource) {
-        CountingRecorder other = (CountingRecorder) mSource;
-        long[] measurements = other.getMeasurements();
-        synchronized (this) {
-            return new CountingRecorder(this.info.getMeasuredEntity(), this.info.getUnitOfMeasurement(),
-                    counter + measurements[0], total + measurements[1]);
+        if (mSource instanceof CountingRecorder) {
+            CountingRecorder other = (CountingRecorder) mSource;
+            long[] measurements = other.getMeasurements();
+            synchronized (this) {
+                return new CountingRecorder(this.info.getMeasuredEntity(), this.info.getUnitOfMeasurement(),
+                        counter + measurements[0], total + measurements[1]);
+            }
+        } else {
+            throw new IllegalArgumentException("Cannot aggregate " + this + " with " + mSource);
         }
     }
 

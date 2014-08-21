@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.concurrent.Immutable;
-import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.axis.TickUnits;
 import org.jfree.data.DomainOrder;
 import org.jfree.data.general.DatasetChangeListener;
@@ -52,7 +51,7 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
         this.data = pdata.clone();
         this.startTimeMillis = startTimeMillis;
         this.stepMillis = step;
-        quantas = new ArrayList<ComparablePair<Quanta, Integer>>();
+        quantas = new ArrayList<ComparablePair<Quanta, Integer>>(dataSources.length);
         for (int i = 0; i < dataSources.length; i++) {
             String ds = dataSources[i];
             if (ds.startsWith("Q")) {
@@ -61,7 +60,8 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
             }
         }
         Collections.sort(quantas);
-        int seriesSize = quantas.size() * data.length;
+        final int nrQuantas = quantas.size();
+        int seriesSize = nrQuantas * data.length;
         x = new double[seriesSize];
         y = new double[seriesSize];
         z = new double[seriesSize];
@@ -70,7 +70,7 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
 
         int k = 0;
       
-        for (int j = 0; j < quantas.size(); j++) {
+        for (int j = 0; j < nrQuantas; j++) {
             ComparablePair<Quanta, Integer> pair = quantas.get(j);
             double[] values = Arrays.getColumn(data, pair.getSecond());
             for (int i = 0; i < values.length; i++) {

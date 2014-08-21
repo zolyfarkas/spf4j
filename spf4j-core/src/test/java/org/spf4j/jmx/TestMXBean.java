@@ -16,21 +16,21 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+
 package org.spf4j.jmx;
 
-import javax.management.InvalidAttributeValueException;
-
-public interface ExportedValue<T> {
+/**
+ *
+ * @author zoly
+ */
+public interface TestMXBean {
     
-    String getName();
+    String [] getArray();
     
-    String getDescription();
+    String [][] getMatrix();
     
-    T get();
+    TestEnum getEnum();
     
-    void set(T value) throws InvalidAttributeValueException;
+    String getStuff();
     
-    boolean isWriteable();
-    
-    Class<? extends T> getValueClass();
 }

@@ -1,4 +1,21 @@
 
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 package org.spf4j.jmx;
 
 
@@ -10,6 +27,7 @@ import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
 import javax.management.DynamicMBean;
+import javax.management.ImmutableDescriptor;
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanException;
@@ -19,6 +37,7 @@ import javax.management.MBeanParameterInfo;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
+import javax.management.openmbean.OpenType;
 import org.spf4j.base.Reflections;
 
 
@@ -156,16 +175,42 @@ class ExportedValuesMBean implements DynamicMBean {
     }
 
     private static MBeanAttributeInfo createAttributeInfo(final ExportedValue<?> val) {
-        Class<?> valClass = Reflections.primitiveToWrapper(val.getValueClass());
-        final String type = Number.class.isAssignableFrom(valClass)
-            ? Number.class.getName()
-            : String.class.getName();
-        return new MBeanAttributeInfo(
-            val.getName(),
-            type,
-            val.getDescription(),
-            true,   // isReadable
-            val.isWriteable(),  // isWritable
-            false); // isIs
+        final Class<?> oClass = val.getValueClass();
+        Class<?> valClass = Reflections.primitiveToWrapper(oClass);
+        OpenType openType =  OpenTypeConverter.getOpenType(oClass);
+        String type;
+        if (Number.class.isAssignableFrom(valClass)) {
+            type = Number.class.getName();
+        } else if (valClass == Boolean.class || valClass == String.class) {
+            type = valClass.getName();
+        } else if (Enum.class.isAssignableFrom(valClass)) {
+            type = String.class.getName();
+        } else {          
+            type = openType.getTypeName();
+        }
+        
+  //      if (openType == null) {
+//            return new MBeanAttributeInfo(
+//                val.getName(),
+//                type,
+//                val.getDescription(),
+//                true,   // isReadable
+//                val.isWriteable(),  // isWritable
+//                valClass == Boolean.class); // isIs
+//        } else {
+           return new MBeanAttributeInfo(
+                val.getName(),
+                type,
+                val.getDescription(),
+                true,   // isReadable
+                val.isWriteable(),  // isWritable
+                valClass == Boolean.class,
+                new ImmutableDescriptor(new String[] {"openType", "originalType"},
+                        new Object[] {openType, oClass.getName()}));
+//        }
+//
+        
+        
     }
+    
 }

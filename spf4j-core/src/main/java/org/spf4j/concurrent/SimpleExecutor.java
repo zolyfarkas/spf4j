@@ -83,11 +83,12 @@ public final class SimpleExecutor implements Executor {
         terminated = true;
     }
     
-    public void shutdownAndWait() throws InterruptedException {
+    public void shutdownAndWait(final long timeout) throws InterruptedException {
         terminated = true;
+        long deadline = timeout + System.currentTimeMillis();
         Thread [] theThreads = threads;
         for (Thread t : theThreads) {
-            t.join();
+            t.join(deadline - System.currentTimeMillis());
         }
     }
     

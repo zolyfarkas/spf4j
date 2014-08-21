@@ -1,3 +1,22 @@
+
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
 package org.spf4j.jmx;
 
 import java.lang.annotation.Annotation;
@@ -7,7 +26,6 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
-import javax.management.DynamicMBean;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanRegistrationException;
@@ -23,7 +41,7 @@ public final class Registry {
 
     private static final MBeanServer MBEAN_SERVER = ManagementFactory.getPlatformMBeanServer();
 
-    private static void register(final ObjectName objectName, final DynamicMBean mbean) {
+    private static void register(final ObjectName objectName, final Object mbean) {
         if (MBEAN_SERVER.isRegistered(objectName)) {
             try {
                 MBEAN_SERVER.unregisterMBean(objectName);
@@ -44,6 +62,10 @@ public final class Registry {
         }
     }
 
+    public static void register(final String domain, final String name, final Object object) {
+        register(ExportedValuesMBean.createObjectName(domain, name), object);
+    }
+    
     public static void unregister(final Object object) {
         final Class<? extends Object> aClass = object.getClass();
         unregister(aClass.getPackage().getName(), aClass.getSimpleName());
@@ -102,11 +124,13 @@ public final class Registry {
                     }
                 }
             } else {
-                for (Method method : object.getClass().getMethods()) {
+                final Class<? extends Object> oClass = object.getClass();
+                String oClassName = oClass.getSimpleName();
+                for (Method method : oClass.getMethods()) {
                     Annotation [] annotations = method.getAnnotations();
                     for (Annotation annot : annotations) {
                         if (annot.annotationType() == JmxExport.class) {
-                            exportMethod(method, haveToPrependClass ? object.getClass().getSimpleName() : null,
+                            exportMethod(method, haveToPrependClass ? oClassName : null,
                                     object, exportedAttributes, exportedOps, annot);
                         }
                     }

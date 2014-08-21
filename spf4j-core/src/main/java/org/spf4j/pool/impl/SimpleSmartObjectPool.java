@@ -263,7 +263,7 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         }
     }
 
-    public void requestReturnFromBorrowersIfNotInUse() {
+    public void requestReturnFromBorrowersIfNotInUse() throws InterruptedException {
         lock.lock();
         try {
             List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>, T>>();

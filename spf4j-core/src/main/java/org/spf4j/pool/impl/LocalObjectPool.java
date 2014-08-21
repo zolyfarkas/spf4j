@@ -19,18 +19,19 @@
 package org.spf4j.pool.impl;
 
 import java.util.ArrayList;
-import org.spf4j.pool.ObjectBorower;
-import org.spf4j.pool.ObjectCreationException;
-import org.spf4j.pool.ObjectDisposeException;
-import org.spf4j.pool.ObjectPool;
-import org.spf4j.pool.SmartObjectPool;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
+import org.spf4j.pool.ObjectBorower;
+import org.spf4j.pool.ObjectCreationException;
+import org.spf4j.pool.ObjectDisposeException;
+import org.spf4j.pool.ObjectPool;
+import org.spf4j.pool.SmartObjectPool;
 
 /**
  *
@@ -121,8 +122,8 @@ final class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHol
     }
 
     @Override
-    public Object tryRequestReturnObject() {
-        boolean acquired = lock.tryLock();
+    public Object tryRequestReturnObject() throws InterruptedException {
+        boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
         if (acquired) {
             try {
                 ObjectHolder<T> objectHolder = tryReturnObjectIfNotInUse();
@@ -141,8 +142,8 @@ final class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHol
     }
 
     @Override
-    public ObjectHolder<T> tryReturnObjectIfNotInUse() {
-        boolean acquired = lock.tryLock();
+    public ObjectHolder<T> tryReturnObjectIfNotInUse() throws InterruptedException {
+        boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
         if (acquired) {
             try {
                 if (!localObjects.isEmpty()) {
@@ -160,8 +161,8 @@ final class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHol
     
     
     @Override
-    public Collection<ObjectHolder<T>> tryReturnObjectsIfNotInUse() {
-        boolean acquired = lock.tryLock();
+    public Collection<ObjectHolder<T>> tryReturnObjectsIfNotInUse() throws InterruptedException {
+        boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
         if (acquired) {
             try {
                 if (!localObjects.isEmpty()) {
@@ -181,8 +182,8 @@ final class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHol
     
 
     @Override
-    public Collection<ObjectHolder<T>> tryReturnObjectsIfNotNeededAnymore() {
-        boolean acquired = lock.tryLock();
+    public Collection<ObjectHolder<T>> tryReturnObjectsIfNotNeededAnymore() throws InterruptedException {
+        boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
         if (acquired) {
             try {
                 if (!thread.isAlive()) {

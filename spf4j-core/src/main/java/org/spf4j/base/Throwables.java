@@ -17,12 +17,6 @@
  */
 package org.spf4j.base;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -94,25 +88,28 @@ public final class Throwables {
                 return m;
             }
         });
-        
-        GET_SUPPRESSED = AccessController.doPrivileged(new PrivilegedAction<Method>() {
-            @Override
-            public Method run() {
-                Method m;
-                try {
-                    m = Throwable.class.getDeclaredMethod("getSuppressed");
-                } catch (NoSuchMethodException ex) {
-                    LOG.info("Throwables do not support suppression", ex);
-                    m = null;
-                } catch (SecurityException ex) {
-                    throw new RuntimeException(ex);
+        if (ADD_SUPPRESSED != null) {
+            GET_SUPPRESSED = AccessController.doPrivileged(new PrivilegedAction<Method>() {
+                @Override
+                public Method run() {
+                    Method m;
+                    try {
+                        m = Throwable.class.getDeclaredMethod("getSuppressed");
+                    } catch (NoSuchMethodException ex) {
+                        LOG.info("Throwables do not support suppression", ex);
+                        m = null;
+                    } catch (SecurityException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    if (m != null) {
+                        m.setAccessible(true);
+                    }
+                    return m;
                 }
-                if (m != null) {
-                    m.setAccessible(true);
-                }
-                return m;
-            }
-        });
+            });
+        } else {
+            GET_SUPPRESSED = null;
+        }
 
     }
 
@@ -163,36 +160,12 @@ public final class Throwables {
             newChainIdx = size - (MAX_THROWABLE_CHAIN - chainedExNr);
             LOG.warn("Trimming exception at {} ", newChainIdx, newRootCause);
         }
-        T result = clone(t);
+        T result = Objects.clone(t);
         chain0(result, newRootCauseChain.get(newChainIdx));
         return result;
   
     }
 
-    public static <T extends Serializable> T clone(final T t) {
-        try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutputStream out = new ObjectOutputStream(bos);
-            try {
-                out.writeObject(t);
-            } finally {
-                out.close();
-            }
-            T result;
-            ObjectInputStream in = new ObjectInputStream(
-                    new ByteArrayInputStream(bos.toByteArray()));
-            try {
-                result = (T) in.readObject();
-            } finally {
-                in.close();
-            }
-            return result;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     /**
      * Functionality equivalent for java 1.7 Throwable.addSuppressed.
@@ -206,7 +179,7 @@ public final class Throwables {
     public static <T extends Throwable> T suppress(@Nonnull final T t, @Nonnull final Throwable suppressed) {
         if (ADD_SUPPRESSED != null) {
             try {
-                T clone = clone(t);
+                T clone = Objects.clone(t);
                 ADD_SUPPRESSED.invoke(clone, suppressed);
                 return clone;
             } catch (IllegalAccessException ex) {
@@ -218,10 +191,10 @@ public final class Throwables {
             }
         } else {
             if (suppressed == null) {
-                throw new IllegalArgumentException("Cannot suppress null exception");
+                throw new IllegalArgumentException("Cannot suppress null exception on " + t);
             }
             if (t == suppressed) {
-                throw new IllegalArgumentException("Self suppression not permitted");
+                throw new IllegalArgumentException("Self suppression not permitted for " + t);
             }
             return chain(t, new SuppressedThrowable(suppressed));
         }
@@ -239,7 +212,7 @@ public final class Throwables {
                 throw new RuntimeException(ex);
             }
         } else {
-            List<Throwable> chain = com.google.common.base.Throwables.getCausalChain(clone(t));
+            List<Throwable> chain = com.google.common.base.Throwables.getCausalChain(Objects.clone(t));
             List<Throwable> result = new ArrayList<Throwable>();
             Throwable prev = null;
             for (Throwable comp : chain) {

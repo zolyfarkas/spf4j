@@ -1,4 +1,21 @@
 
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 package org.spf4j.jmx;
 
@@ -24,6 +41,25 @@ public final class RegistryTest {
         private volatile double doubleVal;
         
         private volatile boolean booleanFlag;
+        
+        private final String [][] matrix = {{"a", "b"}, {"c", "d"}};
+        
+        private volatile TestEnum enumVal = TestEnum.VAL2;
+        
+        private final TestBean bean = new TestBean(3, "bla");
+        
+        @JmxExport
+        public String [][] getMatrix() {
+            return matrix;
+        }
+        
+        private final String [] array = {"a", "b"};
+        
+        @JmxExport
+        public String [] getArray() {
+            return array;
+        }
+
 
         @JmxExport
         public String getStringVal() {
@@ -54,6 +90,23 @@ public final class RegistryTest {
         public void setDoubleVal(final double doubleVal) {
             this.doubleVal = doubleVal;
         }
+
+        @JmxExport
+        public TestEnum getEnumVal() {
+            return enumVal;
+        }
+
+        @JmxExport
+        public void setEnumVal(final TestEnum enumVal) {
+            this.enumVal = enumVal;
+        }
+
+        @JmxExport
+        public TestBean getBean() {
+            return bean;
+        }
+        
+        
         
     }
     
@@ -97,6 +150,9 @@ public final class RegistryTest {
             AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
         JmxTest testObj = new JmxTest();
         Registry.export("test", "Test", testObj);
+        Registry.register("test2", "TestClassic", new org.spf4j.jmx.Test());
+        
+        Thread.sleep(300000);
         
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "booleanFlag", true);

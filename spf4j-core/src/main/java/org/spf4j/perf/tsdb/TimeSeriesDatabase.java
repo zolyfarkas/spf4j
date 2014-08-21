@@ -84,8 +84,9 @@ public final class TimeSeriesDatabase implements Closeable {
             this.toc = new TableOfContents(file);
         }
         groups = new ConcurrentHashMap<String, TSTable>();
-        if (toc.getFirstColumnInfo() > 0) {
-            file.seek(toc.getFirstColumnInfo());
+        final long firstColumnInfo = toc.getFirstColumnInfo();
+        if (firstColumnInfo > 0) {
+            file.seek(firstColumnInfo);
             TSTable colInfo = new TSTable(file);
             groups.put(colInfo.getTableName(), colInfo);
             
@@ -177,13 +178,14 @@ public final class TimeSeriesDatabase implements Closeable {
             writeDataFragment.setLocation(file.getFilePointer());
             writeDataFragment.writeTo(file);
             TSTable colInfo = groups.get(groupName);
-            if (colInfo.getLastDataFragment() != 0) {
-                DataFragment.setNextDataFragment(
-                        colInfo.getLastDataFragment(), writeDataFragment.getLocation(), file);
+            final long lastDataFragment = colInfo.getLastDataFragment();
+            final long location = writeDataFragment.getLocation();
+            if (lastDataFragment != 0) {
+                DataFragment.setNextDataFragment(lastDataFragment, location, file);
             } else {
-                colInfo.setFirstDataFragment(writeDataFragment.getLocation(), file);
+                colInfo.setFirstDataFragment(location, file);
             }
-            colInfo.setLastDataFragment(writeDataFragment.getLocation(), file);
+            colInfo.setLastDataFragment(location, file);
         }
         sync();
     }
@@ -206,10 +208,10 @@ public final class TimeSeriesDatabase implements Closeable {
 
     
     public synchronized long readStartDate(final String tableName) throws IOException {
-         TSTable info = groups.get(tableName);
-        if (info.getFirstDataFragment() > 0) {
+        TSTable info = groups.get(tableName);
+        long nextFragmentLocation = info.getFirstDataFragment();
+        if (nextFragmentLocation > 0) {
             DataFragment frag;
-            long nextFragmentLocation = info.getFirstDataFragment();
             file.seek(nextFragmentLocation);
             frag = new DataFragment(file);
             return frag.getStartTimeMillis();
@@ -233,10 +235,10 @@ public final class TimeSeriesDatabase implements Closeable {
         TLongArrayList timeStamps = new TLongArrayList();
         List<long[]> data = new ArrayList<long[]>();
         TSTable info = groups.get(tableName);
-        
-        if (info.getFirstDataFragment() > 0) {
+        final long firstDataFragment = info.getFirstDataFragment();
+        if (firstDataFragment > 0) {
             DataFragment frag;
-            long nextFragmentLocation = info.getFirstDataFragment();
+            long nextFragmentLocation = firstDataFragment;
             do {
                 file.seek(nextFragmentLocation);
                 frag = new DataFragment(file);

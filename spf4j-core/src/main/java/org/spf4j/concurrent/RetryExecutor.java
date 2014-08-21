@@ -61,10 +61,11 @@ public class RetryExecutor<T> implements ExecutorService {
     private volatile RetryManager retryManager;
     private final Predicate<Exception> retryException;
     private final BlockingQueue<Future<T>> completionQueue;
+    private final Object sync = new Object();
 
     private void startRetryManager() {
         if (this.retryManager == null) {
-            synchronized (this) {
+            synchronized (sync) {
                 if (this.retryManager == null) {
                     this.retryManager = new RetryManager();
                     this.retryManager.start();
@@ -74,7 +75,7 @@ public class RetryExecutor<T> implements ExecutorService {
     }
 
     private void shutdownRetryManager()  {
-        synchronized (this) {
+        synchronized (sync) {
             if (this.retryManager != null) {
                 this.retryManager.interrupt();
                 try {
@@ -130,8 +131,8 @@ public class RetryExecutor<T> implements ExecutorService {
             if (obj == null) {
                 return false;
             } else {
-                if (obj instanceof Delayed) {
-                    return this.compareTo((Delayed) obj) == 0;
+                if (obj instanceof FailedExecutionResult) {
+                    return this.compareTo((FailedExecutionResult) obj) == 0;
                 } else {
                     return false;
                 }

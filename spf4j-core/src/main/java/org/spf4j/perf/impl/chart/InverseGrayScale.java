@@ -85,7 +85,7 @@ public final class InverseGrayScale
         }
         if (alpha < 0 || alpha > 255) {
             throw new IllegalArgumentException(
-                    "Requires alpha in the range 0 to 255.");
+                    "Requires alpha in the range 0 to 255. and not " + alpha);
 
         }
         this.lowerBound = lowerBound;

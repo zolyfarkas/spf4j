@@ -82,16 +82,15 @@ public final class CallablesTest {
                 public Integer call(final long deadline) throws Exception {
                     count++;
                     if (count < 200) {
-                        throw new IOException("Aaaaaaaaaaa" + count);
+                        throw new IOException("Aaaaaaaaaaa " + System.currentTimeMillis());
                     }
-
                     return 1;
                 }
-            }, 1, 10);
+            }, 4, 100);
             Assert.fail("Should not get here");
         } catch (Exception e) {
-            if (Runtime.JAVA_VERSION.startsWith("1.6")) {
-                Assert.assertEquals(10, Throwables.getSuppressed(e.getCause()).length);
+            if (Runtime.JAVA_PLATFORM == Runtime.Version.V1_6) {
+                Assert.assertEquals(5, Throwables.getSuppressed(e.getCause()).length);
             } else {
                 Assert.assertEquals(1, Throwables.getSuppressed(e.getCause()).length);
             }

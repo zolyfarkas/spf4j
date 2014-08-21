@@ -18,19 +18,30 @@
  */
 package org.spf4j.jmx;
 
-import javax.management.InvalidAttributeValueException;
+/**
+ *
+ * @author zoly
+ */
+public final class Test implements TestMXBean {
 
-public interface ExportedValue<T> {
+    @Override
+    public String[] getArray() {
+        return new String [] {"test1", "test2"};
+    }
     
-    String getName();
+    @Override
+    public String getStuff() {
+        return "bla";
+    }
+
+    @Override
+    public String[][] getMatrix() {
+        return new String [][] {{"a", "b"}, {"c", "d"}};
+    }
+
+    @Override
+    public TestEnum getEnum() {
+        return TestEnum.VAL1;
+    }
     
-    String getDescription();
-    
-    T get();
-    
-    void set(T value) throws InvalidAttributeValueException;
-    
-    boolean isWriteable();
-    
-    Class<? extends T> getValueClass();
 }
