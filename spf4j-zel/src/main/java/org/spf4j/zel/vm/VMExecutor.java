@@ -47,7 +47,7 @@ public final class VMExecutor {
                  @Override
                  public void run() {
                      try {
-                         DEF_EXEC.shutdownAndWait();
+                         DEF_EXEC.shutdownAndWait(120000);
                      } catch (InterruptedException ex) {
                         throw new RuntimeException(ex);
                      }
