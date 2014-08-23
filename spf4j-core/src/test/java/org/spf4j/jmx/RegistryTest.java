@@ -152,7 +152,7 @@ public final class RegistryTest {
         Registry.export("test", "Test", testObj);
         Registry.register("test2", "TestClassic", new org.spf4j.jmx.Test());
         
-        Thread.sleep(300000);
+//        Thread.sleep(300000);
         
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "booleanFlag", true);

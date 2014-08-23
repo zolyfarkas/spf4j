@@ -6,11 +6,12 @@
 package org.spf4j.zel.operators;
 
 import com.google.common.math.LongMath;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import static org.spf4j.zel.operators.Operator.MATH_CONTEXT;
 
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("NS_DANGEROUS_NON_SHORT_CIRCUIT")
+@SuppressFBWarnings({"NS_DANGEROUS_NON_SHORT_CIRCUIT", "NS_NON_SHORT_CIRCUIT" })
 public final class LongOperators {
     
     private LongOperators() {

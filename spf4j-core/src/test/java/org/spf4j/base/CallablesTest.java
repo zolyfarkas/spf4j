@@ -89,7 +89,7 @@ public final class CallablesTest {
             Assert.fail("Should not get here");
         } catch (Exception e) {
             if (Runtime.JAVA_PLATFORM == Runtime.Version.V1_6) {
-                Assert.assertEquals(5, Throwables.getSuppressed(e.getCause()).length);
+                Assert.assertTrue(Throwables.getSuppressed(e.getCause()).length >= 4);
             } else {
                 Assert.assertEquals(1, Throwables.getSuppressed(e.getCause()).length);
             }

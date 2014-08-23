@@ -27,6 +27,7 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
+import org.spf4j.base.Either;
 import org.spf4j.pool.ObjectBorower;
 import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectDisposeException;
@@ -121,23 +122,27 @@ final class LocalObjectPool<T> implements ObjectPool<T>, ObjectBorower<ObjectHol
         }
     }
 
+    
+    private static final  Either<Action, ObjectHolder<?>> REQ_MADE = Either.left(Action.REQUEST_MADE);
+    private static final  Either<Action, ObjectHolder<?>> NONE = Either.left(Action.NONE);
+    
     @Override
-    public Object tryRequestReturnObject() throws InterruptedException {
+    public Either<Action, ObjectHolder<T>> tryRequestReturnObject() throws InterruptedException {
         boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
         if (acquired) {
             try {
                 ObjectHolder<T> objectHolder = tryReturnObjectIfNotInUse();
                 if (objectHolder != null) {
-                    return objectHolder;
+                    return Either.right(objectHolder);
                 } else {
                     reqReturnObjects++;
-                    return ObjectBorower.REQUEST_MADE;
+                    return (Either) REQ_MADE;
                 }
             } finally {
                 lock.unlock();
             }
         } else {
-            return null;
+            return (Either) NONE;
         }
     }
 

@@ -68,12 +68,7 @@ public final class CALLREF extends Instruction {
                     switch (p.getType()) {
                         case DETERMINISTIC:
                             nctx = context.getSyncSubProgramContext(p, parameters);
-                            obj = context.resultCache.getResult(p, Arrays.asList(parameters), new Callable<Object>() {
-                                @Override
-                                public Object call() throws Exception {
-                                    return Program.executeSync(nctx);
-                                }
-                            });
+                            obj = context.resultCache.getResult(p, Arrays.asList(parameters), new SyncCallable(nctx));
 
                             break;
                         case NONDETERMINISTIC:

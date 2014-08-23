@@ -62,7 +62,7 @@ public final class Registry {
         }
     }
 
-    public static void register(final String domain, final String name, final Object object) {
+    static void register(final String domain, final String name, final Object object) {
         register(ExportedValuesMBean.createObjectName(domain, name), object);
     }
     
@@ -75,7 +75,7 @@ public final class Registry {
         unregister(object.getPackage().getName(), object.getSimpleName());
     }
 
-    public static void unregister(final String packageName, final String mbeanName) {
+    private static void unregister(final String packageName, final String mbeanName) {
         ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
         if (MBEAN_SERVER.isRegistered(objectName)) {
             try {

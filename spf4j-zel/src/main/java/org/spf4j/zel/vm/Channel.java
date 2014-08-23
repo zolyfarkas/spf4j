@@ -46,7 +46,7 @@ public final class Channel {
     public void write(final Object obj) throws InterruptedException {
         synchronized (this) {
             if (closed) {
-                throw new IllegalStateException("Channel is closed, cannot write into it");
+                throw new IllegalStateException("Channel is closed, cannot write " + obj + " into it");
             }
             VMFuture<Object> reader = readers.poll();
             if (reader != null) {

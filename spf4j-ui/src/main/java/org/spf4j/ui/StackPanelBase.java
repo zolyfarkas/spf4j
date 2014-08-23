@@ -53,6 +53,7 @@ import org.spf4j.stackmonitor.SampleNode;
  */
 public abstract class StackPanelBase extends JPanel
         implements ActionListener, MouseListener {
+    private static final long serialVersionUID = 1L;
     //CHECKSTYLE:OFF
     protected SampleNode samples;
     protected RTree<Pair<Method, Integer>> tooltipDetail = new RTree<Pair<Method, Integer>>();

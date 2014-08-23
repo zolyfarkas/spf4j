@@ -185,7 +185,7 @@ class ExportedValuesMBean implements DynamicMBean {
             type = valClass.getName();
         } else if (Enum.class.isAssignableFrom(valClass)) {
             type = String.class.getName();
-        } else {          
+        } else {
             type = openType.getTypeName();
         }
         

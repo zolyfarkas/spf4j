@@ -52,7 +52,7 @@ final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<ObjectHolde
         this.borrowHook = borrowHook;
         this.returnHook = returnHook;
         if (borrowHook == null && returnHook == null) {
-            throw new IllegalArgumentException("Both hooks can't be null");
+            throw new IllegalArgumentException("Both hooks can't be null for " + pool);
         }
     }
     
@@ -101,7 +101,7 @@ final class ObjectPoolWrapper<T> implements ObjectPool<T> , Scanable<ObjectHolde
         if (pool instanceof Scanable) {
             return ((Scanable<ObjectHolder<T>>) pool).scan(handler);
         } else {
-            throw new RuntimeException("Wrapped pool is not scanable");
+            throw new RuntimeException("Wrapped pool " + pool + " is not scanable");
         }
     }
 

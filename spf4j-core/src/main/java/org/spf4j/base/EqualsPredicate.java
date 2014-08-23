@@ -15,12 +15,33 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+package org.spf4j.base;
+
+import com.google.common.base.Predicate;
+import javax.annotation.Nonnull;
+import org.spf4j.stackmonitor.Method;
 
 /**
- * Experimental implementation.
+ *
+ * @author zoly
  */
-@SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
-package org.spf4j.pool;
+public final class EqualsPredicate<T> implements Predicate<Method> {
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+    private final T value;
 
+    public EqualsPredicate(final T value) {
+        this.value = value;
+    }
+
+    @Override
+    public boolean apply(@Nonnull final Method t) {
+        return value.equals(t);
+    }
+
+    @Override
+    public String toString() {
+        return "EqualsPredicate{" + "value=" + value + '}';
+    }
+    
+    
+}

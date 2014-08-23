@@ -17,6 +17,7 @@
  */
 package org.spf4j.perf.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.EntityMeasurements;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementProcessor;
@@ -69,7 +70,7 @@ public final class MinMaxAvgRecorder
         return new long[] {counter, total, min, max};
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
+    @SuppressFBWarnings({"CLI_CONSTANT_LIST_INDEX", "NOS_NON_OWNED_SYNCHRONIZATION" })
     @Override
     public EntityMeasurements aggregate(final EntityMeasurements mSource) {
         if (mSource instanceof MinMaxAvgRecorder) {

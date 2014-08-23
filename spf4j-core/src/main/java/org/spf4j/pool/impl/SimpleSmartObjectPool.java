@@ -18,13 +18,6 @@
 package org.spf4j.pool.impl;
 
 import com.google.common.collect.LinkedHashMultimap;
-import org.spf4j.base.Throwables;
-import org.spf4j.base.Pair;
-import org.spf4j.pool.ObjectBorower;
-import org.spf4j.pool.ObjectCreationException;
-import org.spf4j.pool.ObjectDisposeException;
-import org.spf4j.pool.ObjectPool;
-import org.spf4j.pool.SmartObjectPool;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -33,6 +26,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import org.spf4j.base.Either;
+import org.spf4j.base.Pair;
+import org.spf4j.base.Throwables;
+import org.spf4j.pool.ObjectBorower;
+import org.spf4j.pool.ObjectBorower.Action;
+import org.spf4j.pool.ObjectCreationException;
+import org.spf4j.pool.ObjectDisposeException;
+import org.spf4j.pool.ObjectPool;
+import org.spf4j.pool.SmartObjectPool;
 
 /**
  *
@@ -78,7 +80,8 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                 return object;
             } else {
                 if (borrowedObjects.isEmpty()) {
-                    throw new RuntimeException("Pool size is probably closing down or is missconfigured withe size 0");
+                    throw new RuntimeException(
+                            "Pool is probably closing down or is missconfigured withe size 0 " + this);
                 }
                 for (ObjectBorower<T> b : borrowedObjects.keySet()) {
                     if (borower != b) {
@@ -92,7 +95,7 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                         }
                     }
                 }
-                Object object;
+                Either<ObjectBorower.Action, T> object;
                 do {
                     Iterator<ObjectBorower<T>> itt = borrowedObjects.keySet().iterator();
                     ObjectBorower<T> b = itt.next();
@@ -105,17 +108,18 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                     }
                     do {
                         object = b.tryRequestReturnObject();
-                        if (object != null && object != ObjectBorower.REQUEST_MADE) {
+                        if (object.isRight()) {
                             if (!borrowedObjects.remove(b, object)) {
                                 throw new IllegalStateException("Returned Object hasn't been borrowed " + object);
                             }
                             borrowedObjects.put(borower, (T) object);
-                            return (T) object;
+                            return  object.getRight();
                         }
                         //CHECKSTYLE:OFF -- inner assignement
-                    } while (object != ObjectBorower.REQUEST_MADE && (itt.hasNext() && ((b = itt.next()) != null)));
+                    } while (object.isLeft() && object.getLeft() != Action.REQUEST_MADE
+                            && (itt.hasNext() && ((b = itt.next()) != null)));
                     //CHECKSTYLE:ON
-                } while (object != ObjectBorower.REQUEST_MADE);
+                } while (object.isLeft() && object.getLeft() != Action.REQUEST_MADE);
 
                 while (availableObjects.isEmpty()) {
                     if (!available.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
@@ -123,10 +127,10 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                     }
                 }
                 Iterator<T> it = availableObjects.iterator();
-                object = it.next();
+                T objectT = it.next();
                 it.remove();
-                borrowedObjects.put(borower, (T) object);
-                return (T) object;
+                borrowedObjects.put(borower,  objectT);
+                return objectT;
 
             }
         } finally {
@@ -153,19 +157,17 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
             maxSize = 0;
             List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>, T>>();
             for (ObjectBorower<T> b : borrowedObjects.keySet()) {
-                T object = (T) b.tryRequestReturnObject();
-                if (object != null) {
-                    returnedObjects.add(Pair.of(b, object));
+                Either<Action, T> object =  b.tryRequestReturnObject();
+                if (object.isRight()) {
+                    returnedObjects.add(Pair.of(b, object.getRight()));
                 }
             }
             for (Pair<ObjectBorower<T>, T> objectAndBorrower : returnedObjects) {
                 T object = objectAndBorrower.getSecond();
-                if (object != ObjectBorower.REQUEST_MADE) {
-                    if (!borrowedObjects.remove(objectAndBorrower.getFirst(), object)) {
+                if (!borrowedObjects.remove(objectAndBorrower.getFirst(), object)) {
                         throw new IllegalStateException("Returned Object hasn't been borrowed " + object);
-                    }
-                    availableObjects.add(object);
                 }
+                availableObjects.add(object);
             }
             ObjectDisposeException exception = disposeReturnedObjects(null);
             while (!borrowedObjects.isEmpty()) {
@@ -177,7 +179,7 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
             if (exception != null) {
                 throw exception;
             }
-        } catch (InterruptedException e) { 
+        } catch (InterruptedException e) {
             throw e;
         } catch (TimeoutException e) {
             throw new ObjectDisposeException(e);

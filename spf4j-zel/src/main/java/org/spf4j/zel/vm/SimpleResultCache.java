@@ -42,6 +42,25 @@ public final class SimpleResultCache implements ResultCache {
     private final LoadingCache<Program,
             Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>>> cache;
 
+    
+        static class CacheLoaderImpl extends
+            CacheLoader<Program,
+            Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>>> {
+
+        private final int maxSize;
+
+        public CacheLoaderImpl(final int maxSize) {
+            this.maxSize = maxSize;
+        }
+
+        @Override
+        public Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>> load(
+                final Program key) throws Exception {
+            Cache<List<Object>, Object> trCache = CacheBuilder.newBuilder().maximumSize(maxSize).build();
+            return Pair.of(new ConcurrentHashMap<List<Object>, Object>(), trCache);
+        }
+    }
+    
     public SimpleResultCache() {
         this(100000);
     }
@@ -49,16 +68,7 @@ public final class SimpleResultCache implements ResultCache {
     public SimpleResultCache(final int maxSize) {
         cache = new UnboundedLoadingCache<Program,
                 Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>>>(16,
-                new CacheLoader<Program, Pair<? extends ConcurrentMap<List<Object>, Object>,
-                        ? extends Cache<List<Object>, Object>>>() {
-                    @Override
-                    public Pair<? extends ConcurrentMap<List<Object>, Object>,
-                                ? extends Cache<List<Object>, Object>> load(
-                            final Program key) throws Exception {
-                        Cache<List<Object>, Object> trCache = CacheBuilder.newBuilder().maximumSize(maxSize).build();
-                        return Pair.of(new ConcurrentHashMap<List<Object>, Object>(), trCache);
-                    }
-                });
+                new CacheLoaderImpl(maxSize));
     }
 
     @Override
@@ -94,17 +104,7 @@ public final class SimpleResultCache implements ResultCache {
         Object result = prCache.getFirst().get(params);
         if (result == null) {
             try {
-                result = prCache.getSecond().get(params, new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        Object result = compute.call();
-                        if (result == null) {
-                            return ResultCache.NULL;
-                        } else {
-                            return result;
-                        }
-                    }
-                });
+                result = prCache.getSecond().get(params, new CallableNullWrapper(compute));
             } catch (ExecutionException ex) {
                 throw new ZExecutionException(ex);
             }
@@ -119,5 +119,25 @@ public final class SimpleResultCache implements ResultCache {
     public String toString() {
         return "SimpleResultCache{" + "cache=" + cache + '}';
     }
+
+    private static class CallableNullWrapper implements Callable<Object> {
+
+        private final Callable<Object> compute;
+
+        public CallableNullWrapper(final Callable<Object> compute) {
+            this.compute = compute;
+        }
+
+        @Override
+        public Object call() throws Exception {
+            Object result = compute.call();
+            if (result == null) {
+                return ResultCache.NULL;
+            } else {
+                return result;
+            }
+        }
+    }
+
     
 }

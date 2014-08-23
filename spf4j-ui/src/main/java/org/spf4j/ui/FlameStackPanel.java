@@ -17,12 +17,12 @@
  */
 package org.spf4j.ui;
 
-import com.google.common.base.Predicate;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.util.List;
 import java.util.Map;
+import org.spf4j.base.EqualsPredicate;
 import org.spf4j.base.Pair;
 import org.spf4j.stackmonitor.Method;
 import org.spf4j.stackmonitor.SampleNode;
@@ -32,6 +32,7 @@ import org.spf4j.stackmonitor.SampleNode;
  * @author zoly
  */
 public final class FlameStackPanel extends StackPanelBase {
+    private static final long serialVersionUID = 1L;
 
     public FlameStackPanel(final SampleNode samples) {
         super(samples);
@@ -95,13 +96,9 @@ public final class FlameStackPanel extends StackPanelBase {
         List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{xx, yy}, new float[]{0, 0});
         if (tips.size() >= 1) {
             final Method value = tips.get(0).getFirst();
-            samples = samples.filteredBy(new Predicate<Method>() {
-                @Override
-                public boolean apply(final Method t) {
-                    return t.equals(value);
-                }
-            });
+            samples = samples.filteredBy(new EqualsPredicate<Method>(value));
             repaint();
         }
     }
+
 }

@@ -494,7 +494,7 @@ public final class Program implements Serializable {
             System.out.print("zel>");
             String line = br.readLine();
             if (line != null) {
-                if (line.toUpperCase().startsWith("QUIT")) {
+                if ("QUIT".equalsIgnoreCase(line)) {
                     terminated = true;
                 } else {
                     try {

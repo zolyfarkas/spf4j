@@ -18,7 +18,9 @@
 package org.spf4j.pool;
 
 import java.util.Collection;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.spf4j.base.Either;
 
 /**
  *
@@ -26,16 +28,17 @@ import javax.annotation.Nullable;
  */
 public interface ObjectBorower<T> extends Scanable<T> {
 
-    Object REQUEST_MADE = new Object();
 
+    public enum Action { REQUEST_MADE, NONE }
+    
     /**
      * Non Blocking method.
      *
      * @return null if request was not made, the object if available, or REQUEST_MADE if request could be made to return
      * Object.
      */
-    @Nullable
-    Object tryRequestReturnObject() throws InterruptedException;
+    @Nonnull
+    Either<Action, T> tryRequestReturnObject() throws InterruptedException;
 
     /**
      * Non Blocking method.

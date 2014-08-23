@@ -20,7 +20,6 @@ package org.spf4j.perf.impl.mdb.tsdb;
 import com.google.common.base.Charsets;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import java.awt.Graphics;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.Arrays;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -293,7 +292,9 @@ public final class TSDBMeasurementDatabase
             final String uom1, final String uom2,
             final double[][] measurements, final double[][] measurements2,
             final int width, final int height) throws IOException {
-        BufferedImage combined = Charts.generateCountTotalChart(groupName, timestamps, measurementNames, uom1, measurements, width, height, measurementNames2, uom2, measurements2);
+        BufferedImage combined = Charts.generateCountTotalChart(
+                groupName, timestamps, measurementNames, uom1, measurements, width, height,
+                measurementNames2, uom2, measurements2);
         File dbFile = new File(database.getDBFilePath());
         File graphicFile = File.createTempFile(dbFile.getName() + "_" + fixName(groupName), ".count.png",
                 dbFile.getParentFile());

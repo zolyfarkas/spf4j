@@ -52,12 +52,7 @@ public final class CALLA extends Instruction {
                 case DETERMINISTIC:
                     parameters = CALL.getParamsSync(context, nrParams);
                     nctx = context.getSubProgramContext(p, parameters);
-                    obj = context.resultCache.getResult(p, Arrays.asList(parameters), new Callable<Object>() {
-                        @Override
-                        public Object call() throws Exception {
-                            return Program.executeAsync(nctx);
-                        }
-                    });
+                    obj = context.resultCache.getResult(p, Arrays.asList(parameters), new AsyncCallable(nctx));
 
                     break;
                 case NONDETERMINISTIC:

@@ -23,6 +23,7 @@ import org.spf4j.pool.ObjectCreationException;
 import org.spf4j.pool.ObjectPool;
 import java.util.Collection;
 import org.junit.Test;
+import org.spf4j.base.Either;
 
 /**
  *
@@ -59,7 +60,7 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
     }
 
     @Override
-    public TestObject tryRequestReturnObject() {
+    public Either<Action, SimpleSmartObjectPoolTest.TestObject> tryRequestReturnObject() {
         if (borowedObject != null) {
             try {
                 Thread.sleep(1000);
@@ -68,7 +69,7 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
             }
             instance.returnObject(borowedObject, this);
         }
-        return null;
+        return Either.left(Action.NONE);
     }
 
     @Override

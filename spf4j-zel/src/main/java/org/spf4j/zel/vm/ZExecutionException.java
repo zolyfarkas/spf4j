@@ -19,7 +19,7 @@ package org.spf4j.zel.vm;
 
 public final class ZExecutionException extends Exception {
 
-    static final long serialVersionUID = 8823469923479284L;
+    private static final long serialVersionUID = 8823469923479284L;
 
     public ZExecutionException(final String message, final Exception e,
             final String context) {

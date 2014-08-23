@@ -18,10 +18,12 @@
 package org.spf4j.zel.operators;
 
 import com.google.common.math.IntMath;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import static org.spf4j.zel.operators.Operator.MATH_CONTEXT;
 
+@SuppressFBWarnings("NS_NON_SHORT_CIRCUIT")
 public final class IntegerOperators {
     
     private IntegerOperators() {

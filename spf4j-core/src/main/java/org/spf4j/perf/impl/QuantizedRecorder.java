@@ -18,6 +18,7 @@
 package org.spf4j.perf.impl;
 
 import com.google.common.math.IntMath;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.EntityMeasurements;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementProcessor;
@@ -204,6 +205,7 @@ public final class QuantizedRecorder implements MeasurementProcessor {
     }
 
     @Override
+    @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
     public EntityMeasurements aggregate(final EntityMeasurements mSource) {
 
         if (mSource instanceof QuantizedRecorder) {

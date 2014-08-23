@@ -18,6 +18,7 @@
 //CHECKSTYLE:OFF
 package org.spf4j.ui;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
@@ -47,8 +48,9 @@ import org.spf4j.perf.tsdb.TimeSeriesDatabase;
  *
  * @author zoly
  */
-@edu.umd.cs.findbugs.annotations.SuppressWarnings({"FCBL_FIELD_COULD_BE_LOCAL"})
+@SuppressFBWarnings({"FCBL_FIELD_COULD_BE_LOCAL", "SE_BAD_FIELD"})
 public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
+    private static final long serialVersionUID = 1L;
 
     private final TimeSeriesDatabase tsDb;
 
