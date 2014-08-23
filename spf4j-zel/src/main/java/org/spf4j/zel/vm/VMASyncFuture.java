@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.base.Either;
 import org.spf4j.base.Pair;
 
 /**
@@ -29,7 +30,7 @@ import org.spf4j.base.Pair;
  */
 @ThreadSafe
 public class VMASyncFuture<T> implements VMFuture<T> {
-    private volatile Pair<T, ? extends ExecutionException> resultStore;
+    private volatile Either<T, ? extends ExecutionException> resultStore;
 
     @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
@@ -46,7 +47,7 @@ public class VMASyncFuture<T> implements VMFuture<T> {
         return resultStore != null;
     }
     
-    public final Pair<T, ? extends ExecutionException> getResultStore() {
+    public final Either<T, ? extends ExecutionException> getResultStore() {
         return resultStore;
     }
 
@@ -66,7 +67,7 @@ public class VMASyncFuture<T> implements VMFuture<T> {
 
     @Override
     public final void setResult(final T result) {
-        resultStore = Pair.of(result, (ExecutionException) null);
+        resultStore = Either.left(result);
     }
     
     @Override
@@ -74,7 +75,7 @@ public class VMASyncFuture<T> implements VMFuture<T> {
         if (result.getCause() == ExecAbortException.INSTANCE) {
             return;
         }
-        resultStore = Pair.of(null, (ExecutionException) result);
+        resultStore = Either.right(result);
     }
 
     

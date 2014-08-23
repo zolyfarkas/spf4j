@@ -17,10 +17,12 @@
  */
 package org.spf4j.zel.vm;
 
+import com.google.common.base.Throwables;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.base.Either;
 import org.spf4j.base.Pair;
 import static org.spf4j.concurrent.FutureBean.processResult;
 
@@ -30,7 +32,7 @@ import static org.spf4j.concurrent.FutureBean.processResult;
  */
 @ThreadSafe
 public class VMSyncFuture<T> implements VMFuture<T> {
-    private volatile Pair<T, ? extends ExecutionException> resultStore;
+    private volatile Either<T, ? extends ExecutionException> resultStore;
 
     @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
@@ -48,7 +50,7 @@ public class VMSyncFuture<T> implements VMFuture<T> {
     }
     
     @Override
-    public final Pair<T, ? extends ExecutionException> getResultStore() {
+    public final Either<T, ? extends ExecutionException> getResultStore() {
         return resultStore;
     }
 
@@ -83,21 +85,21 @@ public class VMSyncFuture<T> implements VMFuture<T> {
     @Override
     public final synchronized void setResult(final T result) {
         if (resultStore != null) {
-            throw new IllegalStateException("cannot set result multiple times");
+            throw new IllegalStateException("cannot set " + result + " result multiple times");
         }
-        resultStore = Pair.of(result, (ExecutionException) null);
+        resultStore = Either.left(result);
         this.notifyAll();
     }
     
     @Override
     public final synchronized void setExceptionResult(final ExecutionException result) {
-        if (result.getCause() == ExecAbortException.INSTANCE) {
+        if (Throwables.getRootCause(result) == ExecAbortException.INSTANCE) {
             return;
         }
         if (resultStore != null) {
-            throw new IllegalStateException("cannot set result multiple times");
+            throw new IllegalStateException("cannot set result " + result + " multiple times");
         }
-        resultStore = Pair.of(null, (ExecutionException) result);
+        resultStore = Either.right(result);
         this.notifyAll();
     }
     

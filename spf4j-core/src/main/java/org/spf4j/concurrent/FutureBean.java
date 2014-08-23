@@ -23,7 +23,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
-import org.spf4j.base.Pair;
+import org.spf4j.base.Either;
 
 /**
  * bean like implementation of a future
@@ -32,7 +32,8 @@ import org.spf4j.base.Pair;
 @ThreadSafe
 @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
 public class FutureBean<T> implements Future<T> {
-    private volatile Pair<T, ? extends ExecutionException> resultStore;
+    
+    private volatile Either<T, ? extends ExecutionException> resultStore;
 
     @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
@@ -49,7 +50,7 @@ public class FutureBean<T> implements Future<T> {
         return resultStore != null;
     }
     
-    public final Pair<T, ? extends ExecutionException> getResultStore() {
+    public final Either<T, ? extends ExecutionException> getResultStore() {
         return resultStore;
     }
 
@@ -81,12 +82,11 @@ public class FutureBean<T> implements Future<T> {
         }
     }
 
-    public static <T> T processResult(final Pair<T, ? extends ExecutionException> result) throws ExecutionException {
-        ExecutionException e = result.getSecond();
-        if (e != null) {
-            throw e;
+    public static <T> T processResult(final Either<T, ? extends ExecutionException> result) throws ExecutionException {
+        if (result.isLeft()) {
+            return result.getLeft();
         } else {
-            return (T) result.getFirst();
+            throw result.getRight();
         }
     }
 
@@ -94,7 +94,7 @@ public class FutureBean<T> implements Future<T> {
         if (resultStore != null) {
             throw new IllegalStateException("cannot set result multiple times " +  result);
         }
-        resultStore = Pair.of(result, (ExecutionException) null);
+        resultStore = Either.left(result);
         done();
         this.notifyAll();
     }
@@ -103,7 +103,7 @@ public class FutureBean<T> implements Future<T> {
         if (resultStore != null) {
             throw new IllegalStateException("cannot set result multiple times " + result);
         }
-        resultStore = Pair.of(null, (ExecutionException) result);
+        resultStore = Either.right(result);
         done();
         this.notifyAll();
     }
