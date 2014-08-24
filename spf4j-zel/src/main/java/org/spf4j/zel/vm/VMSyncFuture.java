@@ -18,12 +18,12 @@
 package org.spf4j.zel.vm;
 
 import com.google.common.base.Throwables;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.Either;
-import org.spf4j.base.Pair;
 import static org.spf4j.concurrent.FutureBean.processResult;
 
 /**
@@ -31,6 +31,7 @@ import static org.spf4j.concurrent.FutureBean.processResult;
  * @author zoly
  */
 @ThreadSafe
+@SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
 public class VMSyncFuture<T> implements VMFuture<T> {
     private volatile Either<T, ? extends ExecutionException> resultStore;
 
@@ -56,7 +57,7 @@ public class VMSyncFuture<T> implements VMFuture<T> {
 
     @Override
     // Findbugs complain here is rubbish, InterruptedException is thrown by wait
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("BED_BOGUS_EXCEPTION_DECLARATION")
+    @SuppressFBWarnings({"BED_BOGUS_EXCEPTION_DECLARATION", "MDM_WAIT_WITHOUT_TIMEOUT" })
     public final synchronized T get() throws InterruptedException, ExecutionException {
         while (resultStore == null) {
             this.wait();

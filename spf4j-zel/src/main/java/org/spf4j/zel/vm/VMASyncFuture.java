@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.Either;
-import org.spf4j.base.Pair;
 
 /**
  * bean like implementation of a future

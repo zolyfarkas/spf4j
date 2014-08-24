@@ -17,9 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 import org.spf4j.zel.vm.Program;
@@ -65,10 +63,6 @@ public final class CALL extends Instruction {
             Object[] parameters = getParamsSync(context, nrParams);
             try {
                 context.push(((Method) function).invoke(context, parameters));
-            } catch (IllegalAccessException ex) {
-                throw new ZExecutionException("cannot invoke " + function, ex);
-            } catch (InvocationTargetException ex) {
-                throw new ZExecutionException("cannot invoke " + function, ex);
             } catch (Exception ex) {
                 throw new ZExecutionException("cannot invoke " + function, ex);
             }

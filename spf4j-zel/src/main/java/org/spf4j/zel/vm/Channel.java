@@ -1,5 +1,6 @@
 package org.spf4j.zel.vm;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -8,6 +9,7 @@ import java.util.Queue;
  *
  * @author zoly
  */
+@SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
 public final class Channel {
 
     public static final Object EOF = new Object();
@@ -27,6 +29,7 @@ public final class Channel {
         this.closed = false;
     }
 
+    @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
     public Object read() throws InterruptedException {
         synchronized (this) {
             Object obj = queue.poll();
@@ -70,12 +73,16 @@ public final class Channel {
         }
     }
 
-    public static class Factory implements Method {
+    public static final class Factory implements Method {
 
+        private Factory() { }
+        
         @Override
-        public final Object invoke(final ExecutionContext context, final Object[] parameters) throws Exception {
+        public Object invoke(final ExecutionContext context, final Object[] parameters) {
             return new Channel(context.execService);
         }
+        
+        public static final Factory INSTANCE = new Factory();
 
     }
 }

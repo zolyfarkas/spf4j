@@ -19,7 +19,6 @@ package org.spf4j.zel.vm;
 
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.Serializable;
 import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,7 +27,6 @@ import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Either;
-import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.FutureBean;
 import org.spf4j.zel.instr.Instruction;

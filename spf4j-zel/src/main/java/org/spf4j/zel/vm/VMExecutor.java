@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.vm;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -34,9 +35,9 @@ import org.spf4j.concurrent.SimpleExecutor;
  *
  * @author zoly
  */
+@SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
 public final class VMExecutor {
-    
-    
+
     public static class Lazy {
         
          private static final SimpleExecutor DEF_EXEC = new SimpleExecutor();

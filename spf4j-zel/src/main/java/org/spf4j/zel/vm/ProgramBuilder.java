@@ -20,6 +20,7 @@ package org.spf4j.zel.vm;
 import com.google.common.base.Function;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -105,17 +106,7 @@ public final class ProgramBuilder {
     }
     
     public boolean contains(final Class<? extends Instruction> instr) {
-        Boolean res = itterate(new Function<Object, Boolean>() {
-
-            @Override
-            @edu.umd.cs.findbugs.annotations.SuppressWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
-            public Boolean apply(final Object input) {
-                if (input.getClass() == instr) {
-                    return Boolean.TRUE;
-                }
-                return null;
-            }
-        });
+        Boolean res = itterate(new Program.HasClass(instr));
         if (res == null) {
             return false;
         }
@@ -202,21 +193,7 @@ public final class ProgramBuilder {
     }
 
     public boolean hasDeterministicFunctions() {
-        Boolean hasDetFuncs = itterate(new Function<Object, Boolean>() {
-
-            @Override
-            @edu.umd.cs.findbugs.annotations.SuppressWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
-            public Boolean apply(final Object input) {
-                if (input instanceof Program) {
-                    Program prog = (Program) input;
-                    if (prog.getType() == Program.Type.DETERMINISTIC
-                            || prog.hasDeterministicFunctions()) {
-                        return Boolean.TRUE;
-                    }
-                }
-                return null;
-            }
-        });
+        Boolean hasDetFuncs = itterate(new HasDeterministicFunc());
         if (hasDetFuncs == null) {
             hasDetFuncs = Boolean.FALSE;
         }
@@ -224,21 +201,7 @@ public final class ProgramBuilder {
     }
     
     public boolean hasAsyncCalls() {
-         Boolean hasAsyncCalls = itterate(new Function<Object, Boolean>() {
-            @Override
-            @edu.umd.cs.findbugs.annotations.SuppressWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
-            public Boolean apply(final Object input) {
-                if (input instanceof Program) {
-                    Program prog = (Program) input;
-                    if (prog.getExecType() == Program.ExecutionType.ASYNC) {
-                        return Boolean.TRUE;
-                    }
-                } else if (input == CALLA.INSTANCE) {
-                    return Boolean.TRUE;
-                }
-                return null;
-            }
-        });
+         Boolean hasAsyncCalls = itterate(new HasAsyncFunc());
         if (hasAsyncCalls == null) {
             
             return false;
@@ -276,6 +239,39 @@ public final class ProgramBuilder {
     
     public Program toProgram(final List<String> parameterNames) throws CompileException {
         return toProgram(parameterNames.toArray(new String[parameterNames.size()]));
+    }
+
+    private static final class HasDeterministicFunc implements Function<Object, Boolean> {
+
+        @Override
+        @SuppressFBWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
+        public Boolean apply(final Object input) {
+            if (input instanceof Program) {
+                Program prog = (Program) input;
+                if (prog.getType() == Program.Type.DETERMINISTIC
+                        || prog.hasDeterministicFunctions()) {
+                    return Boolean.TRUE;
+                }
+            }
+            return null;
+        }
+    }
+
+    private static final class HasAsyncFunc implements Function<Object, Boolean> {
+
+        @Override
+        @SuppressFBWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
+        public Boolean apply(final Object input) {
+            if (input instanceof Program) {
+                Program prog = (Program) input;
+                if (prog.getExecType() == Program.ExecutionType.ASYNC) {
+                    return Boolean.TRUE;
+                }
+            } else if (input == CALLA.INSTANCE) {
+                return Boolean.TRUE;
+            }
+            return null;
+        }
     }
 
 }

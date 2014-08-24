@@ -36,68 +36,33 @@ public final class REF extends Instruction {
     private REF() {
     }
 
-
     @Override
     public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException, InterruptedException {
-       Object [] vals = context.popSyncStackVals(2);
-       final Object ref = vals[1];
-       final Object relTo = vals[0];
-       final Object relativeTo;
-       if (relTo instanceof AssignableValue) {
-           Object obj = ((AssignableValue) relTo).get();
-           if (obj == null) {
-               obj = new HashMap();
-               ((AssignableValue) relTo).assign(obj);
-           }
-           relativeTo = obj;
-       } else {
-           relativeTo = relTo;
-       }
-       if (relativeTo instanceof Map) {
-           context.push(new AssignableValue() {
+        Object[] vals = context.popSyncStackVals(2);
+        final Object ref = vals[1];
+        final Object relTo = vals[0];
+        final Object relativeTo;
+        if (relTo instanceof AssignableValue) {
+            Object obj = ((AssignableValue) relTo).get();
+            if (obj == null) {
+                obj = new HashMap();
+                ((AssignableValue) relTo).assign(obj);
+            }
+            relativeTo = obj;
+        } else {
+            relativeTo = relTo;
+        }
+        if (relativeTo instanceof Map) {
+            context.push(new MapDeref(relativeTo, ref));
 
-               @Override
-               public void assign(final Object object) {
-                   ((Map) relativeTo).put(ref, object);
-               }
+        } else if (relativeTo instanceof Object[]) {
+            context.push(new ArrayDeref(relativeTo, ref));
 
-               @Override
-               public Object get() {
-                   return ((Map) relativeTo).get(ref);
-               }
-           });
-           
-       } else if (relativeTo instanceof Object []) {
-           context.push(new AssignableValue() {
-
-               @Override
-               public void assign(final Object object) {
-                   ((Object []) relativeTo)[((Number) ref).intValue()] = object;
-               }
-
-               @Override
-               public Object get() {
-                   return ((Object []) relativeTo)[((Number) ref).intValue()];
-               }
-           });
-           
-       } else {
-             context.push(new AssignableValue() {
-
-               @Override
-               public void assign(final Object object) {
-                  throw new UnsupportedOperationException("Cannot assign " + object + " to "
-                   + relativeTo + "." + ref);
-               }
-
-               @Override
-               public Object get() {
-                   return new JavaMethodCall(relativeTo, (String) ref);
-               }
-           });
-       }
-       return 1;
+        } else {
+            context.push(new JavaMethodDeref(relativeTo, ref));
+        }
+        return 1;
     }
     /**
      * instance
@@ -107,5 +72,69 @@ public final class REF extends Instruction {
     @Override
     public Object[] getParameters() {
         return Arrays.EMPTY_OBJ_ARRAY;
+    }
+
+    private static final class MapDeref implements AssignableValue {
+
+        private final Object relativeTo;
+        private final Object ref;
+
+        public MapDeref(final Object relativeTo, final Object ref) {
+            this.relativeTo = relativeTo;
+            this.ref = ref;
+        }
+
+        @Override
+        public void assign(final Object object) {
+            ((Map) relativeTo).put(ref, object);
+        }
+
+        @Override
+        public Object get() {
+            return ((Map) relativeTo).get(ref);
+        }
+    }
+
+    private static final class ArrayDeref implements AssignableValue {
+
+        private final Object relativeTo;
+        private final Object ref;
+
+        public ArrayDeref(final Object relativeTo, final Object ref) {
+            this.relativeTo = relativeTo;
+            this.ref = ref;
+        }
+
+        @Override
+        public void assign(final Object object) {
+            ((Object[]) relativeTo)[((Number) ref).intValue()] = object;
+        }
+
+        @Override
+        public Object get() {
+            return ((Object[]) relativeTo)[((Number) ref).intValue()];
+        }
+    }
+
+    private static final class JavaMethodDeref implements AssignableValue {
+
+        private final Object relativeTo;
+        private final Object ref;
+
+        public JavaMethodDeref(final Object relativeTo, final Object ref) {
+            this.relativeTo = relativeTo;
+            this.ref = ref;
+        }
+
+        @Override
+        public void assign(final Object object) {
+            throw new UnsupportedOperationException("Cannot assign " + object + " to "
+                    + relativeTo + "." + ref);
+        }
+
+        @Override
+        public Object get() {
+            return new JavaMethodCall(relativeTo, (String) ref);
+        }
     }
 }
