@@ -17,20 +17,20 @@
  */
 package org.spf4j.perf;
 
-import org.spf4j.base.ReportGenerator;
+import java.io.Closeable;
 import java.io.IOException;
 
 /**
  *
  * @author zoly
  */
-public interface MeasurementStore extends ReportGenerator {
+public interface MeasurementStore extends Closeable {
     
     void alocateMeasurements(EntityMeasurementsInfo measurement, int sampleTimeMillis)
             throws IOException;
     
-    void saveMeasurements(EntityMeasurementsInfo measurementInfo, long [] measurements,
-            long timeStampMillis, int sampleTimeMillis)
+    void saveMeasurements(EntityMeasurementsInfo measurementInfo,
+            long timeStampMillis, int sampleTimeMillis, long ... measurements)
             throws IOException;
     
 }

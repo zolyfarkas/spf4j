@@ -28,16 +28,16 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
     private final Object measuredEntity;
-    private final String unitOfMeasurement;
+    private final String description;
     private final String[] measurementNames;
     private final String[] measurementUnits;
     
  
 
-    public EntityMeasurementsInfoImpl(final Object measuredEntity, final String unitOfMeasurement,
+    public EntityMeasurementsInfoImpl(final Object measuredEntity, final String description,
             final String [] measurementNames, final String[] measurementUnits) {
         this.measuredEntity = measuredEntity;
-        this.unitOfMeasurement = unitOfMeasurement;
+        this.description = description;
         this.measurementNames = measurementNames.clone();
         this.measurementUnits = measurementUnits.clone();
     }
@@ -48,8 +48,8 @@ public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo 
     }
 
     @Override
-    public String getUnitOfMeasurement() {
-        return unitOfMeasurement;
+    public String getDescription() {
+        return description;
     }
 
     @Override
@@ -75,20 +75,17 @@ public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo 
                 && (this.measuredEntity == null || !this.measuredEntity.equals(other.measuredEntity))) {
             return false;
         }
-        if ((this.unitOfMeasurement == null)
-                ? (other.unitOfMeasurement != null) : !this.unitOfMeasurement.equals(other.unitOfMeasurement)) {
+        if ((this.description == null)
+                ? (other.description != null) : !this.description.equals(other.description)) {
             return false;
         }
-        if (!Arrays.deepEquals(this.measurementNames, other.measurementNames)) {
-            return false;
-        }
-        return true;
+        return Arrays.equals(this.measurementNames, other.measurementNames);
     }
 
     @Override
     public String toString() {
         return "EntityMeasurementsInfoImpl{" + "measuredEntity=" + measuredEntity
-                + ", unitOfMeasurement=" + unitOfMeasurement + ", measurementNames="
+                + ", description=" + description + ", measurementNames="
                 + Arrays.toString(measurementNames) + '}';
     }
 
@@ -101,6 +98,21 @@ public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo 
     @Override
     public String[] getMeasurementUnits() {
         return measurementUnits.clone();
+    }
+
+    @Override
+    public String getMeasurementName(final int measurementNr) {
+        return measurementNames[measurementNr];
+    }
+
+    @Override
+    public String getMeasurementUnit(final int measurementNr) {
+        return measurementUnits[measurementNr];
+    }
+
+    @Override
+    public int getMeasurementNr() {
+        return measurementNames.length;
     }
     
     

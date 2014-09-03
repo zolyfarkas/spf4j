@@ -30,7 +30,6 @@ import org.spf4j.perf.impl.chart.Charts;
 import org.spf4j.perf.tsdb.TSTable;
 import org.spf4j.perf.tsdb.TimeSeriesDatabase;
 import java.awt.image.BufferedImage;
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -38,16 +37,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.imageio.ImageIO;
 import org.jfree.chart.JFreeChart;
-import org.joda.time.DateTimeConstants;
-import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.jmx.JmxExport;
@@ -58,20 +53,19 @@ import org.spf4j.jmx.Registry;
  * @author zoly
  */
 @ThreadSafe
-public final class TSDBMeasurementDatabase
-    implements MeasurementStore, Closeable {
+public final class TSDBMeasurementStore
+    implements MeasurementStore {
 
     private final TimeSeriesDatabase database;
     private volatile ScheduledFuture<?> future;
-    private static final Logger LOG = LoggerFactory.getLogger(TSDBMeasurementDatabase.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TSDBMeasurementStore.class);
 
-    public TSDBMeasurementDatabase(final String databaseName) throws IOException {
+    public TSDBMeasurementStore(final String databaseName) throws IOException {
         this.database = new TimeSeriesDatabase(databaseName, new byte[]{});
     }
-    private static final AtomicInteger COUNTER = new AtomicInteger(0);
 
     public void registerJmx() {
-            Registry.export(TSDBMeasurementDatabase.class.getName(),
+            Registry.export(TSDBMeasurementStore.class.getName(),
                     new File(database.getDBFilePath()).getName(), this);
     }
 
@@ -105,9 +99,9 @@ public final class TSDBMeasurementDatabase
         synchronized (database) {
             if (!database.hasTSTable(groupName)) {
                 String[] measurementNames = measurement.getMeasurementNames();
-                byte[] uom = measurement.getUnitOfMeasurement().getBytes(Charsets.UTF_8);
+                byte[] description = measurement.getDescription().getBytes(Charsets.UTF_8);
                 String [] uoms = measurement.getMeasurementUnits();
-                database.addTSTable(groupName, uom, sampleTimeMillis, measurementNames, uoms);
+                database.addTSTable(groupName, description, sampleTimeMillis, measurementNames, uoms);
             }
         }
     }
@@ -115,7 +109,7 @@ public final class TSDBMeasurementDatabase
 
     @Override
     public void saveMeasurements(final EntityMeasurementsInfo measurementInfo,
-                    final long[] measurements, final long timeStampMillis, final int sampleTimeMillis)
+            final long timeStampMillis, final int sampleTimeMillis, final long ... measurements)
             throws IOException {
         String groupName = measurementInfo.getMeasuredEntity().toString();
         alocateMeasurements(groupName, measurementInfo, sampleTimeMillis);
@@ -313,21 +307,6 @@ public final class TSDBMeasurementDatabase
                 dbFile.getParentFile());
         ImageIO.write(img, "png", graphicFile);
         return graphicFile.getAbsolutePath();
-    }
-
-    @Override
-    public List<String> generate(final Properties props) throws IOException {
-        int width = Integer.parseInt(props.getProperty("width", "1200"));
-        int height = Integer.parseInt(props.getProperty("height", "800"));
-        long startTime = Long.parseLong(props.getProperty("startTime",
-                Long.toString(new LocalDate().withDayOfWeek(DateTimeConstants.MONDAY).toDate().getTime())));
-        long endTime = Long.parseLong(props.getProperty("endTime", Long.toString(System.currentTimeMillis())));
-        return generateCharts(startTime, endTime, width, height);
-    }
-
-    @Override
-    public List<String> getParameters() {
-        return java.util.Arrays.asList("width", "height", "startTime", "endTime");
     }
 
     @JmxExport(description = "flush out buffers")

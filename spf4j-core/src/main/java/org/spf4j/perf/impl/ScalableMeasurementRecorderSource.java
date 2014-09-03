@@ -79,7 +79,7 @@ public final class ScalableMeasurementRecorderSource implements
                     for (EntityMeasurements m
                             : ScalableMeasurementRecorderSource.this.getEntitiesMeasurementsAndReset().values()) {
                         database.saveMeasurements(
-                                m.getInfo(), m.getMeasurementsAndReset(), currentTime, sampleTimeMillis);
+                                m.getInfo(), currentTime, sampleTimeMillis, m.getMeasurementsAndReset());
                     }
                 } else {
                     LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
@@ -163,15 +163,5 @@ public final class ScalableMeasurementRecorderSource implements
     public void close() {
         samplingFuture.cancel(false);
     }
-
-    @Override
-    protected void finalize() throws Throwable {
-        try {
-            super.finalize();
-        } finally {
-            this.close();
-        }
-    }
-    
     
 }

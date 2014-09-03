@@ -37,9 +37,9 @@ public final class MinMaxAvgRecorder
     
     private static final String [] MEASUREMENTS = {"count", "total", "min", "max"};
 
-    private MinMaxAvgRecorder(final Object measuredEntity, final String unitOfMeasurement,
+    private MinMaxAvgRecorder(final Object measuredEntity, final String description, final String unitOfMeasurement,
             final long counter, final long total, final long min, final long max) {
-        this.info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement,
+        this.info = new EntityMeasurementsInfoImpl(measuredEntity, description,
                 MEASUREMENTS, new String [] {"count", unitOfMeasurement, unitOfMeasurement, unitOfMeasurement});
         this.counter = counter;
         this.total = total;
@@ -47,10 +47,14 @@ public final class MinMaxAvgRecorder
         this.max = max;
     }
 
-    public MinMaxAvgRecorder(final Object measuredEntity, final String unitOfMeasurement) {
-        this(measuredEntity, unitOfMeasurement, 0, 0, Long.MAX_VALUE, Long.MIN_VALUE);
+    public MinMaxAvgRecorder(final Object measuredEntity, final String description, final String unitOfMeasurement) {
+        this(measuredEntity, description, unitOfMeasurement, 0, 0, Long.MAX_VALUE, Long.MIN_VALUE);
     }
     
+    
+    public String getUnitOfMeasurement() {
+        return info.getMeasurementUnit(1);
+    }
     
     
     @Override
@@ -77,7 +81,8 @@ public final class MinMaxAvgRecorder
             MinMaxAvgRecorder other = (MinMaxAvgRecorder) mSource;
             long [] measurements = other.getMeasurements();
             synchronized (this) {
-                return new MinMaxAvgRecorder(this.info.getMeasuredEntity(), this.info.getUnitOfMeasurement(),
+                return new MinMaxAvgRecorder(this.info.getMeasuredEntity(), this.info.getDescription(),
+                    getUnitOfMeasurement(),
                     counter + measurements[0], total + measurements[1],
                     Math.min(min, measurements[2]), Math.max(max, measurements[3]));
             }
@@ -89,12 +94,12 @@ public final class MinMaxAvgRecorder
     @Override
     public synchronized MinMaxAvgRecorder createClone() {
         return new MinMaxAvgRecorder(this.info.getMeasuredEntity(),
-                this.info.getUnitOfMeasurement(), counter, total , min, max);
+                this.info.getDescription(), getUnitOfMeasurement(), counter, total , min, max);
     }
 
     @Override
     public EntityMeasurements createLike(final Object entity) {
-        return new MinMaxAvgRecorder(entity, this.info.getUnitOfMeasurement());
+        return new MinMaxAvgRecorder(entity, this.info.getDescription(), getUnitOfMeasurement());
     }
 
     @Override

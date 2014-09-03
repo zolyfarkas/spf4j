@@ -52,7 +52,7 @@ public final class QuantizedRecorder implements MeasurementProcessor {
      */
     private final long[] quatizedMeasurements;
 
-    public QuantizedRecorder(final Object measuredEntity, final String unitOfMeasurement,
+    public QuantizedRecorder(final Object measuredEntity, final String description,  final String unitOfMeasurement,
             final int factor, final int lowerMagnitude,
             final int higherMagnitude, final int quantasPerMagnitude) {
         assert (quantasPerMagnitude <= factor);
@@ -123,7 +123,7 @@ public final class QuantizedRecorder implements MeasurementProcessor {
                     + "_PI");
             uom.add("count");
         }
-        info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement,
+        info = new EntityMeasurementsInfoImpl(measuredEntity, description,
                 result.toArray(new String[result.size()]), uom.toArray(new String[uom.size()]));
 
     }
@@ -150,6 +150,11 @@ public final class QuantizedRecorder implements MeasurementProcessor {
         this.quatizedMeasurements = quatizedMeasurements;
         this.info = info;
     }
+    
+    public String getUnitOfMeasurement() {
+        return info.getMeasurementUnit(0);
+    }
+    
 
     @Override
     public synchronized void record(final long measurement) {
@@ -290,7 +295,7 @@ public final class QuantizedRecorder implements MeasurementProcessor {
 
     @Override
     public synchronized EntityMeasurements createLike(final Object entity) {
-        return new QuantizedRecorder(entity, info.getUnitOfMeasurement(),
+        return new QuantizedRecorder(entity, info.getDescription(), getUnitOfMeasurement(),
                 this.factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
     }
 

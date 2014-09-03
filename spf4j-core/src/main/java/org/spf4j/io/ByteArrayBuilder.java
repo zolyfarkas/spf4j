@@ -1,5 +1,4 @@
-
-/*
+ /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -16,25 +15,29 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.base;
 
+package org.spf4j.io;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.ByteArrayOutputStream;
 
 /**
- *
+ * Utility class to avoid replicating byte arrays for no good reason.
  * @author zoly
  */
-public interface ReportGenerator {
+
+@SuppressFBWarnings("EI_EXPOSE_REP")
+public final class ByteArrayBuilder extends ByteArrayOutputStream {
+
+    public ByteArrayBuilder() {
+    }
+
+    public ByteArrayBuilder(final int size) {
+        super(size);
+    }
     
-    
-    @Nonnull
-    List<String> generate(Properties props) throws IOException;
-    
-    @Nonnull
-    List<String> getParameters();
+    public byte[] getBuffer() {
+        return buf;
+    }
     
 }

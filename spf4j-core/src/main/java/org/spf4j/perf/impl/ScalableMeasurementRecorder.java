@@ -81,8 +81,7 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
                 if (currentTime > lastRun) {
                     lastRun = currentTime;
                     database.saveMeasurements(ScalableMeasurementRecorder.this.getInfo(),
-                            ScalableMeasurementRecorder.this.getMeasurementsAndReset(),
-                            currentTime, sampleTimeMillis);
+                            currentTime, sampleTimeMillis, ScalableMeasurementRecorder.this.getMeasurementsAndReset());
                 } else {
                     LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
                             lastRun, currentTime);
@@ -129,15 +128,6 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
     @Override
     public void close() {
         samplingFuture.cancel(false);
-    }
-
-    @Override
-    protected void finalize() throws Throwable  {
-        try {
-            super.finalize();
-        } finally {
-            this.close();
-        }
     }
 
     @Override

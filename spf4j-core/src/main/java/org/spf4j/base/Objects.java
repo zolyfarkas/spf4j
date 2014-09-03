@@ -19,11 +19,11 @@
 package org.spf4j.base;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import org.spf4j.io.ByteArrayBuilder;
 
 /**
  *
@@ -36,7 +36,7 @@ public final class Objects {
 
     public static <T extends Serializable> T clone(final T t) {
         try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream(256);
+            ByteArrayBuilder bos = new ByteArrayBuilder(256);
             ObjectOutputStream out = new ObjectOutputStream(bos);
             try {
                 out.writeObject(t);
@@ -45,7 +45,7 @@ public final class Objects {
             }
             T result;
             ObjectInputStream in = new ObjectInputStream(
-                    new ByteArrayInputStream(bos.toByteArray()));
+                    new ByteArrayInputStream(bos.getBuffer(), 0, bos.size()));
             try {
                 result = (T) in.readObject();
             } finally {

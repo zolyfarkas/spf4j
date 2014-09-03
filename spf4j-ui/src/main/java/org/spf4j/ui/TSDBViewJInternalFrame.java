@@ -40,7 +40,7 @@ import javax.swing.tree.TreePath;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.spf4j.base.Pair;
-import org.spf4j.perf.impl.mdb.tsdb.TSDBMeasurementDatabase;
+import org.spf4j.perf.impl.mdb.tsdb.TSDBMeasurementStore;
 import org.spf4j.perf.tsdb.TSTable;
 import org.spf4j.perf.tsdb.TimeSeriesDatabase;
 
@@ -296,7 +296,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         TSTable info = tsDb.getTSTable(tableName);
          long startTime = ((Date) startDate.getValue()).getTime();
          long endTime = ((Date) endDate.getValue()).getTime();
-        if (TSDBMeasurementDatabase.canGenerateHeatChart(info)) {
+        if (TSDBMeasurementStore.canGenerateHeatChart(info)) {
             JFreeChart chart = tsDb.createHeatJFreeChart(info.getTableName(),
                     startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);
@@ -309,7 +309,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
             pannel.setZoomOutFactor(1);
             content.add(pannel);
         }
-        if (TSDBMeasurementDatabase.canGenerateMinMaxAvgCount(info)) {
+        if (TSDBMeasurementStore.canGenerateMinMaxAvgCount(info)) {
             JFreeChart chart = tsDb.createMinMaxAvgJFreeChart(info.getTableName(),
                     startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);
@@ -317,7 +317,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
             content.add(pannel);
 
         }
-        if (TSDBMeasurementDatabase.canGenerateCount(info)) {
+        if (TSDBMeasurementStore.canGenerateCount(info)) {
             JFreeChart chart = tsDb.createCountJFreeChart(info.getTableName(),
                     startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);

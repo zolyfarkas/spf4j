@@ -18,6 +18,8 @@
  */
 package org.spf4j.base;
 
+import java.io.IOException;
+import java.io.Writer;
 import static java.lang.Math.min;
 import javax.annotation.Nonnull;
 
@@ -132,6 +134,18 @@ public final class Strings {
             result.append(str.charAt(i));
         }
         return result.toString();
+    }
+    
+    public static void writeReplaceWhitespaces(final String str, final char replacement, final Writer writer)
+            throws IOException {
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (Character.isWhitespace(c)) {
+                writer.append(replacement);
+            } else {
+                writer.append(c);
+            }
+        }
     }
     
 }
