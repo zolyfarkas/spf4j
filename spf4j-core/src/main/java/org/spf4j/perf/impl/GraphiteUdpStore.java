@@ -3,6 +3,7 @@ package org.spf4j.perf.impl;
 import com.google.common.base.Charsets;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
@@ -44,14 +45,8 @@ public final class GraphiteUdpStore implements MeasurementStore {
         int msgStart = 0, msgEnd = 0, prevEnd = 0;
         
         for (int i = 0; i < measurements.length; i++) {
-            Strings.writeReplaceWhitespaces(measurementInfo.getMeasuredEntity().toString(), '-', os);
-            os.append('/');
-            Strings.writeReplaceWhitespaces(measurementInfo.getMeasurementName(i), '-', os);
-            os.append(' ');
-            os.append(Long.toString(measurements[i]));
-            os.append(' ');
-            os.append(Long.toString(sampleTimeMillis));
-            os.append('\n');
+            writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),
+                    measurements[i], sampleTimeMillis, os);
             os.flush();
             msgEnd = bos.size();
             int length = msgEnd - msgStart;
@@ -67,6 +62,19 @@ public final class GraphiteUdpStore implements MeasurementStore {
             datagramChannel.write(byteBuffer);
         }
 
+    }
+
+    public static void writeMetric(final EntityMeasurementsInfo measurementInfo, final String measurementName,
+            final long measurement, final long timeStampMillis, final Writer os)
+            throws IOException {
+        Strings.writeReplaceWhitespaces(measurementInfo.getMeasuredEntity().toString(), '-', os);
+        os.append('/');
+        Strings.writeReplaceWhitespaces(measurementName, '-', os);
+        os.append(' ');
+        os.append(Long.toString(measurement));
+        os.append(' ');
+        os.append(Long.toString(timeStampMillis));
+        os.append('\n');
     }
 
     @Override

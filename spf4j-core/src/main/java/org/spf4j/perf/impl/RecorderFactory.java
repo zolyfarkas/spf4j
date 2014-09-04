@@ -106,10 +106,17 @@ public final class RecorderFactory {
         return new DirectRecorder(forWhat, "", unitOfMeasurement, sampleTimeMillis, TS_DATABASE);
     }
     
-    public static MeasurementRecorder createDirectGraphiteRecorder(final Object forWhat,
+    public static MeasurementRecorder createDirectGraphiteUdpRecorder(final Object forWhat,
             final String unitOfMeasurement,
             final String graphiteHost, final int graphitePort) throws IOException {
         return new DirectRecorder(forWhat, "", unitOfMeasurement, 0,
                 new GraphiteUdpStore(graphiteHost, graphitePort));
+    }
+    
+    public static MeasurementRecorder createDirectGraphiteTcpRecorder(final Object forWhat,
+            final String unitOfMeasurement,
+            final String graphiteHost, final int graphitePort) throws IOException {
+        return new DirectRecorder(forWhat, "", unitOfMeasurement, 0,
+                new GraphiteTcpStore(graphiteHost, graphitePort));
     }
 }
