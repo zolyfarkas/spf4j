@@ -46,7 +46,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
 
         for (int i = 0; i < measurements.length; i++) {
             writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),
-                    measurements[i], sampleTimeMillis, socketWriter);
+                    measurements[i], timeStampMillis, socketWriter);
         }
         socketWriter.flush();
     }

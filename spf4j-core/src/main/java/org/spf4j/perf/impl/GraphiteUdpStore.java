@@ -46,7 +46,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
         
         for (int i = 0; i < measurements.length; i++) {
             writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),
-                    measurements[i], sampleTimeMillis, os);
+                    measurements[i], timeStampMillis, os);
             os.flush();
             msgEnd = bos.size();
             int length = msgEnd - msgStart;
