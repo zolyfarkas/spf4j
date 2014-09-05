@@ -82,24 +82,23 @@
     </dependencies>
   
     <build>
-        <plugins>      
+        <plugins>  
             <plugin>
-                <groupId>com.google.protobuf.tools</groupId>
-                <artifactId>maven-protoc-plugin</artifactId>
-                <configuration>
-                    <protocExecutable>${protoc.bin}</protocExecutable>
-                </configuration>
+                <groupId>com.github.os72</groupId>
+                <artifactId>protoc-jar-maven-plugin</artifactId>
+                <version>2.5.0.1</version> <!-- for protobuf 2.5.0 -->
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>
                         <goals>
-                            <goal>compile</goal>
-                            <goal>testCompile</goal>
+                            <goal>run</goal>
                         </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/generated-sources/protobuf</outputDirectory>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
