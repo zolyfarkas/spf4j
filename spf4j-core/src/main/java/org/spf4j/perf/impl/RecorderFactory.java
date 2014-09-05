@@ -25,6 +25,7 @@ import org.spf4j.base.AbstractRunnable;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.impl.mdb.tsdb.TSDBMeasurementStore;
+import org.spf4j.recyclable.ObjectCreationException;
 
 /**
  *
@@ -108,14 +109,14 @@ public final class RecorderFactory {
     
     public static MeasurementRecorder createDirectGraphiteUdpRecorder(final Object forWhat,
             final String unitOfMeasurement,
-            final String graphiteHost, final int graphitePort) throws IOException {
+            final String graphiteHost, final int graphitePort) throws ObjectCreationException {
         return new DirectRecorder(forWhat, "", unitOfMeasurement, 0,
                 new GraphiteUdpStore(graphiteHost, graphitePort));
     }
     
     public static MeasurementRecorder createDirectGraphiteTcpRecorder(final Object forWhat,
             final String unitOfMeasurement,
-            final String graphiteHost, final int graphitePort) throws IOException {
+            final String graphiteHost, final int graphitePort) throws ObjectCreationException {
         return new DirectRecorder(forWhat, "", unitOfMeasurement, 0,
                 new GraphiteTcpStore(graphiteHost, graphitePort));
     }

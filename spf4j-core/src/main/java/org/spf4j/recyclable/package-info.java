@@ -15,26 +15,12 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.pool;
 
 /**
- *
- * @author zoly
+ * Experimental implementation.
  */
-public class PoolException extends Exception {
+@SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
+package org.spf4j.recyclable;
 
-    public PoolException(final Throwable cause) {
-        super(cause);
-    }
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-    public PoolException(final String message, final Throwable cause) {
-        super(message, cause);
-    }
-
-    public PoolException(final String message) {
-        super(message);
-    }
-
-    public PoolException() {
-    }
-}

@@ -16,8 +16,9 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.pool;
+package org.spf4j.recyclable;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.TimeoutException;
 import org.spf4j.base.Callables;
 import org.spf4j.base.Callables.TimeoutCallable;
@@ -26,47 +27,52 @@ import org.spf4j.base.Throwables;
 
 public final class Template<T, E extends Exception> {
 
-    private final ObjectPool<T> pool;
+    private final RecyclingSupplier<T> pool;
     private final int nrImmediateRetries;
     private final int retryWaitMillis;
     private final int timeout;
 
-    public Template(final ObjectPool<T> pool, final int nrImmediateRetries,
-             final int retryWaitMillis, final int timeout) {
+    public Template(final RecyclingSupplier<T> pool, final int nrImmediateRetries,
+             final int retryWaitMillis, final int timeoutMillis) {
         this.pool = pool;
         this.nrImmediateRetries = nrImmediateRetries;
         this.retryWaitMillis = retryWaitMillis;
-        this.timeout = timeout;
+        this.timeout = timeoutMillis;
     }
 
-    // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
-    public void doOnPooledObject(final Handler<T, E> handler)
-            throws ObjectCreationException, InterruptedException, TimeoutException {
-        Callables.executeWithRetry(new TimeoutCallable<Void>(timeout) {
+    public void doOnSupplied(final Handler<T, E> handler)
+            throws InterruptedException {
+        doOnSupplied(handler, pool, nrImmediateRetries, retryWaitMillis, timeout);
+    }
 
+    public static  <T, E extends Exception> void doOnSupplied(final Handler<T, E> handler,
+            final RecyclingSupplier<T> pool, final int nrImmediateRetries,
+             final int retryWaitMillis, final int timeoutMillis) throws InterruptedException {
+        Callables.executeWithRetry(new TimeoutCallable<Void>(timeoutMillis) {
+            
             @Override
+            // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
             public Void call(final long deadline)
                     throws ObjectReturnException, ObjectCreationException,
                     ObjectBorrowException, InterruptedException, TimeoutException, E {
-                doOnPooledObject(handler, pool, deadline);
+                Template.doOnSupplied(handler, pool, deadline);
                 return null;
             }
         }, nrImmediateRetries, retryWaitMillis);
-
     }
 
     //findbugs does not know about supress in spf4j
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
-    public static <T, E extends Exception> void doOnPooledObject(final Handler<T, E> handler,
-            final ObjectPool<T> pool, final long deadline)
+    @SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
+    private static <T, E extends Exception> void doOnSupplied(final Handler<T, E> handler,
+            final RecyclingSupplier<T> pool, final long deadline)
             throws ObjectReturnException, ObjectCreationException,
             ObjectBorrowException, InterruptedException, TimeoutException, E {
-        T object = pool.borrowObject();
+        T object = pool.get();
         try {
             handler.handle(object, deadline);
         } catch (Exception e) {
             try {
-                pool.returnObject(object, e);
+                pool.recycle(object, e);
             } catch (RuntimeException ex) {
                 throw Throwables.suppress(ex, e);
             }
@@ -76,6 +82,6 @@ public final class Template<T, E extends Exception> {
                 throw (E) e;
             }
         }
-        pool.returnObject(object, null);
+        pool.recycle(object, null);
     }
 }

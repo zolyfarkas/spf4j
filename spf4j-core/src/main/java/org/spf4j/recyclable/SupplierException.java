@@ -15,21 +15,26 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.pool;
-
-import java.util.concurrent.TimeoutException;
-import javax.annotation.ParametersAreNonnullByDefault;
+package org.spf4j.recyclable;
 
 /**
  *
  * @author zoly
  */
-@ParametersAreNonnullByDefault
-public interface SmartObjectPool<T> extends Disposable, Scanable<T> {
-    
-    T borrowObject(ObjectBorower borower) throws InterruptedException,
-            TimeoutException, ObjectCreationException;
-    
-    void returnObject(T object, ObjectBorower borower);
-    
+public class SupplierException extends Exception {
+
+    public SupplierException(final Throwable cause) {
+        super(cause);
+    }
+
+    public SupplierException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
+
+    public SupplierException(final String message) {
+        super(message);
+    }
+
+    public SupplierException() {
+    }
 }

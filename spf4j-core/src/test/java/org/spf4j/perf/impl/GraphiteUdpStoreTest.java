@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.recyclable.ObjectCreationException;
 
 /**
  *
@@ -35,7 +36,7 @@ public final class GraphiteUdpStoreTest {
 
 
     @Test
-    public void testGraphiteUdpStore() throws IOException {
+    public void testGraphiteUdpStore() throws IOException, ObjectCreationException {
 
         final GraphiteUdpStore store = new GraphiteUdpStore("127.0.0.1", 1976);
 

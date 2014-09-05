@@ -15,7 +15,7 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.pool;
+package org.spf4j.recyclable;
 
 import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
@@ -32,7 +32,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public interface ObjectPool<T> extends Disposable {
+public interface RecyclingSupplier<T> extends Disposable {
 
     /**
      * block until a object is available and return it.
@@ -44,7 +44,7 @@ public interface ObjectPool<T> extends Disposable {
      * @throws TimeoutException
      */
     @Nonnull
-    T borrowObject() throws ObjectCreationException, ObjectBorrowException,
+    T get() throws ObjectCreationException, ObjectBorrowException,
             InterruptedException, TimeoutException;
 
     /**
@@ -56,7 +56,9 @@ public interface ObjectPool<T> extends Disposable {
      * @param object
      * @param e
      */
-    void returnObject(T object, @Nullable Exception e);
+    void recycle(T object, @Nullable Exception e);
+    
+    
 
     @ParametersAreNonnullByDefault
     public interface Factory<T> {
@@ -78,21 +80,13 @@ public interface ObjectPool<T> extends Disposable {
         void dispose(T object) throws ObjectDisposeException;
 
         /**
-         * Validate the object, return null if valid, a Exception with validation detail otherwise.
-         *
-         * @param object
-         * @param e
-         * @return
+         * Validate the object, return true if valid,
+         * false of throw an Exception with validation detail otherwise.
          */
         @Nullable
         @CheckReturnValue
-        Exception validate(T object, @Nullable Exception e);
+        boolean validate(T object, @Nullable Exception e) throws Exception;
         
-        /**
-         * This method will be invoked after pool created.
-         * @param pool
-         */
-        void setPool(ObjectPool<T> pool);
         
     }
 }

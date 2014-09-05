@@ -16,26 +16,26 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.pool;
+package org.spf4j.recyclable;
 
 /**
  *
  * @author zoly
  */
-public class ObjectReturnException extends PoolException {
+public class ObjectBorrowException extends SupplierException {
 
-    public ObjectReturnException(final Throwable cause) {
+    public ObjectBorrowException(final Throwable cause) {
         super(cause);
     }
 
-    public ObjectReturnException(final String message, final Throwable cause) {
+    public ObjectBorrowException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public ObjectReturnException(final String message) {
+    public ObjectBorrowException(final String message) {
         super(message);
     }
 
-    public ObjectReturnException() {
+    public ObjectBorrowException() {
     }
 }

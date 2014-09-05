@@ -25,10 +25,10 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
-import org.spf4j.pool.ObjectBorrowException;
-import org.spf4j.pool.ObjectCreationException;
-import org.spf4j.pool.ObjectPool;
-import org.spf4j.pool.impl.ObjectPoolBuilder;
+import org.spf4j.recyclable.ObjectBorrowException;
+import org.spf4j.recyclable.ObjectCreationException;
+import org.spf4j.recyclable.RecyclingSupplier;
+import org.spf4j.recyclable.impl.RecyclingSupplierBuilder;
 
 /**
  *
@@ -37,22 +37,25 @@ import org.spf4j.pool.impl.ObjectPoolBuilder;
 @Beta
 public final class PooledDataSource implements DataSource {
 
-    private final ObjectPool<Connection> pool;
+    private final RecyclingSupplier<Connection> pool;
     
     
     public PooledDataSource(final int coreSize, final int maxSize,
             final String driverName, final String url, final String user, final String password)
             throws ObjectCreationException {
-        ObjectPoolBuilder<Connection, SQLException> builder =
-                new ObjectPoolBuilder<Connection, SQLException>(
-                maxSize, new JdbcConnectionFactory(driverName, url, user, password));
+        final JdbcConnectionFactory jdbcConnectionFactory =
+                new JdbcConnectionFactory(driverName, url, user, password);
+        RecyclingSupplierBuilder<Connection> builder =
+                new RecyclingSupplierBuilder<Connection>(
+                maxSize, jdbcConnectionFactory);
         pool = builder.build();
+        jdbcConnectionFactory.setPool(pool);
     }
     
     @Override
     public Connection getConnection() throws SQLException {
         try {
-            return pool.borrowObject();
+            return pool.get();
         } catch (InterruptedException ex) {
             throw new SQLException(ex);
         } catch (TimeoutException ex) {

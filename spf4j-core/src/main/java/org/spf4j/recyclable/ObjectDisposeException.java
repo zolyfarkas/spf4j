@@ -16,13 +16,13 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.pool;
+package org.spf4j.recyclable;
 
 /**
  *
  * @author zoly
  */
-public class ObjectDisposeException extends PoolException {
+public class ObjectDisposeException extends SupplierException {
 
     public ObjectDisposeException(final Throwable cause) {
         super(cause);

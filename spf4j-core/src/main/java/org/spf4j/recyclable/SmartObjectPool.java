@@ -15,12 +15,21 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+package org.spf4j.recyclable;
+
+import java.util.concurrent.TimeoutException;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- * Experimental implementation.
+ *
+ * @author zoly
  */
-@SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
-package org.spf4j.pool;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
+@ParametersAreNonnullByDefault
+public interface SmartObjectPool<T> extends Disposable, Scanable<T> {
+    
+    T borrowObject(ObjectBorower borower) throws InterruptedException,
+            TimeoutException, ObjectCreationException;
+    
+    void returnObject(T object, ObjectBorower borower);
+    
+}
