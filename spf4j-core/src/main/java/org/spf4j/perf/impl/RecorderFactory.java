@@ -18,13 +18,15 @@
  */
 package org.spf4j.perf.impl;
 
+import org.spf4j.perf.impl.ms.graphite.GraphiteTcpStore;
+import org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
-import org.spf4j.perf.impl.mdb.tsdb.TSDBMeasurementStore;
+import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 import org.spf4j.recyclable.ObjectCreationException;
 
 /**

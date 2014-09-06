@@ -1,4 +1,4 @@
-package org.spf4j.perf.impl;
+package org.spf4j.perf.impl.ms.graphite;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;

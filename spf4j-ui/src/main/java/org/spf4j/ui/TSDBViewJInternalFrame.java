@@ -40,7 +40,7 @@ import javax.swing.tree.TreePath;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.spf4j.base.Pair;
-import org.spf4j.perf.impl.mdb.tsdb.TSDBMeasurementStore;
+import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 import org.spf4j.perf.tsdb.TSTable;
 import org.spf4j.perf.tsdb.TimeSeriesDatabase;
 

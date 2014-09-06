@@ -17,6 +17,7 @@
  */
 package org.spf4j.perf.impl;
 
+import org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore;
 import com.google.common.base.Charsets;
 import java.io.IOException;
 import java.net.InetSocketAddress;

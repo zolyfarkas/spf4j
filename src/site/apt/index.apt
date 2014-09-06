@@ -325,7 +325,7 @@ Usage:
      This encourages the developer to disregard handling of this case when it receives an invalid object. 
      This practice also often is a performance killer.
 
-   * 2. Indiscriminate test on return is not optimal.
+   * 2. Indiscriminate test on return is not optimal either.
      Test on return should be done only in the case where there is a suspicion that the object is invalid,
      otherwise the performance impact will be too high to be acceptable in most cases.
      Pool client should be able to provide feedback on return for that case.
@@ -355,19 +355,19 @@ Usage:
  Creating a pool is simple:
 
 +--------------------------------------------------- 
-ObjectPool<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory()).build();
+RecyclingSupplier<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory()).build();
 +--------------------------------------------------- 
 
  at minimum you will need to provide the maximum size and the object factory.
  To do something with a object from a pool you will need to:
 
 +--------------------------------------------------- 
-Template.doOnPooledObject(new ObjectPool.Hook<PooledObject, SomeException>() {
+Template.doOnSupplied(new Handler<PooledObject, SomeException>() {
    @Override
-   public void handle( PooledObject object) throws SomeException {
+   public void handle( PooledObject object, long deadline) throws SomeException {
    object.doStuff();
    }
-}, pool, IOException.class);
+}, pool, imediateRetries, maxBackoffDelay, timeout );
 +--------------------------------------------------- 
 
  You can also use the borrow and return methods on the object pool to get and return an object to the pool.

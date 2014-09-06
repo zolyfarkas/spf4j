@@ -1,4 +1,4 @@
-package org.spf4j.perf.impl;
+package org.spf4j.perf.impl.ms.graphite;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
@@ -12,7 +12,7 @@ import javax.net.SocketFactory;
 import org.spf4j.base.Handler;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
-import static org.spf4j.perf.impl.GraphiteUdpStore.writeMetric;
+import static org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore.writeMetric;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
