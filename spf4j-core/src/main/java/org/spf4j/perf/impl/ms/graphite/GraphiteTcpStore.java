@@ -25,8 +25,12 @@ import org.spf4j.recyclable.impl.RecyclingSupplierBuilder;
  */
 public final class GraphiteTcpStore implements MeasurementStore {
 
-    
-        private static class WriterSupplierFactory implements RecyclingSupplier.Factory<Writer> {
+    @Override
+    public void flush() {
+        // No buffering yet
+    }
+
+    private static class WriterSupplierFactory implements RecyclingSupplier.Factory<Writer> {
 
         private final String hostName;
         private final int port;
@@ -54,7 +58,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
             try {
                 object.close();
             } catch (IOException ex) {
-               throw new ObjectDisposeException(ex);
+                throw new ObjectDisposeException(ex);
             }
         }
 
@@ -62,18 +66,17 @@ public final class GraphiteTcpStore implements MeasurementStore {
         public boolean validate(final Writer object, final Exception e) {
             return e == null || !(Throwables.getRootCause(e) instanceof IOException);
         }
-        
+
     }
 
     private final RecyclingSupplier<Writer> socketWriterSupplier;
 
     private final InetSocketAddress address;
-    
-    
+
     public GraphiteTcpStore(final String hostName, final int port) throws ObjectCreationException {
         this(hostName, port, SocketFactory.getDefault());
     }
-    
+
     public GraphiteTcpStore(final String hostName, final int port, final SocketFactory socketFactory)
             throws ObjectCreationException {
         address = new InetSocketAddress(hostName, port);
@@ -88,13 +91,13 @@ public final class GraphiteTcpStore implements MeasurementStore {
 
     @Override
     public void saveMeasurements(final EntityMeasurementsInfo measurementInfo,
-           final long timeStampMillis, final int sampleTimeMillis, final long... measurements) throws IOException {
+            final long timeStampMillis, final int sampleTimeMillis, final long... measurements) throws IOException {
 
         try {
             Template.doOnSupplied(new HandlerImpl(measurements, measurementInfo, timeStampMillis),
                     socketWriterSupplier, 3, 1000, 60000);
         } catch (InterruptedException ex) {
-           throw new RuntimeException(ex);
+            throw new RuntimeException(ex);
         }
 
     }
@@ -106,13 +109,13 @@ public final class GraphiteTcpStore implements MeasurementStore {
 
     @Override
     public void close() throws IOException {
-            try {
-                socketWriterSupplier.dispose();
-            } catch (ObjectDisposeException ex) {
-                throw new RuntimeException(ex);
-            } catch (InterruptedException ex) {
-                throw new RuntimeException(ex);
-            }
+        try {
+            socketWriterSupplier.dispose();
+        } catch (ObjectDisposeException ex) {
+            throw new RuntimeException(ex);
+        } catch (InterruptedException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     private static class HandlerImpl implements Handler<Writer, IOException> {

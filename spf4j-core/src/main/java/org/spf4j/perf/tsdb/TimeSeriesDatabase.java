@@ -164,13 +164,15 @@ public final class TimeSeriesDatabase implements Closeable {
     public synchronized void flush() throws IOException {
         List<Map.Entry<String, DataFragment>> lwriteDataFragments;
         synchronized (writeDataFragments) {
+            if (writeDataFragments.isEmpty()) {
+                return;
+            }
             lwriteDataFragments = new ArrayList<Map.Entry<String, DataFragment>>(writeDataFragments.size());
             for (Map.Entry<String, DataFragment> entry : writeDataFragments.entrySet()) {
                 lwriteDataFragments.add(entry);
             }
             writeDataFragments.clear();
         }
-
         for (Map.Entry<String, DataFragment> entry : lwriteDataFragments) {
             DataFragment writeDataFragment = entry.getValue();
             String groupName = entry.getKey();

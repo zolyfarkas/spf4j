@@ -23,9 +23,10 @@ import org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import org.spf4j.base.AbstractRunnable;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
+import org.spf4j.perf.MeasurementStore;
+import org.spf4j.perf.impl.ms.Flusher;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 import org.spf4j.recyclable.ObjectCreationException;
 
@@ -37,22 +38,14 @@ public final class RecorderFactory {
 
     private RecorderFactory() {
     }
-    public static final TSDBMeasurementStore TS_DATABASE;
+    public static final MeasurementStore TS_DATABASE;
 
     static {
         try {
             TS_DATABASE = new TSDBMeasurementStore(System.getProperty("perf.db.folder",
                     System.getProperty("java.io.tmpdir")) + File.separator + System.getProperty("perf.db.name",
                     ManagementFactory.getRuntimeMXBean().getName() + ".tsdb"));
-            TS_DATABASE.registerJmx();
-            TS_DATABASE.flushEvery(600000);
-            org.spf4j.base.Runtime.addHookAtEnd(new AbstractRunnable() {
-
-                @Override
-                public void doRun() throws Exception {
-                    TS_DATABASE.close();
-                }
-            });
+            Flusher.flushEvery(Integer.parseInt(System.getProperty("perf.db.flushMillis", "600000")), TS_DATABASE);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

@@ -20,9 +20,8 @@ package org.spf4j.perf.impl.ms.tsdb;
 import com.google.common.base.Charsets;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import org.spf4j.base.AbstractRunnable;
+
 import org.spf4j.base.Arrays;
-import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.base.Pair;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
@@ -37,16 +36,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.imageio.ImageIO;
 import org.jfree.chart.JFreeChart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.jmx.JmxExport;
-import org.spf4j.jmx.Registry;
 
 /**
  *
@@ -57,35 +52,12 @@ public final class TSDBMeasurementStore
     implements MeasurementStore {
 
     private final TimeSeriesDatabase database;
-    private volatile ScheduledFuture<?> future;
     private static final Logger LOG = LoggerFactory.getLogger(TSDBMeasurementStore.class);
 
     public TSDBMeasurementStore(final String databaseName) throws IOException {
         this.database = new TimeSeriesDatabase(databaseName, new byte[]{});
     }
 
-    public void registerJmx() {
-            Registry.export(TSDBMeasurementStore.class.getName(),
-                    new File(database.getDBFilePath()).getName(), this);
-    }
-
-    public void closeOnShutdown() {
-        Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(false) {
-            @Override
-            public void doRun() throws Exception {
-                close();
-            }
-        }, "tsdb shutdown"));
-    }
-
-    public void flushEvery(final int intervalMillis) {
-        future = DefaultScheduler.INSTANCE.scheduleAtFixedRate(new AbstractRunnable(false) {
-            @Override
-            public void doRun() throws Exception {
-                database.flush();
-            }
-        }, intervalMillis, intervalMillis, TimeUnit.MILLISECONDS);
-    }
 
     @Override
     public void alocateMeasurements(final EntityMeasurementsInfo measurement,
@@ -116,12 +88,8 @@ public final class TSDBMeasurementStore
         database.write(timeStampMillis, groupName, measurements);
     }
 
-    @PreDestroy
     @Override
     public void close() throws IOException {
-        if (future != null) {
-            future.cancel(false);
-        }
         database.close();
     }
 
@@ -310,8 +278,14 @@ public final class TSDBMeasurementStore
     }
 
     @JmxExport(description = "flush out buffers")
+    @Override
     public void flush() throws IOException {
         database.flush();
+    }
+
+    @Override
+    public String toString() {
+        return "TSDBMeasurementStore{" + "database=" + database + '}';
     }
 
 }

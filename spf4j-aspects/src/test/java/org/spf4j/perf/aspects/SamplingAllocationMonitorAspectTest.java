@@ -22,6 +22,7 @@ import com.google.common.base.Strings;
 import org.spf4j.perf.impl.RecorderFactory;
 import java.io.IOException;
 import org.junit.Test;
+import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 import org.spf4j.perf.io.OpenFilesSampler;
 import org.spf4j.perf.memory.MemoryUsageSampler;
 import org.spf4j.perf.memory.TestClass;
@@ -64,7 +65,7 @@ public final class SamplingAllocationMonitorAspectTest {
         }
         testAllocInStaticContext();
         TestClass.testAllocInStaticContext();
-        System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime,
+        System.out.println(((TSDBMeasurementStore) RecorderFactory.TS_DATABASE).generateCharts(startTime,
                 System.currentTimeMillis(), 1200, 600));
     }
 }

@@ -26,11 +26,31 @@ import java.io.IOException;
  */
 public interface MeasurementStore extends Closeable {
     
+    /**
+     * Make any allocations necessary for the following measurements.
+     * @param measurement
+     * @param sampleTimeMillis
+     * @throws IOException
+     */
     void alocateMeasurements(EntityMeasurementsInfo measurement, int sampleTimeMillis)
             throws IOException;
     
+    /**
+     * Save measurements.
+     * @param measurementInfo
+     * @param timeStampMillis
+     * @param sampleTimeMillis
+     * @param measurements
+     * @throws IOException
+     */
     void saveMeasurements(EntityMeasurementsInfo measurementInfo,
             long timeStampMillis, int sampleTimeMillis, long ... measurements)
             throws IOException;
     
+    /**
+     * flush all data that might be buffered by this store.
+     * @throws IOException
+     */
+    void flush() throws IOException;
+        
 }

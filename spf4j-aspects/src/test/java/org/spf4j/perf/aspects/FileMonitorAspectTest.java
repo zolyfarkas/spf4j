@@ -27,6 +27,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import org.junit.Test;
+import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 
 
 /**
@@ -68,7 +69,7 @@ public final class FileMonitorAspectTest {
         } finally {
             fr.close();
         }
-       System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime, System.currentTimeMillis(), 1200, 600));
+       System.out.println(((TSDBMeasurementStore) RecorderFactory.TS_DATABASE).generateCharts(startTime, System.currentTimeMillis(), 1200, 600));
     }
 
 }

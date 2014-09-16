@@ -25,6 +25,7 @@ import java.io.StringWriter;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 
 /**
  *
@@ -34,7 +35,7 @@ import org.junit.Test;
 public final class RecorderFactoryTest {
     
 
-    private long startTime = System.currentTimeMillis();
+    private final long startTime = System.currentTimeMillis();
     
         @BeforeClass
     public static void init() {
@@ -69,7 +70,8 @@ public final class RecorderFactoryTest {
             Thread.sleep(20);
         }
         long endTime = System.currentTimeMillis();
-        System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime, endTime, 1200, 600));
+        System.out.println(
+                ((TSDBMeasurementStore) RecorderFactory.TS_DATABASE).generateCharts(startTime, endTime, 1200, 600));
         ((Closeable) result).close();
         
     }
@@ -94,7 +96,8 @@ public final class RecorderFactoryTest {
             Thread.sleep(1);
         }
         long endTime = System.currentTimeMillis();
-        System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime, endTime, 1200, 600));
+        System.out.println(
+                ((TSDBMeasurementStore) RecorderFactory.TS_DATABASE).generateCharts(startTime, endTime, 1200, 600));
         ((Closeable) result).close();
     }
     
@@ -118,7 +121,8 @@ public final class RecorderFactoryTest {
             Thread.sleep(20);
         }
         long endTime = System.currentTimeMillis();
-        System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime, endTime, 1200, 1600));
+        System.out.println(
+                ((TSDBMeasurementStore) RecorderFactory.TS_DATABASE).generateCharts(startTime, endTime, 1200, 1600));
         ((Closeable) result).close();
         
     }
@@ -140,7 +144,8 @@ public final class RecorderFactoryTest {
             Thread.sleep(1);
         }
         long endTime = System.currentTimeMillis();
-        System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime, endTime, 1200, 600));
+        System.out.println(
+                ((TSDBMeasurementStore) RecorderFactory.TS_DATABASE).generateCharts(startTime, endTime, 1200, 600));
         ((Closeable) result).close();
     }
     

@@ -25,6 +25,11 @@ import org.spf4j.recyclable.impl.RecyclingSupplierBuilder;
  */
 public final class GraphiteUdpStore implements MeasurementStore {
 
+    @Override
+    public void flush() {
+        // No buffering yet
+    }
+
     private static class DatagramChannelSupplierFactory implements RecyclingSupplier.Factory<DatagramChannel> {
 
         private final InetSocketAddress address;
