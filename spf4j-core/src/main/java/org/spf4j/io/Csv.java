@@ -60,6 +60,14 @@ public final class Csv {
         T eof();
     }
     
+    public interface CsvRowHandler<T> {
+
+        void element(CharSequence elem);
+
+        T eof();
+    }
+    
+    
     public interface CsvMapHandler<T> {
 
         void row(Map<String, CharSequence> row);
@@ -159,6 +167,29 @@ public final class Csv {
         });
     }
     
+    
+    public static <T> T readRow(final Reader reader, final CsvRowHandler<T> handler) throws IOException {
+        return read(reader, new CsvHandler<T>() {
+
+            @Override
+            public void startRow() {
+            }
+
+            @Override
+            public void element(final CharSequence elem) {
+                handler.element(elem);
+            }
+
+            @Override
+            public void endRow() {
+            }
+
+            @Override
+            public T eof() {
+                return handler.eof();
+            }
+        });
+    }
  
     public static <T> T read(final Reader preader,
             final CsvHandler<T> handler) throws IOException {

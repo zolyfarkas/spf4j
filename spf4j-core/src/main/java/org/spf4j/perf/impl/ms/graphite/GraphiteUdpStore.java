@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import org.spf4j.base.Handler;
@@ -71,6 +73,14 @@ public final class GraphiteUdpStore implements MeasurementStore {
 
     public static final int MAX_UDP_MSG_SIZE = 512;
 
+   public GraphiteUdpStore(final String hostPort) throws ObjectCreationException, URISyntaxException {
+        this(new URI("graphiteUdp://" + hostPort));
+    }
+    
+    public GraphiteUdpStore(final URI uri) throws ObjectCreationException {
+        this(uri.getHost(), uri.getPort());
+    }
+    
     public GraphiteUdpStore(final String hostName, final int port) throws ObjectCreationException {
         address = new InetSocketAddress(hostName, port);
         datagramChannelSupplier = new RecyclingSupplierBuilder<DatagramChannel>(1,

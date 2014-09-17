@@ -8,6 +8,8 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
 import javax.net.SocketFactory;
 import org.spf4j.base.Handler;
 import org.spf4j.perf.EntityMeasurementsInfo;
@@ -24,11 +26,6 @@ import org.spf4j.recyclable.impl.RecyclingSupplierBuilder;
  * @author zoly
  */
 public final class GraphiteTcpStore implements MeasurementStore {
-
-    @Override
-    public void flush() {
-        // No buffering yet
-    }
 
     private static class WriterSupplierFactory implements RecyclingSupplier.Factory<Writer> {
 
@@ -73,6 +70,14 @@ public final class GraphiteTcpStore implements MeasurementStore {
 
     private final InetSocketAddress address;
 
+    public GraphiteTcpStore(final String hostPort) throws ObjectCreationException, URISyntaxException {
+        this(new URI("graphiteTcp://" + hostPort));
+    }
+    
+    public GraphiteTcpStore(final URI uri) throws ObjectCreationException {
+        this(uri.getHost(), uri.getPort());
+    }
+    
     public GraphiteTcpStore(final String hostName, final int port) throws ObjectCreationException {
         this(hostName, port, SocketFactory.getDefault());
     }
@@ -141,4 +146,9 @@ public final class GraphiteTcpStore implements MeasurementStore {
         }
     }
 
+    @Override
+    public void flush() {
+        // No buffering yet
+    }
+    
 }
