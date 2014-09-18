@@ -37,7 +37,7 @@ public final class Flusher {
                 store.flush();
             }
         }, intervalMillis, intervalMillis, TimeUnit.MILLISECONDS);
-        Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(false) {
+        org.spf4j.base.Runtime.addHookAtEnd(new AbstractRunnable(false) {
             @Override
             public void doRun() throws Exception {
                 try {
@@ -46,7 +46,7 @@ public final class Flusher {
                     store.close();
                 }
             }
-        }, "MS " + store + " shutdown"));
+        });
         Registry.export(store.getClass().getName(),
                     store.toString(), store);
     }

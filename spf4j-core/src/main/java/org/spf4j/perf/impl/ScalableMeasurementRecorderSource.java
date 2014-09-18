@@ -88,7 +88,14 @@ public final class ScalableMeasurementRecorderSource implements
             }
         };
         samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);
-        org.spf4j.base.Runtime.addHookAtBeginning(persister);
+                org.spf4j.base.Runtime.addHookAtBeginning(new AbstractRunnable(true) {
+            
+            @Override
+            public void doRun() throws Exception {
+                persister.doRun();
+                close();
+            }
+        });
     }
     
     @Override

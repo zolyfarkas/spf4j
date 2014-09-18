@@ -68,7 +68,7 @@ public final class TSDBTxtMeasurementStore
             writer.write(',');
             writer.write(Integer.toString(sampleTimeMillis));
             for (int i = 0; i < measurements.length; i++) {
-                String measurementName = measurementInfo.getMeasurementName(sampleTimeMillis);
+                String measurementName = measurementInfo.getMeasurementName(i);
                 writer.write(',');
                 Csv.writeCsvElement(measurementName, writer);
                 writer.write(',');

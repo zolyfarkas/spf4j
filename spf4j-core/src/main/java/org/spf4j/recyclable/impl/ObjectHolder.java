@@ -91,7 +91,7 @@ final class ObjectHolder<T> {
             if (isValid) { //rethrow original exception since it is unrelated.
                 throw new RuntimeException(e);
             } else {
-                LOG.warn("Validation of {} failed, detail {} {} ", obj, vex, e);
+                LOG.warn("Validation of {} failed, detail {}", obj, vex, e);
                 obj = null;
                 try {
                     factory.dispose(object);

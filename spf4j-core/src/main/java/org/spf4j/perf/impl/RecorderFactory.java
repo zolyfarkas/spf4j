@@ -97,7 +97,7 @@ public final class RecorderFactory {
     private static MeasurementStore fromString(final String string) throws IOException, ObjectCreationException {
         int atIdx = string.indexOf('@');
         if (atIdx < 0) {
-            throw new IllegalArgumentException("Invlaid measuremnt store configuration " + string);
+            throw new IllegalArgumentException("Invalid measuremnt store configuration " + string);
         }
         StoreType type = StoreType.valueOf(string.substring(0, atIdx));
         return type.create(string.substring(atIdx + 1));
