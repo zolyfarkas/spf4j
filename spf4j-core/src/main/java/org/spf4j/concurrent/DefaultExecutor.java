@@ -37,4 +37,8 @@ public final class DefaultExecutor {
             60L, TimeUnit.SECONDS,
             new SynchronousQueue<Runnable>(),
             new CustomThreadFactory("DefaultScheduler", false)));
+    
+    public static void shutdown() {
+        INSTANCE.shutdown();
+    }
 }
