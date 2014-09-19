@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ExportedValuesMBean.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jmx</a> &gt; <span class="el_source">ExportedValuesMBean.java</span></div><h1>ExportedValuesMBean.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.jmx;
+
+
+import com.google.common.base.Throwables;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+import javax.management.Attribute;
+import javax.management.AttributeList;
+import javax.management.AttributeNotFoundException;
+import javax.management.DynamicMBean;
+import javax.management.ImmutableDescriptor;
+import javax.management.InvalidAttributeValueException;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanException;
+import javax.management.MBeanInfo;
+import javax.management.MBeanOperationInfo;
+import javax.management.MBeanParameterInfo;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
+import javax.management.openmbean.OpenType;
+import org.spf4j.base.Reflections;
+
+
+class ExportedValuesMBean implements DynamicMBean {
+
+  
+<span class="fc" id="L47">    private static final Pattern INVALID_CHARS = Pattern.compile(&quot;[^a-zA-Z0-9_\\-\\.]&quot;);</span>
+
+    private final Map&lt;String, ExportedValue&lt;?&gt;&gt; exportedValues;
+    
+    private final Map&lt;String, ExportedOperation&gt; exportedOperations;
+
+    private final ObjectName objectName;
+
+    private final MBeanInfo beanInfo;
+
+
+    ExportedValuesMBean(final String domain, final String name,
+<span class="fc" id="L59">            final ExportedValue&lt;?&gt; [] exported, final ExportedOperation [] operations) {</span>
+<span class="fc" id="L60">        this.exportedValues = new HashMap&lt;String, ExportedValue&lt;?&gt;&gt;(exported.length);</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        for (ExportedValue&lt;?&gt; val : exported) {</span>
+<span class="fc" id="L62">            this.exportedValues.put(val.getName(), val);</span>
+        }
+<span class="fc" id="L64">        this.exportedOperations = new HashMap&lt;String, ExportedOperation&gt;(exported.length);</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        for (ExportedOperation op : operations) {</span>
+<span class="fc" id="L66">            this.exportedOperations.put(op.getName(), op);</span>
+        }
+<span class="fc" id="L68">        this.objectName = createObjectName(domain, name);</span>
+<span class="fc" id="L69">        this.beanInfo = createBeanInfo();</span>
+<span class="fc" id="L70">    }</span>
+
+    /**
+     * Returns the object name built from the {@link com.netflix.servo.monitor.MonitorConfig}.
+     */
+    public ObjectName getObjectName() {
+<span class="fc" id="L76">        return objectName;</span>
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Object getAttribute(final String name) throws AttributeNotFoundException {
+<span class="fc" id="L82">        ExportedValue&lt;?&gt; result = exportedValues.get(name);</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (result == null) {</span>
+<span class="nc" id="L84">            throw new AttributeNotFoundException(name);</span>
+        }
+<span class="fc" id="L86">        return result.get();</span>
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void setAttribute(final Attribute attribute)
+            throws InvalidAttributeValueException, MBeanException, AttributeNotFoundException {
+<span class="fc" id="L93">        String name = attribute.getName();</span>
+<span class="fc" id="L94">        ExportedValue&lt;Object&gt; result = (ExportedValue&lt;Object&gt;) exportedValues.get(name);</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        if (result == null) {</span>
+<span class="nc" id="L96">            throw new AttributeNotFoundException(name);</span>
+        }
+<span class="fc" id="L98">        result.set(attribute.getValue());</span>
+<span class="fc" id="L99">    }</span>
+
+    /** {@inheritDoc} */
+    @Override
+    public AttributeList getAttributes(final String[] names) {
+<span class="nc" id="L104">        AttributeList list = new AttributeList(names.length);</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        for (String name : names) {</span>
+<span class="nc" id="L106">            list.add(new Attribute(name, exportedValues.get(name).get()));</span>
+        }
+<span class="nc" id="L108">        return list;</span>
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public AttributeList setAttributes(final AttributeList list) {
+<span class="nc" id="L114">        AttributeList result = new AttributeList(list.size());</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        for (Attribute attr : list.asList()) {</span>
+<span class="nc" id="L116">            ExportedValue&lt;Object&gt; eval = (ExportedValue&lt;Object&gt;) exportedValues.get(attr.getName());</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            if (eval != null) {</span>
+                try {
+<span class="nc" id="L119">                    eval.set(attr.getValue());</span>
+<span class="nc" id="L120">                    result.add(attr);</span>
+<span class="nc" id="L121">                } catch (InvalidAttributeValueException ex) {</span>
+<span class="nc" id="L122">                    throw new RuntimeException(ex);</span>
+<span class="nc" id="L123">                }</span>
+            }
+<span class="nc" id="L125">        }</span>
+<span class="nc" id="L126">        return result;</span>
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Object invoke(final String name, final Object[] args, final String[] sig)
+            throws MBeanException, ReflectionException {
+<span class="fc" id="L133">        return exportedOperations.get(name).invoke(args);</span>
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public MBeanInfo getMBeanInfo() {
+<span class="fc" id="L139">        return beanInfo;</span>
+    }
+
+    public static ObjectName createObjectName(final String domain, final String name) {
+        try {
+<span class="fc" id="L144">            final String sanitizedDomain = INVALID_CHARS.matcher(domain).replaceAll(&quot;_&quot;);</span>
+<span class="fc" id="L145">            final String sanitizedName = INVALID_CHARS.matcher(name).replaceAll(&quot;_&quot;);</span>
+<span class="fc" id="L146">            StringBuilder builder = new StringBuilder();</span>
+<span class="fc" id="L147">            builder.append(sanitizedDomain).append(':');</span>
+<span class="fc" id="L148">            builder.append(&quot;name=&quot;).append(sanitizedName);</span>
+<span class="fc" id="L149">            return new ObjectName(builder.toString());</span>
+<span class="nc" id="L150">        } catch (MalformedObjectNameException e) {</span>
+<span class="nc" id="L151">            throw Throwables.propagate(e);</span>
+        }
+    }
+
+    private MBeanInfo createBeanInfo() {
+<span class="fc" id="L156">        MBeanAttributeInfo[] attrs = new MBeanAttributeInfo[exportedValues.size()];</span>
+<span class="fc" id="L157">        int i = 0;</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">        for (ExportedValue&lt;?&gt; val : exportedValues.values()) {</span>
+<span class="fc" id="L159">            attrs[i++] = createAttributeInfo(val);</span>
+        }
+<span class="fc" id="L161">        MBeanOperationInfo[] operations = new MBeanOperationInfo[exportedOperations.size()];</span>
+<span class="fc" id="L162">        i = 0;</span>
+<span class="fc bfc" id="L163" title="All 2 branches covered.">        for (ExportedOperation op : exportedOperations.values()) {</span>
+<span class="fc" id="L164">            MBeanParameterInfo [] paramInfos = op.getParameterInfos();</span>
+<span class="fc" id="L165">            operations[i++] = new MBeanOperationInfo(op.getName(), op.getDescription(),</span>
+                    paramInfos, op.getReturnType().getName(), MBeanOperationInfo.UNKNOWN);
+<span class="fc" id="L167">        }</span>
+<span class="fc" id="L168">        return new MBeanInfo(</span>
+                this.getClass().getName(),
+                &quot;JmxMBean&quot;,
+                attrs,
+                null,  // constructors
+                operations,  // operations
+                null); // notifications
+    }
+
+    private static MBeanAttributeInfo createAttributeInfo(final ExportedValue&lt;?&gt; val) {
+<span class="fc" id="L178">        final Class&lt;?&gt; oClass = val.getValueClass();</span>
+<span class="fc" id="L179">        Class&lt;?&gt; valClass = Reflections.primitiveToWrapper(oClass);</span>
+<span class="fc" id="L180">        OpenType openType =  OpenTypeConverter.getOpenType(oClass);</span>
+        String type;
+<span class="fc bfc" id="L182" title="All 2 branches covered.">        if (Number.class.isAssignableFrom(valClass)) {</span>
+<span class="fc" id="L183">            type = Number.class.getName();</span>
+<span class="fc bfc" id="L184" title="All 4 branches covered.">        } else if (valClass == Boolean.class || valClass == String.class) {</span>
+<span class="fc" id="L185">            type = valClass.getName();</span>
+<span class="fc bfc" id="L186" title="All 2 branches covered.">        } else if (Enum.class.isAssignableFrom(valClass)) {</span>
+<span class="fc" id="L187">            type = String.class.getName();</span>
+        } else {
+<span class="fc" id="L189">            type = openType.getTypeName();</span>
+        }
+        
+  //      if (openType == null) {
+//            return new MBeanAttributeInfo(
+//                val.getName(),
+//                type,
+//                val.getDescription(),
+//                true,   // isReadable
+//                val.isWriteable(),  // isWritable
+//                valClass == Boolean.class); // isIs
+//        } else {
+<span class="fc bfc" id="L201" title="All 2 branches covered.">           return new MBeanAttributeInfo(</span>
+                val.getName(),
+                type,
+                val.getDescription(),
+                true,   // isReadable
+                val.isWriteable(),  // isWritable
+                valClass == Boolean.class,
+                new ImmutableDescriptor(new String[] {&quot;openType&quot;, &quot;originalType&quot;},
+                        new Object[] {openType, oClass.getName()}));
+//        }
+//
+        
+        
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

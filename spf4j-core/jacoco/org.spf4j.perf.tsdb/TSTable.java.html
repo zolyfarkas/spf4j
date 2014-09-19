@@ -18,7 +18,6 @@
 package org.spf4j.perf.tsdb;
 
 import com.google.common.base.Charsets;
-import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -28,6 +27,7 @@ import java.nio.channels.FileLock;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import org.spf4j.io.ByteArrayBuilder;
 
 /**
  *
@@ -120,14 +120,14 @@ public final class TSTable {
 <span class="fc" id="L120">    }</span>
     
     void writeTo(final RandomAccessFile raf) throws IOException {
-<span class="fc" id="L123">        ByteArrayOutputStream bos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L123">        ByteArrayBuilder bos = new ByteArrayBuilder();</span>
 <span class="fc" id="L124">        DataOutput dos = new DataOutputStream(bos);</span>
 <span class="fc" id="L125">        writeTo(dos);</span>
 <span class="fc" id="L126">        FileChannel ch = raf.getChannel();</span>
 <span class="fc" id="L127">        FileLock lock = ch.lock(raf.getFilePointer(), 8, false);</span>
         try {
 <span class="fc" id="L129">            raf.seek(location);</span>
-<span class="fc" id="L130">            raf.write(bos.toByteArray());</span>
+<span class="fc" id="L130">            raf.write(bos.getBuffer(), 0, bos.size());</span>
         } finally {
 <span class="pc" id="L132">            lock.release();</span>
 <span class="fc" id="L133">        }</span>
@@ -196,7 +196,7 @@ public final class TSTable {
     }
 
     public byte[][] getColumnMetaData() {
-<span class="nc" id="L199">        return columnMetaData.clone();</span>
+<span class="fc" id="L199">        return columnMetaData.clone();</span>
     }
     
     public String[] getColumnMetaDataAsStrings() {
@@ -243,4 +243,4 @@ public final class TSTable {
     
     
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

@@ -22,7 +22,7 @@ import java.lang.management.GarbageCollectorMXBean;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.perf.MeasurementRecorder;
-import org.spf4j.perf.RecorderFactory;
+import org.spf4j.perf.impl.RecorderFactory;
 import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
@@ -54,7 +54,7 @@ public final class GCUsageSampler {
     public static synchronized void startGCUsageSampling(final int sampleTime) {
 <span class="pc bpc" id="L55" title="1 of 2 branches missed.">        if (samplingFuture == null) {</span>
 <span class="fc" id="L56">            final MeasurementRecorder gcUsage =</span>
-                RecorderFactory.createDirectRecorder(&quot;gc-time&quot;, &quot;ms&quot;, sampleTime);
+                RecorderFactory.createDirectTsdbRecorder(&quot;gc-time&quot;, &quot;ms&quot;, sampleTime);
 <span class="fc" id="L58">            samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {</span>
                 @Override
                 public void doRun() throws Exception {
@@ -75,8 +75,8 @@ public final class GCUsageSampler {
 <span class="fc" id="L75">        long gcTime = 0;</span>
 <span class="fc bfc" id="L76" title="All 2 branches covered.">        for (GarbageCollectorMXBean gcBean : gcBeans) {</span>
 <span class="fc" id="L77">            gcTime += gcBean.getCollectionTime();</span>
-<span class="fc" id="L78">        }</span>
+        }
 <span class="fc" id="L79">        return gcTime;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

@@ -30,6 +30,8 @@ import javax.annotation.concurrent.Immutable;
  * @author zoly
  */
 @Immutable
+// using racy single check idiom makes findbugs think the Method obejct is mutable...
+@edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;JCIP_FIELD_ISNT_FINAL_IN_IMMUTABLE_CLASS&quot;)
 public final class Method {
 
     private final String declaringClass;
@@ -37,106 +39,103 @@ public final class Method {
     private final int id;
     private int hash;
 
-<span class="nc" id="L40">    public Method(final StackTraceElement elem) {</span>
-<span class="nc" id="L41">        this.declaringClass = elem.getClassName();</span>
-<span class="nc" id="L42">        this.methodName = elem.getMethodName();</span>
-<span class="nc" id="L43">        this.id = 0;</span>
-<span class="nc" id="L44">    }</span>
+<span class="nc" id="L42">    public Method(final StackTraceElement elem) {</span>
+<span class="nc" id="L43">        this.declaringClass = elem.getClassName();</span>
+<span class="nc" id="L44">        this.methodName = elem.getMethodName();</span>
+<span class="nc" id="L45">        this.id = 0;</span>
+<span class="nc" id="L46">    }</span>
 
-<span class="nc" id="L46">    public Method(final Class&lt;?&gt; clasz, final String methodName) {</span>
-<span class="nc" id="L47">        this.declaringClass = clasz.getName();</span>
-<span class="nc" id="L48">        this.methodName = methodName;</span>
-<span class="nc" id="L49">        this.id = 0;</span>
-<span class="nc" id="L50">    }</span>
+<span class="nc" id="L48">    public Method(final Class&lt;?&gt; clasz, final String methodName) {</span>
+<span class="nc" id="L49">        this.declaringClass = clasz.getName();</span>
+<span class="nc" id="L50">        this.methodName = methodName;</span>
+<span class="nc" id="L51">        this.id = 0;</span>
+<span class="nc" id="L52">    }</span>
 
-<span class="fc" id="L52">    public Method(final String declaringClass, final String methodName) {</span>
-<span class="fc" id="L53">        this.declaringClass = declaringClass;</span>
-<span class="fc" id="L54">        this.methodName = methodName;</span>
-<span class="fc" id="L55">        this.id = 0;</span>
-<span class="fc" id="L56">    }</span>
+<span class="fc" id="L54">    public Method(final String declaringClass, final String methodName) {</span>
+<span class="fc" id="L55">        this.declaringClass = declaringClass;</span>
+<span class="fc" id="L56">        this.methodName = methodName;</span>
+<span class="fc" id="L57">        this.id = 0;</span>
+<span class="fc" id="L58">    }</span>
 
-<span class="fc" id="L58">    private Method(final String declaringClass, final String methodName, final int id) {</span>
-<span class="fc" id="L59">        this.declaringClass = declaringClass;</span>
-<span class="fc" id="L60">        this.methodName = methodName;</span>
-<span class="fc" id="L61">        this.id = id;</span>
-<span class="fc" id="L62">    }</span>
+<span class="fc" id="L60">    private Method(final String declaringClass, final String methodName, final int id) {</span>
+<span class="fc" id="L61">        this.declaringClass = declaringClass;</span>
+<span class="fc" id="L62">        this.methodName = methodName;</span>
+<span class="fc" id="L63">        this.id = id;</span>
+<span class="fc" id="L64">    }</span>
 
     public String getDeclaringClass() {
-<span class="fc" id="L65">        return declaringClass;</span>
+<span class="fc" id="L67">        return declaringClass;</span>
     }
 
     public String getMethodName() {
-<span class="fc" id="L69">        return methodName;</span>
+<span class="fc" id="L71">        return methodName;</span>
     }
 
     @Override
     public int hashCode() {
-<span class="fc bfc" id="L74" title="All 2 branches covered.">        if (hash == 0) {</span>
-<span class="fc" id="L75">            int nhash = 3;</span>
-<span class="pc bpc" id="L76" title="1 of 2 branches missed.">            nhash = 47 * nhash + (this.declaringClass != null ? this.declaringClass.hashCode() : 0);</span>
-<span class="pc bpc" id="L77" title="1 of 2 branches missed.">            nhash = 47 * nhash + (this.methodName != null ? this.methodName.hashCode() : 0);</span>
-<span class="fc" id="L78">            nhash = 47 * nhash + this.id;</span>
-<span class="fc" id="L79">            hash = nhash;</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        if (hash == 0) {</span>
+<span class="fc" id="L77">            int nhash = 3;</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">            nhash = 47 * nhash + (this.declaringClass != null ? this.declaringClass.hashCode() : 0);</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">            nhash = 47 * nhash + (this.methodName != null ? this.methodName.hashCode() : 0);</span>
+<span class="fc" id="L80">            nhash = 47 * nhash + this.id;</span>
+<span class="fc" id="L81">            hash = nhash;</span>
         }
-<span class="fc" id="L81">        return hash;</span>
+<span class="fc" id="L83">        return hash;</span>
     }
 
     @Override
     public boolean equals(final Object obj) {
-<span class="fc bfc" id="L86" title="All 2 branches covered.">        if (this == obj) {</span>
-<span class="fc" id="L87">            return true;</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (this == obj) {</span>
+<span class="fc" id="L89">            return true;</span>
         }
-<span class="pc bpc" id="L89" title="1 of 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L90">            return false;</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L92">            return false;</span>
         }
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L93">            return false;</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L95">            return false;</span>
         }
-<span class="fc" id="L95">        final Method other = (Method) obj;</span>
-<span class="pc bpc" id="L96" title="3 of 6 branches missed.">        if ((this.declaringClass == null)</span>
+<span class="fc" id="L97">        final Method other = (Method) obj;</span>
+<span class="pc bpc" id="L98" title="3 of 6 branches missed.">        if ((this.declaringClass == null)</span>
                 ? (other.declaringClass != null) : !this.declaringClass.equals(other.declaringClass)) {
-<span class="fc" id="L98">            return false;</span>
+<span class="fc" id="L100">            return false;</span>
         }
-<span class="pc bpc" id="L100" title="3 of 6 branches missed.">        if ((this.methodName == null) ? (other.methodName != null) : !this.methodName.equals(other.methodName)) {</span>
-<span class="fc" id="L101">            return false;</span>
+<span class="pc bpc" id="L102" title="3 of 6 branches missed.">        if ((this.methodName == null) ? (other.methodName != null) : !this.methodName.equals(other.methodName)) {</span>
+<span class="fc" id="L103">            return false;</span>
         }
-<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (this.id != other.id) {</span>
-<span class="nc" id="L104">            return false;</span>
-        }
-<span class="fc" id="L106">        return true;</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">        return this.id == other.id;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L111">        return methodName + &quot;@&quot; + declaringClass;</span>
+<span class="fc" id="L110">        return methodName + &quot;@&quot; + declaringClass;</span>
     }
 
     public void toWriter(final Writer w) throws IOException {
-<span class="nc" id="L115">        w.append(methodName).append(&quot;@&quot;).append(declaringClass);</span>
-<span class="nc" id="L116">    }</span>
+<span class="nc" id="L114">        w.append(methodName).append(&quot;@&quot;).append(declaringClass);</span>
+<span class="nc" id="L115">    }</span>
 
     public void toHtmlWriter(final Writer w) throws IOException {
-<span class="fc" id="L119">        Escaper htmlEscaper = HtmlEscapers.htmlEscaper();</span>
-<span class="fc" id="L120">        w.append(htmlEscaper.escape(methodName)).append(htmlEscaper.escape(&quot;@&quot;)).</span>
+<span class="nc" id="L118">        Escaper htmlEscaper = HtmlEscapers.htmlEscaper();</span>
+<span class="nc" id="L119">        w.append(htmlEscaper.escape(methodName)).append(htmlEscaper.escape(&quot;@&quot;)).</span>
                 append(htmlEscaper.escape(declaringClass));
-<span class="fc" id="L122">    }</span>
-<span class="fc" id="L123">    public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), &quot;ROOT&quot;, 0);</span>
+<span class="nc" id="L121">    }</span>
+<span class="fc" id="L122">    public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), &quot;ROOT&quot;, 0);</span>
 
     public Method withId(final int pid) {
-<span class="fc" id="L126">        return new Method(declaringClass, methodName, pid);</span>
+<span class="fc" id="L125">        return new Method(declaringClass, methodName, pid);</span>
     }
 
     public Method withNewId() {
-<span class="nc" id="L130">        return new Method(declaringClass, methodName, id + 1);</span>
+<span class="nc" id="L129">        return new Method(declaringClass, methodName, id + 1);</span>
     }
     
     
-<span class="fc" id="L134">    private static final Map&lt;String, Map&lt;String, Method&gt;&gt; INSTANCE_REPO =</span>
+<span class="fc" id="L133">    private static final Map&lt;String, Map&lt;String, Method&gt;&gt; INSTANCE_REPO =</span>
             new HashMap&lt;String, Map&lt;String, Method&gt;&gt;(1024);
     
 
     public static Method getMethod(final StackTraceElement elem) {
-<span class="fc" id="L139">        return getMethod(elem.getClassName(), elem.getMethodName());</span>
+<span class="fc" id="L138">        return getMethod(elem.getClassName(), elem.getMethodName());</span>
     }
     
     /*
@@ -146,23 +145,22 @@ public final class Method {
     
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;PMB_POSSIBLE_MEMORY&quot;)
     public static Method getMethod(final String className, final String methodName) {
-<span class="fc" id="L149">        Map&lt;String, Method&gt; mtom = INSTANCE_REPO.get(className);</span>
+<span class="fc" id="L148">        Map&lt;String, Method&gt; mtom = INSTANCE_REPO.get(className);</span>
         Method result;
-<span class="fc bfc" id="L151" title="All 2 branches covered.">        if (mtom == null) {</span>
-<span class="fc" id="L152">            mtom = new HashMap&lt;String, Method&gt;();</span>
-<span class="fc" id="L153">            result = new Method(className, methodName);</span>
-<span class="fc" id="L154">            mtom.put(methodName, result);</span>
-<span class="fc" id="L155">            INSTANCE_REPO.put(className, mtom);</span>
+<span class="fc bfc" id="L150" title="All 2 branches covered.">        if (mtom == null) {</span>
+<span class="fc" id="L151">            mtom = new HashMap&lt;String, Method&gt;();</span>
+<span class="fc" id="L152">            result = new Method(className, methodName);</span>
+<span class="fc" id="L153">            mtom.put(methodName, result);</span>
+<span class="fc" id="L154">            INSTANCE_REPO.put(className, mtom);</span>
         } else {
-<span class="fc" id="L157">            result = mtom.get(methodName);</span>
-<span class="fc bfc" id="L158" title="All 2 branches covered.">            if (result == null) {</span>
-<span class="fc" id="L159">                result = new Method(className, methodName);</span>
-<span class="fc" id="L160">                mtom.put(methodName, result);</span>
+<span class="fc" id="L156">            result = mtom.get(methodName);</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">            if (result == null) {</span>
+<span class="fc" id="L158">                result = new Method(className, methodName);</span>
+<span class="fc" id="L159">                mtom.put(methodName, result);</span>
             }
         }
-<span class="fc" id="L163">        return result;</span>
+<span class="fc" id="L162">        return result;</span>
     }
     
-    
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

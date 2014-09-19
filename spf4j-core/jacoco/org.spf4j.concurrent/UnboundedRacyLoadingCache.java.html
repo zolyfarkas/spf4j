@@ -74,14 +74,14 @@ public final class UnboundedRacyLoadingCache&lt;K, V&gt; implements LoadingCache
 <span class="nc" id="L74">        ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
 <span class="nc bnc" id="L75" title="All 2 branches missed.">        for (K key : keys) {</span>
 <span class="nc" id="L76">            builder.put(key, get(key));</span>
-<span class="nc" id="L77">        }</span>
+        }
 <span class="nc" id="L78">        return builder.build();</span>
     }
 
     @Override
     public V apply(final K key) {
 <span class="nc bnc" id="L83" title="All 2 branches missed.">        if (key == null) {</span>
-<span class="nc" id="L84">            throw new IllegalArgumentException(&quot;key cannot be null&quot;);</span>
+<span class="nc" id="L84">            throw new IllegalArgumentException(&quot;key cannot be null for &quot; + this);</span>
         } else {
 <span class="nc" id="L86">            return getUnchecked(key);</span>
         }
@@ -137,7 +137,7 @@ public final class UnboundedRacyLoadingCache&lt;K, V&gt; implements LoadingCache
     public void putAll(final Map&lt;? extends K, ? extends V&gt; m) {
 <span class="nc bnc" id="L138" title="All 2 branches missed.">        for (Map.Entry&lt;? extends K, ? extends V&gt; entry : m.entrySet()) {</span>
 <span class="nc" id="L139">            put(entry.getKey(), entry.getValue());</span>
-<span class="nc" id="L140">        }</span>
+        }
 <span class="nc" id="L141">    }</span>
 
     @Override
@@ -149,7 +149,7 @@ public final class UnboundedRacyLoadingCache&lt;K, V&gt; implements LoadingCache
     public void invalidateAll(final Iterable&lt;?&gt; keys) {
 <span class="nc bnc" id="L150" title="All 2 branches missed.">        for (K key : (Iterable&lt;K&gt;) keys) {</span>
 <span class="nc" id="L151">            invalidate(key);</span>
-<span class="nc" id="L152">        }</span>
+        }
 <span class="nc" id="L153">    }</span>
 
     @Override
@@ -173,4 +173,4 @@ public final class UnboundedRacyLoadingCache&lt;K, V&gt; implements LoadingCache
 <span class="nc" id="L173">    }</span>
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

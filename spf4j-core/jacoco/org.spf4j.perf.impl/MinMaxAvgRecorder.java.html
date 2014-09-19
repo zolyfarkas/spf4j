@@ -17,6 +17,7 @@
  */
 package org.spf4j.perf.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.EntityMeasurements;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementProcessor;
@@ -34,82 +35,91 @@ public final class MinMaxAvgRecorder
     private long max;
     private final EntityMeasurementsInfo info;
     
-<span class="fc" id="L37">    private static final String [] MEASUREMENTS = {&quot;count&quot;, &quot;total&quot;, &quot;min&quot;, &quot;max&quot;};</span>
+<span class="fc" id="L38">    private static final String [] MEASUREMENTS = {&quot;count&quot;, &quot;total&quot;, &quot;min&quot;, &quot;max&quot;};</span>
 
-    private MinMaxAvgRecorder(final Object measuredEntity, final String unitOfMeasurement,
-<span class="fc" id="L40">            final long counter, final long total, final long min, final long max) {</span>
-<span class="fc" id="L41">        this.info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement,</span>
+    private MinMaxAvgRecorder(final Object measuredEntity, final String description, final String unitOfMeasurement,
+<span class="fc" id="L41">            final long counter, final long total, final long min, final long max) {</span>
+<span class="fc" id="L42">        this.info = new EntityMeasurementsInfoImpl(measuredEntity, description,</span>
                 MEASUREMENTS, new String [] {&quot;count&quot;, unitOfMeasurement, unitOfMeasurement, unitOfMeasurement});
-<span class="fc" id="L43">        this.counter = counter;</span>
-<span class="fc" id="L44">        this.total = total;</span>
-<span class="fc" id="L45">        this.min = min;</span>
-<span class="fc" id="L46">        this.max = max;</span>
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L44">        this.counter = counter;</span>
+<span class="fc" id="L45">        this.total = total;</span>
+<span class="fc" id="L46">        this.min = min;</span>
+<span class="fc" id="L47">        this.max = max;</span>
+<span class="fc" id="L48">    }</span>
 
-    public MinMaxAvgRecorder(final Object measuredEntity, final String unitOfMeasurement) {
-<span class="fc" id="L50">        this(measuredEntity, unitOfMeasurement, 0, 0, Long.MAX_VALUE, Long.MIN_VALUE);</span>
-<span class="fc" id="L51">    }</span>
+    public MinMaxAvgRecorder(final Object measuredEntity, final String description, final String unitOfMeasurement) {
+<span class="fc" id="L51">        this(measuredEntity, description, unitOfMeasurement, 0, 0, Long.MAX_VALUE, Long.MIN_VALUE);</span>
+<span class="fc" id="L52">    }</span>
     
+    
+    public String getUnitOfMeasurement() {
+<span class="fc" id="L56">        return info.getMeasurementUnit(1);</span>
+    }
     
     
     @Override
     public synchronized void record(final long measurement) {
-<span class="fc" id="L57">        total += measurement;</span>
-<span class="fc" id="L58">        counter++;</span>
-<span class="fc bfc" id="L59" title="All 2 branches covered.">        if (measurement &lt; min) {</span>
-<span class="fc" id="L60">            min = measurement;</span>
+<span class="fc" id="L62">        total += measurement;</span>
+<span class="fc" id="L63">        counter++;</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">        if (measurement &lt; min) {</span>
+<span class="fc" id="L65">            min = measurement;</span>
         }
-<span class="fc bfc" id="L62" title="All 2 branches covered.">        if (measurement &gt; max) {</span>
-<span class="fc" id="L63">            max = measurement;</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        if (measurement &gt; max) {</span>
+<span class="fc" id="L68">            max = measurement;</span>
         }
-<span class="fc" id="L65">    }</span>
+<span class="fc" id="L70">    }</span>
 
     @Override
     public synchronized long[] getMeasurements() {
-<span class="fc" id="L69">        return new long[] {counter, total, min, max};</span>
+<span class="fc" id="L74">        return new long[] {counter, total, min, max};</span>
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;CLI_CONSTANT_LIST_INDEX&quot;)
+    @SuppressFBWarnings({&quot;CLI_CONSTANT_LIST_INDEX&quot;, &quot;NOS_NON_OWNED_SYNCHRONIZATION&quot; })
     @Override
     public EntityMeasurements aggregate(final EntityMeasurements mSource) {
-<span class="nc" id="L75">        MinMaxAvgRecorder other = (MinMaxAvgRecorder) mSource;</span>
-<span class="nc" id="L76">        long [] measurements = other.getMeasurements();</span>
-<span class="nc" id="L77">        synchronized (this) {</span>
-<span class="nc" id="L78">            return new MinMaxAvgRecorder(this.info.getMeasuredEntity(), this.info.getUnitOfMeasurement(),</span>
-                counter + measurements[0], total + measurements[1],
-                Math.min(min, measurements[2]), Math.max(max, measurements[3]));
-<span class="nc" id="L81">        }</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (mSource instanceof MinMaxAvgRecorder) {</span>
+<span class="nc" id="L81">            MinMaxAvgRecorder other = (MinMaxAvgRecorder) mSource;</span>
+<span class="nc" id="L82">            long [] measurements = other.getMeasurements();</span>
+<span class="nc" id="L83">            synchronized (this) {</span>
+<span class="nc" id="L84">                return new MinMaxAvgRecorder(this.info.getMeasuredEntity(), this.info.getDescription(),</span>
+                    getUnitOfMeasurement(),
+                    counter + measurements[0], total + measurements[1],
+                    Math.min(min, measurements[2]), Math.max(max, measurements[3]));
+<span class="nc" id="L88">            }</span>
+        } else {
+<span class="nc" id="L90">           throw new IllegalArgumentException(&quot;Cannot aggregate &quot; + this + &quot; with &quot; + mSource);</span>
+        }
     }
 
     @Override
     public synchronized MinMaxAvgRecorder createClone() {
-<span class="fc" id="L86">        return new MinMaxAvgRecorder(this.info.getMeasuredEntity(),</span>
-                this.info.getUnitOfMeasurement(), counter, total , min, max);
+<span class="fc" id="L96">        return new MinMaxAvgRecorder(this.info.getMeasuredEntity(),</span>
+                this.info.getDescription(), getUnitOfMeasurement(), counter, total , min, max);
     }
 
     @Override
     public EntityMeasurements createLike(final Object entity) {
-<span class="nc" id="L92">        return new MinMaxAvgRecorder(entity, this.info.getUnitOfMeasurement());</span>
+<span class="nc" id="L102">        return new MinMaxAvgRecorder(entity, this.info.getDescription(), getUnitOfMeasurement());</span>
     }
 
     @Override
     public EntityMeasurementsInfo getInfo() {
-<span class="fc" id="L97">        return info;</span>
+<span class="fc" id="L107">        return info;</span>
     }
 
     @Override
     public synchronized MinMaxAvgRecorder reset() {
-<span class="fc" id="L102">        MinMaxAvgRecorder result = createClone();</span>
-<span class="fc" id="L103">        counter = 0;</span>
-<span class="fc" id="L104">        total = 0;</span>
-<span class="fc" id="L105">        min = Long.MAX_VALUE;</span>
-<span class="fc" id="L106">        max = Long.MIN_VALUE;</span>
-<span class="fc" id="L107">        return result;</span>
+<span class="fc" id="L112">        MinMaxAvgRecorder result = createClone();</span>
+<span class="fc" id="L113">        counter = 0;</span>
+<span class="fc" id="L114">        total = 0;</span>
+<span class="fc" id="L115">        min = Long.MAX_VALUE;</span>
+<span class="fc" id="L116">        max = Long.MIN_VALUE;</span>
+<span class="fc" id="L117">        return result;</span>
     }
 
     @Override
     public long[] getMeasurementsAndReset() {
-<span class="nc" id="L112">        return reset().getMeasurements();</span>
+<span class="nc" id="L122">        return reset().getMeasurements();</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

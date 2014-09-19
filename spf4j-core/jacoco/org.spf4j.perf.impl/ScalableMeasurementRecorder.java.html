@@ -21,7 +21,7 @@ import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.perf.EntityMeasurements;
 import org.spf4j.perf.EntityMeasurementsInfo;
-import org.spf4j.perf.MeasurementDatabase;
+import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MeasurementProcessor;
 import org.spf4j.perf.MeasurementRecorder;
 import java.io.Closeable;
@@ -40,102 +40,102 @@ import org.slf4j.LoggerFactory;
  * @author zoly
  */
 @ThreadSafe
+// a recorder instance is tipically alive for the entire life of the process
+@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(&quot;PMB_INSTANCE_BASED_THREAD_LOCAL&quot;)
 public final class ScalableMeasurementRecorder implements MeasurementRecorder, EntityMeasurements, Closeable {
 
-<span class="fc" id="L45">    private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);</span>
+<span class="fc" id="L47">    private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);</span>
     
     private final Map&lt;Thread, MeasurementProcessor&gt; threadLocalRecorders;
     private final ThreadLocal&lt;MeasurementProcessor&gt; threadLocalRecorder;
     private final ScheduledFuture&lt;?&gt; samplingFuture;
     private final MeasurementProcessor processorTemplate;
 
-    public ScalableMeasurementRecorder(final MeasurementProcessor processor, final int sampleTimeMillis,
-<span class="fc" id="L53">            final MeasurementDatabase database) {</span>
-<span class="fc" id="L54">        threadLocalRecorders = new HashMap&lt;Thread, MeasurementProcessor&gt;();</span>
-<span class="fc" id="L55">        processorTemplate = processor;</span>
-<span class="fc" id="L56">        threadLocalRecorder = new ThreadLocal&lt;MeasurementProcessor&gt;() {</span>
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;PMB_INSTANCE_BASED_THREAD_LOCAL&quot;)
+    ScalableMeasurementRecorder(final MeasurementProcessor processor, final int sampleTimeMillis,
+<span class="fc" id="L56">            final MeasurementStore database) {</span>
+<span class="fc" id="L57">        threadLocalRecorders = new HashMap&lt;Thread, MeasurementProcessor&gt;();</span>
+<span class="fc" id="L58">        processorTemplate = processor;</span>
+<span class="fc" id="L59">        threadLocalRecorder = new ThreadLocal&lt;MeasurementProcessor&gt;() {</span>
 
             @Override
             protected MeasurementProcessor initialValue() {
-<span class="fc" id="L60">                MeasurementProcessor result = (MeasurementProcessor) processor.createClone();</span>
-<span class="fc" id="L61">                synchronized (threadLocalRecorders) {</span>
-<span class="fc" id="L62">                    threadLocalRecorders.put(Thread.currentThread(), result);</span>
-<span class="pc" id="L63">                }</span>
-<span class="fc" id="L64">                return result;</span>
+<span class="fc" id="L63">                MeasurementProcessor result = (MeasurementProcessor) processor.createClone();</span>
+<span class="fc" id="L64">                synchronized (threadLocalRecorders) {</span>
+<span class="fc" id="L65">                    threadLocalRecorders.put(Thread.currentThread(), result);</span>
+<span class="pc" id="L66">                }</span>
+<span class="fc" id="L67">                return result;</span>
             }
         };
         try {
-<span class="fc" id="L68">            database.alocateMeasurements(processor.getInfo(), sampleTimeMillis);</span>
-<span class="nc" id="L69">        } catch (IOException ex) {</span>
-<span class="nc" id="L70">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L71">        }</span>
-<span class="fc" id="L72">        final AbstractRunnable persister = new AbstractRunnable(true) {</span>
-<span class="fc" id="L73">            private volatile long lastRun = 0;</span>
+<span class="fc" id="L71">            database.alocateMeasurements(processor.getInfo(), sampleTimeMillis);</span>
+<span class="nc" id="L72">        } catch (IOException ex) {</span>
+<span class="nc" id="L73">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L74">        }</span>
+<span class="fc" id="L75">        final AbstractRunnable persister = new AbstractRunnable(true) {</span>
+<span class="fc" id="L76">            private volatile long lastRun = 0;</span>
 
             @Override
             public void doRun() throws IOException {
-<span class="fc" id="L77">                long currentTime = System.currentTimeMillis();</span>
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">                if (currentTime &gt; lastRun) {</span>
-<span class="fc" id="L79">                    lastRun = currentTime;</span>
-<span class="fc" id="L80">                    database.saveMeasurements(ScalableMeasurementRecorder.this.getInfo(),</span>
-                            ScalableMeasurementRecorder.this.getMeasurementsAndReset(),
-                            currentTime, sampleTimeMillis);
+<span class="fc" id="L80">                long currentTime = System.currentTimeMillis();</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">                if (currentTime &gt; lastRun) {</span>
+<span class="fc" id="L82">                    lastRun = currentTime;</span>
+<span class="fc" id="L83">                    database.saveMeasurements(ScalableMeasurementRecorder.this.getInfo(),</span>
+                            currentTime, sampleTimeMillis, ScalableMeasurementRecorder.this.getMeasurementsAndReset());
                 } else {
-<span class="nc" id="L84">                    LOG.warn(&quot;Last measurement recording was at {} current run is {}, something is wrong&quot;,</span>
+<span class="nc" id="L86">                    LOG.warn(&quot;Last measurement recording was at {} current run is {}, something is wrong&quot;,</span>
                             lastRun, currentTime);
                 }
-<span class="fc" id="L87">            }</span>
+<span class="fc" id="L89">            }</span>
         };
-<span class="fc" id="L89">        samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);</span>
-<span class="fc" id="L90">        org.spf4j.base.Runtime.addHookAtBeginning(persister);</span>
-<span class="fc" id="L91">    }</span>
+<span class="fc" id="L91">        samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);</span>
+<span class="fc" id="L92">        org.spf4j.base.Runtime.addHookAtBeginning(new AbstractRunnable(true) {</span>
+            
+            @Override
+            public void doRun() throws Exception {
+<span class="fc" id="L96">                persister.doRun();</span>
+<span class="fc" id="L97">                close();</span>
+<span class="fc" id="L98">            }</span>
+        });
+<span class="fc" id="L100">    }</span>
 
     @Override
     public void record(final long measurement) {
-<span class="fc" id="L95">        threadLocalRecorder.get().record(measurement);</span>
-<span class="fc" id="L96">    }</span>
+<span class="fc" id="L104">        threadLocalRecorder.get().record(measurement);</span>
+<span class="fc" id="L105">    }</span>
 
     @Override
     public long [] getMeasurements() {
-<span class="nc" id="L100">        EntityMeasurements result  = null;</span>
-<span class="nc" id="L101">        synchronized (threadLocalRecorders) {</span>
-<span class="nc bnc" id="L102" title="All 2 branches missed.">            for (Map.Entry&lt;Thread, MeasurementProcessor&gt; entry : threadLocalRecorders.entrySet()) {</span>
-<span class="nc" id="L103">                EntityMeasurements measurements = entry.getValue().createClone();</span>
-<span class="nc bnc" id="L104" title="All 2 branches missed.">                if (result == null) {</span>
-<span class="nc" id="L105">                    result = measurements;</span>
+<span class="nc" id="L109">        EntityMeasurements result  = null;</span>
+<span class="nc" id="L110">        synchronized (threadLocalRecorders) {</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            for (Map.Entry&lt;Thread, MeasurementProcessor&gt; entry : threadLocalRecorders.entrySet()) {</span>
+<span class="nc" id="L112">                EntityMeasurements measurements = entry.getValue().createClone();</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">                if (result == null) {</span>
+<span class="nc" id="L114">                    result = measurements;</span>
                 } else {
-<span class="nc" id="L107">                    result = result.aggregate(measurements);</span>
+<span class="nc" id="L116">                    result = result.aggregate(measurements);</span>
                 }
-<span class="nc" id="L109">            }</span>
-<span class="nc" id="L110">        }</span>
-<span class="nc bnc" id="L111" title="All 2 branches missed.">        return (result == null) ? processorTemplate.getMeasurements() : result.getMeasurements();</span>
+<span class="nc" id="L118">            }</span>
+<span class="nc" id="L119">        }</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        return (result == null) ? processorTemplate.getMeasurements() : result.getMeasurements();</span>
     }
 
     @Override
     public EntityMeasurements aggregate(final EntityMeasurements mSource) {
-<span class="nc" id="L116">        throw new UnsupportedOperationException(&quot;Aggregating Scalable Recorders not supported&quot;);</span>
+<span class="nc" id="L125">        throw new UnsupportedOperationException(&quot;Aggregating Scalable Recorders not supported&quot;);</span>
     }
 
 
 
     @Override
     public EntityMeasurements createClone() {
-<span class="nc" id="L123">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L132">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public void close() {
-<span class="fc" id="L128">        samplingFuture.cancel(false);</span>
-<span class="fc" id="L129">    }</span>
-
-    @Override
-    protected void finalize() throws Throwable {
-        try {
-<span class="nc" id="L134">            super.finalize();</span>
-        } finally {
-<span class="nc" id="L136">            this.close();</span>
-<span class="nc" id="L137">        }</span>
-<span class="nc" id="L138">    }</span>
+<span class="fc" id="L137">        samplingFuture.cancel(false);</span>
+<span class="fc" id="L138">    }</span>
 
     @Override
     public String toString() {
@@ -177,10 +177,10 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
 <span class="fc" id="L177">            }</span>
 <span class="pc bpc" id="L178" title="1 of 2 branches missed.">            for (Thread t : removeThreads) {</span>
 <span class="nc" id="L179">                threadLocalRecorders.remove(t);</span>
-<span class="nc" id="L180">            }</span>
+            }
 <span class="pc" id="L181">        }</span>
 <span class="pc bpc" id="L182" title="1 of 2 branches missed.">        return (result == null) ? processorTemplate.getMeasurements() : result.getMeasurements();</span>
     }
     
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

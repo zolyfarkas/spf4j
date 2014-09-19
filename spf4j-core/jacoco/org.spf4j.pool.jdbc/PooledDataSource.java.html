@@ -25,10 +25,10 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
-import org.spf4j.pool.ObjectBorrowException;
-import org.spf4j.pool.ObjectCreationException;
-import org.spf4j.pool.ObjectPool;
-import org.spf4j.pool.impl.ObjectPoolBuilder;
+import org.spf4j.recyclable.ObjectBorrowException;
+import org.spf4j.recyclable.ObjectCreationException;
+import org.spf4j.recyclable.RecyclingSupplier;
+import org.spf4j.recyclable.impl.RecyclingSupplierBuilder;
 
 /**
  *
@@ -37,75 +37,78 @@ import org.spf4j.pool.impl.ObjectPoolBuilder;
 @Beta
 public final class PooledDataSource implements DataSource {
 
-    private final ObjectPool&lt;Connection&gt; pool;
+    private final RecyclingSupplier&lt;Connection&gt; pool;
     
     
     public PooledDataSource(final int coreSize, final int maxSize,
             final String driverName, final String url, final String user, final String password)
 <span class="nc" id="L45">            throws ObjectCreationException {</span>
-<span class="nc" id="L46">        ObjectPoolBuilder&lt;Connection, SQLException&gt; builder =</span>
-                new ObjectPoolBuilder&lt;Connection, SQLException&gt;(
-                maxSize, new JdbcConnectionFactory(driverName, url, user, password));
-<span class="nc" id="L49">        pool = builder.build();</span>
-<span class="nc" id="L50">    }</span>
+<span class="nc" id="L46">        final JdbcConnectionFactory jdbcConnectionFactory =</span>
+                new JdbcConnectionFactory(driverName, url, user, password);
+<span class="nc" id="L48">        RecyclingSupplierBuilder&lt;Connection&gt; builder =</span>
+                new RecyclingSupplierBuilder&lt;Connection&gt;(
+                maxSize, jdbcConnectionFactory);
+<span class="nc" id="L51">        pool = builder.build();</span>
+<span class="nc" id="L52">        jdbcConnectionFactory.setPool(pool);</span>
+<span class="nc" id="L53">    }</span>
     
     @Override
     public Connection getConnection() throws SQLException {
         try {
-<span class="nc" id="L55">            return pool.borrowObject();</span>
-<span class="nc" id="L56">        } catch (InterruptedException ex) {</span>
-<span class="nc" id="L57">            throw new SQLException(ex);</span>
-<span class="nc" id="L58">        } catch (TimeoutException ex) {</span>
-<span class="nc" id="L59">            throw new SQLException(ex);</span>
-<span class="nc" id="L60">        } catch (ObjectBorrowException ex) {</span>
-<span class="nc" id="L61">            throw new SQLException(ex);</span>
-<span class="nc" id="L62">        } catch (ObjectCreationException ex) {</span>
-<span class="nc" id="L63">            throw new SQLException(ex);</span>
+<span class="nc" id="L58">            return pool.get();</span>
+<span class="nc" id="L59">        } catch (InterruptedException ex) {</span>
+<span class="nc" id="L60">            throw new SQLException(ex);</span>
+<span class="nc" id="L61">        } catch (TimeoutException ex) {</span>
+<span class="nc" id="L62">            throw new SQLException(ex);</span>
+<span class="nc" id="L63">        } catch (ObjectBorrowException ex) {</span>
+<span class="nc" id="L64">            throw new SQLException(ex);</span>
+<span class="nc" id="L65">        } catch (ObjectCreationException ex) {</span>
+<span class="nc" id="L66">            throw new SQLException(ex);</span>
         }
     }
 
     @Override
     public Connection getConnection(final String username, final String password) {
-<span class="nc" id="L69">        throw new UnsupportedOperationException(&quot;Unsupported operation&quot;);</span>
+<span class="nc" id="L72">        throw new UnsupportedOperationException(&quot;Unsupported operation&quot;);</span>
     }
 
     @Override
     public PrintWriter getLogWriter() {
-<span class="nc" id="L74">        throw new UnsupportedOperationException(&quot;Unsupported operation&quot;);</span>
+<span class="nc" id="L77">        throw new UnsupportedOperationException(&quot;Unsupported operation&quot;);</span>
     }
 
     @Override
     public void setLogWriter(final PrintWriter out) {
-<span class="nc" id="L79">        throw new UnsupportedOperationException(&quot;Unsupported operation&quot;);</span>
+<span class="nc" id="L82">        throw new UnsupportedOperationException(&quot;Unsupported operation&quot;);</span>
     }
 
     @Override
     public void setLoginTimeout(final int seconds) {
-<span class="nc" id="L84">        throw new UnsupportedOperationException(&quot;Unsupported operation&quot;);</span>
+<span class="nc" id="L87">        throw new UnsupportedOperationException(&quot;Unsupported operation&quot;);</span>
     }
 
     @Override
     public int getLoginTimeout() {
-<span class="nc" id="L89">        throw new UnsupportedOperationException(&quot;Unsupported operation&quot;);</span>
+<span class="nc" id="L92">        throw new UnsupportedOperationException(&quot;Unsupported operation&quot;);</span>
     }
 
     @Override
     public &lt;T&gt; T unwrap(final Class&lt;T&gt; iface) throws SQLException {
-<span class="nc bnc" id="L94" title="All 4 branches missed.">        if (iface.equals(DataSource.class) || iface.equals(PooledDataSource.class)) {</span>
-<span class="nc" id="L95">            return (T) this;</span>
+<span class="nc bnc" id="L97" title="All 4 branches missed.">        if (iface.equals(DataSource.class) || iface.equals(PooledDataSource.class)) {</span>
+<span class="nc" id="L98">            return (T) this;</span>
         } else {
-<span class="nc" id="L97">            throw new SQLException(&quot;Not a wrapper for &quot; + iface);</span>
+<span class="nc" id="L100">            throw new SQLException(&quot;Not a wrapper for &quot; + iface);</span>
         }
     }
 
     @Override
     public boolean isWrapperFor(final Class&lt;?&gt; iface) {
-<span class="nc bnc" id="L103" title="All 4 branches missed.">        return iface.equals(DataSource.class) || iface.equals(PooledDataSource.class);</span>
+<span class="nc bnc" id="L106" title="All 4 branches missed.">        return iface.equals(DataSource.class) || iface.equals(PooledDataSource.class);</span>
     }
 
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
-<span class="nc" id="L107">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L110">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
     
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

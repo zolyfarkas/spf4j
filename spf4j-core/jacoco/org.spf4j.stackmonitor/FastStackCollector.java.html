@@ -34,47 +34,47 @@ import java.security.PrivilegedAction;
  * calling-a-getter-in-java-though-reflection-whats-the-fastest-way-to-repeatedly
  * @author zoly
  */
-<span class="fc" id="L37">public final class FastStackCollector extends AbstractStackCollector {</span>
+<span class="nc" id="L37">public final class FastStackCollector extends AbstractStackCollector {</span>
     
     private static final java.lang.reflect.Method GET_THREADS;
     private static final java.lang.reflect.Method DUMP_THREADS;
 
     static {
         try {
-<span class="fc" id="L44">            GET_THREADS = Thread.class.getDeclaredMethod(&quot;getThreads&quot;);</span>
-<span class="fc" id="L45">            DUMP_THREADS = Thread.class.getDeclaredMethod(&quot;dumpThreads&quot;, Thread[].class);</span>
+<span class="nc" id="L44">            GET_THREADS = Thread.class.getDeclaredMethod(&quot;getThreads&quot;);</span>
+<span class="nc" id="L45">            DUMP_THREADS = Thread.class.getDeclaredMethod(&quot;dumpThreads&quot;, Thread[].class);</span>
 <span class="nc" id="L46">        } catch (SecurityException ex) {</span>
 <span class="nc" id="L47">            throw new RuntimeException(ex);</span>
 <span class="nc" id="L48">        } catch (NoSuchMethodException ex) {</span>
 <span class="nc" id="L49">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L50">        }</span>
-<span class="fc" id="L51">        AccessController.doPrivileged(new PrivilegedAction() {</span>
+<span class="nc" id="L50">        }</span>
+<span class="nc" id="L51">        AccessController.doPrivileged(new PrivilegedAction() {</span>
             @Override
             public Object run() {
-<span class="fc" id="L54">                GET_THREADS.setAccessible(true);</span>
-<span class="fc" id="L55">                DUMP_THREADS.setAccessible(true);</span>
-<span class="fc" id="L56">                return null; // nothing to return</span>
+<span class="nc" id="L54">                GET_THREADS.setAccessible(true);</span>
+<span class="nc" id="L55">                DUMP_THREADS.setAccessible(true);</span>
+<span class="nc" id="L56">                return null; // nothing to return</span>
             }
         });
 
-<span class="fc" id="L60">    }</span>
+<span class="nc" id="L60">    }</span>
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
     public void sample(final Thread ignore) {
         try {
-<span class="fc" id="L66">            Thread[] threads = (Thread[]) GET_THREADS.invoke(null);</span>
-<span class="fc" id="L67">            final int nrThreads = threads.length;</span>
-<span class="pc bpc" id="L68" title="1 of 2 branches missed.">            for (int i = 0; i &lt; nrThreads; i++) {</span>
-<span class="fc bfc" id="L69" title="All 2 branches covered.">                if (ignore == threads[i]) { // not interested in the sampler's stack trace</span>
-<span class="fc" id="L70">                    threads[i] = null;</span>
-<span class="fc" id="L71">                    break;</span>
+<span class="nc" id="L66">            Thread[] threads = (Thread[]) GET_THREADS.invoke(null);</span>
+<span class="nc" id="L67">            final int nrThreads = threads.length;</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">            for (int i = 0; i &lt; nrThreads; i++) {</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">                if (ignore == threads[i]) { // not interested in the sampler's stack trace</span>
+<span class="nc" id="L70">                    threads[i] = null;</span>
+<span class="nc" id="L71">                    break;</span>
                 }
             }
-<span class="fc" id="L74">            StackTraceElement[][] stackDump = (StackTraceElement[][]) DUMP_THREADS.invoke(null, (Object) threads);</span>
-<span class="fc bfc" id="L75" title="All 2 branches covered.">            for (StackTraceElement[] stackTrace : stackDump) {</span>
-<span class="fc bfc" id="L76" title="All 4 branches covered.">                if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
-<span class="fc" id="L77">                        addSample(stackTrace);</span>
+<span class="nc" id="L74">            StackTraceElement[][] stackDump = (StackTraceElement[][]) DUMP_THREADS.invoke(null, (Object) threads);</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            for (StackTraceElement[] stackTrace : stackDump) {</span>
+<span class="nc bnc" id="L76" title="All 4 branches missed.">                if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
+<span class="nc" id="L77">                        addSample(stackTrace);</span>
                 }
             }
 <span class="nc" id="L80">        } catch (IllegalAccessException ex) {</span>
@@ -83,8 +83,8 @@ import java.security.PrivilegedAction;
 <span class="nc" id="L83">            throw new RuntimeException(ex);</span>
 <span class="nc" id="L84">        } catch (InvocationTargetException ex) {</span>
 <span class="nc" id="L85">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L86">        }</span>
-<span class="fc" id="L87">    }</span>
+<span class="nc" id="L86">        }</span>
+<span class="nc" id="L87">    }</span>
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

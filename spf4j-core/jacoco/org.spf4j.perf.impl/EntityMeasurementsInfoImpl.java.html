@@ -28,16 +28,16 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
     private final Object measuredEntity;
-    private final String unitOfMeasurement;
+    private final String description;
     private final String[] measurementNames;
     private final String[] measurementUnits;
     
  
 
-    public EntityMeasurementsInfoImpl(final Object measuredEntity, final String unitOfMeasurement,
+    public EntityMeasurementsInfoImpl(final Object measuredEntity, final String description,
 <span class="fc" id="L38">            final String [] measurementNames, final String[] measurementUnits) {</span>
 <span class="fc" id="L39">        this.measuredEntity = measuredEntity;</span>
-<span class="fc" id="L40">        this.unitOfMeasurement = unitOfMeasurement;</span>
+<span class="fc" id="L40">        this.description = description;</span>
 <span class="fc" id="L41">        this.measurementNames = measurementNames.clone();</span>
 <span class="fc" id="L42">        this.measurementUnits = measurementUnits.clone();</span>
 <span class="fc" id="L43">    }</span>
@@ -48,8 +48,8 @@ public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo 
     }
 
     @Override
-    public String getUnitOfMeasurement() {
-<span class="fc" id="L52">        return unitOfMeasurement;</span>
+    public String getDescription() {
+<span class="fc" id="L52">        return description;</span>
     }
 
     @Override
@@ -75,34 +75,46 @@ public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo 
                 &amp;&amp; (this.measuredEntity == null || !this.measuredEntity.equals(other.measuredEntity))) {
 <span class="nc" id="L76">            return false;</span>
         }
-<span class="nc bnc" id="L78" title="All 6 branches missed.">        if ((this.unitOfMeasurement == null)</span>
-                ? (other.unitOfMeasurement != null) : !this.unitOfMeasurement.equals(other.unitOfMeasurement)) {
+<span class="nc bnc" id="L78" title="All 6 branches missed.">        if ((this.description == null)</span>
+                ? (other.description != null) : !this.description.equals(other.description)) {
 <span class="nc" id="L80">            return false;</span>
         }
-<span class="nc bnc" id="L82" title="All 2 branches missed.">        if (!Arrays.deepEquals(this.measurementNames, other.measurementNames)) {</span>
-<span class="nc" id="L83">            return false;</span>
-        }
-<span class="nc" id="L85">        return true;</span>
+<span class="nc" id="L82">        return Arrays.equals(this.measurementNames, other.measurementNames);</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L90">        return &quot;EntityMeasurementsInfoImpl{&quot; + &quot;measuredEntity=&quot; + measuredEntity</span>
-                + &quot;, unitOfMeasurement=&quot; + unitOfMeasurement + &quot;, measurementNames=&quot;
+<span class="fc" id="L87">        return &quot;EntityMeasurementsInfoImpl{&quot; + &quot;measuredEntity=&quot; + measuredEntity</span>
+                + &quot;, description=&quot; + description + &quot;, measurementNames=&quot;
                 + Arrays.toString(measurementNames) + '}';
     }
 
 
     @Override
     public int getNumberOfMeasurements() {
-<span class="fc" id="L98">        return measurementNames.length;</span>
+<span class="fc" id="L95">        return measurementNames.length;</span>
     }
 
     @Override
     public String[] getMeasurementUnits() {
-<span class="fc" id="L103">        return measurementUnits.clone();</span>
+<span class="fc" id="L100">        return measurementUnits.clone();</span>
+    }
+
+    @Override
+    public String getMeasurementName(final int measurementNr) {
+<span class="fc" id="L105">        return measurementNames[measurementNr];</span>
+    }
+
+    @Override
+    public String getMeasurementUnit(final int measurementNr) {
+<span class="fc" id="L110">        return measurementUnits[measurementNr];</span>
+    }
+
+    @Override
+    public int getMeasurementNr() {
+<span class="nc" id="L115">        return measurementNames.length;</span>
     }
     
     
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

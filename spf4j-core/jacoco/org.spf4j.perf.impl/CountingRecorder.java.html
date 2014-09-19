@@ -17,6 +17,7 @@
  */
 package org.spf4j.perf.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.EntityMeasurements;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementProcessor;
@@ -31,69 +32,77 @@ public final class CountingRecorder
     private long counter;
     private long total;
     private final EntityMeasurementsInfo info;
-<span class="fc" id="L34">    private static final String[] MEASUREMENTS = {&quot;count&quot;, &quot;total&quot;};</span>
+<span class="fc" id="L35">    private static final String[] MEASUREMENTS = {&quot;count&quot;, &quot;total&quot;};</span>
 
-    private CountingRecorder(final Object measuredEntity, final String unitOfMeasurement,
-<span class="fc" id="L37">            final long counter, final long total) {</span>
-<span class="fc" id="L38">        this.info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement,</span>
+    private CountingRecorder(final Object measuredEntity, final String description,
+<span class="fc" id="L38">            final String unitOfMeasurement, final long counter, final long total) {</span>
+<span class="fc" id="L39">        this.info = new EntityMeasurementsInfoImpl(measuredEntity, description,</span>
                 MEASUREMENTS, new String[]{&quot;count&quot;, unitOfMeasurement});
-<span class="fc" id="L40">        this.counter = counter;</span>
-<span class="fc" id="L41">        this.total = total;</span>
-<span class="fc" id="L42">    }</span>
+<span class="fc" id="L41">        this.counter = counter;</span>
+<span class="fc" id="L42">        this.total = total;</span>
+<span class="fc" id="L43">    }</span>
 
-    public CountingRecorder(final Object measuredEntity, final String unitOfMeasurement) {
-<span class="fc" id="L45">        this(measuredEntity, unitOfMeasurement, 0, 0);</span>
-<span class="fc" id="L46">    }</span>
+    public CountingRecorder(final Object measuredEntity, final String description, final String unitOfMeasurement) {
+<span class="fc" id="L46">        this(measuredEntity, description, unitOfMeasurement, 0, 0);</span>
+<span class="fc" id="L47">    }</span>
 
+    public String getUnitOfMeasurement() {
+<span class="fc" id="L50">        return info.getMeasurementUnit(1);</span>
+    }
+    
     @Override
     public synchronized void record(final long measurement) {
-<span class="fc" id="L50">        total += measurement;</span>
-<span class="fc" id="L51">        counter++;</span>
-<span class="fc" id="L52">    }</span>
+<span class="fc" id="L55">        total += measurement;</span>
+<span class="fc" id="L56">        counter++;</span>
+<span class="fc" id="L57">    }</span>
 
     @Override
     public synchronized long[] getMeasurements() {
-<span class="fc" id="L56">        return new long[]{counter, total};</span>
+<span class="fc" id="L61">        return new long[]{counter, total};</span>
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;CLI_CONSTANT_LIST_INDEX&quot;)
+    @SuppressFBWarnings({&quot;CLI_CONSTANT_LIST_INDEX&quot;, &quot;NOS_NON_OWNED_SYNCHRONIZATION&quot; })
     @Override
     public EntityMeasurements aggregate(final EntityMeasurements mSource) {
-<span class="nc" id="L62">        CountingRecorder other = (CountingRecorder) mSource;</span>
-<span class="nc" id="L63">        long[] measurements = other.getMeasurements();</span>
-<span class="nc" id="L64">        synchronized (this) {</span>
-<span class="nc" id="L65">            return new CountingRecorder(this.info.getMeasuredEntity(), this.info.getUnitOfMeasurement(),</span>
-                    counter + measurements[0], total + measurements[1]);
-<span class="nc" id="L67">        }</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (mSource instanceof CountingRecorder) {</span>
+<span class="nc" id="L68">            CountingRecorder other = (CountingRecorder) mSource;</span>
+<span class="nc" id="L69">            long[] measurements = other.getMeasurements();</span>
+<span class="nc" id="L70">            synchronized (this) {</span>
+<span class="nc" id="L71">                return new CountingRecorder(this.info.getMeasuredEntity(), this.info.getDescription(),</span>
+                        getUnitOfMeasurement(), counter + measurements[0], total + measurements[1]);
+<span class="nc" id="L73">            }</span>
+        } else {
+<span class="nc" id="L75">            throw new IllegalArgumentException(&quot;Cannot aggregate &quot; + this + &quot; with &quot; + mSource);</span>
+        }
     }
 
     @Override
     public synchronized CountingRecorder createClone() {
-<span class="fc" id="L72">        return new CountingRecorder(this.info.getMeasuredEntity(),</span>
-                this.info.getUnitOfMeasurement(), counter, total);
+<span class="fc" id="L81">        return new CountingRecorder(this.info.getMeasuredEntity(),</span>
+                this.info.getDescription(), getUnitOfMeasurement(), counter, total);
     }
 
     @Override
     public CountingRecorder createLike(final Object entity) {
-<span class="fc" id="L78">        return new CountingRecorder(entity, this.info.getUnitOfMeasurement());</span>
+<span class="fc" id="L87">        return new CountingRecorder(entity, this.info.getDescription(), getUnitOfMeasurement());</span>
     }
 
     @Override
     public EntityMeasurementsInfo getInfo() {
-<span class="fc" id="L83">        return info;</span>
+<span class="fc" id="L92">        return info;</span>
     }
 
     @Override
     public synchronized EntityMeasurements reset() {
-<span class="fc" id="L88">        EntityMeasurements result = this.createClone();</span>
-<span class="fc" id="L89">        counter = 0;</span>
-<span class="fc" id="L90">        total = 0;</span>
-<span class="fc" id="L91">        return result;</span>
+<span class="fc" id="L97">        EntityMeasurements result = this.createClone();</span>
+<span class="fc" id="L98">        counter = 0;</span>
+<span class="fc" id="L99">        total = 0;</span>
+<span class="fc" id="L100">        return result;</span>
     }
 
     @Override
     public long[] getMeasurementsAndReset() {
-<span class="fc" id="L96">        return reset().getMeasurements();</span>
+<span class="fc" id="L105">        return reset().getMeasurements();</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

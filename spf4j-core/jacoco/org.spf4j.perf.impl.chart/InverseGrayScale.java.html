@@ -31,6 +31,7 @@ import org.jfree.util.PublicCloneable;
 public final class InverseGrayScale
         implements PaintScale, PublicCloneable, Serializable {
 
+
     /** The lower bound. */
     private final double lowerBound;
 
@@ -48,8 +49,8 @@ public final class InverseGrayScale
      * Creates a new &lt;code&gt;GrayPaintScale&lt;/code&gt; instance with default values.
      */
     public InverseGrayScale() {
-<span class="nc" id="L51">        this(0.0, 1.0);</span>
-<span class="nc" id="L52">    }</span>
+<span class="nc" id="L52">        this(0.0, 1.0);</span>
+<span class="nc" id="L53">    }</span>
 
     /**
      * Creates a new paint scale for values in the specified range.
@@ -61,8 +62,8 @@ public final class InverseGrayScale
      *       less than &lt;code&gt;upperBound&lt;/code&gt;.
      */
     public InverseGrayScale(final double lowerBound, final double upperBound) {
-<span class="fc" id="L64">        this(lowerBound, upperBound, 255);</span>
-<span class="fc" id="L65">    }</span>
+<span class="fc" id="L65">        this(lowerBound, upperBound, 255);</span>
+<span class="fc" id="L66">    }</span>
 
     /**
      * Creates a new paint scale for values in the specified range.
@@ -77,20 +78,20 @@ public final class InverseGrayScale
      *
      * @since 1.0.13
      */
-<span class="fc" id="L80">    public InverseGrayScale(final double lowerBound, final double upperBound, final int alpha) {</span>
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (lowerBound &gt;= upperBound) {</span>
-<span class="nc" id="L82">            throw new IllegalArgumentException(</span>
+<span class="fc" id="L81">    public InverseGrayScale(final double lowerBound, final double upperBound, final int alpha) {</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">        if (lowerBound &gt;= upperBound) {</span>
+<span class="nc" id="L83">            throw new IllegalArgumentException(</span>
                     &quot;Requires &quot; + lowerBound + &quot; &lt; &quot; + upperBound + &quot;.&quot;);
         }
-<span class="pc bpc" id="L85" title="2 of 4 branches missed.">        if (alpha &lt; 0 || alpha &gt; 255) {</span>
-<span class="nc" id="L86">            throw new IllegalArgumentException(</span>
-                    &quot;Requires alpha in the range 0 to 255.&quot;);
+<span class="pc bpc" id="L86" title="2 of 4 branches missed.">        if (alpha &lt; 0 || alpha &gt; 255) {</span>
+<span class="nc" id="L87">            throw new IllegalArgumentException(</span>
+                    &quot;Requires alpha in the range 0 to 255. and not &quot; + alpha);
 
         }
-<span class="fc" id="L90">        this.lowerBound = lowerBound;</span>
-<span class="fc" id="L91">        this.upperBound = upperBound;</span>
-<span class="fc" id="L92">        this.alpha = alpha;</span>
-<span class="fc" id="L93">    }</span>
+<span class="fc" id="L91">        this.lowerBound = lowerBound;</span>
+<span class="fc" id="L92">        this.upperBound = upperBound;</span>
+<span class="fc" id="L93">        this.alpha = alpha;</span>
+<span class="fc" id="L94">    }</span>
 
     /**
      * Returns the lower bound.
@@ -101,7 +102,7 @@ public final class InverseGrayScale
      */
     @Override
     public double getLowerBound() {
-<span class="fc" id="L104">        return this.lowerBound;</span>
+<span class="fc" id="L105">        return this.lowerBound;</span>
     }
 
     /**
@@ -113,7 +114,7 @@ public final class InverseGrayScale
      */
     @Override
     public double getUpperBound() {
-<span class="fc" id="L116">        return this.upperBound;</span>
+<span class="fc" id="L117">        return this.upperBound;</span>
     }
 
     /**
@@ -124,7 +125,7 @@ public final class InverseGrayScale
      * @since 1.0.13
      */
     public int getAlpha() {
-<span class="nc" id="L127">        return this.alpha;</span>
+<span class="nc" id="L128">        return this.alpha;</span>
     }
 
     /**
@@ -137,51 +138,51 @@ public final class InverseGrayScale
      */
     @Override
     public Paint getPaint(final double value) {
-<span class="fc" id="L140">        double v = Math.max(value, this.lowerBound);</span>
-<span class="fc" id="L141">        v = Math.min(v, this.upperBound);</span>
+<span class="fc" id="L141">        double v = Math.max(value, this.lowerBound);</span>
+<span class="fc" id="L142">        v = Math.min(v, this.upperBound);</span>
         int g;
-<span class="fc bfc" id="L143" title="All 2 branches covered.">        if (value &gt;= 1) {</span>
-<span class="fc" id="L144">            g = 240 -  (int) ((v - this.lowerBound) / (this.upperBound</span>
+<span class="fc bfc" id="L144" title="All 2 branches covered.">        if (value &gt;= 1) {</span>
+<span class="fc" id="L145">            g = 240 -  (int) ((v - this.lowerBound) / (this.upperBound</span>
                 - this.lowerBound) * 240.0);
         } else {
-<span class="fc" id="L147">            g = 255 -  (int) ((v - this.lowerBound) / (this.upperBound</span>
+<span class="fc" id="L148">            g = 255 -  (int) ((v - this.lowerBound) / (this.upperBound</span>
                 - this.lowerBound) * 15.0);
         }
         // FIXME:  it probably makes sense to allocate an array of 256 Colors
         // and lazily populate this array...
 
-<span class="fc" id="L153">        return new Color(g, g, g, this.alpha);</span>
+<span class="fc" id="L154">        return new Color(g, g, g, this.alpha);</span>
     }
 
     @Override
     public boolean equals(final Object obj) {
-<span class="nc bnc" id="L158" title="All 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L159">            return false;</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L160">            return false;</span>
         }
-<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L162">            return false;</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L163">            return false;</span>
         }
-<span class="nc" id="L164">        final InverseGrayScale other = (InverseGrayScale) obj;</span>
-<span class="nc bnc" id="L165" title="All 2 branches missed.">        if (Double.doubleToLongBits(this.lowerBound) != Double.doubleToLongBits(other.lowerBound)) {</span>
-<span class="nc" id="L166">            return false;</span>
+<span class="nc" id="L165">        final InverseGrayScale other = (InverseGrayScale) obj;</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        if (Double.doubleToLongBits(this.lowerBound) != Double.doubleToLongBits(other.lowerBound)) {</span>
+<span class="nc" id="L167">            return false;</span>
         }
-<span class="nc bnc" id="L168" title="All 2 branches missed.">        if (Double.doubleToLongBits(this.upperBound) != Double.doubleToLongBits(other.upperBound)) {</span>
-<span class="nc" id="L169">            return false;</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">        if (Double.doubleToLongBits(this.upperBound) != Double.doubleToLongBits(other.upperBound)) {</span>
+<span class="nc" id="L170">            return false;</span>
         }
-<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (this.alpha != other.alpha) {</span>
-<span class="nc" id="L172">            return false;</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (this.alpha != other.alpha) {</span>
+<span class="nc" id="L173">            return false;</span>
         }
-<span class="nc" id="L174">        return true;</span>
+<span class="nc" id="L175">        return true;</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L179">        int hash = 3;</span>
-<span class="nc" id="L180">        hash = 97 * hash</span>
+<span class="nc" id="L180">        int hash = 3;</span>
+<span class="nc" id="L181">        hash = 97 * hash</span>
                 + (int) (Double.doubleToLongBits(this.lowerBound) ^ (Double.doubleToLongBits(this.lowerBound) &gt;&gt;&gt; 32));
-<span class="nc" id="L182">        hash = 97 * hash</span>
+<span class="nc" id="L183">        hash = 97 * hash</span>
                 + (int) (Double.doubleToLongBits(this.upperBound) ^ (Double.doubleToLongBits(this.upperBound) &gt;&gt;&gt; 32));
-<span class="nc" id="L184">        return  97 * hash + this.alpha;</span>
+<span class="nc" id="L185">        return  97 * hash + this.alpha;</span>
     }
 
 
@@ -197,11 +198,13 @@ public final class InverseGrayScale
     @Override
     public InverseGrayScale clone() {
         try {
-<span class="nc" id="L200">            return (InverseGrayScale) super.clone();</span>
-<span class="nc" id="L201">        } catch (CloneNotSupportedException ex) {</span>
-<span class="nc" id="L202">           throw new RuntimeException(ex);</span>
+<span class="nc" id="L201">            return (InverseGrayScale) super.clone();</span>
+<span class="nc" id="L202">        } catch (CloneNotSupportedException ex) {</span>
+<span class="nc" id="L203">           throw new RuntimeException(ex);</span>
         }
     }
+    
+    private static final long serialVersionUID = 1L;
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

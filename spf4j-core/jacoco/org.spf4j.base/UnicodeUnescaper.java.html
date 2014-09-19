@@ -27,35 +27,36 @@ import java.io.Writer;
      */
     @Override
     public int translate(final CharSequence input, final int index, final Writer out) throws IOException {
-<span class="pc bpc" id="L30" title="2 of 6 branches missed.">        if (input.charAt(index) == '\\' &amp;&amp; index + 1 &lt; input.length() &amp;&amp; input.charAt(index + 1) == 'u') {</span>
+<span class="fc" id="L30">        final int length = input.length();</span>
+<span class="pc bpc" id="L31" title="2 of 6 branches missed.">        if (input.charAt(index) == '\\' &amp;&amp; index + 1 &lt; length &amp;&amp; input.charAt(index + 1) == 'u') {</span>
             // consume optional additional 'u' chars
-<span class="nc" id="L32">            int i = 2;</span>
-<span class="nc bnc" id="L33" title="All 4 branches missed.">            while (index + i &lt; input.length() &amp;&amp; input.charAt(index + i) == 'u') {</span>
-<span class="nc" id="L34">                i++;</span>
+<span class="nc" id="L33">            int i = 2;</span>
+<span class="nc bnc" id="L34" title="All 4 branches missed.">            while (index + i &lt; length &amp;&amp; input.charAt(index + i) == 'u') {</span>
+<span class="nc" id="L35">                i++;</span>
             }
 
-<span class="nc bnc" id="L37" title="All 4 branches missed.">            if (index + i &lt; input.length() &amp;&amp; input.charAt(index + i) == '+') {</span>
-<span class="nc" id="L38">                i++;</span>
+<span class="nc bnc" id="L38" title="All 4 branches missed.">            if (index + i &lt; length &amp;&amp; input.charAt(index + i) == '+') {</span>
+<span class="nc" id="L39">                i++;</span>
             }
 
-<span class="nc bnc" id="L41" title="All 2 branches missed.">            if (index + i + 4 &lt;= input.length()) {</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">            if (index + i + 4 &lt;= length) {</span>
                 // Get 4 hex digits
-<span class="nc" id="L43">                final CharSequence unicode = input.subSequence(index + i, index + i + 4);</span>
+<span class="nc" id="L44">                final CharSequence unicode = input.subSequence(index + i, index + i + 4);</span>
 
                 try {
-<span class="nc" id="L46">                    final int value = Integer.parseInt(unicode.toString(), 16);</span>
-<span class="nc" id="L47">                    out.write((char) value);</span>
-<span class="nc" id="L48">                } catch (final NumberFormatException nfe) {</span>
-<span class="nc" id="L49">                    throw new IllegalArgumentException(&quot;Unable to parse unicode value: &quot; + unicode, nfe);</span>
-<span class="nc" id="L50">                }</span>
-<span class="nc" id="L51">                return i + 4;</span>
+<span class="nc" id="L47">                    final int value = Integer.parseInt(unicode.toString(), 16);</span>
+<span class="nc" id="L48">                    out.write((char) value);</span>
+<span class="nc" id="L49">                } catch (final NumberFormatException nfe) {</span>
+<span class="nc" id="L50">                    throw new IllegalArgumentException(&quot;Unable to parse unicode value: &quot; + unicode, nfe);</span>
+<span class="nc" id="L51">                }</span>
+<span class="nc" id="L52">                return i + 4;</span>
             } else {
-<span class="nc" id="L53">                throw new IllegalArgumentException(&quot;Less than 4 hex digits in unicode value: '&quot;</span>
-                        + input.subSequence(index, input.length())
+<span class="nc" id="L54">                throw new IllegalArgumentException(&quot;Less than 4 hex digits in unicode value: '&quot;</span>
+                        + input.subSequence(index, length)
                         + &quot;' due to end of CharSequence&quot;);
             }
         }
-<span class="fc" id="L58">        return 0;</span>
+<span class="fc" id="L59">        return 0;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

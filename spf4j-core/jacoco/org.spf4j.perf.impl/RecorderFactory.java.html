@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>RecorderFactory.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">RecorderFactory.java</span></div><h1>RecorderFactory.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.impl;
+
+import org.spf4j.perf.impl.ms.StoreType;
+import org.spf4j.perf.impl.ms.graphite.GraphiteTcpStore;
+import org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.lang.management.ManagementFactory;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import org.spf4j.io.Csv;
+import org.spf4j.perf.MeasurementRecorder;
+import org.spf4j.perf.MeasurementRecorderSource;
+import org.spf4j.perf.MeasurementStore;
+import org.spf4j.perf.impl.ms.Flusher;
+import org.spf4j.perf.impl.ms.MultiStore;
+import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
+import org.spf4j.recyclable.ObjectCreationException;
+
+/**
+ *
+ * @author zoly
+ */
+public final class RecorderFactory {
+
+<span class="nc" id="L47">    private RecorderFactory() {</span>
+<span class="nc" id="L48">    }</span>
+    public static final MeasurementStore TS_DATABASE;
+
+    
+    /**
+     * Configuration is a coma separated list of stores:
+     * TSDB@/path/to/file.tsdb,TSDB_TXT@/path/to/file.tsdbtxt,GRAPHITE_UDP@1.1.1.1:8080,GRAPHITE_TCP@1.1.1.1:8080
+     * @param configuration
+     * @return a measurement store.
+     */
+    @Nonnull
+    private static MeasurementStore buildStoreFromConfig(@Nullable final String configuration)
+            throws IOException, ObjectCreationException {
+        
+<span class="pc bpc" id="L62" title="1 of 4 branches missed.">        if (configuration == null || configuration.trim().isEmpty()) {</span>
+<span class="fc" id="L63">            return new TSDBMeasurementStore(System.getProperty(&quot;perf.db.folder&quot;,</span>
+                    System.getProperty(&quot;java.io.tmpdir&quot;)) + File.separator + System.getProperty(&quot;perf.db.name&quot;,
+                    ManagementFactory.getRuntimeMXBean().getName() + &quot;.tsdb&quot;));
+        }
+        
+<span class="fc" id="L68">        List&lt;String&gt; stores = Csv.readRow(new StringReader(configuration), new Csv.CsvRowHandler&lt;List&lt;String&gt;&gt;() {</span>
+
+<span class="fc" id="L70">            private final List&lt;String&gt; result = new ArrayList&lt;String&gt;(4);</span>
+     
+
+            @Override
+            public void element(final CharSequence elem) {
+<span class="fc" id="L75">                result.add(elem.toString());</span>
+<span class="fc" id="L76">            }</span>
+
+            @Override
+            public List&lt;String&gt; eof() {
+<span class="fc" id="L80">                return result;</span>
+            }
+        });
+<span class="fc" id="L83">        final int size = stores.size();</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (size == 1) {</span>
+<span class="nc" id="L85">            return fromString(stores.get(0));</span>
+        } else {
+<span class="fc" id="L87">            MeasurementStore [] mstores = new MeasurementStore[size];</span>
+<span class="fc" id="L88">            int i = 0;</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">            for (String config : stores) {</span>
+<span class="fc" id="L90">                mstores[i] = fromString(config);</span>
+<span class="fc" id="L91">                i++;</span>
+            }
+<span class="fc" id="L93">            return new MultiStore(mstores);</span>
+        }
+    }
+    
+    private static MeasurementStore fromString(final String string) throws IOException, ObjectCreationException {
+<span class="fc" id="L98">        int atIdx = string.indexOf('@');</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        if (atIdx &lt; 0) {</span>
+<span class="nc" id="L100">            throw new IllegalArgumentException(&quot;Invalid measuremnt store configuration &quot; + string);</span>
+        }
+<span class="fc" id="L102">        StoreType type = StoreType.valueOf(string.substring(0, atIdx));</span>
+<span class="fc" id="L103">        return type.create(string.substring(atIdx + 1));</span>
+    }
+    
+    
+    static {
+        try {
+<span class="fc" id="L109">            TS_DATABASE = buildStoreFromConfig(System.getProperty(&quot;perf.ms.config&quot;, null));</span>
+<span class="fc" id="L110">            Flusher.flushEvery(60000, TS_DATABASE);</span>
+<span class="nc" id="L111">        } catch (IOException ex) {</span>
+<span class="nc" id="L112">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L113">        } catch (ObjectCreationException ex) {</span>
+<span class="nc" id="L114">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L115">        }</span>
+<span class="fc" id="L116">    }</span>
+
+    public static MeasurementRecorder createScalableQuantizedRecorder(
+            final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis,
+            final int factor, final int lowerMagnitude,
+            final int higherMagnitude, final int quantasPerMagnitude) {
+<span class="fc" id="L122">        return new ScalableMeasurementRecorder(new QuantizedRecorder(forWhat, &quot;&quot;,</span>
+                unitOfMeasurement, factor, lowerMagnitude, higherMagnitude,
+                quantasPerMagnitude), sampleTimeMillis, TS_DATABASE);
+    }
+
+    public static MeasurementRecorder createScalableCountingRecorder(
+            final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
+<span class="nc" id="L129">        return new ScalableMeasurementRecorder(new CountingRecorder(forWhat, &quot;&quot;,</span>
+                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+    }
+
+    public static MeasurementRecorder createScalableMinMaxAvgRecorder(
+            final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
+<span class="fc" id="L135">        return new ScalableMeasurementRecorder(new MinMaxAvgRecorder(forWhat, &quot;&quot;,</span>
+                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+    }
+
+    public static MeasurementRecorderSource createScalableQuantizedRecorderSource(
+            final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis,
+            final int factor, final int lowerMagnitude,
+            final int higherMagnitude, final int quantasPerMagnitude) {
+<span class="fc" id="L143">        return new ScalableMeasurementRecorderSource(new QuantizedRecorder(forWhat, &quot;&quot;,</span>
+                unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude),
+                sampleTimeMillis, TS_DATABASE);
+    }
+
+    public static MeasurementRecorderSource createScalableCountingRecorderSource(
+            final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
+<span class="fc" id="L150">        return new ScalableMeasurementRecorderSource(new CountingRecorder(forWhat, &quot;&quot;,</span>
+                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+    }
+
+    public static MeasurementRecorderSource createScalableMinMaxAvgRecorderSource(
+            final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
+<span class="nc" id="L156">        return new ScalableMeasurementRecorderSource(new MinMaxAvgRecorder(forWhat, &quot;&quot;,</span>
+                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+    }
+
+    public static MeasurementRecorder createDirectTsdbRecorder(final Object forWhat, final String unitOfMeasurement) {
+<span class="nc" id="L161">        return new DirectRecorder(forWhat, &quot;&quot;, unitOfMeasurement, 0, TS_DATABASE);</span>
+    }
+
+    public static MeasurementRecorder createDirectTsdbRecorder(final Object forWhat,
+            final String unitOfMeasurement, final int sampleTimeMillis) {
+<span class="fc" id="L166">        return new DirectRecorder(forWhat, &quot;&quot;, unitOfMeasurement, sampleTimeMillis, TS_DATABASE);</span>
+    }
+    
+    public static MeasurementRecorder createDirectGraphiteUdpRecorder(final Object forWhat,
+            final String unitOfMeasurement,
+            final String graphiteHost, final int graphitePort) throws ObjectCreationException {
+<span class="nc" id="L172">        return new DirectRecorder(forWhat, &quot;&quot;, unitOfMeasurement, 0,</span>
+                new GraphiteUdpStore(graphiteHost, graphitePort));
+    }
+    
+    public static MeasurementRecorder createDirectGraphiteTcpRecorder(final Object forWhat,
+            final String unitOfMeasurement,
+            final String graphiteHost, final int graphitePort) throws ObjectCreationException {
+<span class="nc" id="L179">        return new DirectRecorder(forWhat, &quot;&quot;, unitOfMeasurement, 0,</span>
+                new GraphiteTcpStore(graphiteHost, graphitePort));
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

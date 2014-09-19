@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>MultiStore.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl.ms</a> &gt; <span class="el_source">MultiStore.java</span></div><h1>MultiStore.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.impl.ms;
+
+import java.io.IOException;
+import java.util.Arrays;
+import org.spf4j.base.Throwables;
+import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementStore;
+
+/**
+ *
+ * @author zoly
+ */
+public final class MultiStore implements MeasurementStore {
+
+    private final MeasurementStore [] stores;
+    
+<span class="fc" id="L34">    public MultiStore(final MeasurementStore ... stores) {</span>
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">        if (stores.length &lt;= 1) {</span>
+<span class="nc" id="L36">            throw new IllegalArgumentException(&quot;You need to supply more than 1 store, not &quot; + Arrays.toString(stores));</span>
+        }
+<span class="fc" id="L38">        this.stores = stores;</span>
+<span class="fc" id="L39">    }</span>
+    
+    
+    @Override
+    public void alocateMeasurements(final EntityMeasurementsInfo measurement,
+            final int sampleTimeMillis) throws IOException {
+<span class="fc" id="L45">        IOException ex = null;</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        for (MeasurementStore store : stores) {</span>
+            try {
+<span class="fc" id="L48">                store.alocateMeasurements(measurement, sampleTimeMillis);</span>
+<span class="nc" id="L49">            } catch (IOException e) {</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">                if (ex == null) {</span>
+<span class="nc" id="L51">                    ex = e;</span>
+                } else {
+<span class="nc" id="L53">                    ex = Throwables.suppress(e, ex);</span>
+                }
+<span class="fc" id="L55">            }</span>
+        }
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">        if (ex != null) {</span>
+<span class="nc" id="L58">            throw ex;</span>
+        }
+<span class="fc" id="L60">    }</span>
+
+    @Override
+    public void saveMeasurements(final EntityMeasurementsInfo measurementInfo,
+            final long timeStampMillis, final int sampleTimeMillis, final long... measurements) throws IOException {
+<span class="fc" id="L65">                IOException ex = null;</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        for (MeasurementStore store : stores) {</span>
+            try {
+<span class="fc" id="L68">                store.saveMeasurements(measurementInfo, timeStampMillis, sampleTimeMillis, measurements);</span>
+<span class="nc" id="L69">            } catch (IOException e) {</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">                if (ex == null) {</span>
+<span class="nc" id="L71">                    ex = e;</span>
+                } else {
+<span class="nc" id="L73">                    ex = Throwables.suppress(e, ex);</span>
+                }
+<span class="fc" id="L75">            }</span>
+        }
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        if (ex != null) {</span>
+<span class="nc" id="L78">            throw ex;</span>
+        }
+<span class="fc" id="L80">    }</span>
+
+    @Override
+    public void flush() throws IOException {
+<span class="nc" id="L84">                IOException ex = null;</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        for (MeasurementStore store : stores) {</span>
+            try {
+<span class="nc" id="L87">                store.flush();</span>
+<span class="nc" id="L88">            } catch (IOException e) {</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">                if (ex == null) {</span>
+<span class="nc" id="L90">                    ex = e;</span>
+                } else {
+<span class="nc" id="L92">                    ex = Throwables.suppress(e, ex);</span>
+                }
+<span class="nc" id="L94">            }</span>
+        }
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (ex != null) {</span>
+<span class="nc" id="L97">            throw ex;</span>
+        }
+<span class="nc" id="L99">    }</span>
+
+    @Override
+    public void close() throws IOException {
+<span class="nc" id="L103">                IOException ex = null;</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        for (MeasurementStore store : stores) {</span>
+            try {
+<span class="nc" id="L106">                store.close();</span>
+<span class="nc" id="L107">            } catch (IOException e) {</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">                if (ex == null) {</span>
+<span class="nc" id="L109">                    ex = e;</span>
+                } else {
+<span class="nc" id="L111">                    ex = Throwables.suppress(e, ex);</span>
+                }
+<span class="nc" id="L113">            }</span>
+        }
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (ex != null) {</span>
+<span class="nc" id="L116">            throw ex;</span>
+        }
+<span class="nc" id="L118">    }</span>
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

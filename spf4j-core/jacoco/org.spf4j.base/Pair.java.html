@@ -20,7 +20,10 @@ package org.spf4j.base;
 
 import org.spf4j.io.Csv;
 import com.google.common.base.Objects;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -28,85 +31,98 @@ import java.util.List;
  */
 public class Pair&lt;A, B&gt; {
 
-<span class="fc" id="L31">    public Pair(final A first, final B second) {</span>
-<span class="fc" id="L32">        this.first = first;</span>
-<span class="fc" id="L33">        this.second = second;</span>
-<span class="fc" id="L34">    }</span>
-    
+<span class="fc" id="L34">    public Pair(final A first, final B second) {</span>
+<span class="fc" id="L35">        this.first = first;</span>
+<span class="fc" id="L36">        this.second = second;</span>
+<span class="fc" id="L37">    }</span>
+
     public static &lt;A, B&gt; Pair&lt;A, B&gt; of(final A first, final B second) {
-<span class="fc" id="L37">        return new Pair&lt;A, B&gt;(first, second);</span>
+<span class="fc" id="L40">        return new Pair&lt;A, B&gt;(first, second);</span>
     }
-    
+
     /**
      * Creates a pair from a (str1,str2) pair.
+     *
      * @param stringPair
      * @return null if this is not a pair.
      */
+    @Nullable
     public static Pair&lt;String, String&gt; from(final String stringPair) {
-<span class="pc bpc" id="L46" title="2 of 4 branches missed.">        if (!stringPair.startsWith(&quot;(&quot;) || !stringPair.endsWith(&quot;)&quot;)) {</span>
-<span class="nc" id="L47">            return null;</span>
+<span class="pc bpc" id="L51" title="2 of 4 branches missed.">        if (!stringPair.startsWith(PREFIX) || !stringPair.endsWith(SUFFIX)) {</span>
+<span class="nc" id="L52">            return null;</span>
         }
-<span class="fc" id="L49">        int commaIdx = stringPair.indexOf(',');</span>
-<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        if (commaIdx &lt; 0) {</span>
-<span class="nc" id="L51">            return null;</span>
-        }
-<span class="fc" id="L53">        StringBuilder first = new StringBuilder();</span>
-<span class="fc" id="L54">        int idx = Csv.readCsvElement(stringPair, 1, first);</span>
-<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        if (stringPair.charAt(idx) != ',') {</span>
+<span class="fc" id="L54">        int commaIdx = stringPair.indexOf(',');</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        if (commaIdx &lt; 0) {</span>
 <span class="nc" id="L56">            return null;</span>
         }
-<span class="fc" id="L58">        StringBuilder second = new StringBuilder();</span>
-<span class="fc" id="L59">        Csv.readCsvElement(stringPair, idx + 1, stringPair.length() - 1, second);</span>
-<span class="fc" id="L60">        return Pair.of(first.toString(), second.toString());</span>
+
+<span class="fc" id="L59">        StringReader sr = new StringReader(</span>
+                stringPair.substring(PREFIX.length(), stringPair.length() - SUFFIX.length()));
+<span class="fc" id="L61">        StringBuilder first = new StringBuilder();</span>
+<span class="fc" id="L62">        StringBuilder second = new StringBuilder();</span>
+        int comma;
+        try {
+<span class="fc" id="L65">            comma = Csv.readCsvElement(sr, first);</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">            if (comma != ',') {</span>
+<span class="nc" id="L67">                return null;</span>
+            }
+
+<span class="fc" id="L70">            int last = Csv.readCsvElement(sr, second);</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">            if (last &gt;= 0) {</span>
+<span class="nc" id="L72">                return null;</span>
+            }
+<span class="nc" id="L74">        } catch (IOException ex) {</span>
+<span class="nc" id="L75">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L76">        }</span>
+<span class="fc" id="L77">        return Pair.of(first.toString(), second.toString());</span>
     }
-        
+    private static final String SUFFIX = &quot;)&quot;;
+    
+    private static final String PREFIX = &quot;(&quot;;
+
     //CHECKSTYLE:OFF
     protected final A first;
-    
+
     protected final B second;
     //CHECKSTYLE:ON
-    
+
     public final A getFirst() {
-<span class="fc" id="L70">        return first;</span>
+<span class="fc" id="L90">        return first;</span>
     }
 
     public final B getSecond() {
-<span class="fc" id="L74">        return second;</span>
+<span class="fc" id="L94">        return second;</span>
     }
 
     @Override
     public final boolean equals(final Object obj) {
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L80">            return false;</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L100">            return false;</span>
         }
-<span class="pc bpc" id="L82" title="1 of 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L83">            return false;</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L103">            return false;</span>
         }
-<span class="fc" id="L85">        final Pair&lt;A, B&gt; other = (Pair&lt;A, B&gt;) obj;</span>
-<span class="pc bpc" id="L86" title="2 of 6 branches missed.">        if (this.first != other.first &amp;&amp; (this.first == null || !this.first.equals(other.first))) {</span>
-<span class="nc" id="L87">            return false;</span>
+<span class="fc" id="L105">        final Pair&lt;A, B&gt; other = (Pair&lt;A, B&gt;) obj;</span>
+<span class="pc bpc" id="L106" title="3 of 6 branches missed.">        if (this.first != other.first &amp;&amp; (this.first == null || !this.first.equals(other.first))) {</span>
+<span class="nc" id="L107">            return false;</span>
         }
-<span class="pc bpc" id="L89" title="2 of 6 branches missed.">        if (this.second != other.second &amp;&amp; (this.second == null || !this.second.equals(other.second))) {</span>
-<span class="nc" id="L90">            return false;</span>
-        }
-<span class="fc" id="L92">        return true;</span>
+<span class="pc bpc" id="L109" title="3 of 6 branches missed.">        return (!(this.second != other.second &amp;&amp; (this.second == null || !this.second.equals(other.second))));</span>
     }
 
     @Override
     public final int hashCode() {
-<span class="fc" id="L97">        return Objects.hashCode(first, second);</span>
+<span class="nc" id="L114">        return Objects.hashCode(first, second);</span>
     }
 
     @Override
     public final String toString() {
-<span class="fc" id="L102">        return &quot;(&quot; + Csv.toCsvElement(first.toString())</span>
+<span class="fc" id="L119">        return PREFIX + Csv.toCsvElement(first.toString())</span>
                 + &quot;,&quot; + Csv.toCsvElement(second.toString()) + ')';
     }
-    
+
     public final List&lt;Object&gt; toList() {
-<span class="nc" id="L107">        return java.util.Arrays.asList(first, second);</span>
+<span class="nc" id="L124">        return java.util.Arrays.asList(first, second);</span>
     }
-    
-    
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

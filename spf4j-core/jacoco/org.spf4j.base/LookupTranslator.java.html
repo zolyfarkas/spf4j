@@ -61,20 +61,21 @@ public final class LookupTranslator extends CharSequenceTranslator {
     @Override
     public int translate(final CharSequence input, final int index, final Writer out) throws IOException {
 <span class="fc" id="L63">        int max = longest;</span>
-<span class="pc bpc" id="L64" title="1 of 2 branches missed.">        if (index + longest &gt; input.length()) {</span>
-<span class="nc" id="L65">            max = input.length() - index;</span>
+<span class="fc" id="L64">        final int l = input.length();</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (index + longest &gt; l) {</span>
+<span class="nc" id="L66">            max = l - index;</span>
         }
         // descend so as to get a greedy algorithm
-<span class="fc bfc" id="L68" title="All 2 branches covered.">        for (int i = max; i &gt;= shortest; i--) {</span>
-<span class="fc" id="L69">            final CharSequence subSeq = input.subSequence(index, index + i);</span>
-<span class="fc" id="L70">            final CharSequence result = lookupMap.get(subSeq.toString());</span>
-<span class="fc bfc" id="L71" title="All 2 branches covered.">            if (result != null) {</span>
-<span class="fc" id="L72">                out.write(result.toString());</span>
-<span class="fc" id="L73">                return i;</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        for (int i = max; i &gt;= shortest; i--) {</span>
+<span class="fc" id="L70">            final CharSequence subSeq = input.subSequence(index, index + i);</span>
+<span class="fc" id="L71">            final CharSequence result = lookupMap.get(subSeq.toString());</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">            if (result != null) {</span>
+<span class="fc" id="L73">                out.write(result.toString());</span>
+<span class="fc" id="L74">                return i;</span>
             }
         }
-<span class="fc" id="L76">        return 0;</span>
+<span class="fc" id="L77">        return 0;</span>
     }
 }
 
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

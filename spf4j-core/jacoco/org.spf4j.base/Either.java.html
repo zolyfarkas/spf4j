@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Either.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Either.java</span></div><h1>Either.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.base;
+
+/**
+ * @author zoly
+ */
+public abstract class Either&lt;A, B&gt; {
+
+    //CHECKSTYLE:OFF
+    protected final Object value;
+    //CHECKSTYLE:ON
+    
+<span class="fc" id="L30">    private Either(final Object value) {</span>
+<span class="fc" id="L31">        this.value = value;</span>
+<span class="fc" id="L32">    }</span>
+    
+    public abstract boolean isLeft();
+    
+    
+    public boolean isRight() {
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">        return !isLeft();</span>
+    }
+    
+    
+    public abstract  A getLeft();
+    
+    public abstract  B getRight();
+
+    @Override
+    public int hashCode() {
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        return 73 + (this.value != null ? this.value.hashCode() : 0);</span>
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L54">            return false;</span>
+        }
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L57">            return false;</span>
+        }
+<span class="nc" id="L59">        final Either&lt;?, ?&gt; other = (Either&lt;?, ?&gt;) obj;</span>
+<span class="nc bnc" id="L60" title="All 6 branches missed.">        return (!(this.value != other.value &amp;&amp; (this.value == null || !this.value.equals(other.value))));</span>
+    }
+
+    
+    
+    @Override
+    public String toString() {
+<span class="nc" id="L67">        return &quot;Either{&quot; + &quot;value=&quot; + value + '}';</span>
+    }
+
+    
+    public static final class Left&lt;A, B&gt; extends Either&lt;A, B&gt; {
+
+        public Left(final A a) {
+<span class="fc" id="L74">            super(a);</span>
+<span class="fc" id="L75">        }</span>
+
+        @Override
+        public boolean isLeft() {
+<span class="fc" id="L79">            return true;</span>
+        }
+
+        @Override
+        public A getLeft() {
+<span class="fc" id="L84">            return (A) this.value;</span>
+        }
+
+        @Override
+        public B getRight() {
+<span class="nc" id="L89">            throw new UnsupportedOperationException(&quot;This union doe not have a left val, instead a &quot; + value);</span>
+        }
+        
+    }
+
+    public static final class Right&lt;A, B&gt; extends Either&lt;A, B&gt; {
+        
+        public Right(final B b) {
+<span class="fc" id="L97">           super(b);</span>
+<span class="fc" id="L98">        }</span>
+
+        @Override
+        public boolean isLeft() {
+<span class="fc" id="L102">            return false;</span>
+        }
+
+        @Override
+        public A getLeft() {
+<span class="nc" id="L107">            throw new UnsupportedOperationException(&quot;This union doe not have a left val, instead a &quot; + value);</span>
+        }
+
+        @Override
+        public B getRight() {
+<span class="fc" id="L112">            return (B) value;</span>
+        }
+    }
+
+    public static &lt;A, B&gt; Either&lt;A, B&gt; left(final A a) {
+<span class="fc" id="L117">        return new Left&lt;A, B&gt;(a);</span>
+    }
+    
+    public static &lt;A, B&gt; Either&lt;A, B&gt; right(final B b) {
+<span class="fc" id="L121">        return new Right&lt;A, B&gt;(b);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

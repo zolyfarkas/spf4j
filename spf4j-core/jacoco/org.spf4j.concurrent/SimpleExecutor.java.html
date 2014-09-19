@@ -17,6 +17,7 @@
  */
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author zoly
  */
+@SuppressFBWarnings(&quot;VO_VOLATILE_REFERENCE_TO_ARRAY&quot;)
 public final class SimpleExecutor implements Executor {
 
     private final BlockingQueue&lt;Runnable&gt; queuedTasks;
@@ -39,65 +41,66 @@ public final class SimpleExecutor implements Executor {
     
     private volatile Thread [] threads;
 
-<span class="nc" id="L42">    private static final Logger LOG = LoggerFactory.getLogger(SimpleExecutor.class);</span>
+<span class="nc" id="L44">    private static final Logger LOG = LoggerFactory.getLogger(SimpleExecutor.class);</span>
 
-<span class="nc" id="L44">    public SimpleExecutor() {</span>
-<span class="nc" id="L45">        queuedTasks = new LinkedBlockingQueue&lt;Runnable&gt;();</span>
-<span class="nc" id="L46">        terminated = false;</span>
-<span class="nc" id="L47">        threads = null;</span>
-<span class="nc" id="L48">        threadFactory = new CustomThreadFactory(&quot;SimpleExecutor&quot;, true);</span>
-<span class="nc" id="L49">    }</span>
+<span class="nc" id="L46">    public SimpleExecutor() {</span>
+<span class="nc" id="L47">        queuedTasks = new LinkedBlockingQueue&lt;Runnable&gt;();</span>
+<span class="nc" id="L48">        terminated = false;</span>
+<span class="nc" id="L49">        threads = null;</span>
+<span class="nc" id="L50">        threadFactory = new CustomThreadFactory(&quot;SimpleExecutor&quot;, true);</span>
+<span class="nc" id="L51">    }</span>
 
     public void startThreads(final int nrThreads) {
-<span class="nc" id="L52">        Thread [] newThreads = new Thread[nrThreads];</span>
-<span class="nc bnc" id="L53" title="All 2 branches missed.">        for (int i = 0; i &lt; nrThreads; i++) {</span>
-<span class="nc" id="L54">            Thread t = threadFactory.newThread(new Runnable() {</span>
+<span class="nc" id="L54">        Thread [] newThreads = new Thread[nrThreads];</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        for (int i = 0; i &lt; nrThreads; i++) {</span>
+<span class="nc" id="L56">            Thread t = threadFactory.newThread(new Runnable() {</span>
 
                 @Override
                 public void run() {
                     try {
-<span class="nc bnc" id="L59" title="All 2 branches missed.">                        while (!terminated) {</span>
-<span class="nc" id="L60">                            Runnable runnable = queuedTasks.poll(1, TimeUnit.SECONDS);</span>
-<span class="nc bnc" id="L61" title="All 2 branches missed.">                            if (runnable != null) {</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">                        while (!terminated) {</span>
+<span class="nc" id="L62">                            Runnable runnable = queuedTasks.poll(1, TimeUnit.SECONDS);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">                            if (runnable != null) {</span>
                                 try {
-<span class="nc" id="L63">                                    runnable.run();</span>
-<span class="nc" id="L64">                                } catch (RuntimeException ex) {</span>
-<span class="nc" id="L65">                                    LOG.error(&quot;Exception encountered in worker&quot;, ex);</span>
-<span class="nc" id="L66">                                }</span>
+<span class="nc" id="L65">                                    runnable.run();</span>
+<span class="nc" id="L66">                                } catch (RuntimeException ex) {</span>
+<span class="nc" id="L67">                                    LOG.error(&quot;Exception encountered in worker&quot;, ex);</span>
+<span class="nc" id="L68">                                }</span>
                             }
-<span class="nc" id="L68">                        }</span>
-<span class="nc" id="L69">                    } catch (InterruptedException ex) {</span>
-<span class="nc" id="L70">                        LOG.info(&quot;SimpleExecutor worker interrupted&quot;, ex);</span>
-<span class="nc" id="L71">                    }</span>
-<span class="nc" id="L72">                }</span>
+<span class="nc" id="L70">                        }</span>
+<span class="nc" id="L71">                    } catch (InterruptedException ex) {</span>
+<span class="nc" id="L72">                        LOG.info(&quot;SimpleExecutor worker interrupted&quot;, ex);</span>
+<span class="nc" id="L73">                    }</span>
+<span class="nc" id="L74">                }</span>
             });
-<span class="nc" id="L74">            t.start();</span>
-<span class="nc" id="L75">            newThreads[i] = t;</span>
+<span class="nc" id="L76">            t.start();</span>
+<span class="nc" id="L77">            newThreads[i] = t;</span>
         }
-<span class="nc" id="L77">        threads = newThreads;</span>
-<span class="nc" id="L78">    }</span>
+<span class="nc" id="L79">        threads = newThreads;</span>
+<span class="nc" id="L80">    }</span>
     
     public void shutdown() {
-<span class="nc" id="L81">        terminated = true;</span>
-<span class="nc" id="L82">    }</span>
+<span class="nc" id="L83">        terminated = true;</span>
+<span class="nc" id="L84">    }</span>
     
-    public void shutdownAndWait() throws InterruptedException {
-<span class="nc" id="L85">        terminated = true;</span>
-<span class="nc" id="L86">        Thread [] theThreads = threads;</span>
-<span class="nc bnc" id="L87" title="All 2 branches missed.">        for (Thread t : theThreads) {</span>
-<span class="nc" id="L88">            t.join();</span>
+    public void shutdownAndWait(final long timeout) throws InterruptedException {
+<span class="nc" id="L87">        terminated = true;</span>
+<span class="nc" id="L88">        long deadline = timeout + System.currentTimeMillis();</span>
+<span class="nc" id="L89">        Thread [] theThreads = threads;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        for (Thread t : theThreads) {</span>
+<span class="nc" id="L91">            t.join(deadline - System.currentTimeMillis());</span>
         }
-<span class="nc" id="L90">    }</span>
+<span class="nc" id="L93">    }</span>
     
 
     @Override
     public void execute(final Runnable command) {
         try {
-<span class="nc" id="L96">            queuedTasks.put(command);</span>
-<span class="nc" id="L97">        } catch (InterruptedException ex) {</span>
-<span class="nc" id="L98">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L99">        }</span>
-<span class="nc" id="L100">    }</span>
+<span class="nc" id="L99">            queuedTasks.put(command);</span>
+<span class="nc" id="L100">        } catch (InterruptedException ex) {</span>
+<span class="nc" id="L101">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L102">        }</span>
+<span class="nc" id="L103">    }</span>
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

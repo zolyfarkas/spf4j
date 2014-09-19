@@ -18,6 +18,7 @@
 package org.spf4j.perf.impl;
 
 import java.io.Serializable;
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -25,90 +26,89 @@ import javax.annotation.concurrent.Immutable;
  */
 @Immutable
 public final class Quanta implements Comparable&lt;Quanta&gt;, Serializable {
-
+   
     private final long intervalStart;
     private final long intervalEnd;
 
-<span class="nc" id="L32">    public Quanta(final long intervalStart, final long intervalEnd) {</span>
-<span class="nc" id="L33">        this.intervalStart = intervalStart;</span>
-<span class="nc" id="L34">        this.intervalEnd = intervalEnd;</span>
-<span class="nc" id="L35">    }</span>
+<span class="nc" id="L33">    public Quanta(final long intervalStart, final long intervalEnd) {</span>
+<span class="nc" id="L34">        this.intervalStart = intervalStart;</span>
+<span class="nc" id="L35">        this.intervalEnd = intervalEnd;</span>
+<span class="nc" id="L36">    }</span>
 
-<span class="fc" id="L37">    public Quanta(final String stringVariant) {</span>
-<span class="fc" id="L38">        int undLocation = stringVariant.indexOf('_');</span>
-<span class="pc bpc" id="L39" title="1 of 2 branches missed.">        if (undLocation &lt; 0) {</span>
-<span class="nc" id="L40">            throw new IllegalArgumentException(&quot;Invalid Quanta DataSource &quot; + stringVariant);</span>
+<span class="fc" id="L38">    public Quanta(@Nonnull final String stringVariant) {</span>
+<span class="fc" id="L39">        int undLocation = stringVariant.indexOf('_');</span>
+<span class="pc bpc" id="L40" title="1 of 2 branches missed.">        if (undLocation &lt; 0) {</span>
+<span class="nc" id="L41">            throw new IllegalArgumentException(&quot;Invalid Quanta DataSource &quot; + stringVariant);</span>
         }
-<span class="fc" id="L42">        String startStr = stringVariant.substring(1, undLocation);</span>
-<span class="fc" id="L43">        String endStr = stringVariant.substring(undLocation + 1);</span>
-<span class="fc bfc" id="L44" title="All 2 branches covered.">        if (startStr.equals(&quot;NI&quot;)) {</span>
-<span class="fc" id="L45">            this.intervalStart = Long.MIN_VALUE;</span>
+<span class="fc" id="L43">        String startStr = stringVariant.substring(1, undLocation);</span>
+<span class="fc" id="L44">        String endStr = stringVariant.substring(undLocation + 1);</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (&quot;NI&quot;.equals(startStr)) {</span>
+<span class="fc" id="L46">            this.intervalStart = Long.MIN_VALUE;</span>
         } else {
-<span class="fc" id="L47">            this.intervalStart = Long.parseLong(startStr);</span>
+<span class="fc" id="L48">            this.intervalStart = Long.parseLong(startStr);</span>
         }
-<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (endStr.equals(&quot;PI&quot;)) {</span>
-<span class="fc" id="L50">            this.intervalEnd = Long.MAX_VALUE;</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        if (&quot;PI&quot;.equals(endStr)) {</span>
+<span class="fc" id="L51">            this.intervalEnd = Long.MAX_VALUE;</span>
         } else {
-<span class="fc" id="L52">            this.intervalEnd = Long.parseLong(endStr);</span>
+<span class="fc" id="L53">            this.intervalEnd = Long.parseLong(endStr);</span>
         }
-<span class="fc" id="L54">    }</span>
+<span class="fc" id="L55">    }</span>
 
     public long getIntervalEnd() {
-<span class="nc" id="L57">        return intervalEnd;</span>
+<span class="nc" id="L58">        return intervalEnd;</span>
     }
 
     public long getIntervalStart() {
-<span class="fc" id="L61">        return intervalStart;</span>
+<span class="fc" id="L62">        return intervalStart;</span>
     }
 
     public long getClosestToZero() {
-<span class="nc bnc" id="L65" title="All 2 branches missed.">        return (intervalStart &lt; 0) ? intervalEnd : intervalStart;</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        return (intervalStart &lt; 0) ? intervalEnd : intervalStart;</span>
     }
 
     @Override
     public String toString() {
-<span class="nc bnc" id="L70" title="All 4 branches missed.">        return &quot;Q&quot; + ((intervalStart == Long.MIN_VALUE)</span>
+<span class="nc bnc" id="L71" title="All 4 branches missed.">        return &quot;Q&quot; + ((intervalStart == Long.MIN_VALUE)</span>
                 ? &quot;NI&quot; : intervalStart) + &quot;_&quot; + ((intervalEnd == Long.MAX_VALUE) ? &quot;PI&quot; : intervalEnd);
     }
 
     @Override
     public int compareTo(final Quanta o) {
-<span class="pc bpc" id="L76" title="1 of 2 branches missed.">        if (this.intervalStart &lt; o.intervalStart) {</span>
-<span class="nc" id="L77">            return -1;</span>
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        } else if (this.intervalStart &gt; o.intervalStart) {</span>
-<span class="fc" id="L79">            return 1;</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        if (this.intervalStart &lt; o.intervalStart) {</span>
+<span class="fc" id="L78">            return -1;</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        } else if (this.intervalStart &gt; o.intervalStart) {</span>
+<span class="nc" id="L80">            return 1;</span>
         } else {
-<span class="nc bnc" id="L81" title="All 2 branches missed.">            if (this.intervalEnd &lt; o.intervalEnd) {</span>
-<span class="nc" id="L82">                return -1;</span>
-<span class="nc bnc" id="L83" title="All 2 branches missed.">            } else if (this.intervalEnd &gt; o.intervalEnd) {</span>
-<span class="nc" id="L84">                return 1;</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">            if (this.intervalEnd &lt; o.intervalEnd) {</span>
+<span class="nc" id="L83">                return -1;</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            } else if (this.intervalEnd &gt; o.intervalEnd) {</span>
+<span class="nc" id="L85">                return 1;</span>
             } else {
-<span class="nc" id="L86">                return 0;</span>
+<span class="nc" id="L87">                return 0;</span>
             }
         }
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L93">        int hash = 7;</span>
-<span class="nc" id="L94">        hash = 89 * hash + (int) (this.intervalStart ^ (this.intervalStart &gt;&gt;&gt; 32));</span>
-<span class="nc" id="L95">        return 89 * hash + (int) (this.intervalEnd ^ (this.intervalEnd &gt;&gt;&gt; 32));</span>
+<span class="nc" id="L94">        int hash = 7;</span>
+<span class="nc" id="L95">        hash = 89 * hash + (int) (this.intervalStart ^ (this.intervalStart &gt;&gt;&gt; 32));</span>
+<span class="nc" id="L96">        return 89 * hash + (int) (this.intervalEnd ^ (this.intervalEnd &gt;&gt;&gt; 32));</span>
     }
 
     @Override
     public boolean equals(final Object obj) {
-<span class="pc bpc" id="L100" title="1 of 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L101">            return false;</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L102">            return false;</span>
         }
-<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L104">            return false;</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L105">            return false;</span>
         }
-<span class="fc" id="L106">        final Quanta other = (Quanta) obj;</span>
-<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        return this.compareTo(other) == 0;</span>
+<span class="fc" id="L107">        final Quanta other = (Quanta) obj;</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        return this.compareTo(other) == 0;</span>
     }
     
-    
-    
+    private static final long serialVersionUID = 1L;
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

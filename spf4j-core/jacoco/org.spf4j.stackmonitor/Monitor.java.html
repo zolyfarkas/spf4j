@@ -20,144 +20,98 @@ package org.spf4j.stackmonitor;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.AbstractRunnable;
 
 /**
  * @author zoly
  */
 public final class Monitor {
 
-<span class="nc" id="L39">    private Monitor() { }</span>
+<span class="nc" id="L35">    private Monitor() { }</span>
     
-<span class="fc" id="L41">    private static final Logger LOG = LoggerFactory.getLogger(Monitor.class);</span>
+<span class="fc" id="L37">    private static final Logger LOG = LoggerFactory.getLogger(Monitor.class);</span>
     
-<span class="fc" id="L43">    private static class Options {</span>
-
-        @Option(name = &quot;-f&quot;, usage = &quot;output to this file the perf report, format is HTML&quot;)
-        private String reportOut;
+<span class="fc" id="L39">    private static class Options {</span>
         
-<span class="fc" id="L48">        @Option(name = &quot;-df&quot;, usage = &quot;dump folder&quot;)</span>
+<span class="fc" id="L41">        @Option(name = &quot;-df&quot;, usage = &quot;dump folder&quot;)</span>
         private String dumpFolder = System.getProperty(&quot;perf.db.folder&quot;, System.getProperty(&quot;java.io.tmpdir&quot;));
         
-<span class="fc" id="L51">        @Option(name = &quot;-dp&quot;, usage = &quot;dump file prefix&quot;)</span>
+<span class="fc" id="L44">        @Option(name = &quot;-dp&quot;, usage = &quot;dump file prefix&quot;)</span>
         private String dumpFilePrefix =
                 System.getProperty(&quot;perf.db.name&quot;, ManagementFactory.getRuntimeMXBean().getName());
 
         @Option(name = &quot;-main&quot;, usage = &quot;the main class name&quot;, required = true)
         private String mainClass;
         
-<span class="fc" id="L58">        @Option(name = &quot;-si&quot;, usage = &quot;the stack sampling interval in milliseconds&quot;)</span>
+<span class="fc" id="L51">        @Option(name = &quot;-si&quot;, usage = &quot;the stack sampling interval in milliseconds&quot;)</span>
         private int sampleInterval = 100;
         
-<span class="fc" id="L61">        @Option(name = &quot;-di&quot;, usage = &quot;the stack dump to file interval in milliseconds&quot;)</span>
+<span class="fc" id="L54">        @Option(name = &quot;-di&quot;, usage = &quot;the stack dump to file interval in milliseconds&quot;)</span>
         private int dumpInterval = 3600000;
         
-<span class="fc" id="L64">        @Option(name = &quot;-w&quot;, usage = &quot;flame chart width in pixels&quot;)</span>
-        private int chartWidth = 2000;
-        
-<span class="fc" id="L67">        @Option(name = &quot;-md&quot;, usage = &quot;maximum stack trace depth&quot;)</span>
-        private int maxDepth = Integer.MAX_VALUE;
-        
-<span class="fc" id="L70">        @Option(name = &quot;-ss&quot;, usage = &quot;start the stack sampling thread. (can also be done manually via jmx)&quot;)</span>
+<span class="fc" id="L57">        @Option(name = &quot;-ss&quot;, usage = &quot;start the stack sampling thread. (can also be done manually via jmx)&quot;)</span>
         private boolean startSampler = false;
         
-<span class="fc" id="L73">        @Option(name = &quot;-nosvg&quot;, usage = &quot;stack visualization will be in html format with&quot;</span>
-                + &quot; html tables and not svg&quot;)
-        private boolean noSvgReport = false;
         
     }
-    private static volatile boolean generatedAndDisposed;
 
-    public static void main(final String[] args) throws ClassNotFoundException, NoSuchMethodException,
-            IllegalAccessException, InvocationTargetException, IOException,
-            MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException,
-            NotCompliantMBeanException, InterruptedException {
-
-<span class="fc" id="L85">        generatedAndDisposed = false;</span>
-        
-<span class="fc" id="L87">        int sepPos = args.length;</span>
-<span class="fc bfc" id="L88" title="All 2 branches covered.">        for (int i = 0; i &lt; args.length; i++) {</span>
-<span class="pc bpc" id="L89" title="1 of 2 branches missed.">            if (args[i].equals(&quot;--&quot;)) {</span>
-<span class="nc" id="L90">                sepPos = i;</span>
-<span class="nc" id="L91">                break;</span>
+    public static void main(final String[] args)
+            throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
+            InvocationTargetException  {
+      
+<span class="fc" id="L67">        int sepPos = args.length;</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        for (int i = 0; i &lt; args.length; i++) {</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">            if (&quot;--&quot;.equals(args[i])) {</span>
+<span class="nc" id="L70">                sepPos = i;</span>
+<span class="nc" id="L71">                break;</span>
             }
         }
         String[] newArgs;
         String[] ownArgs;
-<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        if (sepPos == args.length) {</span>
-<span class="fc" id="L97">            newArgs = new String[0];</span>
-<span class="fc" id="L98">            ownArgs = args;</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">        if (sepPos == args.length) {</span>
+<span class="fc" id="L77">            newArgs = new String[0];</span>
+<span class="fc" id="L78">            ownArgs = args;</span>
         } else {
-<span class="nc" id="L100">            newArgs = new String[args.length - sepPos - 1];</span>
-<span class="nc" id="L101">            ownArgs = new String[sepPos];</span>
-<span class="nc" id="L102">            System.arraycopy(args, sepPos + 1, newArgs, 0, newArgs.length);</span>
-<span class="nc" id="L103">            System.arraycopy(args, 0, ownArgs, 0, sepPos);</span>
+<span class="nc" id="L80">            newArgs = new String[args.length - sepPos - 1];</span>
+<span class="nc" id="L81">            ownArgs = new String[sepPos];</span>
+<span class="nc" id="L82">            System.arraycopy(args, sepPos + 1, newArgs, 0, newArgs.length);</span>
+<span class="nc" id="L83">            System.arraycopy(args, 0, ownArgs, 0, sepPos);</span>
         }
-<span class="fc" id="L105">        Options options = new Options();</span>
-<span class="fc" id="L106">        CmdLineParser parser = new CmdLineParser(options);</span>
+<span class="fc" id="L85">        Options options = new Options();</span>
+<span class="fc" id="L86">        CmdLineParser parser = new CmdLineParser(options);</span>
         try {
-<span class="fc" id="L108">            parser.parseArgument(ownArgs);</span>
-<span class="nc" id="L109">        } catch (CmdLineException e) {</span>
-<span class="nc" id="L110">            System.err.println(&quot;Error: &quot; + e.getMessage() + &quot;\nUsage:&quot;);</span>
-<span class="nc" id="L111">            parser.printUsage(System.err);</span>
-<span class="nc" id="L112">            System.exit(1);</span>
-<span class="fc" id="L113">        }</span>
-<span class="fc" id="L114">        final String reportOut = options.reportOut;</span>
-<span class="fc" id="L115">        final int chartWidth = options.chartWidth;</span>
-<span class="fc" id="L116">        final int maxDepth = options.maxDepth;</span>
-<span class="pc bpc" id="L117" title="1 of 2 branches missed.">        final boolean svgReport = !options.noSvgReport;</span>
+<span class="fc" id="L88">            parser.parseArgument(ownArgs);</span>
+<span class="nc" id="L89">        } catch (CmdLineException e) {</span>
+<span class="nc" id="L90">            System.err.println(&quot;Error: &quot; + e.getMessage() + &quot;\nUsage:&quot;);</span>
+<span class="nc" id="L91">            parser.printUsage(System.err);</span>
+<span class="nc" id="L92">            System.exit(1);</span>
+<span class="fc" id="L93">        }</span>
 
-<span class="fc" id="L119">        final Sampler sampler = new Sampler(options.sampleInterval, options.dumpInterval, new SimpleStackCollector(),</span>
+<span class="fc" id="L95">        final Sampler sampler = new Sampler(options.sampleInterval, options.dumpInterval, new SimpleStackCollector(),</span>
                 options.dumpFolder, options.dumpFilePrefix);
-<span class="fc" id="L121">        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {</span>
+<span class="fc" id="L97">        Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable() {</span>
 
             @Override
-            public void run() {
-                try {
-<span class="nc" id="L126">                    sampler.stop();</span>
-<span class="nc bnc" id="L127" title="All 2 branches missed.">                    if (reportOut != null) {</span>
-<span class="nc" id="L128">                        generateReportAndDispose(sampler, reportOut, chartWidth, maxDepth, svgReport);</span>
-                    }
-<span class="nc" id="L130">                } catch (Exception ex) {</span>
-<span class="nc" id="L131">                    LOG.error(&quot;Exception while shutting down&quot;, ex);</span>
-<span class="nc" id="L132">                }</span>
-<span class="nc" id="L133">            }</span>
+            public void doRun() throws InterruptedException, IOException {
+<span class="nc" id="L101">                sampler.stop();</span>
+<span class="nc" id="L102">                sampler.dumpToFile();</span>
+<span class="nc" id="L103">                sampler.dispose();</span>
+<span class="nc" id="L104">            }</span>
 
         }, &quot;Sampling report&quot;));
-<span class="fc" id="L136">        sampler.registerJmx();</span>
+<span class="fc" id="L107">        sampler.registerJmx();</span>
 
-<span class="pc bpc" id="L138" title="1 of 2 branches missed.">        if (options.startSampler) {</span>
-<span class="fc" id="L139">            sampler.start();</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">        if (options.startSampler) {</span>
+<span class="fc" id="L110">            sampler.start();</span>
         }
-<span class="fc" id="L141">        Class.forName(options.mainClass).getMethod(&quot;main&quot;, String[].class).invoke(null, (Object) newArgs);</span>
-<span class="fc" id="L142">    }</span>
+<span class="fc" id="L112">        Class.forName(options.mainClass).getMethod(&quot;main&quot;, String[].class).invoke(null, (Object) newArgs);</span>
+<span class="fc" id="L113">    }</span>
     
-    private static void generateReportAndDispose(final Sampler sampler,
-            final String reportOut, final int chartWidth,
-            final int maxDepth, final boolean svgReport) throws IOException,
-                InterruptedException, InstanceNotFoundException {
-<span class="nc" id="L148">                synchronized (Monitor.class) {</span>
-<span class="nc bnc" id="L149" title="All 2 branches missed.">                    if (!generatedAndDisposed) {</span>
-<span class="nc bnc" id="L150" title="All 2 branches missed.">                        if (svgReport) {</span>
-<span class="nc" id="L151">                                sampler.generateSvgHtmlMonitorReport(reportOut, chartWidth, maxDepth);</span>
-                        } else {
-<span class="nc" id="L153">                            sampler.generateHtmlMonitorReport(reportOut, chartWidth, maxDepth);</span>
-                        }
-<span class="nc" id="L155">                        LOG.info(&quot;Sample report written to {}&quot;, reportOut);</span>
-<span class="nc" id="L156">                        sampler.dispose();</span>
-<span class="nc" id="L157">                        generatedAndDisposed = true;</span>
-                    }
-<span class="nc" id="L159">                }</span>
-<span class="nc" id="L160">    }</span>
     
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

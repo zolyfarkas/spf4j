@@ -19,7 +19,6 @@ package org.spf4j.perf.tsdb;
 
 import gnu.trove.list.array.TIntArrayList;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
@@ -30,6 +29,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
+import org.spf4j.io.ByteArrayBuilder;
 
 /**
  *
@@ -83,14 +83,14 @@ final class DataFragment {
 <span class="fc" id="L83">    }</span>
     
     public void writeTo(final RandomAccessFile raf) throws IOException {
-<span class="fc" id="L86">        ByteArrayOutputStream bos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L86">        ByteArrayBuilder bos = new ByteArrayBuilder();</span>
 <span class="fc" id="L87">        DataOutput dos = new DataOutputStream(bos);</span>
 <span class="fc" id="L88">        writeTo(dos);</span>
 <span class="fc" id="L89">        FileChannel ch = raf.getChannel();</span>
 <span class="fc" id="L90">        FileLock lock = ch.lock(raf.getFilePointer(), 8, false);</span>
         try {
 <span class="fc" id="L92">            raf.seek(location);</span>
-<span class="fc" id="L93">            raf.write(bos.toByteArray());</span>
+<span class="fc" id="L93">            raf.write(bos.getBuffer(), 0, bos.size());</span>
         } finally {
 <span class="pc" id="L95">            lock.release();</span>
 <span class="fc" id="L96">        }</span>
@@ -174,4 +174,4 @@ final class DataFragment {
     
     
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
