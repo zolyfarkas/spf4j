@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.Arrays;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -29,46 +30,56 @@ import org.spf4j.zel.vm.ZExecutionException;
  *
  * @author zoly
  */
+@SuppressFBWarnings(&quot;MDM_THREAD_YIELD&quot;)
 public final class SLEEP extends Instruction {
 
     private static final long serialVersionUID = -104479947741779060L;
 
-<span class="fc" id="L36">    private SLEEP() {</span>
-<span class="fc" id="L37">    }</span>
+<span class="fc" id="L38">    private SLEEP() {</span>
+<span class="fc" id="L39">    }</span>
 
     @Override
     public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException, InterruptedException {
-<span class="nc" id="L42">        Number param = (Number) context.popSyncStackVal();</span>
-<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (context.execService == null) {</span>
-<span class="nc" id="L44">            Thread.sleep(param.longValue());</span>
+<span class="nc" id="L44">        Number param = (Number) context.popSyncStackVal();</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        if (context.execService == null) {</span>
+<span class="nc" id="L46">            Thread.sleep(param.longValue());</span>
         } else {
-<span class="nc" id="L46">            final VMASyncFuture&lt;Object&gt; future = new VMASyncFuture&lt;Object&gt;();</span>
-<span class="pc" id="L47">            DefaultScheduler.INSTANCE.schedule(new Runnable() {</span>
-                @Override
-                public void run() {
-<span class="pc bpc" id="L50" title="1 of 2 branches missed.">                    while (context.execService.resumeSuspendables(future) == null) {</span>
-                        try {
-<span class="nc" id="L52">                            Thread.sleep(1);</span>
-<span class="nc" id="L53">                        } catch (InterruptedException ex) {</span>
-<span class="nc" id="L54">                            break;</span>
-<span class="nc" id="L55">                        }</span>
-                    }
-<span class="fc" id="L57">                }</span>
-            }, param.longValue(), TimeUnit.MILLISECONDS);
-<span class="nc" id="L59">            context.ip++;</span>
-<span class="nc" id="L60">            context.suspend(future);</span>
+<span class="nc" id="L48">            final VMASyncFuture&lt;Object&gt; future = new VMASyncFuture&lt;Object&gt;();</span>
+<span class="nc" id="L49">            DefaultScheduler.INSTANCE.schedule(new RunnableImpl(context, future),</span>
+                    param.longValue(), TimeUnit.MILLISECONDS);
+<span class="nc" id="L51">            context.ip++;</span>
+<span class="nc" id="L52">            context.suspend(future);</span>
         }
-<span class="nc" id="L62">        return 1;</span>
+<span class="nc" id="L54">        return 1;</span>
 
     }
 
-<span class="fc" id="L66">    public static final Instruction INSTANCE = new SLEEP();</span>
+<span class="fc" id="L58">    public static final Instruction INSTANCE = new SLEEP();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L70">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L62">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+    }
+
+    private static final  class RunnableImpl implements Runnable {
+
+        private final ExecutionContext context;
+        private final VMASyncFuture&lt;Object&gt; future;
+
+<span class="fc" id="L70">        public RunnableImpl(final ExecutionContext context, final VMASyncFuture&lt;Object&gt; future) {</span>
+<span class="fc" id="L71">            this.context = context;</span>
+<span class="fc" id="L72">            this.future = future;</span>
+<span class="fc" id="L73">        }</span>
+
+        @Override
+        public void run() {
+            Object stuff;
+            do {
+<span class="fc" id="L79">                stuff = context.execService.resumeSuspendables(future);</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">            } while (stuff == null);</span>
+<span class="fc" id="L81">        }</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

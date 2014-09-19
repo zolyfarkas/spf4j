@@ -15,9 +15,9 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.zel.vm;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import org.spf4j.base.Reflections;
@@ -26,64 +26,70 @@ import org.spf4j.base.Reflections;
  *
  * @author zoly
  */
+// Will have to see if the exception handling can be improved here later
+@SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
 public final class JavaMethodCall implements Method {
 
     private final String name;
     private final Class&lt;?&gt; objectClass;
     private final Object object;
 
-<span class="fc" id="L35">    public JavaMethodCall(final Object object, final String methodName) {</span>
-<span class="fc" id="L36">        this.name = methodName;</span>
-<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (object instanceof Class) {</span>
-<span class="fc" id="L38">            this.objectClass = (Class&lt;?&gt;) object;</span>
-<span class="fc" id="L39">            this.object = null;</span>
+<span class="fc" id="L37">    public JavaMethodCall(final Object object, final String methodName) {</span>
+<span class="fc" id="L38">        this.name = methodName;</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        if (object instanceof Class) {</span>
+<span class="fc" id="L40">            this.objectClass = (Class&lt;?&gt;) object;</span>
+<span class="fc" id="L41">            this.object = null;</span>
         } else {
-<span class="fc" id="L41">            this.objectClass = object.getClass();</span>
-<span class="fc" id="L42">            this.object = object;</span>
+<span class="fc" id="L43">            this.objectClass = object.getClass();</span>
+<span class="fc" id="L44">            this.object = object;</span>
         }
-<span class="fc" id="L44">    }</span>
-    
-<span class="fc" id="L46">    private static final Class&lt;?&gt;[] EMPTY_CL_ARR = new Class&lt;?&gt;[0];</span>
-    
+<span class="fc" id="L46">    }</span>
+
+<span class="fc" id="L48">    private static final Class&lt;?&gt;[] EMPTY_CL_ARR = new Class&lt;?&gt;[0];</span>
+
     @Override
-    public Object invoke(final ExecutionContext context, final Object [] parameters)
-            throws IllegalAccessException, InvocationTargetException {
-<span class="fc" id="L51">        int np = parameters.length;</span>
-<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (np &gt; 0) {</span>
-<span class="fc" id="L53">            Class&lt;?&gt;[] classes = new Class&lt;?&gt;[np];</span>
-<span class="fc bfc" id="L54" title="All 2 branches covered.">            for (int i = 0; i &lt; np; i++) {</span>
-<span class="fc" id="L55">                classes[i] = parameters[i].getClass();</span>
-            }
-<span class="fc" id="L57">            java.lang.reflect.Method m =  Reflections.getCompatibleMethodCached(objectClass, name, classes);</span>
-<span class="fc" id="L58">            Class&lt;?&gt; [] actTypes = m.getParameterTypes();</span>
-<span class="fc" id="L59">            Class&lt;?&gt; lastParamClass =  actTypes[actTypes.length - 1];</span>
-<span class="fc bfc" id="L60" title="All 2 branches covered.">            if (Reflections.canAssign(lastParamClass, classes[classes.length - 1])) {</span>
-<span class="fc" id="L61">                return m.invoke(object, parameters);</span>
-<span class="pc bpc" id="L62" title="1 of 2 branches missed.">            } else if (lastParamClass.isArray()) {</span>
-<span class="fc" id="L63">                int lidx = actTypes.length - 1;</span>
-<span class="fc" id="L64">                int l = np - lidx;</span>
-<span class="fc" id="L65">                Object array = Array.newInstance(lastParamClass.getComponentType(), l);</span>
-<span class="fc bfc" id="L66" title="All 2 branches covered.">                for (int k = 0; k &lt; l; k++) {</span>
-<span class="fc" id="L67">                    Array.set(array, k, parameters[lidx + k]);</span>
+    public Object invoke(final ExecutionContext context, final Object[] parameters) {
+        try {
+<span class="fc" id="L53">            int np = parameters.length;</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">            if (np &gt; 0) {</span>
+<span class="fc" id="L55">                Class&lt;?&gt;[] classes = new Class&lt;?&gt;[np];</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">                for (int i = 0; i &lt; np; i++) {</span>
+<span class="fc" id="L57">                    classes[i] = parameters[i].getClass();</span>
                 }
-<span class="fc" id="L69">                Object [] newParams  = new Object [actTypes.length];</span>
-<span class="fc" id="L70">                System.arraycopy(parameters, 0, newParams, 0, lidx);</span>
-<span class="fc" id="L71">                newParams[lidx] = array;</span>
-<span class="fc" id="L72">                return m.invoke(object, newParams);</span>
+<span class="fc" id="L59">                java.lang.reflect.Method m = Reflections.getCompatibleMethodCached(objectClass, name, classes);</span>
+<span class="fc" id="L60">                Class&lt;?&gt;[] actTypes = m.getParameterTypes();</span>
+<span class="fc" id="L61">                Class&lt;?&gt; lastParamClass = actTypes[actTypes.length - 1];</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">                if (Reflections.canAssign(lastParamClass, classes[classes.length - 1])) {</span>
+<span class="fc" id="L63">                    return m.invoke(object, parameters);</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">                } else if (lastParamClass.isArray()) {</span>
+<span class="fc" id="L65">                    int lidx = actTypes.length - 1;</span>
+<span class="fc" id="L66">                    int l = np - lidx;</span>
+<span class="fc" id="L67">                    Object array = Array.newInstance(lastParamClass.getComponentType(), l);</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">                    for (int k = 0; k &lt; l; k++) {</span>
+<span class="fc" id="L69">                        Array.set(array, k, parameters[lidx + k]);</span>
+                    }
+<span class="fc" id="L71">                    Object[] newParams = new Object[actTypes.length];</span>
+<span class="fc" id="L72">                    System.arraycopy(parameters, 0, newParams, 0, lidx);</span>
+<span class="fc" id="L73">                    newParams[lidx] = array;</span>
+<span class="fc" id="L74">                    return m.invoke(object, newParams);</span>
+                } else {
+<span class="nc" id="L76">                    throw new IllegalStateException();</span>
+                }
             } else {
-<span class="nc" id="L74">                throw new IllegalStateException();</span>
+<span class="fc" id="L79">                return Reflections.getCompatibleMethodCached(objectClass, name, EMPTY_CL_ARR)</span>
+                        .invoke(object);
             }
-        } else {
-<span class="fc" id="L77">            return Reflections.getCompatibleMethodCached(objectClass, name, EMPTY_CL_ARR)</span>
-                    .invoke(object);
+<span class="nc" id="L82">        } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L83">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L84">        } catch (InvocationTargetException ex) {</span>
+<span class="nc" id="L85">            throw new RuntimeException(ex);</span>
         }
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L84">        return &quot;JavaMethodCall{&quot; + &quot;name=&quot; + name + &quot;, objectClass=&quot; + objectClass + &quot;, object=&quot; + object + '}';</span>
+<span class="nc" id="L91">        return &quot;JavaMethodCall{&quot; + &quot;name=&quot; + name + &quot;, objectClass=&quot; + objectClass + &quot;, object=&quot; + object + '}';</span>
     }
 
-    
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

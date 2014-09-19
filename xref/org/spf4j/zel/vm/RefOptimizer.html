@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>RefOptimizer xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/spf4j/zel/vm/RefOptimizer.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_comment"> * To change this license header, choose License Headers in Project Properties.</em>
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_comment"> * To change this template file, choose Tools | Templates</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_comment"> * and open the template in the editor.</em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_comment"> */</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">package</strong> org.spf4j.zel.vm;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> com.google.common.base.Function;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.spf4j.zel.instr.Instruction;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.spf4j.zel.instr.LODAX;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.spf4j.zel.instr.LODAXF;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.spf4j.zel.instr.LODX;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.spf4j.zel.instr.LODXF;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/spf4j/zel/vm/RefOptimizer.html">RefOptimizer</a> <strong class="jxr_keyword">implements</strong> Function&lt;Program, Program&gt; {
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>      <strong class="jxr_keyword">private</strong> <a href="../../../../org/spf4j/zel/vm/RefOptimizer.html">RefOptimizer</a>() { }
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>      
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Function&lt;Program, Program&gt; INSTANCE = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/vm/RefOptimizer.html">RefOptimizer</a>();
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      @Override
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../org/spf4j/zel/vm/Program.html">Program</a> apply(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/Program.html">Program</a> input) {
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>          <strong class="jxr_keyword">if</strong> (input == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Input cannot be null for "</span> + <strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>          }
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          <a href="../../../../org/spf4j/zel/instr/Instruction.html">Instruction</a> [] instructions = input.getInstructions().clone();
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>          Map&lt;String, Integer&gt; lsym = input.getLocalSymbolTable();
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>          Map&lt;String, Integer&gt; gsym = input.getGlobalSymbolTable();
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>          
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; instructions.length; i++) {
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>              <a href="../../../../org/spf4j/zel/instr/Instruction.html">Instruction</a> instr = instructions[i];
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>              <strong class="jxr_keyword">if</strong> (LODX.<strong class="jxr_keyword">class</strong>.equals(instr.getClass())) {
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>                  String symbol = ((LODX) instr).getSymbol();
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>                  <a href="../../../../org/spf4j/zel/vm/Address.html">Address</a> addr = getAddress(lsym, symbol, gsym);
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>                  instructions[i] = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/instr/LODXF.html">LODXF</a>(addr);
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>              } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (LODAX.<strong class="jxr_keyword">class</strong>.equals(instr.getClass())) {
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>                  String symbol = ((LODAX) instr).getSymbol();
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>                  <a href="../../../../org/spf4j/zel/vm/Address.html">Address</a> addr = getAddress(lsym, symbol, gsym);
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>                  instructions[i] = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/instr/LODAXF.html">LODAXF</a>(addr);
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>              }
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          }
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>          <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>              <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/vm/Program.html">Program</a>(input.getGlobalSymbolTable(),
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>                      input.getGlobalMem(), input.getLocalSymbolTable(),
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>                      instructions, input.getType(), input.getExecType(),
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>                      input.hasDeterministicFunctions());
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>          } <strong class="jxr_keyword">catch</strong> (CompileException ex) {
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>          }
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      }
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <a href="../../../../org/spf4j/zel/vm/Address.html">Address</a> getAddress(<strong class="jxr_keyword">final</strong> Map&lt;String, Integer&gt; lsym,
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>              <strong class="jxr_keyword">final</strong> String symbol, <strong class="jxr_keyword">final</strong> Map&lt;String, Integer&gt; gsym) {
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          <a href="../../../../org/spf4j/zel/vm/Address.html">Address</a> addr;
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          Integer idx = lsym.get(symbol);
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          <strong class="jxr_keyword">if</strong> (idx == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              idx = gsym.get(symbol);
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>              addr = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/vm/Address.html">Address</a>(idx, Address.Scope.GLOBAL);
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>              addr = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/vm/Address.html">Address</a>(idx, Address.Scope.LOCAL);
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          }
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>          <strong class="jxr_keyword">return</strong> addr;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      }
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2014. All rights reserved.</div>
+</body>
+</html>

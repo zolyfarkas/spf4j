@@ -17,9 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 import org.spf4j.zel.vm.Program;
@@ -31,83 +29,75 @@ public final class CALL extends Instruction {
 
     private static final long serialVersionUID = 759722625722456554L;
 
-<span class="fc" id="L34">    private CALL() {</span>
-<span class="fc" id="L35">    }</span>
+<span class="fc" id="L32">    private CALL() {</span>
+<span class="fc" id="L33">    }</span>
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
     public int execute(final ExecutionContext context)
             throws ZExecutionException, InterruptedException, SuspendedException {
-<span class="fc" id="L41">        Integer nrParams = (Integer) context.pop();</span>
-<span class="fc" id="L42">        Object function = context.peekFromTop(nrParams);</span>
-<span class="fc bfc" id="L43" title="All 2 branches covered.">        if (function instanceof Program) {</span>
-<span class="fc" id="L44">            final Program p = (Program) function;</span>
+<span class="fc" id="L39">        Integer nrParams = (Integer) context.pop();</span>
+<span class="fc" id="L40">        Object function = context.peekFromTop(nrParams);</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (function instanceof Program) {</span>
+<span class="fc" id="L42">            final Program p = (Program) function;</span>
             final ExecutionContext nctx;
             Object obj;
             Object[] parameters;
-<span class="pc bpc" id="L48" title="1 of 3 branches missed.">            switch (p.getType()) {</span>
+<span class="pc bpc" id="L46" title="1 of 3 branches missed.">            switch (p.getType()) {</span>
                 case DETERMINISTIC:
-<span class="fc" id="L50">                    parameters = getParamsSync(context, nrParams);</span>
-<span class="fc" id="L51">                    nctx = context.getSubProgramContext(p, parameters);</span>
-<span class="fc" id="L52">                    obj = context.resultCache.getResult(p,  Arrays.asList(parameters), new Callable&lt;Object&gt;() {</span>
-                        @Override
-                        public Object call() throws Exception {
-<span class="fc" id="L55">                            return Program.executeSyncOrAsync(nctx);</span>
-                        }
-                    });
+<span class="fc" id="L48">                    parameters = getParamsSync(context, nrParams);</span>
+<span class="fc" id="L49">                    nctx = context.getSubProgramContext(p, parameters);</span>
+<span class="fc" id="L50">                    obj = context.resultCache.getResult(p,  Arrays.asList(parameters), new SyncAsyncCallable(nctx));</span>
 
-<span class="fc" id="L59">                    break;</span>
+<span class="fc" id="L52">                    break;</span>
                 case NONDETERMINISTIC:
-<span class="fc" id="L61">                        parameters = getParams(context, nrParams);</span>
-<span class="fc" id="L62">                        nctx = context.getSubProgramContext(p, parameters);</span>
-<span class="fc" id="L63">                        obj = Program.executeSyncOrAsync(nctx);</span>
-<span class="fc" id="L64">                    break;</span>
+<span class="fc" id="L54">                        parameters = getParams(context, nrParams);</span>
+<span class="fc" id="L55">                        nctx = context.getSubProgramContext(p, parameters);</span>
+<span class="fc" id="L56">                        obj = Program.executeSyncOrAsync(nctx);</span>
+<span class="fc" id="L57">                    break;</span>
                 default:
-<span class="nc" id="L66">                    throw new UnsupportedOperationException(p.getType().toString());</span>
+<span class="nc" id="L59">                    throw new UnsupportedOperationException(p.getType().toString());</span>
             }
-<span class="fc" id="L68">            context.push(obj);</span>
-<span class="pc bpc" id="L69" title="1 of 2 branches missed.">        } else if (function instanceof Method) {</span>
-<span class="fc" id="L70">            Object[] parameters = getParamsSync(context, nrParams);</span>
+<span class="fc" id="L61">            context.push(obj);</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        } else if (function instanceof Method) {</span>
+<span class="fc" id="L63">            Object[] parameters = getParamsSync(context, nrParams);</span>
             try {
-<span class="fc" id="L72">                context.push(((Method) function).invoke(context, parameters));</span>
-<span class="nc" id="L73">            } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L74">                throw new ZExecutionException(&quot;cannot invoke &quot; + function, ex);</span>
-<span class="nc" id="L75">            } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L76">                throw new ZExecutionException(&quot;cannot invoke &quot; + function, ex);</span>
-<span class="nc" id="L77">            } catch (Exception ex) {</span>
-<span class="nc" id="L78">                throw new ZExecutionException(&quot;cannot invoke &quot; + function, ex);</span>
-<span class="fc" id="L79">            }</span>
-<span class="fc" id="L80">        } else {</span>
-<span class="nc" id="L81">            throw new ZExecutionException(&quot;cannot invoke &quot; + function);</span>
+<span class="fc" id="L65">                context.push(((Method) function).invoke(context, parameters));</span>
+<span class="nc" id="L66">            } catch (Exception ex) {</span>
+<span class="nc" id="L67">                throw new ZExecutionException(&quot;cannot invoke &quot; + function, ex);</span>
+<span class="fc" id="L68">            }</span>
+<span class="fc" id="L69">        } else {</span>
+<span class="nc" id="L70">            throw new ZExecutionException(&quot;cannot invoke &quot; + function);</span>
         }
-<span class="fc" id="L83">        return 1;</span>
+<span class="fc" id="L72">        return 1;</span>
     }
 
     static Object[] getParamsSync(final ExecutionContext context, final Integer nrParams)
             throws SuspendedException {
         Object [] parameters;
         try {
-<span class="fc" id="L90">            parameters = context.popSyncStackVals(nrParams);</span>
-<span class="fc" id="L91">        } catch (SuspendedException e) {</span>
-<span class="fc" id="L92">            context.push(nrParams); // put back param count so tat stack is identical.</span>
-<span class="fc" id="L93">            throw e;</span>
-<span class="fc" id="L94">        }</span>
-<span class="fc" id="L95">        context.pop(); // extract function</span>
-<span class="fc" id="L96">        return parameters;</span>
+<span class="fc" id="L79">            parameters = context.popSyncStackVals(nrParams);</span>
+<span class="fc" id="L80">        } catch (SuspendedException e) {</span>
+<span class="fc" id="L81">            context.push(nrParams); // put back param count so tat stack is identical.</span>
+<span class="fc" id="L82">            throw e;</span>
+<span class="fc" id="L83">        }</span>
+<span class="fc" id="L84">        context.pop(); // extract function</span>
+<span class="fc" id="L85">        return parameters;</span>
     }
     
     static Object[] getParams(final ExecutionContext context, final Integer nrParams)
             throws SuspendedException {
-<span class="fc" id="L101">        Object [] parameters = context.popStackVals(nrParams);</span>
-<span class="fc" id="L102">        context.pop();</span>
-<span class="fc" id="L103">        return parameters;</span>
+<span class="fc" id="L90">        Object [] parameters = context.popStackVals(nrParams);</span>
+<span class="fc" id="L91">        context.pop();</span>
+<span class="fc" id="L92">        return parameters;</span>
     }
 
-<span class="fc" id="L106">    public static final Instruction INSTANCE = new CALL();</span>
+<span class="fc" id="L95">    public static final Instruction INSTANCE = new CALL();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L110">        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L99">        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
     }
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

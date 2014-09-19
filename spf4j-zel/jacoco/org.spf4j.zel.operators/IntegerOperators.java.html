@@ -18,211 +18,213 @@
 package org.spf4j.zel.operators;
 
 import com.google.common.math.IntMath;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import static org.spf4j.zel.operators.Operator.MATH_CONTEXT;
 
+@SuppressFBWarnings(&quot;NS_NON_SHORT_CIRCUIT&quot;)
 public final class IntegerOperators {
     
-<span class="nc" id="L27">    private IntegerOperators() {</span>
-<span class="nc" id="L28">    }</span>
+<span class="nc" id="L29">    private IntegerOperators() {</span>
+<span class="nc" id="L30">    }</span>
 
-<span class="fc" id="L30">    public static final class Add implements Operator&lt;Integer, Number, Number&gt; {</span>
+<span class="fc" id="L32">    public static final class Add implements Operator&lt;Integer, Number, Number&gt; {</span>
 
         @Override
         public Number op(final Integer a, final Number b) {
-<span class="fc" id="L34">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="pc bpc" id="L35" title="3 of 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-<span class="fc" id="L37">                long result = (long) a + b.intValue();</span>
-<span class="fc bfc" id="L38" title="All 2 branches covered.">                if (result == (int) result) {</span>
-<span class="fc" id="L39">                    return Integer.valueOf((int) result);</span>
+<span class="fc" id="L36">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="pc bpc" id="L37" title="2 of 6 branches missed.">            if (claszB == Integer.class || claszB == Short.class</span>
+                    || claszB == Byte.class) {
+<span class="fc" id="L39">                long result = (long) a + b.intValue();</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">                if (result == (int) result) {</span>
+<span class="fc" id="L41">                    return (int) result;</span>
                 } else {
-<span class="fc" id="L41">                    return result;</span>
+<span class="fc" id="L43">                    return result;</span>
                 }
-<span class="pc bpc" id="L43" title="1 of 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
-<span class="nc" id="L44">                long aa = a;</span>
-<span class="nc" id="L45">                long bb = (Long) b;</span>
-<span class="nc" id="L46">                long result = aa + bb;</span>
-<span class="nc bnc" id="L47" title="All 6 branches missed.">                if ((aa ^ bb) &lt; 0 | (aa ^ result) &gt;= 0) {</span>
-<span class="nc" id="L48">                    return result;</span>
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">            } else if (claszB == Long.class) {</span>
+<span class="nc" id="L46">                long aa = a;</span>
+<span class="nc" id="L47">                long bb = (Long) b;</span>
+<span class="nc" id="L48">                long result = aa + bb;</span>
+<span class="nc bnc" id="L49" title="All 6 branches missed.">                if ((aa ^ bb) &lt; 0 | (aa ^ result) &gt;= 0) {</span>
+<span class="nc" id="L50">                    return result;</span>
                 } else {
-<span class="nc" id="L50">                    BigInteger rr = BigInteger.valueOf(bb);</span>
-<span class="nc" id="L51">                    return rr.add(BigInteger.valueOf(aa));</span>
+<span class="nc" id="L52">                    BigInteger rr = BigInteger.valueOf(bb);</span>
+<span class="nc" id="L53">                    return rr.add(BigInteger.valueOf(aa));</span>
                 }
-<span class="pc bpc" id="L53" title="1 of 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
-<span class="fc" id="L54">                return ((Double) b) + a;</span>
-<span class="nc bnc" id="L55" title="All 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
-<span class="nc" id="L56">                return ((Double) b) + a;</span>
-<span class="nc bnc" id="L57" title="All 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
-<span class="nc" id="L58">                return ((BigInteger) b).add(BigInteger.valueOf((long) a));</span>
-<span class="nc bnc" id="L59" title="All 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
-<span class="nc" id="L60">                return ((BigDecimal) b).add(BigDecimal.valueOf(a), MATH_CONTEXT.get());</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">            } else if (claszB == Double.class) {</span>
+<span class="fc" id="L56">                return ((Double) b) + a;</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">            } else if (claszB == Float.class) {</span>
+<span class="nc" id="L58">                return ((Double) b) + a;</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">            } else if (claszB == BigInteger.class) {</span>
+<span class="nc" id="L60">                return ((BigInteger) b).add(BigInteger.valueOf((long) a));</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">            } else if (claszB == BigDecimal.class) {</span>
+<span class="nc" id="L62">                return ((BigDecimal) b).add(BigDecimal.valueOf(a), MATH_CONTEXT.get());</span>
             } else {
-<span class="nc" id="L62">                throw new IllegalArgumentException(b.toString());</span>
+<span class="nc" id="L64">                throw new IllegalArgumentException(b.toString());</span>
             }
         }
     }
 
-<span class="fc" id="L67">    public static final class Sub implements Operator&lt;Integer, Number, Number&gt; {</span>
+<span class="fc" id="L69">    public static final class Sub implements Operator&lt;Integer, Number, Number&gt; {</span>
 
         @Override
         public Number op(final Integer a, final Number b) {
-<span class="fc" id="L71">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="pc bpc" id="L72" title="3 of 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-<span class="fc" id="L74">                long result = (long) a - b.intValue();</span>
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">                if (result == (int) result) {</span>
-<span class="fc" id="L76">                    return Integer.valueOf((int) result);</span>
+<span class="fc" id="L73">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="pc bpc" id="L74" title="2 of 6 branches missed.">            if (claszB == Integer.class || claszB == Short.class</span>
+                    || claszB == Byte.class) {
+<span class="fc" id="L76">                long result = (long) a - b.intValue();</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">                if (result == (int) result) {</span>
+<span class="fc" id="L78">                    return (int) result;</span>
                 } else {
-<span class="nc" id="L78">                    return result;</span>
+<span class="nc" id="L80">                    return result;</span>
                 }
-<span class="pc bpc" id="L80" title="1 of 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
-<span class="nc" id="L81">                long aa = a;</span>
-<span class="nc" id="L82">                long bb = (Long) b;</span>
-<span class="nc" id="L83">                long result = aa - bb;</span>
-<span class="nc bnc" id="L84" title="All 6 branches missed.">                if ((aa ^ bb) &lt; 0 | (aa ^ result) &gt;= 0) {</span>
-<span class="nc" id="L85">                    return result;</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">            } else if (claszB == Long.class) {</span>
+<span class="nc" id="L83">                long aa = a;</span>
+<span class="nc" id="L84">                long bb = (Long) b;</span>
+<span class="nc" id="L85">                long result = aa - bb;</span>
+<span class="nc bnc" id="L86" title="All 6 branches missed.">                if ((aa ^ bb) &lt; 0 | (aa ^ result) &gt;= 0) {</span>
+<span class="nc" id="L87">                    return result;</span>
                 } else {
-<span class="nc" id="L87">                    BigInteger rr = BigInteger.valueOf(bb);</span>
-<span class="nc" id="L88">                    return rr.add(BigInteger.valueOf(aa));</span>
+<span class="nc" id="L89">                    BigInteger rr = BigInteger.valueOf(bb);</span>
+<span class="nc" id="L90">                    return rr.add(BigInteger.valueOf(aa));</span>
                 }
-<span class="pc bpc" id="L90" title="1 of 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
-<span class="nc" id="L91">                return (double) a - ((Double) b);</span>
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
-<span class="nc" id="L93">                return (double) a - ((Float) b);</span>
-<span class="pc bpc" id="L94" title="1 of 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
-<span class="nc" id="L95">                return BigInteger.valueOf((long) a).subtract((BigInteger) b);</span>
-<span class="pc bpc" id="L96" title="1 of 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
-<span class="fc" id="L97">                return BigDecimal.valueOf((long) a).subtract((BigDecimal) b, MATH_CONTEXT.get());</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">            } else if (claszB == Double.class) {</span>
+<span class="nc" id="L93">                return (double) a - ((Double) b);</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">            } else if (claszB == Float.class) {</span>
+<span class="nc" id="L95">                return (double) a - ((Float) b);</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">            } else if (claszB == BigInteger.class) {</span>
+<span class="nc" id="L97">                return BigInteger.valueOf((long) a).subtract((BigInteger) b);</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">            } else if (claszB == BigDecimal.class) {</span>
+<span class="fc" id="L99">                return BigDecimal.valueOf((long) a).subtract((BigDecimal) b, MATH_CONTEXT.get());</span>
             } else {
-<span class="nc" id="L99">                throw new IllegalArgumentException(b.toString());</span>
+<span class="nc" id="L101">                throw new IllegalArgumentException(b.toString());</span>
             }
         }
     }
 
-<span class="fc" id="L104">    public static final class Mul implements Operator&lt;Integer, Number, Number&gt; {</span>
+<span class="fc" id="L106">    public static final class Mul implements Operator&lt;Integer, Number, Number&gt; {</span>
 
         @Override
         public Number op(final Integer a, final Number b) {
-<span class="fc" id="L108">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="pc bpc" id="L109" title="7 of 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-<span class="fc" id="L111">                long result = (long) a * b.intValue();</span>
-<span class="pc bpc" id="L112" title="1 of 2 branches missed.">                if (result == (int) result) {</span>
-<span class="fc" id="L113">                    return Integer.valueOf((int) result);</span>
+<span class="fc" id="L110">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="pc bpc" id="L111" title="5 of 6 branches missed.">            if (claszB == Integer.class || claszB == Short.class</span>
+                    || claszB == Byte.class) {
+<span class="fc" id="L113">                long result = (long) a * b.intValue();</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">                if (result == (int) result) {</span>
+<span class="fc" id="L115">                    return (int) result;</span>
                 } else {
-<span class="nc" id="L115">                    return result;</span>
+<span class="nc" id="L117">                    return result;</span>
                 }
-<span class="nc bnc" id="L117" title="All 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
-<span class="nc" id="L118">                long aa = a;</span>
-<span class="nc" id="L119">                long bb = (Long) b;</span>
-<span class="nc" id="L120">                int leadingZeros = Long.numberOfLeadingZeros(aa) + Long.numberOfLeadingZeros(~aa)</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">            } else if (claszB == Long.class) {</span>
+<span class="nc" id="L120">                long aa = a;</span>
+<span class="nc" id="L121">                long bb = (Long) b;</span>
+<span class="nc" id="L122">                int leadingZeros = Long.numberOfLeadingZeros(aa) + Long.numberOfLeadingZeros(~aa)</span>
                         + Long.numberOfLeadingZeros(bb) + Long.numberOfLeadingZeros(~bb);
-<span class="nc bnc" id="L122" title="All 2 branches missed.">                if (leadingZeros &gt; Long.SIZE + 1) {</span>
-<span class="nc" id="L123">                    return aa * bb;</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">                if (leadingZeros &gt; Long.SIZE + 1) {</span>
+<span class="nc" id="L125">                    return aa * bb;</span>
                 }
-<span class="nc bnc" id="L125" title="All 2 branches missed.">                if (!(leadingZeros &gt;= Long.SIZE)) {</span>
-<span class="nc" id="L126">                    return BigInteger.valueOf(aa).multiply(BigInteger.valueOf(bb));</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                if (!(leadingZeros &gt;= Long.SIZE)) {</span>
+<span class="nc" id="L128">                    return BigInteger.valueOf(aa).multiply(BigInteger.valueOf(bb));</span>
                 }
-<span class="nc bnc" id="L128" title="All 6 branches missed.">                if (!(aa &gt;= 0 | bb != Long.MIN_VALUE)) {</span>
-<span class="nc" id="L129">                    return BigInteger.valueOf(aa).multiply(BigInteger.valueOf(bb));</span>
+<span class="nc bnc" id="L130" title="All 6 branches missed.">                if (!(aa &gt;= 0 | bb != Long.MIN_VALUE)) {</span>
+<span class="nc" id="L131">                    return BigInteger.valueOf(aa).multiply(BigInteger.valueOf(bb));</span>
                 }
-<span class="nc" id="L131">                long tentativeResult = aa * bb;</span>
-<span class="nc bnc" id="L132" title="All 4 branches missed.">                if (!(aa == 0 || tentativeResult / aa == bb)) {</span>
-<span class="nc" id="L133">                    return BigInteger.valueOf(aa).multiply(BigInteger.valueOf(bb));</span>
+<span class="nc" id="L133">                long tentativeResult = aa * bb;</span>
+<span class="nc bnc" id="L134" title="All 4 branches missed.">                if (!(aa == 0 || tentativeResult / aa == bb)) {</span>
+<span class="nc" id="L135">                    return BigInteger.valueOf(aa).multiply(BigInteger.valueOf(bb));</span>
                 }
-<span class="nc" id="L135">                return tentativeResult;</span>
-<span class="nc bnc" id="L136" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
-<span class="nc" id="L137">                return (double) a * ((Double) b);</span>
-<span class="nc bnc" id="L138" title="All 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
-<span class="nc" id="L139">                return (double) a * ((Float) b);</span>
-<span class="nc bnc" id="L140" title="All 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
-<span class="nc" id="L141">                return BigInteger.valueOf((long) a).multiply((BigInteger) b);</span>
-<span class="nc bnc" id="L142" title="All 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
-<span class="nc" id="L143">                return BigDecimal.valueOf((long) a).multiply((BigDecimal) b, MATH_CONTEXT.get());</span>
+<span class="nc" id="L137">                return tentativeResult;</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            } else if (claszB == Double.class) {</span>
+<span class="nc" id="L139">                return (double) a * ((Double) b);</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            } else if (claszB == Float.class) {</span>
+<span class="nc" id="L141">                return (double) a * ((Float) b);</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">            } else if (claszB == BigInteger.class) {</span>
+<span class="nc" id="L143">                return BigInteger.valueOf((long) a).multiply((BigInteger) b);</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">            } else if (claszB == BigDecimal.class) {</span>
+<span class="nc" id="L145">                return BigDecimal.valueOf((long) a).multiply((BigDecimal) b, MATH_CONTEXT.get());</span>
             } else {
-<span class="nc" id="L145">                throw new IllegalArgumentException(b.toString());</span>
+<span class="nc" id="L147">                throw new IllegalArgumentException(b.toString());</span>
             }
         }
     }
 
-<span class="fc" id="L150">    public static final class Div implements Operator&lt;Integer, Number, Number&gt; {</span>
+<span class="fc" id="L152">    public static final class Div implements Operator&lt;Integer, Number, Number&gt; {</span>
 
         @Override
         public Number op(final Integer a, final Number b) {
-<span class="fc" id="L154">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="pc bpc" id="L155" title="3 of 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-<span class="fc" id="L157">                long result = (long) a / b.intValue();</span>
-<span class="fc" id="L158">                return (int) result;</span>
-<span class="pc bpc" id="L159" title="1 of 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
-<span class="nc" id="L160">                long aa = a;</span>
-<span class="nc" id="L161">                long bb = (Long) b;</span>
-<span class="nc" id="L162">                return aa / bb;</span>
-<span class="pc bpc" id="L163" title="1 of 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
-<span class="fc" id="L164">                return (double) a / ((Double) b);</span>
-<span class="nc bnc" id="L165" title="All 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
-<span class="nc" id="L166">                return (double) a / ((Float) b);</span>
-<span class="nc bnc" id="L167" title="All 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
-<span class="nc" id="L168">                return BigInteger.valueOf((long) a).divide((BigInteger) b).intValue();</span>
-<span class="nc bnc" id="L169" title="All 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
-<span class="nc" id="L170">                return BigDecimal.valueOf((long) a).divide((BigDecimal) b, MATH_CONTEXT.get()).intValue();</span>
+<span class="fc" id="L156">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="pc bpc" id="L157" title="2 of 6 branches missed.">            if (claszB == Integer.class || claszB == Short.class</span>
+                    || claszB == Byte.class) {
+<span class="fc" id="L159">                long result = (long) a / b.intValue();</span>
+<span class="fc" id="L160">                return (int) result;</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">            } else if (claszB == Long.class) {</span>
+<span class="nc" id="L162">                long aa = a;</span>
+<span class="nc" id="L163">                long bb = (Long) b;</span>
+<span class="nc" id="L164">                return aa / bb;</span>
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">            } else if (claszB == Double.class) {</span>
+<span class="fc" id="L166">                return (double) a / ((Double) b);</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">            } else if (claszB == Float.class) {</span>
+<span class="nc" id="L168">                return (double) a / ((Float) b);</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">            } else if (claszB == BigInteger.class) {</span>
+<span class="nc" id="L170">                return BigInteger.valueOf((long) a).divide((BigInteger) b).intValue();</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">            } else if (claszB == BigDecimal.class) {</span>
+<span class="nc" id="L172">                return BigDecimal.valueOf((long) a).divide((BigDecimal) b, MATH_CONTEXT.get()).intValue();</span>
             } else {
-<span class="nc" id="L172">                throw new IllegalArgumentException(b.toString());</span>
+<span class="nc" id="L174">                throw new IllegalArgumentException(b.toString());</span>
             }
         }
     }
 
-<span class="fc" id="L177">    public static final class Mod implements Operator&lt;Integer, Number, Number&gt; {</span>
+<span class="fc" id="L179">    public static final class Mod implements Operator&lt;Integer, Number, Number&gt; {</span>
 
         @Override
         public Number op(final Integer a, final Number b) {
-<span class="nc" id="L181">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="nc bnc" id="L182" title="All 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-<span class="nc" id="L184">                long result = (long) a % b.intValue();</span>
-<span class="nc" id="L185">                return (int) result;</span>
-<span class="nc bnc" id="L186" title="All 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
-<span class="nc" id="L187">                return a % b.longValue();</span>
-<span class="nc bnc" id="L188" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
-<span class="nc" id="L189">                return  a % b.longValue();</span>
-<span class="nc bnc" id="L190" title="All 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
+<span class="nc" id="L183">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="nc bnc" id="L184" title="All 6 branches missed.">            if (claszB == Integer.class || claszB == Short.class</span>
+                    || claszB == Byte.class) {
+<span class="nc" id="L186">                long result = (long) a % b.intValue();</span>
+<span class="nc" id="L187">                return (int) result;</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">            } else if (claszB == Long.class) {</span>
+<span class="nc" id="L189">                return a % b.longValue();</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">            } else if (claszB == Double.class) {</span>
 <span class="nc" id="L191">                return  a % b.longValue();</span>
-<span class="nc bnc" id="L192" title="All 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
-<span class="nc" id="L193">                return BigInteger.valueOf((long) a).mod((BigInteger) b).intValue();</span>
-<span class="nc bnc" id="L194" title="All 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
-<span class="nc" id="L195">                return BigInteger.valueOf((long) a).mod(((BigDecimal) b).toBigInteger()).intValue();</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">            } else if (claszB == Float.class) {</span>
+<span class="nc" id="L193">                return  a % b.longValue();</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">            } else if (claszB == BigInteger.class) {</span>
+<span class="nc" id="L195">                return BigInteger.valueOf((long) a).mod((BigInteger) b).intValue();</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">            } else if (claszB == BigDecimal.class) {</span>
+<span class="nc" id="L197">                return BigInteger.valueOf((long) a).mod(((BigDecimal) b).toBigInteger()).intValue();</span>
             } else {
-<span class="nc" id="L197">                throw new IllegalArgumentException(b.toString());</span>
+<span class="nc" id="L199">                throw new IllegalArgumentException(b.toString());</span>
             }
         }
     }
 
-<span class="fc" id="L202">    public static final class Pow implements Operator&lt;Integer, Number, Number&gt; {</span>
+<span class="fc" id="L204">    public static final class Pow implements Operator&lt;Integer, Number, Number&gt; {</span>
 
         @Override
         public Number op(final Integer a, final Number b) {
-<span class="fc" id="L206">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="pc bpc" id="L207" title="7 of 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-<span class="fc" id="L209">                return powIntInt(a, b);</span>
-<span class="nc bnc" id="L210" title="All 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
-<span class="nc bnc" id="L211" title="All 2 branches missed.">                if (((Long) b).compareTo((long) Integer.MAX_VALUE) &gt; 0) {</span>
-<span class="nc" id="L212">                    return Math.pow(a, (Long) b);</span>
+<span class="fc" id="L208">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
+<span class="pc bpc" id="L209" title="5 of 6 branches missed.">            if (claszB == Integer.class || claszB == Short.class</span>
+                    || claszB == Byte.class) {
+<span class="fc" id="L211">                return powIntInt(a, b);</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">            } else if (claszB == Long.class) {</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">                if (((Long) b).compareTo((long) Integer.MAX_VALUE) &gt; 0) {</span>
+<span class="nc" id="L214">                    return Math.pow(a, (Long) b);</span>
                 } else {
-<span class="nc" id="L214">                    return powIntInt(a, b.intValue());</span>
+<span class="nc" id="L216">                    return powIntInt(a, b.intValue());</span>
                 }
-<span class="nc bnc" id="L216" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
-<span class="nc" id="L217">                return Math.pow(a, (Double) b);</span>
-<span class="nc bnc" id="L218" title="All 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">            } else if (claszB == Double.class) {</span>
 <span class="nc" id="L219">                return Math.pow(a, (Double) b);</span>
-<span class="nc bnc" id="L220" title="All 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
-<span class="nc" id="L221">                return BigInteger.valueOf((long) a).pow(b.intValue());</span>
-<span class="nc bnc" id="L222" title="All 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
-<span class="nc" id="L223">                return BigDecimal.valueOf((long) a).pow(b.intValue());</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">            } else if (claszB == Float.class) {</span>
+<span class="nc" id="L221">                return Math.pow(a, (Double) b);</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">            } else if (claszB == BigInteger.class) {</span>
+<span class="nc" id="L223">                return BigInteger.valueOf((long) a).pow(b.intValue());</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">            } else if (claszB == BigDecimal.class) {</span>
+<span class="nc" id="L225">                return BigDecimal.valueOf((long) a).pow(b.intValue());</span>
             } else {
-<span class="nc" id="L225">                throw new IllegalArgumentException(b.toString());</span>
+<span class="nc" id="L227">                throw new IllegalArgumentException(b.toString());</span>
             }
         }
     }
@@ -230,12 +232,12 @@ public final class IntegerOperators {
     private static Number powIntInt(final Integer a, final Number b) {
         int result;
         try {
-<span class="fc" id="L233">            result = IntMath.checkedPow(a, b.intValue());</span>
-<span class="nc" id="L234">        } catch (ArithmeticException e) {</span>
-<span class="nc" id="L235">            return BigInteger.valueOf(a).pow(b.intValue());</span>
-<span class="fc" id="L236">        }</span>
-<span class="fc" id="L237">        return result;</span>
+<span class="fc" id="L235">            result = IntMath.checkedPow(a, b.intValue());</span>
+<span class="nc" id="L236">        } catch (ArithmeticException e) {</span>
+<span class="nc" id="L237">            return BigInteger.valueOf(a).pow(b.intValue());</span>
+<span class="fc" id="L238">        }</span>
+<span class="fc" id="L239">        return result;</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

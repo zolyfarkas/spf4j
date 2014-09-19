@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
-import org.spf4j.base.Pair;
+import org.spf4j.base.Either;
 
 /**
  * bean like implementation of a future
@@ -29,7 +29,7 @@ import org.spf4j.base.Pair;
  */
 @ThreadSafe
 <span class="fc" id="L31">public class VMASyncFuture&lt;T&gt; implements VMFuture&lt;T&gt; {</span>
-    private volatile Pair&lt;T, ? extends ExecutionException&gt; resultStore;
+    private volatile Either&lt;T, ? extends ExecutionException&gt; resultStore;
 
     @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
@@ -46,7 +46,7 @@ import org.spf4j.base.Pair;
 <span class="fc bfc" id="L46" title="All 2 branches covered.">        return resultStore != null;</span>
     }
     
-    public final Pair&lt;T, ? extends ExecutionException&gt; getResultStore() {
+    public final Either&lt;T, ? extends ExecutionException&gt; getResultStore() {
 <span class="fc" id="L50">        return resultStore;</span>
     }
 
@@ -66,7 +66,7 @@ import org.spf4j.base.Pair;
 
     @Override
     public final void setResult(final T result) {
-<span class="fc" id="L69">        resultStore = Pair.of(result, (ExecutionException) null);</span>
+<span class="fc" id="L69">        resultStore = Either.left(result);</span>
 <span class="fc" id="L70">    }</span>
     
     @Override
@@ -74,9 +74,9 @@ import org.spf4j.base.Pair;
 <span class="nc bnc" id="L74" title="All 2 branches missed.">        if (result.getCause() == ExecAbortException.INSTANCE) {</span>
 <span class="nc" id="L75">            return;</span>
         }
-<span class="nc" id="L77">        resultStore = Pair.of(null, (ExecutionException) result);</span>
+<span class="nc" id="L77">        resultStore = Either.right(result);</span>
 <span class="nc" id="L78">    }</span>
 
     
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.6.4.201312101107</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
