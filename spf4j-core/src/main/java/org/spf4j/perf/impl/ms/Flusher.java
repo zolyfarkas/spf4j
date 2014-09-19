@@ -23,7 +23,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
-import org.spf4j.jmx.Registry;
 import org.spf4j.perf.MeasurementStore;
 
 public final class Flusher {
@@ -47,7 +46,5 @@ public final class Flusher {
                 }
             }
         });
-        Registry.export(store.getClass().getName(),
-                    store.toString(), store);
     }
 }

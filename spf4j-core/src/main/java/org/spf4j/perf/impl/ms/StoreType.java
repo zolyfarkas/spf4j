@@ -20,6 +20,7 @@ package org.spf4j.perf.impl.ms;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import org.spf4j.jmx.Registry;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.impl.ms.graphite.GraphiteTcpStore;
 import org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore;
@@ -68,7 +69,10 @@ public enum StoreType {
     }
 
     public MeasurementStore create(final String configuration) throws IOException, ObjectCreationException {
-        return factory.create(configuration);
+        MeasurementStore store =  factory.create(configuration);
+        Registry.export(store.getClass().getName(),
+                    store.toString(), store);
+        return store;
     }
     
 }
