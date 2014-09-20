@@ -46,7 +46,7 @@ public final class RecorderFactory {
 
     private RecorderFactory() {
     }
-    public static final MeasurementStore TS_DATABASE;
+    public static final MeasurementStore MEASUREMENT_STORE;
 
     
     /**
@@ -106,8 +106,8 @@ public final class RecorderFactory {
     
     static {
         try {
-            TS_DATABASE = buildStoreFromConfig(System.getProperty("perf.ms.config", null));
-            Flusher.flushEvery(60000, TS_DATABASE);
+            MEASUREMENT_STORE = buildStoreFromConfig(System.getProperty("perf.ms.config", null));
+            Flusher.flushEvery(60000, MEASUREMENT_STORE);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         } catch (ObjectCreationException ex) {
@@ -121,19 +121,19 @@ public final class RecorderFactory {
             final int higherMagnitude, final int quantasPerMagnitude) {
         return new ScalableMeasurementRecorder(new QuantizedRecorder(forWhat, "",
                 unitOfMeasurement, factor, lowerMagnitude, higherMagnitude,
-                quantasPerMagnitude), sampleTimeMillis, TS_DATABASE);
+                quantasPerMagnitude), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorder createScalableCountingRecorder(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
         return new ScalableMeasurementRecorder(new CountingRecorder(forWhat, "",
-                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+                unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorder createScalableMinMaxAvgRecorder(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
         return new ScalableMeasurementRecorder(new MinMaxAvgRecorder(forWhat, "",
-                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+                unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorderSource createScalableQuantizedRecorderSource(
@@ -142,28 +142,34 @@ public final class RecorderFactory {
             final int higherMagnitude, final int quantasPerMagnitude) {
         return new ScalableMeasurementRecorderSource(new QuantizedRecorder(forWhat, "",
                 unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude),
-                sampleTimeMillis, TS_DATABASE);
+                sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorderSource createScalableCountingRecorderSource(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
         return new ScalableMeasurementRecorderSource(new CountingRecorder(forWhat, "",
-                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+                unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorderSource createScalableMinMaxAvgRecorderSource(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
         return new ScalableMeasurementRecorderSource(new MinMaxAvgRecorder(forWhat, "",
-                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+                unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
-    public static MeasurementRecorder createDirectTsdbRecorder(final Object forWhat, final String unitOfMeasurement) {
-        return new DirectRecorder(forWhat, "", unitOfMeasurement, 0, TS_DATABASE);
+    public static MeasurementRecorder createDirectRecorder(final Object forWhat, final String unitOfMeasurement) {
+        return new DirectRecorder(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE);
     }
 
-    public static MeasurementRecorder createDirectTsdbRecorder(final Object forWhat,
+    public static MeasurementRecorder createDirectRecorder(final Object forWhat,
             final String unitOfMeasurement, final int sampleTimeMillis) {
-        return new DirectRecorder(forWhat, "", unitOfMeasurement, sampleTimeMillis, TS_DATABASE);
+        return new DirectRecorder(forWhat, "", unitOfMeasurement, sampleTimeMillis, MEASUREMENT_STORE);
+    }
+    
+    
+    public static MeasurementRecorderSource createDirectRecorderSource(final Object forWhat,
+            final String unitOfMeasurement) {
+        return new DirectRecorderSource(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE);
     }
     
     public static MeasurementRecorder createDirectGraphiteUdpRecorder(final Object forWhat,

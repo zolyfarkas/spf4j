@@ -18,7 +18,6 @@
  */
 package org.spf4j.perf;
 
-
 /**
  *
  * @author zoly

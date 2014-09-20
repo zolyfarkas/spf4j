@@ -69,7 +69,7 @@ public final class FileMonitorAspectTest {
         } finally {
             fr.close();
         }
-       System.out.println(((TSDBMeasurementStore) RecorderFactory.TS_DATABASE).generateCharts(startTime, System.currentTimeMillis(), 1200, 600));
+       System.out.println(((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime, System.currentTimeMillis(), 1200, 600));
     }
 
 }

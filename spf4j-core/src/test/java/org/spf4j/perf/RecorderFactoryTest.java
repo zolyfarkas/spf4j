@@ -71,7 +71,7 @@ public final class RecorderFactoryTest {
         }
         long endTime = System.currentTimeMillis();
         System.out.println(
-                ((TSDBMeasurementStore) RecorderFactory.TS_DATABASE).generateCharts(startTime, endTime, 1200, 600));
+                ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime, endTime, 1200, 600));
         ((Closeable) result).close();
         
     }
@@ -97,7 +97,7 @@ public final class RecorderFactoryTest {
         }
         long endTime = System.currentTimeMillis();
         System.out.println(
-                ((TSDBMeasurementStore) RecorderFactory.TS_DATABASE).generateCharts(startTime, endTime, 1200, 600));
+                ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime, endTime, 1200, 600));
         ((Closeable) result).close();
     }
     
@@ -122,7 +122,7 @@ public final class RecorderFactoryTest {
         }
         long endTime = System.currentTimeMillis();
         System.out.println(
-                ((TSDBMeasurementStore) RecorderFactory.TS_DATABASE).generateCharts(startTime, endTime, 1200, 1600));
+                ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime, endTime, 1200, 1600));
         ((Closeable) result).close();
         
     }
@@ -145,7 +145,7 @@ public final class RecorderFactoryTest {
         }
         long endTime = System.currentTimeMillis();
         System.out.println(
-                ((TSDBMeasurementStore) RecorderFactory.TS_DATABASE).generateCharts(startTime, endTime, 1200, 600));
+                ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime, endTime, 1200, 600));
         ((Closeable) result).close();
     }
     

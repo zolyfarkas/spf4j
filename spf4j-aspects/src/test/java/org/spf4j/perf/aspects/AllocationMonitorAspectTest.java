@@ -64,7 +64,7 @@ public final class AllocationMonitorAspectTest {
         }
         testAllocInStaticContext();
         TestClass.testAllocInStaticContext();
-        System.out.println(((TSDBMeasurementStore) RecorderFactory.TS_DATABASE).generateCharts(startTime,
+        System.out.println(((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime,
                 System.currentTimeMillis(), 1200, 600));
     }
 }

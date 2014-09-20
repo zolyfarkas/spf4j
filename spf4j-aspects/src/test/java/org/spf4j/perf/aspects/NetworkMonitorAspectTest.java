@@ -91,7 +91,7 @@ public final class NetworkMonitorAspectTest implements Runnable {
         clientTest();
         t.join();
         
-        System.out.println(((TSDBMeasurementStore) RecorderFactory.TS_DATABASE).generateCharts(startTime,
+        System.out.println(((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime,
                 System.currentTimeMillis(), 1200, 600));
     }
 
