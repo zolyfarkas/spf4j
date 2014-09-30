@@ -39,7 +39,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public final class FileBasedLock implements Lock, java.io.Closeable {
 
-    public static final Map<String, Lock> JVM_LOCKS = new HashMap<String, Lock>();
+    public static final Map<String, Lock> JVM_LOCKS = new HashMap<>();
     private final RandomAccessFile file;
     private final Lock jvmLock;
     private FileLock fileLock;
@@ -181,10 +181,8 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
 
     @Override
     protected void finalize() throws Throwable {
-        try {
+        try (FileBasedLock lock = this) {
             super.finalize();
-        } finally {
-            close();
         }
     }
 

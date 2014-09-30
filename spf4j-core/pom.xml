@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.spf4j</groupId>
         <artifactId>spf4j</artifactId>
-        <version>6.5.17</version>
+        <version>7.0-SNAPSHOT</version>
     </parent>
 
     <name>spf4j-core</name>
@@ -86,18 +86,6 @@
             <plugin>
                 <groupId>com.github.os72</groupId>
                 <artifactId>protoc-jar-maven-plugin</artifactId>
-                <version>2.5.0.1</version> <!-- for protobuf 2.5.0 -->
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/generated-sources/protobuf</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -127,10 +115,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                   <!-- <forkMode>always</forkMode> -->
                     <skip>false</skip>
-                    <forkMode>always</forkMode>
                     <forkCount>1.5C</forkCount>
+                    <reuseForks>false</reuseForks>
                     <argLine>${argLine} -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false</argLine>
                 </configuration>
             </plugin>

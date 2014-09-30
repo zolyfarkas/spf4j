@@ -50,12 +50,9 @@ public final class Client {
             throws IOException, InstanceNotFoundException,
             MBeanException, AttributeNotFoundException, ReflectionException {
         JMXServiceURL url = new JMXServiceURL(serviceUrl);
-        JMXConnector jmxc = JMXConnectorFactory.connect(url, null);
-        try {
+        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {
             MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
             return mbsc.getAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName), attribName);
-        } finally {
-            jmxc.close();
         }
     }
     
@@ -65,13 +62,10 @@ public final class Client {
             throws IOException, InstanceNotFoundException,
             MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
         JMXServiceURL url = new JMXServiceURL(serviceUrl);
-        JMXConnector jmxc = JMXConnectorFactory.connect(url, null);
-        try {
+        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {
             MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
             mbsc.setAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName),
                     new Attribute(attribName, attribValue));
-        } finally {
-            jmxc.close();
         }
     }
     
@@ -82,13 +76,10 @@ public final class Client {
             throws IOException, InstanceNotFoundException,
             MBeanException, AttributeNotFoundException, ReflectionException {
         JMXServiceURL url = new JMXServiceURL(serviceUrl);
-        JMXConnector jmxc = JMXConnectorFactory.connect(url, null);
-        try {
+        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {
             MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
             return mbsc.invoke(ExportedValuesMBean.createObjectName(domain, mbeanName),
                     operationName, parameters, null);
-        } finally {
-            jmxc.close();
         }
     }
     

@@ -47,7 +47,7 @@ final class DataFragment {
         this.location = 0;
         this.nextDataFragment = 0;
         this.startTimeMillis = startTimeMillis;
-        data = new ArrayList<long[]>();
+        data = new ArrayList<>();
         timestamps = new TIntArrayList();
     }
 

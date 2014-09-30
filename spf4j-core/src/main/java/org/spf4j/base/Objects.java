@@ -35,26 +35,15 @@ public final class Objects {
     }
 
     public static <T extends Serializable> T clone(final T t) {
-        try {
-            ByteArrayBuilder bos = new ByteArrayBuilder(256);
-            ObjectOutputStream out = new ObjectOutputStream(bos);
-            try {
-                out.writeObject(t);
-            } finally {
-                out.close();
+        try (ByteArrayBuilder bos = new ByteArrayBuilder(256);
+             ObjectOutputStream out = new ObjectOutputStream(bos)) {           
+            out.writeObject(t);
+            out.flush();
+            try (ObjectInputStream in = new ObjectInputStream(
+                    new ByteArrayInputStream(bos.getBuffer(), 0, bos.size()))) {
+                return (T) in.readObject();
             }
-            T result;
-            ObjectInputStream in = new ObjectInputStream(
-                    new ByteArrayInputStream(bos.getBuffer(), 0, bos.size()));
-            try {
-                result = (T) in.readObject();
-            } finally {
-                in.close();
-            }
-            return result;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
