@@ -25,7 +25,10 @@ import java.net.UnknownHostException;
 
 /**
  * Unique ID Generator Based on the assumptions:
- * 1. host IP address is used for uniqueness
+ * 1. host MAC address is used. (each network interface has a Unique ID)
+ * 2. process id is used + current epoch seconds. 
+ *    it is assumed the PID is not recycled within a second.
+ * 3. A process sequence is used. UIDs will cycle after Long.MaxValue is reached. 
  * 
  * @author zoly
  */
