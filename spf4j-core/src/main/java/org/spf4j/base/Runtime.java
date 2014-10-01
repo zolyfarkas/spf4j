@@ -75,6 +75,7 @@ public final class Runtime {
     public static final String PROCESS_NAME;
     public static final int NR_PROCESSORS;
     public static final String JAVA_VERSION = System.getProperty("java.version");
+    public static final String USER_NAME = System.getProperty("user.name");
 
     static {
         final java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
