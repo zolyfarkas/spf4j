@@ -21,14 +21,18 @@ import com.google.common.io.BaseEncoding;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- * Unique ID Generator Based on the assumptions: 1. host MAC address is used. (each network interface has a Unique ID)
- * 2. process id is used + current epoch seconds. it is assumed the PID is not recycled within a second. 3. A process
- * sequence is used. UIDs will cycle after Long.MaxValue is reached.
+ * Unique ID Generator Based on the assumptions:
+ * 1. host MAC address is used. (each network interface has a Unique ID) (encoded with provided encoder)
+ * 2. process id is used + current epoch seconds. it is assumed the PID is not recycled within a second.
+ * 3. A process sequence is used. UIDs will cycle after Long.MaxValue is reached.
  *
  * @author zoly
  */
+@ParametersAreNonnullByDefault
 public final class UIDGenerator {
 
     private final Sequence sequence;
@@ -36,27 +40,36 @@ public final class UIDGenerator {
     private final String base;
 
     private final int maxSize;
-
+    
     public UIDGenerator(final Sequence sequence) {
-        this.sequence = sequence;
-        byte[] intfMac;
-        try {
-            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
-            do {
-                intfMac = networkInterfaces.nextElement().getHardwareAddress();
-            } while (intfMac == null);
-        } catch (SocketException ex) {
-            throw new RuntimeException(ex);
-        }
-        StringBuilder sb = new StringBuilder().append(
-                BaseEncoding.base64().encode(intfMac))
-                .append('@');
-        appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);
-        sb.append('T');
-        appendUnsignedString(sb, System.currentTimeMillis() / 1000, 5);
-        sb.append('>');
-        base = sb.toString();
+        this(sequence, BaseEncoding.base64());
+    }
 
+    /**
+     * Construct a UID Generator
+     * @param sequence
+     * @param baseEncoding - if null MAC address based ID will not be included.
+     */
+    public UIDGenerator(final Sequence sequence, @Nullable final BaseEncoding baseEncoding) {
+        this.sequence = sequence;
+        StringBuilder sb = new StringBuilder();
+        if (baseEncoding != null) {
+            byte[] intfMac;
+            try {
+                Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+                do {
+                    intfMac = networkInterfaces.nextElement().getHardwareAddress();
+                } while (intfMac == null);
+            } catch (SocketException ex) {
+                throw new RuntimeException(ex);
+            }
+            sb.append(baseEncoding.encode(intfMac)).append('_');
+        }
+        appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);
+        sb.append('_');
+        appendUnsignedString(sb, System.currentTimeMillis() / 1000, 5);
+        sb.append('_');
+        base = sb.toString();
         maxSize = base.length() + 16;
     }
 
