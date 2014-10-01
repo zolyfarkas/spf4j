@@ -48,7 +48,7 @@ final class TableOfContents {
             try {
                 lock.release();
                 throw e;
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 ex.addSuppressed(e);
                 throw ex;
             }
@@ -67,7 +67,7 @@ final class TableOfContents {
             try {
                 lock.release();
                 throw e;
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 ex.addSuppressed(e);
                 throw ex;
             }
@@ -97,7 +97,7 @@ final class TableOfContents {
             try {
                 lock.release();
                 throw e;
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 ex.addSuppressed(e);
                 throw ex;
             }
@@ -116,7 +116,7 @@ final class TableOfContents {
             try {
                 lock.release();
                 throw e;
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 ex.addSuppressed(e);
                 throw ex;
             }

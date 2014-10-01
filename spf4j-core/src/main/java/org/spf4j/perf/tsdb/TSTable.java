@@ -98,7 +98,7 @@ public final class TSTable {
             try {
                 lock.release();
                 throw e;
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 ex.addSuppressed(e);
                 throw ex;
             }
@@ -139,7 +139,7 @@ public final class TSTable {
             try {
                 lock.release();
                 throw e;
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 ex.addSuppressed(e);
                 throw ex;
             }
@@ -162,7 +162,7 @@ public final class TSTable {
             try {
                 lock.release();
                 throw e;
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 ex.addSuppressed(e);
                 throw ex;
             }
@@ -181,7 +181,7 @@ public final class TSTable {
             try {
                 lock.release();
                 throw e;
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 ex.addSuppressed(e);
                 throw ex;
             }
@@ -201,7 +201,7 @@ public final class TSTable {
             try {
                 lock.release();
                 throw e;
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 ex.addSuppressed(e);
                 throw ex;
             }
