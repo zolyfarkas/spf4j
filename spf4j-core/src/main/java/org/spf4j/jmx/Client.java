@@ -18,6 +18,7 @@
  */
 package org.spf4j.jmx;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.management.Attribute;
@@ -36,6 +37,7 @@ import javax.management.remote.JMXServiceURL;
  * 
  * @author zoly
  */
+@SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // FB gets it wrong here
 public final class Client {
     
     private Client() { }

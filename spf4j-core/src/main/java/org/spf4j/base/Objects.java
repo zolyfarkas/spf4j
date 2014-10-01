@@ -36,7 +36,7 @@ public final class Objects {
 
     public static <T extends Serializable> T clone(final T t) {
         try (ByteArrayBuilder bos = new ByteArrayBuilder(256);
-             ObjectOutputStream out = new ObjectOutputStream(bos)) {           
+             ObjectOutputStream out = new ObjectOutputStream(bos)) {
             out.writeObject(t);
             out.flush();
             try (ObjectInputStream in = new ObjectInputStream(

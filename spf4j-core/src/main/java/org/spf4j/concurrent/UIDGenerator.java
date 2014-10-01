@@ -18,67 +18,68 @@
 package org.spf4j.concurrent;
 
 import com.google.common.io.BaseEncoding;
-import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.util.Enumeration;
 
 /**
- * Unique ID Generator Based on the assumptions:
- * 1. host MAC address is used. (each network interface has a Unique ID)
- * 2. process id is used + current epoch seconds. 
- *    it is assumed the PID is not recycled within a second.
- * 3. A process sequence is used. UIDs will cycle after Long.MaxValue is reached. 
- * 
+ * Unique ID Generator Based on the assumptions: 1. host MAC address is used. (each network interface has a Unique ID)
+ * 2. process id is used + current epoch seconds. it is assumed the PID is not recycled within a second. 3. A process
+ * sequence is used. UIDs will cycle after Long.MaxValue is reached.
+ *
  * @author zoly
  */
 public final class UIDGenerator {
-    
+
     private final Sequence sequence;
 
     private final String base;
-    
+
     private final int maxSize;
-    
+
     public UIDGenerator(final Sequence sequence) {
         this.sequence = sequence;
-       
+        byte[] intfMac;
         try {
-            StringBuilder sb = new StringBuilder().append(
-                            BaseEncoding.base64().encode(
-                                    NetworkInterface.getByInetAddress(InetAddress.getLocalHost()).getHardwareAddress()))
-                            .append('@');
-            appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);
-            sb.append('T');
-            appendUnsignedString(sb, System.currentTimeMillis() / 1000, 5);
-            sb.append('>');
-            base = sb.toString();
-        } catch (UnknownHostException | SocketException ex) {
+            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+            do {
+                intfMac = networkInterfaces.nextElement().getHardwareAddress();
+            } while (intfMac == null);
+        } catch (SocketException ex) {
             throw new RuntimeException(ex);
         }
+        StringBuilder sb = new StringBuilder().append(
+                BaseEncoding.base64().encode(intfMac))
+                .append('@');
+        appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);
+        sb.append('T');
+        appendUnsignedString(sb, System.currentTimeMillis() / 1000, 5);
+        sb.append('>');
+        base = sb.toString();
+
         maxSize = base.length() + 16;
     }
 
     public int getMaxSize() {
         return maxSize;
     }
-    
+
     public String next() {
         StringBuilder result = new StringBuilder(maxSize);
         result.append(base);
         appendUnsignedString(result, sequence.next(), 5);
         return result.toString();
     }
-    
+
     private static final char[] DIGITS = {
-        '0' , '1' , '2' , '3' , '4' , '5' ,
-        '6' , '7' , '8' , '9' , 'a' , 'b' ,
-        'c' , 'd' , 'e' , 'f' , 'g' , 'h' ,
-        'i' , 'j' , 'k' , 'l' , 'm' , 'n' ,
-        'o' , 'p' , 'q' , 'r' , 's' , 't' ,
-        'u' , 'v' , 'w' , 'x' , 'y' , 'z'
+        '0', '1', '2', '3', '4', '5',
+        '6', '7', '8', '9', 'a', 'b',
+        'c', 'd', 'e', 'f', 'g', 'h',
+        'i', 'j', 'k', 'l', 'm', 'n',
+        'o', 'p', 'q', 'r', 's', 't',
+        'u', 'v', 'w', 'x', 'y', 'z'
     };
-    
+
     private static void appendUnsignedString(final StringBuilder sb, final long nr, final int shift) {
         long i = nr;
         char[] buf = new char[64];
@@ -91,5 +92,5 @@ public final class UIDGenerator {
         } while (i != 0);
         sb.append(buf, charPos, (64 - charPos));
     }
-    
+
 }

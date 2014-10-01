@@ -64,9 +64,16 @@ final class DataFragment {
             byte [] buffer = new byte [bufferSize];
             raf.readFully(buffer);
             loadData(nrSamples, samplesLength, new DataInputStream(new ByteArrayInputStream(buffer)));
-        } finally {
-            lock.release();
+        } catch (IOException | RuntimeException e) {
+            try {
+                lock.release();
+                throw e;
+            } catch(IOException ex) {
+                ex.addSuppressed(e);
+                throw ex;
+            }
         }
+        lock.release();
     }
 
     public void writeTo(final DataOutput dos) throws IOException {
@@ -91,9 +98,16 @@ final class DataFragment {
         try {
             raf.seek(location);
             raf.write(bos.getBuffer(), 0, bos.size());
-        } finally {
-            lock.release();
+        } catch (IOException | RuntimeException e) {
+            try {
+                lock.release();
+                throw e;
+            } catch(IOException ex) {
+                ex.addSuppressed(e);
+                throw ex;
+            }
         }
+        lock.release();
     }
 
     
@@ -116,9 +130,16 @@ final class DataFragment {
         try {
             raf.seek(dataFragmentPosition);
             raf.writeLong(nextDataFragment);
-        } finally {
-            lock.release();
+        } catch (IOException | RuntimeException e) {
+            try {
+                lock.release();
+                throw e;
+            } catch(IOException ex) {
+                ex.addSuppressed(e);
+                throw ex;
+            }
         }
+        lock.release();
     }
 
     public long getNextDataFragment() {

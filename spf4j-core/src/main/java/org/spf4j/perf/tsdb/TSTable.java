@@ -59,7 +59,7 @@ public final class TSTable {
         this.tableMetaData = tableMetaData;
         this.columnNames = columnNames;
         this.columnMetaData = columnMetaData;
-        this.nameToIndex = new HashMap<String, Integer>(columnNames.length + columnNames.length / 3);
+        this.nameToIndex = new HashMap<>(columnNames.length + columnNames.length / 3);
         for (int i = 0; i < columnNames.length; i++) {
             this.nameToIndex.put(columnNames[i], i);
         }
@@ -80,7 +80,7 @@ public final class TSTable {
             raf.readFully(tableMetaData);
             int nrColumns = raf.readShort();
             columnNames = new String[nrColumns];
-            this.nameToIndex = new HashMap<String, Integer>(nrColumns + nrColumns / 3);
+            this.nameToIndex = new HashMap<>(nrColumns + nrColumns / 3);
             for (int i = 0; i < columnNames.length; i++) {
                 String colName = raf.readUTF();
                 columnNames[i] = colName;
@@ -94,9 +94,16 @@ public final class TSTable {
                 columnMetaData[i] = colMetaData;
             }
             
-        } finally {
-            lock.release();
+        } catch (IOException | RuntimeException e) {
+            try {
+                lock.release();
+                throw e;
+            } catch(IOException ex) {
+                ex.addSuppressed(e);
+                throw ex;
+            }
         }
+        lock.release();
     }
 
     void writeTo(final DataOutput dos) throws IOException {
@@ -128,9 +135,16 @@ public final class TSTable {
         try {
             raf.seek(location);
             raf.write(bos.getBuffer(), 0, bos.size());
-        } finally {
-            lock.release();
+        } catch (IOException | RuntimeException e) {
+            try {
+                lock.release();
+                throw e;
+            } catch(IOException ex) {
+                ex.addSuppressed(e);
+                throw ex;
+            }
         }
+        lock.release();
     }
 
     public String [] getColumnNames() {
@@ -144,9 +158,16 @@ public final class TSTable {
         try {
             raf.seek(location);
             raf.writeLong(nextColumnInfo);
-        } finally {
-            lock.release();
+        } catch (IOException | RuntimeException e) {
+            try {
+                lock.release();
+                throw e;
+            } catch(IOException ex) {
+                ex.addSuppressed(e);
+                throw ex;
+            }
         }
+        lock.release();
     }
 
     void setFirstDataFragment(final long pfirstDataFragment, final RandomAccessFile raf) throws IOException {
@@ -156,9 +177,16 @@ public final class TSTable {
         try {
             raf.seek(location + 8);
             raf.writeLong(firstDataFragment);
-        } finally {
-            lock.release();
+        } catch (IOException | RuntimeException e) {
+            try {
+                lock.release();
+                throw e;
+            } catch(IOException ex) {
+                ex.addSuppressed(e);
+                throw ex;
+            }
         }
+        lock.release();
     }
     
     
@@ -169,9 +197,16 @@ public final class TSTable {
         try {
             raf.seek(location + 16);
             raf.writeLong(lastDataFragment);
-        } finally {
-            lock.release();
+        } catch (IOException | RuntimeException e) {
+            try {
+                lock.release();
+                throw e;
+            } catch(IOException ex) {
+                ex.addSuppressed(e);
+                throw ex;
+            }
         }
+        lock.release();
     }
     
     

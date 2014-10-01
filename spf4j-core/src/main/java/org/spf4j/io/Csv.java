@@ -17,6 +17,7 @@
  */
 package org.spf4j.io;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.hash.THashMap;
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,6 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Strings;
 
 /**
@@ -44,6 +46,8 @@ import org.spf4j.base.Strings;
  * 
  * @author zoly
  */
+@ParametersAreNonnullByDefault
+@SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // FB gets it wrong here
 public final class Csv {
 
     private Csv() {

@@ -25,12 +25,13 @@ import java.nio.channels.FileLock;
 
 /**
  * TSDB header detail
+ *
  * @author zoly
  */
 final class Header {
-    
+
     public static final String TYPE = "TSDB";
-    
+
     private final String type;
     private final int version;
     private final byte[] metaData;
@@ -58,15 +59,29 @@ final class Header {
                 try {
                     this.metaData = new byte[metaDataSize];
                     raf.readFully(this.metaData);
-                } finally {
-                    metaLock.release();
+                } catch (IOException | RuntimeException e) {
+                    try {
+                        metaLock.release();
+                        throw e;
+                    } catch (IOException ex) {
+                        ex.addSuppressed(e);
+                        throw ex;
+                    }
                 }
+                metaLock.release();
             } else {
                 this.metaData = new byte[]{};
             }
-        } finally {
-            lock.release();
+        } catch (IOException | RuntimeException e) {
+            try {
+                lock.release();
+                throw e;
+            } catch (IOException ex) {
+                ex.addSuppressed(e);
+                throw ex;
+            }
         }
+        lock.release();
     }
 
     public void writeTo(final RandomAccessFile raf) throws IOException {
@@ -79,11 +94,17 @@ final class Header {
             if (metaData.length > 0) {
                 raf.write(metaData);
             }
-        } finally {
-            lock.release();
+        } catch (IOException | RuntimeException e) {
+            try {
+                lock.release();
+                throw e;
+            } catch (IOException ex) {
+                ex.addSuppressed(e);
+                throw ex;
+            }
         }
+        lock.release();
     }
-
 
     public String getType() {
         return type;
@@ -92,7 +113,6 @@ final class Header {
     public int getVersion() {
         return version;
     }
-
 
     public byte[] getMetaData() {
         return metaData;
@@ -103,6 +123,4 @@ final class Header {
         return "Header{" + "type=" + type + ", version=" + version + '}';
     }
 
-    
-    
 }
