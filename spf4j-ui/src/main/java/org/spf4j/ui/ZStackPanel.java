@@ -17,7 +17,7 @@
  */
 package org.spf4j.ui;
 
-import com.google.common.base.Predicate;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.spf4j.base.EqualsPredicate;
 import org.spf4j.base.Pair;
 import org.spf4j.ds.Traversals;
 import org.spf4j.ds.Graph;
@@ -37,7 +38,9 @@ import static org.spf4j.ui.StackPanelBase.LINK_COLOR;
  *
  * @author zoly
  */
+@SuppressFBWarnings("SE_BAD_FIELD")
 public final class ZStackPanel extends StackPanelBase {
+    private static final long serialVersionUID = 1L;
 
     private Graph<Method, SampleNode.InvocationCount> graph;
     private Graph<Method, SampleNode.InvocationCount> completeGraph;
@@ -235,12 +238,7 @@ public final class ZStackPanel extends StackPanelBase {
         List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{xx, yy}, new float[]{0, 0});
         if (tips.size() >= 1) {
             final Method value = tips.get(0).getFirst().withId(0);
-            samples = samples.filteredBy(new Predicate<Method>() {
-                @Override
-                public boolean apply(final Method t) {
-                    return t.equals(value);
-                }
-            });
+            samples = samples.filteredBy(new EqualsPredicate<Method>(value));
             this.completeGraph = SampleNode.toGraph(samples);
             repaint();
         }

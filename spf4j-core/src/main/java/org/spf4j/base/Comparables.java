@@ -30,7 +30,7 @@ public final class Comparables {
 
     public static <T> Comparable<T> min(@Nonnull final Object ... nrs) {
         if (nrs.length == 0) {
-            throw new IllegalArgumentException("cannot calc min of empty array");
+            throw new IllegalArgumentException("cannot calc min of empty array" + java.util.Arrays.toString(nrs));
         }
         Comparable min = (Comparable) nrs[0];
         for (int i = 1; i < nrs.length; i++) {
@@ -44,7 +44,7 @@ public final class Comparables {
     
     public static <T> Comparable<T> max(@Nonnull final Object ... nrs) {
         if (nrs.length == 0) {
-            throw new IllegalArgumentException("cannot calc max of empty array");
+            throw new IllegalArgumentException("cannot calc max of empty array: " + java.util.Arrays.toString(nrs));
         }
         Comparable max = (Comparable) nrs[0];
         for (int i = 1; i < nrs.length; i++) {

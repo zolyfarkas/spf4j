@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -39,6 +40,20 @@ public final class Runtime {
 
     private Runtime() {
     }
+    
+    public enum Version {
+        
+        V1_0, V1_1, V1_2, V1_3, V1_4, V1_5, V1_6, V1_7, V1_8, V1_9_PLUSZ;
+    
+        public static Version fromSpecVersion(final String specVersion) {
+            return Version.values()[Integer.parseInt(specVersion.split("\\.")[1])];
+        }
+    }
+    
+    
+    public static final Version JAVA_PLATFORM;
+    
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(Runtime.class);
 
     // Calling Halt is the only sensible thing to do when the JVM is hosed.
@@ -58,11 +73,14 @@ public final class Runtime {
     public static final int PID;
     public static final String OS_NAME;
     public static final String PROCESS_NAME;
-    public static final int NR_PROCESSORS = java.lang.Runtime.getRuntime().availableProcessors();
+    public static final int NR_PROCESSORS;
     public static final String JAVA_VERSION = System.getProperty("java.version");
 
     static {
-        PROCESS_NAME = ManagementFactory.getRuntimeMXBean().getName();
+        final java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
+        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+        NR_PROCESSORS = runtime.availableProcessors();
+        PROCESS_NAME = runtimeMxBean.getName();
         int atIdx = PROCESS_NAME.indexOf('@');
         if (atIdx < 0) {
             PID = -1;
@@ -70,6 +88,23 @@ public final class Runtime {
             PID = Integer.parseInt(PROCESS_NAME.substring(0, atIdx));
         }
         OS_NAME = System.getProperty("os.name");
+        
+        runtime.addShutdownHook(new Thread(new AbstractRunnable(false) {
+            @Override
+            public void doRun() throws Exception {
+                synchronized (SHUTDOWN_HOOKS) {
+                    for (Runnable runnable : SHUTDOWN_HOOKS) {
+                        try {
+                            runnable.run();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }, "tsdb shutdown"));
+        //JAVA_PLATFORM = Version.fromSpecVersion(runtimeMxBean.getSpecVersion());
+        JAVA_PLATFORM = Version.fromSpecVersion(JAVA_VERSION);
     }
     public static final String MAC_OS_X_OS_NAME = "Mac OS X";
     private static final File FD_FOLDER = new File("/proc/" + PID + "/fd");
@@ -185,7 +220,7 @@ public final class Runtime {
         public StringBuilderCharHandler() {
             builder = new StringBuilder();
         }
-        private StringBuilder builder;
+        private final StringBuilder builder;
 
         @Override
         public void handleStdOut(final int c) {
@@ -204,22 +239,6 @@ public final class Runtime {
     }
     private static final LinkedList<Runnable> SHUTDOWN_HOOKS = new LinkedList<Runnable>();
 
-    static {
-        java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(false) {
-            @Override
-            public void doRun() throws Exception {
-                synchronized (SHUTDOWN_HOOKS) {
-                    for (Runnable runnable : SHUTDOWN_HOOKS) {
-                        try {
-                            runnable.run();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-        }, "tsdb shutdown"));
-    }
 
     public static void addHookAtBeginning(final Runnable runnable) {
         synchronized (SHUTDOWN_HOOKS) {

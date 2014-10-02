@@ -224,7 +224,6 @@ public final class Reflections {
                                     return null; // nothing to return
                                 }
                             });
-                            m.setAccessible(true);
                             return m;
                         }
                     });

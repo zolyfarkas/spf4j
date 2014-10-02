@@ -18,10 +18,12 @@
 package org.spf4j.zel.operators;
 
 import com.google.common.math.IntMath;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import static org.spf4j.zel.operators.Operator.MATH_CONTEXT;
 
+@SuppressFBWarnings("NS_NON_SHORT_CIRCUIT")
 public final class IntegerOperators {
     
     private IntegerOperators() {
@@ -32,15 +34,15 @@ public final class IntegerOperators {
         @Override
         public Number op(final Integer a, final Number b) {
             Class<? extends Number> claszB = b.getClass();
-            if (claszB.equals(Integer.class) || claszB.equals(Short.class)
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
+            if (claszB == Integer.class || claszB == Short.class
+                    || claszB == Byte.class) {
                 long result = (long) a + b.intValue();
                 if (result == (int) result) {
-                    return Integer.valueOf((int) result);
+                    return (int) result;
                 } else {
                     return result;
                 }
-            } else if (claszB.equals(Long.class)) {
+            } else if (claszB == Long.class) {
                 long aa = a;
                 long bb = (Long) b;
                 long result = aa + bb;
@@ -50,13 +52,13 @@ public final class IntegerOperators {
                     BigInteger rr = BigInteger.valueOf(bb);
                     return rr.add(BigInteger.valueOf(aa));
                 }
-            } else if (claszB.equals(Double.class)) {
+            } else if (claszB == Double.class) {
                 return ((Double) b) + a;
-            } else if (claszB.equals(Float.class)) {
+            } else if (claszB == Float.class) {
                 return ((Double) b) + a;
-            } else if (claszB.equals(BigInteger.class)) {
+            } else if (claszB == BigInteger.class) {
                 return ((BigInteger) b).add(BigInteger.valueOf((long) a));
-            } else if (claszB.equals(BigDecimal.class)) {
+            } else if (claszB == BigDecimal.class) {
                 return ((BigDecimal) b).add(BigDecimal.valueOf(a), MATH_CONTEXT.get());
             } else {
                 throw new IllegalArgumentException(b.toString());
@@ -69,15 +71,15 @@ public final class IntegerOperators {
         @Override
         public Number op(final Integer a, final Number b) {
             Class<? extends Number> claszB = b.getClass();
-            if (claszB.equals(Integer.class) || claszB.equals(Short.class)
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
+            if (claszB == Integer.class || claszB == Short.class
+                    || claszB == Byte.class) {
                 long result = (long) a - b.intValue();
                 if (result == (int) result) {
-                    return Integer.valueOf((int) result);
+                    return (int) result;
                 } else {
                     return result;
                 }
-            } else if (claszB.equals(Long.class)) {
+            } else if (claszB == Long.class) {
                 long aa = a;
                 long bb = (Long) b;
                 long result = aa - bb;
@@ -87,13 +89,13 @@ public final class IntegerOperators {
                     BigInteger rr = BigInteger.valueOf(bb);
                     return rr.add(BigInteger.valueOf(aa));
                 }
-            } else if (claszB.equals(Double.class)) {
+            } else if (claszB == Double.class) {
                 return (double) a - ((Double) b);
-            } else if (claszB.equals(Float.class)) {
+            } else if (claszB == Float.class) {
                 return (double) a - ((Float) b);
-            } else if (claszB.equals(BigInteger.class)) {
+            } else if (claszB == BigInteger.class) {
                 return BigInteger.valueOf((long) a).subtract((BigInteger) b);
-            } else if (claszB.equals(BigDecimal.class)) {
+            } else if (claszB == BigDecimal.class) {
                 return BigDecimal.valueOf((long) a).subtract((BigDecimal) b, MATH_CONTEXT.get());
             } else {
                 throw new IllegalArgumentException(b.toString());
@@ -106,15 +108,15 @@ public final class IntegerOperators {
         @Override
         public Number op(final Integer a, final Number b) {
             Class<? extends Number> claszB = b.getClass();
-            if (claszB.equals(Integer.class) || claszB.equals(Short.class)
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
+            if (claszB == Integer.class || claszB == Short.class
+                    || claszB == Byte.class) {
                 long result = (long) a * b.intValue();
                 if (result == (int) result) {
-                    return Integer.valueOf((int) result);
+                    return (int) result;
                 } else {
                     return result;
                 }
-            } else if (claszB.equals(Long.class)) {
+            } else if (claszB == Long.class) {
                 long aa = a;
                 long bb = (Long) b;
                 int leadingZeros = Long.numberOfLeadingZeros(aa) + Long.numberOfLeadingZeros(~aa)
@@ -133,13 +135,13 @@ public final class IntegerOperators {
                     return BigInteger.valueOf(aa).multiply(BigInteger.valueOf(bb));
                 }
                 return tentativeResult;
-            } else if (claszB.equals(Double.class)) {
+            } else if (claszB == Double.class) {
                 return (double) a * ((Double) b);
-            } else if (claszB.equals(Float.class)) {
+            } else if (claszB == Float.class) {
                 return (double) a * ((Float) b);
-            } else if (claszB.equals(BigInteger.class)) {
+            } else if (claszB == BigInteger.class) {
                 return BigInteger.valueOf((long) a).multiply((BigInteger) b);
-            } else if (claszB.equals(BigDecimal.class)) {
+            } else if (claszB == BigDecimal.class) {
                 return BigDecimal.valueOf((long) a).multiply((BigDecimal) b, MATH_CONTEXT.get());
             } else {
                 throw new IllegalArgumentException(b.toString());
@@ -152,21 +154,21 @@ public final class IntegerOperators {
         @Override
         public Number op(final Integer a, final Number b) {
             Class<? extends Number> claszB = b.getClass();
-            if (claszB.equals(Integer.class) || claszB.equals(Short.class)
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
+            if (claszB == Integer.class || claszB == Short.class
+                    || claszB == Byte.class) {
                 long result = (long) a / b.intValue();
                 return (int) result;
-            } else if (claszB.equals(Long.class)) {
+            } else if (claszB == Long.class) {
                 long aa = a;
                 long bb = (Long) b;
                 return aa / bb;
-            } else if (claszB.equals(Double.class)) {
+            } else if (claszB == Double.class) {
                 return (double) a / ((Double) b);
-            } else if (claszB.equals(Float.class)) {
+            } else if (claszB == Float.class) {
                 return (double) a / ((Float) b);
-            } else if (claszB.equals(BigInteger.class)) {
+            } else if (claszB == BigInteger.class) {
                 return BigInteger.valueOf((long) a).divide((BigInteger) b).intValue();
-            } else if (claszB.equals(BigDecimal.class)) {
+            } else if (claszB == BigDecimal.class) {
                 return BigDecimal.valueOf((long) a).divide((BigDecimal) b, MATH_CONTEXT.get()).intValue();
             } else {
                 throw new IllegalArgumentException(b.toString());
@@ -179,19 +181,19 @@ public final class IntegerOperators {
         @Override
         public Number op(final Integer a, final Number b) {
             Class<? extends Number> claszB = b.getClass();
-            if (claszB.equals(Integer.class) || claszB.equals(Short.class)
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
+            if (claszB == Integer.class || claszB == Short.class
+                    || claszB == Byte.class) {
                 long result = (long) a % b.intValue();
                 return (int) result;
-            } else if (claszB.equals(Long.class)) {
+            } else if (claszB == Long.class) {
                 return a % b.longValue();
-            } else if (claszB.equals(Double.class)) {
+            } else if (claszB == Double.class) {
                 return  a % b.longValue();
-            } else if (claszB.equals(Float.class)) {
+            } else if (claszB == Float.class) {
                 return  a % b.longValue();
-            } else if (claszB.equals(BigInteger.class)) {
+            } else if (claszB == BigInteger.class) {
                 return BigInteger.valueOf((long) a).mod((BigInteger) b).intValue();
-            } else if (claszB.equals(BigDecimal.class)) {
+            } else if (claszB == BigDecimal.class) {
                 return BigInteger.valueOf((long) a).mod(((BigDecimal) b).toBigInteger()).intValue();
             } else {
                 throw new IllegalArgumentException(b.toString());
@@ -204,22 +206,22 @@ public final class IntegerOperators {
         @Override
         public Number op(final Integer a, final Number b) {
             Class<? extends Number> claszB = b.getClass();
-            if (claszB.equals(Integer.class) || claszB.equals(Short.class)
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
+            if (claszB == Integer.class || claszB == Short.class
+                    || claszB == Byte.class) {
                 return powIntInt(a, b);
-            } else if (claszB.equals(Long.class)) {
+            } else if (claszB == Long.class) {
                 if (((Long) b).compareTo((long) Integer.MAX_VALUE) > 0) {
                     return Math.pow(a, (Long) b);
                 } else {
                     return powIntInt(a, b.intValue());
                 }
-            } else if (claszB.equals(Double.class)) {
+            } else if (claszB == Double.class) {
                 return Math.pow(a, (Double) b);
-            } else if (claszB.equals(Float.class)) {
+            } else if (claszB == Float.class) {
                 return Math.pow(a, (Double) b);
-            } else if (claszB.equals(BigInteger.class)) {
+            } else if (claszB == BigInteger.class) {
                 return BigInteger.valueOf((long) a).pow(b.intValue());
-            } else if (claszB.equals(BigDecimal.class)) {
+            } else if (claszB == BigDecimal.class) {
                 return BigDecimal.valueOf((long) a).pow(b.intValue());
             } else {
                 throw new IllegalArgumentException(b.toString());

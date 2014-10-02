@@ -17,20 +17,23 @@
  */
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
-import org.spf4j.base.Pair;
+import org.spf4j.base.Either;
 
 /**
  * bean like implementation of a future
  * @author zoly
  */
 @ThreadSafe
+@SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
 public class FutureBean<T> implements Future<T> {
-    private volatile Pair<T, ? extends ExecutionException> resultStore;
+    
+    private volatile Either<T, ? extends ExecutionException> resultStore;
 
     @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
@@ -47,13 +50,13 @@ public class FutureBean<T> implements Future<T> {
         return resultStore != null;
     }
     
-    public final Pair<T, ? extends ExecutionException> getResultStore() {
+    public final Either<T, ? extends ExecutionException> getResultStore() {
         return resultStore;
     }
 
     @Override
     // Findbugs complain here is rubbish, InterruptedException is thrown by wait
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("BED_BOGUS_EXCEPTION_DECLARATION")
+    @SuppressFBWarnings({"BED_BOGUS_EXCEPTION_DECLARATION", "MDM_WAIT_WITHOUT_TIMEOUT" })
     public final synchronized T get() throws InterruptedException, ExecutionException {
         while (resultStore == null) {
             this.wait();
@@ -79,29 +82,28 @@ public class FutureBean<T> implements Future<T> {
         }
     }
 
-    public static <T> T processResult(final Pair<T, ? extends ExecutionException> result) throws ExecutionException {
-        ExecutionException e = result.getSecond();
-        if (e != null) {
-            throw e;
+    public static <T> T processResult(final Either<T, ? extends ExecutionException> result) throws ExecutionException {
+        if (result.isLeft()) {
+            return result.getLeft();
         } else {
-            return (T) result.getFirst();
+            throw result.getRight();
         }
     }
 
     public final synchronized void setResult(final T result) {
         if (resultStore != null) {
-            throw new IllegalStateException("cannot set result multiple times");
+            throw new IllegalStateException("cannot set result multiple times " +  result);
         }
-        resultStore = Pair.of(result, (ExecutionException) null);
+        resultStore = Either.left(result);
         done();
         this.notifyAll();
     }
     
     public final synchronized void setExceptionResult(final ExecutionException result) {
         if (resultStore != null) {
-            throw new IllegalStateException("cannot set result multiple times");
+            throw new IllegalStateException("cannot set result multiple times " + result);
         }
-        resultStore = Pair.of(null, (ExecutionException) result);
+        resultStore = Either.right(result);
         done();
         this.notifyAll();
     }

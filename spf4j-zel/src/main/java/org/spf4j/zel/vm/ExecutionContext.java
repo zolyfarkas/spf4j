@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.spf4j.base.Pair;
+import org.spf4j.base.Either;
 import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.FutureBean;
 import org.spf4j.zel.instr.Instruction;
@@ -40,6 +40,8 @@ import static org.spf4j.zel.vm.Program.ExecutionType.SYNC;
  */
 @ParametersAreNonnullByDefault
 public final class ExecutionContext {
+    
+    private static final long serialVersionUID = 1L;
 
     //CHECKSTYLE:OFF
     public MathContext mathContext;
@@ -75,17 +77,17 @@ public final class ExecutionContext {
     /**
      * Standard Input
      */
-    public final InputStream in;
+    public transient final InputStream in;
 
     /**
      * Standard Output
      */
-    public final PrintStream out;
+    public transient final PrintStream out;
 
     /**
      * Standard Error Output
      */
-    public final PrintStream err;
+    public transient final PrintStream err;
 
     List<VMFuture<Object>> suspendedAt;
     //CHECKSTYLE:ON
@@ -173,8 +175,11 @@ public final class ExecutionContext {
                     }
                 } catch (SuspendedException e) {
                     throw e;
-                } catch (Exception e) {
+                } catch (ZExecutionException e) {
+                    // TODO: a better frame description should be added.
                     throw new ZExecutionException("Program exec failed, state:" + ExecutionContext.this, e);
+                } catch (InterruptedException e) {
+                    throw e;
                 }
             }
 
@@ -198,7 +203,7 @@ public final class ExecutionContext {
         if (result instanceof VMFuture<?>) {
             try {
                 final VMFuture<Object> resFut = (VMFuture<Object>) result;
-                Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+                Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
                 if (resultStore != null) {
                     return FutureBean.processResult(resultStore);
                 } else {
@@ -218,7 +223,7 @@ public final class ExecutionContext {
         Object result = this.stack.peek();
         if (result instanceof VMFuture<?>) {
                 final VMFuture<Object> resFut = (VMFuture<Object>) result;
-                Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+                Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
                 if (resultStore == null) {
                     this.stack.push(result);
                     suspend(resFut);
@@ -244,7 +249,7 @@ public final class ExecutionContext {
             if (obj instanceof VMFuture<?>) {
                 try {
                     final VMFuture<Object> resFut = (VMFuture<Object>) obj;
-                    Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+                    Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
                     if (resultStore != null) {
                         result[i] = FutureBean.processResult(resultStore);
                     } else {
@@ -264,23 +269,23 @@ public final class ExecutionContext {
         Object[] params = stack.peek(nr);
         int l = params.length;
         int nrErrors = 0;
-        RuntimeException e = null;
+        ExecutionException e = null;
         List<VMFuture<Object>> futures = null;
         for (int i = 0; i < l; i++) {
             Object obj = params[i];
             if (obj instanceof VMFuture<?>) {
                 final VMFuture<Object> resFut = (VMFuture<Object>) obj;
-                Pair<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+                Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
                 if (resultStore != null) {
-                    if (resultStore.getSecond() == null) {
+                    if (resultStore.isLeft()) {
                         stack.pop(nr);
-                        return resultStore.getFirst();
+                        return resultStore.getLeft();
                     } else {
                         nrErrors++;
                         if (e == null) {
-                            e = new RuntimeException(resultStore.getSecond());
+                            e = resultStore.getRight();
                         } else {
-                            e = new RuntimeException(Throwables.chain(resultStore.getSecond(), e));
+                            e = Throwables.chain(resultStore.getRight(), e);
                         }
                     }
                 } else {
@@ -298,7 +303,7 @@ public final class ExecutionContext {
             if (e == null) {
                 throw new IllegalStateException();
             } else {
-                throw e;
+                throw new RuntimeException(e);
             }
         }
         if (futures.isEmpty()) {

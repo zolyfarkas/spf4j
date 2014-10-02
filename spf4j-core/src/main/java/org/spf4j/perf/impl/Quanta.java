@@ -26,7 +26,7 @@ import javax.annotation.concurrent.Immutable;
  */
 @Immutable
 public final class Quanta implements Comparable<Quanta>, Serializable {
-
+   
     private final long intervalStart;
     private final long intervalEnd;
 
@@ -107,5 +107,7 @@ public final class Quanta implements Comparable<Quanta>, Serializable {
         final Quanta other = (Quanta) obj;
         return this.compareTo(other) == 0;
     }
+    
+    private static final long serialVersionUID = 1L;
 
 }

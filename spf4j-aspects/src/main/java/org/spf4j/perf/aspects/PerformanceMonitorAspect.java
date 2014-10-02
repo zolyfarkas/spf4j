@@ -58,13 +58,15 @@ public final class PerformanceMonitorAspect {
         final long elapsed = System.currentTimeMillis() - start;
         MeasurementRecorderSource mrs = REC_SOURCES.getUnchecked(annot.recorderSource());
         mrs.getRecorder(pjp.toLongString()).record(elapsed);
-        if (elapsed > annot.warnThresholdMillis()) {
-            if (elapsed > annot.errorThresholdMillis()) {
+        final long warnThresholdMillis = annot.warnThresholdMillis();
+        if (elapsed > warnThresholdMillis) {
+            final long errorThresholdMillis = annot.errorThresholdMillis();
+            if (elapsed > errorThresholdMillis) {
                 LOG.error("Execution time  {} ms for {} exceeds error threshold of {} ms, arguments {}",
-                            elapsed, pjp.toShortString(), annot.errorThresholdMillis(), pjp.getArgs());
+                            elapsed, pjp.toShortString(), errorThresholdMillis, pjp.getArgs());
             } else {
                 LOG.warn("Execution time  {} ms for {} exceeds warning threshold of {} ms, arguments {}",
-                            elapsed, pjp.toShortString(), annot.warnThresholdMillis(), pjp.getArgs());
+                            elapsed, pjp.toShortString(), warnThresholdMillis, pjp.getArgs());
             }
         } else {
             if (annot.defaultInfoLog()) {

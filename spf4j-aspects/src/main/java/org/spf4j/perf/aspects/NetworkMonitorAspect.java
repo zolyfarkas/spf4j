@@ -18,6 +18,7 @@
  */
 package org.spf4j.perf.aspects;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.InputStream;
 import java.io.OutputStream;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -33,6 +34,7 @@ import org.spf4j.perf.impl.RecorderFactory;
  * @author zoly
  */
 @Aspect
+@SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
 public final class NetworkMonitorAspect {
 
     public static final int SAMPLE_TIME =

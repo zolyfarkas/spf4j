@@ -18,12 +18,25 @@
  */
 package org.spf4j.perf.impl;
 
-import org.spf4j.perf.impl.mdb.tsdb.TSDBMeasurementDatabase;
+import org.spf4j.perf.impl.ms.StoreType;
+import org.spf4j.perf.impl.ms.graphite.GraphiteTcpStore;
+import org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore;
 import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.lang.management.ManagementFactory;
-import org.spf4j.base.AbstractRunnable;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import org.spf4j.io.Csv;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
+import org.spf4j.perf.MeasurementStore;
+import org.spf4j.perf.impl.ms.Flusher;
+import org.spf4j.perf.impl.ms.MultiStore;
+import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
+import org.spf4j.recyclable.ObjectCreationException;
 
 /**
  *
@@ -33,23 +46,71 @@ public final class RecorderFactory {
 
     private RecorderFactory() {
     }
-    public static final TSDBMeasurementDatabase TS_DATABASE;
+    public static final MeasurementStore MEASUREMENT_STORE;
 
-    static {
-        try {
-            TS_DATABASE = new TSDBMeasurementDatabase(System.getProperty("perf.db.folder",
+    
+    /**
+     * Configuration is a coma separated list of stores:
+     * TSDB@/path/to/file.tsdb,TSDB_TXT@/path/to/file.tsdbtxt,GRAPHITE_UDP@1.1.1.1:8080,GRAPHITE_TCP@1.1.1.1:8080
+     * @param configuration
+     * @return a measurement store.
+     */
+    @Nonnull
+    private static MeasurementStore buildStoreFromConfig(@Nullable final String configuration)
+            throws IOException, ObjectCreationException {
+        
+        if (configuration == null || configuration.trim().isEmpty()) {
+            return new TSDBMeasurementStore(System.getProperty("perf.db.folder",
                     System.getProperty("java.io.tmpdir")) + File.separator + System.getProperty("perf.db.name",
                     ManagementFactory.getRuntimeMXBean().getName() + ".tsdb"));
-            TS_DATABASE.registerJmx();
-            TS_DATABASE.flushEvery(600000);
-            org.spf4j.base.Runtime.addHookAtEnd(new AbstractRunnable() {
+        }
+        
+        List<String> stores = Csv.readRow(new StringReader(configuration), new Csv.CsvRowHandler<List<String>>() {
 
-                @Override
-                public void doRun() throws Exception {
-                    TS_DATABASE.close();
-                }
-            });
-        } catch (Exception ex) {
+            private final List<String> result = new ArrayList<String>(4);
+     
+
+            @Override
+            public void element(final CharSequence elem) {
+                result.add(elem.toString());
+            }
+
+            @Override
+            public List<String> eof() {
+                return result;
+            }
+        });
+        final int size = stores.size();
+        if (size == 1) {
+            return fromString(stores.get(0));
+        } else {
+            MeasurementStore [] mstores = new MeasurementStore[size];
+            int i = 0;
+            for (String config : stores) {
+                mstores[i] = fromString(config);
+                i++;
+            }
+            return new MultiStore(mstores);
+        }
+    }
+    
+    private static MeasurementStore fromString(final String string) throws IOException, ObjectCreationException {
+        int atIdx = string.indexOf('@');
+        if (atIdx < 0) {
+            throw new IllegalArgumentException("Invalid measuremnt store configuration " + string);
+        }
+        StoreType type = StoreType.valueOf(string.substring(0, atIdx));
+        return type.create(string.substring(atIdx + 1));
+    }
+    
+    
+    static {
+        try {
+            MEASUREMENT_STORE = buildStoreFromConfig(System.getProperty("perf.ms.config", null));
+            Flusher.flushEvery(60000, MEASUREMENT_STORE);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        } catch (ObjectCreationException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -58,50 +119,70 @@ public final class RecorderFactory {
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis,
             final int factor, final int lowerMagnitude,
             final int higherMagnitude, final int quantasPerMagnitude) {
-        return new ScalableMeasurementRecorder(new QuantizedRecorder(forWhat,
+        return new ScalableMeasurementRecorder(new QuantizedRecorder(forWhat, "",
                 unitOfMeasurement, factor, lowerMagnitude, higherMagnitude,
-                quantasPerMagnitude), sampleTimeMillis, TS_DATABASE);
+                quantasPerMagnitude), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorder createScalableCountingRecorder(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-        return new ScalableMeasurementRecorder(new CountingRecorder(forWhat,
-                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+        return new ScalableMeasurementRecorder(new CountingRecorder(forWhat, "",
+                unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorder createScalableMinMaxAvgRecorder(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-        return new ScalableMeasurementRecorder(new MinMaxAvgRecorder(forWhat,
-                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+        return new ScalableMeasurementRecorder(new MinMaxAvgRecorder(forWhat, "",
+                unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorderSource createScalableQuantizedRecorderSource(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis,
             final int factor, final int lowerMagnitude,
             final int higherMagnitude, final int quantasPerMagnitude) {
-        return new ScalableMeasurementRecorderSource(new QuantizedRecorder(forWhat,
+        return new ScalableMeasurementRecorderSource(new QuantizedRecorder(forWhat, "",
                 unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude),
-                sampleTimeMillis, TS_DATABASE);
+                sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorderSource createScalableCountingRecorderSource(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-        return new ScalableMeasurementRecorderSource(new CountingRecorder(forWhat,
-                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+        return new ScalableMeasurementRecorderSource(new CountingRecorder(forWhat, "",
+                unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorderSource createScalableMinMaxAvgRecorderSource(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-        return new ScalableMeasurementRecorderSource(new MinMaxAvgRecorder(forWhat,
-                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+        return new ScalableMeasurementRecorderSource(new MinMaxAvgRecorder(forWhat, "",
+                unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorder createDirectRecorder(final Object forWhat, final String unitOfMeasurement) {
-        return new DirectRecorder(forWhat, unitOfMeasurement, 0, TS_DATABASE);
+        return new DirectRecorder(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorder createDirectRecorder(final Object forWhat,
             final String unitOfMeasurement, final int sampleTimeMillis) {
-        return new DirectRecorder(forWhat, unitOfMeasurement, sampleTimeMillis, TS_DATABASE);
+        return new DirectRecorder(forWhat, "", unitOfMeasurement, sampleTimeMillis, MEASUREMENT_STORE);
+    }
+    
+    
+    public static MeasurementRecorderSource createDirectRecorderSource(final Object forWhat,
+            final String unitOfMeasurement) {
+        return new DirectRecorderSource(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE);
+    }
+    
+    public static MeasurementRecorder createDirectGraphiteUdpRecorder(final Object forWhat,
+            final String unitOfMeasurement,
+            final String graphiteHost, final int graphitePort) throws ObjectCreationException {
+        return new DirectRecorder(forWhat, "", unitOfMeasurement, 0,
+                new GraphiteUdpStore(graphiteHost, graphitePort));
+    }
+    
+    public static MeasurementRecorder createDirectGraphiteTcpRecorder(final Object forWhat,
+            final String unitOfMeasurement,
+            final String graphiteHost, final int graphitePort) throws ObjectCreationException {
+        return new DirectRecorder(forWhat, "", unitOfMeasurement, 0,
+                new GraphiteTcpStore(graphiteHost, graphitePort));
     }
 }

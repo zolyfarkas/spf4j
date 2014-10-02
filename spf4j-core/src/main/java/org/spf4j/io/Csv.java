@@ -17,21 +17,64 @@
  */
 package org.spf4j.io;
 
+import gnu.trove.map.hash.THashMap;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PushbackReader;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.CheckReturnValue;
 import org.spf4j.base.Strings;
 
 /**
- * Cupports CSV format as described at: https://en.wikipedia.org/wiki/Comma-separated_values.
+ * Supports CSV format as described at: https://en.wikipedia.org/wiki/Comma-separated_values.
+ * either of \n \r or \r\n are valid end of line delimiters
+ *
+ * why another implementation?
+ * because I need one that is as fast as possible, and as flexible as possible.
+ * 
  * @author zoly
  */
 public final class Csv {
 
     private Csv() {
     }
+
+    public interface CsvHandler<T> {
+
+        void startRow();
+
+        void element(CharSequence elem);
+
+        void endRow();
+
+        T eof();
+    }
+    
+    public interface CsvRowHandler<T> {
+
+        void element(CharSequence elem);
+
+        T eof();
+    }
+    
+    
+    public interface CsvMapHandler<T> {
+
+        void row(Map<String, CharSequence> row);
+
+        T eof();
+    }
+    
 
     public static void writeCsvRow(final Writer writer, final Object... elems) throws IOException {
         if (elems.length > 0) {
@@ -57,42 +100,122 @@ public final class Csv {
         writer.write('\n');
     }
 
-    public interface CsvHandler<T> {
-
-        void startRow();
-
-        void element(StringBuilder elem);
-
-        void endRow();
-
-        T eof();
+        
+    public static <T> T read(final File file, final Charset charset,
+            final CsvMapHandler<T> handler) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset));
+        try {
+            return read(br, handler);
+        } finally {
+            br.close();
+        }
     }
+    
+    public static <T> T read(final File file, final Charset charset,
+            final CsvHandler<T> handler) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset));
+        try {
+            return read(br, handler);
+        } finally {
+            br.close();
+        }
+    }
+    
+    public static <T> T read(final Reader preader,
+            final CsvMapHandler<T> handler) throws IOException {
+        return read(preader, new CsvHandler<T>() {
 
-    public static <T> T readSkipBom(final Reader preader,
-        final CsvHandler<T> handler) throws IOException {
+            private boolean first = true;
+            
+            private final List<String> header = new ArrayList<String>();
+            
+            private int elemIdx;
+            
+            private Map<String, CharSequence> row = null;
+            
+            @Override
+            public void startRow() {
+                elemIdx = 0;
+                if (!first) {
+                    row = new THashMap<String, CharSequence>(header.size());
+                }
+            }
+
+            @Override
+            public void element(final CharSequence elem) {
+                if (first) {
+                    header.add(elem.toString());
+                } else {
+                    row.put(header.get(elemIdx), elem);
+                }
+                elemIdx++;
+            }
+
+            @Override
+            public void endRow() {
+                if (first) {
+                  first = false;
+                } else {
+                    handler.row(row);
+                }
+            }
+
+            @Override
+            public T eof() {
+                return handler.eof();
+            }
+        });
+    }
+    
+    
+    public static <T> T readRow(final Reader reader, final CsvRowHandler<T> handler) throws IOException {
+        return read(reader, new CsvHandler<T>() {
+
+            @Override
+            public void startRow() {
+            }
+
+            @Override
+            public void element(final CharSequence elem) {
+                handler.element(elem);
+            }
+
+            @Override
+            public void endRow() {
+            }
+
+            @Override
+            public T eof() {
+                return handler.eof();
+            }
+        });
+    }
+ 
+    public static <T> T read(final Reader preader,
+            final CsvHandler<T> handler) throws IOException {
         PushbackReader reader = new PushbackReader(preader);
         int firstChar = reader.read();
         if (firstChar != UTF_BOM) {
             reader.unread(firstChar);
         }
-        return read(reader, handler);
+        return readNoBom(reader, handler);
     }
-    
+
     /**
      * http://unicode.org/faq/utf_bom.html#BOM
      */
     public static final int UTF_BOM = '\uFEFF';
-    
+ 
     /**
      * reads CSV format until EOF of reader.
+     *
      * @param <T>
      * @param preader
      * @param handler
      * @return
      * @throws IOException
      */
-    
-    public static <T> T read(final Reader preader, final CsvHandler<T> handler) throws IOException {
+    public static <T> T readNoBom(final PushbackReader preader, final CsvHandler<T> handler) throws IOException {
         final Reader reader = preader;
         boolean start = true;
         do {
@@ -104,12 +227,12 @@ public final class Csv {
             int c = readCsvElement(reader, strB);
             handler.element(strB);
             if (c == '\r') {
-                int c2 = reader.read();
-                if (c2 != '\n') {
-                    throw new IOException("\\r\\n expected");
-                }
                 handler.endRow();
                 start = true;
+                int c2 = reader.read();
+                if (c2 != '\n') {
+                    preader.unread(c2);
+                }
             } else if (c == '\n') {
                 handler.endRow();
                 start = true;
@@ -122,107 +245,51 @@ public final class Csv {
 
     private static final char[] TO_ESCAPE = new char[]{',', '\n', '\r', '"'};
 
-    public static void writeCsvElement(final String elem, final Writer writer) throws IOException {
-
+    public static void writeCsvElement(final CharSequence elem, final Writer writer) throws IOException {
         if (Strings.contains(elem, TO_ESCAPE)) {
-            int length = elem.length();
-            writer.write('"');
-            for (int i = 0; i < length; i++) {
-                char c = elem.charAt(i);
-                if (c == '"') {
-                    writer.write("\"\"");
-                } else {
-                    writer.write(c);
-                }
-            }
-            writer.write('"');
+            writeEscaped(elem, writer);
         } else {
-            writer.write(elem);
+            writer.append(elem);
         }
     }
 
-    public static String toCsvElement(final String elem) {
-        if (Strings.contains(elem, TO_ESCAPE)) {
-            int length = elem.length();
-            StringBuilder builder = new StringBuilder(length + 2);
-            builder.append('"');
-            for (int i = 0; i < length; i++) {
-                char c = elem.charAt(i);
-                if (c == '"') {
-                    builder.append("\"\"");
-                } else {
-                    builder.append(c);
-                }
+    private static void writeEscaped(final CharSequence elem, final Writer writer) throws IOException {
+        int length = elem.length();
+        writer.write('"');
+        for (int i = 0; i < length; i++) {
+            char c = elem.charAt(i);
+            if (c == '"') {
+                writer.write("\"\"");
+            } else {
+                writer.write(c);
             }
-            builder.append('"');
-            return builder.toString();
+        }
+        writer.write('"');
+    }
 
+    public static CharSequence toCsvElement(final CharSequence elem) {
+        if (Strings.contains(elem, TO_ESCAPE)) {
+            StringWriter sw = new StringWriter(elem.length() - 1);
+            try {
+                writeEscaped(elem, sw);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            return sw.toString();
         } else {
             return elem;
         }
     }
 
-    public static int readCsvElement(final String fromStr, final int fromIdx,
-            final StringBuilder addElemTo) {
-        return readCsvElement(fromStr, fromIdx, fromStr.length(), addElemTo);
-    }
-
-    /**
-     * read a CSV element.
-     *
-     * @param fromStr - string to parse
-     * @param fromIdx - start index
-     * @param maxIdx - max index
-     * @param addElemTo append elem to;
-     * @return the start index of next elem (index of next comma)
-     */
-    public static int readCsvElement(final String fromStr, final int fromIdx,
-            final int maxIdx, final StringBuilder addElemTo) {
-        int i = fromIdx;
-        char c = fromStr.charAt(i);
-        if (c == '"') {
-            i++;
-            while (i < maxIdx) {
-                c = fromStr.charAt(i);
-                if (c == '"') {
-                    int nxtIdx = i + 1;
-                    if (nxtIdx < maxIdx) {
-                        if (fromStr.charAt(nxtIdx) == '"') {
-                            addElemTo.append(c);
-                            i = nxtIdx;
-                        } else {
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
-                } else {
-                    addElemTo.append(c);
-                }
-                i++;
-            }
-            i++;
-        } else {
-            while (c != ',') {
-                addElemTo.append(c);
-                i++;
-                if (i >= maxIdx) {
-                    break;
-                }
-                c = fromStr.charAt(i);
-            }
-        }
-        return i;
-    }
-
     /**
      * returns next character.
+     *
      * @param reader
      * @param addElemTo
      * @return
      * @throws IOException.
      */
-    
+    @CheckReturnValue
     public static int readCsvElement(final Reader reader, final StringBuilder addElemTo) throws IOException {
         int c = reader.read();
         if (c < 0) {
@@ -248,7 +315,7 @@ public final class Csv {
                 c = reader.read();
             }
         } else {
-            while (c != ',' && c >= 0 && c != '\n' && c != '\r') {
+            while (c >= 0 && c != ',' && c != '\n' && c != '\r') {
                 addElemTo.append((char) c);
                 c = reader.read();
             }

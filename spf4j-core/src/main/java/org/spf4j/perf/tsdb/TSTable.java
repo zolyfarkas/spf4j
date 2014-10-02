@@ -18,7 +18,6 @@
 package org.spf4j.perf.tsdb;
 
 import com.google.common.base.Charsets;
-import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -28,6 +27,7 @@ import java.nio.channels.FileLock;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import org.spf4j.io.ByteArrayBuilder;
 
 /**
  *
@@ -120,14 +120,14 @@ public final class TSTable {
     }
     
     void writeTo(final RandomAccessFile raf) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ByteArrayBuilder bos = new ByteArrayBuilder();
         DataOutput dos = new DataOutputStream(bos);
         writeTo(dos);
         FileChannel ch = raf.getChannel();
         FileLock lock = ch.lock(raf.getFilePointer(), 8, false);
         try {
             raf.seek(location);
-            raf.write(bos.toByteArray());
+            raf.write(bos.getBuffer(), 0, bos.size());
         } finally {
             lock.release();
         }

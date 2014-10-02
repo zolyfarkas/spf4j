@@ -65,7 +65,7 @@ public final class Converter {
             subNodes = new HashMap<Method, SampleNode>();
             for (ProtoSampleNodes.SamplePair pair : sns) {
                 final ProtoSampleNodes.Method method = pair.getMethod();
-                subNodes.put(new Method(pair.getMethod().getDeclaringClass(),
+                subNodes.put(new Method(method.getDeclaringClass(),
                         method.getMethodName()),
                         fromProtoToSampleNode(pair.getNode()));
             }

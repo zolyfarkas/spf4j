@@ -61,10 +61,11 @@ public class RetryExecutor<T> implements ExecutorService {
     private volatile RetryManager retryManager;
     private final Predicate<Exception> retryException;
     private final BlockingQueue<Future<T>> completionQueue;
+    private final Object sync = new Object();
 
     private void startRetryManager() {
         if (this.retryManager == null) {
-            synchronized (this) {
+            synchronized (sync) {
                 if (this.retryManager == null) {
                     this.retryManager = new RetryManager();
                     this.retryManager.start();
@@ -74,7 +75,7 @@ public class RetryExecutor<T> implements ExecutorService {
     }
 
     private void shutdownRetryManager()  {
-        synchronized (this) {
+        synchronized (sync) {
             if (this.retryManager != null) {
                 this.retryManager.interrupt();
                 try {
@@ -130,8 +131,8 @@ public class RetryExecutor<T> implements ExecutorService {
             if (obj == null) {
                 return false;
             } else {
-                if (obj instanceof Delayed) {
-                    return this.compareTo((Delayed) obj) == 0;
+                if (obj instanceof FailedExecutionResult) {
+                    return this.compareTo((FailedExecutionResult) obj) == 0;
                 } else {
                     return false;
                 }
@@ -236,10 +237,11 @@ public class RetryExecutor<T> implements ExecutorService {
             while (!managerThread.isInterrupted()) {
                 try {
                     FailedExecutionResult event = executionEvents.take();
+                    final Callable<Object> callable = event.getCallable();
                     if (event.isIsExecution()) {
-                        executionService.execute(new RetryableCallable<Object>(event.getCallable(), event.getFuture()));
+                        executionService.execute(new RetryableCallable<Object>(callable, event.getFuture()));
                     } else {
-                        Pair<Integer, ExecutionException> attemptsInfo = executionAttempts.get(event.getCallable());
+                        Pair<Integer, ExecutionException> attemptsInfo = executionAttempts.get(callable);
                         if (attemptsInfo == null) {
                             attemptsInfo = Pair.of(1, event.getException());
                         } else {
@@ -252,16 +254,16 @@ public class RetryExecutor<T> implements ExecutorService {
                         }
                         int nrAttempts = attemptsInfo.getFirst();
                         if (nrAttempts > nrTotalRetries) {
-                            executionAttempts.remove(event.getCallable());
+                            executionAttempts.remove(callable);
                             event.getFuture().setExceptionResult(attemptsInfo.getSecond());
                         } else if (nrAttempts > nrImmediateRetries) {
-                            executionAttempts.put(event.getCallable(), attemptsInfo);
-                            executionEvents.put(new FailedExecutionResult(attemptsInfo.getSecond(), event.getFuture(),
-                                    event.getCallable(), delayMillis, true));
+                            executionAttempts.put(callable, attemptsInfo);
+                            executionEvents.put(new FailedExecutionResult(attemptsInfo.getSecond(),
+                                    event.getFuture(), callable, delayMillis, true));
                         } else {
-                            executionAttempts.put(event.getCallable(), attemptsInfo);
+                            executionAttempts.put(callable, attemptsInfo);
                             executionService.execute(
-                                    new RetryableCallable<Object>(event.getCallable(), event.getFuture()));
+                                    new RetryableCallable<Object>(callable, event.getFuture()));
                         }
                     }
 

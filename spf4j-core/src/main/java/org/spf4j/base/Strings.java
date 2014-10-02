@@ -18,6 +18,8 @@
  */
 package org.spf4j.base;
 
+import java.io.IOException;
+import java.io.Writer;
 import static java.lang.Math.min;
 import javax.annotation.Nonnull;
 
@@ -99,9 +101,17 @@ public final class Strings {
         return UNESCAPE_JAVA.translate(what);
     }
     
-    public static boolean contains(final String string, final char [] chars) {
-        int l = string.length();
-        for (int i = 0; i < l; i++) {
+    public static boolean contains(final String string, final char... chars) {
+        for (char c : chars) {
+            if (string.indexOf(c) >= 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean contains(final CharSequence string, final char... chars) {
+        for (int i = 0; i < string.length(); i++) {
             char c = string.charAt(i);
             if (Arrays.search(chars, c) >= 0) {
                 return true;
@@ -109,8 +119,7 @@ public final class Strings {
         }
         return false;
     }
-    
-    
+
     public static String withFirstCharLower(final String str) {
         if (str.isEmpty()) {
             return str;
@@ -125,6 +134,18 @@ public final class Strings {
             result.append(str.charAt(i));
         }
         return result.toString();
+    }
+    
+    public static void writeReplaceWhitespaces(final String str, final char replacement, final Writer writer)
+            throws IOException {
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (Character.isWhitespace(c)) {
+                writer.append(replacement);
+            } else {
+                writer.append(c);
+            }
+        }
     }
     
 }

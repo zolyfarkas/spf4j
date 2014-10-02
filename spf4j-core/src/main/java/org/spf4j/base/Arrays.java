@@ -45,7 +45,7 @@ public final class Arrays {
         return result;
     }
 
-    public static double[] toDoubleArray(final long[] larr) {
+    public static double[] toDoubleArray(final long ... larr) {
         double[] result = new double[larr.length];
         for (int i = 0; i < larr.length; i++) {
             result[i] = larr[i];
@@ -142,7 +142,8 @@ public final class Arrays {
     
     public static <T> T[] concat(final T[] ... arrays) {
         if (arrays.length < 2) {
-            throw new IllegalArgumentException("You should concatenate at least 2 arrays");
+            throw new IllegalArgumentException("You should concatenate at least 2 arrays: "
+                    + java.util.Arrays.deepToString(arrays));
         }
         int newLength = 0;
         for (T[] arr : arrays) {

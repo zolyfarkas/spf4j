@@ -31,23 +31,29 @@ public final class DirectRecorder implements MeasurementRecorder {
     
     private final EntityMeasurementsInfo info;
     private static final String[] MEASUREMENTS = {"value"};
-    private final MeasurementStore database;
+    private final MeasurementStore measurementStore;
     private final int sampleTimeMillis;
 
     
-    public DirectRecorder(final Object measuredEntity, final String unitOfMeasurement,
-            final int sampleTimeMillis, final MeasurementStore database) {
-        this.info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement,
+    public DirectRecorder(final Object measuredEntity, final String description, final String unitOfMeasurement,
+            final int sampleTimeMillis, final MeasurementStore measurementStore) {
+        this.info = new EntityMeasurementsInfoImpl(measuredEntity, description,
                 MEASUREMENTS, new String[]{unitOfMeasurement});
-        this.database = database;
+        this.measurementStore = measurementStore;
         this.sampleTimeMillis = sampleTimeMillis;
     }
+    
+    public String getUnitOfMeasurement() {
+        return info.getMeasurementUnit(0);
+    }
+    
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
     public void record(final long measurement) {
         try {
-            database.saveMeasurements(info, new long [] {measurement}, System.currentTimeMillis(), sampleTimeMillis);
+            measurementStore.saveMeasurements(info,
+                    System.currentTimeMillis(), sampleTimeMillis, measurement);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

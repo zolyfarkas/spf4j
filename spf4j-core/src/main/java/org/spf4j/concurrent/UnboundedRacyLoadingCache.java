@@ -81,7 +81,7 @@ public final class UnboundedRacyLoadingCache<K, V> implements LoadingCache<K, V>
     @Override
     public V apply(final K key) {
         if (key == null) {
-            throw new IllegalArgumentException("key cannot be null");
+            throw new IllegalArgumentException("key cannot be null for " + this);
         } else {
             return getUnchecked(key);
         }

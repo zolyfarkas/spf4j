@@ -27,7 +27,7 @@ public final class RefOptimizer implements Function<Program, Program> {
     @Override
     public Program apply(final Program input) {
         if (input == null) {
-            throw new IllegalArgumentException("Input cannot be null");
+            throw new IllegalArgumentException("Input cannot be null for " + this);
         }
         Instruction [] instructions = input.getInstructions().clone();
         Map<String, Integer> lsym = input.getLocalSymbolTable();

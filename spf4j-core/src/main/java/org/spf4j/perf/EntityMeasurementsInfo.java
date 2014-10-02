@@ -29,11 +29,17 @@ public interface EntityMeasurementsInfo {
     Object getMeasuredEntity();
     
     @Nonnull
-    String getUnitOfMeasurement();
+    String getDescription();
     
     String [] getMeasurementNames();
     
     String [] getMeasurementUnits();
+    
+    String getMeasurementName(int measurementNr);
+    
+    String getMeasurementUnit(int measurementNr);
+    
+    int getMeasurementNr();
     
     int getNumberOfMeasurements();
     

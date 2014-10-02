@@ -4,7 +4,7 @@
 
     <groupId>org.spf4j</groupId>
     <artifactId>spf4j</artifactId>
-    <version>6.5.14</version>
+    <version>6.5.17</version>
     <packaging>pom</packaging>
     <description>A collection of utilities to measure and monitor applications at runtime</description>
 
@@ -18,53 +18,12 @@
             <url>http://www.gnu.org/licenses/lgpl.html</url>
         </license>
     </licenses>
-  
-    <profiles>
-        <profile>
-            <id>win</id>
-            <activation>
-                <os>
-                    <family>Windows</family>
-                </os>
-            </activation>
-            <properties>
-                <protoc.bin>c:/protobuf-2.4.1/bin/protoc.exe</protoc.bin>
-            </properties>
-        </profile>
-        <profile>
-            <id>unix</id>
-            <activation>
-                <os>
-                    <family>Unix</family>
-                </os>
-            </activation>
-            <properties>
-                <protoc.bin>/usr/local/bin/protoc</protoc.bin>
-            </properties>
-        </profile>
-    </profiles>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>dtrott</id>
-            <url>http://maven.davidtrott.com/repository</url>
-        </pluginRepository>
-        <pluginRepository>
-            <id>fb-contrib</id>
-            <url>http://master.dl.sourceforge.net/project/fb-contrib/repo</url>
-        </pluginRepository>        
-        <pluginRepository>
-            <id>mvnrepo</id>
-            <url>http://mvnrepository.com/</url>
-        </pluginRepository>
-
-    </pluginRepositories>  
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <aspectj.version>1.6.12</aspectj.version>
         <junit.version>4.10</junit.version>
-        <slf4j.version>1.7.5</slf4j.version>
+        <slf4j.version>1.7.7</slf4j.version>
     </properties>
     
     <scm>
@@ -105,7 +64,7 @@
         <repository>
             <id>ssh-repository</id>
             <name>Repository for Maven artifacts</name>
-            <url>sftp://z2.homeunix.net/var/apache2/2.2/zoltran.com/maven2</url>
+            <url>scpexe://z2.zoltran.com/var/apache2/2.2/zoltran.com/maven2</url>
         </repository>
     </distributionManagement>
   
@@ -141,7 +100,7 @@
                 <dependencies>
                     <dependency>
                         <groupId>org.apache.maven.wagon</groupId>
-                        <artifactId>wagon-ssh</artifactId>
+                        <artifactId>wagon-ssh-external</artifactId>
                         <version>2.6</version>
                     </dependency>
                 </dependencies>
@@ -177,11 +136,11 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>findbugs-maven-plugin</artifactId>
-                    <version>2.5.4</version>
+                    <version>2.5.5</version>
                     <configuration>
                         <failOnError>true</failOnError>
                         <effort>Max</effort><!-- Min, Default, Max -->
-                        <threshold>Default</threshold><!-- High, Default, Low, Ignore -->
+                        <threshold>Exp</threshold><!-- High, Default, Low, Ignore -->
                         <xmlOutput>true</xmlOutput>
                         <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
                         <excludeFilterFile>${basedir}/../findbugs_exclude.xml</excludeFilterFile>
@@ -189,7 +148,7 @@
                             <plugin>
                                 <groupId>com.mebigfatguy.fb-contrib</groupId>
                                 <artifactId>fb-contrib</artifactId>
-                                <version>5.2.1</version>
+                                <version>6.0.0</version>
                             </plugin>
                         </plugins>
                     </configuration>
@@ -208,6 +167,8 @@
                     <artifactId>maven-checkstyle-plugin</artifactId>
                     <version>2.11</version>
                     <configuration>
+                        <logViolationsToConsole>true</logViolationsToConsole>
+                        <consoleOutput>true</consoleOutput>
                         <configLocation>${project.basedir}/../checkstyle_checks.xml</configLocation>
                     </configuration>
                     <executions>
@@ -304,11 +265,42 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>2.9.1</version>
-                </plugin>  
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jxr-plugin</artifactId>
+                    <version>2.4</version>
+                </plugin>
   
             </plugins>
         </pluginManagement>
         
-    </build>  
+    </build>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.7</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                    <aggregate>true</aggregate>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <aggregate>true</aggregate>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>  
   
 </project>

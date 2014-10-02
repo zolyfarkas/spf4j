@@ -17,16 +17,13 @@
  */
 package org.spf4j.zel.instr;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
-
 
 public final class CALLREF extends Instruction {
 
@@ -49,57 +46,7 @@ public final class CALLREF extends Instruction {
         }
         final Object function = ((AssignableValue) context.pop()).get();
 
-        context.push(new AssignableValue() {
-
-            @Override
-            public void assign(final Object object) throws ZExecutionException, InterruptedException {
-                context.resultCache.putPermanentResult((Program) function,
-                        Arrays.asList(parameters), object);
-
-            }
-
-            @Override
-            public Object get() throws ZExecutionException, InterruptedException {
-
-                if (function instanceof Program) {
-                    final Program p = (Program) function;
-                    final ExecutionContext nctx;
-                    Object obj;
-                    switch (p.getType()) {
-                        case DETERMINISTIC:
-                            nctx = context.getSyncSubProgramContext(p, parameters);
-                            obj = context.resultCache.getResult(p, Arrays.asList(parameters), new Callable<Object>() {
-                                @Override
-                                public Object call() throws Exception {
-                                    return Program.executeSync(nctx);
-                                }
-                            });
-
-                            break;
-                        case NONDETERMINISTIC:
-                            nctx = context.getSyncSubProgramContext(p, parameters);
-                            obj = Program.executeSync(nctx);
-                            break;
-                        default:
-                            throw new UnsupportedOperationException(p.getType().toString());
-                    }
-                    return obj;
-                } else if (function instanceof Method) {
-                    try {
-                        return ((Method) function).invoke(context, parameters);
-                    } catch (IllegalAccessException ex) {
-                        throw new ZExecutionException("cannot invoke " + function, ex);
-                    } catch (InvocationTargetException ex) {
-                        throw new ZExecutionException("cannot invoke " + function, ex);
-                    } catch (Exception ex) {
-                        throw new ZExecutionException("cannot invoke " + function, ex);
-                    }
-                } else {
-                    throw new ZExecutionException("cannot invoke " + function);
-                }
-
-            }
-        });
+        context.push(new FunctionDeref(context, function, parameters));
 
         return 1;
     }
@@ -109,5 +56,58 @@ public final class CALLREF extends Instruction {
     @Override
     public Object[] getParameters() {
         return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+    }
+
+    private static final class FunctionDeref implements AssignableValue {
+
+        private final ExecutionContext context;
+        private final Object function;
+        private final Object[] parameters;
+
+        public FunctionDeref(final ExecutionContext context, final Object function, final Object[] parameters) {
+            this.context = context;
+            this.function = function;
+            this.parameters = parameters;
+        }
+
+        @Override
+        public void assign(final Object object) {
+            context.resultCache.putPermanentResult((Program) function,
+                    Arrays.asList(parameters), object);
+
+        }
+
+        @Override
+        public Object get() throws ZExecutionException, InterruptedException {
+
+            if (function instanceof Program) {
+                final Program p = (Program) function;
+                final ExecutionContext nctx;
+                Object obj;
+                switch (p.getType()) {
+                    case DETERMINISTIC:
+                        nctx = context.getSyncSubProgramContext(p, parameters);
+                        obj = context.resultCache.getResult(p, Arrays.asList(parameters), new SyncCallable(nctx));
+
+                        break;
+                    case NONDETERMINISTIC:
+                        nctx = context.getSyncSubProgramContext(p, parameters);
+                        obj = Program.executeSync(nctx);
+                        break;
+                    default:
+                        throw new UnsupportedOperationException(p.getType().toString());
+                }
+                return obj;
+            } else if (function instanceof Method) {
+                try {
+                    return ((Method) function).invoke(context, parameters);
+                } catch (Exception ex) {
+                    throw new ZExecutionException("cannot invoke " + function, ex);
+                }
+            } else {
+                throw new ZExecutionException("cannot invoke " + function);
+            }
+
+        }
     }
 }

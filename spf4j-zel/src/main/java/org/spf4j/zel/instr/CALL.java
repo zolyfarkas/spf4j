@@ -17,9 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 import org.spf4j.zel.vm.Program;
@@ -49,12 +47,7 @@ public final class CALL extends Instruction {
                 case DETERMINISTIC:
                     parameters = getParamsSync(context, nrParams);
                     nctx = context.getSubProgramContext(p, parameters);
-                    obj = context.resultCache.getResult(p,  Arrays.asList(parameters), new Callable<Object>() {
-                        @Override
-                        public Object call() throws Exception {
-                            return Program.executeSyncOrAsync(nctx);
-                        }
-                    });
+                    obj = context.resultCache.getResult(p,  Arrays.asList(parameters), new SyncAsyncCallable(nctx));
 
                     break;
                 case NONDETERMINISTIC:
@@ -70,10 +63,6 @@ public final class CALL extends Instruction {
             Object[] parameters = getParamsSync(context, nrParams);
             try {
                 context.push(((Method) function).invoke(context, parameters));
-            } catch (IllegalAccessException ex) {
-                throw new ZExecutionException("cannot invoke " + function, ex);
-            } catch (InvocationTargetException ex) {
-                throw new ZExecutionException("cannot invoke " + function, ex);
             } catch (Exception ex) {
                 throw new ZExecutionException("cannot invoke " + function, ex);
             }
@@ -109,4 +98,5 @@ public final class CALL extends Instruction {
     public Object[] getParameters() {
         return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
     }
+
 }

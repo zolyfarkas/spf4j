@@ -19,21 +19,22 @@ package org.spf4j.pool.jdbc;
 
 import com.google.common.annotations.Beta;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import org.spf4j.pool.ObjectCreationException;
-import org.spf4j.pool.ObjectDisposeException;
-import org.spf4j.pool.ObjectPool;
+import org.spf4j.recyclable.ObjectCreationException;
+import org.spf4j.recyclable.ObjectDisposeException;
+import org.spf4j.recyclable.RecyclingSupplier;
 
 /**
  *
  * @author zoly
  */
 @Beta
-public final class JdbcConnectionFactory  implements ObjectPool.Factory<Connection> {
+public final class JdbcConnectionFactory  implements RecyclingSupplier.Factory<Connection> {
 
     public JdbcConnectionFactory(final String driverName, final String url,
             final String user, final String password) {
@@ -50,7 +51,7 @@ public final class JdbcConnectionFactory  implements ObjectPool.Factory<Connecti
     private final String url;
     private final String user;
     private final String password;
-    private ObjectPool<Connection> pool;
+    private RecyclingSupplier<Connection> pool;
     
     
     @Override
@@ -71,13 +72,22 @@ public final class JdbcConnectionFactory  implements ObjectPool.Factory<Connecti
             @Override
             public Object invoke(final Object proxy, final Method method, final Object[] args) throws Exception {
                 if ("close".equals(method.getName())) {
-                    pool.returnObject((Connection) proxy, ex);
+                    pool.recycle((Connection) proxy, ex);
                     ex = null;
                     return null;
                 } else {
                     try {
                         return method.invoke(conn, args);
-                    } catch (Exception e) {
+                    } catch (IllegalAccessException e) {
+                        ex = e;
+                        throw e;
+                    } catch (IllegalArgumentException e) {
+                        ex = e;
+                        throw e;
+                    } catch (InvocationTargetException e) {
+                        ex = e;
+                        throw e;
+                    } catch (RuntimeException e) {
                         ex = e;
                         throw e;
                     }
@@ -96,18 +106,13 @@ public final class JdbcConnectionFactory  implements ObjectPool.Factory<Connecti
         }
     }
 
+    
     @Override
-    public Exception validate(final Connection object, final Exception e) {
-        try {
-            object.isValid(60);
-            return null;
-        } catch (SQLException ex) {
-            return ex;
-        }
+    public boolean validate(final Connection object, final Exception e) throws SQLException {
+        return object.isValid(60);
     }
 
-    @Override
-    public void setPool(final ObjectPool<Connection> pool) {
+    void setPool(final RecyclingSupplier<Connection> pool) {
         this.pool = pool;
     }
     

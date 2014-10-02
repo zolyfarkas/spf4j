@@ -79,7 +79,7 @@ public final class ScalableMeasurementRecorderSource implements
                     for (EntityMeasurements m
                             : ScalableMeasurementRecorderSource.this.getEntitiesMeasurementsAndReset().values()) {
                         database.saveMeasurements(
-                                m.getInfo(), m.getMeasurementsAndReset(), currentTime, sampleTimeMillis);
+                                m.getInfo(), currentTime, sampleTimeMillis, m.getMeasurementsAndReset());
                     }
                 } else {
                     LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
@@ -88,7 +88,14 @@ public final class ScalableMeasurementRecorderSource implements
             }
         };
         samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);
-        org.spf4j.base.Runtime.addHookAtBeginning(persister);
+                org.spf4j.base.Runtime.addHookAtBeginning(new AbstractRunnable(true) {
+            
+            @Override
+            public void doRun() throws Exception {
+                persister.doRun();
+                close();
+            }
+        });
     }
     
     @Override
@@ -163,15 +170,5 @@ public final class ScalableMeasurementRecorderSource implements
     public void close() {
         samplingFuture.cancel(false);
     }
-
-    @Override
-    protected void finalize() throws Throwable {
-        try {
-            super.finalize();
-        } finally {
-            this.close();
-        }
-    }
-    
     
 }

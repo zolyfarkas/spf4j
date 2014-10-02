@@ -25,7 +25,7 @@ package org.spf4j.base;
 public interface Handler<T, E extends Exception> {
 
     // CHECKSTYLE:OFF -- checkstyle does not seem to handle generic exceptions
-    void handle(T object) throws E;
+    void handle(T object, long deadline) throws E;
     // CHECKSTYLE:ON
     
 }

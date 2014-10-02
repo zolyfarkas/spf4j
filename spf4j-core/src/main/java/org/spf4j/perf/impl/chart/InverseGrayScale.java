@@ -31,6 +31,7 @@ import org.jfree.util.PublicCloneable;
 public final class InverseGrayScale
         implements PaintScale, PublicCloneable, Serializable {
 
+
     /** The lower bound. */
     private final double lowerBound;
 
@@ -84,7 +85,7 @@ public final class InverseGrayScale
         }
         if (alpha < 0 || alpha > 255) {
             throw new IllegalArgumentException(
-                    "Requires alpha in the range 0 to 255.");
+                    "Requires alpha in the range 0 to 255. and not " + alpha);
 
         }
         this.lowerBound = lowerBound;
@@ -202,5 +203,7 @@ public final class InverseGrayScale
            throw new RuntimeException(ex);
         }
     }
+    
+    private static final long serialVersionUID = 1L;
 
 }

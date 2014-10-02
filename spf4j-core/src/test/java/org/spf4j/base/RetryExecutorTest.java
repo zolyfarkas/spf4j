@@ -18,13 +18,14 @@
 
 package org.spf4j.base;
 
-import org.spf4j.concurrent.RetryExecutor;
+import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import junit.framework.Assert;
 import org.junit.Test;
+import org.spf4j.concurrent.RetryExecutor;
 
 /**
  *
@@ -48,7 +49,7 @@ public final class RetryExecutorTest {
                 System.out.println("exec " + count + " st " + System.currentTimeMillis());
                 count++;
                 if (count < 5) {
-                    throw new Exception("Aaaaaaaaaaa" + count);
+                    throw new IOException("Aaaaaaaaaaa" + count);
                 }
                     
                 return 1;

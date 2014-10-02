@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.Arrays;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -29,6 +30,7 @@ import org.spf4j.zel.vm.ZExecutionException;
  *
  * @author zoly
  */
+@SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class SLEEP extends Instruction {
 
     private static final long serialVersionUID = -104479947741779060L;
@@ -44,18 +46,8 @@ public final class SLEEP extends Instruction {
             Thread.sleep(param.longValue());
         } else {
             final VMASyncFuture<Object> future = new VMASyncFuture<Object>();
-            DefaultScheduler.INSTANCE.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    while (context.execService.resumeSuspendables(future) == null) {
-                        try {
-                            Thread.sleep(1);
-                        } catch (InterruptedException ex) {
-                            break;
-                        }
-                    }
-                }
-            }, param.longValue(), TimeUnit.MILLISECONDS);
+            DefaultScheduler.INSTANCE.schedule(new RunnableImpl(context, future),
+                    param.longValue(), TimeUnit.MILLISECONDS);
             context.ip++;
             context.suspend(future);
         }
@@ -68,6 +60,25 @@ public final class SLEEP extends Instruction {
     @Override
     public Object[] getParameters() {
         return Arrays.EMPTY_OBJ_ARRAY;
+    }
+
+    private static final  class RunnableImpl implements Runnable {
+
+        private final ExecutionContext context;
+        private final VMASyncFuture<Object> future;
+
+        public RunnableImpl(final ExecutionContext context, final VMASyncFuture<Object> future) {
+            this.context = context;
+            this.future = future;
+        }
+
+        @Override
+        public void run() {
+            Object stuff;
+            do {
+                stuff = context.execService.resumeSuspendables(future);
+            } while (stuff == null);
+        }
     }
 
 }
