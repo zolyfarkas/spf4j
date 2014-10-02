@@ -26,4 +26,6 @@ public interface MeasurementRecorder {
     
     void record(long measurement);
     
+    void record(long measurement, long timestampMillis);
+    
 }

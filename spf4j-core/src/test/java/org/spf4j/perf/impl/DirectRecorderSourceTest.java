@@ -17,14 +17,13 @@ public final class DirectRecorderSourceTest {
         MeasurementRecorderSource recorderSource =
                 RecorderFactory.createDirectRecorderSource("test", "description");
         MeasurementRecorder recorder = recorderSource.getRecorder("A");
+        long time = System.currentTimeMillis();
         for (int i = 0; i < 100; i++) {
-            recorder.record(i);
-            Thread.sleep(1);
+            recorder.record(i, time + i * 1000);
         }
         MeasurementRecorder recorder2 = recorderSource.getRecorder("B");
         for (int i = 0; i < 100; i++) {
-            recorder2.record(i);
-            Thread.sleep(1);
+            recorder2.record(i, time + i * 1000);
         }
     }
     
