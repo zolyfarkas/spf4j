@@ -24,6 +24,6 @@ package org.spf4j.zel.vm;
  */
 public interface Method {
 
-    Object invoke(ExecutionContext context, Object [] parameters) throws Exception;
+    Object invoke(ExecutionContext context, Object [] parameters);
     
 }

@@ -25,7 +25,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.management.InstanceAlreadyExistsException;
-import javax.management.InstanceNotFoundException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
@@ -34,6 +33,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.kohsuke.args4j.CmdLineException;
+import org.spf4j.base.AbstractRunnable;
 
 public final class MonitorTest {
 
@@ -81,10 +81,9 @@ public final class MonitorTest {
         stopped = false;
         List<Thread> threads = new ArrayList<Thread>();
         for (int i = 0; i < 20; i++) {
-            Thread t = new Thread(new Runnable() {
+            Thread t = new Thread(new AbstractRunnable() {
                 @Override
-                public void run() {
-                    try {
+                public void doRun() throws InterruptedException {
                         while (!stopped) {
                             double rnd = Math.random();
                             if (rnd < 0.33) {
@@ -94,11 +93,7 @@ public final class MonitorTest {
                             } else {
                                 doStuff3(rnd);
                             }
-                        }
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-
+                        } 
                 }
 
                 private double doStuff3(final double rnd) throws InterruptedException {

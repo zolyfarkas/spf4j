@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import org.junit.Test;
+import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 
 /**
  *
@@ -90,7 +91,7 @@ public final class NetworkMonitorAspectTest implements Runnable {
         clientTest();
         t.join();
         
-        System.out.println(RecorderFactory.TS_DATABASE.generateCharts(startTime,
+        System.out.println(((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime,
                 System.currentTimeMillis(), 1200, 600));
     }
 

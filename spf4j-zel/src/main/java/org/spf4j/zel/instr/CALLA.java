@@ -19,7 +19,6 @@ package org.spf4j.zel.instr;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
@@ -28,7 +27,6 @@ import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.VMExecutor;
 import org.spf4j.zel.vm.VMFuture;
 import org.spf4j.zel.vm.ZExecutionException;
-
 
 public final class CALLA extends Instruction {
 
@@ -52,12 +50,7 @@ public final class CALLA extends Instruction {
                 case DETERMINISTIC:
                     parameters = CALL.getParamsSync(context, nrParams);
                     nctx = context.getSubProgramContext(p, parameters);
-                    obj = context.resultCache.getResult(p, Arrays.asList(parameters), new Callable<Object>() {
-                        @Override
-                        public Object call() throws Exception {
-                            return Program.executeAsync(nctx);
-                        }
-                    });
+                    obj = context.resultCache.getResult(p, Arrays.asList(parameters), new AsyncCallable(nctx));
 
                     break;
                 case NONDETERMINISTIC:
@@ -71,24 +64,7 @@ public final class CALLA extends Instruction {
             context.push(obj);
         } else if (function instanceof Method) {
             final Object[] parameters = CALL.getParamsSync(context, nrParams);
-            Future<Object> obj = context.execService.submit(new VMExecutor.Suspendable<Object>() {
-
-                @Override
-                @edu.umd.cs.findbugs.annotations.SuppressWarnings(
-                "EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
-                public Object call() {
-                    try {
-                        return ((Method) function).invoke(context, parameters);
-                    } catch (Exception ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }
-
-                @Override
-                public List<VMFuture<Object>> getSuspendedAt() {
-                    throw new UnsupportedOperationException("Not supported yet.");
-                }
-            });
+            Future<Object> obj = context.execService.submit(new MethodVMExecutor(function, context, parameters));
             context.push(obj);
 
         } else {
@@ -101,6 +77,29 @@ public final class CALLA extends Instruction {
 
     @Override
     public Object[] getParameters() {
-         return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
-   }
+        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+    }
+
+    private static class MethodVMExecutor implements VMExecutor.Suspendable<Object> {
+
+        private final Object function;
+        private final ExecutionContext context;
+        private final Object[] parameters;
+
+        public MethodVMExecutor(final Object function, final ExecutionContext context, final Object[] parameters) {
+            this.function = function;
+            this.context = context;
+            this.parameters = parameters;
+        }
+
+        @Override
+        public Object call() {
+            return ((Method) function).invoke(context, parameters);
+        }
+
+        @Override
+        public List<VMFuture<Object>> getSuspendedAt() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+    }
 }

@@ -18,6 +18,7 @@
 // CHECKSTYLE:OFF
 package org.spf4j.ui;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.JFileChooser;
@@ -28,8 +29,9 @@ import javax.swing.filechooser.FileFilter;
  *
  * @author zoly
  */
-@edu.umd.cs.findbugs.annotations.SuppressWarnings({"FCBL_FIELD_COULD_BE_LOCAL", "UP_UNUSED_PARAMETER"})
+@SuppressFBWarnings({"FCBL_FIELD_COULD_BE_LOCAL", "UP_UNUSED_PARAMETER"})
 public class Explorer extends javax.swing.JFrame {
+    private static final long serialVersionUID = 1L;
 
     /**
      * Creates new form Explorer
@@ -147,24 +149,7 @@ public class Explorer extends javax.swing.JFrame {
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogType(JFileChooser.OPEN_DIALOG);
-        chooser.setFileFilter(new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                if (f.isDirectory()) {
-                    return true;
-                } else if (f.isFile()) {
-                    String name = f.getName();
-                    return (name.endsWith("tsdb") || name.endsWith("ssdump"));
-                } else {
-                    return false;
-                }
-            }
-
-            @Override
-            public String getDescription() {
-                return "spf4j dumps";
-            }
-        });
+        chooser.setFileFilter(new Spf4jFileFilter());
         if (folder != null) {
             chooser.setCurrentDirectory(folder);
         }
@@ -177,15 +162,16 @@ public class Explorer extends javax.swing.JFrame {
             String fileName = file.getName();
             JInternalFrame frame;
             try {
+                final String absolutePath = file.getAbsolutePath();
                 if (fileName.endsWith("tsdb")) {
-                    frame = new TSDBViewJInternalFrame(file.getAbsolutePath());
+                    frame = new TSDBViewJInternalFrame(absolutePath);
                 } else if (fileName.endsWith("ssdump")) {
-                    frame = new StackDumpJInternalFrame(file.getAbsolutePath(), true);
+                    frame = new StackDumpJInternalFrame(absolutePath, true);
                     frame.setVisible(true);
                     desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
-                    frame = new StackDumpJInternalFrame(file.getAbsolutePath(), false);
+                    frame = new StackDumpJInternalFrame(absolutePath, false);
                 } else {
-                    throw new RuntimeException("Unsupported file");
+                    throw new RuntimeException("Unsupported file format " + fileName);
                 }
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
@@ -246,4 +232,24 @@ public class Explorer extends javax.swing.JFrame {
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem pasteMenuItem;
     // End of variables declaration//GEN-END:variables
+
+    private static class Spf4jFileFilter extends FileFilter {
+
+        @Override
+        public boolean accept(File f) {
+            if (f.isDirectory()) {
+                return true;
+            } else if (f.isFile()) {
+                String name = f.getName();
+                return (name.endsWith("tsdb") || name.endsWith("ssdump"));
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public String getDescription() {
+            return "spf4j dumps";
+        }
+    }
 }

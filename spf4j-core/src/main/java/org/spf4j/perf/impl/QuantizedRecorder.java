@@ -18,6 +18,7 @@
 package org.spf4j.perf.impl;
 
 import com.google.common.math.IntMath;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.EntityMeasurements;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementProcessor;
@@ -51,7 +52,7 @@ public final class QuantizedRecorder implements MeasurementProcessor {
      */
     private final long[] quatizedMeasurements;
 
-    public QuantizedRecorder(final Object measuredEntity, final String unitOfMeasurement,
+    public QuantizedRecorder(final Object measuredEntity, final String description,  final String unitOfMeasurement,
             final int factor, final int lowerMagnitude,
             final int higherMagnitude, final int quantasPerMagnitude) {
         assert (quantasPerMagnitude <= factor);
@@ -122,7 +123,7 @@ public final class QuantizedRecorder implements MeasurementProcessor {
                     + "_PI");
             uom.add("count");
         }
-        info = new EntityMeasurementsInfoImpl(measuredEntity, unitOfMeasurement,
+        info = new EntityMeasurementsInfoImpl(measuredEntity, description,
                 result.toArray(new String[result.size()]), uom.toArray(new String[uom.size()]));
 
     }
@@ -149,6 +150,11 @@ public final class QuantizedRecorder implements MeasurementProcessor {
         this.quatizedMeasurements = quatizedMeasurements;
         this.info = info;
     }
+    
+    public String getUnitOfMeasurement() {
+        return info.getMeasurementUnit(0);
+    }
+    
 
     @Override
     public synchronized void record(final long measurement) {
@@ -204,33 +210,38 @@ public final class QuantizedRecorder implements MeasurementProcessor {
     }
 
     @Override
+    @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
     public EntityMeasurements aggregate(final EntityMeasurements mSource) {
 
-        QuantizedRecorder other = (QuantizedRecorder) mSource;
-        long[] quantizedM;
-        long minMeasurementM;
-        long maxMeasurementM;
-        long measurementCountM;
-        long measurementTotalM;
-        synchronized (this) {
-            quantizedM = quatizedMeasurements.clone();
-            minMeasurementM = this.minMeasurement;
-            maxMeasurementM = this.maxMeasurement;
-            measurementCountM = this.measurementCount;
-            measurementTotalM = this.measurementTotal;
-        }
-        QuantizedRecorder otherClone =  other.createClone();
-        final long[] lQuatizedMeas = otherClone.getQuatizedMeasurements();
-        for (int i = 0; i < quantizedM.length; i++) {
+        if (mSource instanceof QuantizedRecorder) {
+            QuantizedRecorder other = (QuantizedRecorder) mSource;
+            long[] quantizedM;
+            long minMeasurementM;
+            long maxMeasurementM;
+            long measurementCountM;
+            long measurementTotalM;
+            synchronized (this) {
+                quantizedM = quatizedMeasurements.clone();
+                minMeasurementM = this.minMeasurement;
+                maxMeasurementM = this.maxMeasurement;
+                measurementCountM = this.measurementCount;
+                measurementTotalM = this.measurementTotal;
+            }
+            QuantizedRecorder otherClone =  other.createClone();
+            final long[] lQuatizedMeas = otherClone.getQuatizedMeasurements();
+            for (int i = 0; i < quantizedM.length; i++) {
 
-            quantizedM[i] += lQuatizedMeas[i];
+                quantizedM[i] += lQuatizedMeas[i];
+            }
+            return new QuantizedRecorder(info, factor, lowerMagnitude, higherMagnitude,
+                    Math.min(minMeasurementM, otherClone.getMinMeasurement()),
+                    Math.max(maxMeasurementM, otherClone.getMaxMeasurement()),
+                    measurementCountM + otherClone.getMeasurementCount(),
+                    measurementTotalM + otherClone.getMeasurementTotal(),
+                    quantasPerMagnitude, magnitudes, quantizedM);
+        } else {
+            throw new IllegalArgumentException("Cannot aggregate " + this + " with " + mSource);
         }
-        return new QuantizedRecorder(info, factor, lowerMagnitude, higherMagnitude,
-                Math.min(minMeasurementM, otherClone.getMinMeasurement()),
-                Math.max(maxMeasurementM, otherClone.getMaxMeasurement()),
-                measurementCountM + otherClone.getMeasurementCount(),
-                measurementTotalM + otherClone.getMeasurementTotal(),
-                quantasPerMagnitude, magnitudes, quantizedM);
 
 
     }
@@ -284,7 +295,7 @@ public final class QuantizedRecorder implements MeasurementProcessor {
 
     @Override
     public synchronized EntityMeasurements createLike(final Object entity) {
-        return new QuantizedRecorder(entity, info.getUnitOfMeasurement(),
+        return new QuantizedRecorder(entity, info.getDescription(), getUnitOfMeasurement(),
                 this.factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
     }
 

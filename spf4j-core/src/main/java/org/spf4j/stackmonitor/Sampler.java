@@ -18,6 +18,7 @@
 package org.spf4j.stackmonitor;
 
 import com.google.common.base.Function;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -98,6 +99,8 @@ public final class Sampler {
     
     private final IntMath.XorShift32 random = new IntMath.XorShift32();
     
+    private static final int STOP_FLAG_READ_MILLIS = 2000;
+    
     @JmxExport(description = "start stack sampling")
     public synchronized void start() {
         if (stopped) {
@@ -107,12 +110,13 @@ public final class Sampler {
             samplingThread = new Thread(new AbstractRunnable() {
                 
                 @SuppressWarnings("SleepWhileInLoop")
+                @SuppressFBWarnings("MDM_THREAD_YIELD")
                 @Override
                 public void doRun() throws IOException, InterruptedException {
                     final Thread samplerThread = Thread.currentThread();
                     int dumpCounterMs = 0;
                     int coarseCounter = 0;
-                    int coarseCount = 2000 / stMillis;
+                    int coarseCount = STOP_FLAG_READ_MILLIS / stMillis;
                     boolean lstopped = stopped;
                     long prevGcTime = 0;
                     int sleepTime = 0;
@@ -206,7 +210,10 @@ public final class Sampler {
     public synchronized void stop() throws InterruptedException {
         if (!stopped) {
             stopped = true;
-            samplingThread.join();
+            samplingThread.join(STOP_FLAG_READ_MILLIS << 2);
+            if (samplingThread.isAlive()) {
+                throw new RuntimeException("Sampling thread failed to stoo in " + (STOP_FLAG_READ_MILLIS << 2));
+            }
         }
     }
 

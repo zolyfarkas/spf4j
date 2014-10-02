@@ -21,6 +21,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,7 +68,7 @@ import org.spf4j.zel.vm.gen.ZCompiler;
 @Immutable
 public final class Program implements Serializable {
 
-    static final long serialVersionUID = 748365748433474932L;
+    private static final long serialVersionUID = 748365748433474932L;
 
     public enum Type {
         DETERMINISTIC, NONDETERMINISTIC
@@ -284,7 +285,7 @@ public final class Program implements Serializable {
         ZEL_GLOBAL_FUNC.addSymbol("max", MAX.INSTANCE);
         ZEL_GLOBAL_FUNC.addSymbol("array", ARRAY.INSTANCE);
         ZEL_GLOBAL_FUNC.addSymbol("random", RANDOM.INSTANCE);
-        ZEL_GLOBAL_FUNC.addSymbol("channel", new Channel.Factory());
+        ZEL_GLOBAL_FUNC.addSymbol("channel", Channel.Factory.INSTANCE);
         ZEL_GLOBAL_FUNC.addSymbol("EOF", Channel.EOF);
     }
 
@@ -329,6 +330,8 @@ public final class Program implements Serializable {
         }
     }
 
+    // TODO: Need to employ Either here
+    @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
     public static Object executeSyncOrAsync(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
         final VMExecutor.Suspendable<Object> execution = ectx.getCallable();
@@ -347,6 +350,8 @@ public final class Program implements Serializable {
         }
     }
 
+    @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
+    // TODO: Need to employ Either here
     public static Object executeAsync(@Nonnull final ExecutionContext ectx)
             throws ZExecutionException, InterruptedException {
         final VMExecutor.Suspendable<Object> execution = ectx.getCallable();
@@ -494,7 +499,7 @@ public final class Program implements Serializable {
             System.out.print("zel>");
             String line = br.readLine();
             if (line != null) {
-                if (line.toUpperCase().startsWith("QUIT")) {
+                if ("QUIT".equalsIgnoreCase(line)) {
                     terminated = true;
                 } else {
                     try {
@@ -529,8 +534,8 @@ public final class Program implements Serializable {
             result.append(obj);
             result.append('\n');
         }
-        result.append("execType = " + this.execType + "\n");
-        result.append("type = " + this.type + "\n");
+        result.append("execType = ").append(this.execType).append("\n");
+        result.append("type = ").append(this.type).append("\n");
         return result.toString();
     }
 
@@ -542,16 +547,7 @@ public final class Program implements Serializable {
     }
 
     public boolean contains(final Class<? extends Instruction> instr) {
-        Boolean res = itterate(new Function<Object, Boolean>() {
-            @Override
-            @edu.umd.cs.findbugs.annotations.SuppressWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
-            public Boolean apply(final Object input) {
-                if (input.getClass() == instr) {
-                    return Boolean.TRUE;
-                }
-                return null;
-            }
-        });
+        Boolean res = itterate(new HasClass(instr));
         if (res == null) {
             return false;
         }
@@ -583,6 +579,24 @@ public final class Program implements Serializable {
 
     Instruction[] getInstructions() {
         return instructions;
+    }
+
+    public static final class HasClass implements Function<Object, Boolean> {
+
+        private final Class<? extends Instruction> instr;
+
+        public HasClass(final Class<? extends Instruction> instr) {
+            this.instr = instr;
+        }
+
+        @Override
+        @SuppressFBWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
+        public Boolean apply(@Nonnull final Object input) {
+            if (input.getClass() == instr) {
+                return Boolean.TRUE;
+            }
+            return null;
+        }
     }
 
 }

@@ -37,15 +37,16 @@ public final class Operators {
     {IntegerOperators.class, DoubleOperators.class, LongOperators.class,
         BigIntegerOperators.class, BigDecimalOperators.class};
     
-    private static final Map<Class<?>, Operator<Object, Object, Object>> [] OPS =
-            new Map[Operator.Enum.values().length];
+    private static final Map<Class<?>, Operator<Object, Object, Object>> [] OPS;
    
     static {
+        final Operator.Enum[] operators = Operator.Enum.values();
+        OPS = new Map[operators.length];
         for (int i = 0; i < OPS.length; i++) {
             OPS[i] = new HashMap<Class<?>, Operator<Object, Object, Object>>();
         }
-        Set<String> ops = new HashSet<String>(Operator.Enum.values().length);
-        for (Operator.Enum en : Operator.Enum.values()) {
+        Set<String> ops = new HashSet<String>(operators.length);
+        for (Operator.Enum en : operators) {
             ops.add(en.toString());
         }
         for (Class<?> impl : IMPLS) {

@@ -1,17 +1,32 @@
+
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 package org.spf4j.jmx;
 
+import com.google.common.base.Converter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.management.InvalidAttributeValueException;
-import org.spf4j.base.Throwables;
+import javax.management.openmbean.OpenDataException;
+
 
 /**
  *
@@ -24,6 +39,7 @@ class ExportedValueImpl implements ExportedValue<Object> {
     private final Method setMethod;
     private final Object object;
     private final Class<?> valueClass;
+    private final Converter<Object, Object> converter;
 
     ExportedValueImpl(@Nonnull final String name, @Nullable final String description,
             @Nullable final Method getMethod, @Nullable final Method setMethod,
@@ -34,6 +50,18 @@ class ExportedValueImpl implements ExportedValue<Object> {
         this.setMethod = setMethod;
         this.object = object;
         this.valueClass = valueClass;
+        if (valueClass.isPrimitive()
+                || Number.class.isAssignableFrom(valueClass)
+                || valueClass == Boolean.class
+                || valueClass == String.class) {
+            this.converter = null;
+        } else {
+            try {
+                this.converter = OpenTypeConverter.getConverter(valueClass);
+            } catch (OpenDataException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
     }
 
     public ExportedValueImpl withSetter(@Nonnull final Method psetMethod) {
@@ -57,8 +85,13 @@ class ExportedValueImpl implements ExportedValue<Object> {
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "EXS_EXCEPTION_SOFTENING_NO_CHECKED")
     public Object get() {
+
         try {
-            return getMethod.invoke(object);
+            if (converter != null) {
+                return converter.reverse().convert(getMethod.invoke(object));
+            } else {
+                return getMethod.invoke(object);
+            }
         } catch (IllegalAccessException ex) {
             throw new RuntimeException(ex);
         } catch (IllegalArgumentException ex) {
@@ -75,11 +108,15 @@ class ExportedValueImpl implements ExportedValue<Object> {
             throw new InvalidAttributeValueException(name + " is a read only attribute ");
         }
         try {
-            setMethod.invoke(object, value);
+            if (converter != null) {
+                setMethod.invoke(object, converter.convert(value));
+            } else {
+                setMethod.invoke(object, value);
+            }
         } catch (IllegalAccessException ex) {
             throw new RuntimeException(ex);
         } catch (IllegalArgumentException ex) {
-            throw Throwables.suppress(new InvalidAttributeValueException(name + " has an invalid type "), ex);
+            throw new RuntimeException(name + " has an invalid type ", ex);
         } catch (InvocationTargetException ex) {
             throw new RuntimeException(ex);
         }

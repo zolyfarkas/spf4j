@@ -18,6 +18,7 @@
  */
 package org.spf4j.perf.io;
 
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import java.io.IOException;
 import java.io.OutputStream;
 import org.spf4j.perf.MeasurementRecorderSource;
@@ -26,6 +27,7 @@ import org.spf4j.perf.MeasurementRecorderSource;
  *
  * @author zoly
  */
+@CleanupObligation
 public final class MeasuredOutputStream extends OutputStream {
     
     private final OutputStream os;

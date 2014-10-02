@@ -20,7 +20,7 @@ package org.spf4j.zel.vm;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import javax.annotation.concurrent.ThreadSafe;
-import org.spf4j.base.Pair;
+import org.spf4j.base.Either;
 
 /**
  * bean like implementation of a future
@@ -28,11 +28,9 @@ import org.spf4j.base.Pair;
  */
 @ThreadSafe
 public interface VMFuture<T> extends Future<T> {
-   
-        
-    Pair<T, ? extends ExecutionException> getResultStore();
-
-
+       
+    Either<T, ? extends ExecutionException> getResultStore();
+    
     void setResult(T result);
     
     void setExceptionResult(final ExecutionException result);

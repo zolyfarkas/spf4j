@@ -81,8 +81,7 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
                 if (currentTime > lastRun) {
                     lastRun = currentTime;
                     database.saveMeasurements(ScalableMeasurementRecorder.this.getInfo(),
-                            ScalableMeasurementRecorder.this.getMeasurementsAndReset(),
-                            currentTime, sampleTimeMillis);
+                            currentTime, sampleTimeMillis, ScalableMeasurementRecorder.this.getMeasurementsAndReset());
                 } else {
                     LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
                             lastRun, currentTime);
@@ -90,7 +89,14 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
             }
         };
         samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);
-        org.spf4j.base.Runtime.addHookAtBeginning(persister);
+        org.spf4j.base.Runtime.addHookAtBeginning(new AbstractRunnable(true) {
+            
+            @Override
+            public void doRun() throws Exception {
+                persister.doRun();
+                close();
+            }
+        });
     }
 
     @Override
@@ -129,15 +135,6 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
     @Override
     public void close() {
         samplingFuture.cancel(false);
-    }
-
-    @Override
-    protected void finalize() throws Throwable  {
-        try {
-            super.finalize();
-        } finally {
-            this.close();
-        }
     }
 
     @Override

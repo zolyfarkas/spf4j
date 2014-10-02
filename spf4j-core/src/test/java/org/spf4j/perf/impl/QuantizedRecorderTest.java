@@ -37,7 +37,7 @@ public final class QuantizedRecorderTest {
     @Test
     public void testRecord1() {
         System.out.println("record");
-        QuantizedRecorder instance = new QuantizedRecorder("test", "ms",
+        QuantizedRecorder instance = new QuantizedRecorder("test", "", "ms",
                 10, 0, 3, 10);
         instance.record(0);
         instance.record(1);
@@ -52,7 +52,7 @@ public final class QuantizedRecorderTest {
         @Test
     public void testRecord2() {
         System.out.println("record");
-        QuantizedRecorder instance = new QuantizedRecorder("test", "ms",
+        QuantizedRecorder instance = new QuantizedRecorder("test", "", "ms",
                 10, -3, 3, 10);
         instance.record(0);
         instance.record(1);
@@ -68,7 +68,7 @@ public final class QuantizedRecorderTest {
     @Test
     public void testRecord3() {
         System.out.println("record");
-        QuantizedRecorder instance = new QuantizedRecorder("test", "ms",
+        QuantizedRecorder instance = new QuantizedRecorder("test", "", "ms",
                 10, 0, 1, 10);
         instance.record(0);
         instance.record(1);
@@ -87,7 +87,7 @@ public final class QuantizedRecorderTest {
         @Test
     public void testRecord4() {
         System.out.println("record");
-        QuantizedRecorder instance = new QuantizedRecorder("test", "ms",
+        QuantizedRecorder instance = new QuantizedRecorder("test", "", "ms",
                 10, -1, 1, 10);
         instance.record(0);
         instance.record(1);

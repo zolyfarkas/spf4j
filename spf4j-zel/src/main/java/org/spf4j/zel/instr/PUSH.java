@@ -22,6 +22,8 @@ import org.spf4j.zel.vm.ExecutionContext;
 
 public final  class PUSH extends Instruction {
 
+    private static final long serialVersionUID = 1L;
+
     private final Object param;
     
     public PUSH(final Object param) {

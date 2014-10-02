@@ -18,6 +18,7 @@
  */
 package org.spf4j.perf.aspects;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -32,6 +33,7 @@ import org.spf4j.perf.impl.RecorderFactory;
  * @author zoly
  */
 @Aspect
+@SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
 public final class FileMonitorAspect {
     
     public static final int SAMPLE_TIME = Integer.parseInt(System.getProperty("perf.file.sampleTimeMillis", "300000"));

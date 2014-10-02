@@ -19,7 +19,6 @@ package org.spf4j.perf.tsdb;
 
 import gnu.trove.list.array.TIntArrayList;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
@@ -30,6 +29,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
+import org.spf4j.io.ByteArrayBuilder;
 
 /**
  *
@@ -83,14 +83,14 @@ final class DataFragment {
     }
     
     public void writeTo(final RandomAccessFile raf) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ByteArrayBuilder bos = new ByteArrayBuilder();
         DataOutput dos = new DataOutputStream(bos);
         writeTo(dos);
         FileChannel ch = raf.getChannel();
         FileLock lock = ch.lock(raf.getFilePointer(), 8, false);
         try {
             raf.seek(location);
-            raf.write(bos.toByteArray());
+            raf.write(bos.getBuffer(), 0, bos.size());
         } finally {
             lock.release();
         }

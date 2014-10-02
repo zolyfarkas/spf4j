@@ -18,6 +18,7 @@
 package org.spf4j.concurrent;
 
 import com.google.common.base.Charsets;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -38,18 +39,19 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public final class FileBasedLock implements Lock, java.io.Closeable {
 
-    public static final Map<File, Lock> LOCKS = new HashMap<File, Lock>();
+    public static final Map<String, Lock> JVM_LOCKS = new HashMap<String, Lock>();
     private final RandomAccessFile file;
     private final Lock jvmLock;
     private FileLock fileLock;
 
     public FileBasedLock(final File lockFile) throws FileNotFoundException {
         file = new RandomAccessFile(lockFile, "rws");
-        synchronized (LOCKS) {
-            Lock lock = LOCKS.get(lockFile);
+        String filePath = lockFile.getPath();
+        synchronized (JVM_LOCKS) {
+            Lock lock = JVM_LOCKS.get(filePath);
             if (lock == null) {
                 lock = new ReentrantLock();
-                LOCKS.put(lockFile, lock);
+                JVM_LOCKS.put(filePath, lock);
             }
             jvmLock = lock;
         }
@@ -57,6 +59,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     }
 
     @Override
+    @SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
     public void lock() {
         jvmLock.lock();
         try {
@@ -71,8 +74,8 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
         }
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
     @Override
+    @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "EXS_EXCEPTION_SOFTENING_HAS_CHECKED", "MDM_THREAD_YIELD" })
     public void lockInterruptibly() throws InterruptedException {
         jvmLock.lockInterruptibly();
         try {
@@ -82,7 +85,13 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
                 //CHECKSTYLE:ON
                 Thread.sleep(1);
             }
+            if (Thread.interrupted()) {
+                throw new InterruptedException();
+            }
             writeHolderInfo();
+        } catch (InterruptedException ex) {
+            jvmLock.unlock();
+            throw ex;
         } catch (IOException ex) {
             jvmLock.unlock();
             throw new RuntimeException(ex);
@@ -93,6 +102,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     }
 
     @Override
+    @SuppressFBWarnings("MDM_THREAD_FAIRNESS")
     public boolean tryLock() {
         if (jvmLock.tryLock()) {
             try {
@@ -115,10 +125,10 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
         }
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
+    @SuppressFBWarnings({"EXS_EXCEPTION_SOFTENING_HAS_CHECKED", "MDM_THREAD_YIELD" })
     @Override
     public boolean tryLock(final long time, final TimeUnit unit) throws InterruptedException {
-        if (jvmLock.tryLock()) {
+        if (jvmLock.tryLock(time, unit)) {
             try {
                 long waitTime = 0;
                 long maxWaitTime = unit.toMillis(time);
@@ -130,12 +140,18 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
                     Thread.sleep(1);
                     waitTime++;
                 }
+                if (Thread.interrupted()) {
+                    throw new InterruptedException();
+                }
                 if (fileLock != null) {
                     writeHolderInfo();
                     return true;
                 } else {
                     return false;
                 }
+            } catch (InterruptedException ex) {
+                jvmLock.unlock();
+                throw ex;
             } catch (IOException ex) {
                 jvmLock.unlock();
                 throw new RuntimeException(ex);

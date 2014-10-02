@@ -17,25 +17,25 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 
 /**
  *
  * @author zoly
  */
+@SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
 public final class MemorizedCallable<V> implements Callable<V> {
 
     private volatile V value;
     
     private final Callable<V> callable;
-
+    
     public MemorizedCallable(final Callable<V> callable) {
         this.callable = callable;
         value = null;
     }
-    
-    
-    
+       
     @Override
     public V call() throws Exception {
         V result = value;

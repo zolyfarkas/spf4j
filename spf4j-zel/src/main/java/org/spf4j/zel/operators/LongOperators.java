@@ -6,11 +6,12 @@
 package org.spf4j.zel.operators;
 
 import com.google.common.math.LongMath;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import static org.spf4j.zel.operators.Operator.MATH_CONTEXT;
 
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("NS_DANGEROUS_NON_SHORT_CIRCUIT")
+@SuppressFBWarnings({"NS_DANGEROUS_NON_SHORT_CIRCUIT", "NS_NON_SHORT_CIRCUIT" })
 public final class LongOperators {
     
     private LongOperators() {
@@ -19,7 +20,8 @@ public final class LongOperators {
     public static final class Add implements Operator<Long, Number, Number> {
 
         @Override
-        public Number op(final Long a, final Number b) {
+        public Number op(final Long pa, final Number b) {
+            final long a = pa;
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
@@ -47,7 +49,8 @@ public final class LongOperators {
     public static final class Sub implements Operator<Long, Number, Number> {
 
         @Override
-        public Number op(final Long a, final Number b) {
+        public Number op(final Long pa, final Number b) {
+            final long a = pa;
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
@@ -75,12 +78,13 @@ public final class LongOperators {
     public static final class Mul implements Operator<Long, Number, Number> {
 
         @Override
-        public Number op(final Long a, final Number b) {
+        public Number op(final Long pa, final Number b) {
+            final long a = pa;
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
                 
-                Long bb = b.longValue();
+                long bb = b.longValue();
                 int leadingZeros = Long.numberOfLeadingZeros(a) + Long.numberOfLeadingZeros(~a)
                         + Long.numberOfLeadingZeros(bb) + Long.numberOfLeadingZeros(~bb);
 
@@ -115,7 +119,8 @@ public final class LongOperators {
     public static final class Div implements Operator<Long, Number, Number> {
 
         @Override
-        public Number op(final Long a, final Number b) {
+        public Number op(final Long pa, final Number b) {
+            long a = pa;
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
@@ -137,7 +142,8 @@ public final class LongOperators {
     public static final class Mod implements Operator<Long, Number, Number> {
 
         @Override
-        public Number op(final Long a, final Number b) {
+        public Number op(final Long pa, final Number b) {
+            long a = pa;
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class) || claszB.equals(Long.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
@@ -159,7 +165,8 @@ public final class LongOperators {
     public static final class Pow implements Operator<Long, Number, Number> {
 
         @Override
-        public Number op(final Long a, final Number b) {
+        public Number op(final Long pa, final Number b) {
+            long a = pa;
             Class<? extends Number> claszB = b.getClass();
             if (claszB.equals(Integer.class) || claszB.equals(Short.class)
                     || claszB.equals(Byte.class) || claszB.equals(Character.class)) {

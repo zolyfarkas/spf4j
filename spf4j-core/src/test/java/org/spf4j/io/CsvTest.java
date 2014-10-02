@@ -15,18 +15,13 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.io;
 
-import org.spf4j.io.Csv;
 import com.google.common.base.Charsets;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,81 +35,105 @@ import org.junit.Test;
  * @author zoly
  */
 public final class CsvTest {
-    
+
     public CsvTest() {
     }
 
     @Test
     public void testCsvReadWrite() throws IOException {
-        
+
+        File testFile = createTestCsv();
+
+        List<Map<String, String>> data = Csv.read(testFile, Charsets.UTF_8, new Csv.CsvHandler<List<Map<String, String>>>() {
+
+            private boolean firstRow = true;
+
+            private final List<Map<String, String>> result = new ArrayList<Map<String, String>>();
+
+            private List<String> header;
+            private Map<String, String> row;
+            private int i = 0;
+
+            @Override
+            public void startRow() {
+                if (firstRow) {
+                    header = new ArrayList<String>();
+                } else {
+                    row = new HashMap<String, String>(header.size());
+                    i = 0;
+                }
+            }
+
+            @Override
+            public void element(final CharSequence elem) {
+                if (firstRow) {
+                    header.add(elem.toString());
+                } else {
+                    row.put(header.get(i++), elem.toString());
+                }
+            }
+
+            @Override
+            public void endRow() {
+                if (firstRow) {
+                    firstRow = false;
+                } else {
+                    result.add(row);
+                }
+            }
+
+            @Override
+            public List<Map<String, String>> eof() {
+                return result;
+            }
+        });
+        Assert.assertEquals("1,3", data.get(0).get("c"));
+        Assert.assertEquals("1", data.get(0).get("d"));
+        Assert.assertEquals("1,3", data.get(1).get("d"));
+        Assert.assertEquals("\"", data.get(1).get("b"));
+        Assert.assertEquals("0\n", data.get(1).get("c"));
+    }
+
+    @Test
+    public void testCsvReadWrite2() throws IOException {
+        File testFile = createTestCsv();
+        List<Map<String, CharSequence>> data
+                = Csv.read(testFile, Charsets.UTF_8, new Csv.CsvMapHandler<List<Map<String, CharSequence>>>() {
+
+                    private final List<Map<String, CharSequence>> result = new ArrayList<Map<String, CharSequence>>();
+
+                    @Override
+                    public void row(final Map<String, CharSequence> row) {
+                        result.add(row);
+                    }
+
+                    @Override
+                    public List<Map<String, CharSequence>> eof() {
+                        return result;
+                    }
+                });
+
+        Assert.assertEquals("1,3", data.get(0).get("c").toString());
+        Assert.assertEquals("1", data.get(0).get("d").toString());
+        Assert.assertEquals("1,3", data.get(1).get("d").toString());
+        Assert.assertEquals("\"", data.get(1).get("b").toString());
+        Assert.assertEquals("0\n", data.get(1).get("c").toString());
+    }
+
+    private File createTestCsv() throws IOException {
         File testFile = File.createTempFile("csvTest", ".csv");
-        
         System.out.println("test file : " + testFile);
-        
         BufferedWriter writer = new BufferedWriter(
                 new OutputStreamWriter(new FileOutputStream(testFile), Charsets.UTF_8));
         try {
             Csv.writeCsvRow(writer, "a", "b", "c", "d");
-            Csv.writeCsvRow(writer, "1.2", "1", "1,3", 1);
+            Csv.writeCsvRow(writer, "1.2\r", "1", "1,3", 1);
             Csv.writeCsvRow(writer, "0", "\"", "0\n", "1,3");
         } finally {
             writer.close();
         }
         System.out.println("test file written");
-        BufferedReader reader = new BufferedReader(
-                new InputStreamReader(new FileInputStream(testFile), Charsets.UTF_8));
-        try {
-            List<Map<String, String>> data = Csv.read(reader, new Csv.CsvHandler<List<Map<String, String>>>() {
-                
-                private boolean firstRow = true;
-                
-                private final List<Map<String, String>> result = new ArrayList<Map<String, String>>();
-                
-                private List<String> header;
-                private Map<String, String> row;
-                private int i = 0;
-                
-                @Override
-                public void startRow() {
-                    if (firstRow) {
-                        header = new ArrayList<String>();
-                    } else {
-                        row = new HashMap<String, String>(header.size());
-                        i = 0;
-                    }
-                }
-
-                @Override
-                public void element(final StringBuilder elem) {
-                    if (firstRow) {
-                        header.add(elem.toString());
-                    } else {
-                        row.put(header.get(i++), elem.toString());
-                    }
-                }
-
-                @Override
-                public void endRow() {
-                   if (firstRow) {
-                       firstRow = false;
-                   } else {
-                       result.add(row);
-                   }
-                }
-
-                @Override
-                public List<Map<String, String>> eof() {
-                    return result;
-                }
-            });
-            Assert.assertEquals("1,3", data.get(0).get("c"));
-            Assert.assertEquals("1", data.get(0).get("d"));
-            Assert.assertEquals("1,3", data.get(1).get("d"));
-            Assert.assertEquals("\"", data.get(1).get("b"));
-            Assert.assertEquals("0\n", data.get(1).get("c"));
-        } finally {
-            reader.close();
-        }
+        return testFile;
     }
-    
+
 }
