@@ -39,7 +39,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public final class FileBasedLock implements Lock, java.io.Closeable {
 
-<span class="fc" id="L42">    public static final Map&lt;String, Lock&gt; JVM_LOCKS = new HashMap&lt;String, Lock&gt;();</span>
+<span class="fc" id="L42">    public static final Map&lt;String, Lock&gt; JVM_LOCKS = new HashMap&lt;&gt;();</span>
     private final RandomAccessFile file;
     private final Lock jvmLock;
     private FileLock fileLock;
@@ -181,27 +181,25 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
 
     @Override
     protected void finalize() throws Throwable {
-        try {
+<span class="nc" id="L184">        try (FileBasedLock lock = this) {</span>
 <span class="nc" id="L185">            super.finalize();</span>
-        } finally {
-<span class="nc" id="L187">            close();</span>
-<span class="nc" id="L188">        }</span>
-<span class="nc" id="L189">    }</span>
+<span class="nc bnc" id="L186" title="All 8 branches missed.">        }</span>
+<span class="nc" id="L187">    }</span>
 
     @Override
     public void close() throws IOException {
         try {
-<span class="nc" id="L194">            file.close();</span>
+<span class="nc" id="L192">            file.close();</span>
         } finally {
-<span class="nc" id="L196">            jvmLock.unlock();</span>
-<span class="nc" id="L197">        }</span>
-<span class="nc" id="L198">    }</span>
+<span class="nc" id="L194">            jvmLock.unlock();</span>
+<span class="nc" id="L195">        }</span>
+<span class="nc" id="L196">    }</span>
 
     private void writeHolderInfo() throws IOException {
-<span class="fc" id="L201">        file.seek(0);</span>
-<span class="fc" id="L202">        byte [] data = org.spf4j.base.Runtime.PROCESS_NAME.getBytes(Charsets.UTF_8);</span>
-<span class="fc" id="L203">        file.write(data);</span>
-<span class="fc" id="L204">        file.setLength(data.length);</span>
-<span class="fc" id="L205">    }</span>
+<span class="fc" id="L199">        file.seek(0);</span>
+<span class="fc" id="L200">        byte [] data = org.spf4j.base.Runtime.PROCESS_NAME.getBytes(Charsets.UTF_8);</span>
+<span class="fc" id="L201">        file.write(data);</span>
+<span class="fc" id="L202">        file.setLength(data.length);</span>
+<span class="fc" id="L203">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

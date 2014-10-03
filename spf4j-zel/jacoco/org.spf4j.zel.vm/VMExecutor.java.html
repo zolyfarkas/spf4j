@@ -144,7 +144,7 @@ public final class VMExecutor {
 <span class="fc bfc" id="L144" title="All 2 branches covered.">        if (suspended != null) {</span>
 <span class="fc bfc" id="L145" title="All 2 branches covered.">            for (Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt; susp : suspended) {</span>
 <span class="fc" id="L146">                submit(susp.getFirst(), susp.getSecond());</span>
-            }
+<span class="fc" id="L147">            }</span>
         }
 <span class="fc" id="L149">        return suspended;</span>
     }
@@ -154,7 +154,7 @@ public final class VMExecutor {
 
 <span class="fc" id="L155">        List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; suspended</span>
                 = futToSuspMap.get(futureSuspendedFor);
-<span class="fc bfc" id="L157" title="All 2 branches covered.">        if (suspended == null) {</span>
+<span class="pc bpc" id="L157" title="1 of 2 branches missed.">        if (suspended == null) {</span>
 <span class="fc" id="L158">            suspended = new LinkedList&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt;();</span>
 <span class="fc" id="L159">            List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; old</span>
                     = futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);
@@ -198,7 +198,7 @@ public final class VMExecutor {
 <span class="fc bfc" id="L198" title="All 2 branches covered.">                    for (VMFuture&lt;Object&gt; fut : callable.getSuspendedAt()) {</span>
 <span class="fc" id="L199">                        addSuspendable(fut,</span>
                             (Suspendable&lt;Object&gt;) callable, (VMFuture&lt;Object&gt;) future);
-                    }
+<span class="fc" id="L201">                    }</span>
 <span class="fc" id="L202">                } catch (Exception e) {</span>
 <span class="fc" id="L203">                    future.setExceptionResult(new ExecutionException(e));</span>
 <span class="fc" id="L204">                    resumeSuspendables((VMFuture&lt;Object&gt;) future);</span>

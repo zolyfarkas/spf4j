@@ -79,22 +79,22 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartObjectPool&lt;T&gt; {
 <span class="fc" id="L79">                borrowedObjects.put(borower, object);</span>
 <span class="fc" id="L80">                return object;</span>
             } else {
-<span class="pc bpc" id="L82" title="1 of 2 branches missed.">                if (borrowedObjects.isEmpty()) {</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">                if (borrowedObjects.isEmpty()) {</span>
 <span class="nc" id="L83">                    throw new RuntimeException(</span>
                             &quot;Pool is probably closing down or is missconfigured withe size 0 &quot; + this);
                 }
-<span class="pc bpc" id="L86" title="1 of 2 branches missed.">                for (ObjectBorower&lt;T&gt; b : borrowedObjects.keySet()) {</span>
-<span class="pc bpc" id="L87" title="1 of 2 branches missed.">                    if (borower != b) {</span>
-<span class="fc" id="L88">                        T object = b.tryReturnObjectIfNotInUse();</span>
-<span class="pc bpc" id="L89" title="1 of 2 branches missed.">                        if (object != null) {</span>
-<span class="pc bpc" id="L90" title="1 of 2 branches missed.">                            if (!borrowedObjects.remove(b, object)) {</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">                for (ObjectBorower&lt;T&gt; b : borrowedObjects.keySet()) {</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">                    if (borower != b) {</span>
+<span class="nc" id="L88">                        T object = b.tryReturnObjectIfNotInUse();</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">                        if (object != null) {</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">                            if (!borrowedObjects.remove(b, object)) {</span>
 <span class="nc" id="L91">                                throw new IllegalStateException(&quot;Returned Object hasn't been borrowed &quot; + object);</span>
                             }
-<span class="fc" id="L93">                            borrowedObjects.put(borower, object);</span>
-<span class="fc" id="L94">                            return object;</span>
+<span class="nc" id="L93">                            borrowedObjects.put(borower, object);</span>
+<span class="nc" id="L94">                            return object;</span>
                         }
-<span class="nc" id="L96">                    }</span>
-                }
+                    }
+<span class="nc" id="L97">                }</span>
                 Either&lt;ObjectBorower.Action, T&gt; object;
                 do {
 <span class="nc" id="L100">                    Iterator&lt;ObjectBorower&lt;T&gt;&gt; itt = borrowedObjects.keySet().iterator();</span>
@@ -208,7 +208,7 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartObjectPool&lt;T&gt; {
 <span class="fc" id="L208">                    result = Throwables.suppress(new ObjectDisposeException(ex), result);</span>
                 }
 <span class="pc" id="L210">            }</span>
-        }
+<span class="fc" id="L211">        }</span>
 <span class="fc" id="L212">        availableObjects.clear();</span>
 <span class="fc" id="L213">        return result;</span>
     }
@@ -239,7 +239,7 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartObjectPool&lt;T&gt; {
 <span class="nc" id="L239">                            throw new IllegalStateException(&quot;Object returned hasn't been borrowed&quot; + ro);</span>
                         }
 <span class="nc" id="L241">                        availableObjects.add(ro);</span>
-                    }
+<span class="nc" id="L242">                    }</span>
                 }
 
 <span class="fc" id="L245">            }</span>
@@ -255,7 +255,7 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartObjectPool&lt;T&gt; {
 <span class="fc" id="L255">                        resEx = Throwables.suppress(e, resEx);</span>
                     }
 <span class="fc" id="L257">                }</span>
-            }
+<span class="fc" id="L258">            }</span>
 <span class="fc bfc" id="L259" title="All 2 branches covered.">            if (resEx != null) {</span>
 <span class="fc" id="L260">                throw resEx;</span>
             }
@@ -274,7 +274,7 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartObjectPool&lt;T&gt; {
 <span class="fc bfc" id="L274" title="All 2 branches covered.">                if (objects != null) {</span>
 <span class="fc bfc" id="L275" title="All 2 branches covered.">                    for (T object : objects) {</span>
 <span class="fc" id="L276">                        returnedObjects.add(Pair.of(b, object));</span>
-                    }
+<span class="fc" id="L277">                    }</span>
                 }
 <span class="fc" id="L279">            }</span>
 <span class="fc bfc" id="L280" title="All 2 branches covered.">            for (Pair&lt;ObjectBorower&lt;T&gt;, T&gt; ro : returnedObjects) {</span>

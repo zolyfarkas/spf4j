@@ -46,7 +46,7 @@ public final class RecorderFactory {
 
 <span class="nc" id="L47">    private RecorderFactory() {</span>
 <span class="nc" id="L48">    }</span>
-    public static final MeasurementStore TS_DATABASE;
+    public static final MeasurementStore MEASUREMENT_STORE;
 
     
     /**
@@ -89,7 +89,7 @@ public final class RecorderFactory {
 <span class="fc bfc" id="L89" title="All 2 branches covered.">            for (String config : stores) {</span>
 <span class="fc" id="L90">                mstores[i] = fromString(config);</span>
 <span class="fc" id="L91">                i++;</span>
-            }
+<span class="fc" id="L92">            }</span>
 <span class="fc" id="L93">            return new MultiStore(mstores);</span>
         }
     }
@@ -106,8 +106,8 @@ public final class RecorderFactory {
     
     static {
         try {
-<span class="fc" id="L109">            TS_DATABASE = buildStoreFromConfig(System.getProperty(&quot;perf.ms.config&quot;, null));</span>
-<span class="fc" id="L110">            Flusher.flushEvery(60000, TS_DATABASE);</span>
+<span class="fc" id="L109">            MEASUREMENT_STORE = buildStoreFromConfig(System.getProperty(&quot;perf.ms.config&quot;, null));</span>
+<span class="fc" id="L110">            Flusher.flushEvery(60000, MEASUREMENT_STORE);</span>
 <span class="nc" id="L111">        } catch (IOException ex) {</span>
 <span class="nc" id="L112">            throw new RuntimeException(ex);</span>
 <span class="nc" id="L113">        } catch (ObjectCreationException ex) {</span>
@@ -121,19 +121,19 @@ public final class RecorderFactory {
             final int higherMagnitude, final int quantasPerMagnitude) {
 <span class="fc" id="L122">        return new ScalableMeasurementRecorder(new QuantizedRecorder(forWhat, &quot;&quot;,</span>
                 unitOfMeasurement, factor, lowerMagnitude, higherMagnitude,
-                quantasPerMagnitude), sampleTimeMillis, TS_DATABASE);
+                quantasPerMagnitude), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorder createScalableCountingRecorder(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
 <span class="nc" id="L129">        return new ScalableMeasurementRecorder(new CountingRecorder(forWhat, &quot;&quot;,</span>
-                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+                unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorder createScalableMinMaxAvgRecorder(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
 <span class="fc" id="L135">        return new ScalableMeasurementRecorder(new MinMaxAvgRecorder(forWhat, &quot;&quot;,</span>
-                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+                unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorderSource createScalableQuantizedRecorderSource(
@@ -142,41 +142,47 @@ public final class RecorderFactory {
             final int higherMagnitude, final int quantasPerMagnitude) {
 <span class="fc" id="L143">        return new ScalableMeasurementRecorderSource(new QuantizedRecorder(forWhat, &quot;&quot;,</span>
                 unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude),
-                sampleTimeMillis, TS_DATABASE);
+                sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorderSource createScalableCountingRecorderSource(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
 <span class="fc" id="L150">        return new ScalableMeasurementRecorderSource(new CountingRecorder(forWhat, &quot;&quot;,</span>
-                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+                unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
     public static MeasurementRecorderSource createScalableMinMaxAvgRecorderSource(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
 <span class="nc" id="L156">        return new ScalableMeasurementRecorderSource(new MinMaxAvgRecorder(forWhat, &quot;&quot;,</span>
-                unitOfMeasurement), sampleTimeMillis, TS_DATABASE);
+                unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
     }
 
-    public static MeasurementRecorder createDirectTsdbRecorder(final Object forWhat, final String unitOfMeasurement) {
-<span class="nc" id="L161">        return new DirectRecorder(forWhat, &quot;&quot;, unitOfMeasurement, 0, TS_DATABASE);</span>
+    public static MeasurementRecorder createDirectRecorder(final Object forWhat, final String unitOfMeasurement) {
+<span class="nc" id="L161">        return new DirectRecorder(forWhat, &quot;&quot;, unitOfMeasurement, 0, MEASUREMENT_STORE);</span>
     }
 
-    public static MeasurementRecorder createDirectTsdbRecorder(final Object forWhat,
+    public static MeasurementRecorder createDirectRecorder(final Object forWhat,
             final String unitOfMeasurement, final int sampleTimeMillis) {
-<span class="fc" id="L166">        return new DirectRecorder(forWhat, &quot;&quot;, unitOfMeasurement, sampleTimeMillis, TS_DATABASE);</span>
+<span class="fc" id="L166">        return new DirectRecorder(forWhat, &quot;&quot;, unitOfMeasurement, sampleTimeMillis, MEASUREMENT_STORE);</span>
+    }
+    
+    
+    public static MeasurementRecorderSource createDirectRecorderSource(final Object forWhat,
+            final String unitOfMeasurement) {
+<span class="fc" id="L172">        return new DirectRecorderSource(forWhat, &quot;&quot;, unitOfMeasurement, 0, MEASUREMENT_STORE);</span>
     }
     
     public static MeasurementRecorder createDirectGraphiteUdpRecorder(final Object forWhat,
             final String unitOfMeasurement,
             final String graphiteHost, final int graphitePort) throws ObjectCreationException {
-<span class="nc" id="L172">        return new DirectRecorder(forWhat, &quot;&quot;, unitOfMeasurement, 0,</span>
+<span class="nc" id="L178">        return new DirectRecorder(forWhat, &quot;&quot;, unitOfMeasurement, 0,</span>
                 new GraphiteUdpStore(graphiteHost, graphitePort));
     }
     
     public static MeasurementRecorder createDirectGraphiteTcpRecorder(final Object forWhat,
             final String unitOfMeasurement,
             final String graphiteHost, final int graphitePort) throws ObjectCreationException {
-<span class="nc" id="L179">        return new DirectRecorder(forWhat, &quot;&quot;, unitOfMeasurement, 0,</span>
+<span class="nc" id="L185">        return new DirectRecorder(forWhat, &quot;&quot;, unitOfMeasurement, 0,</span>
                 new GraphiteTcpStore(graphiteHost, graphitePort));
     }
 }

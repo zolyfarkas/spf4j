@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>MeasurementAggregator.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">MeasurementAggregator.java</span></div><h1>MeasurementAggregator.java</h1><pre class="source lang-java linenums">
+package org.spf4j.perf.impl;
+
+import org.spf4j.perf.MeasurementProcessor;
+
+/**
+ *
+ * @author zoly
+ */
+public abstract class MeasurementAggregator implements MeasurementProcessor {
+
+    private long minTime;
+    private long maxTime;
+    
+<span class="fc" id="L15">    public MeasurementAggregator() {</span>
+<span class="fc" id="L16">        minTime = 0;</span>
+<span class="fc" id="L17">        maxTime = 0;</span>
+<span class="fc" id="L18">    }</span>
+    
+    @Override
+    public final void record(final long measurement, final long timestampMillis) {
+<span class="nc" id="L22">        this.record(measurement);</span>
+<span class="nc bnc" id="L23" title="All 2 branches missed.">        if (minTime &lt; timestampMillis) {</span>
+<span class="nc" id="L24">            minTime = maxTime;</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">        } else if (timestampMillis &gt; maxTime) {</span>
+<span class="nc" id="L26">            maxTime = timestampMillis;</span>
+        }
+<span class="nc" id="L28">    }</span>
+
+    public final long getMinTime() {
+<span class="nc" id="L31">        return minTime;</span>
+    }
+
+    public final long getMaxTime() {
+<span class="nc" id="L35">        return maxTime;</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

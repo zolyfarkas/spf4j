@@ -23,7 +23,6 @@ import org.spf4j.perf.EntityMeasurements;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MeasurementProcessor;
-import org.spf4j.perf.MeasurementRecorder;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,7 +41,8 @@ import org.slf4j.LoggerFactory;
 @ThreadSafe
 // a recorder instance is tipically alive for the entire life of the process
 @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(&quot;PMB_INSTANCE_BASED_THREAD_LOCAL&quot;)
-public final class ScalableMeasurementRecorder implements MeasurementRecorder, EntityMeasurements, Closeable {
+public final class ScalableMeasurementRecorder extends MeasurementAggregator
+    implements Closeable {
 
 <span class="fc" id="L47">    private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);</span>
     
@@ -54,7 +54,7 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;PMB_INSTANCE_BASED_THREAD_LOCAL&quot;)
     ScalableMeasurementRecorder(final MeasurementProcessor processor, final int sampleTimeMillis,
 <span class="fc" id="L56">            final MeasurementStore database) {</span>
-<span class="fc" id="L57">        threadLocalRecorders = new HashMap&lt;Thread, MeasurementProcessor&gt;();</span>
+<span class="fc" id="L57">        threadLocalRecorders = new HashMap&lt;&gt;();</span>
 <span class="fc" id="L58">        processorTemplate = processor;</span>
 <span class="fc" id="L59">        threadLocalRecorder = new ThreadLocal&lt;MeasurementProcessor&gt;() {</span>
 
@@ -169,15 +169,15 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
 <span class="nc" id="L169">                    removeThreads.add(t);</span>
                 }
 <span class="fc" id="L171">                EntityMeasurements measurements = entry.getValue().reset();</span>
-<span class="pc bpc" id="L172" title="1 of 2 branches missed.">                if (result == null) {</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">                if (result == null) {</span>
 <span class="fc" id="L173">                    result = measurements;</span>
                 } else {
-<span class="nc" id="L175">                    result = result.aggregate(measurements);</span>
+<span class="fc" id="L175">                    result = result.aggregate(measurements);</span>
                 }
 <span class="fc" id="L177">            }</span>
 <span class="pc bpc" id="L178" title="1 of 2 branches missed.">            for (Thread t : removeThreads) {</span>
 <span class="nc" id="L179">                threadLocalRecorders.remove(t);</span>
-            }
+<span class="nc" id="L180">            }</span>
 <span class="pc" id="L181">        }</span>
 <span class="pc bpc" id="L182" title="1 of 2 branches missed.">        return (result == null) ? processorTemplate.getMeasurements() : result.getMeasurements();</span>
     }

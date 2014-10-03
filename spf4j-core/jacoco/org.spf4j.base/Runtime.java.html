@@ -75,58 +75,59 @@ public final class Runtime {
     public static final String PROCESS_NAME;
     public static final int NR_PROCESSORS;
 <span class="fc" id="L77">    public static final String JAVA_VERSION = System.getProperty(&quot;java.version&quot;);</span>
+<span class="fc" id="L78">    public static final String USER_NAME = System.getProperty(&quot;user.name&quot;);</span>
 
     static {
-<span class="fc" id="L80">        final java.lang.Runtime runtime = java.lang.Runtime.getRuntime();</span>
-<span class="fc" id="L81">        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();</span>
-<span class="fc" id="L82">        NR_PROCESSORS = runtime.availableProcessors();</span>
-<span class="fc" id="L83">        PROCESS_NAME = runtimeMxBean.getName();</span>
-<span class="fc" id="L84">        int atIdx = PROCESS_NAME.indexOf('@');</span>
-<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (atIdx &lt; 0) {</span>
-<span class="nc" id="L86">            PID = -1;</span>
+<span class="fc" id="L81">        final java.lang.Runtime runtime = java.lang.Runtime.getRuntime();</span>
+<span class="fc" id="L82">        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();</span>
+<span class="fc" id="L83">        NR_PROCESSORS = runtime.availableProcessors();</span>
+<span class="fc" id="L84">        PROCESS_NAME = runtimeMxBean.getName();</span>
+<span class="fc" id="L85">        int atIdx = PROCESS_NAME.indexOf('@');</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">        if (atIdx &lt; 0) {</span>
+<span class="nc" id="L87">            PID = -1;</span>
         } else {
-<span class="fc" id="L88">            PID = Integer.parseInt(PROCESS_NAME.substring(0, atIdx));</span>
+<span class="fc" id="L89">            PID = Integer.parseInt(PROCESS_NAME.substring(0, atIdx));</span>
         }
-<span class="fc" id="L90">        OS_NAME = System.getProperty(&quot;os.name&quot;);</span>
+<span class="fc" id="L91">        OS_NAME = System.getProperty(&quot;os.name&quot;);</span>
         
-<span class="fc" id="L92">        runtime.addShutdownHook(new Thread(new AbstractRunnable(false) {</span>
+<span class="fc" id="L93">        runtime.addShutdownHook(new Thread(new AbstractRunnable(false) {</span>
             @Override
             public void doRun() throws Exception {
-<span class="fc" id="L95">                synchronized (SHUTDOWN_HOOKS) {</span>
-<span class="fc bfc" id="L96" title="All 2 branches covered.">                    for (Runnable runnable : SHUTDOWN_HOOKS) {</span>
+<span class="fc" id="L96">                synchronized (SHUTDOWN_HOOKS) {</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">                    for (Runnable runnable : SHUTDOWN_HOOKS) {</span>
                         try {
-<span class="fc" id="L98">                            runnable.run();</span>
-<span class="nc" id="L99">                        } catch (Exception e) {</span>
-<span class="nc" id="L100">                            e.printStackTrace();</span>
-<span class="fc" id="L101">                        }</span>
-                    }
-<span class="pc" id="L103">                }</span>
-<span class="fc" id="L104">            }</span>
+<span class="fc" id="L99">                            runnable.run();</span>
+<span class="nc" id="L100">                        } catch (Exception e) {</span>
+<span class="nc" id="L101">                            e.printStackTrace();</span>
+<span class="fc" id="L102">                        }</span>
+<span class="fc" id="L103">                    }</span>
+<span class="pc" id="L104">                }</span>
+<span class="fc" id="L105">            }</span>
         }, &quot;tsdb shutdown&quot;));
         //JAVA_PLATFORM = Version.fromSpecVersion(runtimeMxBean.getSpecVersion());
-<span class="fc" id="L107">        JAVA_PLATFORM = Version.fromSpecVersion(JAVA_VERSION);</span>
+<span class="fc" id="L108">        JAVA_PLATFORM = Version.fromSpecVersion(JAVA_VERSION);</span>
     }
     public static final String MAC_OS_X_OS_NAME = &quot;Mac OS X&quot;;
-<span class="fc" id="L110">    private static final File FD_FOLDER = new File(&quot;/proc/&quot; + PID + &quot;/fd&quot;);</span>
+<span class="fc" id="L111">    private static final File FD_FOLDER = new File(&quot;/proc/&quot; + PID + &quot;/fd&quot;);</span>
     
     public static boolean isMacOsx() {
-<span class="fc" id="L113">        return MAC_OS_X_OS_NAME.equals(OS_NAME);</span>
+<span class="fc" id="L114">        return MAC_OS_X_OS_NAME.equals(OS_NAME);</span>
     }
     
     public static boolean isWindows() {
-<span class="nc" id="L117">        return OS_NAME.startsWith(&quot;Windows&quot;);</span>
+<span class="nc" id="L118">        return OS_NAME.startsWith(&quot;Windows&quot;);</span>
     }
     
     public static int getNrOpenFiles() throws IOException, InterruptedException, ExecutionException {
-<span class="pc bpc" id="L121" title="1 of 2 branches missed.">        if (isMacOsx()) {</span>
-<span class="fc" id="L122">            LineCountCharHandler handler = new LineCountCharHandler();</span>
-<span class="fc" id="L123">            run(&quot;/usr/sbin/lsof -p &quot; + PID, handler);</span>
-<span class="fc" id="L124">            return handler.getLineCount() - 1;</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">        if (isMacOsx()) {</span>
+<span class="fc" id="L123">            LineCountCharHandler handler = new LineCountCharHandler();</span>
+<span class="fc" id="L124">            run(&quot;/usr/sbin/lsof -p &quot; + PID, handler);</span>
+<span class="fc" id="L125">            return handler.getLineCount() - 1;</span>
         } else {
-<span class="nc bnc" id="L126" title="All 2 branches missed.">            if (FD_FOLDER.exists()) {</span>
-<span class="nc" id="L127">                return FD_FOLDER.list().length;</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (FD_FOLDER.exists()) {</span>
+<span class="nc" id="L128">                return FD_FOLDER.list().length;</span>
             } else {
-<span class="nc" id="L129">                return -1;</span>
+<span class="nc" id="L130">                return -1;</span>
             }
         }
     }
@@ -134,19 +135,19 @@ public final class Runtime {
     @Nullable
     @edu.umd.cs.findbugs.annotations.SuppressWarnings
     public static String getLsofOutput() throws IOException, InterruptedException, ExecutionException {
-<span class="fc" id="L137">        File lsofFile = new File(&quot;/usr/sbin/lsof&quot;);</span>
-<span class="pc bpc" id="L138" title="1 of 2 branches missed.">        if (!lsofFile.exists()) {</span>
-<span class="nc" id="L139">            lsofFile = new File(&quot;/usr/bin/lsof&quot;);</span>
-<span class="nc bnc" id="L140" title="All 2 branches missed.">            if (!lsofFile.exists()) {</span>
-<span class="nc" id="L141">                lsofFile = new File(&quot;/usr/local/bin/lsof&quot;);</span>
-<span class="nc bnc" id="L142" title="All 2 branches missed.">                if (!lsofFile.exists()) {</span>
-<span class="nc" id="L143">                    return null;</span>
+<span class="fc" id="L138">        File lsofFile = new File(&quot;/usr/sbin/lsof&quot;);</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">        if (!lsofFile.exists()) {</span>
+<span class="nc" id="L140">            lsofFile = new File(&quot;/usr/bin/lsof&quot;);</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">            if (!lsofFile.exists()) {</span>
+<span class="nc" id="L142">                lsofFile = new File(&quot;/usr/local/bin/lsof&quot;);</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">                if (!lsofFile.exists()) {</span>
+<span class="nc" id="L144">                    return null;</span>
                 }
             }
         }
-<span class="fc" id="L147">        StringBuilderCharHandler handler = new StringBuilderCharHandler();</span>
-<span class="fc" id="L148">        run(lsofFile.getAbsolutePath() + &quot; -p &quot; + PID, handler);</span>
-<span class="fc" id="L149">        return handler.toString();</span>
+<span class="fc" id="L148">        StringBuilderCharHandler handler = new StringBuilderCharHandler();</span>
+<span class="fc" id="L149">        run(lsofFile.getAbsolutePath() + &quot; -p &quot; + PID, handler);</span>
+<span class="fc" id="L150">        return handler.toString();</span>
     }
 
     public interface ProcOutputHandler {
@@ -158,98 +159,86 @@ public final class Runtime {
 
     public static int run(final String command, final ProcOutputHandler handler)
             throws IOException, InterruptedException, ExecutionException {
-<span class="fc" id="L161">        Process proc = java.lang.Runtime.getRuntime().exec(command);</span>
-<span class="fc" id="L162">        InputStream pos = proc.getInputStream();</span>
-        try {
-<span class="fc" id="L164">            final InputStream pes = proc.getErrorStream();</span>
-            try {
-<span class="fc" id="L166">                OutputStream pis = proc.getOutputStream();</span>
-                try {
-<span class="fc" id="L168">                    Future&lt;?&gt; esh = DefaultExecutor.INSTANCE.submit(new AbstractRunnable() {</span>
-                                           @Override
-                                           public void doRun() throws Exception {
-                                               int eos;
-<span class="pc bpc" id="L172" title="1 of 2 branches missed.">                                               while ((eos = pes.read()) &gt;= 0) {</span>
-<span class="nc" id="L173">                                                   handler.handleStdErr(eos);</span>
-                                               }
-<span class="fc" id="L175">                                           }</span>
-                                       });
-                    int cos;
-<span class="fc bfc" id="L178" title="All 2 branches covered.">                    while ((cos = pos.read()) &gt;= 0) {</span>
-<span class="fc" id="L179">                        handler.handleStdOut(cos);</span>
+<span class="fc" id="L162">        Process proc = java.lang.Runtime.getRuntime().exec(command);</span>
+<span class="pc" id="L163">        try (InputStream pos = proc.getInputStream();</span>
+<span class="fc" id="L164">                InputStream pes = proc.getErrorStream();</span>
+<span class="fc" id="L165">                OutputStream pis = proc.getOutputStream()) {</span>
+<span class="fc" id="L166">            Future&lt;?&gt; esh = DefaultExecutor.INSTANCE.submit(new AbstractRunnable() {</span>
+                @Override
+                public void doRun() throws Exception {
+                    int eos;
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">                    while ((eos = pes.read()) &gt;= 0) {</span>
+<span class="nc" id="L171">                        handler.handleStdErr(eos);</span>
                     }
-<span class="fc" id="L181">                    esh.get();</span>
-                    
-                } finally {
-<span class="pc" id="L184">                    pis.close();</span>
-<span class="fc" id="L185">                }</span>
-            } finally {
-<span class="pc" id="L187">                pes.close();</span>
-<span class="fc" id="L188">            }</span>
-        } finally {
-<span class="pc" id="L190">            pos.close();</span>
-<span class="fc" id="L191">        }</span>
-<span class="fc" id="L192">        return proc.waitFor();</span>
+<span class="fc" id="L173">                }</span>
+            });
+            int cos;
+<span class="fc bfc" id="L176" title="All 2 branches covered.">            while ((cos = pos.read()) &gt;= 0) {</span>
+<span class="fc" id="L177">                handler.handleStdOut(cos);</span>
+            }
+<span class="fc" id="L179">            esh.get();</span>
+<span class="pc bpc" id="L180" title="18 of 24 branches missed.">        }</span>
+<span class="fc" id="L181">        return proc.waitFor();</span>
     }
 
     private static class LineCountCharHandler implements ProcOutputHandler {
 
-<span class="fc" id="L197">        public LineCountCharHandler() {</span>
-<span class="fc" id="L198">            lineCount = 0;</span>
-<span class="fc" id="L199">        }</span>
+<span class="fc" id="L186">        public LineCountCharHandler() {</span>
+<span class="fc" id="L187">            lineCount = 0;</span>
+<span class="fc" id="L188">        }</span>
         private int lineCount;
 
         @Override
         public void handleStdOut(final int c) {
-<span class="fc bfc" id="L204" title="All 2 branches covered.">            if (c == '\n') {</span>
-<span class="fc" id="L205">                lineCount++;</span>
+<span class="fc bfc" id="L193" title="All 2 branches covered.">            if (c == '\n') {</span>
+<span class="fc" id="L194">                lineCount++;</span>
             }
-<span class="fc" id="L207">        }</span>
+<span class="fc" id="L196">        }</span>
 
         public int getLineCount() {
-<span class="fc" id="L210">            return lineCount;</span>
+<span class="fc" id="L199">            return lineCount;</span>
         }
 
         @Override
         public void handleStdErr(final int character) {
-<span class="nc" id="L215">        }</span>
+<span class="nc" id="L204">        }</span>
     }
 
     private static class StringBuilderCharHandler implements ProcOutputHandler {
 
-<span class="fc" id="L220">        public StringBuilderCharHandler() {</span>
-<span class="fc" id="L221">            builder = new StringBuilder();</span>
-<span class="fc" id="L222">        }</span>
+<span class="fc" id="L209">        public StringBuilderCharHandler() {</span>
+<span class="fc" id="L210">            builder = new StringBuilder();</span>
+<span class="fc" id="L211">        }</span>
         private final StringBuilder builder;
 
         @Override
         public void handleStdOut(final int c) {
-<span class="fc" id="L227">            builder.append((char) c);</span>
-<span class="fc" id="L228">        }</span>
+<span class="fc" id="L216">            builder.append((char) c);</span>
+<span class="fc" id="L217">        }</span>
 
         @Override
         public String toString() {
-<span class="fc" id="L232">            return builder.toString();</span>
+<span class="fc" id="L221">            return builder.toString();</span>
         }
 
         @Override
         public void handleStdErr(final int c) {
-<span class="nc" id="L237">            builder.append(c);</span>
-<span class="nc" id="L238">        }</span>
+<span class="nc" id="L226">            builder.append(c);</span>
+<span class="nc" id="L227">        }</span>
     }
-<span class="fc" id="L240">    private static final LinkedList&lt;Runnable&gt; SHUTDOWN_HOOKS = new LinkedList&lt;Runnable&gt;();</span>
+<span class="fc" id="L229">    private static final LinkedList&lt;Runnable&gt; SHUTDOWN_HOOKS = new LinkedList&lt;&gt;();</span>
 
 
     public static void addHookAtBeginning(final Runnable runnable) {
-<span class="fc" id="L244">        synchronized (SHUTDOWN_HOOKS) {</span>
-<span class="fc" id="L245">            SHUTDOWN_HOOKS.addFirst(runnable);</span>
-<span class="pc" id="L246">        }</span>
-<span class="fc" id="L247">    }</span>
+<span class="fc" id="L233">        synchronized (SHUTDOWN_HOOKS) {</span>
+<span class="fc" id="L234">            SHUTDOWN_HOOKS.addFirst(runnable);</span>
+<span class="pc" id="L235">        }</span>
+<span class="fc" id="L236">    }</span>
 
     public static void addHookAtEnd(final Runnable runnable) {
-<span class="fc" id="L250">        synchronized (SHUTDOWN_HOOKS) {</span>
-<span class="fc" id="L251">            SHUTDOWN_HOOKS.addLast(runnable);</span>
-<span class="pc" id="L252">        }</span>
-<span class="fc" id="L253">    }</span>
+<span class="fc" id="L239">        synchronized (SHUTDOWN_HOOKS) {</span>
+<span class="fc" id="L240">            SHUTDOWN_HOOKS.addLast(runnable);</span>
+<span class="pc" id="L241">        }</span>
+<span class="fc" id="L242">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
