@@ -58,7 +58,7 @@ public final class CallablesTest {
             @Override
             public Integer call(final long deadline) throws Exception {
                 count++;
-                if (count < 5) {
+                if (count < 20) {
                     throw new IOException("Aaaaaaaaaaa" + count);
                 }
 
