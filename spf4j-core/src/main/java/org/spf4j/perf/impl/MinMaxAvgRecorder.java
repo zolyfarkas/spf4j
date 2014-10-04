@@ -20,14 +20,13 @@ package org.spf4j.perf.impl;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.EntityMeasurements;
 import org.spf4j.perf.EntityMeasurementsInfo;
-import org.spf4j.perf.MeasurementProcessor;
 
 /**
  *
  * @author zoly
  */
 public final class MinMaxAvgRecorder
-    implements MeasurementProcessor {
+    extends MeasurementAggregator {
 
     private long counter;
     private long total;

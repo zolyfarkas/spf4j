@@ -18,6 +18,7 @@
 
 package org.spf4j.perf.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
@@ -49,11 +50,15 @@ public final class DirectRecorder implements MeasurementRecorder {
     
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
     public void record(final long measurement) {
+        record(measurement, System.currentTimeMillis());
+    }
+
+    @Override
+    @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
+    public void record(final long measurement, final long timestampMillis) {
         try {
-            measurementStore.saveMeasurements(info,
-                    System.currentTimeMillis(), sampleTimeMillis, measurement);
+            measurementStore.saveMeasurements(info, timestampMillis, sampleTimeMillis, measurement);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

@@ -44,9 +44,16 @@ final class TableOfContents {
         try {
             this.firstColumnInfo = raf.readLong();
             this.lastColumnInfo = raf.readLong();
-        } finally {
-            lock.release();
+        } catch (IOException | RuntimeException e) {
+            try {
+                lock.release();
+                throw e;
+            } catch (IOException ex) {
+                ex.addSuppressed(e);
+                throw ex;
+            }
         }
+        lock.release();
     }
 
     public void writeTo(final RandomAccessFile raf) throws IOException {
@@ -56,9 +63,16 @@ final class TableOfContents {
             raf.seek(location);
             raf.writeLong(firstColumnInfo);
             raf.writeLong(lastColumnInfo);
-        } finally {
-            lock.release();
+        } catch (IOException | RuntimeException e) {
+            try {
+                lock.release();
+                throw e;
+            } catch (IOException ex) {
+                ex.addSuppressed(e);
+                throw ex;
+            }
         }
+        lock.release();
     }
 
     public long getLastColumnInfo() {
@@ -79,9 +93,16 @@ final class TableOfContents {
         try {
             raf.seek(loc);
             raf.writeLong(lastColumnInfo);
-        } finally {
-            lock.release();
+        } catch (IOException | RuntimeException e) {
+            try {
+                lock.release();
+                throw e;
+            } catch (IOException ex) {
+                ex.addSuppressed(e);
+                throw ex;
+            }
         }
+        lock.release();
     }
     
     public void setFirstColumnInfo(final long pfirstColumnInfo, final RandomAccessFile raf) throws IOException {
@@ -91,9 +112,16 @@ final class TableOfContents {
         try {
             raf.seek(location);
             raf.writeLong(firstColumnInfo);
-        } finally {
-            lock.release();
+        } catch (IOException | RuntimeException e) {
+            try {
+                lock.release();
+                throw e;
+            } catch (IOException ex) {
+                ex.addSuppressed(e);
+                throw ex;
+            }
         }
+        lock.release();
     }
 
     @Override
@@ -101,9 +129,5 @@ final class TableOfContents {
         return "TableOfContents{" + "location=" + location + ", lastColumnInfo=" + lastColumnInfo
                 + ", firstColumnInfo=" + firstColumnInfo + '}';
     }
-    
-    
-    
-    
-    
+
 }

@@ -83,7 +83,7 @@ public final class TimeSeriesDatabase implements Closeable {
             this.header = new Header(file);
             this.toc = new TableOfContents(file);
         }
-        groups = new ConcurrentHashMap<String, TSTable>();
+        groups = new ConcurrentHashMap<>();
         final long firstColumnInfo = toc.getFirstColumnInfo();
         if (firstColumnInfo > 0) {
             file.seek(firstColumnInfo);
@@ -98,15 +98,13 @@ public final class TimeSeriesDatabase implements Closeable {
                 lastColumnInfo = colInfo;
             }
         }
-        writeDataFragments = new HashMap<String, DataFragment>();
+        writeDataFragments = new HashMap<>();
     }
     
     @Override
     public synchronized void close() throws IOException {
-        try {
+        try (RandomAccessFile vfile = this.file) {
             flush();
-        } finally {
-            file.close();
         }
     }
     
@@ -167,7 +165,7 @@ public final class TimeSeriesDatabase implements Closeable {
             if (writeDataFragments.isEmpty()) {
                 return;
             }
-            lwriteDataFragments = new ArrayList<Map.Entry<String, DataFragment>>(writeDataFragments.size());
+            lwriteDataFragments = new ArrayList<>(writeDataFragments.size());
             for (Map.Entry<String, DataFragment> entry : writeDataFragments.entrySet()) {
                 lwriteDataFragments.add(entry);
             }
@@ -235,7 +233,7 @@ public final class TimeSeriesDatabase implements Closeable {
     public synchronized Pair<long[], long[][]> read(final String tableName,
             final long startTime, final long endTime) throws IOException {
         TLongArrayList timeStamps = new TLongArrayList();
-        List<long[]> data = new ArrayList<long[]>();
+        List<long[]> data = new ArrayList<>();
         TSTable info = groups.get(tableName);
         final long firstDataFragment = info.getFirstDataFragment();
         if (firstDataFragment > 0) {
@@ -364,9 +362,8 @@ public final class TimeSeriesDatabase implements Closeable {
     
     public static List<JFreeChart> createJFreeCharts(final Pair<long[], long[][]> data, final TSTable info) {
         long[][] vals = data.getSecond();
-        List<JFreeChart> result = new ArrayList<JFreeChart>();
-        Map<String, Pair<List<String>, List<double[]>>> measurementsByUom =
-                new HashMap<String, Pair<List<String>, List<double[]>>>();
+        List<JFreeChart> result = new ArrayList<>();
+        Map<String, Pair<List<String>, List<double[]>>> measurementsByUom = new HashMap<>();
         String[] columnMetaData = info.getColumnMetaDataAsStrings();
         for (int i = 0; i < info.getColumnNumber(); i++) {
             String uom = columnMetaData[i];
@@ -399,9 +396,8 @@ public final class TimeSeriesDatabase implements Closeable {
     public void writeCsvTable(final String tableName, final File output) throws IOException {
         TSTable table = getTSTable(tableName);
         Pair<long[], long[][]> data = readAll(tableName);
-        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8));
         DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
-        try {
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8))) {
             Csv.writeCsvElement("timestamp", writer);
             for (String colName : table.getColumnNames()) {
                 writer.append(',');
@@ -418,16 +414,13 @@ public final class TimeSeriesDatabase implements Closeable {
                 }
                 writer.write('\n');
             }
-        } finally {
-            writer.close();
         }
     }
 
     
     public void writeCsvTables(final List<String> tableNames, final File output) throws IOException {
-        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8));
         DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
-        try {
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8))) {
             String firstTable = tableNames.get(0);
             TSTable table = getTSTable(firstTable);
             Csv.writeCsvElement("table", writer);
@@ -454,8 +447,6 @@ public final class TimeSeriesDatabase implements Closeable {
                     writer.write('\n');
                 }
             }
-        } finally {
-            writer.close();
         }
     }
     

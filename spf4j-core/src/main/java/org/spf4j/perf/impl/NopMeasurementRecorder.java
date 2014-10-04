@@ -36,5 +36,10 @@ public final class NopMeasurementRecorder implements MeasurementRecorder {
     public void record(final long measurement) {
         //NOP
     }
+
+    @Override
+    public void record(final long measurement, final long timestampMillis) {
+        //NOP
+    }
     
 }

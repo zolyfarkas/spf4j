@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
@@ -16,16 +15,26 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.perf;
+package org.spf4j.concurrent;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
  * @author zoly
  */
-public interface MeasurementRecorder {
+public final class AtomicSequence implements Sequence {
+
     
-    void record(long measurement);
+    private final AtomicLong counter;
     
-    void record(long measurement, long timestampMillis);
+    public AtomicSequence(final long start) {
+        counter = new AtomicLong(start);
+    }
+    
+    @Override
+    public long next() {
+        return counter.getAndIncrement();
+    }
     
 }

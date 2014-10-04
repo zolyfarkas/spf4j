@@ -74,11 +74,11 @@ public final class CallablesTest {
     public void testExecuteWithRetryFailureTest() throws Exception {
         System.out.println("executeWithRetry");
         try {
-            Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer>(10) {
+            Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer>(100) {
                 private int count;
 
                 @Override
-                public Integer call(final long deadline) throws Exception {
+                public Integer call(final long deadline) throws IOException {
                     count++;
                     if (count < 200) {
                         throw new IOException("Aaaaaaaaaaa " + System.currentTimeMillis());
@@ -91,7 +91,7 @@ public final class CallablesTest {
             if (Runtime.JAVA_PLATFORM == Runtime.Version.V1_6) {
                 Assert.assertTrue(Throwables.getSuppressed(e.getCause()).length >= 4);
             } else {
-                Assert.assertEquals(1, Throwables.getSuppressed(e.getCause()).length);
+                Assert.assertTrue(Throwables.getSuppressed(e.getCause()).length >= 1);
             }
         }
 

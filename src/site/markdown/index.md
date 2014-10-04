@@ -1,57 +1,56 @@
-                     ---------------------------------------------
-                     Spf4j (Simple performance framework for java)
-                     ---------------------------------------------
-                                   Zoltan Farkas
-                     ---------------------------------------------
-                                     2013-05-12
+                  
+# Spf4j (Simple performance framework for java)
+                  
 
-
-1. Overview
+## 1. Overview
 
  The spf4j library is a collection of utilities and components to monitor, troubleshoot and fix performance issues.
  This library also contains useful general purpose utilities and components that are currently not available in 
  high quality form in other OS libraries (Retry utils, object pool...)
  This library also contains ZEL, a simple expression language that can be easily used in any java application.
  Zel is easy to extend to your needs and also has some cool features like async functions, memorization...
- You can learn more by checking out the {{{http://www.spf4j.org/spf4j-zel/index.html}spf4j-zel}} module.
+ You can learn more by checking out the [spf4j-zel](http://www.spf4j.org/spf4j-zel/index.html) module.
 
-2. License
+## 2. License
 
- This library is LGPL licensed: {{{http://www.gnu.org/licenses/lgpl.html}License}}
+ This library is [LGPL](http://www.gnu.org/licenses/lgpl.html) licensed.
 
  Contributions/Contributors to spf4j are welcome.
 
-3. Code and Binaries
+## 3. Code, Binaries, Build
 
- {{{http://code.google.com/p/spf4j/}SPF4J Google hosted repo}}
+ [SPF4J Google hosted repo](http://code.google.com/p/spf4j/)
 
- {{{https://github.com/zolyfarkas/spf4j/}SPF4J Github hosted repo}}
+ [SPF4J Github hosted repo](https://github.com/zolyfarkas/spf4j/)
 
- {{{http://www.zoltran.com/maven2/}Maven repo}}
+ [Maven Repository](http://www.zoltran.com/maven2/)
 
+ [![Coverity Badge](https://scan.coverity.com/projects/3158/badge.svg)](https://scan.coverity.com/projects/3158)
 
-4. Performance monitoring
+ ![CI badge](https://travis-ci.org/zolyfarkas/spf4j.svg?branch=master)
 
-* 4.1. Why not use jamon, metrics, netflix servo ?
+## 4. Performance monitoring
+
+### 4.1. Why not use jamon, metrics, netflix servo ?
 
   Observing a system changes the system. The goal of this library is to minimize the observer effect.
   The code in spf4j is carefully written to be as high performance as possible,
   it should outperform all competing libraries on any modern JVM(implementing biased locking)
   running on a CCNUMA system.
 
-* 4.2. How to record measurements?
+### 4.2. How to record measurements?
 
-** 4.2.1 Via API
+#### 4.2.1 Via API
 
    * Low impact with log linear quantized recording for Gauge type of measurements:
 
-+---------------------------------------------------
+```
 private static final MeasurementRecorder recorder 
                      = RecorderFactory.createScalableQuantizedRecorder(forWhat, unitOfMeasurement,
                      sampleTime, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
 …
 recorder.record(measurement);
-+---------------------------------------------------
+```
 
    This is ideal for recording execution times and provides the most detail. 
    (Min, max, avg, and detailed distribution heat chart)
@@ -59,25 +58,25 @@ recorder.record(measurement);
 
    * Low impact with simple counting for Counters.
 
-+---------------------------------------------------
+```
 private static final MeasurementRecorder recorder 
                      = RecorderFactory.createScalableCountingRecorder(forWhat, unitOfMeasurement, sampleTimeMillis);
 …
 recorder.record(measurement);
-+---------------------------------------------------
+```
 
     This is ideal for measurements like bytesSent, bytesReceived.
 
 
    * Dynamic with log linear quantized recording for Gauge type of measurements.
 
-+---------------------------------------------------
+```
 private static final MeasurementRecorderSource recorderSource
                     = RecorderFactory.createScalableQuantizedRecorderSource( forWhatCategory, unitOfMeasurement,
                       sampleTime, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
 …
 recorderSource.getRecorder(forWhat).record(measurement)
-+---------------------------------------------------
+```
 
     As with the low impact static recorders there are dynamic equivalents:
     createScalableMinMaxAvgRecorderSource and createScalableCountingRecorderSource
@@ -85,29 +84,29 @@ recorderSource.getRecorder(forWhat).record(measurement)
 
  You can also create a monitored callable and call it of pass it to a executor like :
 
-+---------------------------------------------------
+```
 Callable<?> monitoredCallable = 
      performanceMonitoredCallable(recorderSource, warnMillis, errorMillis, callable, "myCallable").call()
-+---------------------------------------------------
+```
 
 
-** 4.2.2 Via Annotations
+#### 4.2.2 Via Annotations
 
  Annotate a method you want to measure and monitor performance with the annotation:
 
-+---------------------------------------------------
+```
 @PerformanceMonitor(warnThresholdMillis=1, errorThresholdMillis=100, recorderSource = RecorderSourceInstance.Rs5m.class)
-+---------------------------------------------------
+```
 
  Start your jvm with Aspectj load time weaver:
 
-+---------------------------------------------------
+```
 -javaagent:${project.build.directory}/lib/aspectjweaver-${aspectj.version}.jar
-+---------------------------------------------------
+```
 
  Make sure your aspectj config file (META-INF/aop.xml) contains:
 
-+---------------------------------------------------
+```
 <aspectj>
 <aspects>
 <aspect name="org.spf4j.perf.aspects.PerformanceMonitorAspect"/>
@@ -116,19 +115,19 @@ Callable<?> monitoredCallable =
 <include within="com.*..*"/>
 </weaver>
 </aspectj>
-+---------------------------------------------------
+```
 
  This will record the execution times of the annotated method, 
  and will also log (via spf4j) a message containing the call detail and execution time
  if the warn or error thresholds are exceeded. Dynamic quantized recorder source is used.
 
-** 4.2.3 Where are measurements stored?
+#### 4.2.3 Where are measurements stored?
  
  You can configure where the measurements are stored via the "perf.ms.config" system property like:
 
-+---------------------------------------------------
+```
   -Dperf.ms.config=TSDB@/path/to/file.tsdb,TSDB_TXT@/path/to/file.tsdbtxt,GRAPHITE_UDP@1.1.1.1:8080,GRAPHITE_TCP@1.1.1.1:8080
-+---------------------------------------------------
+```
 
  TSDB - binary file format (this is the most efficient store)
 
@@ -139,7 +138,7 @@ Callable<?> monitoredCallable =
  GRAPHITE_TCP - Graphite UDP appender.
 
 
-* 4.3. How to see the recorded measurements?
+### 4.3. How to see the recorded measurements?
 
 ** Via JMX 
  
@@ -148,11 +147,11 @@ Callable<?> monitoredCallable =
 
 *** a) min, max, avg 
 
-[images/spf4j_min_max_avg.png] sample min, max, avg performance chart with measurement count values/ time axis
+![min max avg sample](images/spf4j_min_max_avg.png) sample min, max, avg performance chart with measurement count values/ time axis
 
 *** b) Distribution chart, 
 
-[images/spf4j_dist.png] sample distribution chart
+![distribution chart](images/spf4j_dist.png) sample distribution chart
 
  where on the X axis we have the time, the Y axis we have the recorded values (buckets) and
  the number of measurements recorded that fall in a particular bucket will be represented by the color
@@ -163,28 +162,28 @@ Callable<?> monitoredCallable =
  The recorded measurements are saved to a TSDB file. Use the library provided UI (spf4j-ui module) to open the file
  and visualize the measurements.
 
-[images/explorer-ui.png]
+![Explorer UI](images/explorer-ui.png)
 
-* 4.4. How does it work ?
+### 4.4. How does it work ?
 
  Measurements are recorded and stored in the Thread local storage.
  At scheduled intervals the measurements aare retrieved, aggregated and stored to a TSDB file.
  Charts are generated using jfreechart library.
  TSDB file can also be opened and measurements viewed with the library embeded UI.
 
-+---------------------------------------------------
+```
 
 [Code context] ---record(value)---> [Thread Local Storage] ----> [Aggregator/Persister] -----> [TSDB]
 
-+---------------------------------------------------
+```
 
-* 4.5 Export any object attribute or operations via JMX
+### 4.5 Export any object attribute or operations via JMX
 
  You can annotate with @JmxExport getters and setters of a attribute or any other method 
  that you want to make available via JMX.
  Here is what you need to do:
 
-+---------------------------------------------------
+```
 
     public static final class JmxTest {
             
@@ -217,12 +216,12 @@ Callable<?> monitoredCallable =
         Registry.export("test", "Test", testObj);
 
  
-+---------------------------------------------------
+```
 
 
-5.Performance Profiling
+## 5. Performance Profiling
 
-* 5.1. Why another profiling library?
+### 5.1. Why another profiling library?
 
  It all started with Brendan Gregg's blog: http://dtrace.org/blogs/brendan/2011/12/16/flame-graphs/ combined with a few hours of coding.
  However since than more monitoring capability has been added to spf4j. Flame-graph visualization has been improved 
@@ -235,18 +234,18 @@ Callable<?> monitoredCallable =
  For more detail see:  http://sape.inf.usi.ch/sites/default/files/publication/pldi10.pdf,
  https://www.youtube.com/watch?v=Yg6_ulhwLw0, https://github.com/RichardWarburton/honest-profiler
 
-* 5.2. When to profile your code?
+### 5.2. When to profile your code?
 
  I recommend to deploy your code with profiling turned on as much as you can.
  In my case I have profiling data collection turned on in test/qa environments all the time. (with 100ms sampling interval). If you can afford to do it in PROD do it.
 
-* 5.3. How to profile your code?
+### 5.3. How to profile your code?
 
  Add spf4j to your classpath and the following to your command line:
 
-+---------------------------------------------------
+```
 ${JAVA_HOME}/bin/java [your jvm args] org.spf4j.stackmonitor.Monitor -df [folder to write date] -dp [file prefix] -ss -si 100  -main [your app main class] -- [your app arguments]
-+---------------------------------------------------
+```
 
  This will start your application with profiling enabled, with a 100 ms sampling interval. 
  After the process ends reportFile.html will be generated with a graphic width of 600 pixels. 
@@ -254,7 +253,7 @@ ${JAVA_HOME}/bin/java [your jvm args] org.spf4j.stackmonitor.Monitor -df [folder
 
  Supported arguments:
 
----------------------------------------------------
+```
 Usage:
  -df [folder] : dump folder
  -dp [prefix] : dump file prefix
@@ -263,9 +262,9 @@ Usage:
  -main VAL    : the main class name
  -si N        : the stack sampling interval in milliseconds
  -ss          : start the stack sampling thread. (can also be done manually via jmx)
----------------------------------------------------
+```
 
-* 5.4. How to see the profile data?
+### 5.4. How to see the profile data?
 
  After the program finishes it will write the data to the {{{./stackSample.html}stackSample.html}} file
 
@@ -274,22 +273,22 @@ Usage:
  at any time in your program allowing you to separate out samples at relevant times in your application.
  You can load and visualize this data with the library embeded ui:
 
-[images/spf4j-flame-graph.png]
+![Flame Graph](images/spf4j-flame-graph.png)
 
  The classic flame graph visualization remains available. The explorer ui can be used to visualize the measurements 
  stored in the tsdb files. You can also export the measurements to csv format allowing you to analyze them with tools like excel.
 
-[images/explorer-ui.png]
+![Explorer UI](images/explorer-ui.png)
 
  in the UI you can filter certain stack traces by right clicking on them and using the filter option in the context menu.
 
-* 5.5. How does it work?
+### 5.5. How does it work?
 
  A sampling thread is started and running in the background. 
  This thread uses Thread.getAllStackTraces() or the JVM MX beans (configurable) to get all stack traces for all threads.
  Each sample is added to a tree that aggregates the stack trace data.
 
-* 5.6. Monitoring memory allocations:
+### 5.6. Monitoring memory allocations:
 
  You will need to apply aspect org.spf4j.memorymonitor.AllocationMonitorAspect
  to the code you want to monitor object allocations. This aspect will intercept all new objects calls in your code
@@ -301,30 +300,30 @@ Usage:
  Getting access to the data is same as described in chapter 4, you can do it over jmx, 
  or opening the tsdb file in the embeded ui:
 
-[images/spf4j_allocations.png]
+![allocations](images/spf4j_allocations.png)
 
  Allocations are classified based on the class where they are done. This allows you to quickly identify memory hogs.
  In the chart above you can see how memory allocations happened, both byteSize and allocation count and what class.
  Object size computation might be too much overhead, in that case you can disable it by system property setting:
 
-+--------------------------------------------------- 
+```
 -Dperf.allocations.recordSize=false
-+---------------------------------------------------
+```
 
 
-* 5.7. Monitoring Network IO
+### 5.7. Monitoring Network IO
 
  The aspect org.spf4j.iomonitor.NetworkMonitorAspect will allow you to monitor you processes network traffic.
 
-[images/spf4j_io.png] network traffic
+![network traffic](images/spf4j_io.png) network traffic
 
-* 5.8. Monitoring Memory Usage
+### 5.8. Monitoring Memory Usage
  
  By calling MemoryUsageSampler.startMemoryUsageSampling(sampleTime) memory usage will be sampled at the provided
  interval. Sampled data ill be aggregated at the interval set by perf.memory.sampleAggMillis system property.
  Data will be stored into a spf4j tsdb where data can be accessed via jmx or the sf4j ui.
 
-* 5.9. Monitoring File Usage
+### 5.9. Monitoring File Usage
  
  By calling OpenFilesSampler.startFileUsageSampling(sampleTime, warnThreshold, errorThreshold),
  file usage will be sampled at the provided interval. This is usefull to see open files trend and detect file handle
@@ -334,9 +333,9 @@ Usage:
  Data will be stored into a spf4j tsdb where data can be accessed via jmx or the sf4j ui.
 
 
-6. High Performance Object Pool
+## 6. High Performance Object Pool
 
-* 6.1. Why another object pool implementation?
+### 6.1. Why another object pool implementation?
 
  In my(I am not alone) view current available object pool implementations are less than perfect. Beside the scalability issues and bugs, I don't like the following implementation choices found in other implementations:
 
@@ -365,50 +364,52 @@ Usage:
 
  The goal of this implementation is to be more reliable and faster than any of the implementations out there.
 
-* 6.2. Use case
+### 6.2. Use case
 
  The classical use case for an object pool is to pool your jdbc connections or any type of network connection.
 
-* 6.3. How to use the object pool
+### 6.3. How to use the object pool
 
  Creating a pool is simple:
 
-+--------------------------------------------------- 
+```
 RecyclingSupplier<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory()).build();
-+--------------------------------------------------- 
+```
 
  at minimum you will need to provide the maximum size and the object factory.
  To do something with a object from a pool you will need to:
 
-+--------------------------------------------------- 
+```
 Template.doOnSupplied(new Handler<PooledObject, SomeException>() {
    @Override
    public void handle( PooledObject object, long deadline) throws SomeException {
    object.doStuff();
    }
 }, pool, imediateRetries, maxBackoffDelay, timeout );
-+--------------------------------------------------- 
+```
 
  You can also use the get and recycle methods on the object pool to get and return an object to the pool.
 
-* 6.4. How does the pool work?
+### 6.4. How does the pool work?
 
  The architecture above biases object to threads, so a thread will most likely get the same object minimizing
  object contention (if pool size >= thread nr which is the recommended sizing). 
  
-+---------------------------------------------------
+```
       [code context]  <----> [Thread Local Pool] <----> [Global Pool]                                                       
-+---------------------------------------------------
+```
 
  On the other hand this pool implementation will prefer to create a new connection
  instead of reusing a connection that has already has been used by another thread.
  This is alleviated by the maintenance process which can bring back unused local object to the global pool.
 
-7. Other utilities
+## 7. Other utilities
 
  Retry utility implementation: see org.spf4j.base.Callables and org.spf4j.concurrent.RetryExecutor
 
  Union: see org.spf4j.base.Either
+
+ Unique ID and Scalable sequence generators: org.spf4j.concurrent.UIDgenerator and org.spf4j.concurrent.ScalableSequence 
 
  Csv: org.spf4j.io.Csv
 
