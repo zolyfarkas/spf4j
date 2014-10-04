@@ -62,6 +62,16 @@ public final class Sampler {
     private Thread samplingThread;
     private final String filePrefix;
 
+    @Override
+    public String toString() {
+        return "Sampler{" + "stopped=" + stopped + ", sampleTimeMillis="
+                + sampleTimeMillis + ", dumpTimeMillis=" + dumpTimeMillis + ", lastDumpTime="
+                + lastDumpTime + ", filePrefix=" + filePrefix + '}';
+    }
+
+    
+    
+    
     public Sampler() {
         this(100, 3600000, new FastStackCollector());
     }
@@ -152,7 +162,7 @@ public final class Sampler {
             }, "Stack Sampling Thread");
             samplingThread.start();
         } else {
-            throw new IllegalStateException("Sampling can only be started once");
+            throw new IllegalStateException("Sampling can only be started once for " + this);
         }
 
     }
@@ -176,7 +186,7 @@ public final class Sampler {
     public synchronized String dumpToFile(
             @JmxExport(name = "fileName", description = "the file name to save to")
             @Nullable final String id) throws IOException {
-        final MutableHolder<String> result = new MutableHolder<String>();
+        final MutableHolder<String> result = new MutableHolder<>();
         stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
             @Override
             public SampleNode apply(final SampleNode input) {
