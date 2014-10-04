@@ -27,7 +27,7 @@
 
  [![Coverity Badge](https://scan.coverity.com/projects/3158/badge.svg)](https://scan.coverity.com/projects/3158)
 
- ![CI badge](https://travis-ci.org/zolyfarkas/spf4j.svg?branch=master)
+ [![CI badge](https://travis-ci.org/zolyfarkas/spf4j.svg?branch=master)](https://travis-ci.org/zolyfarkas/spf4j)
 
 ## 4. Performance monitoring
 
