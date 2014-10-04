@@ -57,34 +57,41 @@ public final class UIDGenerator {
             byte[] intfMac;
             try {
 <span class="fc" id="L59">                Enumeration&lt;NetworkInterface&gt; networkInterfaces = NetworkInterface.getNetworkInterfaces();</span>
-                do {
-<span class="fc" id="L61">                    intfMac = networkInterfaces.nextElement().getHardwareAddress();</span>
-<span class="fc bfc" id="L62" title="All 2 branches covered.">                } while (intfMac == null);</span>
-<span class="nc" id="L63">            } catch (SocketException ex) {</span>
-<span class="nc" id="L64">                throw new RuntimeException(ex);</span>
-<span class="fc" id="L65">            }</span>
-<span class="fc" id="L66">            sb.append(baseEncoding.encode(intfMac)).append('_');</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">                if (networkInterfaces.hasMoreElements()) {</span>
+                    do {
+<span class="fc" id="L62">                        intfMac = networkInterfaces.nextElement().getHardwareAddress();</span>
+<span class="pc bpc" id="L63" title="1 of 4 branches missed.">                    } while (intfMac == null &amp;&amp; networkInterfaces.hasMoreElements());</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">                    if (intfMac == null) {</span>
+<span class="nc" id="L65">                        intfMac = new byte [] {0};</span>
+                    }
+                } else {
+<span class="nc" id="L68">                    intfMac = new byte [] {0};</span>
+                }
+<span class="nc" id="L70">            } catch (SocketException ex) {</span>
+<span class="nc" id="L71">                throw new RuntimeException(ex);</span>
+<span class="fc" id="L72">            }</span>
+<span class="fc" id="L73">            sb.append(baseEncoding.encode(intfMac)).append('_');</span>
         }
-<span class="fc" id="L68">        appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);</span>
-<span class="fc" id="L69">        sb.append('_');</span>
-<span class="fc" id="L70">        appendUnsignedString(sb, System.currentTimeMillis() / 1000, 5);</span>
-<span class="fc" id="L71">        sb.append('_');</span>
-<span class="fc" id="L72">        base = sb.toString();</span>
-<span class="fc" id="L73">        maxSize = base.length() + 16;</span>
-<span class="fc" id="L74">    }</span>
+<span class="fc" id="L75">        appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);</span>
+<span class="fc" id="L76">        sb.append('_');</span>
+<span class="fc" id="L77">        appendUnsignedString(sb, System.currentTimeMillis() / 1000, 5);</span>
+<span class="fc" id="L78">        sb.append('_');</span>
+<span class="fc" id="L79">        base = sb.toString();</span>
+<span class="fc" id="L80">        maxSize = base.length() + 16;</span>
+<span class="fc" id="L81">    }</span>
 
     public int getMaxSize() {
-<span class="nc" id="L77">        return maxSize;</span>
+<span class="nc" id="L84">        return maxSize;</span>
     }
 
     public String next() {
-<span class="fc" id="L81">        StringBuilder result = new StringBuilder(maxSize);</span>
-<span class="fc" id="L82">        result.append(base);</span>
-<span class="fc" id="L83">        appendUnsignedString(result, sequence.next(), 5);</span>
-<span class="fc" id="L84">        return result.toString();</span>
+<span class="fc" id="L88">        StringBuilder result = new StringBuilder(maxSize);</span>
+<span class="fc" id="L89">        result.append(base);</span>
+<span class="fc" id="L90">        appendUnsignedString(result, sequence.next(), 5);</span>
+<span class="fc" id="L91">        return result.toString();</span>
     }
 
-<span class="fc" id="L87">    private static final char[] DIGITS = {</span>
+<span class="fc" id="L94">    private static final char[] DIGITS = {</span>
         '0', '1', '2', '3', '4', '5',
         '6', '7', '8', '9', 'a', 'b',
         'c', 'd', 'e', 'f', 'g', 'h',
@@ -94,17 +101,17 @@ public final class UIDGenerator {
     };
 
     private static void appendUnsignedString(final StringBuilder sb, final long nr, final int shift) {
-<span class="fc" id="L97">        long i = nr;</span>
-<span class="fc" id="L98">        char[] buf = new char[64];</span>
-<span class="fc" id="L99">        int charPos = 64;</span>
-<span class="fc" id="L100">        int radix = 1 &lt;&lt; shift;</span>
-<span class="fc" id="L101">        long mask = radix - 1;</span>
+<span class="fc" id="L104">        long i = nr;</span>
+<span class="fc" id="L105">        char[] buf = new char[64];</span>
+<span class="fc" id="L106">        int charPos = 64;</span>
+<span class="fc" id="L107">        int radix = 1 &lt;&lt; shift;</span>
+<span class="fc" id="L108">        long mask = radix - 1;</span>
         do {
-<span class="fc" id="L103">            buf[--charPos] = DIGITS[(int) (i &amp; mask)];</span>
-<span class="fc" id="L104">            i &gt;&gt;&gt;= shift;</span>
-<span class="fc bfc" id="L105" title="All 2 branches covered.">        } while (i != 0);</span>
-<span class="fc" id="L106">        sb.append(buf, charPos, (64 - charPos));</span>
-<span class="fc" id="L107">    }</span>
+<span class="fc" id="L110">            buf[--charPos] = DIGITS[(int) (i &amp; mask)];</span>
+<span class="fc" id="L111">            i &gt;&gt;&gt;= shift;</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        } while (i != 0);</span>
+<span class="fc" id="L113">        sb.append(buf, charPos, (64 - charPos));</span>
+<span class="fc" id="L114">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
