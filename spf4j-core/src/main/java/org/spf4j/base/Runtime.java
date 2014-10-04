@@ -75,6 +75,7 @@ public final class Runtime {
     public static final String PROCESS_NAME;
     public static final int NR_PROCESSORS;
     public static final String JAVA_VERSION = System.getProperty("java.version");
+    public static final String USER_NAME = System.getProperty("user.name");
 
     static {
         final java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
@@ -159,35 +160,23 @@ public final class Runtime {
     public static int run(final String command, final ProcOutputHandler handler)
             throws IOException, InterruptedException, ExecutionException {
         Process proc = java.lang.Runtime.getRuntime().exec(command);
-        InputStream pos = proc.getInputStream();
-        try {
-            final InputStream pes = proc.getErrorStream();
-            try {
-                OutputStream pis = proc.getOutputStream();
-                try {
-                    Future<?> esh = DefaultExecutor.INSTANCE.submit(new AbstractRunnable() {
-                                           @Override
-                                           public void doRun() throws Exception {
-                                               int eos;
-                                               while ((eos = pes.read()) >= 0) {
-                                                   handler.handleStdErr(eos);
-                                               }
-                                           }
-                                       });
-                    int cos;
-                    while ((cos = pos.read()) >= 0) {
-                        handler.handleStdOut(cos);
+        try (InputStream pos = proc.getInputStream();
+                InputStream pes = proc.getErrorStream();
+                OutputStream pis = proc.getOutputStream()) {
+            Future<?> esh = DefaultExecutor.INSTANCE.submit(new AbstractRunnable() {
+                @Override
+                public void doRun() throws Exception {
+                    int eos;
+                    while ((eos = pes.read()) >= 0) {
+                        handler.handleStdErr(eos);
                     }
-                    esh.get();
-                    
-                } finally {
-                    pis.close();
                 }
-            } finally {
-                pes.close();
+            });
+            int cos;
+            while ((cos = pos.read()) >= 0) {
+                handler.handleStdOut(cos);
             }
-        } finally {
-            pos.close();
+            esh.get();
         }
         return proc.waitFor();
     }
@@ -237,7 +226,7 @@ public final class Runtime {
             builder.append(c);
         }
     }
-    private static final LinkedList<Runnable> SHUTDOWN_HOOKS = new LinkedList<Runnable>();
+    private static final LinkedList<Runnable> SHUTDOWN_HOOKS = new LinkedList<>();
 
 
     public static void addHookAtBeginning(final Runnable runnable) {

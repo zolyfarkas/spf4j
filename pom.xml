@@ -4,7 +4,7 @@
 
     <groupId>org.spf4j</groupId>
     <artifactId>spf4j</artifactId>
-    <version>6.5.17</version>
+    <version>7.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <description>A collection of utilities to measure and monitor applications at runtime</description>
 
@@ -21,7 +21,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <aspectj.version>1.6.12</aspectj.version>
+        <aspectj.version>1.7.4</aspectj.version>
         <junit.version>4.10</junit.version>
         <slf4j.version>1.7.7</slf4j.version>
     </properties>
@@ -82,8 +82,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
             </plugin>         
                                    
@@ -91,7 +91,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.3</version>
+                <version>3.4</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.doxia</groupId>
+                        <artifactId>doxia-module-markdown</artifactId>
+                        <version>1.6</version>
+                    </dependency>
+              </dependencies>
             </plugin>
             
             <plugin>
@@ -129,14 +136,25 @@
                     <version>2.6</version>
                 </plugin>   
                 <plugin>
-                    <groupId>com.google.protobuf.tools</groupId>
-                    <artifactId>maven-protoc-plugin</artifactId>
-                    <version>0.1.10</version>
+                    <groupId>com.github.os72</groupId>
+                    <artifactId>protoc-jar-maven-plugin</artifactId>
+                    <version>2.5.0.1</version> <!-- for protobuf 2.5.0 -->
+                    <executions>
+                        <execution>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>run</goal>
+                            </goals>
+                            <configuration>
+                                <outputDirectory>${project.build.directory}/generated-sources/protobuf</outputDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>findbugs-maven-plugin</artifactId>
-                    <version>2.5.5</version>
+                    <version>3.0.0</version>
                     <configuration>
                         <failOnError>true</failOnError>
                         <effort>Max</effort><!-- Min, Default, Max -->

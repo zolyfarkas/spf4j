@@ -17,6 +17,7 @@
  */
 package org.spf4j.io;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.hash.THashMap;
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,6 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Strings;
 
 /**
@@ -44,6 +46,8 @@ import org.spf4j.base.Strings;
  * 
  * @author zoly
  */
+@ParametersAreNonnullByDefault
+@SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // FB gets it wrong here
 public final class Csv {
 
     private Csv() {
@@ -103,21 +107,15 @@ public final class Csv {
         
     public static <T> T read(final File file, final Charset charset,
             final CsvMapHandler<T> handler) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset));
-        try {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {
             return read(br, handler);
-        } finally {
-            br.close();
         }
     }
     
     public static <T> T read(final File file, final Charset charset,
             final CsvHandler<T> handler) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset));
-        try {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {
             return read(br, handler);
-        } finally {
-            br.close();
         }
     }
     
@@ -127,7 +125,7 @@ public final class Csv {
 
             private boolean first = true;
             
-            private final List<String> header = new ArrayList<String>();
+            private final List<String> header = new ArrayList<>();
             
             private int elemIdx;
             
@@ -137,7 +135,7 @@ public final class Csv {
             public void startRow() {
                 elemIdx = 0;
                 if (!first) {
-                    row = new THashMap<String, CharSequence>(header.size());
+                    row = new THashMap<>(header.size());
                 }
             }
 

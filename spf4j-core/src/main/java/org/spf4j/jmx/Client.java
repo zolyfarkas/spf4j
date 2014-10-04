@@ -18,6 +18,7 @@
  */
 package org.spf4j.jmx;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.management.Attribute;
@@ -36,6 +37,7 @@ import javax.management.remote.JMXServiceURL;
  * 
  * @author zoly
  */
+@SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // FB gets it wrong here
 public final class Client {
     
     private Client() { }
@@ -50,12 +52,9 @@ public final class Client {
             throws IOException, InstanceNotFoundException,
             MBeanException, AttributeNotFoundException, ReflectionException {
         JMXServiceURL url = new JMXServiceURL(serviceUrl);
-        JMXConnector jmxc = JMXConnectorFactory.connect(url, null);
-        try {
+        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {
             MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
             return mbsc.getAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName), attribName);
-        } finally {
-            jmxc.close();
         }
     }
     
@@ -65,13 +64,10 @@ public final class Client {
             throws IOException, InstanceNotFoundException,
             MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
         JMXServiceURL url = new JMXServiceURL(serviceUrl);
-        JMXConnector jmxc = JMXConnectorFactory.connect(url, null);
-        try {
+        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {
             MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
             mbsc.setAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName),
                     new Attribute(attribName, attribValue));
-        } finally {
-            jmxc.close();
         }
     }
     
@@ -82,13 +78,10 @@ public final class Client {
             throws IOException, InstanceNotFoundException,
             MBeanException, AttributeNotFoundException, ReflectionException {
         JMXServiceURL url = new JMXServiceURL(serviceUrl);
-        JMXConnector jmxc = JMXConnectorFactory.connect(url, null);
-        try {
+        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {
             MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
             return mbsc.invoke(ExportedValuesMBean.createObjectName(domain, mbeanName),
                     operationName, parameters, null);
-        } finally {
-            jmxc.close();
         }
     }
     

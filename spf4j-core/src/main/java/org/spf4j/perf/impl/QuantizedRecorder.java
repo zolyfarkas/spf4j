@@ -21,7 +21,6 @@ import com.google.common.math.IntMath;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.EntityMeasurements;
 import org.spf4j.perf.EntityMeasurementsInfo;
-import org.spf4j.perf.MeasurementProcessor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * @author zoly
  */
 @ThreadSafe
-public final class QuantizedRecorder implements MeasurementProcessor {
+public final class QuantizedRecorder extends MeasurementAggregator {
 
     private long minMeasurement;
     private long maxMeasurement;

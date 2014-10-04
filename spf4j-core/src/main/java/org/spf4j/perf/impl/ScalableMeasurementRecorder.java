@@ -23,7 +23,6 @@ import org.spf4j.perf.EntityMeasurements;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MeasurementProcessor;
-import org.spf4j.perf.MeasurementRecorder;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,7 +41,8 @@ import org.slf4j.LoggerFactory;
 @ThreadSafe
 // a recorder instance is tipically alive for the entire life of the process
 @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
-public final class ScalableMeasurementRecorder implements MeasurementRecorder, EntityMeasurements, Closeable {
+public final class ScalableMeasurementRecorder extends MeasurementAggregator
+    implements Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);
     
@@ -54,7 +54,7 @@ public final class ScalableMeasurementRecorder implements MeasurementRecorder, E
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
     ScalableMeasurementRecorder(final MeasurementProcessor processor, final int sampleTimeMillis,
             final MeasurementStore database) {
-        threadLocalRecorders = new HashMap<Thread, MeasurementProcessor>();
+        threadLocalRecorders = new HashMap<>();
         processorTemplate = processor;
         threadLocalRecorder = new ThreadLocal<MeasurementProcessor>() {
 

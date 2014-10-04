@@ -48,13 +48,10 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     public StackDumpJInternalFrame(final String sampleFile, final boolean isPro) throws IOException {
         super(sampleFile);
         initComponents();
-        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sampleFile));
-        final CodedInputStream is = CodedInputStream.newInstance(bis);
-        is.setRecursionLimit(Short.MAX_VALUE);
-        try {
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sampleFile))) {
+            final CodedInputStream is = CodedInputStream.newInstance(bis);
+            is.setRecursionLimit(Short.MAX_VALUE);
             samples = Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));
-        } finally {
-            bis.close();
         }
         if (isPro) {
             ssScrollPanel.setViewportView(new ZStackPanel(samples));
