@@ -22,8 +22,6 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,24 +32,23 @@ import org.spf4j.io.ByteArrayBuilder;
  * @author zoly
  */
 public final class TSTable {
-    
+
     private final long location;
-    private long nextColumnInfo;
+    private long nextTableInfo;
     private long firstDataFragment;
     private long lastDataFragment;
     private final String tableName;
     private final int sampleTime;
     private final byte[] tableMetaData;
-    private final String [] columnNames;
-    private final byte [][] columnMetaData;
+    private final String[] columnNames;
+    private final byte[][] columnMetaData;
     private final Map<String, Integer> nameToIndex;
-    
 
-    TSTable(final String tableName, final byte [] tableMetaData,
-            final String [] columnNames, final byte [][] columnMetaData,
+    TSTable(final String tableName, final byte[] tableMetaData,
+            final String[] columnNames, final byte[][] columnMetaData,
             final int sampleTime, final long location) {
         this.location = location;
-        this.nextColumnInfo = 0;
+        this.nextTableInfo = 0;
         this.firstDataFragment = 0;
         this.lastDataFragment = 0;
         this.tableName = tableName;
@@ -65,49 +62,68 @@ public final class TSTable {
         }
     }
 
-    TSTable(final RandomAccessFile raf) throws IOException {
-        location = raf.getFilePointer();
-        FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(location, 8, true);
-        try {
-            this.nextColumnInfo = raf.readLong();
-            this.firstDataFragment = raf.readLong();
-            this.lastDataFragment = raf.readLong();
-            this.tableName = raf.readUTF();
-            this.sampleTime = raf.readInt();
-            int grMetaSize = raf.readInt();
-            this.tableMetaData = new byte [grMetaSize];
-            raf.readFully(tableMetaData);
-            int nrColumns = raf.readShort();
-            columnNames = new String[nrColumns];
-            this.nameToIndex = new HashMap<>(nrColumns + nrColumns / 3);
-            for (int i = 0; i < columnNames.length; i++) {
-                String colName = raf.readUTF();
-                columnNames[i] = colName;
-                this.nameToIndex.put(colName, i);
-            }
-            columnMetaData = new byte[raf.readInt()][];
-            for (int i = 0; i < columnMetaData.length; i++) {
-                int metaLength = raf.readInt();
-                byte [] colMetaData = new byte[metaLength];
-                raf.readFully(colMetaData);
-                columnMetaData[i] = colMetaData;
-            }
-            
-        } catch (IOException | RuntimeException e) {
-            try {
-                lock.release();
-                throw e;
-            } catch (IOException ex) {
-                ex.addSuppressed(e);
-                throw ex;
-            }
-        }
-        lock.release();
+    /**
+     * This is a shalow copy.
+     * 
+     * @param copyOf
+     */
+    
+    TSTable(final TSTable copyOf) {
+        this.location = copyOf.location;
+        this.nextTableInfo = copyOf.nextTableInfo;
+        this.firstDataFragment = copyOf.firstDataFragment;
+        this.lastDataFragment = copyOf.lastDataFragment;
+        this.tableName = copyOf.tableName;
+        this.sampleTime = copyOf.sampleTime;
+        this.tableMetaData = copyOf.tableMetaData;
+        this.columnNames = copyOf.columnNames;
+        this.columnMetaData = copyOf.columnMetaData;
+        this.nameToIndex = copyOf.nameToIndex;
     }
 
+
+    /**
+     * Read table structure from file.
+     *
+     * @param raf
+     * @throws IOException
+     */
+    TSTable(final RandomAccessFile raf) throws IOException {
+        this(raf, raf.getFilePointer());
+    }
+    
+    TSTable(final RandomAccessFile raf, final long location) throws IOException {
+        this.location = location;
+        raf.seek(location);
+        this.nextTableInfo = raf.readLong();
+        this.firstDataFragment = raf.readLong();
+        this.lastDataFragment = raf.readLong();
+        this.tableName = raf.readUTF();
+        this.sampleTime = raf.readInt();
+        int grMetaSize = raf.readInt();
+        this.tableMetaData = new byte[grMetaSize];
+        raf.readFully(tableMetaData);
+        int nrColumns = raf.readShort();
+        columnNames = new String[nrColumns];
+        this.nameToIndex = new HashMap<>(nrColumns + nrColumns / 3);
+        for (int i = 0; i < columnNames.length; i++) {
+            String colName = raf.readUTF();
+            columnNames[i] = colName;
+            this.nameToIndex.put(colName, i);
+        }
+        columnMetaData = new byte[raf.readInt()][];
+        for (int i = 0; i < columnMetaData.length; i++) {
+            int metaLength = raf.readInt();
+            byte[] colMetaData = new byte[metaLength];
+            raf.readFully(colMetaData);
+            columnMetaData[i] = colMetaData;
+        }
+    }
+    
+    
+
     void writeTo(final DataOutput dos) throws IOException {
-        dos.writeLong(nextColumnInfo);
+        dos.writeLong(nextTableInfo);
         dos.writeLong(firstDataFragment);
         dos.writeLong(lastDataFragment);
         dos.writeUTF(tableName);
@@ -123,95 +139,43 @@ public final class TSTable {
             dos.writeInt(colMeta.length);
             dos.write(colMeta);
         }
-        
+
     }
-    
+
     void writeTo(final RandomAccessFile raf) throws IOException {
         ByteArrayBuilder bos = new ByteArrayBuilder();
         DataOutput dos = new DataOutputStream(bos);
         writeTo(dos);
-        FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(raf.getFilePointer(), 8, false);
-        try {
-            raf.seek(location);
-            raf.write(bos.getBuffer(), 0, bos.size());
-        } catch (IOException | RuntimeException e) {
-            try {
-                lock.release();
-                throw e;
-            } catch (IOException ex) {
-                ex.addSuppressed(e);
-                throw ex;
-            }
-        }
-        lock.release();
+
+        raf.seek(location);
+        raf.write(bos.getBuffer(), 0, bos.size());
     }
 
-    public String [] getColumnNames() {
+    public String[] getColumnNames() {
         return columnNames.clone();
     }
 
     void setNextColumnInfo(final long pnextColumnInfo, final RandomAccessFile raf) throws IOException {
-        this.nextColumnInfo = pnextColumnInfo;
-        FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(location, 8, false);
-        try {
-            raf.seek(location);
-            raf.writeLong(nextColumnInfo);
-        } catch (IOException | RuntimeException e) {
-            try {
-                lock.release();
-                throw e;
-            } catch (IOException ex) {
-                ex.addSuppressed(e);
-                throw ex;
-            }
-        }
-        lock.release();
+        this.nextTableInfo = pnextColumnInfo;
+
+        raf.seek(location);
+        raf.writeLong(nextTableInfo);
     }
 
     void setFirstDataFragment(final long pfirstDataFragment, final RandomAccessFile raf) throws IOException {
         this.firstDataFragment = pfirstDataFragment;
-        FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(location + 8, 8, false);
-        try {
-            raf.seek(location + 8);
-            raf.writeLong(firstDataFragment);
-        } catch (IOException | RuntimeException e) {
-            try {
-                lock.release();
-                throw e;
-            } catch (IOException ex) {
-                ex.addSuppressed(e);
-                throw ex;
-            }
-        }
-        lock.release();
+        raf.seek(location + 8);
+        raf.writeLong(firstDataFragment);
     }
-    
-    
+
     void setLastDataFragment(final long plastDataFragment, final RandomAccessFile raf) throws IOException {
         this.lastDataFragment = plastDataFragment;
-        FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(raf.getFilePointer() + 16, 8, false);
-        try {
-            raf.seek(location + 16);
-            raf.writeLong(lastDataFragment);
-        } catch (IOException | RuntimeException e) {
-            try {
-                lock.release();
-                throw e;
-            } catch (IOException ex) {
-                ex.addSuppressed(e);
-                throw ex;
-            }
-        }
-        lock.release();
+        raf.seek(location + 16);
+        raf.writeLong(lastDataFragment);
     }
-    
-    
+
     public long getNextTSTable() {
-        return nextColumnInfo;
+        return nextTableInfo;
     }
 
     public long getLocation() {
@@ -233,15 +197,15 @@ public final class TSTable {
     public byte[][] getColumnMetaData() {
         return columnMetaData.clone();
     }
-    
+
     public String[] getColumnMetaDataAsStrings() {
-        String [] result = new String [columnMetaData.length];
+        String[] result = new String[columnMetaData.length];
         for (int i = 0; i < columnMetaData.length; i++) {
             result[i] = new String(columnMetaData[i], Charsets.UTF_8);
         }
         return result;
     }
-    
+
     public int getColumnIndex(final String columnName) {
         Integer result = this.nameToIndex.get(columnName);
         if (result == null) {
@@ -258,23 +222,21 @@ public final class TSTable {
     public byte[] getTableMetaData() {
         return tableMetaData.clone();
     }
-    
+
     public int getColumnNumber() {
         return columnNames.length;
     }
-    
+
     public String getColumnName(final int index) {
         return columnNames[index];
     }
 
     @Override
     public String toString() {
-        return "TSTable{" + "location=" + location + ", nextColumnInfo=" + nextColumnInfo
+        return "TSTable{" + "location=" + location + ", nextColumnInfo=" + nextTableInfo
                 + ", firstDataFragment=" + firstDataFragment + ", lastDataFragment="
                 + lastDataFragment + ", groupName=" + tableName + ", sampleTime=" + sampleTime
                 + ", columnNames=" + Arrays.toString(columnNames) + ", nameToIndex=" + nameToIndex + '}';
     }
- 
-    
-    
+
 }

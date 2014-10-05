@@ -25,8 +25,6 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
 import org.spf4j.io.ByteArrayBuilder;
@@ -36,12 +34,12 @@ import org.spf4j.io.ByteArrayBuilder;
  * @author zoly
  */
 final class DataFragment {
+
     private long location;
     private long nextDataFragment;
     private final long startTimeMillis;
     private List<long[]> data;
     private TIntArrayList timestamps;
-    
 
     public DataFragment(final long startTimeMillis) {
         this.location = 0;
@@ -53,27 +51,14 @@ final class DataFragment {
 
     public DataFragment(final RandomAccessFile raf) throws IOException {
         location = raf.getFilePointer();
-        FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(location, 8, true);
-        try {
-            this.nextDataFragment = raf.readLong();
-            this.startTimeMillis = raf.readLong();
-            int nrSamples = raf.readInt();
-            int samplesLength = raf.readInt();
-            int bufferSize = nrSamples * (samplesLength * 8 + 4);
-            byte [] buffer = new byte [bufferSize];
-            raf.readFully(buffer);
-            loadData(nrSamples, samplesLength, new DataInputStream(new ByteArrayInputStream(buffer)));
-        } catch (IOException | RuntimeException e) {
-            try {
-                lock.release();
-                throw e;
-            } catch (IOException ex) {
-                ex.addSuppressed(e);
-                throw ex;
-            }
-        }
-        lock.release();
+        this.nextDataFragment = raf.readLong();
+        this.startTimeMillis = raf.readLong();
+        int nrSamples = raf.readInt();
+        int samplesLength = raf.readInt();
+        int bufferSize = nrSamples * (samplesLength * 8 + 4);
+        byte[] buffer = new byte[bufferSize];
+        raf.readFully(buffer);
+        loadData(nrSamples, samplesLength, new DataInputStream(new ByteArrayInputStream(buffer)));
     }
 
     public void writeTo(final DataOutput dos) throws IOException {
@@ -88,58 +73,29 @@ final class DataFragment {
             }
         }
     }
-    
+
     public void writeTo(final RandomAccessFile raf) throws IOException {
         ByteArrayBuilder bos = new ByteArrayBuilder();
         DataOutput dos = new DataOutputStream(bos);
         writeTo(dos);
-        FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(raf.getFilePointer(), 8, false);
-        try {
-            raf.seek(location);
-            raf.write(bos.getBuffer(), 0, bos.size());
-        } catch (IOException | RuntimeException e) {
-            try {
-                lock.release();
-                throw e;
-            } catch (IOException ex) {
-                ex.addSuppressed(e);
-                throw ex;
-            }
-        }
-        lock.release();
+        raf.seek(location);
+        raf.write(bos.getBuffer(), 0, bos.size());
     }
 
-    
-    public void addData(final long timestamp, final long [] dataRow) {
+    public void addData(final long timestamp, final long[] dataRow) {
         data.add(dataRow);
         timestamps.add((int) (timestamp - startTimeMillis));
     }
-    
-    
+
     public void setNextDataFragment(final long pnextDataFragment, final RandomAccessFile raf) throws IOException {
         this.nextDataFragment = pnextDataFragment;
         setNextDataFragment(location, nextDataFragment, raf);
     }
-    
-    
-   public static void setNextDataFragment(final long dataFragmentPosition, final long nextDataFragment,
-           final RandomAccessFile raf) throws IOException {
-        FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(dataFragmentPosition, 8, false);
-        try {
-            raf.seek(dataFragmentPosition);
-            raf.writeLong(nextDataFragment);
-        } catch (IOException | RuntimeException e) {
-            try {
-                lock.release();
-                throw e;
-            } catch (IOException ex) {
-                ex.addSuppressed(e);
-                throw ex;
-            }
-        }
-        lock.release();
+
+    public static void setNextDataFragment(final long dataFragmentPosition, final long nextDataFragment,
+            final RandomAccessFile raf) throws IOException {
+        raf.seek(dataFragmentPosition);
+        raf.writeLong(nextDataFragment);
     }
 
     public long getNextDataFragment() {
@@ -155,7 +111,7 @@ final class DataFragment {
         timestamps = new TIntArrayList(nrSamples);
         for (int i = 0; i < nrSamples; i++) {
             timestamps.add(raf.readInt());
-            long [] row = new long[samplesLength];
+            long[] row = new long[samplesLength];
             for (int j = 0; j < samplesLength; j++) {
                 row[j] = raf.readLong();
             }
@@ -183,15 +139,10 @@ final class DataFragment {
         this.location = location;
     }
 
-    
-    
     @Override
     public String toString() {
         return "DataFragment{" + "location=" + location + ", nextDataFragment=" + nextDataFragment
                 + ", startTimeMillis=" + startTimeMillis + ", data=" + data + ", timestamps=" + timestamps + '}';
     }
-    
-    
-    
-    
+
 }

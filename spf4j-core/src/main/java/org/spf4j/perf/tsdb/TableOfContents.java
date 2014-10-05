@@ -19,115 +19,70 @@ package org.spf4j.perf.tsdb;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 
 /**
  *
  * @author zoly
  */
 final class TableOfContents {
+
     private final long location;
-    private long lastColumnInfo;
-    private long firstColumnInfo;
+    private long lastTableInfo;
+    private long firstTableInfo;
 
     public TableOfContents(final long location) {
         this.location = location;
-        firstColumnInfo = 0;
-        lastColumnInfo = 0;
+        firstTableInfo = 0;
+        lastTableInfo = 0;
+    }
+
+    public TableOfContents(final RandomAccessFile raf) throws IOException {
+        this(raf, raf.getFilePointer());
     }
     
-    public TableOfContents(final RandomAccessFile raf) throws IOException {
-        this.location = raf.getFilePointer();
-        FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(this.location, 16, true);
-        try {
-            this.firstColumnInfo = raf.readLong();
-            this.lastColumnInfo = raf.readLong();
-        } catch (IOException | RuntimeException e) {
-            try {
-                lock.release();
-                throw e;
-            } catch (IOException ex) {
-                ex.addSuppressed(e);
-                throw ex;
-            }
-        }
-        lock.release();
+    public TableOfContents(final RandomAccessFile raf, final long location) throws IOException {
+        this.location = location;
+        raf.seek(location);
+        this.firstTableInfo = raf.readLong();
+        this.lastTableInfo = raf.readLong();
     }
+    
 
     public void writeTo(final RandomAccessFile raf) throws IOException {
-        FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(this.location, 16, false);
-        try {
-            raf.seek(location);
-            raf.writeLong(firstColumnInfo);
-            raf.writeLong(lastColumnInfo);
-        } catch (IOException | RuntimeException e) {
-            try {
-                lock.release();
-                throw e;
-            } catch (IOException ex) {
-                ex.addSuppressed(e);
-                throw ex;
-            }
-        }
-        lock.release();
+        raf.seek(location);
+        raf.writeLong(firstTableInfo);
+        raf.writeLong(lastTableInfo);
     }
 
-    public long getLastColumnInfo() {
-        return lastColumnInfo;
+    public long getLastTableInfoPtr() {
+        return lastTableInfo;
     }
 
-
-    public long getFirstColumnInfo() {
-        return firstColumnInfo;
+    public long getFirstTableInfoPtr() {
+        return firstTableInfo;
     }
 
-    
-    public void setLastColumnInfo(final long plastColumnInfo, final RandomAccessFile raf) throws IOException {
-        this.lastColumnInfo = plastColumnInfo;
-        FileChannel ch = raf.getChannel();
+    public void setLastTableInfo(final long plastColumnInfo, final RandomAccessFile raf) throws IOException {
+        this.lastTableInfo = plastColumnInfo;
         long loc = location + 8;
-        FileLock lock = ch.lock(loc, 8, false);
-        try {
-            raf.seek(loc);
-            raf.writeLong(lastColumnInfo);
-        } catch (IOException | RuntimeException e) {
-            try {
-                lock.release();
-                throw e;
-            } catch (IOException ex) {
-                ex.addSuppressed(e);
-                throw ex;
-            }
-        }
-        lock.release();
-    }
-    
-    public void setFirstColumnInfo(final long pfirstColumnInfo, final RandomAccessFile raf) throws IOException {
-        this.firstColumnInfo = pfirstColumnInfo;
-        FileChannel ch = raf.getChannel();
-        FileLock lock = ch.lock(location, 8, false);
-        try {
-            raf.seek(location);
-            raf.writeLong(firstColumnInfo);
-        } catch (IOException | RuntimeException e) {
-            try {
-                lock.release();
-                throw e;
-            } catch (IOException ex) {
-                ex.addSuppressed(e);
-                throw ex;
-            }
-        }
-        lock.release();
+        raf.seek(loc);
+        raf.writeLong(lastTableInfo);
     }
 
+    public void setFirstTableInfo(final long pfirstColumnInfo, final RandomAccessFile raf) throws IOException {
+        this.firstTableInfo = pfirstColumnInfo;
+        raf.seek(location);
+        raf.writeLong(firstTableInfo);
+    }
+
+    public long getLocation() {
+        return location;
+    }
+    
     @Override
     public String toString() {
-        return "TableOfContents{" + "location=" + location + ", lastColumnInfo=" + lastColumnInfo
-                + ", firstColumnInfo=" + firstColumnInfo + '}';
+        return "TableOfContents{" + "location=" + location + ", lastColumnInfo=" + lastTableInfo
+                + ", firstColumnInfo=" + firstTableInfo + '}';
     }
 
 }
