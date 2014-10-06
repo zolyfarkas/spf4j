@@ -15,7 +15,6 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.spf4j.base.MutableHolder;
 import org.spf4j.concurrent.DefaultExecutor;
-import org.spf4j.concurrent.FileBasedLockTest;
 
 /**
  *
@@ -66,16 +65,13 @@ public final class TSDBTailerTest {
         finish = true;
         int result = tailFut.get();
         Assert.assertEquals(6, result);
-    }
-
-    @Test
-    public void externalTailerTest() throws InterruptedException, ExecutionException {
+        
         final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
         final String jvmPath
                 = System.getProperties().getProperty("java.home")
                 + File.separatorChar + "bin" + File.separatorChar + "java";
 
-        Future<Integer> result = DefaultExecutor.INSTANCE.submit(new Callable<Integer>() {
+        Future<Integer> result2 = DefaultExecutor.INSTANCE.submit(new Callable<Integer>() {
             @Override
             public Integer call() throws IOException, InterruptedException {
                 String[] command = new String[]{jvmPath, "-cp", classPath, TSDBTailerTest.class.getName(),
@@ -85,8 +81,8 @@ public final class TSDBTailerTest {
                 return proc.waitFor();
             }
         });
-        Assert.assertEquals(6, (int) result.get());
-
+        Assert.assertEquals(6, (int) result2.get());
+    
     }
 
     private Integer doTail(final TimeSeriesDatabase instance) throws IOException {
@@ -116,7 +112,7 @@ public final class TSDBTailerTest {
     public static void main(final String[] parameters) throws IOException {
         final MutableHolder<Integer> counter = new MutableHolder<>(0);
         TimeSeriesDatabase tsdb = new TimeSeriesDatabase(parameters[0]);
-        tsdb.tail(1, 0, new TSDataHandler() {
+        tsdb.tail(10, 0, new TSDataHandler() {
             
             private int count = 0;
 
@@ -134,7 +130,7 @@ public final class TSDBTailerTest {
 
             @Override
             public boolean finish() {
-                return count++ > 2000;
+                return count++ > 400;
             }
         });
         System.exit(counter.getValue());
