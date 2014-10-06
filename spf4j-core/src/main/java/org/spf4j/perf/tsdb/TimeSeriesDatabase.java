@@ -641,42 +641,47 @@ public final class TimeSeriesDatabase implements Closeable {
     public void tail(final long pollMillis, final long from, final TSDataHandler handler)
             throws IOException {
         Map<String, TSTable> lastState = new HashMap<>();
+        long lastSize = 0;
         while (!Thread.interrupted() && !handler.finish()) {
-            // see if we have new Tables;
-            reReadTableInfos();
-            Map<String, TSTable> currState = getTsTables();
-            for (String tableName : Sets.difference(currState.keySet(), lastState.keySet())) {
-                handler.newTable(tableName, currState.get(tableName).getColumnNames());
-            }
-            for (TSTable table : currState.values()) {
-                final String tableName = table.getTableName();
-                TSTable prevTableState = lastState.get(tableName);
-                final long currLastDataFragment = table.getLastDataFragment();
+            long currSize = this.file.length();
+            if (currSize > lastSize) {
+                // see if we have new Tables;
+                reReadTableInfos();
+                Map<String, TSTable> currState = getTsTables();
+                for (String tableName : Sets.difference(currState.keySet(), lastState.keySet())) {
+                    handler.newTable(tableName, currState.get(tableName).getColumnNames());
+                }
+                for (TSTable table : currState.values()) {
+                    final String tableName = table.getTableName();
+                    TSTable prevTableState = lastState.get(tableName);
+                    final long currLastDataFragment = table.getLastDataFragment();
 
-                if (prevTableState == null) {
-                    long lastDataFragment = table.getFirstDataFragment();
-                    if (lastDataFragment > 0) {
-                        TimeSeries data = read(from, Long.MAX_VALUE, lastDataFragment, currLastDataFragment,
-                                false);
-                        handler.newData(tableName, data);
-                    }
-                } else {
-                    long lastDataFragment = prevTableState.getLastDataFragment();
-                    if (lastDataFragment == 0) {
-                        lastDataFragment = table.getFirstDataFragment();
+                    if (prevTableState == null) {
+                        long lastDataFragment = table.getFirstDataFragment();
                         if (lastDataFragment > 0) {
                             TimeSeries data = read(from, Long.MAX_VALUE, lastDataFragment, currLastDataFragment,
-                                false);
+                                    false);
                             handler.newData(tableName, data);
                         }
-                    } else if (currLastDataFragment > lastDataFragment) {
+                    } else {
+                        long lastDataFragment = prevTableState.getLastDataFragment();
+                        if (lastDataFragment == 0) {
+                            lastDataFragment = table.getFirstDataFragment();
+                            if (lastDataFragment > 0) {
+                                TimeSeries data = read(from, Long.MAX_VALUE, lastDataFragment, currLastDataFragment,
+                                        false);
+                                handler.newData(tableName, data);
+                            }
+                        } else if (currLastDataFragment > lastDataFragment) {
                             TimeSeries data = read(from, Long.MAX_VALUE, lastDataFragment, currLastDataFragment,
-                                true);
+                                    true);
                             handler.newData(tableName, data);
+                        }
                     }
                 }
+                lastState = currState;
             }
-            lastState = currState;
+            lastSize = currSize;
             try {
                 Thread.sleep(pollMillis);
             } catch (InterruptedException ex) {
