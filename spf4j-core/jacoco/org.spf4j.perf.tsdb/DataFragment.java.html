@@ -25,8 +25,6 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
 import org.spf4j.io.ByteArrayBuilder;
@@ -36,163 +34,116 @@ import org.spf4j.io.ByteArrayBuilder;
  * @author zoly
  */
 final class DataFragment {
+
     private long location;
     private long nextDataFragment;
     private final long startTimeMillis;
     private List&lt;long[]&gt; data;
     private TIntArrayList timestamps;
-    
 
-<span class="fc" id="L46">    public DataFragment(final long startTimeMillis) {</span>
-<span class="fc" id="L47">        this.location = 0;</span>
-<span class="fc" id="L48">        this.nextDataFragment = 0;</span>
-<span class="fc" id="L49">        this.startTimeMillis = startTimeMillis;</span>
-<span class="fc" id="L50">        data = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L51">        timestamps = new TIntArrayList();</span>
-<span class="fc" id="L52">    }</span>
+<span class="fc" id="L44">    public DataFragment(final long startTimeMillis) {</span>
+<span class="fc" id="L45">        this.location = 0;</span>
+<span class="fc" id="L46">        this.nextDataFragment = 0;</span>
+<span class="fc" id="L47">        this.startTimeMillis = startTimeMillis;</span>
+<span class="fc" id="L48">        data = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L49">        timestamps = new TIntArrayList();</span>
+<span class="fc" id="L50">    }</span>
 
-<span class="fc" id="L54">    public DataFragment(final RandomAccessFile raf) throws IOException {</span>
-<span class="fc" id="L55">        location = raf.getFilePointer();</span>
-<span class="fc" id="L56">        FileChannel ch = raf.getChannel();</span>
-<span class="fc" id="L57">        FileLock lock = ch.lock(location, 8, true);</span>
-        try {
-<span class="fc" id="L59">            this.nextDataFragment = raf.readLong();</span>
-<span class="fc" id="L60">            this.startTimeMillis = raf.readLong();</span>
-<span class="fc" id="L61">            int nrSamples = raf.readInt();</span>
-<span class="fc" id="L62">            int samplesLength = raf.readInt();</span>
-<span class="fc" id="L63">            int bufferSize = nrSamples * (samplesLength * 8 + 4);</span>
-<span class="fc" id="L64">            byte [] buffer = new byte [bufferSize];</span>
-<span class="fc" id="L65">            raf.readFully(buffer);</span>
-<span class="fc" id="L66">            loadData(nrSamples, samplesLength, new DataInputStream(new ByteArrayInputStream(buffer)));</span>
-<span class="nc" id="L67">        } catch (IOException | RuntimeException e) {</span>
-            try {
-<span class="nc" id="L69">                lock.release();</span>
-<span class="nc" id="L70">                throw e;</span>
-<span class="nc" id="L71">            } catch (IOException ex) {</span>
-<span class="nc" id="L72">                ex.addSuppressed(e);</span>
-<span class="nc" id="L73">                throw ex;</span>
-            }
-<span class="fc" id="L75">        }</span>
-<span class="fc" id="L76">        lock.release();</span>
-<span class="fc" id="L77">    }</span>
+<span class="fc" id="L52">    public DataFragment(final RandomAccessFile raf) throws IOException {</span>
+<span class="fc" id="L53">        location = raf.getFilePointer();</span>
+<span class="fc" id="L54">        this.nextDataFragment = raf.readLong();</span>
+<span class="fc" id="L55">        this.startTimeMillis = raf.readLong();</span>
+<span class="fc" id="L56">        int nrSamples = raf.readInt();</span>
+<span class="fc" id="L57">        int samplesLength = raf.readInt();</span>
+<span class="fc" id="L58">        int bufferSize = nrSamples * (samplesLength * 8 + 4);</span>
+<span class="fc" id="L59">        byte[] buffer = new byte[bufferSize];</span>
+<span class="fc" id="L60">        raf.readFully(buffer);</span>
+<span class="fc" id="L61">        loadData(nrSamples, samplesLength, new DataInputStream(new ByteArrayInputStream(buffer)));</span>
+<span class="fc" id="L62">    }</span>
 
     public void writeTo(final DataOutput dos) throws IOException {
-<span class="fc" id="L80">        dos.writeLong(nextDataFragment);</span>
-<span class="fc" id="L81">        dos.writeLong(startTimeMillis);</span>
-<span class="fc" id="L82">        dos.writeInt(data.size());</span>
-<span class="fc" id="L83">        dos.writeInt(data.get(0).length);</span>
-<span class="fc bfc" id="L84" title="All 2 branches covered.">        for (int i = 0; i &lt; timestamps.size(); i++) {</span>
-<span class="fc" id="L85">            dos.writeInt(timestamps.get(i));</span>
-<span class="fc bfc" id="L86" title="All 2 branches covered.">            for (long value : data.get(i)) {</span>
-<span class="fc" id="L87">                dos.writeLong(value);</span>
+<span class="fc" id="L65">        dos.writeLong(nextDataFragment);</span>
+<span class="fc" id="L66">        dos.writeLong(startTimeMillis);</span>
+<span class="fc" id="L67">        dos.writeInt(data.size());</span>
+<span class="fc" id="L68">        dos.writeInt(data.get(0).length);</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        for (int i = 0; i &lt; timestamps.size(); i++) {</span>
+<span class="fc" id="L70">            dos.writeInt(timestamps.get(i));</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">            for (long value : data.get(i)) {</span>
+<span class="fc" id="L72">                dos.writeLong(value);</span>
             }
         }
-<span class="fc" id="L90">    }</span>
-    
-    public void writeTo(final RandomAccessFile raf) throws IOException {
-<span class="fc" id="L93">        ByteArrayBuilder bos = new ByteArrayBuilder();</span>
-<span class="fc" id="L94">        DataOutput dos = new DataOutputStream(bos);</span>
-<span class="fc" id="L95">        writeTo(dos);</span>
-<span class="fc" id="L96">        FileChannel ch = raf.getChannel();</span>
-<span class="fc" id="L97">        FileLock lock = ch.lock(raf.getFilePointer(), 8, false);</span>
-        try {
-<span class="fc" id="L99">            raf.seek(location);</span>
-<span class="fc" id="L100">            raf.write(bos.getBuffer(), 0, bos.size());</span>
-<span class="nc" id="L101">        } catch (IOException | RuntimeException e) {</span>
-            try {
-<span class="nc" id="L103">                lock.release();</span>
-<span class="nc" id="L104">                throw e;</span>
-<span class="nc" id="L105">            } catch (IOException ex) {</span>
-<span class="nc" id="L106">                ex.addSuppressed(e);</span>
-<span class="nc" id="L107">                throw ex;</span>
-            }
-<span class="fc" id="L109">        }</span>
-<span class="fc" id="L110">        lock.release();</span>
-<span class="fc" id="L111">    }</span>
+<span class="fc" id="L75">    }</span>
 
-    
-    public void addData(final long timestamp, final long [] dataRow) {
-<span class="fc" id="L115">        data.add(dataRow);</span>
-<span class="fc" id="L116">        timestamps.add((int) (timestamp - startTimeMillis));</span>
-<span class="fc" id="L117">    }</span>
-    
-    
+    public void writeTo(final RandomAccessFile raf) throws IOException {
+<span class="fc" id="L78">        ByteArrayBuilder bos = new ByteArrayBuilder();</span>
+<span class="fc" id="L79">        DataOutput dos = new DataOutputStream(bos);</span>
+<span class="fc" id="L80">        writeTo(dos);</span>
+<span class="fc" id="L81">        raf.seek(location);</span>
+<span class="fc" id="L82">        raf.write(bos.getBuffer(), 0, bos.size());</span>
+<span class="fc" id="L83">    }</span>
+
+    public void addData(final long timestamp, final long[] dataRow) {
+<span class="fc" id="L86">        data.add(dataRow);</span>
+<span class="fc" id="L87">        timestamps.add((int) (timestamp - startTimeMillis));</span>
+<span class="fc" id="L88">    }</span>
+
     public void setNextDataFragment(final long pnextDataFragment, final RandomAccessFile raf) throws IOException {
-<span class="nc" id="L121">        this.nextDataFragment = pnextDataFragment;</span>
-<span class="nc" id="L122">        setNextDataFragment(location, nextDataFragment, raf);</span>
-<span class="nc" id="L123">    }</span>
-    
-    
-   public static void setNextDataFragment(final long dataFragmentPosition, final long nextDataFragment,
-           final RandomAccessFile raf) throws IOException {
-<span class="fc" id="L128">        FileChannel ch = raf.getChannel();</span>
-<span class="fc" id="L129">        FileLock lock = ch.lock(dataFragmentPosition, 8, false);</span>
-        try {
-<span class="fc" id="L131">            raf.seek(dataFragmentPosition);</span>
-<span class="fc" id="L132">            raf.writeLong(nextDataFragment);</span>
-<span class="nc" id="L133">        } catch (IOException | RuntimeException e) {</span>
-            try {
-<span class="nc" id="L135">                lock.release();</span>
-<span class="nc" id="L136">                throw e;</span>
-<span class="nc" id="L137">            } catch (IOException ex) {</span>
-<span class="nc" id="L138">                ex.addSuppressed(e);</span>
-<span class="nc" id="L139">                throw ex;</span>
-            }
-<span class="fc" id="L141">        }</span>
-<span class="fc" id="L142">        lock.release();</span>
-<span class="fc" id="L143">    }</span>
+<span class="nc" id="L91">        this.nextDataFragment = pnextDataFragment;</span>
+<span class="nc" id="L92">        setNextDataFragment(location, nextDataFragment, raf);</span>
+<span class="nc" id="L93">    }</span>
+
+    public static void setNextDataFragment(final long dataFragmentPosition, final long nextDataFragment,
+            final RandomAccessFile raf) throws IOException {
+<span class="fc" id="L97">        raf.seek(dataFragmentPosition);</span>
+<span class="fc" id="L98">        raf.writeLong(nextDataFragment);</span>
+<span class="fc" id="L99">    }</span>
 
     public long getNextDataFragment() {
-<span class="fc" id="L146">        return nextDataFragment;</span>
+<span class="fc" id="L102">        return nextDataFragment;</span>
     }
 
     public long getLocation() {
-<span class="fc" id="L150">        return location;</span>
+<span class="fc" id="L106">        return location;</span>
     }
 
     private void loadData(final int nrSamples, final int samplesLength, final DataInput raf) throws IOException {
-<span class="fc" id="L154">        data = new ArrayList(nrSamples);</span>
-<span class="fc" id="L155">        timestamps = new TIntArrayList(nrSamples);</span>
-<span class="fc bfc" id="L156" title="All 2 branches covered.">        for (int i = 0; i &lt; nrSamples; i++) {</span>
-<span class="fc" id="L157">            timestamps.add(raf.readInt());</span>
-<span class="fc" id="L158">            long [] row = new long[samplesLength];</span>
-<span class="fc bfc" id="L159" title="All 2 branches covered.">            for (int j = 0; j &lt; samplesLength; j++) {</span>
-<span class="fc" id="L160">                row[j] = raf.readLong();</span>
+<span class="fc" id="L110">        data = new ArrayList(nrSamples);</span>
+<span class="fc" id="L111">        timestamps = new TIntArrayList(nrSamples);</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        for (int i = 0; i &lt; nrSamples; i++) {</span>
+<span class="fc" id="L113">            timestamps.add(raf.readInt());</span>
+<span class="fc" id="L114">            long[] row = new long[samplesLength];</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">            for (int j = 0; j &lt; samplesLength; j++) {</span>
+<span class="fc" id="L116">                row[j] = raf.readLong();</span>
             }
-<span class="fc" id="L162">            data.add(row);</span>
+<span class="fc" id="L118">            data.add(row);</span>
         }
-<span class="fc" id="L164">    }</span>
+<span class="fc" id="L120">    }</span>
 
     public long getStartTimeMillis() {
-<span class="fc" id="L167">        return startTimeMillis;</span>
+<span class="fc" id="L123">        return startTimeMillis;</span>
     }
 
     public int getNrRows() {
-<span class="nc" id="L171">        return data.size();</span>
+<span class="nc" id="L127">        return data.size();</span>
     }
 
     public List&lt;long[]&gt; getData() {
-<span class="fc" id="L175">        return data;</span>
+<span class="fc" id="L131">        return data;</span>
     }
 
     public TIntArrayList getTimestamps() {
-<span class="fc" id="L179">        return timestamps;</span>
+<span class="fc" id="L135">        return timestamps;</span>
     }
 
     public void setLocation(final long location) {
-<span class="fc" id="L183">        this.location = location;</span>
-<span class="fc" id="L184">    }</span>
+<span class="fc" id="L139">        this.location = location;</span>
+<span class="fc" id="L140">    }</span>
 
-    
-    
     @Override
     public String toString() {
-<span class="nc" id="L190">        return &quot;DataFragment{&quot; + &quot;location=&quot; + location + &quot;, nextDataFragment=&quot; + nextDataFragment</span>
+<span class="nc" id="L144">        return &quot;DataFragment{&quot; + &quot;location=&quot; + location + &quot;, nextDataFragment=&quot; + nextDataFragment</span>
                 + &quot;, startTimeMillis=&quot; + startTimeMillis + &quot;, data=&quot; + data + &quot;, timestamps=&quot; + timestamps + '}';
     }
-    
-    
-    
-    
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

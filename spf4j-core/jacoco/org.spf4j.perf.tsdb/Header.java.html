@@ -20,8 +20,6 @@ package org.spf4j.perf.tsdb;
 import com.google.common.base.Charsets;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 
 /**
  * TSDB header detail
@@ -36,91 +34,53 @@ final class Header {
     private final int version;
     private final byte[] metaData;
 
-<span class="fc" id="L39">    public Header(final int version, final byte[] metaData) {</span>
-<span class="fc" id="L40">        this.type = TYPE;</span>
-<span class="fc" id="L41">        this.version = version;</span>
-<span class="fc" id="L42">        this.metaData = metaData;</span>
-<span class="fc" id="L43">    }</span>
+<span class="fc" id="L37">    public Header(final int version, final byte[] metaData) {</span>
+<span class="fc" id="L38">        this.type = TYPE;</span>
+<span class="fc" id="L39">        this.version = version;</span>
+<span class="fc" id="L40">        this.metaData = metaData;</span>
+<span class="fc" id="L41">    }</span>
 
-<span class="fc" id="L45">    public Header(final RandomAccessFile raf) throws IOException {</span>
-<span class="fc" id="L46">        FileChannel ch = raf.getChannel();</span>
-<span class="fc" id="L47">        FileLock lock = ch.lock(ch.position(), 16, true);</span>
-        try {
-<span class="fc" id="L49">            byte[] bType = new byte[4];</span>
-<span class="fc" id="L50">            raf.readFully(bType);</span>
-<span class="fc" id="L51">            this.type = new String(bType, Charsets.US_ASCII);</span>
-<span class="pc bpc" id="L52" title="1 of 2 branches missed.">            if (!TYPE.equals(this.type)) {</span>
-<span class="nc" id="L53">                throw new IOException(&quot;Invalid File Type &quot; + this.type);</span>
-            }
-<span class="fc" id="L55">            this.version = raf.readInt();</span>
-<span class="fc" id="L56">            int metaDataSize = raf.readInt();</span>
-<span class="pc bpc" id="L57" title="1 of 2 branches missed.">            if (metaDataSize &gt; 0) {</span>
-<span class="nc" id="L58">                FileLock metaLock = ch.lock(ch.position(), metaDataSize, true);</span>
-                try {
-<span class="nc" id="L60">                    this.metaData = new byte[metaDataSize];</span>
-<span class="nc" id="L61">                    raf.readFully(this.metaData);</span>
-<span class="nc" id="L62">                } catch (IOException | RuntimeException e) {</span>
-                    try {
-<span class="nc" id="L64">                        metaLock.release();</span>
-<span class="nc" id="L65">                        throw e;</span>
-<span class="nc" id="L66">                    } catch (IOException ex) {</span>
-<span class="nc" id="L67">                        ex.addSuppressed(e);</span>
-<span class="nc" id="L68">                        throw ex;</span>
-                    }
-<span class="nc" id="L70">                }</span>
-<span class="nc" id="L71">                metaLock.release();</span>
-<span class="nc" id="L72">            } else {</span>
-<span class="fc" id="L73">                this.metaData = new byte[]{};</span>
-            }
-<span class="nc" id="L75">        } catch (IOException | RuntimeException e) {</span>
-            try {
-<span class="nc" id="L77">                lock.release();</span>
-<span class="nc" id="L78">                throw e;</span>
-<span class="nc" id="L79">            } catch (IOException ex) {</span>
-<span class="nc" id="L80">                ex.addSuppressed(e);</span>
-<span class="nc" id="L81">                throw ex;</span>
-            }
-<span class="fc" id="L83">        }</span>
-<span class="fc" id="L84">        lock.release();</span>
-<span class="fc" id="L85">    }</span>
+<span class="fc" id="L43">    public Header(final RandomAccessFile raf) throws IOException {</span>
+<span class="fc" id="L44">        byte[] bType = new byte[4];</span>
+<span class="fc" id="L45">        raf.readFully(bType);</span>
+<span class="fc" id="L46">        this.type = new String(bType, Charsets.US_ASCII);</span>
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">        if (!TYPE.equals(this.type)) {</span>
+<span class="nc" id="L48">            throw new IOException(&quot;Invalid File Type &quot; + this.type);</span>
+        }
+<span class="fc" id="L50">        this.version = raf.readInt();</span>
+<span class="fc" id="L51">        int metaDataSize = raf.readInt();</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        if (metaDataSize &gt; 0) {</span>
+<span class="nc" id="L53">            this.metaData = new byte[metaDataSize];</span>
+<span class="nc" id="L54">            raf.readFully(this.metaData);</span>
+        } else {
+<span class="fc" id="L56">            this.metaData = new byte[]{};</span>
+        }
+<span class="fc" id="L58">    }</span>
 
     public void writeTo(final RandomAccessFile raf) throws IOException {
-<span class="fc" id="L88">        FileChannel ch = raf.getChannel();</span>
-<span class="fc" id="L89">        FileLock lock = ch.lock();</span>
-        try {
-<span class="fc" id="L91">            raf.write(type.getBytes(Charsets.US_ASCII));</span>
-<span class="fc" id="L92">            raf.writeInt(version);</span>
-<span class="fc" id="L93">            raf.writeInt(metaData.length);</span>
-<span class="pc bpc" id="L94" title="1 of 2 branches missed.">            if (metaData.length &gt; 0) {</span>
-<span class="nc" id="L95">                raf.write(metaData);</span>
-            }
-<span class="nc" id="L97">        } catch (IOException | RuntimeException e) {</span>
-            try {
-<span class="nc" id="L99">                lock.release();</span>
-<span class="nc" id="L100">                throw e;</span>
-<span class="nc" id="L101">            } catch (IOException ex) {</span>
-<span class="nc" id="L102">                ex.addSuppressed(e);</span>
-<span class="nc" id="L103">                throw ex;</span>
-            }
-<span class="fc" id="L105">        }</span>
-<span class="fc" id="L106">        lock.release();</span>
-<span class="fc" id="L107">    }</span>
+<span class="fc" id="L61">        raf.write(type.getBytes(Charsets.US_ASCII));</span>
+<span class="fc" id="L62">        raf.writeInt(version);</span>
+<span class="fc" id="L63">        raf.writeInt(metaData.length);</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">        if (metaData.length &gt; 0) {</span>
+<span class="nc" id="L65">            raf.write(metaData);</span>
+        }
+<span class="fc" id="L67">    }</span>
 
     public String getType() {
-<span class="nc" id="L110">        return type;</span>
+<span class="nc" id="L70">        return type;</span>
     }
 
     public int getVersion() {
-<span class="nc" id="L114">        return version;</span>
+<span class="nc" id="L74">        return version;</span>
     }
 
     public byte[] getMetaData() {
-<span class="nc" id="L118">        return metaData;</span>
+<span class="nc" id="L78">        return metaData;</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L123">        return &quot;Header{&quot; + &quot;type=&quot; + type + &quot;, version=&quot; + version + '}';</span>
+<span class="nc" id="L83">        return &quot;Header{&quot; + &quot;type=&quot; + type + &quot;, version=&quot; + version + '}';</span>
     }
 
 }

@@ -19,115 +19,70 @@ package org.spf4j.perf.tsdb;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 
 /**
  *
  * @author zoly
  */
 final class TableOfContents {
-    private final long location;
-    private long lastColumnInfo;
-    private long firstColumnInfo;
 
-<span class="fc" id="L34">    public TableOfContents(final long location) {</span>
-<span class="fc" id="L35">        this.location = location;</span>
-<span class="fc" id="L36">        firstColumnInfo = 0;</span>
-<span class="fc" id="L37">        lastColumnInfo = 0;</span>
-<span class="fc" id="L38">    }</span>
+    private final long location;
+    private long lastTableInfo;
+    private long firstTableInfo;
+
+<span class="fc" id="L33">    public TableOfContents(final long location) {</span>
+<span class="fc" id="L34">        this.location = location;</span>
+<span class="fc" id="L35">        firstTableInfo = 0;</span>
+<span class="fc" id="L36">        lastTableInfo = 0;</span>
+<span class="fc" id="L37">    }</span>
+
+    public TableOfContents(final RandomAccessFile raf) throws IOException {
+<span class="fc" id="L40">        this(raf, raf.getFilePointer());</span>
+<span class="fc" id="L41">    }</span>
     
-<span class="fc" id="L40">    public TableOfContents(final RandomAccessFile raf) throws IOException {</span>
-<span class="fc" id="L41">        this.location = raf.getFilePointer();</span>
-<span class="fc" id="L42">        FileChannel ch = raf.getChannel();</span>
-<span class="fc" id="L43">        FileLock lock = ch.lock(this.location, 16, true);</span>
-        try {
-<span class="fc" id="L45">            this.firstColumnInfo = raf.readLong();</span>
-<span class="fc" id="L46">            this.lastColumnInfo = raf.readLong();</span>
-<span class="nc" id="L47">        } catch (IOException | RuntimeException e) {</span>
-            try {
-<span class="nc" id="L49">                lock.release();</span>
-<span class="nc" id="L50">                throw e;</span>
-<span class="nc" id="L51">            } catch (IOException ex) {</span>
-<span class="nc" id="L52">                ex.addSuppressed(e);</span>
-<span class="nc" id="L53">                throw ex;</span>
-            }
-<span class="fc" id="L55">        }</span>
-<span class="fc" id="L56">        lock.release();</span>
-<span class="fc" id="L57">    }</span>
+<span class="fc" id="L43">    public TableOfContents(final RandomAccessFile raf, final long location) throws IOException {</span>
+<span class="fc" id="L44">        this.location = location;</span>
+<span class="fc" id="L45">        raf.seek(location);</span>
+<span class="fc" id="L46">        this.firstTableInfo = raf.readLong();</span>
+<span class="fc" id="L47">        this.lastTableInfo = raf.readLong();</span>
+<span class="fc" id="L48">    }</span>
+    
 
     public void writeTo(final RandomAccessFile raf) throws IOException {
-<span class="fc" id="L60">        FileChannel ch = raf.getChannel();</span>
-<span class="fc" id="L61">        FileLock lock = ch.lock(this.location, 16, false);</span>
-        try {
-<span class="fc" id="L63">            raf.seek(location);</span>
-<span class="fc" id="L64">            raf.writeLong(firstColumnInfo);</span>
-<span class="fc" id="L65">            raf.writeLong(lastColumnInfo);</span>
-<span class="nc" id="L66">        } catch (IOException | RuntimeException e) {</span>
-            try {
-<span class="nc" id="L68">                lock.release();</span>
-<span class="nc" id="L69">                throw e;</span>
-<span class="nc" id="L70">            } catch (IOException ex) {</span>
-<span class="nc" id="L71">                ex.addSuppressed(e);</span>
-<span class="nc" id="L72">                throw ex;</span>
-            }
-<span class="fc" id="L74">        }</span>
-<span class="fc" id="L75">        lock.release();</span>
+<span class="fc" id="L52">        raf.seek(location);</span>
+<span class="fc" id="L53">        raf.writeLong(firstTableInfo);</span>
+<span class="fc" id="L54">        raf.writeLong(lastTableInfo);</span>
+<span class="fc" id="L55">    }</span>
+
+    public long getLastTableInfoPtr() {
+<span class="fc" id="L58">        return lastTableInfo;</span>
+    }
+
+    public long getFirstTableInfoPtr() {
+<span class="fc" id="L62">        return firstTableInfo;</span>
+    }
+
+    public void setLastTableInfo(final long plastColumnInfo, final RandomAccessFile raf) throws IOException {
+<span class="fc" id="L66">        this.lastTableInfo = plastColumnInfo;</span>
+<span class="fc" id="L67">        long loc = location + 8;</span>
+<span class="fc" id="L68">        raf.seek(loc);</span>
+<span class="fc" id="L69">        raf.writeLong(lastTableInfo);</span>
+<span class="fc" id="L70">    }</span>
+
+    public void setFirstTableInfo(final long pfirstColumnInfo, final RandomAccessFile raf) throws IOException {
+<span class="fc" id="L73">        this.firstTableInfo = pfirstColumnInfo;</span>
+<span class="fc" id="L74">        raf.seek(location);</span>
+<span class="fc" id="L75">        raf.writeLong(firstTableInfo);</span>
 <span class="fc" id="L76">    }</span>
 
-    public long getLastColumnInfo() {
-<span class="nc" id="L79">        return lastColumnInfo;</span>
+    public long getLocation() {
+<span class="fc" id="L79">        return location;</span>
     }
-
-
-    public long getFirstColumnInfo() {
-<span class="fc" id="L84">        return firstColumnInfo;</span>
-    }
-
     
-    public void setLastColumnInfo(final long plastColumnInfo, final RandomAccessFile raf) throws IOException {
-<span class="fc" id="L89">        this.lastColumnInfo = plastColumnInfo;</span>
-<span class="fc" id="L90">        FileChannel ch = raf.getChannel();</span>
-<span class="fc" id="L91">        long loc = location + 8;</span>
-<span class="fc" id="L92">        FileLock lock = ch.lock(loc, 8, false);</span>
-        try {
-<span class="fc" id="L94">            raf.seek(loc);</span>
-<span class="fc" id="L95">            raf.writeLong(lastColumnInfo);</span>
-<span class="nc" id="L96">        } catch (IOException | RuntimeException e) {</span>
-            try {
-<span class="nc" id="L98">                lock.release();</span>
-<span class="nc" id="L99">                throw e;</span>
-<span class="nc" id="L100">            } catch (IOException ex) {</span>
-<span class="nc" id="L101">                ex.addSuppressed(e);</span>
-<span class="nc" id="L102">                throw ex;</span>
-            }
-<span class="fc" id="L104">        }</span>
-<span class="fc" id="L105">        lock.release();</span>
-<span class="fc" id="L106">    }</span>
-    
-    public void setFirstColumnInfo(final long pfirstColumnInfo, final RandomAccessFile raf) throws IOException {
-<span class="fc" id="L109">        this.firstColumnInfo = pfirstColumnInfo;</span>
-<span class="fc" id="L110">        FileChannel ch = raf.getChannel();</span>
-<span class="fc" id="L111">        FileLock lock = ch.lock(location, 8, false);</span>
-        try {
-<span class="fc" id="L113">            raf.seek(location);</span>
-<span class="fc" id="L114">            raf.writeLong(firstColumnInfo);</span>
-<span class="nc" id="L115">        } catch (IOException | RuntimeException e) {</span>
-            try {
-<span class="nc" id="L117">                lock.release();</span>
-<span class="nc" id="L118">                throw e;</span>
-<span class="nc" id="L119">            } catch (IOException ex) {</span>
-<span class="nc" id="L120">                ex.addSuppressed(e);</span>
-<span class="nc" id="L121">                throw ex;</span>
-            }
-<span class="fc" id="L123">        }</span>
-<span class="fc" id="L124">        lock.release();</span>
-<span class="fc" id="L125">    }</span>
-
     @Override
     public String toString() {
-<span class="nc" id="L129">        return &quot;TableOfContents{&quot; + &quot;location=&quot; + location + &quot;, lastColumnInfo=&quot; + lastColumnInfo</span>
-                + &quot;, firstColumnInfo=&quot; + firstColumnInfo + '}';
+<span class="nc" id="L84">        return &quot;TableOfContents{&quot; + &quot;location=&quot; + location + &quot;, lastColumnInfo=&quot; + lastTableInfo</span>
+                + &quot;, firstColumnInfo=&quot; + firstTableInfo + '}';
     }
 
 }
