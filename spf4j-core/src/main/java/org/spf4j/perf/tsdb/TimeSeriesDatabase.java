@@ -639,10 +639,9 @@ public final class TimeSeriesDatabase implements Closeable {
     
     @SuppressFBWarnings("MDM_THREAD_YIELD")
     public void tail(final long pollMillis, final long from, final TSDataHandler handler)
-            throws InterruptedException, IOException {
+            throws IOException {
         Map<String, TSTable> lastState = new HashMap<>();
-
-        while (!Thread.interrupted()) {
+        while (!Thread.interrupted() && !handler.finish()) {
             // see if we have new Tables;
             reReadTableInfos();
             Map<String, TSTable> currState = getTsTables();
@@ -678,7 +677,12 @@ public final class TimeSeriesDatabase implements Closeable {
                 }
             }
             lastState = currState;
-            Thread.sleep(pollMillis);
+            try {
+                Thread.sleep(pollMillis);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                break;
+            }
         }
     }
     

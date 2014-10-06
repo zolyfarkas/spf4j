@@ -48,10 +48,13 @@ public final class TimeSeriesDatabaseTest {
             instance.flush();
             System.out.println(instance.getTSTables());
             TimeSeries readAll = instance.readAll("gr1");
+            Assert.assertEquals(2, readAll.getValues()[1][1]);
             System.out.println(readAll);
             readAll = instance.readAll("gr2");
+            Assert.assertEquals(7, readAll.getValues()[0][0]);
             System.out.println(readAll);
             readAll = instance.readAll("gr3");
+            Assert.assertEquals(10, readAll.getValues()[1][1]);
             System.out.println(readAll);
         }
         
