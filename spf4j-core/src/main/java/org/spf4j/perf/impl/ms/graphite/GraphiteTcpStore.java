@@ -44,8 +44,18 @@ public final class GraphiteTcpStore implements MeasurementStore {
             Socket socket;
             try {
                 socket = socketFactory.createSocket(hostName, port);
+            } catch (IOException ex) {
+                throw new ObjectCreationException(ex);
+            }
+            try {
                 return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), Charsets.UTF_8));
             } catch (IOException ex) {
+                try {
+                    socket.close();
+                } catch (IOException ex1) {
+                    ex1.addSuppressed(ex);
+                    throw new ObjectCreationException(ex1);
+                }
                 throw new ObjectCreationException(ex);
             }
         }

@@ -57,7 +57,7 @@ public final class UIDGenerator {
             byte[] intfMac;
             try {
                 Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
-                if (networkInterfaces.hasMoreElements()) {
+                if (networkInterfaces != null && networkInterfaces.hasMoreElements()) {
                     do {
                         intfMac = networkInterfaces.nextElement().getHardwareAddress();
                     } while (intfMac == null && networkInterfaces.hasMoreElements());

@@ -20,6 +20,7 @@ package org.spf4j.stackmonitor;
 import com.google.common.base.Predicate;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.ds.Graph;
@@ -238,8 +239,9 @@ public final class SampleNode {
         }
     }
 
+    @Nonnull
     public static Graph<Method, InvocationCount> toGraph(final SampleNode rootNode) {
-        final HashMapGraph<Method, InvocationCount> result = new HashMapGraph<Method, InvocationCount>();
+        final HashMapGraph<Method, InvocationCount> result = new HashMapGraph<>();
 
         rootNode.forEach(new InvocationHandler() {
             @Override

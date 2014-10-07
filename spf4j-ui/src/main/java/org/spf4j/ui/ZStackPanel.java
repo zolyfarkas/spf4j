@@ -30,6 +30,7 @@ import org.spf4j.base.EqualsPredicate;
 import org.spf4j.base.Pair;
 import org.spf4j.ds.Traversals;
 import org.spf4j.ds.Graph;
+import org.spf4j.ds.HashMapGraph;
 import org.spf4j.stackmonitor.Method;
 import org.spf4j.stackmonitor.SampleNode;
 import static org.spf4j.ui.StackPanelBase.LINK_COLOR;
@@ -239,7 +240,11 @@ public final class ZStackPanel extends StackPanelBase {
         if (tips.size() >= 1) {
             final Method value = tips.get(0).getFirst().withId(0);
             samples = samples.filteredBy(new EqualsPredicate<Method>(value));
-            this.completeGraph = SampleNode.toGraph(samples);
+            if (samples != null) {
+                this.completeGraph = SampleNode.toGraph(samples);
+            } else {
+                this.completeGraph = new HashMapGraph<>();
+            }
             repaint();
         }
     }

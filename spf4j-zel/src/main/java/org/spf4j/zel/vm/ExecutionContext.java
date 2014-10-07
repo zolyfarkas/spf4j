@@ -306,7 +306,7 @@ public final class ExecutionContext {
                 throw new RuntimeException(e);
             }
         }
-        if (futures.isEmpty()) {
+        if (futures == null || futures.isEmpty()) {
             throw new IllegalStateException();
         }
         suspend(futures);

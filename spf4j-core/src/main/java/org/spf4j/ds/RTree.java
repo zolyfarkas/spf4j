@@ -554,6 +554,9 @@ public final class RTree<T> {
                 float curArea = 1.0f;
                 float thisArea = 1.0f;
                 for (int i = 0; i < c.dimensions.length; i++) {
+                    if (next == null) {
+                        throw new IllegalStateException("Illegal state at " + c);
+                    }
                     curArea *= next.dimensions[i];
                     thisArea *= c.dimensions[i];
                 }

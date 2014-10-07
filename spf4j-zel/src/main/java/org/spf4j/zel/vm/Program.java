@@ -220,6 +220,7 @@ public final class Program implements Serializable {
         return execType;
     }
 
+    @Nonnull
     public static Program compile(@Nonnull final String zExpr, @Nonnull final String... varNames)
             throws CompileException {
 

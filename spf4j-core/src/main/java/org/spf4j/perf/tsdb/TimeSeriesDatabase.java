@@ -18,6 +18,8 @@
 package org.spf4j.perf.tsdb;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import com.google.common.collect.Sets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.base.Pair;
@@ -86,6 +88,8 @@ public final class TimeSeriesDatabase implements Closeable {
     private final String path;
     private final FileChannel ch;
     
+    private static final Interner<String> INTERNER = Interners.newStrongInterner();
+    
     public TimeSeriesDatabase(final String pathToDatabaseFile) throws IOException {
         this(pathToDatabaseFile, false);
     }
@@ -98,7 +102,7 @@ public final class TimeSeriesDatabase implements Closeable {
             throws IOException {
         file = new RandomAccessFile(pathToDatabaseFile, isWrite ? "rw" : "r");
         // uniques per process string for sync purposes.
-        this.path = new File(pathToDatabaseFile).getPath().intern();
+        this.path = INTERNER.intern(new File(pathToDatabaseFile).getPath());
         tables = new ConcurrentHashMap<>();
         writeDataFragments = new HashMap<>();
         // read or create header

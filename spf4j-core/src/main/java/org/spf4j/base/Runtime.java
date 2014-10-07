@@ -125,7 +125,11 @@ public final class Runtime {
             return handler.getLineCount() - 1;
         } else {
             if (FD_FOLDER.exists()) {
-                return FD_FOLDER.list().length;
+                final String[] list = FD_FOLDER.list();
+                if (list == null) {
+                    return -1;
+                }
+                return list.length;
             } else {
                 return -1;
             }
