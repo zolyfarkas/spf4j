@@ -18,9 +18,12 @@
 package org.spf4j.perf.impl.ms.tsdb;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -44,10 +47,12 @@ public final class TSDBTxtMeasurementStore
     private final BufferedWriter writer;
     
     private final String fileName;
+    
+    private static final Interner<String> INTERNER = Interners.newStrongInterner();
 
     public TSDBTxtMeasurementStore(final String fileName) throws IOException {
         this.writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName, true), Charsets.UTF_8));
-        this.fileName = fileName.intern();
+        this.fileName = INTERNER.intern(new File(fileName).getPath());
     }
 
     @Override
