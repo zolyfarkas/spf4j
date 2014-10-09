@@ -55,7 +55,7 @@ public final class Runtime {
     
     
     private static class Lazy {
-        private static final Logger LOGGER = LoggerFactory.getLogger(Runtime.class);
+        private static final Logger LOGGER = LoggerFactory.getLogger(Lazy.class);
     }
 
     // Calling Halt is the only sensible thing to do when the JVM is hosed.
