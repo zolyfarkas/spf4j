@@ -54,13 +54,15 @@ public final class Runtime {
     public static final Version JAVA_PLATFORM;
     
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(Runtime.class);
+    private static class Lazy {
+        private static final Logger LOGGER = LoggerFactory.getLogger(Runtime.class);
+    }
 
     // Calling Halt is the only sensible thing to do when the JVM is hosed.
     @edu.umd.cs.findbugs.annotations.SuppressWarnings
     public static void goDownWithError(final Throwable t, final int exitCode) {
         try {
-            LOGGER.error("Unrecoverable Error, going down", t);
+            Lazy.LOGGER.error("Unrecoverable Error, going down", t);
         } finally {
             try {
                 t.printStackTrace();
@@ -82,7 +84,8 @@ public final class Runtime {
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         final int availableProcessors = runtime.availableProcessors();
         if (availableProcessors <= 0) {
-            LOGGER.warn("Number of processors returned by MBean is invalid: {} defaultng to 1", availableProcessors);
+            System.err.println("Invalid number of processors " + availableProcessors
+                + " defaulting to 1");
             NR_PROCESSORS = 1;
         } else {
             NR_PROCESSORS = availableProcessors;
