@@ -41,7 +41,7 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
     private final CacheLoader<K, V> loader;
 
     public UnboundedLoadingCache(final int initialSize, final CacheLoader<K, V> loader) {
-        this.map = new ConcurrentHashMap<K, MemorizedCallable<? extends V>>(
+        this.map = new ConcurrentHashMap<>(
                 initialSize, 0.75f, getDefaultConcurrency());
         this.loader = loader;
     }
