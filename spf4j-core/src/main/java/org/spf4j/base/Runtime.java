@@ -80,7 +80,13 @@ public final class Runtime {
     static {
         final java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-        NR_PROCESSORS = runtime.availableProcessors();
+        final int availableProcessors = runtime.availableProcessors();
+        if (availableProcessors <= 0) {
+            LOGGER.warn("Number of processors returned by MBean is invalid: {} defaultng to 1", availableProcessors);
+            NR_PROCESSORS = 1;
+        } else {
+            NR_PROCESSORS = availableProcessors;
+        }
         PROCESS_NAME = runtimeMxBean.getName();
         int atIdx = PROCESS_NAME.indexOf('@');
         if (atIdx < 0) {
