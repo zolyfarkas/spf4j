@@ -27,7 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.ParametersAreNonnullByDefault;
-import static org.spf4j.concurrent.UnboundedLoadingCache.getDefaultConcurrency;
 
 /**
  *
@@ -41,8 +40,12 @@ public final class UnboundedRacyLoadingCache<K, V> implements LoadingCache<K, V>
     private final CacheLoader<K, V> loader;
 
     public UnboundedRacyLoadingCache(final int initialSize, final CacheLoader<K, V> loader) {
+        this(initialSize, 8, loader);
+    }
+    
+    public UnboundedRacyLoadingCache(final int initialSize, final int concurrency, final CacheLoader<K, V> loader) {
         this.map = new ConcurrentHashMap<>(
-                initialSize, 0.75f, getDefaultConcurrency());
+                initialSize, 0.75f, concurrency);
         this.loader = loader;
     }
 

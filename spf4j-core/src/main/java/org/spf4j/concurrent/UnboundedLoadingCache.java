@@ -41,18 +41,16 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
     private final CacheLoader<K, V> loader;
 
     public UnboundedLoadingCache(final int initialSize, final CacheLoader<K, V> loader) {
+        this(initialSize, 8, loader);
+    }
+    
+    
+    public UnboundedLoadingCache(final int initialSize, final int concurrency, final CacheLoader<K, V> loader) {
         this.map = new ConcurrentHashMap<>(
-                initialSize, 0.75f, getDefaultConcurrency());
+                initialSize, 0.75f, concurrency);
         this.loader = loader;
     }
 
-    public static int getDefaultConcurrency() {
-        int defConcurrency = org.spf4j.base.Runtime.NR_PROCESSORS;
-        if (defConcurrency > 16) {
-            defConcurrency = 16;
-        }
-        return defConcurrency;
-    }
 
     @Override
     public V get(final K key) throws ExecutionException {
