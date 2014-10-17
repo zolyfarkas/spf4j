@@ -86,7 +86,7 @@ public abstract class Either<A, B> {
 
         @Override
         public B getRight() {
-            throw new UnsupportedOperationException("This union doe not have a left val, instead a " + value);
+            throw new UnsupportedOperationException("This union doe not have a right val, instead a " + value);
         }
         
     }
