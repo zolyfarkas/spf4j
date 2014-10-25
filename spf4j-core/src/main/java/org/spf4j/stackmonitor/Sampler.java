@@ -77,7 +77,7 @@ public final class Sampler {
     }
 
     public Sampler(final int sampleTimeMillis) {
-        this(sampleTimeMillis, 3600000, new MxStackCollector());
+        this(sampleTimeMillis, 3600000, new FastStackCollector());
     }
 
     public Sampler(final StackCollector collector) {
