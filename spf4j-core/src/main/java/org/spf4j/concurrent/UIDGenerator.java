@@ -40,9 +40,13 @@ public final class UIDGenerator {
     private final String base;
 
     private final int maxSize;
-    
+      
     public UIDGenerator(final Sequence sequence) {
-        this(sequence, BaseEncoding.base64());
+        this(sequence, 0);
+    }
+    
+    public UIDGenerator(final Sequence sequence, final long customEpoch) {
+        this(sequence, BaseEncoding.base64Url(), customEpoch, '.');
     }
 
     /**
@@ -50,7 +54,8 @@ public final class UIDGenerator {
      * @param sequence
      * @param baseEncoding - if null MAC address based ID will not be included.
      */
-    public UIDGenerator(final Sequence sequence, @Nullable final BaseEncoding baseEncoding) {
+    public UIDGenerator(final Sequence sequence, @Nullable final BaseEncoding baseEncoding,
+            final long customEpoch, final char separator) {
         this.sequence = sequence;
         StringBuilder sb = new StringBuilder();
         if (baseEncoding != null) {
@@ -70,12 +75,12 @@ public final class UIDGenerator {
             } catch (SocketException ex) {
                 throw new RuntimeException(ex);
             }
-            sb.append(baseEncoding.encode(intfMac)).append('_');
+            sb.append(baseEncoding.encode(intfMac)).append(separator);
         }
         appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);
-        sb.append('_');
-        appendUnsignedString(sb, System.currentTimeMillis() / 1000, 5);
-        sb.append('_');
+        sb.append(separator);
+        appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);
+        sb.append(separator);
         base = sb.toString();
         maxSize = base.length() + 16;
     }

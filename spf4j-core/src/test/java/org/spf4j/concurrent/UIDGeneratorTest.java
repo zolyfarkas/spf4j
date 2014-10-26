@@ -28,7 +28,7 @@ public final class UIDGeneratorTest {
 
     @Test
     public void testSomeMethod() {
-        UIDGenerator idGen = new UIDGenerator(new ScalableSequence(0, 50));
+        UIDGenerator idGen = new UIDGenerator(new ScalableSequence(0, 50), System.currentTimeMillis());
         long startTime  = System.currentTimeMillis();
         for (int i = 0; i < 100; i++) {
             System.out.println("ID: " + idGen.next());
