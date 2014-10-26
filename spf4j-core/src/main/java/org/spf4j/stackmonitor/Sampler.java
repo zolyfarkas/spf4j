@@ -195,14 +195,11 @@ public final class Sampler {
                         String fileName = filePrefix + "_" + ((id == null) ? "" : id + "_")
                                 + TS_FORMAT.print(lastDumpTime) + "_"
                                 + TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump";
-                        final BufferedOutputStream bos = new BufferedOutputStream(
-                                new FileOutputStream(fileName));
-                        try {
+                        try (BufferedOutputStream bos = new BufferedOutputStream(
+                                new FileOutputStream(fileName))) {
                             Converter.fromSampleNodeToProto(input).writeTo(bos);
                             lastDumpTime = System.currentTimeMillis();
                             result.setValue(fileName);
-                        } finally {
-                            bos.close();
                         }
                     }
                 } catch (IOException ex) {
