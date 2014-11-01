@@ -34,6 +34,7 @@ import org.spf4j.zel.instr.Instruction;
  *
  * @author zoly
  */
+@SuppressFBWarnings("CD_CIRCULAR_DEPENDENCY")
 public final class ProgramBuilder {
 
     private static final int DEFAULT_SIZE = 16;

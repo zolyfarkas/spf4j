@@ -17,11 +17,13 @@
  */
 package org.spf4j.zel.instr;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
+@SuppressFBWarnings("CD_CIRCULAR_DEPENDENCY")
 public final class LODAX extends Instruction implements LValRef {
 
     private static final long serialVersionUID = 1257172216541960034L;
@@ -65,6 +67,7 @@ public final class LODAX extends Instruction implements LValRef {
         return 1;
     }
 
+    @Override
     public String getSymbol() {
         return symbol;
     }
