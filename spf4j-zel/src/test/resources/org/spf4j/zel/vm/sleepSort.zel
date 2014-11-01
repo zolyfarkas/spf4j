@@ -1,0 +1,31 @@
+/**
+* Sleep sort implementation in ZEL :-)
+* this takes advantage of the concurrency facilities available in ZEL.
+* Sleep values are multiplied by 10 due to scheduler precision.
+*/
+
+func sleepSort(x) {
+  l = x.length;
+  if l <= 0 {
+    return x
+  };
+  resChan = channel();
+  max = x[0];
+  sl = func (x, ch) {sleep x * 10; ch.write(x)};
+  sl(max, resChan)&;
+  for i = 1; i < l; i++ {
+    val = x[i]; 
+    sl(val, resChan)&;
+    if (val > max) {
+      max = val
+    }
+  };
+  sleep (max + 1) * 10;
+  resChan.close();
+  for c = resChan.read(), i = 0; c != EOF; c = resChan.read(), i++ {
+     x[i] = c
+  };
+  return x
+};
+
+sleepSort(x)

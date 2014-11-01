@@ -45,7 +45,7 @@ public final class SLEEP extends Instruction {
         if (context.execService == null) {
             Thread.sleep(param.longValue());
         } else {
-            final VMASyncFuture<Object> future = new VMASyncFuture<Object>();
+            final VMASyncFuture<Object> future = new VMASyncFuture<>();
             DefaultScheduler.INSTANCE.schedule(new RunnableImpl(context, future),
                     param.longValue(), TimeUnit.MILLISECONDS);
             context.ip++;
