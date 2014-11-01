@@ -38,10 +38,10 @@ public class ZelBenchmark {
      *
      * 1) Zel does overflow check for each math operation and automatically upgrades
      * the data representation, which comes at a overhead.
-     * 2) Zel uses reflection to do java method invocations, which is slower than byte code generation 
+     * 2) Zel uses reflection to do java method invocations, which is slower than byte code generation
      * that mvel and groovy uses.
      * 3) Spring expression language is slow like hell, and there is no excuse for it :-)
-     *  
+     *
      */
     
     static {
