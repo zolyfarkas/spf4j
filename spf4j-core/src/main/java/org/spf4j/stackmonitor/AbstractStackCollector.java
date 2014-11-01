@@ -25,7 +25,7 @@ import javax.annotation.concurrent.GuardedBy;
  * @author zoly
  */
 public abstract class AbstractStackCollector implements StackCollector {
- 
+
     
     private final Object sampleSync = new Object();
     @GuardedBy(value = "sampleSync")
@@ -35,16 +35,19 @@ public abstract class AbstractStackCollector implements StackCollector {
     @Override
     public final SampleNode applyOnSamples(final Function<SampleNode, SampleNode> predicate) {
         synchronized (sampleSync) {
+            SampleNode result = samples;
             samples = predicate.apply(samples);
-            return samples;
+            return result;
         }
     }
 
 
     @Override
-    public final void clear() {
+    public final SampleNode clear() {
         synchronized (sampleSync) {
+            SampleNode result = samples;
             samples = null;
+            return result;
         }
     }
     

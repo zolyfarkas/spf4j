@@ -61,9 +61,17 @@ public final class SampleNodeTest {
         SampleNode.addToSampleNode(node1, st1);
         node2.addSample(st1, st1.length - 1);
         
-        System.out.println(node1);
-        System.out.println(node2);
+        System.out.println("n1 = " + node1);
+        System.out.println("n2 = " + node2);
         Assert.assertEquals(node1.toString(), node2.toString());
+        
+        SampleNode agg = SampleNode.aggregate(node1, node2);
+        System.out.println("n1 + n2 = " + agg);
+        Assert.assertEquals(node1.getSampleCount() + node2.getSampleCount(), agg.getSampleCount());
+        final Method method = new Method("C1", "m3");
+        Assert.assertEquals(node1.getSubNodes().get(method).getSampleCount()
+                + node2.getSubNodes().get(method).getSampleCount(),
+                agg.getSubNodes().get(method).getSampleCount());
         
     }
 }

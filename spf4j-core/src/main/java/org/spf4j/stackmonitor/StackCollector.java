@@ -25,9 +25,15 @@ import com.google.common.base.Function;
  */
 public interface StackCollector {
 
+    /**
+     * Apply function on the collected samples.
+     * 
+     * @param predicate
+     * @return - sample node before function was applied.
+     */
     SampleNode applyOnSamples(Function<SampleNode, SampleNode> predicate);
 
-    void clear();
+    SampleNode clear();
 
     void sample(Thread ignore);
     

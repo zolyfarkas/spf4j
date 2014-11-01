@@ -17,12 +17,16 @@
  */
 package org.spf4j.stackmonitor.proto;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import org.spf4j.stackmonitor.Method;
 import org.spf4j.stackmonitor.SampleNode;
 import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 
 /**
  *
@@ -32,6 +36,14 @@ public final class Converter {
     
     private Converter() { }
     
+    
+    public static void saveToFile(@Nonnull final String fileName, @Nonnull final SampleNode input) throws IOException {
+        try (BufferedOutputStream bos = new BufferedOutputStream(
+                new FileOutputStream(fileName))) {
+            fromSampleNodeToProto(input).writeTo(bos);
+        }
+    }
+
     public static ProtoSampleNodes.Method fromMethodToProto(final Method m) {
         return ProtoSampleNodes.Method.newBuilder().setMethodName(m.getMethodName())
                 .setDeclaringClass(m.getDeclaringClass())
@@ -58,11 +70,11 @@ public final class Converter {
     
     public static SampleNode  fromProtoToSampleNode(final ProtoSampleNodes.SampleNodeOrBuilder node) {
         
-        Map<Method, SampleNode> subNodes = null;
+        HashMap<Method, SampleNode> subNodes = null;
         
         List<ProtoSampleNodes.SamplePair> sns =  node.getSubNodesList();
         if (sns != null) {
-            subNodes = new HashMap<Method, SampleNode>();
+            subNodes = new HashMap<>();
             for (ProtoSampleNodes.SamplePair pair : sns) {
                 final ProtoSampleNodes.Method method = pair.getMethod();
                 subNodes.put(new Method(method.getDeclaringClass(),

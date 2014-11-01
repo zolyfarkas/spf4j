@@ -18,6 +18,7 @@
 package org.spf4j.stackmonitor;
 
 import com.google.common.base.Predicate;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -30,10 +31,12 @@ import org.spf4j.ds.HashMapGraph;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class SampleNode {
+public final class SampleNode implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
 
     private int sampleCount;
-    private Map<Method, SampleNode> subNodes;
+    private HashMap<Method, SampleNode> subNodes;
 
     public SampleNode(final StackTraceElement[] stackTrace, final int from) {
         sampleCount = 1;
@@ -49,7 +52,7 @@ public final class SampleNode {
         for (int i = stackTrace.length - 1; i >= 0; i--) {
             StackTraceElement elem = stackTrace[i];
             if (prevResult.subNodes == null) {
-                prevResult.subNodes = new HashMap<Method, SampleNode>();
+                prevResult.subNodes = new HashMap<>();
             }
             SampleNode node = new SampleNode(1, null);
             prevResult.subNodes.put(Method.getMethod(elem), node);
@@ -67,7 +70,7 @@ public final class SampleNode {
             final Method method = Method.getMethod(elem);
             SampleNode nNode;
             if (prevResult.subNodes == null) {
-                prevResult.subNodes = new HashMap<Method, SampleNode>();
+                prevResult.subNodes = new HashMap<>();
                 nNode = new SampleNode(1, null);
                 prevResult.subNodes.put(method, nNode);
             } else {
@@ -82,8 +85,52 @@ public final class SampleNode {
             prevResult = nNode;
         }
     }
+    
+    public static SampleNode clone(final SampleNode node) {
+        HashMap<Method, SampleNode> newSubNodes = new HashMap<>(node.subNodes.size());
+        for (Map.Entry<Method, SampleNode> entry: node.subNodes.entrySet()) {
+            newSubNodes.put(entry.getKey(), clone(entry.getValue()));
+        }
+        return new SampleNode(node.sampleCount, newSubNodes);
+    }
+    
+    public static SampleNode aggregate(final SampleNode node1, final SampleNode node2) {
+        int newSampleCount = node1.sampleCount + node2.sampleCount;
+        HashMap<Method, SampleNode> newSubNodes;
+        if (node1.subNodes == null && node2.subNodes == null) {
+            newSubNodes = null;
+        } else if (node1.subNodes == null) {
+            newSubNodes = new HashMap<>(node2.subNodes.size());
+            for (Map.Entry<Method, SampleNode> entry: node2.subNodes.entrySet()) {
+                newSubNodes.put(entry.getKey(), clone(entry.getValue()));
+            }
+        } else if (node2.subNodes == null) {
+            newSubNodes = new HashMap<>(node1.subNodes.size());
+            for (Map.Entry<Method, SampleNode> entry: node1.subNodes.entrySet()) {
+                newSubNodes.put(entry.getKey(), clone(entry.getValue()));
+            }
+        } else {
+            newSubNodes = new HashMap<>(node1.subNodes.size());
+            for (Map.Entry<Method, SampleNode> entry: node1.subNodes.entrySet()) {
+                Method m = entry.getKey();
+                SampleNode other = node2.subNodes.get(m);
+                if (other == null) {
+                    newSubNodes.put(m, clone(entry.getValue()));
+                } else {
+                    newSubNodes.put(m, aggregate(entry.getValue(), other));
+                }
+            }
+            for (Map.Entry<Method, SampleNode> entry: node2.subNodes.entrySet()) { // on left not it right
+                Method m = entry.getKey();
+                if (!node1.subNodes.containsKey(m)) {
+                    newSubNodes.put(m, clone(entry.getValue()));
+                }
+            }
+        }
+        return new SampleNode(newSampleCount, newSubNodes);
+    }
 
-    public SampleNode(final int count, @Nullable final Map<Method, SampleNode> subNodes) {
+    public SampleNode(final int count, @Nullable final HashMap<Method, SampleNode> subNodes) {
         this.sampleCount = count;
         this.subNodes = subNodes;
     }
@@ -154,7 +201,7 @@ public final class SampleNode {
 
         int newCount = this.sampleCount;
 
-        Map<Method, SampleNode> sns = null;
+        HashMap<Method, SampleNode> sns = null;
         if (this.subNodes != null) {
             for (Map.Entry<Method, SampleNode> entry : this.subNodes.entrySet()) {
                 Method method = entry.getKey();
@@ -163,7 +210,7 @@ public final class SampleNode {
                     newCount -= sn.getSampleCount();
                 } else {
                     if (sns == null) {
-                        sns = new HashMap<Method, SampleNode>();
+                        sns = new HashMap<>();
                     }
                     SampleNode sn2 = sn.filteredBy(predicate);
                     if (sn2 == null) {
@@ -274,4 +321,6 @@ public final class SampleNode {
         return result;
 
     }
+    
+    
 }

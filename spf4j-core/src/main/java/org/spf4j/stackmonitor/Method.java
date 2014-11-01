@@ -20,6 +20,7 @@ package org.spf4j.stackmonitor;
 import com.google.common.escape.Escaper;
 import com.google.common.html.HtmlEscapers;
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
@@ -32,7 +33,9 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 // using racy single check idiom makes findbugs think the Method obejct is mutable...
 @edu.umd.cs.findbugs.annotations.SuppressWarnings("JCIP_FIELD_ISNT_FINAL_IN_IMMUTABLE_CLASS")
-public final class Method {
+public final class Method implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
 
     private final String declaringClass;
     private final String methodName;

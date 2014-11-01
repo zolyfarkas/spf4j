@@ -20,6 +20,9 @@ package org.spf4j.stackmonitor;
 import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This is a high performance sampling collector.
@@ -38,14 +41,42 @@ public final class FastStackCollector extends AbstractStackCollector {
     
     private static final java.lang.reflect.Method GET_THREADS;
     private static final java.lang.reflect.Method DUMP_THREADS;
+    
+    private static final String[] IGNORED_THREADS = {
+            "Finalizer",
+            "Signal Dispatcher",
+            "Reference Handler",
+            "Attach Listener"
+    };
+    
+    private final Set<Thread> ignoredThreads;
+    
+    public FastStackCollector(final boolean collectForMain, final String ... xtraIgnoredThreads) {
+        Set<String> ignoredThreadNames = new HashSet<>(Arrays.asList(IGNORED_THREADS));
+        if (!collectForMain) {
+            ignoredThreadNames.add("main");
+        }
+        ignoredThreadNames.addAll(Arrays.asList(xtraIgnoredThreads));
+        ignoredThreads = new HashSet<>(ignoredThreadNames.size());
+        try {
+            Thread[] threads = (Thread[]) GET_THREADS.invoke(null);
+            for (Thread th : threads) {
+                if (ignoredThreadNames.contains(th.getName())) {
+                    ignoredThreads.add(th);
+                }
+            }
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+            throw new RuntimeException(ex);
+        }
+         
+    }
+    
 
     static {
         try {
             GET_THREADS = Thread.class.getDeclaredMethod("getThreads");
             DUMP_THREADS = Thread.class.getDeclaredMethod("dumpThreads", Thread[].class);
-        } catch (SecurityException ex) {
-            throw new RuntimeException(ex);
-        } catch (NoSuchMethodException ex) {
+        } catch (SecurityException | NoSuchMethodException ex) {
             throw new RuntimeException(ex);
         }
         AccessController.doPrivileged(new PrivilegedAction() {
@@ -66,9 +97,11 @@ public final class FastStackCollector extends AbstractStackCollector {
             Thread[] threads = (Thread[]) GET_THREADS.invoke(null);
             final int nrThreads = threads.length;
             for (int i = 0; i < nrThreads; i++) {
-                if (ignore == threads[i]) { // not interested in the sampler's stack trace
+                Thread th = threads[i];
+                if (ignore == th) { // not interested in the sampler's stack trace
                     threads[i] = null;
-                    break;
+                } else if (ignoredThreads.contains(th)) {
+                    threads[i] = null;
                 }
             }
             StackTraceElement[][] stackDump = (StackTraceElement[][]) DUMP_THREADS.invoke(null, (Object) threads);
@@ -77,11 +110,7 @@ public final class FastStackCollector extends AbstractStackCollector {
                         addSample(stackTrace);
                 }
             }
-        } catch (IllegalAccessException ex) {
-            throw new RuntimeException(ex);
-        } catch (IllegalArgumentException ex) {
-            throw new RuntimeException(ex);
-        } catch (InvocationTargetException ex) {
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             throw new RuntimeException(ex);
         }
     }

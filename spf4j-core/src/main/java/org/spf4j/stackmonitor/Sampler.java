@@ -17,11 +17,8 @@
  */
 package org.spf4j.stackmonitor;
 
-import com.google.common.base.Function;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
@@ -73,11 +70,11 @@ public final class Sampler {
     
     
     public Sampler() {
-        this(100, 3600000, new FastStackCollector());
+        this(100, 3600000, new FastStackCollector(false));
     }
 
     public Sampler(final int sampleTimeMillis) {
-        this(sampleTimeMillis, 3600000, new FastStackCollector());
+        this(sampleTimeMillis, 3600000, new FastStackCollector(false));
     }
 
     public Sampler(final StackCollector collector) {
@@ -187,28 +184,15 @@ public final class Sampler {
             @JmxExport(name = "fileName", description = "the file name to save to")
             @Nullable final String id) throws IOException {
         final MutableHolder<String> result = new MutableHolder<>();
-        stackCollector.applyOnSamples(new Function<SampleNode, SampleNode>() {
-            @Override
-            public SampleNode apply(final SampleNode input) {
-                try {
-                    if (input != null) {
-                        String fileName = filePrefix + "_" + ((id == null) ? "" : id + "_")
-                                + TS_FORMAT.print(lastDumpTime) + "_"
-                                + TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump";
-                        try (BufferedOutputStream bos = new BufferedOutputStream(
-                                new FileOutputStream(fileName))) {
-                            Converter.fromSampleNodeToProto(input).writeTo(bos);
-                            lastDumpTime = System.currentTimeMillis();
-                            result.setValue(fileName);
-                        }
-                    }
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-                return null;
-            }
-        });
-
+        SampleNode collected = stackCollector.clear();
+        if (collected != null) {
+            String fileName = filePrefix + "_" + ((id == null) ? "" : id + "_")
+                    + TS_FORMAT.print(lastDumpTime) + "_"
+                    + TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump";
+            Converter.saveToFile(fileName, collected);
+            lastDumpTime = System.currentTimeMillis();
+            result.setValue(fileName);
+        }
         return result.getValue();
     }
 
