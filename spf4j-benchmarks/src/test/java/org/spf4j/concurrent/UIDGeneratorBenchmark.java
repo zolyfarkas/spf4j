@@ -17,6 +17,7 @@ public class UIDGeneratorBenchmark {
     
     private static final UIDGenerator ATO_GEN = new UIDGenerator(new AtomicSequence(0));
     
+    
     @Benchmark
     public final String jdkUid() {
         return UUID.randomUUID().toString();
