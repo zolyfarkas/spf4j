@@ -42,14 +42,16 @@ public final class SLEEP extends Instruction {
     public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException, InterruptedException {
         Number param = (Number) context.popSyncStackVal();
-        if (context.execService == null) {
-            Thread.sleep(param.longValue());
-        } else {
-            final VMASyncFuture<Object> future = new VMASyncFuture<>();
-            DefaultScheduler.INSTANCE.schedule(new RunnableImpl(context, future),
-                    param.longValue(), TimeUnit.MILLISECONDS);
-            context.ip++;
-            context.suspend(future);
+        final long sleepMillis = param.longValue();
+        if (sleepMillis > 0) {
+            if (context.execService == null) {
+                Thread.sleep(sleepMillis);
+            } else {
+                final VMASyncFuture<Object> future = new VMASyncFuture<>();
+                DefaultScheduler.INSTANCE.schedule(new RunnableImpl(context, future), sleepMillis, TimeUnit.MILLISECONDS);
+                context.ip++;
+                context.suspend(future);
+            }
         }
         return 1;
 

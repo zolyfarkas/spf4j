@@ -49,7 +49,7 @@ public final class SleepSortTest {
         System.out.println("Sort result = " + Arrays.toString(resutlSt));
 
         Arrays.sort(testArray);
-        Assert.assertArrayEquals((Object []) resutlSt, testArray);
+        Assert.assertArrayEquals(testArray, (Object []) resutlSt);
     }
     
 }

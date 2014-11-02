@@ -42,7 +42,7 @@ public final class JmhProfiler implements InternalProfiler {
      */
     private static final int SAMPLE_PERIOD_MSEC = Integer.getInteger("jmh.stack.period", 5);
     
-    private static final String DUMP_FOLDER = System.getProperty("jmh.stack.dumps", org.spf4j.base.Runtime.USER_DIR);
+    private static final String DUMP_FOLDER = System.getProperty("jmh.stack.profiles", org.spf4j.base.Runtime.USER_DIR);
 
     private static final Sampler SAMPLER = new Sampler(SAMPLE_PERIOD_MSEC, Integer.MAX_VALUE,
             new FastStackCollector(true));
@@ -62,7 +62,11 @@ public final class JmhProfiler implements InternalProfiler {
             return null;
         }
         SampleNode collected = SAMPLER.getStackCollector().clear();
-        return Arrays.asList(new StackResult(collected, benchmarkParams.getBenchmark(), benchmarkParams.id()));
+        try {
+            return Arrays.asList(new StackResult(collected, benchmarkParams.id(), true));
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
@@ -86,24 +90,20 @@ public final class JmhProfiler implements InternalProfiler {
 
         private final SampleNode samples;
         private final String benchmark;
-        private final String id;
         private final String fileName;
 
-        public StackResult(final SampleNode samples, final String benchmark, final String id) {
-            super(ResultRole.SECONDARY, "@stack", of(Double.NaN), "---", AggregationPolicy.AVG);
-            this.samples = samples;
-            this.benchmark = benchmark;
-            this.id = id;
-            this.fileName = null;
-        }
         
-        public StackResult(final SampleNode samples, final String benchmark) throws IOException {
+        public StackResult(final SampleNode samples, final String benchmark, final boolean isIteration)
+        throws IOException {
             super(ResultRole.SECONDARY, "@stack", of(Double.NaN), "---", AggregationPolicy.AVG);
             this.samples = samples;
             this.benchmark = benchmark;
-            this.id = "";
-            this.fileName = DUMP_FOLDER + "/" + benchmark + ".ssdump";
-            Converter.saveToFile(fileName, samples);
+            if (isIteration) {
+                this.fileName = null;
+            } else {
+                this.fileName = DUMP_FOLDER + "/" + benchmark + ".ssdump";
+                Converter.saveToFile(fileName, samples);
+            }
         }
         
 
@@ -114,11 +114,6 @@ public final class JmhProfiler implements InternalProfiler {
         public String getBenchmark() {
             return benchmark;
         }
-
-        public String getId() {
-            return id;
-        }
-        
 
         @Override
         protected Aggregator<StackResult> getThreadAggregator() {
@@ -167,7 +162,7 @@ public final class JmhProfiler implements InternalProfiler {
                 agg = SampleNode.aggregate(agg, result.getSamples());
             }
             try {
-                return new StackResult(agg, benchmark);
+                return new StackResult(agg, benchmark, false);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }

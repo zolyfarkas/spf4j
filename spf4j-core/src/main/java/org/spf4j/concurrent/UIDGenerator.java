@@ -57,7 +57,7 @@ public final class UIDGenerator {
     public UIDGenerator(final Sequence sequence, @Nullable final BaseEncoding baseEncoding,
             final long customEpoch, final char separator) {
         this.sequence = sequence;
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(16);
         if (baseEncoding != null) {
             byte[] intfMac;
             try {
