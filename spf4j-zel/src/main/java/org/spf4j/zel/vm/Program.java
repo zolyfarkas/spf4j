@@ -298,16 +298,7 @@ public final class Program implements Serializable {
             throws ZExecutionException, InterruptedException {
         final ExecutionContext ectx = new ExecutionContext(this, globalMem, in, out, err, execService);
         System.arraycopy(args, 0, ectx.mem, 0, args.length);
-        try {
-            return execute(ectx);
-        } finally {
-            if (err != null) {
-                err.flush();
-            }
-            if (out != null) {
-                out.flush();
-            }
-        }
+        return execute(ectx);
     }
     
     public Pair<Object, ExecutionContext> executeX(@Nullable final VMExecutor execService,
@@ -319,16 +310,7 @@ public final class Program implements Serializable {
             throws ZExecutionException, InterruptedException {
         final ExecutionContext ectx = new ExecutionContext(this, globalMem, resultCache, in, out, err, execService);
         System.arraycopy(args, 0, ectx.mem, 0, args.length);
-        try {
-            return Pair.of(execute(ectx), ectx);
-        } finally {
-            if (err != null) {
-                err.flush();
-            }
-            if (out != null) {
-                out.flush();
-            }
-        }
+        return Pair.of(execute(ectx), ectx);
     }
 
     // TODO: Need to employ Either here
