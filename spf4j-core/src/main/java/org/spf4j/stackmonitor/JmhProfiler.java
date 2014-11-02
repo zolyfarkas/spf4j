@@ -41,6 +41,8 @@ public final class JmhProfiler implements InternalProfiler {
      * Sampling period
      */
     private static final int SAMPLE_PERIOD_MSEC = Integer.getInteger("jmh.stack.period", 5);
+    
+    private static final String DUMP_FOLDER = System.getProperty("jmh.stack.dumps", org.spf4j.base.Runtime.USER_DIR);
 
     private static final Sampler SAMPLER = new Sampler(SAMPLE_PERIOD_MSEC, Integer.MAX_VALUE,
             new FastStackCollector(true));
@@ -100,7 +102,7 @@ public final class JmhProfiler implements InternalProfiler {
             this.samples = samples;
             this.benchmark = benchmark;
             this.id = "";
-            this.fileName = org.spf4j.base.Runtime.USER_DIR + "/" + benchmark + ".ssdump";
+            this.fileName = DUMP_FOLDER + "/" + benchmark + ".ssdump";
             Converter.saveToFile(fileName, samples);
         }
         
