@@ -289,6 +289,22 @@ Usage:
 
  The profiling measurements will be save to file into the current dir. They can be opened and analized with the spf4j-ui.
 
+ Spf4j contains also a JMH Profiler integration for Java Flight Recorder, to use it all you need to do is:
+
+```
+        Options opt = new OptionsBuilder()
+                .include(".*")
+                .addProfiler(JmhFlightRecorderProfiler.class)
+                .build();
+         new Runner(opt).run();
+
+```
+ Java flight recorder should not have the safe point bias that spf4j has, however java flight recorder is a commercial
+ feature that requires a license from Oracle for production use.
+ For production use spf4j profiler is a zero cost alternative, which due to its simplicity should be a more
+ reliable option as well.
+
+
 ### 5.4. How to see the profile data?
 
  After the program finishes it will write the data to the {{{./stackSample.html}stackSample.html}} file
