@@ -87,6 +87,9 @@ public final class SampleNode implements Serializable {
     }
     
     public static SampleNode clone(final SampleNode node) {
+        if (node.subNodes == null) {
+            return new SampleNode(node.sampleCount, null);
+        }
         HashMap<Method, SampleNode> newSubNodes = new HashMap<>(node.subNodes.size());
         for (Map.Entry<Method, SampleNode> entry: node.subNodes.entrySet()) {
             newSubNodes.put(entry.getKey(), clone(entry.getValue()));
