@@ -10,6 +10,7 @@
         <artifactId>spf4j</artifactId>
         <version>7.0-SNAPSHOT</version>
     </parent>
+    <name>${artifactId}</name>
 
     <dependencies>
         <dependency>
@@ -83,6 +84,27 @@
                     <argLine>-Xmx256M -Djmh.stack.dumps=${basedir}/target</argLine>
                 </configuration>
             </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>site</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                  <zip destfile="target/site/ssdump/profiles.zip" >
+                                    <fileset dir="target" casesensitive="yes">
+                                        <include name="*.ssdump"/>
+                                    </fileset>
+                                  </zip>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>            
+            
             <!--      
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
