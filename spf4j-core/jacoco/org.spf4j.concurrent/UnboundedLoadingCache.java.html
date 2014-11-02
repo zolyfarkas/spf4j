@@ -40,39 +40,37 @@ public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;
 
     private final CacheLoader&lt;K, V&gt; loader;
 
-<span class="nc" id="L43">    public UnboundedLoadingCache(final int initialSize, final CacheLoader&lt;K, V&gt; loader) {</span>
-<span class="nc" id="L44">        this.map = new ConcurrentHashMap&lt;K, MemorizedCallable&lt;? extends V&gt;&gt;(</span>
-                initialSize, 0.75f, getDefaultConcurrency());
-<span class="nc" id="L46">        this.loader = loader;</span>
-<span class="nc" id="L47">    }</span>
+    public UnboundedLoadingCache(final int initialSize, final CacheLoader&lt;K, V&gt; loader) {
+<span class="nc" id="L44">        this(initialSize, 8, loader);</span>
+<span class="nc" id="L45">    }</span>
+    
+    
+<span class="nc" id="L48">    public UnboundedLoadingCache(final int initialSize, final int concurrency, final CacheLoader&lt;K, V&gt; loader) {</span>
+<span class="nc" id="L49">        this.map = new ConcurrentHashMap&lt;&gt;(</span>
+                initialSize, 0.75f, concurrency);
+<span class="nc" id="L51">        this.loader = loader;</span>
+<span class="nc" id="L52">    }</span>
 
-    public static int getDefaultConcurrency() {
-<span class="nc" id="L50">        int defConcurrency = org.spf4j.base.Runtime.NR_PROCESSORS;</span>
-<span class="nc bnc" id="L51" title="All 2 branches missed.">        if (defConcurrency &gt; 16) {</span>
-<span class="nc" id="L52">            defConcurrency = 16;</span>
-        }
-<span class="nc" id="L54">        return defConcurrency;</span>
-    }
 
     @Override
     public V get(final K key) throws ExecutionException {
-<span class="nc" id="L59">        MemorizedCallable&lt;? extends V&gt; existingValHolder = map.get(key);</span>
-<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (existingValHolder == null) {</span>
-<span class="pc" id="L61">            MemorizedCallable&lt;? extends V&gt; newHolder = new MemorizedCallable(new Callable&lt;V&gt;() {</span>
+<span class="nc" id="L57">        MemorizedCallable&lt;? extends V&gt; existingValHolder = map.get(key);</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (existingValHolder == null) {</span>
+<span class="pc" id="L59">            MemorizedCallable&lt;? extends V&gt; newHolder = new MemorizedCallable(new Callable&lt;V&gt;() {</span>
                 @Override
                 public V call() throws Exception {
-<span class="fc" id="L64">                    return loader.load(key);</span>
+<span class="fc" id="L62">                    return loader.load(key);</span>
                 }
             });
-<span class="nc" id="L67">            existingValHolder = map.putIfAbsent(key, newHolder);</span>
-<span class="nc bnc" id="L68" title="All 2 branches missed.">            if (existingValHolder == null) {</span>
-<span class="nc" id="L69">                existingValHolder = newHolder;</span>
+<span class="nc" id="L65">            existingValHolder = map.putIfAbsent(key, newHolder);</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">            if (existingValHolder == null) {</span>
+<span class="nc" id="L67">                existingValHolder = newHolder;</span>
             }
         }
         try {
-<span class="nc" id="L73">            return existingValHolder.call();</span>
-<span class="nc" id="L74">        } catch (Exception ex) {</span>
-<span class="nc" id="L75">            throw new ExecutionException(ex);</span>
+<span class="nc" id="L71">            return existingValHolder.call();</span>
+<span class="nc" id="L72">        } catch (Exception ex) {</span>
+<span class="nc" id="L73">            throw new ExecutionException(ex);</span>
         }
 
     }
@@ -80,132 +78,132 @@ public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;
     @Override
     public V getUnchecked(final K key) {
         try {
-<span class="nc" id="L83">            return get(key);</span>
-<span class="nc" id="L84">        } catch (ExecutionException ex) {</span>
-<span class="nc" id="L85">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L81">            return get(key);</span>
+<span class="nc" id="L82">        } catch (ExecutionException ex) {</span>
+<span class="nc" id="L83">            throw new RuntimeException(ex);</span>
         }
     }
 
     @Override
     public ImmutableMap&lt;K, V&gt; getAll(final Iterable&lt;? extends K&gt; keys) throws ExecutionException {
-<span class="nc" id="L91">        ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
-<span class="nc bnc" id="L92" title="All 2 branches missed.">        for (K key : keys) {</span>
-<span class="nc" id="L93">            builder.put(key, get(key));</span>
-<span class="nc" id="L94">        }</span>
-<span class="nc" id="L95">        return builder.build();</span>
+<span class="nc" id="L89">        ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        for (K key : keys) {</span>
+<span class="nc" id="L91">            builder.put(key, get(key));</span>
+<span class="nc" id="L92">        }</span>
+<span class="nc" id="L93">        return builder.build();</span>
     }
 
     @Override
     public V apply(final K key) {
-<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (key == null) {</span>
-<span class="nc" id="L101">            throw new IllegalArgumentException(&quot;key cannot be null for &quot; + this);</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (key == null) {</span>
+<span class="nc" id="L99">            throw new IllegalArgumentException(&quot;key cannot be null for &quot; + this);</span>
         } else {
-<span class="nc" id="L103">            return getUnchecked(key);</span>
+<span class="nc" id="L101">            return getUnchecked(key);</span>
         }
     }
 
     @Override
     public void refresh(final K key) {
-<span class="nc" id="L109">        getUnchecked(key);</span>
-<span class="nc" id="L110">    }</span>
+<span class="nc" id="L107">        getUnchecked(key);</span>
+<span class="nc" id="L108">    }</span>
 
     @Override
     public ConcurrentMap&lt;K, V&gt; asMap() {
-<span class="nc" id="L114">        throw new UnsupportedOperationException();</span>
+<span class="nc" id="L112">        throw new UnsupportedOperationException();</span>
     }
 
     @Override
     public V getIfPresent(final Object key) {
-<span class="nc" id="L119">        MemorizedCallable&lt;? extends V&gt; existingValHolder = map.get(key);</span>
-<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (existingValHolder != null) {</span>
+<span class="nc" id="L117">        MemorizedCallable&lt;? extends V&gt; existingValHolder = map.get(key);</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (existingValHolder != null) {</span>
             try {
-<span class="nc" id="L122">                return existingValHolder.call();</span>
-<span class="nc" id="L123">            } catch (Exception ex) {</span>
-<span class="nc" id="L124">                throw new RuntimeException(ex);</span>
+<span class="nc" id="L120">                return existingValHolder.call();</span>
+<span class="nc" id="L121">            } catch (Exception ex) {</span>
+<span class="nc" id="L122">                throw new RuntimeException(ex);</span>
             }
         } else {
-<span class="nc" id="L127">            return null;</span>
+<span class="nc" id="L125">            return null;</span>
         }
     }
 
     @Override
     public V get(final K key, final Callable&lt;? extends V&gt; valueLoader) throws ExecutionException {
-<span class="nc" id="L133">        MemorizedCallable&lt;? extends V&gt; existingValHolder = map.get(key);</span>
-<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (existingValHolder == null) {</span>
-<span class="nc" id="L135">            MemorizedCallable&lt;? extends V&gt; newHolder = new MemorizedCallable(valueLoader);</span>
-<span class="nc" id="L136">            existingValHolder = map.putIfAbsent(key, newHolder);</span>
-<span class="nc bnc" id="L137" title="All 2 branches missed.">            if (existingValHolder == null) {</span>
-<span class="nc" id="L138">                existingValHolder = newHolder;</span>
+<span class="nc" id="L131">        MemorizedCallable&lt;? extends V&gt; existingValHolder = map.get(key);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        if (existingValHolder == null) {</span>
+<span class="nc" id="L133">            MemorizedCallable&lt;? extends V&gt; newHolder = new MemorizedCallable(valueLoader);</span>
+<span class="nc" id="L134">            existingValHolder = map.putIfAbsent(key, newHolder);</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">            if (existingValHolder == null) {</span>
+<span class="nc" id="L136">                existingValHolder = newHolder;</span>
             }
         }
         try {
-<span class="nc" id="L142">            return existingValHolder.call();</span>
-<span class="nc" id="L143">        } catch (Exception ex) {</span>
-<span class="nc" id="L144">            throw new ExecutionException(ex);</span>
+<span class="nc" id="L140">            return existingValHolder.call();</span>
+<span class="nc" id="L141">        } catch (Exception ex) {</span>
+<span class="nc" id="L142">            throw new ExecutionException(ex);</span>
         }
     }
 
     @Override
     public ImmutableMap&lt;K, V&gt; getAllPresent(final Iterable&lt;?&gt; keys) {
-<span class="nc" id="L150">        ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
-<span class="nc bnc" id="L151" title="All 2 branches missed.">        for (K key : (Iterable&lt;K&gt;) keys) {</span>
-<span class="nc" id="L152">            V val = getIfPresent(key);</span>
-<span class="nc bnc" id="L153" title="All 2 branches missed.">            if (val != null) {</span>
-<span class="nc" id="L154">                builder.put(key, val);</span>
+<span class="nc" id="L148">        ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        for (K key : (Iterable&lt;K&gt;) keys) {</span>
+<span class="nc" id="L150">            V val = getIfPresent(key);</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">            if (val != null) {</span>
+<span class="nc" id="L152">                builder.put(key, val);</span>
             }
-<span class="nc" id="L156">        }</span>
-<span class="nc" id="L157">        return builder.build();</span>
+<span class="nc" id="L154">        }</span>
+<span class="nc" id="L155">        return builder.build();</span>
     }
 
     @Override
     public void put(final K key, final V value) {
-<span class="nc" id="L162">        map.put(key, new MemorizedCallable&lt;V&gt;(new Callable&lt;V&gt;() {</span>
+<span class="nc" id="L160">        map.put(key, new MemorizedCallable&lt;V&gt;(new Callable&lt;V&gt;() {</span>
 
             @Override
             public V call() throws Exception {
-<span class="nc" id="L166">                return value;</span>
+<span class="nc" id="L164">                return value;</span>
             }
         }));
-<span class="nc" id="L169">    }</span>
+<span class="nc" id="L167">    }</span>
 
     @Override
     public void putAll(final Map&lt;? extends K, ? extends V&gt; m) {
-<span class="nc bnc" id="L173" title="All 2 branches missed.">        for (Map.Entry&lt;? extends K, ? extends V&gt; entry : m.entrySet()) {</span>
-<span class="nc" id="L174">            put(entry.getKey(), entry.getValue());</span>
-<span class="nc" id="L175">        }</span>
-<span class="nc" id="L176">    }</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        for (Map.Entry&lt;? extends K, ? extends V&gt; entry : m.entrySet()) {</span>
+<span class="nc" id="L172">            put(entry.getKey(), entry.getValue());</span>
+<span class="nc" id="L173">        }</span>
+<span class="nc" id="L174">    }</span>
 
     @Override
     public void invalidate(final Object key) {
-<span class="nc" id="L180">        map.remove(key);</span>
-<span class="nc" id="L181">    }</span>
+<span class="nc" id="L178">        map.remove(key);</span>
+<span class="nc" id="L179">    }</span>
 
     @Override
     public void invalidateAll(final Iterable&lt;?&gt; keys) {
-<span class="nc bnc" id="L185" title="All 2 branches missed.">        for (K key : (Iterable&lt;K&gt;) keys) {</span>
-<span class="nc" id="L186">            invalidate(key);</span>
-<span class="nc" id="L187">        }</span>
-<span class="nc" id="L188">    }</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        for (K key : (Iterable&lt;K&gt;) keys) {</span>
+<span class="nc" id="L184">            invalidate(key);</span>
+<span class="nc" id="L185">        }</span>
+<span class="nc" id="L186">    }</span>
 
     @Override
     public void invalidateAll() {
-<span class="nc" id="L192">        map.clear();</span>
-<span class="nc" id="L193">    }</span>
+<span class="nc" id="L190">        map.clear();</span>
+<span class="nc" id="L191">    }</span>
 
     @Override
     public long size() {
-<span class="nc" id="L197">        return map.size();</span>
+<span class="nc" id="L195">        return map.size();</span>
     }
 
     @Override
     public CacheStats stats() {
-<span class="nc" id="L202">        throw new UnsupportedOperationException(&quot;Not supported&quot;);</span>
+<span class="nc" id="L200">        throw new UnsupportedOperationException(&quot;Not supported&quot;);</span>
     }
 
     @Override
     public void cleanUp() {
-<span class="nc" id="L207">        map.clear();</span>
-<span class="nc" id="L208">    }</span>
+<span class="nc" id="L205">        map.clear();</span>
+<span class="nc" id="L206">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

@@ -17,61 +17,64 @@
  */
 package org.spf4j.zel.instr;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
+@SuppressFBWarnings(&quot;CD_CIRCULAR_DEPENDENCY&quot;)
 public final class LODAX extends Instruction implements LValRef {
 
     private static final long serialVersionUID = 1257172216541960034L;
 
     private final String symbol;
     
-<span class="fc" id="L31">    public LODAX(final String symbol) {</span>
-<span class="fc" id="L32">        this.symbol = symbol;</span>
-<span class="fc" id="L33">    }</span>
+<span class="fc" id="L33">    public LODAX(final String symbol) {</span>
+<span class="fc" id="L34">        this.symbol = symbol;</span>
+<span class="fc" id="L35">    }</span>
     
     
     public static void writeTo(final String symbol, final ExecutionContext context, final Object what)
             throws ZExecutionException {
-<span class="fc" id="L38">        Integer addr  = context.code.getLocalSymbolTable().get(symbol);</span>
-<span class="pc bpc" id="L39" title="1 of 2 branches missed.">        if (addr == null) {</span>
-<span class="nc" id="L40">            addr = context.code.getGlobalSymbolTable().get(symbol);</span>
-<span class="nc bnc" id="L41" title="All 2 branches missed.">            if (addr == null) {</span>
-<span class="nc" id="L42">                throw new ZExecutionException(&quot;unalocated symbol encountered &quot; + symbol);</span>
+<span class="fc" id="L40">        Integer addr  = context.code.getLocalSymbolTable().get(symbol);</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (addr == null) {</span>
+<span class="fc" id="L42">            addr = context.code.getGlobalSymbolTable().get(symbol);</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">            if (addr == null) {</span>
+<span class="nc" id="L44">                throw new ZExecutionException(&quot;unalocated symbol encountered &quot; + symbol);</span>
             }
-<span class="nc" id="L44">            context.globalMem[addr] = what;</span>
+<span class="fc" id="L46">            context.globalMem[addr] = what;</span>
         } else {
-<span class="fc" id="L46">            context.mem[addr] = what;</span>
+<span class="fc" id="L48">            context.mem[addr] = what;</span>
         }
-<span class="fc" id="L48">    }</span>
+<span class="fc" id="L50">    }</span>
 
     @Override
     public int execute(final ExecutionContext context) {
            
-<span class="fc" id="L53">        context.push(new AssignableValue() {</span>
+<span class="fc" id="L55">        context.push(new AssignableValue() {</span>
 
             @Override
             public void assign(final Object object) throws ZExecutionException {
-<span class="fc" id="L57">                writeTo(symbol, context, object);</span>
-<span class="fc" id="L58">            }</span>
+<span class="fc" id="L59">                writeTo(symbol, context, object);</span>
+<span class="fc" id="L60">            }</span>
 
             @Override
             public Object get() throws ZExecutionException {
-<span class="fc" id="L62">                return LODX.readFrom(symbol, context);</span>
+<span class="fc" id="L64">                return LODX.readFrom(symbol, context);</span>
             }
         });
-<span class="fc" id="L65">        return 1;</span>
+<span class="fc" id="L67">        return 1;</span>
     }
 
+    @Override
     public String getSymbol() {
-<span class="fc" id="L69">        return symbol;</span>
+<span class="fc" id="L72">        return symbol;</span>
     }
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L74">        return new Object [] {symbol};</span>
+<span class="fc" id="L77">        return new Object [] {symbol};</span>
     }
 
 }

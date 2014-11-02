@@ -79,11 +79,11 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartObjectPool&lt;T&gt; {
 <span class="fc" id="L79">                borrowedObjects.put(borower, object);</span>
 <span class="fc" id="L80">                return object;</span>
             } else {
-<span class="nc bnc" id="L82" title="All 2 branches missed.">                if (borrowedObjects.isEmpty()) {</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">                if (borrowedObjects.isEmpty()) {</span>
 <span class="nc" id="L83">                    throw new RuntimeException(</span>
                             &quot;Pool is probably closing down or is missconfigured withe size 0 &quot; + this);
                 }
-<span class="nc bnc" id="L86" title="All 2 branches missed.">                for (ObjectBorower&lt;T&gt; b : borrowedObjects.keySet()) {</span>
+<span class="pc bnc" id="L86" title="All 2 branches missed.">                for (ObjectBorower&lt;T&gt; b : borrowedObjects.keySet()) {</span>
 <span class="nc bnc" id="L87" title="All 2 branches missed.">                    if (borower != b) {</span>
 <span class="nc" id="L88">                        T object = b.tryReturnObjectIfNotInUse();</span>
 <span class="nc bnc" id="L89" title="All 2 branches missed.">                        if (object != null) {</span>
@@ -225,10 +225,10 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartObjectPool&lt;T&gt; {
 <span class="nc" id="L225">                        return false;</span>
                     }
 <span class="fc" id="L227">                } catch (Exception e) {</span>
-<span class="pc bpc" id="L228" title="1 of 2 branches missed.">                    if (resEx == null) {</span>
+<span class="fc bfc" id="L228" title="All 2 branches covered.">                    if (resEx == null) {</span>
 <span class="fc" id="L229">                        resEx = e;</span>
                     } else {
-<span class="nc" id="L231">                        resEx = Throwables.suppress(e, resEx);</span>
+<span class="fc" id="L231">                        resEx = Throwables.suppress(e, resEx);</span>
                     }
 <span class="fc" id="L233">                }</span>
 

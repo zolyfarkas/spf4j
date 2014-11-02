@@ -20,6 +20,9 @@ package org.spf4j.stackmonitor;
 import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This is a high performance sampling collector.
@@ -34,57 +37,83 @@ import java.security.PrivilegedAction;
  * calling-a-getter-in-java-though-reflection-whats-the-fastest-way-to-repeatedly
  * @author zoly
  */
-<span class="nc" id="L37">public final class FastStackCollector extends AbstractStackCollector {</span>
+public final class FastStackCollector extends AbstractStackCollector {
     
     private static final java.lang.reflect.Method GET_THREADS;
     private static final java.lang.reflect.Method DUMP_THREADS;
+    
+<span class="nc" id="L45">    private static final String[] IGNORED_THREADS = {</span>
+            &quot;Finalizer&quot;,
+            &quot;Signal Dispatcher&quot;,
+            &quot;Reference Handler&quot;,
+            &quot;Attach Listener&quot;
+    };
+    
+    private final Set&lt;Thread&gt; ignoredThreads;
+    
+<span class="nc" id="L54">    public FastStackCollector(final boolean collectForMain, final String ... xtraIgnoredThreads) {</span>
+<span class="nc" id="L55">        Set&lt;String&gt; ignoredThreadNames = new HashSet&lt;&gt;(Arrays.asList(IGNORED_THREADS));</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (!collectForMain) {</span>
+<span class="nc" id="L57">            ignoredThreadNames.add(&quot;main&quot;);</span>
+        }
+<span class="nc" id="L59">        ignoredThreadNames.addAll(Arrays.asList(xtraIgnoredThreads));</span>
+<span class="nc" id="L60">        ignoredThreads = new HashSet&lt;&gt;(ignoredThreadNames.size());</span>
+        try {
+<span class="nc" id="L62">            Thread[] threads = (Thread[]) GET_THREADS.invoke(null);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            for (Thread th : threads) {</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">                if (ignoredThreadNames.contains(th.getName())) {</span>
+<span class="nc" id="L65">                    ignoredThreads.add(th);</span>
+                }
+            }
+<span class="nc" id="L68">        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
+<span class="nc" id="L69">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L70">        }</span>
+         
+<span class="nc" id="L72">    }</span>
+    
 
     static {
         try {
-<span class="nc" id="L44">            GET_THREADS = Thread.class.getDeclaredMethod(&quot;getThreads&quot;);</span>
-<span class="nc" id="L45">            DUMP_THREADS = Thread.class.getDeclaredMethod(&quot;dumpThreads&quot;, Thread[].class);</span>
-<span class="nc" id="L46">        } catch (SecurityException ex) {</span>
-<span class="nc" id="L47">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L48">        } catch (NoSuchMethodException ex) {</span>
-<span class="nc" id="L49">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L50">        }</span>
-<span class="nc" id="L51">        AccessController.doPrivileged(new PrivilegedAction() {</span>
+<span class="nc" id="L77">            GET_THREADS = Thread.class.getDeclaredMethod(&quot;getThreads&quot;);</span>
+<span class="nc" id="L78">            DUMP_THREADS = Thread.class.getDeclaredMethod(&quot;dumpThreads&quot;, Thread[].class);</span>
+<span class="nc" id="L79">        } catch (SecurityException | NoSuchMethodException ex) {</span>
+<span class="nc" id="L80">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L81">        }</span>
+<span class="pc" id="L82">        AccessController.doPrivileged(new PrivilegedAction() {</span>
             @Override
             public Object run() {
-<span class="nc" id="L54">                GET_THREADS.setAccessible(true);</span>
-<span class="nc" id="L55">                DUMP_THREADS.setAccessible(true);</span>
-<span class="nc" id="L56">                return null; // nothing to return</span>
+<span class="fc" id="L85">                GET_THREADS.setAccessible(true);</span>
+<span class="fc" id="L86">                DUMP_THREADS.setAccessible(true);</span>
+<span class="fc" id="L87">                return null; // nothing to return</span>
             }
         });
 
-<span class="nc" id="L60">    }</span>
+<span class="nc" id="L91">    }</span>
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
     public void sample(final Thread ignore) {
         try {
-<span class="nc" id="L66">            Thread[] threads = (Thread[]) GET_THREADS.invoke(null);</span>
-<span class="nc" id="L67">            final int nrThreads = threads.length;</span>
-<span class="nc bnc" id="L68" title="All 2 branches missed.">            for (int i = 0; i &lt; nrThreads; i++) {</span>
-<span class="nc bnc" id="L69" title="All 2 branches missed.">                if (ignore == threads[i]) { // not interested in the sampler's stack trace</span>
-<span class="nc" id="L70">                    threads[i] = null;</span>
-<span class="nc" id="L71">                    break;</span>
+<span class="nc" id="L97">            Thread[] threads = (Thread[]) GET_THREADS.invoke(null);</span>
+<span class="nc" id="L98">            final int nrThreads = threads.length;</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">            for (int i = 0; i &lt; nrThreads; i++) {</span>
+<span class="nc" id="L100">                Thread th = threads[i];</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">                if (ignore == th) { // not interested in the sampler's stack trace</span>
+<span class="nc" id="L102">                    threads[i] = null;</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                } else if (ignoredThreads.contains(th)) {</span>
+<span class="nc" id="L104">                    threads[i] = null;</span>
                 }
             }
-<span class="nc" id="L74">            StackTraceElement[][] stackDump = (StackTraceElement[][]) DUMP_THREADS.invoke(null, (Object) threads);</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">            for (StackTraceElement[] stackTrace : stackDump) {</span>
-<span class="nc bnc" id="L76" title="All 4 branches missed.">                if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
-<span class="nc" id="L77">                        addSample(stackTrace);</span>
+<span class="nc" id="L107">            StackTraceElement[][] stackDump = (StackTraceElement[][]) DUMP_THREADS.invoke(null, (Object) threads);</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            for (StackTraceElement[] stackTrace : stackDump) {</span>
+<span class="nc bnc" id="L109" title="All 4 branches missed.">                if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
+<span class="nc" id="L110">                        addSample(stackTrace);</span>
                 }
             }
-<span class="nc" id="L80">        } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L81">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L82">        } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L83">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L84">        } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L85">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L86">        }</span>
-<span class="nc" id="L87">    }</span>
+<span class="nc" id="L113">        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
+<span class="nc" id="L114">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L115">        }</span>
+<span class="nc" id="L116">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
