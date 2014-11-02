@@ -9,7 +9,7 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
 
 @State(Scope.Benchmark)
-@Fork(3)
+@Fork(2)
 @Threads(value = 8)
 public class UIDGeneratorBenchmark {
 

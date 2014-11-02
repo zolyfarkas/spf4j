@@ -22,6 +22,8 @@ public final class JmhTest {
                 .addProfiler(JmhProfiler.class)
                 .jvmArgs("-Djmh.stack.dumps=" + System.getProperty("jmh.stack.dumps",
                         org.spf4j.base.Runtime.USER_DIR))
+                .warmupIterations(10)
+                .measurementIterations(10)
                 .build();
          new Runner(opt).run();
     }

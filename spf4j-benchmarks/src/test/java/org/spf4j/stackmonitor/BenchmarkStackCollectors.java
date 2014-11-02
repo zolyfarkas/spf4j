@@ -14,7 +14,7 @@ import org.openjdk.jmh.annotations.Threads;
  * @author zoly
  */
 @State(Scope.Benchmark)
-@Fork(3)
+@Fork(2)
 @Threads(value = 1)
 public class BenchmarkStackCollectors {
     

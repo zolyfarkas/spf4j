@@ -24,7 +24,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @author zoly
  */
 @State(Scope.Benchmark)
-@Fork(3)
+@Fork(2)
 @Threads(value = 8)
 public class ZelBenchmark {
 
