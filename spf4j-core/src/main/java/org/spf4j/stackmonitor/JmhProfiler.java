@@ -36,7 +36,7 @@ import org.spf4j.stackmonitor.proto.Converter;
  * @author zoly
  */
 public final class JmhProfiler implements InternalProfiler {
-
+ 
     /**
      * Sampling period
      */
