@@ -24,6 +24,7 @@ import java.io.IOException;
 import javax.swing.JFileChooser;
 import javax.swing.JInternalFrame;
 import javax.swing.filechooser.FileFilter;
+import org.spf4j.base.AbstractRunnable;
 
 /**
  *
@@ -36,8 +37,11 @@ public class Explorer extends javax.swing.JFrame {
     /**
      * Creates new form Explorer
      */
-    public Explorer() {
+    public Explorer(final String ... openFiles) throws IOException {
         initComponents();
+        for (String file : openFiles) {
+            openFile(new File(file));
+        }
     }
 
     /**
@@ -159,33 +163,37 @@ public class Explorer extends javax.swing.JFrame {
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
             folder = file.getParentFile();
-            String fileName = file.getName();
-            JInternalFrame frame;
             try {
-                final String absolutePath = file.getAbsolutePath();
-                if (fileName.endsWith("tsdb")) {
-                    frame = new TSDBViewJInternalFrame(absolutePath);
-                } else if (fileName.endsWith("ssdump")) {
-                    frame = new StackDumpJInternalFrame(absolutePath, true);
-                    frame.setVisible(true);
-                    desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
-                    frame = new StackDumpJInternalFrame(absolutePath, false);
-                } else {
-                    throw new RuntimeException("Unsupported file format " + fileName);
-                }
+                openFile(file);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
-
-            frame.setVisible(true);
-            desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
         }
     }//GEN-LAST:event_openMenuItemActionPerformed
+
+    private void openFile(final File file) throws IOException {
+        String fileName = file.getName();
+        JInternalFrame frame;
+        final String absolutePath = file.getAbsolutePath();
+        if (fileName.endsWith("tsdb")) {
+            frame = new TSDBViewJInternalFrame(absolutePath);
+        } else if (fileName.endsWith("ssdump")) {
+            frame = new StackDumpJInternalFrame(absolutePath, true);
+            frame.setVisible(true);
+            desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
+            frame = new StackDumpJInternalFrame(absolutePath, false);
+        } else {
+            throw new RuntimeException("Unsupported file format " + fileName);
+        }
+
+        frame.setVisible(true);
+        desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
+    }
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void main(final String [] args) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -210,10 +218,10 @@ public class Explorer extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
+        java.awt.EventQueue.invokeLater(new AbstractRunnable(false) {
             @Override
-            public void run() {
-                new Explorer().setVisible(true);
+            public void doRun() throws IOException {
+                new Explorer(args).setVisible(true);
             }
         });
     }
