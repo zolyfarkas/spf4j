@@ -238,6 +238,7 @@ Callable<?> monitoredCallable =
 
  I recommend to deploy your code with profiling turned on as much as you can.
  In my case I have profiling data collection turned on in test/qa environments all the time. (with 100ms sampling interval). If you can afford to do it in PROD do it.
+ Another good time to profile your code is during your JMH (http://openjdk.java.net/projects/code-tools/jmh/) benchmarks.
 
 ### 5.3. How to profile your code?
 
@@ -263,6 +264,30 @@ Usage:
  -si N        : the stack sampling interval in milliseconds
  -ss          : start the stack sampling thread. (can also be done manually via jmx)
 ```
+
+ You can also run and control the profiler via its java API:
+
+```
+    Sampler SAMPLER = new Sampler(SAMPLE_PERIOD_MSEC);
+    SAMPLER.start();
+    SAMPLER.stop();
+    SampleNode collected = SAMPLER.getStackCollector().clear();
+    Converter.saveToFile(fileName, collected);
+
+```
+
+ If you want to profile your JMH benchmarks you can simply add the spf4j JMH profiler to your startup options:
+
+```
+        Options opt = new OptionsBuilder()
+                .include(".*")
+                .addProfiler(JmhProfiler.class)
+                .build();
+         new Runner(opt).run();
+
+```
+
+ The profiling measurements will be save to file into the current dir. They can be opened and analized with the spf4j-ui.
 
 ### 5.4. How to see the profile data?
 
