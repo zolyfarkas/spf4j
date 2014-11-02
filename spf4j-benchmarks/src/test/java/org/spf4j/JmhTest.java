@@ -24,6 +24,7 @@ public final class JmhTest {
                         org.spf4j.base.Runtime.USER_DIR))
                 .warmupIterations(10)
                 .measurementIterations(10)
+                .forks(1)
                 .build();
          new Runner(opt).run();
     }
