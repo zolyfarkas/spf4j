@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>JmhFlightRecorderProfiler.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">JmhFlightRecorderProfiler.java</span></div><h1>JmhFlightRecorderProfiler.java</h1><pre class="source lang-java linenums">package org.spf4j.stackmonitor;
+
+import java.io.File;
+import java.lang.management.ManagementFactory;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import org.openjdk.jmh.infra.BenchmarkParams;
+import org.openjdk.jmh.profile.ExternalProfiler;
+import org.openjdk.jmh.results.AggregationPolicy;
+import org.openjdk.jmh.results.Aggregator;
+import org.openjdk.jmh.results.Result;
+import org.openjdk.jmh.results.ResultRole;
+
+/**
+ *
+ * @author zoly
+ */
+<span class="nc" id="L20">public final class JmhFlightRecorderProfiler implements ExternalProfiler {</span>
+
+<span class="nc" id="L22">    private static final String DUMP_FOLDER = System.getProperty(&quot;jmh.stack.profiles&quot;, org.spf4j.base.Runtime.USER_DIR);</span>
+
+<span class="nc" id="L24">    private static final String DEFAULT_OPTIONS = System.getProperty(&quot;jmh.fr.options&quot;,</span>
+            &quot;defaultrecording=true,settings=profile&quot;);
+    
+    
+    /**
+     * Holds whether recording is supported (checking the existence of the needed unlocking flag)
+     */
+    private static final boolean IS_SUPPORTED;
+
+    static {
+<span class="nc" id="L34">        IS_SUPPORTED = ManagementFactory.getRuntimeMXBean().getInputArguments()</span>
+                .contains(&quot;-XX:+UnlockCommercialFeatures&quot;);
+<span class="nc" id="L36">    }</span>
+
+    @Override
+    public Collection&lt;String&gt; addJVMInvokeOptions(final BenchmarkParams params) {
+<span class="nc" id="L40">        return Collections.emptyList();</span>
+    }
+
+    private volatile String dumpFile;
+
+    /**
+     * See:
+     * http://docs.oracle.com/cd/E15289_01/doc.40/e15070/usingjfr.htm
+     * and
+     * http://docs.oracle.com/cd/E15289_01/doc.40/e15070/config_rec_data.htm
+     * @param params
+     * @return
+     */
+    @Override
+    public Collection&lt;String&gt; addJVMOptions(final BenchmarkParams params) {
+<span class="nc" id="L55">        dumpFile = DUMP_FOLDER + &quot;/&quot; + params.id() + &quot;.jfr&quot;;</span>
+<span class="nc" id="L56">        String flightRecorderOptions = DEFAULT_OPTIONS + &quot;,dumponexit=true,dumponexitpath=&quot; + dumpFile;</span>
+<span class="nc" id="L57">        return Arrays.asList(</span>
+                &quot;-XX:+FlightRecorder&quot;,
+                &quot;-XX:FlightRecorderOptions=&quot; + flightRecorderOptions);
+    }
+
+    @Override
+    public void beforeTrial(final BenchmarkParams benchmarkParams) {
+<span class="nc" id="L64">    }</span>
+
+    @Override
+    public Collection&lt;? extends Result&gt; afterTrial(final BenchmarkParams benchmarkParams,
+            final File stdOut, final File stdErr) {
+<span class="nc" id="L69">        NoResult r = new NoResult(&quot;Profile saved to &quot; + dumpFile);</span>
+<span class="nc" id="L70">        return Collections.singleton(r);</span>
+    }
+
+    @Override
+    public boolean allowPrintOut() {
+<span class="nc" id="L75">        return true;</span>
+    }
+
+    @Override
+    public boolean allowPrintErr() {
+<span class="nc" id="L80">        return false;</span>
+    }
+
+    @Override
+    public boolean checkSupport(final List&lt;String&gt; msgs) {
+<span class="nc" id="L85">        msgs.add(&quot;Commercial features of the JVM need to be enabled for this profiler.&quot;);</span>
+<span class="nc" id="L86">        return IS_SUPPORTED;</span>
+    }
+
+    @Override
+    public String label() {
+<span class="nc" id="L91">        return &quot;jfr&quot;;</span>
+    }
+
+    @Override
+    public String getDescription() {
+<span class="nc" id="L96">        return &quot;Java Flight Recording profiler runs for every benchmark.&quot;;</span>
+    }
+
+<span class="nc" id="L99">    private static final class NoResult extends Result&lt;NoResult&gt; {</span>
+        private static final long serialVersionUID = 1L;
+
+        private final String output;
+
+        public NoResult(final String output) {
+<span class="nc" id="L105">            super(ResultRole.SECONDARY, &quot;JFR&quot;, of(Double.NaN), &quot;N/A&quot;, AggregationPolicy.SUM);</span>
+<span class="nc" id="L106">            this.output = output;</span>
+<span class="nc" id="L107">        }</span>
+
+        @Override
+        protected Aggregator&lt;NoResult&gt; getThreadAggregator() {
+<span class="nc" id="L111">            return new NoResultAggregator();</span>
+        }
+
+        @Override
+        protected Aggregator&lt;NoResult&gt; getIterationAggregator() {
+<span class="nc" id="L116">            return new NoResultAggregator();</span>
+        }
+
+        @Override
+        public String extendedInfo(final String label) {
+<span class="nc" id="L121">            return &quot;JFR Messages:\n--------------------------------------------\n&quot; + output;</span>
+        }
+
+<span class="nc" id="L124">        private static class NoResultAggregator implements Aggregator&lt;NoResult&gt; {</span>
+
+            @Override
+            public Result aggregate(final Collection&lt;NoResult&gt; results) {
+<span class="nc" id="L128">                StringBuilder agg = new StringBuilder();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                for (NoResult r : results) {</span>
+<span class="nc" id="L130">                    agg.append(r.output);</span>
+<span class="nc" id="L131">                }</span>
+<span class="nc" id="L132">                return new NoResult(agg.toString());</span>
+            }
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

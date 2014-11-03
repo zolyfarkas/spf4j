@@ -42,7 +42,7 @@ import org.spf4j.stackmonitor.proto.Converter;
      */
 <span class="nc" id="L43">    private static final int SAMPLE_PERIOD_MSEC = Integer.getInteger(&quot;jmh.stack.period&quot;, 5);</span>
     
-<span class="nc" id="L45">    private static final String DUMP_FOLDER = System.getProperty(&quot;jmh.stack.dumps&quot;, org.spf4j.base.Runtime.USER_DIR);</span>
+<span class="nc" id="L45">    private static final String DUMP_FOLDER = System.getProperty(&quot;jmh.stack.profiles&quot;, org.spf4j.base.Runtime.USER_DIR);</span>
 
 <span class="nc" id="L47">    private static final Sampler SAMPLER = new Sampler(SAMPLE_PERIOD_MSEC, Integer.MAX_VALUE,</span>
             new FastStackCollector(true));
@@ -62,22 +62,26 @@ import org.spf4j.stackmonitor.proto.Converter;
 <span class="nc" id="L62">            return null;</span>
 <span class="nc" id="L63">        }</span>
 <span class="nc" id="L64">        SampleNode collected = SAMPLER.getStackCollector().clear();</span>
-<span class="nc" id="L65">        return Arrays.asList(new StackResult(collected, benchmarkParams.getBenchmark(), benchmarkParams.id()));</span>
+        try {
+<span class="nc" id="L66">            return Arrays.asList(new StackResult(collected, benchmarkParams.id(), true));</span>
+<span class="nc" id="L67">        } catch (IOException ex) {</span>
+<span class="nc" id="L68">            throw new RuntimeException(ex);</span>
+        }
     }
 
     @Override
     public boolean checkSupport(final List&lt;String&gt; msgs) {
-<span class="nc" id="L70">        return true;</span>
+<span class="nc" id="L74">        return true;</span>
     }
 
     @Override
     public String label() {
-<span class="nc" id="L75">        return &quot;spf4j&quot;;</span>
+<span class="nc" id="L79">        return &quot;spf4j&quot;;</span>
     }
 
     @Override
     public String getDescription() {
-<span class="nc" id="L80">        return &quot;spf4j stack sampler&quot;;</span>
+<span class="nc" id="L84">        return &quot;spf4j stack sampler&quot;;</span>
     }
 
     public static final class StackResult extends Result&lt;StackResult&gt; {
@@ -86,24 +90,20 @@ import org.spf4j.stackmonitor.proto.Converter;
 
         private final SampleNode samples;
         private final String benchmark;
-        private final String id;
         private final String fileName;
 
-        public StackResult(final SampleNode samples, final String benchmark, final String id) {
-<span class="nc" id="L93">            super(ResultRole.SECONDARY, &quot;@stack&quot;, of(Double.NaN), &quot;---&quot;, AggregationPolicy.AVG);</span>
-<span class="nc" id="L94">            this.samples = samples;</span>
-<span class="nc" id="L95">            this.benchmark = benchmark;</span>
-<span class="nc" id="L96">            this.id = id;</span>
-<span class="nc" id="L97">            this.fileName = null;</span>
-<span class="nc" id="L98">        }</span>
         
-        public StackResult(final SampleNode samples, final String benchmark) throws IOException {
-<span class="nc" id="L101">            super(ResultRole.SECONDARY, &quot;@stack&quot;, of(Double.NaN), &quot;---&quot;, AggregationPolicy.AVG);</span>
-<span class="nc" id="L102">            this.samples = samples;</span>
-<span class="nc" id="L103">            this.benchmark = benchmark;</span>
-<span class="nc" id="L104">            this.id = &quot;&quot;;</span>
-<span class="nc" id="L105">            this.fileName = DUMP_FOLDER + &quot;/&quot; + benchmark + &quot;.ssdump&quot;;</span>
-<span class="nc" id="L106">            Converter.saveToFile(fileName, samples);</span>
+        public StackResult(final SampleNode samples, final String benchmark, final boolean isIteration)
+        throws IOException {
+<span class="nc" id="L98">            super(ResultRole.SECONDARY, &quot;@stack&quot;, of(Double.NaN), &quot;---&quot;, AggregationPolicy.AVG);</span>
+<span class="nc" id="L99">            this.samples = samples;</span>
+<span class="nc" id="L100">            this.benchmark = benchmark;</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            if (isIteration) {</span>
+<span class="nc" id="L102">                this.fileName = null;</span>
+            } else {
+<span class="nc" id="L104">                this.fileName = DUMP_FOLDER + &quot;/&quot; + benchmark + &quot;.ssdump&quot;;</span>
+<span class="nc" id="L105">                Converter.saveToFile(fileName, samples);</span>
+            }
 <span class="nc" id="L107">        }</span>
         
 
@@ -115,61 +115,56 @@ import org.spf4j.stackmonitor.proto.Converter;
 <span class="nc" id="L115">            return benchmark;</span>
         }
 
-        public String getId() {
-<span class="nc" id="L119">            return id;</span>
-        }
-        
-
         @Override
         protected Aggregator&lt;StackResult&gt; getThreadAggregator() {
-<span class="nc" id="L125">            return new StackAggregator();</span>
+<span class="nc" id="L120">            return new StackAggregator();</span>
         }
 
         @Override
         protected Aggregator&lt;StackResult&gt; getIterationAggregator() {
-<span class="nc" id="L130">            return new StackAggregator();</span>
+<span class="nc" id="L125">            return new StackAggregator();</span>
         }
         
         @Override
         public String toString() {
-<span class="nc" id="L135">            return &quot;&lt;delayed till summary&gt;&quot;;</span>
+<span class="nc" id="L130">            return &quot;&lt;delayed till summary&gt;&quot;;</span>
         }
 
         @Override
         public String extendedInfo(final String label) {
-<span class="nc bnc" id="L140" title="All 2 branches missed.">            if (fileName == null) {</span>
-<span class="nc" id="L141">                return samples.toString();</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">            if (fileName == null) {</span>
+<span class="nc" id="L136">                return samples.toString();</span>
             } else {
-<span class="nc" id="L143">                return &quot;Stack sampling profile at: &quot; + fileName;</span>
+<span class="nc" id="L138">                return &quot;Stack sampling profile at: &quot; + fileName;</span>
             }
         }
         
 
     }
 
-<span class="nc" id="L150">    public static final class StackAggregator implements Aggregator&lt;StackResult&gt; {</span>
+<span class="nc" id="L145">    public static final class StackAggregator implements Aggregator&lt;StackResult&gt; {</span>
 
         @Override
         public Result aggregate(final Collection&lt;StackResult&gt; results) {
-<span class="nc bnc" id="L154" title="All 2 branches missed.">            if (results.isEmpty()) {</span>
-<span class="nc" id="L155">                throw new IllegalArgumentException(&quot;Nothig to aggregate: &quot; + results);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">            if (results.isEmpty()) {</span>
+<span class="nc" id="L150">                throw new IllegalArgumentException(&quot;Nothig to aggregate: &quot; + results);</span>
             }
-<span class="nc" id="L157">            Iterator&lt;StackResult&gt; it = results.iterator();</span>
-<span class="nc" id="L158">            StackResult result = it.next();</span>
-<span class="nc" id="L159">            SampleNode agg = result.getSamples();</span>
-<span class="nc" id="L160">            final String benchmark = result.getBenchmark();</span>
-<span class="nc bnc" id="L161" title="All 2 branches missed.">            while (it.hasNext()) {</span>
-<span class="nc" id="L162">                result = it.next();</span>
-<span class="nc" id="L163">                String obenchmark = result.getBenchmark();</span>
-<span class="nc bnc" id="L164" title="All 2 branches missed.">                if (!benchmark.equals(obenchmark)) {</span>
-<span class="nc" id="L165">                    throw new RuntimeException(&quot;Should not aggregate &quot; + benchmark + &quot; with &quot; + obenchmark);</span>
+<span class="nc" id="L152">            Iterator&lt;StackResult&gt; it = results.iterator();</span>
+<span class="nc" id="L153">            StackResult result = it.next();</span>
+<span class="nc" id="L154">            SampleNode agg = result.getSamples();</span>
+<span class="nc" id="L155">            final String benchmark = result.getBenchmark();</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">            while (it.hasNext()) {</span>
+<span class="nc" id="L157">                result = it.next();</span>
+<span class="nc" id="L158">                String obenchmark = result.getBenchmark();</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">                if (!benchmark.equals(obenchmark)) {</span>
+<span class="nc" id="L160">                    throw new RuntimeException(&quot;Should not aggregate &quot; + benchmark + &quot; with &quot; + obenchmark);</span>
                 }
-<span class="nc" id="L167">                agg = SampleNode.aggregate(agg, result.getSamples());</span>
-<span class="nc" id="L168">            }</span>
+<span class="nc" id="L162">                agg = SampleNode.aggregate(agg, result.getSamples());</span>
+<span class="nc" id="L163">            }</span>
             try {
-<span class="nc" id="L170">                return new StackResult(agg, benchmark);</span>
-<span class="nc" id="L171">            } catch (IOException ex) {</span>
-<span class="nc" id="L172">                throw new RuntimeException(ex);</span>
+<span class="nc" id="L165">                return new StackResult(agg, benchmark, false);</span>
+<span class="nc" id="L166">            } catch (IOException ex) {</span>
+<span class="nc" id="L167">                throw new RuntimeException(ex);</span>
             }
         }
 

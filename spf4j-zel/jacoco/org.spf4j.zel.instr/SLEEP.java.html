@@ -41,25 +41,28 @@ public final class SLEEP extends Instruction {
     @Override
     public int execute(final ExecutionContext context)
             throws ZExecutionException, SuspendedException, InterruptedException {
-<span class="nc" id="L44">        Number param = (Number) context.popSyncStackVal();</span>
-<span class="nc bnc" id="L45" title="All 2 branches missed.">        if (context.execService == null) {</span>
-<span class="nc" id="L46">            Thread.sleep(param.longValue());</span>
-        } else {
-<span class="nc" id="L48">            final VMASyncFuture&lt;Object&gt; future = new VMASyncFuture&lt;&gt;();</span>
-<span class="nc" id="L49">            DefaultScheduler.INSTANCE.schedule(new RunnableImpl(context, future),</span>
-                    param.longValue(), TimeUnit.MILLISECONDS);
-<span class="nc" id="L51">            context.ip++;</span>
-<span class="nc" id="L52">            context.suspend(future);</span>
+<span class="fc" id="L44">        Number param = (Number) context.popSyncStackVal();</span>
+<span class="fc" id="L45">        final long sleepMillis = param.longValue();</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (sleepMillis &gt; 0) {</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">            if (context.execService == null) {</span>
+<span class="nc" id="L48">                Thread.sleep(sleepMillis);</span>
+            } else {
+<span class="nc" id="L50">                final VMASyncFuture&lt;Object&gt; future = new VMASyncFuture&lt;&gt;();</span>
+<span class="nc" id="L51">                DefaultScheduler.INSTANCE.schedule(</span>
+                        new RunnableImpl(context, future), sleepMillis, TimeUnit.MILLISECONDS);
+<span class="nc" id="L53">                context.ip++;</span>
+<span class="nc" id="L54">                context.suspend(future);</span>
+            }
         }
-<span class="nc" id="L54">        return 1;</span>
+<span class="fc" id="L57">        return 1;</span>
 
     }
 
-<span class="fc" id="L58">    public static final Instruction INSTANCE = new SLEEP();</span>
+<span class="fc" id="L61">    public static final Instruction INSTANCE = new SLEEP();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L62">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L65">        return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 
     private static final  class RunnableImpl implements Runnable {
@@ -67,18 +70,18 @@ public final class SLEEP extends Instruction {
         private final ExecutionContext context;
         private final VMASyncFuture&lt;Object&gt; future;
 
-<span class="fc" id="L70">        public RunnableImpl(final ExecutionContext context, final VMASyncFuture&lt;Object&gt; future) {</span>
-<span class="fc" id="L71">            this.context = context;</span>
-<span class="fc" id="L72">            this.future = future;</span>
-<span class="fc" id="L73">        }</span>
+<span class="fc" id="L73">        public RunnableImpl(final ExecutionContext context, final VMASyncFuture&lt;Object&gt; future) {</span>
+<span class="fc" id="L74">            this.context = context;</span>
+<span class="fc" id="L75">            this.future = future;</span>
+<span class="fc" id="L76">        }</span>
 
         @Override
         public void run() {
             Object stuff;
             do {
-<span class="fc" id="L79">                stuff = context.execService.resumeSuspendables(future);</span>
-<span class="pc bpc" id="L80" title="1 of 2 branches missed.">            } while (stuff == null);</span>
-<span class="fc" id="L81">        }</span>
+<span class="fc" id="L82">                stuff = context.execService.resumeSuspendables(future);</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">            } while (stuff == null);</span>
+<span class="fc" id="L84">        }</span>
     }
 
 }
