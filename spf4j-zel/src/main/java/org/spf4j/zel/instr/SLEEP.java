@@ -48,7 +48,8 @@ public final class SLEEP extends Instruction {
                 Thread.sleep(sleepMillis);
             } else {
                 final VMASyncFuture<Object> future = new VMASyncFuture<>();
-                DefaultScheduler.INSTANCE.schedule(new RunnableImpl(context, future), sleepMillis, TimeUnit.MILLISECONDS);
+                DefaultScheduler.INSTANCE.schedule(
+                        new RunnableImpl(context, future), sleepMillis, TimeUnit.MILLISECONDS);
                 context.ip++;
                 context.suspend(future);
             }
