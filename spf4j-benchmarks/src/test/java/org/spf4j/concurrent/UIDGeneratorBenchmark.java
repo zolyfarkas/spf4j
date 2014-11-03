@@ -24,12 +24,12 @@ public class UIDGeneratorBenchmark {
     }
     
     @Benchmark
-    public final String scaUid() {
+    public final CharSequence scaUid() {
         return SCA_GEN.next();
     }
     
     @Benchmark
-    public final String atoUid() {
+    public final CharSequence atoUid() {
         return ATO_GEN.next();
     }
     

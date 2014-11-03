@@ -89,11 +89,11 @@ public final class UIDGenerator {
         return maxSize;
     }
 
-    public String next() {
+    public CharSequence next() {
         StringBuilder result = new StringBuilder(maxSize);
         result.append(base);
         appendUnsignedString(result, sequence.next(), 5);
-        return result.toString();
+        return result;
     }
 
     private static final char[] DIGITS = {
