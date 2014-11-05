@@ -17,6 +17,7 @@
  */
 package org.spf4j.base;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -160,7 +161,13 @@ public final class Throwables {
             newChainIdx = size - (MAX_THROWABLE_CHAIN - chainedExNr);
             LOG.warn("Trimming exception at {} ", newChainIdx, newRootCause);
         }
-        T result = Objects.clone(t);
+        T result;
+        try {
+            result = Objects.clone(t);
+        } catch (IOException ex) {
+            result = t;
+            LOG.info("Unable to clone exception", t);
+        }
         chain0(result, newRootCauseChain.get(newChainIdx));
         return result;
   
@@ -179,7 +186,13 @@ public final class Throwables {
     public static <T extends Throwable> T suppress(@Nonnull final T t, @Nonnull final Throwable suppressed) {
         if (ADD_SUPPRESSED != null) {
             try {
-                T clone = Objects.clone(t);
+                T clone;
+                try {
+                    clone = Objects.clone(t);
+                } catch (IOException ex) {
+                    clone = t;
+                    LOG.info("Unable to clone exception", t);
+                }
                 ADD_SUPPRESSED.invoke(clone, suppressed);
                 return clone;
             } catch (IllegalAccessException ex) {
@@ -212,7 +225,13 @@ public final class Throwables {
                 throw new RuntimeException(ex);
             }
         } else {
-            List<Throwable> chain = com.google.common.base.Throwables.getCausalChain(Objects.clone(t));
+            List<Throwable> chain;
+            try {
+                chain = com.google.common.base.Throwables.getCausalChain(Objects.clone(t));
+            } catch (IOException ex) {
+                LOG.info("Unable to clone exception", t);
+                chain = com.google.common.base.Throwables.getCausalChain(t);
+            }
             List<Throwable> result = new ArrayList<Throwable>();
             Throwable prev = null;
             for (Throwable comp : chain) {

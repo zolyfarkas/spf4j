@@ -34,7 +34,7 @@ public final class Objects {
     private Objects() {
     }
 
-    public static <T extends Serializable> T clone(final T t) {
+    public static <T extends Serializable> T clone(final T t) throws IOException {
         try (ByteArrayBuilder bos = new ByteArrayBuilder(256);
              ObjectOutputStream out = new ObjectOutputStream(bos)) {
             out.writeObject(t);
@@ -43,7 +43,7 @@ public final class Objects {
                     new ByteArrayInputStream(bos.getBuffer(), 0, bos.size()))) {
                 return (T) in.readObject();
             }
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
