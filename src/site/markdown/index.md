@@ -304,6 +304,16 @@ Usage:
  For production use spf4j profiler is a zero cost alternative, which due to its simplicity should be a more
  reliable option as well.
 
+ THe Jmh integration is available in spf4j-jmh module:
+
+```
+        <dependency>
+            <groupId>org.spf4j</groupId>
+            <artifactId>spf4j-jmh</artifactId>
+            <version>...</version>
+            <scope>test</scope>
+        </dependency>
+```
 
 ### 5.4. How to see the profile data?
 
