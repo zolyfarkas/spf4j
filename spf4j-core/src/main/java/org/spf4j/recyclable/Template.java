@@ -25,6 +25,7 @@ import org.spf4j.base.Callables.TimeoutCallable;
 import org.spf4j.base.Handler;
 import org.spf4j.base.Throwables;
 
+//CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES
 public final class Template<T, E extends Exception> {
 
     private final RecyclingSupplier<T> pool;
@@ -41,14 +42,14 @@ public final class Template<T, E extends Exception> {
     }
 
     public void doOnSupplied(final Handler<T, E> handler)
-            throws InterruptedException {
+            throws InterruptedException, E {
         doOnSupplied(handler, pool, nrImmediateRetries, retryWaitMillis, timeout);
     }
 
     public static  <T, E extends Exception> void doOnSupplied(final Handler<T, E> handler,
             final RecyclingSupplier<T> pool, final int nrImmediateRetries,
-             final int retryWaitMillis, final int timeoutMillis) throws InterruptedException {
-        Callables.executeWithRetry(new TimeoutCallable<Void>(timeoutMillis) {
+             final int retryWaitMillis, final int timeoutMillis) throws E, InterruptedException {
+        Callables.executeWithRetry(new TimeoutCallable<Void, E>(timeoutMillis) {
             
             @Override
             // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES

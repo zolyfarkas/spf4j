@@ -55,7 +55,7 @@ public final class RetryAspect {
     public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final Retry annot)
             throws Throwable {
 
-        return Callables.executeWithRetry(new TimeoutCallable<Object>(annot.timeoutMillis()) {
+        return Callables.executeWithRetry(new TimeoutCallable<Object, Exception>(annot.timeoutMillis()) {
 
             @Override
             public Object call(final long dealine) throws Exception {

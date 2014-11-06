@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
+//CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES
 public final class Callables {
 
     private Callables() {
@@ -129,27 +130,30 @@ public final class Callables {
     }
 
 
-    public static <T> T executeWithRetry(final TimeoutCallable<T> what, final int nrImmediateRetries,
+    public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
+            final int nrImmediateRetries,
             final int maxRetryWaitMillis)
-            throws InterruptedException {
+            throws InterruptedException, EX {
         return executeWithRetry(what, new RetryPauseWithTimeout<T>(
                 nrImmediateRetries, maxRetryWaitMillis, what.getDeadline(), null),
                 NORETRY_FOR_RESULT, DEFAULT_EXCEPTION_RETRY);
     }
 
-    public static <T> T executeWithRetry(final TimeoutCallable<T> what, final int nrImmediateRetries,
+    public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
+            final int nrImmediateRetries,
             final int maxRetryWaitMillis,
             final Predicate<Exception> retryOnException)
-            throws InterruptedException {
+            throws InterruptedException, EX {
         return executeWithRetry(what, new RetryPauseWithTimeout<T>(
                 nrImmediateRetries, maxRetryWaitMillis, what.getDeadline(), null),
                 NORETRY_FOR_RESULT, retryOnException);
     }
 
-    public static <T> T executeWithRetry(final TimeoutCallable<T> what, final int nrImmediateRetries,
+    public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
+            final int nrImmediateRetries,
             final int maxRetryWaitMillis,
             final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
-            throws InterruptedException {
+            throws InterruptedException, EX {
         return executeWithRetry(what, new RetryPauseWithTimeout<T>(
                 nrImmediateRetries, maxRetryWaitMillis, what.getDeadline(), null),
                 retryOnReturnVal, retryOnException);
@@ -168,16 +172,16 @@ public final class Callables {
      * @return
      * @throws InterruptedException
      */
-    public static <T> T executeWithRetry(final TimeoutCallable<T> what, final PreRetryCallback<T> doBeforeRetry,
-            final int nrImmediateRetries, final int maxWaitMillis,
+    public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
+            final PreRetryCallback<T> doBeforeRetry, final int nrImmediateRetries, final int maxWaitMillis,
             final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
-            throws InterruptedException {
-        return executeWithRetry(what, new RetryPauseWithTimeout<T>(
+            throws InterruptedException, EX {
+        return executeWithRetry(what, new RetryPauseWithTimeout<>(
                 nrImmediateRetries, maxWaitMillis, what.getDeadline(), doBeforeRetry),
                 retryOnReturnVal, retryOnException);
     }
 
-    public abstract static class TimeoutCallable<T> implements Callable<T> {
+    public abstract static class TimeoutCallable<T, EX extends Exception> implements CheckedCallable<T, EX> {
 
         private final long mdeadline;
 
@@ -186,21 +190,28 @@ public final class Callables {
         }
 
         @Override
-        public final T call() throws Exception {
+        public final T call() throws EX, InterruptedException {
             return call(mdeadline);
         }
 
-        public abstract T call(final long deadline) throws Exception;
+        public abstract T call(final long deadline) throws EX, InterruptedException;
 
         public final long getDeadline() {
             return mdeadline;
         }
 
     }
+    
+    
+    public interface CheckedCallable<T, EX extends Exception> extends Callable<T> {
+        @Override
+        T call() throws EX, InterruptedException;
+    }
 
-    public static <T> T executeWithRetry(final Callable<T> what, final Callable<Boolean> doBeforeRetry,
+    public static <T, EX extends Exception> T executeWithRetry(final CheckedCallable<T, EX> what,
+            final Callable<Boolean> doBeforeRetry,
             final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
-            throws InterruptedException {
+            throws InterruptedException, EX {
         return executeWithRetry(what, (PreRetryCallback<T>) callableToPreRetryCallback(doBeforeRetry),
                 retryOnReturnVal, retryOnException);
     }
@@ -212,9 +223,7 @@ public final class Callables {
             public boolean call(final Exception lastException, final T lastResult) throws InterruptedException {
                 try {
                     return doBeforeRetry.call();
-                } catch (InterruptedException ex) {
-                    throw ex;
-                }  catch (RuntimeException ex) {
+                } catch (InterruptedException | RuntimeException ex) {
                     throw ex;
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
@@ -250,16 +259,17 @@ public final class Callables {
      * @return
      * @throws InterruptedException
      */
-    public static <T> T executeWithRetry(final Callable<T> what, final PreRetryCallback<T> doBeforeRetry,
+    public static <T, EX extends Exception> T executeWithRetry(
+            final CheckedCallable<T, EX> what, final PreRetryCallback<T> doBeforeRetry,
             final Predicate<? super T> retryOnReturnVal, final Predicate<Exception> retryOnException)
-            throws InterruptedException {
+            throws InterruptedException, EX {
         T result = null;
         Exception lastEx = null; // last exception
         try {
             result = what.call();
         } catch (InterruptedException ex1) {
             throw ex1;
-        } catch (Exception e) {
+        } catch (Exception e) { // only EX and RuntimeException
             lastEx = e;
         }
         Exception lastExChain = lastEx; // last exception chained with all previous exceptions
@@ -279,7 +289,7 @@ public final class Callables {
                 result = what.call();
             } catch (InterruptedException ex1) {
                 throw ex1;
-            } catch (Exception e) {
+            } catch (Exception e) { // only EX and RuntimeException
                 lastEx = e;
                 if (lastExChain != null) {
                     lastExChain = Throwables.suppress(e, lastExChain);
@@ -292,7 +302,7 @@ public final class Callables {
             if (lastExChain instanceof RuntimeException) {
                 throw (RuntimeException) lastExChain;
             } else {
-                throw new RuntimeException(lastExChain);
+                throw (EX) lastExChain;
             }
         }
         return result;

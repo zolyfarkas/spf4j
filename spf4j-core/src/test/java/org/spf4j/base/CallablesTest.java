@@ -31,14 +31,28 @@ public final class CallablesTest {
 
 
     /**
+     * Test exception propagation.
+     */
+    @Test(expected = TestException.class)
+    public void testExceptionPropagation() throws Exception {
+        Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, TestException>(60000) {
+            @Override
+            public Integer call(final long deadline) throws TestException {
+                throw new TestException();
+            }
+        }, 3, 10);
+    }
+    
+    
+    /**
      * Test of executeWithRetry method, of class Callables.
      */
     @Test
     public void testExecuteWithRetry4args1() throws Exception {
         System.out.println("executeWithRetry");
-        Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer>(60000) {
+        Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, RuntimeException>(60000) {
             @Override
-            public Integer call(final long deadline) throws Exception {
+            public Integer call(final long deadline) {
                 return 1;
             }
         }, 3, 10);
@@ -52,11 +66,11 @@ public final class CallablesTest {
     public void testExecuteWithRetry4args2() throws Exception {
         System.out.println("executeWithRetry");
         long startTime = System.currentTimeMillis();
-        Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer>(60000) {
+        Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(60000) {
             private int count;
 
             @Override
-            public Integer call(final long deadline) throws Exception {
+            public Integer call(final long deadline) throws IOException {
                 count++;
                 if (count < 20) {
                     throw new IOException("Aaaaaaaaaaa" + count);
@@ -74,7 +88,7 @@ public final class CallablesTest {
     public void testExecuteWithRetryFailureTest() throws Exception {
         System.out.println("executeWithRetry");
         try {
-            Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer>(100) {
+            Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(100) {
                 private int count;
 
                 @Override
@@ -87,11 +101,11 @@ public final class CallablesTest {
                 }
             }, 4, 100);
             Assert.fail("Should not get here");
-        } catch (Exception e) {
+        } catch (IOException e) {
             if (Runtime.JAVA_PLATFORM == Runtime.Version.V1_6) {
-                Assert.assertTrue(Throwables.getSuppressed(e.getCause()).length >= 4);
+                Assert.assertTrue(Throwables.getSuppressed(e).length >= 4);
             } else {
-                Assert.assertTrue(Throwables.getSuppressed(e.getCause()).length >= 1);
+                Assert.assertTrue(Throwables.getSuppressed(e).length >= 1);
             }
         }
 
@@ -102,11 +116,11 @@ public final class CallablesTest {
     public void testSuppression() throws Exception {
         System.out.println("executeWithRetry");
         long startTime = System.currentTimeMillis();
-        Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer>(60000) {
+        Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(60000) {
             private int count;
 
             @Override
-            public Integer call(final long deadline) throws Exception {
+            public Integer call(final long deadline) throws IOException {
                 count++;
                 if (count < 10) {
                     throw new IOException("Aaaaaaaaaaa" + count);
@@ -131,14 +145,14 @@ public final class CallablesTest {
     }
     
     
-    @Test(expected = RuntimeException.class)
-    public void testExecuteWithRetryTimeout() throws Exception {
+    @Test(expected = IOException.class)
+    public void testExecuteWithRetryTimeout() throws InterruptedException, IOException {
         System.out.println("executeWithRetryTimeout");
-        Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer>(1000) {
+        Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(1000) {
             private int count;
 
             @Override
-            public Integer call(final long deadline) throws Exception {
+            public Integer call(final long deadline) throws IOException, InterruptedException {
                 Thread.sleep(2000);
                 count++;
                 if (count < 5) {
@@ -150,14 +164,14 @@ public final class CallablesTest {
         Assert.assertEquals(1L, result.longValue());
     }
     
-    @Test(expected = RuntimeException.class)
-    public void testExecuteWithRetryTimeout2() throws Exception {
+    @Test(expected = IOException.class)
+    public void testExecuteWithRetryTimeout2() throws InterruptedException, IOException {
         System.out.println("executeWithRetryTimeout2");
-        Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer>(1000) {
+        Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(1000) {
             private int count;
 
             @Override
-            public Integer call(final long deadline) throws Exception {
+            public Integer call(final long deadline) throws IOException {
                 System.out.println("Exec at " + System.currentTimeMillis());
                 count++;
                 if (count < 200) {
@@ -200,7 +214,7 @@ public final class CallablesTest {
         Assert.assertEquals(4, callableImpl.getCount());
     }
 
-    private static class CallableImpl extends TimeoutCallable<Integer> {
+    private static class CallableImpl extends TimeoutCallable<Integer, Exception> {
 
 
         private int count;
@@ -221,7 +235,7 @@ public final class CallablesTest {
         
     }
     
-    private static class CallableImpl2 extends TimeoutCallable<Integer> {
+    private static class CallableImpl2 extends TimeoutCallable<Integer, Exception> {
 
         
         private int count;
