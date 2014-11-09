@@ -25,6 +25,7 @@ import org.spf4j.base.Callables.TimeoutCallable;
 import org.spf4j.base.Handler;
 import org.spf4j.base.Throwables;
 
+//CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES
 public final class Template&lt;T, E extends Exception&gt; {
 
     private final RecyclingSupplier&lt;T&gt; pool;
@@ -33,33 +34,33 @@ public final class Template&lt;T, E extends Exception&gt; {
     private final int timeout;
 
     public Template(final RecyclingSupplier&lt;T&gt; pool, final int nrImmediateRetries,
-<span class="nc" id="L36">             final int retryWaitMillis, final int timeoutMillis) {</span>
-<span class="nc" id="L37">        this.pool = pool;</span>
-<span class="nc" id="L38">        this.nrImmediateRetries = nrImmediateRetries;</span>
-<span class="nc" id="L39">        this.retryWaitMillis = retryWaitMillis;</span>
-<span class="nc" id="L40">        this.timeout = timeoutMillis;</span>
-<span class="nc" id="L41">    }</span>
+<span class="nc" id="L37">             final int retryWaitMillis, final int timeoutMillis) {</span>
+<span class="nc" id="L38">        this.pool = pool;</span>
+<span class="nc" id="L39">        this.nrImmediateRetries = nrImmediateRetries;</span>
+<span class="nc" id="L40">        this.retryWaitMillis = retryWaitMillis;</span>
+<span class="nc" id="L41">        this.timeout = timeoutMillis;</span>
+<span class="nc" id="L42">    }</span>
 
     public void doOnSupplied(final Handler&lt;T, E&gt; handler)
-            throws InterruptedException {
-<span class="nc" id="L45">        doOnSupplied(handler, pool, nrImmediateRetries, retryWaitMillis, timeout);</span>
-<span class="nc" id="L46">    }</span>
+            throws InterruptedException, E {
+<span class="nc" id="L46">        doOnSupplied(handler, pool, nrImmediateRetries, retryWaitMillis, timeout);</span>
+<span class="nc" id="L47">    }</span>
 
     public static  &lt;T, E extends Exception&gt; void doOnSupplied(final Handler&lt;T, E&gt; handler,
             final RecyclingSupplier&lt;T&gt; pool, final int nrImmediateRetries,
-             final int retryWaitMillis, final int timeoutMillis) throws InterruptedException {
-<span class="fc" id="L51">        Callables.executeWithRetry(new TimeoutCallable&lt;Void&gt;(timeoutMillis) {</span>
+             final int retryWaitMillis, final int timeoutMillis) throws E, InterruptedException {
+<span class="fc" id="L52">        Callables.executeWithRetry(new TimeoutCallable&lt;Void, E&gt;(timeoutMillis) {</span>
             
             @Override
             // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
             public Void call(final long deadline)
                     throws ObjectReturnException, ObjectCreationException,
                     ObjectBorrowException, InterruptedException, TimeoutException, E {
-<span class="fc" id="L58">                Template.doOnSupplied(handler, pool, deadline);</span>
-<span class="fc" id="L59">                return null;</span>
+<span class="fc" id="L59">                Template.doOnSupplied(handler, pool, deadline);</span>
+<span class="fc" id="L60">                return null;</span>
             }
         }, nrImmediateRetries, retryWaitMillis);
-<span class="fc" id="L62">    }</span>
+<span class="fc" id="L63">    }</span>
 
     //findbugs does not know about supress in spf4j
     @SuppressFBWarnings(&quot;LEST_LOST_EXCEPTION_STACK_TRACE&quot;)
@@ -67,22 +68,22 @@ public final class Template&lt;T, E extends Exception&gt; {
             final RecyclingSupplier&lt;T&gt; pool, final long deadline)
             throws ObjectReturnException, ObjectCreationException,
             ObjectBorrowException, InterruptedException, TimeoutException, E {
-<span class="fc" id="L70">        T object = pool.get();</span>
+<span class="fc" id="L71">        T object = pool.get();</span>
         try {
-<span class="fc" id="L72">            handler.handle(object, deadline);</span>
-<span class="fc" id="L73">        } catch (Exception e) {</span>
+<span class="fc" id="L73">            handler.handle(object, deadline);</span>
+<span class="fc" id="L74">        } catch (Exception e) {</span>
             try {
-<span class="fc" id="L75">                pool.recycle(object, e);</span>
-<span class="nc" id="L76">            } catch (RuntimeException ex) {</span>
-<span class="nc" id="L77">                throw Throwables.suppress(ex, e);</span>
-<span class="fc" id="L78">            }</span>
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">            if (e instanceof RuntimeException) {</span>
-<span class="nc" id="L80">                throw (RuntimeException) e;</span>
+<span class="fc" id="L76">                pool.recycle(object, e);</span>
+<span class="nc" id="L77">            } catch (RuntimeException ex) {</span>
+<span class="nc" id="L78">                throw Throwables.suppress(ex, e);</span>
+<span class="fc" id="L79">            }</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">            if (e instanceof RuntimeException) {</span>
+<span class="nc" id="L81">                throw (RuntimeException) e;</span>
             } else {
-<span class="fc" id="L82">                throw (E) e;</span>
+<span class="fc" id="L83">                throw (E) e;</span>
             }
-<span class="fc" id="L84">        }</span>
-<span class="fc" id="L85">        pool.recycle(object, null);</span>
-<span class="fc" id="L86">    }</span>
+<span class="fc" id="L85">        }</span>
+<span class="fc" id="L86">        pool.recycle(object, null);</span>
+<span class="fc" id="L87">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>

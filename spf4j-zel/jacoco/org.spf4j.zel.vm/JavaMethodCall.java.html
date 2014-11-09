@@ -34,61 +34,59 @@ public final class JavaMethodCall implements Method {
     private final Class&lt;?&gt; objectClass;
     private final Object object;
 
-<span class="fc" id="L37">    public JavaMethodCall(final Object object, final String methodName) {</span>
-<span class="fc" id="L38">        this.name = methodName;</span>
-<span class="fc bfc" id="L39" title="All 2 branches covered.">        if (object instanceof Class) {</span>
-<span class="fc" id="L40">            this.objectClass = (Class&lt;?&gt;) object;</span>
-<span class="fc" id="L41">            this.object = null;</span>
+<span class="nc" id="L37">    public JavaMethodCall(final Object object, final String methodName) {</span>
+<span class="nc" id="L38">        this.name = methodName;</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        if (object instanceof Class) {</span>
+<span class="nc" id="L40">            this.objectClass = (Class&lt;?&gt;) object;</span>
+<span class="nc" id="L41">            this.object = null;</span>
         } else {
-<span class="fc" id="L43">            this.objectClass = object.getClass();</span>
-<span class="fc" id="L44">            this.object = object;</span>
+<span class="nc" id="L43">            this.objectClass = object.getClass();</span>
+<span class="nc" id="L44">            this.object = object;</span>
         }
-<span class="fc" id="L46">    }</span>
+<span class="nc" id="L46">    }</span>
 
-<span class="fc" id="L48">    private static final Class&lt;?&gt;[] EMPTY_CL_ARR = new Class&lt;?&gt;[0];</span>
+<span class="nc" id="L48">    private static final Class&lt;?&gt;[] EMPTY_CL_ARR = new Class&lt;?&gt;[0];</span>
 
     @Override
     public Object invoke(final ExecutionContext context, final Object[] parameters) {
         try {
-<span class="fc" id="L53">            int np = parameters.length;</span>
-<span class="fc bfc" id="L54" title="All 2 branches covered.">            if (np &gt; 0) {</span>
-<span class="fc" id="L55">                Class&lt;?&gt;[] classes = new Class&lt;?&gt;[np];</span>
-<span class="fc bfc" id="L56" title="All 2 branches covered.">                for (int i = 0; i &lt; np; i++) {</span>
-<span class="fc" id="L57">                    classes[i] = parameters[i].getClass();</span>
+<span class="nc" id="L53">            int np = parameters.length;</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">            if (np &gt; 0) {</span>
+<span class="nc" id="L55">                Class&lt;?&gt;[] classes = new Class&lt;?&gt;[np];</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">                for (int i = 0; i &lt; np; i++) {</span>
+<span class="nc" id="L57">                    classes[i] = parameters[i].getClass();</span>
                 }
-<span class="fc" id="L59">                java.lang.reflect.Method m = Reflections.getCompatibleMethodCached(objectClass, name, classes);</span>
-<span class="fc" id="L60">                Class&lt;?&gt;[] actTypes = m.getParameterTypes();</span>
-<span class="fc" id="L61">                Class&lt;?&gt; lastParamClass = actTypes[actTypes.length - 1];</span>
-<span class="fc bfc" id="L62" title="All 2 branches covered.">                if (Reflections.canAssign(lastParamClass, classes[classes.length - 1])) {</span>
-<span class="fc" id="L63">                    return m.invoke(object, parameters);</span>
-<span class="pc bpc" id="L64" title="1 of 2 branches missed.">                } else if (lastParamClass.isArray()) {</span>
-<span class="fc" id="L65">                    int lidx = actTypes.length - 1;</span>
-<span class="fc" id="L66">                    int l = np - lidx;</span>
-<span class="fc" id="L67">                    Object array = Array.newInstance(lastParamClass.getComponentType(), l);</span>
-<span class="fc bfc" id="L68" title="All 2 branches covered.">                    for (int k = 0; k &lt; l; k++) {</span>
-<span class="fc" id="L69">                        Array.set(array, k, parameters[lidx + k]);</span>
+<span class="nc" id="L59">                java.lang.reflect.Method m = Reflections.getCompatibleMethodCached(objectClass, name, classes);</span>
+<span class="nc" id="L60">                Class&lt;?&gt;[] actTypes = m.getParameterTypes();</span>
+<span class="nc" id="L61">                Class&lt;?&gt; lastParamClass = actTypes[actTypes.length - 1];</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">                if (Reflections.canAssign(lastParamClass, classes[classes.length - 1])) {</span>
+<span class="nc" id="L63">                    return m.invoke(object, parameters);</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">                } else if (lastParamClass.isArray()) {</span>
+<span class="nc" id="L65">                    int lidx = actTypes.length - 1;</span>
+<span class="nc" id="L66">                    int l = np - lidx;</span>
+<span class="nc" id="L67">                    Object array = Array.newInstance(lastParamClass.getComponentType(), l);</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">                    for (int k = 0; k &lt; l; k++) {</span>
+<span class="nc" id="L69">                        Array.set(array, k, parameters[lidx + k]);</span>
                     }
-<span class="fc" id="L71">                    Object[] newParams = new Object[actTypes.length];</span>
-<span class="fc" id="L72">                    System.arraycopy(parameters, 0, newParams, 0, lidx);</span>
-<span class="fc" id="L73">                    newParams[lidx] = array;</span>
-<span class="fc" id="L74">                    return m.invoke(object, newParams);</span>
+<span class="nc" id="L71">                    Object[] newParams = new Object[actTypes.length];</span>
+<span class="nc" id="L72">                    System.arraycopy(parameters, 0, newParams, 0, lidx);</span>
+<span class="nc" id="L73">                    newParams[lidx] = array;</span>
+<span class="nc" id="L74">                    return m.invoke(object, newParams);</span>
                 } else {
 <span class="nc" id="L76">                    throw new IllegalStateException();</span>
                 }
             } else {
-<span class="fc" id="L79">                return Reflections.getCompatibleMethodCached(objectClass, name, EMPTY_CL_ARR)</span>
+<span class="nc" id="L79">                return Reflections.getCompatibleMethodCached(objectClass, name, EMPTY_CL_ARR)</span>
                         .invoke(object);
             }
-<span class="nc" id="L82">        } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L82">        } catch (IllegalAccessException | InvocationTargetException ex) {</span>
 <span class="nc" id="L83">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L84">        } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L85">            throw new RuntimeException(ex);</span>
         }
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L91">        return &quot;JavaMethodCall{&quot; + &quot;name=&quot; + name + &quot;, objectClass=&quot; + objectClass + &quot;, object=&quot; + object + '}';</span>
+<span class="nc" id="L89">        return &quot;JavaMethodCall{&quot; + &quot;name=&quot; + name + &quot;, objectClass=&quot; + objectClass + &quot;, object=&quot; + object + '}';</span>
     }
 
 }

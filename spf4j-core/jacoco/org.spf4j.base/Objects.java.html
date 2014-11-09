@@ -34,7 +34,7 @@ public final class Objects {
 <span class="nc" id="L34">    private Objects() {</span>
 <span class="nc" id="L35">    }</span>
 
-    public static &lt;T extends Serializable&gt; T clone(final T t) {
+    public static &lt;T extends Serializable&gt; T clone(final T t) throws IOException {
 <span class="pc" id="L38">        try (ByteArrayBuilder bos = new ByteArrayBuilder(256);</span>
 <span class="fc" id="L39">             ObjectOutputStream out = new ObjectOutputStream(bos)) {</span>
 <span class="fc" id="L40">            out.writeObject(t);</span>
@@ -43,7 +43,7 @@ public final class Objects {
                     new ByteArrayInputStream(bos.getBuffer(), 0, bos.size()))) {
 <span class="fc" id="L44">                return (T) in.readObject();</span>
 <span class="pc bpc" id="L45" title="6 of 8 branches missed.">            }</span>
-<span class="pc bpc" id="L46" title="12 of 16 branches missed.">        } catch (IOException | ClassNotFoundException e) {</span>
+<span class="pc bpc" id="L46" title="12 of 16 branches missed.">        } catch (ClassNotFoundException e) {</span>
 <span class="nc" id="L47">            throw new RuntimeException(e);</span>
         }
     }
