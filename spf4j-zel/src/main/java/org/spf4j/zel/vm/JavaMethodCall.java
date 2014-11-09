@@ -79,9 +79,7 @@ public final class JavaMethodCall implements Method {
                 return Reflections.getCompatibleMethodCached(objectClass, name, EMPTY_CL_ARR)
                         .invoke(object);
             }
-        } catch (IllegalAccessException ex) {
-            throw new RuntimeException(ex);
-        } catch (InvocationTargetException ex) {
+        } catch (IllegalAccessException | InvocationTargetException ex) {
             throw new RuntimeException(ex);
         }
     }
