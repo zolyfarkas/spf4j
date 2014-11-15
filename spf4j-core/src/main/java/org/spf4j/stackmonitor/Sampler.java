@@ -70,7 +70,7 @@ public final class Sampler {
     
     
     public Sampler() {
-        this(100, 3600000, new FastStackCollector(false));
+        this(10, 3600000, new FastStackCollector(false));
     }
 
     public Sampler(final int sampleTimeMillis) {
@@ -78,7 +78,7 @@ public final class Sampler {
     }
 
     public Sampler(final StackCollector collector) {
-        this(100, 3600000, collector);
+        this(10, 3600000, collector);
     }
     
     public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final StackCollector collector) {
@@ -152,7 +152,7 @@ public final class Sampler {
                                 dumpCounterMs -= dumpTimeMillis - timeSinceLastDump;
                             }
                         }
-                        sleepTime = stMillis + random.nextInt() % stMillis;
+                        sleepTime = stMillis + (random.nextInt() % stMillis);
                         Thread.sleep(sleepTime);
                    }
                 }
