@@ -40,7 +40,7 @@ public final class JmhProfiler implements InternalProfiler {
     /**
      * Sampling period
      */
-    private static final int SAMPLE_PERIOD_MSEC = Integer.getInteger("jmh.stack.period", 5);
+    private static final int SAMPLE_PERIOD_MSEC = Integer.getInteger("jmh.stack.period", 10);
     
     private static final String DUMP_FOLDER = System.getProperty("jmh.stack.profiles", org.spf4j.base.Runtime.USER_DIR);
 
