@@ -33,10 +33,10 @@ public final class DefaultExecutor {
     }
     
     public static final ExecutorService INSTANCE = MoreExecutors.getExitingExecutorService(
-            new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+            new ThreadPoolExecutor(Integer.getInteger("default.executor.coreThreads", 0), Integer.MAX_VALUE,
             60L, TimeUnit.SECONDS,
             new SynchronousQueue<Runnable>(),
-            new CustomThreadFactory("DefaultScheduler", false)));
+            new CustomThreadFactory("DefaultExecutor", false)));
     
     public static void shutdown() {
         INSTANCE.shutdown();

@@ -36,7 +36,7 @@ public final class DefaultScheduler {
     
     public static final ScheduledExecutorService INSTANCE =
             MoreExecutors.getExitingScheduledExecutorService(
-            new ScheduledThreadPoolExecutor(2,
+            new ScheduledThreadPoolExecutor(Integer.getInteger("default.scheduler.coreThreads", 2),
             new CustomThreadFactory("DefaultScheduler", false)));
 
     
