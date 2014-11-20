@@ -216,9 +216,9 @@ public final class Strings {
     }
     
     /**
-     * Steal the underlying character array of a String. 
+     * Steal the underlying character array of a String.
      * @param str
-     * @return 
+     * @return
      */
     public static char [] steal(final String str) {
         if (CHARS_FIELD == null) {
@@ -236,7 +236,7 @@ public final class Strings {
      * Create a String based on the provided character array.
      * No copy of the array is made.
      * @param chars
-     * @return 
+     * @return
      */
     public static String wrap(final char [] chars) {
         if (PROTECTED_STR_CONSTR == null) {
@@ -274,11 +274,11 @@ public final class Strings {
     
     @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
     public static byte[] encode(final CharsetEncoder ce, final char[] ca, final int off, final int len) {
+        if (len == 0) {
+            return Arrays.EMPTY_BYTE_ARRAY;
+        }
         int en = (int) (len * (double) ce.maxBytesPerChar());
         byte[] ba = Arrays.getBytesTmp(en);
-        if (len == 0) {
-            return ba;
-        }
         if (ce instanceof ArrayEncoder) {
             int blen = ((ArrayEncoder) ce).encode(ca, off, len, ba);
             return java.util.Arrays.copyOf(ba, blen);
@@ -305,11 +305,11 @@ public final class Strings {
 
     @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
     public static String decode(final CharsetDecoder cd, final byte[] ba, final int off, final int len) {
-        int en = (int) (len * (double) cd.maxCharsPerByte());
-        char[] ca = Arrays.getCharsTmp(en);
         if (len == 0) {
             return "";
         }
+        int en = (int) (len * (double) cd.maxCharsPerByte());
+        char[] ca = Arrays.getCharsTmp(en);
         if (cd instanceof ArrayDecoder) {
             int clen = ((ArrayDecoder) cd).decode(ba, off, len, ca);
             return new String(ca, 0, clen);

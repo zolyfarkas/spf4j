@@ -164,6 +164,8 @@ public final class Arrays {
         
     public static final Object [] EMPTY_OBJ_ARRAY = new Object [] {};
     
+    public static final byte [] EMPTY_BYTE_ARRAY = new byte [] {};
+    
     private static final ThreadLocal<SoftReference<byte[]>> BYTES_TMP = new ThreadLocal<>();
     
     private static final ThreadLocal<SoftReference<char[]>> CHARS_TMP = new ThreadLocal<>();
@@ -172,7 +174,7 @@ public final class Arrays {
      * returns a thread local byte array of at least the size requested.
      * use only for temporary purpose.
      * @param size
-     * @return 
+     * @return
      */
     public static byte [] getBytesTmp(final int size) {
         SoftReference<byte[]> sr = BYTES_TMP.get();
@@ -194,7 +196,7 @@ public final class Arrays {
      * returns a thread local char array of at least the requested size.
      * Use only for temporary purpose.
      * @param size
-     * @return 
+     * @return
      */
     
     public static char [] getCharsTmp(final int size) {
