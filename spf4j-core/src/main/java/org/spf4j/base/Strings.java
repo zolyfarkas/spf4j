@@ -18,11 +18,30 @@
  */
 package org.spf4j.base;
 
+import com.google.common.base.Charsets;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.Writer;
 import static java.lang.Math.min;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import javax.annotation.Nonnull;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+//CHECKSTYLE:OFF
+import sun.nio.cs.ArrayDecoder;
+import sun.nio.cs.ArrayEncoder;
+//CHECKSTYLE:ON
 /**
  *
  * @author zoly
@@ -147,5 +166,183 @@ public final class Strings {
             }
         }
     }
+    
+    private static final Logger LOG = LoggerFactory.getLogger(Strings.class);
+    
+    private static final Field CHARS_FIELD;
+    
+    //String(char[] value, boolean share) {
+    private static final Constructor<String> PROTECTED_STR_CONSTR;
+    
+    static {
+        CHARS_FIELD = AccessController.doPrivileged(new PrivilegedAction<Field>() {
+                @Override
+                public Field run() {
+                    Field charsField;
+                    try {
+                        charsField = String.class.getDeclaredField("value");
+                    } catch (NoSuchFieldException ex) {
+                        LOG.info("char array stealing from String not supported", ex);
+                        charsField = null;
+                    } catch (SecurityException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    if (charsField != null) {
+                        charsField.setAccessible(true);
+                    }
+                    return charsField;
+                }
+            });
+        
+        PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction<Constructor<String>>() {
+                @Override
+                public Constructor<String> run() {
+                    Constructor<String> constr;
+                    try {
+                        constr = String.class.getDeclaredConstructor(char[].class, boolean.class);
+                    } catch (NoSuchMethodException ex) {
+                        LOG.info("building String from char[] fast not supported", ex);
+                        constr = null;
+                    } catch (SecurityException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    if (constr != null) {
+                        constr.setAccessible(true);
+                    }
+                    return constr;
+                }
+            });
+        
+    }
+    
+    /**
+     * Steal the underlying character array of a String. 
+     * @param str
+     * @return 
+     */
+    public static char [] steal(final String str) {
+        if (CHARS_FIELD == null) {
+            return str.toCharArray();
+        } else {
+            try {
+                return (char []) CHARS_FIELD.get(str);
+            } catch (IllegalArgumentException | IllegalAccessException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+    
+    /**
+     * Create a String based on the provided character array.
+     * No copy of the array is made.
+     * @param chars
+     * @return 
+     */
+    public static String wrap(final char [] chars) {
+        if (PROTECTED_STR_CONSTR == null) {
+            return new String(chars);
+        } else {
+            try {
+                return PROTECTED_STR_CONSTR.newInstance(chars, Boolean.TRUE);
+            } catch (InstantiationException | IllegalAccessException
+                    | IllegalArgumentException | InvocationTargetException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+    
+    private static final ThreadLocal<CharsetEncoder> UTF8_ENCODER = new ThreadLocal<CharsetEncoder>() {
+
+        @Override
+        protected CharsetEncoder initialValue() {
+            return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
+                    .onUnmappableCharacter(CodingErrorAction.REPLACE);
+        }
+        
+    };
+    
+    private static final ThreadLocal<CharsetDecoder> UTF8_DECODER = new ThreadLocal<CharsetDecoder>() {
+
+        @Override
+        protected CharsetDecoder initialValue() {
+            return Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
+                    .onUnmappableCharacter(CodingErrorAction.REPLACE);
+        }
+        
+    };
+    
+    
+    @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+    public static byte[] encode(final CharsetEncoder ce, final char[] ca, final int off, final int len) {
+        int en = (int) (len * (double) ce.maxBytesPerChar());
+        byte[] ba = Arrays.getBytesTmp(en);
+        if (len == 0) {
+            return ba;
+        }
+        if (ce instanceof ArrayEncoder) {
+            int blen = ((ArrayEncoder) ce).encode(ca, off, len, ba);
+            return java.util.Arrays.copyOf(ba, blen);
+        } else {
+            ce.reset();
+            ByteBuffer bb = ByteBuffer.wrap(ba);
+            CharBuffer cb = CharBuffer.wrap(ca, off, len);
+            try {
+                CoderResult cr = ce.encode(cb, bb, true);
+                if (!cr.isUnderflow()) {
+                    cr.throwException();
+                }
+                cr = ce.flush(bb);
+                if (!cr.isUnderflow()) {
+                    cr.throwException();
+                }
+            } catch (CharacterCodingException x) {
+                throw new Error(x);
+            }
+            return java.util.Arrays.copyOf(ba, bb.position());
+        }
+    }
+
+
+    @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+    public static String decode(final CharsetDecoder cd, final byte[] ba, final int off, final int len) {
+        int en = (int) (len * (double) cd.maxCharsPerByte());
+        char[] ca = Arrays.getCharsTmp(en);
+        if (len == 0) {
+            return "";
+        }
+        if (cd instanceof ArrayDecoder) {
+            int clen = ((ArrayDecoder) cd).decode(ba, off, len, ca);
+            return new String(ca, 0, clen);
+        }
+        cd.reset();
+        ByteBuffer bb = ByteBuffer.wrap(ba, off, len);
+        CharBuffer cb = CharBuffer.wrap(ca);
+        try {
+            CoderResult cr = cd.decode(bb, cb, true);
+            if (!cr.isUnderflow()) {
+                cr.throwException();
+            }
+            cr = cd.flush(cb);
+            if (!cr.isUnderflow()) {
+                cr.throwException();
+            }
+        } catch (CharacterCodingException x) {
+            throw new Error(x);
+        }
+        return new String(ca, 0, cb.position());
+    }
+
+    
+    public static String fromUtf8(final byte [] bytes) {
+        return decode(UTF8_DECODER.get(), bytes, 0, bytes.length);
+    }
+    
+    
+    public static byte [] toUtf8(final String str) {
+        final char[] chars = steal(str);
+        return encode(UTF8_ENCODER.get(), chars, 0, chars.length);
+    }
+    
+    
     
 }

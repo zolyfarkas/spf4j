@@ -44,5 +44,19 @@ public final class StringsTest {
         String res = Strings.unescape("a\\n");
         Assert.assertEquals("a\n", res);
     }
+    
+    @Test
+    public void testUnsafeOps() {
+       String testString = "dfjgdjshfgsjdhgfskhdfkdshf\ndfs@#$%^&\u63A5\u53D7*($%^&*()(*&^%$#@!>::><>?{PLKJHGFDEWSDFG";
+       char [] chars = Strings.steal(testString);
+       String otherString = Strings.wrap(chars);
+       Assert.assertEquals(testString, otherString);
+       
+       byte [] bytes = Strings.toUtf8(testString);
+       otherString = Strings.fromUtf8(bytes);
+       Assert.assertEquals(testString, otherString);
+              
+    }
+    
 
 }
