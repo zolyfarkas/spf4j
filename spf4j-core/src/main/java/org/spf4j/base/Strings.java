@@ -337,6 +337,10 @@ public final class Strings {
         return decode(UTF8_DECODER.get(), bytes, 0, bytes.length);
     }
     
+    public static String fromUtf8(final byte [] bytes, final int startIdx, final int length) {
+        return decode(UTF8_DECODER.get(), bytes, startIdx, length);
+    }
+    
     
     public static byte [] toUtf8(final String str) {
         final char[] chars = steal(str);
