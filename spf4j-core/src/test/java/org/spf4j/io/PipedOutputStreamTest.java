@@ -21,18 +21,18 @@ public class PipedOutputStreamTest {
 
     @Test
     public void testStreamPiping() throws IOException {
-        test("This is a super cool, mega dupper test string for testing piping..........E");
+        test("This is a super cool, mega dupper test string for testing piping..........E", 8);
         StringBuilder sb = new StringBuilder();
         final IntMath.XorShift32 random = new IntMath.XorShift32();
         int nrChars = Math.abs(random.nextInt() % 100000);
         for (int i = 0; i < nrChars; i++) {
             sb.append((char) Math.abs(random.nextInt() % 128));
         }
-        test(sb.toString());
+        test(sb.toString(), Math.abs(random.nextInt() % 10000));
     }
 
-    private void test(final String testStr) throws IOException {
-        final PipedOutputStream pos = new PipedOutputStream(8);
+    private void test(final String testStr, final int buffSize) throws IOException {
+        final PipedOutputStream pos = new PipedOutputStream(buffSize);
         DefaultExecutor.INSTANCE.execute(new AbstractRunnable() {
 
             @Override
