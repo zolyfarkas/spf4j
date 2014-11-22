@@ -58,7 +58,7 @@ public final class PipedOutputStream extends OutputStream {
                     System.arraycopy(b, off + bytesWritten, buffer, 0, wrapArrond);
                     endIdx = wrapArrond;
                     bytesWritten += wrapArrond;
-                } else if (endIdx == buffer.length) {
+                } else if (endIdx >= buffer.length) {
                     endIdx = 0;
                 }
                 buffer.notifyAll();
