@@ -236,6 +236,7 @@ public final class PipedOutputStream extends OutputStream {
                     synchronized (buffer) {
                         nrReadStreams--;
                         readerClosed = true;
+                        buffer.notifyAll();
                     }
                 }
             };
