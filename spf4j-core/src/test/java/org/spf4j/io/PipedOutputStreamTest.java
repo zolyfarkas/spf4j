@@ -15,9 +15,7 @@ import org.spf4j.concurrent.DefaultExecutor;
  * @author zoly
  */
 public class PipedOutputStreamTest {
-    
-    public PipedOutputStreamTest() {
-    }
+
 
     @Test
     public void testStreamPiping() throws IOException {
@@ -30,9 +28,10 @@ public class PipedOutputStreamTest {
         }
         test(sb.toString(), Math.abs(random.nextInt() % 10000));
     }
-
+    
     private void test(final String testStr, final int buffSize) throws IOException {
         final PipedOutputStream pos = new PipedOutputStream(buffSize);
+        final InputStream pis = pos.getInputStream();
         DefaultExecutor.INSTANCE.execute(new AbstractRunnable() {
 
             @Override
@@ -46,7 +45,7 @@ public class PipedOutputStreamTest {
             }
         });
         StringBuilder sb = new StringBuilder();
-        try (InputStream is = pos.getInputStream()) {
+        try (InputStream is = pis) {
             byte [] buffer  = new byte[1024];
             int read;
             while((read = is.read(buffer)) > 0) {
@@ -55,5 +54,23 @@ public class PipedOutputStreamTest {
         }
         Assert.assertEquals(testStr, sb.toString());
     }
+    
+    @Test(expected = IOException.class)
+    public void testNoReaderBehaviour() throws IOException {
+        final PipedOutputStream pos = new PipedOutputStream(1024);
+        pos.write(123);
+    }
+    
+    @Test(expected = IOException.class)
+    public void testNoReaderBehaviour2() throws IOException {
+        final PipedOutputStream pos = new PipedOutputStream(1024);
+        try (InputStream is = pos.getInputStream()) {
+            pos.write(123);
+            int val = is.read();
+            Assert.assertEquals(123, val);
+        }
+        pos.write(123);
+    }
+
     
 }
