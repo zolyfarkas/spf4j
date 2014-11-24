@@ -254,4 +254,14 @@ public final class Runtime {
             SHUTDOWN_HOOKS.addLast(runnable);
         }
     }
+    
+    public static final ThreadLocal<Long> DEADLINE = new ThreadLocal<Long>() {
+
+        @Override
+        protected Long initialValue() {
+            return Long.MAX_VALUE;
+        }
+        
+    };
+    
 }

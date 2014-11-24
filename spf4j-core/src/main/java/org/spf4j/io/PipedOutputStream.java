@@ -8,7 +8,13 @@ import java.util.Arrays;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- *
+ * Equivalent to Java piped input/output stream.
+ * 
+ * This implementation supports timeouts, timeout are specified by setting the
+ * org.spf4j.base.runtime.DEADLINE thread local.
+ * 
+ * This implementation should be slightly faster than the JDK implementation.
+ * 
  * @author zoly
  */
 @ThreadSafe
@@ -34,13 +40,18 @@ public final class PipedOutputStream extends OutputStream {
 
     @Override
     public void write(final byte[] b, final int off, final int len) throws IOException {
+        long deadline = org.spf4j.base.Runtime.DEADLINE.get();
         int bytesWritten = 0;
         while (bytesWritten < len) {
             synchronized (buffer) {
                 int availableToWrite = 0;
                 while (!closed && (availableToWrite = availableToWrite()) < 1) {
+                    long timeToWait = deadline - System.currentTimeMillis();
+                    if (timeToWait <= 0) {
+                        throw new IOException("Write timed out, deadline was: " + deadline);
+                    }
                     try {
-                        buffer.wait(10000);
+                        buffer.wait(timeToWait);
                     } catch (InterruptedException ex) {
                         throw new IOException("Interrupted while writing " + Arrays.toString(b), ex);
                     }
@@ -68,10 +79,15 @@ public final class PipedOutputStream extends OutputStream {
 
     @Override
     public void write(final int b) throws IOException {
+        long deadline = org.spf4j.base.Runtime.DEADLINE.get();
         synchronized (buffer) {
             while (!closed && availableToWrite() < 1) {
                 try {
-                    buffer.wait(10000);
+                    long timeToWait = deadline - System.currentTimeMillis();
+                    if (timeToWait <= 0) {
+                        throw new IOException("Write timed out, deadline was: " + deadline);
+                    }
+                    buffer.wait(timeToWait);
                 } catch (InterruptedException ex) {
                     throw new IOException("Interrupted while writing " + b, ex);
                 }
@@ -117,11 +133,16 @@ public final class PipedOutputStream extends OutputStream {
 
             @Override
             public int read() throws IOException {
+                long deadline = org.spf4j.base.Runtime.DEADLINE.get();
                 synchronized (buffer) {
                     int availableToRead = 0;
                     while ((availableToRead = availableToRead()) < 1 && !closed) {
+                        long timeToWait = deadline - System.currentTimeMillis();
+                        if (timeToWait <= 0) {
+                            throw new IOException("Write timed out, deadline was: " + deadline);
+                        }
                         try {
-                            buffer.wait(10000);
+                            buffer.wait(timeToWait);
                         } catch (InterruptedException ex) {
                             throw new IOException("Interrupted while reading from "
                                     + Arrays.toString(buffer) + " startIdx = " + startIdx + " endIdx = " + endIdx, ex);
@@ -144,13 +165,19 @@ public final class PipedOutputStream extends OutputStream {
             }
             
             
+            @Override
             public int read(final byte [] b, final int off, final int len) throws IOException {
+                long deadline = org.spf4j.base.Runtime.DEADLINE.get();
                 int bytesWritten = 0;
                 synchronized (buffer) {
                     int availableToRead = 0;
                     while ((availableToRead = availableToRead()) < 1 && !closed) {
+                        long timeToWait = deadline - System.currentTimeMillis();
+                        if (timeToWait <= 0) {
+                            throw new IOException("Write timed out, deadline was: " + deadline);
+                        }
                         try {
-                            buffer.wait(10000);
+                            buffer.wait(timeToWait);
                         } catch (InterruptedException ex) {
                             throw new IOException("Interrupted while reading from " + PipedOutputStream.this, ex);
                         }

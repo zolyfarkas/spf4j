@@ -43,8 +43,8 @@ import org.spf4j.recyclable.SmartObjectPool;
 final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
 
     private int maxSize;
-    private final LinkedHashMultimap<ObjectBorower<T>, T> borrowedObjects = LinkedHashMultimap.create();
-    private final List<T> availableObjects = new ArrayList<T>();
+    private final LinkedHashMultimap<ObjectBorower<T>, T> borrowedObjects;
+    private final List<T> availableObjects;
     private final ReentrantLock lock;
     private final Condition available;
     private final RecyclingSupplier.Factory<T> factory;
@@ -58,6 +58,8 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         this.timeoutMillis = timeoutMillis;
         this.lock = new ReentrantLock(fair);
         this.available = this.lock.newCondition();
+        this.borrowedObjects = LinkedHashMultimap.create();
+        this.availableObjects = new ArrayList<>(initialSize);
         for (int i = 0; i < initialSize; i++) {
             availableObjects.add(factory.create());
         }
@@ -66,6 +68,7 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     @Override
     public T borrowObject(final ObjectBorower borower) throws InterruptedException,
             TimeoutException, ObjectCreationException {
+        long deadline = Math.min(System.currentTimeMillis() + timeoutMillis, org.spf4j.base.Runtime.DEADLINE.get());
         lock.lock();
         try {
             if (availableObjects.size() > 0) {
@@ -122,6 +125,10 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                 } while (object.isLeft() && object.getLeft() != Action.REQUEST_MADE);
 
                 while (availableObjects.isEmpty()) {
+                    long waitTime = deadline - System.currentTimeMillis();
+                    if (waitTime <= 0) {
+                        throw new TimeoutException("Object wait timeout expired " + timeoutMillis);
+                    }
                     if (!available.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
                         throw new TimeoutException("Object wait timeout expired " + timeoutMillis);
                     }
