@@ -41,6 +41,7 @@ public class PipedStreamsBenchmark {
     
     private void testSpf(final String testStr, final int buffSize) throws IOException {
         final PipedOutputStream pos = new PipedOutputStream(buffSize);
+        final InputStream pis = pos.getInputStream();
         DefaultExecutor.INSTANCE.execute(new AbstractRunnable() {
 
             @Override
@@ -54,7 +55,7 @@ public class PipedStreamsBenchmark {
             }
         });
         StringBuilder sb = new StringBuilder();
-        try (InputStream is = pos.getInputStream()) {
+        try (InputStream is = pis) {
             byte [] buffer  = new byte[1024];
             int read;
             while((read = is.read(buffer)) > 0) {
