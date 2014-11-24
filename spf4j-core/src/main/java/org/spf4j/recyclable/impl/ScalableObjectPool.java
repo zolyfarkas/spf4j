@@ -37,13 +37,13 @@ final class ScalableObjectPool<T> implements RecyclingSupplier<T>,  Scanable<Obj
     
     
     public ScalableObjectPool(final int initialSize, final int maxSize, final RecyclingSupplier.Factory<T> factory,
-            final long timeoutMillis, final boolean fair) throws ObjectCreationException {
-        globalPool = new SimpleSmartObjectPool<ObjectHolder<T>>(initialSize, maxSize,
-                new ObjectHolderFactory<T>(initialSize, factory), timeoutMillis, fair);
+            final boolean fair) throws ObjectCreationException {
+        globalPool = new SimpleSmartObjectPool<>(initialSize, maxSize,
+                new ObjectHolderFactory<>(initialSize, factory), fair);
         localPool = new ThreadLocal<LocalObjectPool<T>>() {
                     @Override
                     protected LocalObjectPool<T> initialValue() {
-                        return new LocalObjectPool<T>(globalPool);
+                        return new LocalObjectPool<>(globalPool);
                     }
         };
     }

@@ -48,14 +48,12 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     private final ReentrantLock lock;
     private final Condition available;
     private final RecyclingSupplier.Factory<T> factory;
-    private final long timeoutMillis;
 
     public SimpleSmartObjectPool(final int initialSize, final int maxSize,
-        final  RecyclingSupplier.Factory<T> factory, final long timeoutMillis, final boolean fair)
+        final  RecyclingSupplier.Factory<T> factory, final boolean fair)
             throws ObjectCreationException {
         this.maxSize = maxSize;
         this.factory = factory;
-        this.timeoutMillis = timeoutMillis;
         this.lock = new ReentrantLock(fair);
         this.available = this.lock.newCondition();
         this.borrowedObjects = LinkedHashMultimap.create();
@@ -68,7 +66,7 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     @Override
     public T borrowObject(final ObjectBorower borower) throws InterruptedException,
             TimeoutException, ObjectCreationException {
-        long deadline = Math.min(System.currentTimeMillis() + timeoutMillis, org.spf4j.base.Runtime.DEADLINE.get());
+        long deadline = org.spf4j.base.Runtime.DEADLINE.get();
         lock.lock();
         try {
             if (availableObjects.size() > 0) {
@@ -127,10 +125,10 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
                 while (availableObjects.isEmpty()) {
                     long waitTime = deadline - System.currentTimeMillis();
                     if (waitTime <= 0) {
-                        throw new TimeoutException("Object wait timeout expired " + timeoutMillis);
+                        throw new TimeoutException("Object wait timeout expired, deadline = " + deadline);
                     }
-                    if (!available.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
-                        throw new TimeoutException("Object wait timeout expired " + timeoutMillis);
+                    if (!available.await(waitTime, TimeUnit.MILLISECONDS)) {
+                        throw new TimeoutException("Object wait timeout expired, deadline = " + deadline);
                     }
                 }
                 Iterator<T> it = availableObjects.iterator();
@@ -159,10 +157,11 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
 
     @Override
     public void dispose() throws ObjectDisposeException, InterruptedException {
+        long deadline = org.spf4j.base.Runtime.DEADLINE.get();
         lock.lock();
         try {
             maxSize = 0;
-            List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>, T>>();
+            List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<>();
             for (ObjectBorower<T> b : borrowedObjects.keySet()) {
                 Either<Action, T> object =  b.tryRequestReturnObject();
                 if (object.isRight()) {
@@ -178,8 +177,12 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
             }
             ObjectDisposeException exception = disposeReturnedObjects(null);
             while (!borrowedObjects.isEmpty()) {
-                if (!available.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
-                    throw new TimeoutException("Object wait timeout expired " + timeoutMillis);
+                long waitTime = deadline - System.currentTimeMillis();
+                if (waitTime <= 0) {
+                        throw new TimeoutException("Object wait timeout expired, deadline = " + deadline);
+                }
+                if (!available.await(waitTime, TimeUnit.MILLISECONDS)) {
+                    throw new TimeoutException("Object wait timeout expired, deadline = " + deadline);
                 }
                 disposeReturnedObjects(exception);
             }
@@ -300,7 +303,7 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
         try {
             return "SimpleSmartObjectPool{" + "maxSize=" + maxSize + ", borrowedObjects="
                     + borrowedObjects.values() + ", returnedObjects=" + availableObjects
-                    + ", factory=" + factory + ", timeoutMillis=" + timeoutMillis + '}';
+                    + ", factory=" + factory + '}';
         } finally {
             lock.unlock();
         }

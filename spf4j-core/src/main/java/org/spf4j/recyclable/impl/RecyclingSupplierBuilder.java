@@ -34,7 +34,6 @@ public final class RecyclingSupplierBuilder<T> {
 
     private final int maxSize;
     private final RecyclingSupplier.Factory<T> factory;
-    private long timeoutMillis;
     private boolean fair;
     private ScheduledExecutorService maintenanceExecutor;
     private long maintenanceIntervalMillis;
@@ -45,7 +44,6 @@ public final class RecyclingSupplierBuilder<T> {
 
     public RecyclingSupplierBuilder(final int maxSize, final RecyclingSupplier.Factory<T> factory) {
         this.fair = true;
-        this.timeoutMillis = 60000;
         this.maxSize = maxSize;
         this.factory = factory;
         this.initialSize = 0;
@@ -61,10 +59,6 @@ public final class RecyclingSupplierBuilder<T> {
         return this;
     }
     
-    public RecyclingSupplierBuilder<T> withOperationTimeout(final long ptimeoutMillis) {
-        this.timeoutMillis = ptimeoutMillis;
-        return this;
-    }
 
     public RecyclingSupplierBuilder<T> withMaintenance(final ScheduledExecutorService pexec,
             final long pmaintenanceIntervalMillis, final boolean pcollectBorrowed) {
@@ -86,15 +80,15 @@ public final class RecyclingSupplierBuilder<T> {
 
     public RecyclingSupplier<T> build() throws ObjectCreationException {
         final ScalableObjectPool<T> underlyingPool =
-                new ScalableObjectPool<T>(initialSize, maxSize, factory, timeoutMillis, fair);
+                new ScalableObjectPool<>(initialSize, maxSize, factory, fair);
         final RecyclingSupplier<T> pool;
         if (borrowHook != null || returnHook != null) {
-            pool = new ObjectPoolWrapper<T>(underlyingPool, borrowHook, returnHook);
+            pool = new ObjectPoolWrapper<>(underlyingPool, borrowHook, returnHook);
         } else {
             pool = underlyingPool;
         }
         if (maintenanceExecutor != null) {
-            maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnableImpl<T>(underlyingPool, collectBorrowed),
+            maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnableImpl<>(underlyingPool, collectBorrowed),
                     maintenanceIntervalMillis, maintenanceIntervalMillis, TimeUnit.MILLISECONDS);
         }
         return pool;

@@ -17,7 +17,6 @@
  */
 package org.spf4j.recyclable.impl;
 
-import org.spf4j.recyclable.impl.SimpleSmartObjectPool;
 import org.spf4j.recyclable.Disposable;
 import org.spf4j.recyclable.ObjectBorower;
 import org.spf4j.recyclable.ObjectCreationException;
@@ -33,7 +32,7 @@ import org.spf4j.base.Either;
 public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmartObjectPoolTest.TestObject> {
 
     private TestObject borowedObject = null;
-    private SimpleSmartObjectPool<TestObject> instance;
+    private final SimpleSmartObjectPool<TestObject> instance;
 
     public SimpleSmartObjectPoolTest() throws ObjectCreationException {
         instance = new SimpleSmartObjectPool(2, 10, new RecyclingSupplier.Factory<TestObject>() {
@@ -54,7 +53,7 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
                 throw new UnsupportedOperationException("Not supported yet.");
             }
 
-        }, 10000, true);
+        }, true);
     }
 
     @Override
