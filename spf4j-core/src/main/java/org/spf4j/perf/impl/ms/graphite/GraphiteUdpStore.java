@@ -127,9 +127,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
     public void close() throws IOException {
         try {
             datagramChannelSupplier.dispose();
-        } catch (ObjectDisposeException ex) {
-            throw new RuntimeException(ex);
-        } catch (InterruptedException ex) {
+        } catch (ObjectDisposeException | InterruptedException ex) {
             throw new RuntimeException(ex);
         }
     }
