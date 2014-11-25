@@ -87,11 +87,9 @@ public final class SntpClient {
             long requestTime = System.currentTimeMillis();
             long requestTicks = System.nanoTime() / 1000000L;
             writeTimeStamp(buffer, TRANSMIT_TIME_OFFSET, requestTime);
-
-            socket.send(request);
-
-            // read the response
             DatagramPacket response = new DatagramPacket(buffer, buffer.length);
+            socket.send(request);
+            // read the response
             socket.receive(response);
             long responseTicks = System.nanoTime() / 1000000L;
             long responseTime = requestTime + (responseTicks - requestTicks);

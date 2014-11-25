@@ -22,7 +22,9 @@ import org.spf4j.io.Csv;
 import com.google.common.base.Objects;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 
 /**
@@ -37,7 +39,7 @@ public class Pair<A, B> {
     }
 
     public static <A, B> Pair<A, B> of(final A first, final B second) {
-        return new Pair<A, B>(first, second);
+        return new Pair<>(first, second);
     }
 
     /**
@@ -124,4 +126,12 @@ public class Pair<A, B> {
         return java.util.Arrays.asList(first, second);
     }
 
+    public static <K, V> Map<K, V> asMap(final Pair<K, V> ... pairs) {
+        Map<K, V> result = new LinkedHashMap<>(pairs.length);
+        for (Pair<K, V> pair : pairs) {
+            result.put(pair.getFirst(), pair.getSecond());
+        }
+        return result;
+    }
+    
 }
