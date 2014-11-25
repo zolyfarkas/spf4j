@@ -126,9 +126,9 @@ public class Pair<A, B> {
         return java.util.Arrays.asList(first, second);
     }
 
-    public static <K, V> Map<K, V> asMap(final Pair<K, V> ... pairs) {
+    public static <K, V extends Object> Map<K, V> asMap(final Pair<K, ? extends V> ... pairs) {
         Map<K, V> result = new LinkedHashMap<>(pairs.length);
-        for (Pair<K, V> pair : pairs) {
+        for (Pair<K, ? extends V> pair : pairs) {
             result.put(pair.getFirst(), pair.getSecond());
         }
         return result;
