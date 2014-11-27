@@ -85,7 +85,7 @@ public final class SntpClient {
      * @param host - NTP server host name.
      * @param timeoutMillis - the socket timeout.
      * @return - NTP server timing info.
-     * @throws IOException 
+     * @throws IOException
      */
     @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // false positive
     public static Timing requestTime(final String host, final int timeoutMillis) throws IOException {
