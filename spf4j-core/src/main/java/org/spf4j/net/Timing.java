@@ -47,6 +47,10 @@ public final class Timing {
         return roundTripTime;
     }
     
+    /**
+     * Get current Time based on the NTP timing info.
+     * @return current time, as number of millis since EPOCH.
+     */
     public long getTime() {
         return ntpTime + (System.nanoTime() / 1000000L - ntpTimeReference);
     }

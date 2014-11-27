@@ -29,7 +29,8 @@ import org.spf4j.base.Callables;
 import org.spf4j.base.IntMath;
 
 /**
- * Simple NTP client
+ * Simple NTP client. Inspired by Android Sntp client.
+ * For how to use, see SntpClientTest.java.
  * @author zoly
  */
 
@@ -56,6 +57,17 @@ public final class SntpClient {
         return requestTimeHA(host, timeoutMillis, MAX_SOCKET_TIMEOUT);
     }
     
+    /**
+     * Request NTP time with retries.
+     * 
+     * @param host - NTP server host.
+     * @param timeoutMillis - Max time to attempt to get  NTP time
+     * @param ntpResponseTimeout - the time after which if we do not receive a response from the NTP server,
+     *                              we consider the call failed (and will retry until timeoutMillis.
+     * @return Ntp timing info.
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public static Timing requestTimeHA(final String host, final int timeoutMillis, final int ntpResponseTimeout)
             throws IOException, InterruptedException {
         return Callables.executeWithRetry(new Callables.TimeoutCallable<Timing, IOException>(timeoutMillis) {
@@ -68,7 +80,13 @@ public final class SntpClient {
         }, 3, 1000);
     }
     
-    
+    /**
+     * Get NTP time.
+     * @param host - NTP server host name.
+     * @param timeoutMillis - the socket timeout.
+     * @return - NTP server timing info.
+     * @throws IOException 
+     */
     @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // false positive
     public static Timing requestTime(final String host, final int timeoutMillis) throws IOException {
         
