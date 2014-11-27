@@ -24,53 +24,45 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.CountDownLatch;
 import org.junit.Test;
+import org.spf4j.base.AbstractRunnable;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 
 /**
  *
  * @author zoly
  */
-public final class NetworkMonitorAspectTest implements Runnable {
+public final class NetworkMonitorAspectTest {
 
-    public NetworkMonitorAspectTest() {
-    }
     
     private final long startTime = System.currentTimeMillis();
      
     private volatile boolean terminated = false;
 
+    private final CountDownLatch latch = new CountDownLatch(1);
+    
     public void runServer() throws IOException {
-        ServerSocket server = new ServerSocket(4321);
-        try {
+        try (ServerSocket server = new ServerSocket(4321)) {
             while (!terminated) {
                 Socket client = server.accept();
-                BufferedReader in = new BufferedReader(new InputStreamReader(
-                        client.getInputStream()));
-                try {
-                    PrintWriter out = new PrintWriter(client.getOutputStream(),
-                            true);
+                latch.countDown();
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(
+                        client.getInputStream())); PrintWriter out = new PrintWriter(client.getOutputStream(),
+                                true)) {
                     try {
-                        try {
-                            while (true) {
-                                String line = in.readLine();
-                                if (line == null) {
-                                    break;
-                                }
-                                out.println(line);
+                        while (true) {
+                            String line = in.readLine();
+                            if (line == null) {
+                                break;
                             }
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                            out.println(line);
                         }
-                    } finally {
-                        out.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } finally {
-                    in.close();
                 }
             }
-        } finally {
-            server.close();
         }
     }
 
@@ -80,9 +72,15 @@ public final class NetworkMonitorAspectTest implements Runnable {
     @Test
     public void testNetworkUsageRecording() throws Exception {
         System.setProperty("perf.network.sampleTimeMillis", "1000");
-        Thread t = new Thread(this, "server");
-        t.start();
+        Thread t = new Thread(new AbstractRunnable() {
 
+            @Override
+            public void doRun() throws Exception {
+                runServer();
+            }
+        }, "server");
+        t.start();
+        latch.await();
         for (int i = 0; i < 100; i++) {
             clientTest();
             Thread.sleep(100);
@@ -95,34 +93,14 @@ public final class NetworkMonitorAspectTest implements Runnable {
                 System.currentTimeMillis(), 1200, 600));
     }
 
-    @Override
-    public void run() {
-        try {
-            runServer();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
 
     private void clientTest() throws IOException {
-        Socket socket = new Socket("localhost", 4321);
-        try {
-            PrintWriter out = new PrintWriter(socket.getOutputStream(),
-                    true);
-            try {
-                BufferedReader in = new BufferedReader(new InputStreamReader(
-                        socket.getInputStream()));
-                try {
-                    out.println("hello world");
-                    System.out.println(in.readLine());
-                } finally {
-                    in.close();
-                }
-            } finally {
-                out.close();
-            }
-        } finally {
-            socket.close();
+        try (Socket socket = new Socket("localhost", 4321);
+                PrintWriter out = new PrintWriter(socket.getOutputStream(),
+                true); BufferedReader in = new BufferedReader(new InputStreamReader(
+                        socket.getInputStream()))) {
+            out.println("hello world");
+            System.out.println(in.readLine());
         }
     }
 }

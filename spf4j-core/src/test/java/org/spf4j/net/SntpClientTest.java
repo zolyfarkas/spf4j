@@ -14,7 +14,7 @@ public final class SntpClientTest {
     
 
     @Test
-    public void testSomeMethod() throws IOException, InterruptedException {
+    public void test() throws IOException, InterruptedException {
         try {
             Timing requestTime = SntpClient.requestTimeHA("us.pool.ntp.org", 60000);
             long currentTimeMachine = System.currentTimeMillis();
