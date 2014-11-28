@@ -89,13 +89,13 @@ public final class NetworkMonitorAspect {
     @Around("call(* java.net.Socket.getInputStream())")
     public Object socketIS(final ProceedingJoinPoint pjp) throws Throwable {
         InputStream result = (InputStream) pjp.proceed();
-        return new MeasuredInputStream(result, pjp.getSourceLocation().getWithinType(), RECORDER_READ);
+        return new MeasuredInputStream(result, pjp.getSourceLocation().getWithinType().getName(), RECORDER_READ);
     }
     
     @Around("call(* java.net.Socket.getOutputStream())")
     public Object socketOS(final ProceedingJoinPoint pjp) throws Throwable {
         OutputStream result = (OutputStream) pjp.proceed();
-        return new MeasuredOutputStream(result, pjp.getSourceLocation().getWithinType(), RECORDER_WRITE);
+        return new MeasuredOutputStream(result, pjp.getSourceLocation().getWithinType().getName(), RECORDER_WRITE);
     }
     
     

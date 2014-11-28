@@ -31,11 +31,11 @@ import org.spf4j.perf.MeasurementRecorderSource;
 public final class MeasuredOutputStream extends OutputStream {
     
     private final OutputStream os;
-    private final Class<?> from;
+    private final String from;
     private final MeasurementRecorderSource recorderSource;
     
     
-    public MeasuredOutputStream(final OutputStream os, final Class<?> from,
+    public MeasuredOutputStream(final OutputStream os, final String from,
             final MeasurementRecorderSource recorderSource) {
      this.os = os;
      this.from = from;

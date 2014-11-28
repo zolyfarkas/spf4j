@@ -30,10 +30,10 @@ import org.spf4j.perf.MeasurementRecorderSource;
 @CleanupObligation
 public final class MeasuredInputStream  extends InputStream {
     private final InputStream is;
-    private final Class<?> from;
+    private final String from;
     private final MeasurementRecorderSource recorderSource;
 
-    public MeasuredInputStream(final InputStream is, final Class<?> from,
+    public MeasuredInputStream(final InputStream is, final String from,
             final MeasurementRecorderSource recorderSource) {
         this.is = is;
         this.from = from;
