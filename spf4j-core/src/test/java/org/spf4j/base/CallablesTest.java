@@ -88,16 +88,12 @@ public final class CallablesTest {
     public void testExecuteWithRetryFailureTest() throws Exception {
         System.out.println("executeWithRetry");
         try {
-            Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(100) {
+            Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(100) {
                 private int count;
 
                 @Override
                 public Integer call(final long deadline) throws IOException {
-                    count++;
-                    if (count < 200) {
-                        throw new IOException("Aaaaaaaaaaa " + System.currentTimeMillis());
-                    }
-                    return 1;
+                    throw new IOException("Aaaaaaaaaaa " + System.currentTimeMillis());
                 }
             }, 4, 100);
             Assert.fail("Should not get here");
