@@ -22,11 +22,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 
 /**
@@ -43,10 +47,15 @@ public final class NetworkMonitorAspectTest {
     private final CountDownLatch latch = new CountDownLatch(1);
     
     public void runServer() throws IOException {
-        try (ServerSocket server = new ServerSocket(4321)) {
+        ServerSocket server;
+        try {
+            server = new ServerSocket(4321, 0, InetAddress.getLoopbackAddress());
+        } finally {
+            latch.countDown();
+        }
+        try {
             while (!terminated) {
                 Socket client = server.accept();
-                latch.countDown();
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(
                         client.getInputStream())); PrintWriter out = new PrintWriter(client.getOutputStream(),
                                 true)) {
@@ -63,6 +72,8 @@ public final class NetworkMonitorAspectTest {
                     }
                 }
             }
+        } finally {
+            server.close();
         }
     }
 
@@ -72,22 +83,24 @@ public final class NetworkMonitorAspectTest {
     @Test
     public void testNetworkUsageRecording() throws Exception {
         System.setProperty("perf.network.sampleTimeMillis", "1000");
-        Thread t = new Thread(new AbstractRunnable() {
-
+        Future<String> serverFuture = DefaultExecutor.INSTANCE.submit(new AbstractRunnable() {
+            
             @Override
             public void doRun() throws Exception {
                 runServer();
             }
         }, "server");
-        t.start();
-        latch.await();
+        if (!latch.await(10, TimeUnit.SECONDS)) {
+            serverFuture.get(1, TimeUnit.SECONDS);
+            throw new IOException("Unable to start server in " + 10 + "seconds");
+        }
         for (int i = 0; i < 100; i++) {
             clientTest();
             Thread.sleep(100);
         }
         terminated = true;
         clientTest();
-        t.join();
+        serverFuture.get();
         
         System.out.println(((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime,
                 System.currentTimeMillis(), 1200, 600));
