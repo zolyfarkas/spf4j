@@ -4,12 +4,14 @@ package org.spf4j.net;
 import java.io.IOException;
 import org.joda.time.DateTime;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  *
  * @author zoly
  */
+@Ignore
 public final class SntpClientTest {
     
 
