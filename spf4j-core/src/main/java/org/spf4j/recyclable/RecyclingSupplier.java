@@ -58,6 +58,8 @@ public interface RecyclingSupplier<T> extends Disposable {
      */
     void recycle(T object, @Nullable Exception e);
     
+
+    void recycle(T object);
     
 
     @ParametersAreNonnullByDefault

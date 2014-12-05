@@ -105,6 +105,11 @@ final class ObjectPoolWrapper<T> implements RecyclingSupplier<T> , Scanable<Obje
         }
     }
 
+    @Override
+    public void recycle(final T object) {
+        pool.recycle(object);
+    }
+
   
     
 }

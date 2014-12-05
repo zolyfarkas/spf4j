@@ -211,4 +211,9 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
         return "LocalObjectPool{" + "localObjects=" + localObjects + ", borrowedObjects="
                 + borrowedObjects + ", reqReturnObjects=" + reqReturnObjects + ", thread=" + thread + '}';
     }
+
+    @Override
+    public void recycle(final T object) {
+        recycle(object, null);
+    }
 }

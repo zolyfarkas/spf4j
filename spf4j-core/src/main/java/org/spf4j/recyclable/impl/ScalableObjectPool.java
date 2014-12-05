@@ -78,7 +78,10 @@ final class ScalableObjectPool<T> implements RecyclingSupplier<T>,  Scanable<Obj
     public String toString() {
         return "ScalableObjectPool{" + "globalPool=" + globalPool + '}';
     }
-    
-    
+
+    @Override
+    public void recycle(final T object) {
+        recycle(object, null);
+    }
     
 }
