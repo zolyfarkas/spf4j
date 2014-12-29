@@ -13,12 +13,12 @@ import org.junit.Test;
  */
 @Ignore
 public final class SntpClientTest {
-    
+
 
     @Test
     public void test() throws IOException, InterruptedException {
         try {
-            Timing requestTime = SntpClient.requestTimeHA("us.pool.ntp.org", 60000);
+            Timing requestTime = SntpClient.requestTimeHA(60000, "us.pool.ntp.org");
             long currentTimeMachine = System.currentTimeMillis();
             long currentTimeNtp = requestTime.getTime();
             System.out.println("Current time machine = " + currentTimeMachine + " " + new DateTime(currentTimeMachine));
@@ -29,5 +29,5 @@ public final class SntpClientTest {
             throw ex;
         }
     }
-    
+
 }

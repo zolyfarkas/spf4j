@@ -35,7 +35,7 @@ import org.spf4j.base.IntMath;
  */
 
 public final class SntpClient {
-    
+
     private SntpClient() { }
 
     private static final int ORIGINATE_TIME_OFFSET = 24;
@@ -52,14 +52,14 @@ public final class SntpClient {
     private static final long OFFSET_1900_TO_1970 = ((365L * 70L) + 17L) * 24L * 60L * 60L;
 
     private static final int MAX_SOCKET_TIMEOUT = 1000; // 5 seconds
-    public static Timing requestTimeHA(final String host, final int timeoutMillis)
+    public static Timing requestTimeHA(final int timeoutMillis, final String ... hosts)
             throws IOException, InterruptedException {
-        return requestTimeHA(host, timeoutMillis, MAX_SOCKET_TIMEOUT);
+        return requestTimeHA(timeoutMillis, MAX_SOCKET_TIMEOUT, hosts);
     }
-    
+
     /**
      * Request NTP time with retries.
-     * 
+     *
      * @param host - NTP server host.
      * @param timeoutMillis - Max time to attempt to get  NTP time
      * @param ntpResponseTimeout - the time after which if we do not receive a response from the NTP server,
@@ -68,18 +68,21 @@ public final class SntpClient {
      * @throws IOException
      * @throws InterruptedException
      */
-    public static Timing requestTimeHA(final String host, final int timeoutMillis, final int ntpResponseTimeout)
+    public static Timing requestTimeHA(final int timeoutMillis, final int ntpResponseTimeout, final String ... hosts)
             throws IOException, InterruptedException {
         return Callables.executeWithRetry(new Callables.TimeoutCallable<Timing, IOException>(timeoutMillis) {
-            
+
+            private int i = 0;
+
             @Override
             public Timing call(final long deadline) throws IOException, InterruptedException {
-                return requestTime(host,
+                int hostIdx = Math.abs(i++) % hosts.length;
+                return requestTime(hosts[hostIdx],
                         Math.min((int) (deadline - System.currentTimeMillis()), ntpResponseTimeout));
             }
         }, 3, 1000);
     }
-    
+
     /**
      * Get NTP time.
      * @param host - NTP server host name.
@@ -89,7 +92,7 @@ public final class SntpClient {
      */
     @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // false positive
     public static Timing requestTime(final String host, final int timeoutMillis) throws IOException {
-        
+
         try (DatagramSocket socket = new DatagramSocket()) {
             socket.setSoTimeout(timeoutMillis);
             InetAddress address = InetAddress.getByName(host);
@@ -159,7 +162,7 @@ public final class SntpClient {
     }
 
     private static final IntMath.XorShift32 RANDOM = new IntMath.XorShift32();
-    
+
     /**
      * Writes system time (milliseconds since January 1, 1970) as an NTP time stamp
      * at the given offset in the buffer.
