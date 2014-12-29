@@ -103,12 +103,13 @@ public final class SntpClient {
             // mode is in low 3 bits of first byte
             // version is in bits 3-5 of first byte
             buffer[0] = NTP_MODE_CLIENT | (NTP_VERSION << 3);
-
+            // Allocate response.
+            DatagramPacket response = new DatagramPacket(buffer, buffer.length);
+            // get current nanotime.
+            long requestTicks = System.nanoTime() / 1000000L;
             // get current time and write it to the request packet
             long requestTime = System.currentTimeMillis();
-            long requestTicks = System.nanoTime() / 1000000L;
             writeTimeStamp(buffer, TRANSMIT_TIME_OFFSET, requestTime);
-            DatagramPacket response = new DatagramPacket(buffer, buffer.length);
             socket.send(request);
             // read the response
             socket.receive(response);
