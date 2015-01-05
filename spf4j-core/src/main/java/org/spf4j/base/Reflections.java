@@ -4,7 +4,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -12,14 +14,24 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.UnboundedRacyLoadingCache;
 
+@ParametersAreNonnullByDefault
 public final class Reflections {
 
     private Reflections() {
     }
 
-    private static final Map<Class<?>, Class<?>> PRIMITIVE_MAP = new HashMap<Class<?>, Class<?>>(8);
+    private static final Logger LOG = LoggerFactory.getLogger(Reflections.class);
+
+    private static final Map<Class<?>, Class<?>> PRIMITIVE_MAP = new HashMap<>(8);
+
+    private static final Method GET_METHOD0;
+    private static final Method GET_CONSTRUCTOR0;
 
     static {
         PRIMITIVE_MAP.put(boolean.class, Boolean.class);
@@ -30,9 +42,48 @@ public final class Reflections {
         PRIMITIVE_MAP.put(long.class, Long.class);
         PRIMITIVE_MAP.put(float.class, Float.class);
         PRIMITIVE_MAP.put(double.class, Double.class);
+        GET_METHOD0 = AccessController.doPrivileged(new PrivilegedAction<Method>() {
+                @Override
+                public Method run() {
+                    Method method;
+                    try {
+                        //getMethod0(String name, Class<?>[] parameterTypes)
+                        method = Class.class.getDeclaredMethod("getMethod0", String.class, Class[].class);
+                    } catch (SecurityException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (NoSuchMethodException ex) {
+                        LOG.warn("Class.getMethod0 optimization not available");
+                        method = null;
+                    }
+                    if (method != null) {
+                        method.setAccessible(true);
+                    }
+                    return method;
+                }
+            });
+        GET_CONSTRUCTOR0 = AccessController.doPrivileged(new PrivilegedAction<Method>() {
+                @Override
+                public Method run() {
+                    Method method;
+                    try {
+                        //getConstructor0(Class<?>[] parameterTypes, int which)
+                        method = Class.class.getDeclaredMethod("getConstructor0", Class[].class, int.class);
+                    } catch (SecurityException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (NoSuchMethodException ex) {
+                        LOG.warn("Class.getConstructor0 optimization not available");
+                        method = null;
+                    }
+                    if (method != null) {
+                        method.setAccessible(true);
+                    }
+                    return method;
+                }
+            });
+
     }
-    
-    
+
+
     public static Class<?> primitiveToWrapper(final Class<?> clasz) {
         if (clasz.isPrimitive()) {
             return PRIMITIVE_MAP.get(clasz);
@@ -40,18 +91,14 @@ public final class Reflections {
             return clasz;
         }
     }
-    
-    
+
+
     public static Object getAnnotationAttribute(@Nonnull final Annotation annot, @Nonnull final String attributeName) {
         for (Method method : annot.annotationType().getDeclaredMethods()) {
             if (method.getName().equals(attributeName)) {
                 try {
                     return method.invoke(annot);
-                } catch (IllegalAccessException ex) {
-                    throw new RuntimeException(ex);
-                } catch (IllegalArgumentException ex) {
-                    throw new RuntimeException(ex);
-                } catch (InvocationTargetException ex) {
+                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                     throw new RuntimeException(ex);
                 }
             }
@@ -59,13 +106,77 @@ public final class Reflections {
         throw new IllegalArgumentException(attributeName + " attribute is not present on annotation " + annot);
     }
 
+
+    /**
+     * Equivalent to Class.getMethod which returns a null instead of throwing an exception.
+     * @param c
+     * @param methodName
+     * @param paramTypes
+     * @return
+     */
+    @Nullable
+    public static Method getMethod(final Class<?> c,
+            final String methodName,
+            final Class<?>... paramTypes) {
+        if (GET_METHOD0 == null) {
+            try {
+                return c.getMethod(methodName, paramTypes);
+            } catch (NoSuchMethodException ex) {
+                return null;
+            }
+        } else {
+            try {
+                return (Method) GET_METHOD0.invoke(c, methodName, paramTypes);
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+    /**
+     * Equivalent to Class.getConstructor, only that it does not throw an exception.
+     * @param c
+     * @param methodName
+     * @param paramTypes
+     * @return
+     */
+
+    @Nullable
+    public static Constructor<?> getConstructor(final Class<?> c,
+            final String methodName,
+            final Class<?>... paramTypes) {
+        if (GET_CONSTRUCTOR0 == null) {
+            try {
+                return c.getConstructor(paramTypes);
+            } catch (NoSuchMethodException ex) {
+                return null;
+            }
+        } else {
+            try {
+                return (Constructor) GET_METHOD0.invoke(c, paramTypes, Member.PUBLIC);
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+
+    /**
+     * Method lookup utility that looks up a method declaration that is compatible.
+     * (taking in consideration boxed primitives and varargs)
+     * @param c
+     * @param methodName
+     * @param paramTypes
+     * @return
+     */
+    @Nullable
     public static Method getCompatibleMethod(final Class<?> c,
             final String methodName,
             final Class<?>... paramTypes) {
         Method[] methods = c.getMethods();
         for (Method m : methods) {
 
-            if (!m.getName().equals(methodName)) {
+            if (!methodName.equals(m.getName())) {
                 continue;
             }
 
@@ -106,8 +217,8 @@ public final class Reflections {
         }
         return null;
     }
-    
-    
+
+
     public static Object invoke(final Method m, final Object object, final Object [] parameters)
             throws IllegalAccessException, InvocationTargetException {
         int np = parameters.length;
@@ -134,8 +245,8 @@ public final class Reflections {
             return m.invoke(object);
         }
     }
-    
-    
+
+
 
     public static boolean canAssign(final Class<?> to, final Class<?> from) {
         boolean found = true;
@@ -212,7 +323,7 @@ public final class Reflections {
     }
 
     private static final LoadingCache<MethodDesc, Method> CACHE_FAST
-            = new UnboundedRacyLoadingCache<MethodDesc, Method>(64,
+            = new UnboundedRacyLoadingCache<>(64,
                     new CacheLoader<MethodDesc, Method>() {
                         @Override
                         public Method load(final MethodDesc k) throws Exception {
