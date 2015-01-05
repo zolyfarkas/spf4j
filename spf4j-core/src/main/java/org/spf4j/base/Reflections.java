@@ -142,9 +142,7 @@ public final class Reflections {
      */
 
     @Nullable
-    public static Constructor<?> getConstructor(final Class<?> c,
-            final String methodName,
-            final Class<?>... paramTypes) {
+    public static Constructor<?> getConstructor(final Class<?> c, final Class<?>... paramTypes) {
         if (GET_CONSTRUCTOR0 == null) {
             try {
                 return c.getConstructor(paramTypes);
