@@ -38,25 +38,34 @@ public final class StringsTest {
         assertEquals(3, Strings.distance("abc", "def"));
         assertEquals(1, Strings.distance("zoltran", "zoltan"));
     }
-    
+
     @Test
     public void testEscaping() {
         String res = Strings.unescape("a\\n");
         Assert.assertEquals("a\n", res);
     }
-    
+
     @Test
     public void testUnsafeOps() {
        String testString = "dfjgdjshfgsjdhgfskhdfkdshf\ndfs@#$%^&\u63A5\u53D7*($%^&*()(*&^%$#@!>::><>?{PLKJHGFDEWSDFG";
        char [] chars = Strings.steal(testString);
        String otherString = Strings.wrap(chars);
        Assert.assertEquals(testString, otherString);
-       
+
        byte [] bytes = Strings.toUtf8(testString);
        otherString = Strings.fromUtf8(bytes);
        Assert.assertEquals(testString, otherString);
-              
+
     }
-    
+
+    @Test
+    public void testSubSequence() {
+        String str = "dsfhjgsdjfgwuergfedhgfjhwheriufwiueruhfguyerugfweuyrygfwueyrghfuwoeruhgfdgwsjhfg";
+        assertEquals(0, Strings.compareTo(str.subSequence(3, 15), Strings.subSequence(str, 3, 15)));
+        Assert.assertTrue(Strings.equals(str.subSequence(15, 15), Strings.subSequence(str, 15, 15)));
+        Assert.assertTrue(Strings.equals(str.subSequence(0, str.length()), Strings.subSequence(str, 0, str.length())));
+        Assert.assertTrue(str.subSequence(3, 15).toString().equals(Strings.subSequence(str, 3, 15).toString()));
+    }
+
 
 }

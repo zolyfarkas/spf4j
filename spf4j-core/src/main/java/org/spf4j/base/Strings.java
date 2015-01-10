@@ -50,9 +50,9 @@ public final class Strings {
 
     private Strings() {
     }
-    
+
     public static final String EOL = System.getProperty("line.separator", "\n");
-    
+
     /**
      * function that calculates the number of operations that are needed to transform s1 into s2.
      * operations are: char
@@ -119,7 +119,7 @@ public final class Strings {
     public static String unescape(final String what) {
         return UNESCAPE_JAVA.translate(what);
     }
-    
+
     public static boolean contains(final String string, final char... chars) {
         for (char c : chars) {
             if (string.indexOf(c) >= 0) {
@@ -154,7 +154,7 @@ public final class Strings {
         }
         return result.toString();
     }
-    
+
     public static void writeReplaceWhitespaces(final String str, final char replacement, final Writer writer)
             throws IOException {
         for (int i = 0; i < str.length(); i++) {
@@ -166,14 +166,14 @@ public final class Strings {
             }
         }
     }
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(Strings.class);
-    
+
     private static final Field CHARS_FIELD;
-    
+
     //String(char[] value, boolean share) {
     private static final Constructor<String> PROTECTED_STR_CONSTR;
-    
+
     static {
         CHARS_FIELD = AccessController.doPrivileged(new PrivilegedAction<Field>() {
                 @Override
@@ -193,7 +193,7 @@ public final class Strings {
                     return charsField;
                 }
             });
-        
+
         PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction<Constructor<String>>() {
                 @Override
                 public Constructor<String> run() {
@@ -212,9 +212,9 @@ public final class Strings {
                     return constr;
                 }
             });
-        
+
     }
-    
+
     /**
      * Steal the underlying character array of a String.
      * @param str
@@ -231,7 +231,7 @@ public final class Strings {
             }
         }
     }
-    
+
     /**
      * Create a String based on the provided character array.
      * No copy of the array is made.
@@ -250,7 +250,7 @@ public final class Strings {
             }
         }
     }
-    
+
     private static final ThreadLocal<CharsetEncoder> UTF8_ENCODER = new ThreadLocal<CharsetEncoder>() {
 
         @Override
@@ -258,9 +258,9 @@ public final class Strings {
             return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
                     .onUnmappableCharacter(CodingErrorAction.REPLACE);
         }
-        
+
     };
-    
+
     private static final ThreadLocal<CharsetDecoder> UTF8_DECODER = new ThreadLocal<CharsetDecoder>() {
 
         @Override
@@ -268,10 +268,10 @@ public final class Strings {
             return Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
                     .onUnmappableCharacter(CodingErrorAction.REPLACE);
         }
-        
+
     };
-    
-    
+
+
     @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
     public static byte[] encode(final CharsetEncoder ce, final char[] ca, final int off, final int len) {
         if (len == 0) {
@@ -332,21 +332,105 @@ public final class Strings {
         return new String(ca, 0, cb.position());
     }
 
-    
+
     public static String fromUtf8(final byte [] bytes) {
         return decode(UTF8_DECODER.get(), bytes, 0, bytes.length);
     }
-    
+
     public static String fromUtf8(final byte [] bytes, final int startIdx, final int length) {
         return decode(UTF8_DECODER.get(), bytes, startIdx, length);
     }
-    
-    
+
+
     public static byte [] toUtf8(final String str) {
         final char[] chars = steal(str);
         return encode(UTF8_ENCODER.get(), chars, 0, chars.length);
     }
-    
-    
-    
+
+
+    public static int compareTo(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
+        int i = 0;
+        final int sl = s.length();
+        final int tl = t.length();
+        while (i < sl && i < tl) {
+            char a = s.charAt(i);
+            char b = t.charAt(i);
+            int diff = a - b;
+            if (diff != 0) {
+                return diff;
+            }
+            i++;
+        }
+        return sl - tl;
+    }
+
+    public static boolean equals(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
+        final int sl = s.length();
+        final int tl = t.length();
+        if (sl != tl) {
+            return false;
+        } else {
+            for (int i = 0; i < sl; i++) {
+                if (s.charAt(i) != t.charAt(i)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+
+
+    public static CharSequence subSequence(final CharSequence seq, final int startIdx, final int endIdx) {
+        if (startIdx == 0  && endIdx == seq.length()) {
+            return seq;
+        } else if (startIdx >= endIdx) {
+            return "";
+        } else {
+            return new SubSequence(seq, endIdx - startIdx, startIdx);
+        }
+    }
+
+    private static final class SubSequence implements CharSequence {
+
+        private final CharSequence underlyingSequence;
+        private final int length;
+        private final int startIdx;
+
+        public SubSequence(final CharSequence underlyingSequence, final int length, final int startIdx) {
+            this.underlyingSequence = underlyingSequence;
+            this.length = length;
+            this.startIdx = startIdx;
+        }
+
+        @Override
+        public int length() {
+            return length;
+        }
+
+        @Override
+        public char charAt(final int index) {
+            return underlyingSequence.charAt(startIdx + index);
+        }
+
+        @Override
+        public CharSequence subSequence(final int start, final int end) {
+           return Strings.subSequence(underlyingSequence, startIdx + start, startIdx + end);
+        }
+
+        @Override
+        public String toString() {
+            char [] chars = new char[length];
+            int idx = startIdx;
+            for (int i = 0; i < length; i++, idx++) {
+                chars[i] = underlyingSequence.charAt(idx);
+            }
+            return Strings.wrap(chars);
+        }
+
+    }
+
+
+
+
 }

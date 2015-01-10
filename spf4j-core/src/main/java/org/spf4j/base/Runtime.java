@@ -40,20 +40,20 @@ public final class Runtime {
 
     private Runtime() {
     }
-    
+
     public enum Version {
-        
+
         V1_0, V1_1, V1_2, V1_3, V1_4, V1_5, V1_6, V1_7, V1_8, V1_9_PLUSZ;
-    
+
         public static Version fromSpecVersion(final String specVersion) {
             return Version.values()[Integer.parseInt(specVersion.split("\\.")[1])];
         }
     }
-    
-    
+
+
     public static final Version JAVA_PLATFORM;
-    
-    
+
+
     private static class Lazy {
         private static final Logger LOGGER = LoggerFactory.getLogger(Lazy.class);
     }
@@ -99,7 +99,7 @@ public final class Runtime {
             PID = Integer.parseInt(PROCESS_NAME.substring(0, atIdx));
         }
         OS_NAME = System.getProperty("os.name");
-        
+
         runtime.addShutdownHook(new Thread(new AbstractRunnable(false) {
             @Override
             public void doRun() throws Exception {
@@ -119,15 +119,15 @@ public final class Runtime {
     }
     public static final String MAC_OS_X_OS_NAME = "Mac OS X";
     private static final File FD_FOLDER = new File("/proc/" + PID + "/fd");
-    
+
     public static boolean isMacOsx() {
         return MAC_OS_X_OS_NAME.equals(OS_NAME);
     }
-    
+
     public static boolean isWindows() {
         return OS_NAME.startsWith("Windows");
     }
-    
+
     public static int getNrOpenFiles() throws IOException, InterruptedException, ExecutionException {
         if (isMacOsx()) {
             LineCountCharHandler handler = new LineCountCharHandler();
@@ -254,14 +254,22 @@ public final class Runtime {
             SHUTDOWN_HOOKS.addLast(runnable);
         }
     }
-    
+
     public static final ThreadLocal<Long> DEADLINE = new ThreadLocal<Long>() {
 
         @Override
         protected Long initialValue() {
             return Long.MAX_VALUE;
         }
-        
+
     };
-    
+
+    public static long getDeadline() {
+        return DEADLINE.get();
+    }
+
+    public static void setDeadline(final long deadline) {
+        DEADLINE.set(deadline);
+    }
+
 }

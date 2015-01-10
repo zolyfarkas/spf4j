@@ -2,17 +2,22 @@ package org.spf4j.base;
 
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -341,6 +346,31 @@ public final class Reflections {
             final String methodName,
             final Class<?>... paramTypes) {
         return CACHE_FAST.getUnchecked(new MethodDesc(c, methodName, paramTypes));
+    }
+
+    /**
+     * Useful to get the jar URL where a particular class is located.
+     * @param clasz
+     * @return
+     */
+
+    @Nullable
+    public static URL getJarSourceUrl(final Class<?> clasz) {
+        return clasz.getProtectionDomain().getCodeSource().getLocation();
+    }
+
+    /**
+     * Get the manifest of a jar file.
+     * @param jarUrl
+     * @return
+     * @throws IOException
+     */
+    @Nullable
+    @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
+    public static Manifest getManifest(@Nonnull final URL jarUrl) throws IOException {
+        try (JarInputStream jis = new JarInputStream(jarUrl.openStream())) {
+            return jis.getManifest();
+        }
     }
 
 }
