@@ -15,9 +15,9 @@ import org.openjdk.jmh.annotations.Threads;
  */
 @State(Scope.Benchmark)
 @Fork(2)
-@Threads(value = 1)
+@Threads(value = 4)
 public class EncodingBenchmark {
-    
+
     private static final String TEST_STRING =
             "dfjgdjshfgsjdhgfskhdfkdshf\ndfs@#$%^&*($%^&*()(*&^%$#@!>::><>?{PLKJHGFDEWSDFG";
 
@@ -25,27 +25,27 @@ public class EncodingBenchmark {
     static {
         TEST_BYTES = TEST_STRING.getBytes(StandardCharsets.UTF_8);
     }
-    
+
     @Benchmark
     public final byte [] stringEncode() throws UnsupportedEncodingException {
         return TEST_STRING.getBytes(StandardCharsets.UTF_8);
     }
-    
+
     @Benchmark
     public final byte [] fastStringEncode() {
         return Strings.toUtf8(TEST_STRING);
     }
-    
+
     @Benchmark
     public final String stringDecode() throws UnsupportedEncodingException {
        return new String(TEST_BYTES, StandardCharsets.UTF_8);
     }
-    
+
     @Benchmark
     public final String fastStringDecode() {
         return Strings.fromUtf8(TEST_BYTES);
     }
-    
-    
-    
+
+
+
 }
