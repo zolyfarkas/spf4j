@@ -61,7 +61,7 @@ public final class Arrays {
         }
         return result;
     }
-    
+
     public static boolean deepEquals(final Object[] a1, final Object[] a2, final int starting) {
         return deepEquals(a1, a2, starting, a1.length);
     }
@@ -115,7 +115,7 @@ public final class Arrays {
         }
         return true;
     }
-    
+
     public static int search(final char [] array, final char c) {
         for (int i = 0; i < array.length; i++) {
             if (array[i] == c) {
@@ -124,7 +124,7 @@ public final class Arrays {
         }
         return -1;
     }
-    
+
     public static <T> T[] moveOfRange(final T[] original, final int from, final int to) {
         int newLength = to - from;
         if (newLength < 0) {
@@ -140,7 +140,7 @@ public final class Arrays {
         }
         return copy;
     }
-    
+
     public static <T> T[] concat(final T[] ... arrays) {
         if (arrays.length < 2) {
             throw new IllegalArgumentException("You should concatenate at least 2 arrays: "
@@ -161,18 +161,19 @@ public final class Arrays {
         }
         return result;
     }
-        
+
     public static final Object [] EMPTY_OBJ_ARRAY = new Object [] {};
-    
+
     public static final byte [] EMPTY_BYTE_ARRAY = new byte [] {};
-    
+
     private static final ThreadLocal<SoftReference<byte[]>> BYTES_TMP = new ThreadLocal<>();
-    
+
     private static final ThreadLocal<SoftReference<char[]>> CHARS_TMP = new ThreadLocal<>();
 
     /**
      * returns a thread local byte array of at least the size requested.
      * use only for temporary purpose.
+     * This method needs to be carefully used!
      * @param size
      * @return
      */
@@ -191,14 +192,14 @@ public final class Arrays {
         }
         return result;
     }
-    
+
     /**
      * returns a thread local char array of at least the requested size.
      * Use only for temporary purpose.
      * @param size
      * @return
      */
-    
+
     public static char [] getCharsTmp(final int size) {
         SoftReference<char[]> sr = CHARS_TMP.get();
         char [] result;
@@ -214,7 +215,7 @@ public final class Arrays {
         }
         return result;
     }
-    
-    
-    
+
+
+
 }

@@ -20,15 +20,21 @@ public class PipedOutputStreamTest {
     @Test
     public void testStreamPiping() throws IOException {
         test("This is a super cool, mega dupper test string for testing piping..........E", 8);
-        StringBuilder sb = new StringBuilder();
         final IntMath.XorShift32 random = new IntMath.XorShift32();
         int nrChars = Math.abs(random.nextInt() % 100000);
+        StringBuilder sb = generateTestStr(nrChars);
+        test(sb.toString(), Math.abs(random.nextInt() % 10000));
+    }
+
+    public static StringBuilder generateTestStr(int nrChars) {
+        final IntMath.XorShift32 random = new IntMath.XorShift32();
+        StringBuilder sb = new StringBuilder(nrChars);
         for (int i = 0; i < nrChars; i++) {
             sb.append((char) Math.abs(random.nextInt() % 128));
         }
-        test(sb.toString(), Math.abs(random.nextInt() % 10000));
+        return sb;
     }
-    
+
     private void test(final String testStr, final int buffSize) throws IOException {
         final PipedOutputStream pos = new PipedOutputStream(buffSize);
         final InputStream pis = pos.getInputStream();
@@ -54,13 +60,13 @@ public class PipedOutputStreamTest {
         }
         Assert.assertEquals(testStr, sb.toString());
     }
-    
+
     @Test(expected = IOException.class)
     public void testNoReaderBehaviour() throws IOException {
         final PipedOutputStream pos = new PipedOutputStream(1024);
         pos.write(123);
     }
-    
+
     @Test(expected = IOException.class)
     public void testNoReaderBehaviour2() throws IOException {
         final PipedOutputStream pos = new PipedOutputStream(1024);
@@ -72,5 +78,5 @@ public class PipedOutputStreamTest {
         pos.write(123);
     }
 
-    
+
 }
