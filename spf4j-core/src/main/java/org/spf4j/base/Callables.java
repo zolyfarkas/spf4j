@@ -20,6 +20,7 @@ package org.spf4j.base;
 import com.google.common.base.Predicate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.sql.SQLRecoverableException;
 import java.sql.SQLTransientException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
@@ -65,6 +66,7 @@ public final class Callables {
                 return false;
             }
             if (rootCause instanceof SQLTransientException
+                    || rootCause instanceof SQLRecoverableException
                     || rootCause instanceof IOException
                     || rootCause instanceof TimeoutException) {
                 LOG.debug("Exception encountered, retrying...", input);
@@ -201,8 +203,8 @@ public final class Callables {
         }
 
     }
-    
-    
+
+
     public interface CheckedCallable<T, EX extends Exception> extends Callable<T> {
         @Override
         T call() throws EX, InterruptedException;

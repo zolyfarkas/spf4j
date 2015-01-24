@@ -23,8 +23,8 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
 
     private static final String DEFAULT_OPTIONS = System.getProperty("jmh.fr.options",
             "defaultrecording=true,settings=profile");
-    
-    
+
+
     /**
      * Holds whether recording is supported (checking the existence of the needed unlocking flag)
      */
@@ -124,7 +124,7 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
         private static class NoResultAggregator implements Aggregator<NoResult> {
 
             @Override
-            public Result aggregate(final Collection<NoResult> results) {
+            public NoResult aggregate(final Collection<NoResult> results) {
                 StringBuilder agg = new StringBuilder();
                 for (NoResult r : results) {
                     agg.append(r.output);

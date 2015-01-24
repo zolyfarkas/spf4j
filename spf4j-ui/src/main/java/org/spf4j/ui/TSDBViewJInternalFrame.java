@@ -39,6 +39,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.joda.time.DateTime;
 import org.spf4j.base.Pair;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 import org.spf4j.perf.tsdb.TSTable;
@@ -62,7 +63,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         initComponents();
         tsDb = new TimeSeriesDatabase(databaseFile, null);
         Collection<TSTable> columnsInfo = tsDb.getTSTables();
-        Map<String, DefaultMutableTreeNode> gNodes = new HashMap<String, DefaultMutableTreeNode>();
+        Map<String, DefaultMutableTreeNode> gNodes = new HashMap<>();
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(databaseFile);
         long startDate = System.currentTimeMillis();
         for (TSTable info : columnsInfo) {
@@ -95,7 +96,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         }
         measurementTree.setModel(new DefaultTreeModel(root));
         measurementTree.setVisible(true);
-        this.startDate.setValue(new Date(startDate));
+        this.startDate.setValue(new DateTime().toDate());
     }
 
     /**

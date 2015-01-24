@@ -36,12 +36,12 @@ import org.spf4j.stackmonitor.proto.Converter;
  * @author zoly
  */
 public final class JmhProfiler implements InternalProfiler {
- 
+
     /**
      * Sampling period
      */
     private static final int SAMPLE_PERIOD_MSEC = Integer.getInteger("jmh.stack.period", 10);
-    
+
     private static final String DUMP_FOLDER = System.getProperty("jmh.stack.profiles", org.spf4j.base.Runtime.USER_DIR);
 
     private static final Sampler SAMPLER = new Sampler(SAMPLE_PERIOD_MSEC, Integer.MAX_VALUE,
@@ -85,14 +85,14 @@ public final class JmhProfiler implements InternalProfiler {
     }
 
     public static final class StackResult extends Result<StackResult> {
-        
+
         private static final long serialVersionUID = 1L;
 
         private final SampleNode samples;
         private final String benchmark;
         private final String fileName;
 
-        
+
         public StackResult(final SampleNode samples, final String benchmark, final boolean isIteration)
         throws IOException {
             super(ResultRole.SECONDARY, "@stack", of(Double.NaN), "---", AggregationPolicy.AVG);
@@ -105,7 +105,7 @@ public final class JmhProfiler implements InternalProfiler {
                 Converter.saveToFile(fileName, samples);
             }
         }
-        
+
 
         public SampleNode getSamples() {
             return samples;
@@ -124,7 +124,7 @@ public final class JmhProfiler implements InternalProfiler {
         protected Aggregator<StackResult> getIterationAggregator() {
             return new StackAggregator();
         }
-        
+
         @Override
         public String toString() {
             return "<delayed till summary>";
@@ -138,14 +138,14 @@ public final class JmhProfiler implements InternalProfiler {
                 return "Stack sampling profile at: " + fileName;
             }
         }
-        
+
 
     }
 
     public static final class StackAggregator implements Aggregator<StackResult> {
 
         @Override
-        public Result aggregate(final Collection<StackResult> results) {
+        public StackResult aggregate(final Collection<StackResult> results) {
             if (results.isEmpty()) {
                 throw new IllegalArgumentException("Nothig to aggregate: " + results);
             }

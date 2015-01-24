@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
  *
  * @author zoly
  */
-public class Pair<A, B> {
+public class Pair<A, B> implements Map.Entry<A, B> {
 
     public Pair(final A first, final B second) {
         this.first = first;
@@ -79,7 +79,7 @@ public class Pair<A, B> {
         return Pair.of(first.toString(), second.toString());
     }
     private static final String SUFFIX = ")";
-    
+
     private static final String PREFIX = "(";
 
     //CHECKSTYLE:OFF
@@ -133,5 +133,20 @@ public class Pair<A, B> {
         }
         return result;
     }
-    
+
+    @Override
+    public final A getKey() {
+        return first;
+    }
+
+    @Override
+    public final B getValue() {
+        return second;
+    }
+
+    @Override
+    public final B setValue(final B value) {
+        throw new UnsupportedOperationException("Object not mutable");
+    }
+
 }
