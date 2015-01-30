@@ -61,8 +61,9 @@ public final class Streams {
         long total = 0;
         byte[] buffer = Arrays.getBytesTmp(buffSize);
         boolean done = false;
+        long bytesCopiedSinceLastFlush = 0;
         while (!done) {
-            // read+write as long as data is available.
+            // non-blocking(if input is implemented correctly) read+write as long as data is available.
             while (is.available() > 0) {
                 int nrRead = is.read(buffer, 0, buffSize);
                 if (nrRead < 0) {
@@ -71,10 +72,15 @@ public final class Streams {
                 } else {
                     os.write(buffer, 0, nrRead);
                     total += nrRead;
+                    bytesCopiedSinceLastFlush += nrRead;
                 }
             }
-            // there seems to be nothing available to read, lets flush to os.
-            os.flush();
+            // there seems to be nothing available to read anymore,
+            // lets flush the os instead of blocking for another read.
+            if (bytesCopiedSinceLastFlush > 0) {
+                os.flush();
+                bytesCopiedSinceLastFlush = 0;
+            }
             if (done) {
                 break;
             }
@@ -85,6 +91,7 @@ public final class Streams {
             } else {
                 os.write(buffer, 0, nrRead);
                 total += nrRead;
+                bytesCopiedSinceLastFlush += nrRead;
             }
         }
         return total;
