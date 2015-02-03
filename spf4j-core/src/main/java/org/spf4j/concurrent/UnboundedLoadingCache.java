@@ -30,21 +30,21 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.MemorizedCallable;
 
 /**
- * 
+ *
  * @author zoly
  */
 @ParametersAreNonnullByDefault
 public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
 
-    private final ConcurrentMap<K, MemorizedCallable<? extends V>> map;
+    private final ConcurrentMap<K, Callable<? extends V>> map;
 
     private final CacheLoader<K, V> loader;
 
     public UnboundedLoadingCache(final int initialSize, final CacheLoader<K, V> loader) {
         this(initialSize, 8, loader);
     }
-    
-    
+
+
     public UnboundedLoadingCache(final int initialSize, final int concurrency, final CacheLoader<K, V> loader) {
         this.map = new ConcurrentHashMap<>(
                 initialSize, 0.75f, concurrency);
@@ -54,9 +54,9 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
 
     @Override
     public V get(final K key) throws ExecutionException {
-        MemorizedCallable<? extends V> existingValHolder = map.get(key);
+        Callable<? extends V> existingValHolder = map.get(key);
         if (existingValHolder == null) {
-            MemorizedCallable<? extends V> newHolder = new MemorizedCallable(new Callable<V>() {
+            Callable<? extends V> newHolder = new MemorizedCallable(new Callable<V>() {
                 @Override
                 public V call() throws Exception {
                     return loader.load(key);
@@ -114,7 +114,7 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
 
     @Override
     public V getIfPresent(final Object key) {
-        MemorizedCallable<? extends V> existingValHolder = map.get(key);
+        Callable<? extends V> existingValHolder = map.get(key);
         if (existingValHolder != null) {
             try {
                 return existingValHolder.call();
@@ -128,9 +128,9 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
 
     @Override
     public V get(final K key, final Callable<? extends V> valueLoader) throws ExecutionException {
-        MemorizedCallable<? extends V> existingValHolder = map.get(key);
+        Callable<? extends V> existingValHolder = map.get(key);
         if (existingValHolder == null) {
-            MemorizedCallable<? extends V> newHolder = new MemorizedCallable(valueLoader);
+            Callable<? extends V> newHolder = new MemorizedCallable(valueLoader);
             existingValHolder = map.putIfAbsent(key, newHolder);
             if (existingValHolder == null) {
                 existingValHolder = newHolder;
@@ -157,13 +157,13 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
 
     @Override
     public void put(final K key, final V value) {
-        map.put(key, new MemorizedCallable<V>(new Callable<V>() {
+        map.put(key, new Callable<V>() {
 
             @Override
             public V call() throws Exception {
                 return value;
             }
-        }));
+        });
     }
 
     @Override

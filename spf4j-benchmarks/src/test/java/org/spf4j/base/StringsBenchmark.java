@@ -18,7 +18,7 @@ import org.openjdk.jmh.annotations.Threads;
 @Threads(value = 4)
 public class StringsBenchmark {
 
-    private static final String TEST_STRING;
+    public static final String TEST_STRING;
 
     static {
         IntMath.XorShift32 rnd = new IntMath.XorShift32();

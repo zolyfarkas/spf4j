@@ -16,7 +16,7 @@ import org.spf4j.stackmonitor.JmhProfiler;
  * @author zoly
  */
 public final class JmhTest {
-    
+
     @Test
     public void runJmh() throws RunnerException, IOException {
         final String destinationFolder = System.getProperty("jmh.stack.profiles",
@@ -34,5 +34,5 @@ public final class JmhTest {
                 .build();
          new Runner(opt).run();
     }
-    
+
 }
