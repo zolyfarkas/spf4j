@@ -20,7 +20,6 @@ package org.spf4j.recyclable.impl;
 import java.lang.ref.Reference;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
 import org.spf4j.base.IntMath;
 import org.spf4j.base.ReferenceType;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
