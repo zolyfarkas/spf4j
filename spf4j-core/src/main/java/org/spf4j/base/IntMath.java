@@ -24,11 +24,15 @@ package org.spf4j.base;
 public final class IntMath {
 
     private IntMath() { }
-    
+
     public static int closestPowerOf2(final int number) {
         return number == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(number - 1);
     }
-    
+
+    public static int closestPowerOf2Number(final int number) {
+       return number == 0 ? 0 : 1 << (32 - Integer.numberOfLeadingZeros(number - 1));
+    }
+
     public static final class XorShift32 {
         // XorShift128 PRNG with a 2^32-1 period.
         private int x = System.identityHashCode(this);
@@ -54,6 +58,6 @@ public final class IntMath {
             return w;
         }
     }
-    
-    
+
+
 }

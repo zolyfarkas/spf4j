@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.recyclable.impl.ArraySuppliers;
 
 /**
  * Equivalent to Java piped input/output stream.
@@ -32,7 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * local.
  *
  * Implementation supports multiple readers and writers.
- * 
+ *
  * This implementation should be slightly faster than the JDK implementation.
  *
  * @author zoly
@@ -53,7 +54,7 @@ public final class PipedOutputStream extends OutputStream {
     }
 
     public PipedOutputStream(final int bufferSize) {
-        buffer = new byte[bufferSize];
+        buffer = ArraySuppliers.Bytes.SUPPLIER.get(bufferSize);
         startIdx = 0;
         endIdx = 0;
         writerClosed = false;
@@ -147,11 +148,14 @@ public final class PipedOutputStream extends OutputStream {
 
     @Override
     public void close() {
-        synchronized (buffer) {
-            writerClosed = true;
-            buffer.notifyAll();
+        try {
+            synchronized (buffer) {
+                writerClosed = true;
+                buffer.notifyAll();
+            }
+        } finally {
+            ArraySuppliers.Bytes.SUPPLIER.recycle(buffer);
         }
-
     }
 
     public InputStream getInputStream() {
@@ -160,7 +164,7 @@ public final class PipedOutputStream extends OutputStream {
             return new InputStream() {
 
                 private boolean readerClosed = false;
-                
+
                 @Override
                 public int read() throws IOException {
                     long deadline = org.spf4j.base.Runtime.DEADLINE.get();

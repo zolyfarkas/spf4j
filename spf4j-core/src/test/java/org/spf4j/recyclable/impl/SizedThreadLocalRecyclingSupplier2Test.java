@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package org.spf4j.recyclable.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -15,12 +11,12 @@ import org.spf4j.recyclable.SizedRecyclingSupplier;
  *
  * @author zoly
  */
-public class SizedThreadLocalRecyclingSupplierTest {
+public class SizedThreadLocalRecyclingSupplier2Test {
 
 
     @Test
     public void testSupplier() {
-        SizedThreadLocalRecyclingSupplier<byte[]> supplier = new SizedThreadLocalRecyclingSupplier<>(
+        SizedRecyclingSupplier<byte[]> supplier = new SizedThreadLocalRecyclingSupplier2<>(
                 new SizedRecyclingSupplier.Factory<byte[]>() {
 
             @Override
@@ -48,17 +44,14 @@ public class SizedThreadLocalRecyclingSupplierTest {
         supplier.recycle(get2);
 
         get = supplier.get(4000);
-        Assert.assertEquals(8000, get.length);
+        Assert.assertEquals(4096, get.length);
         supplier.recycle(get);
-
-        get = supplier.get(10000);
-        Assert.assertEquals(10000, get.length);
-        supplier.recycle(get);
-
-        get = supplier.get(8000);
-        get2 = supplier.get(8000);
-        Assert.assertTrue(get.length == 10000 || get2.length == 10000);
+        get2 = supplier.get(4000);
+        Assert.assertEquals(4096, get2.length);
+        supplier.recycle(get2);
+        Assert.assertTrue(get == get2);
 
     }
+
 
 }

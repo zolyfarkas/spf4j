@@ -28,7 +28,7 @@ public class EncodingBenchmark {
 
     @Benchmark
     public final byte [] stringEncode() throws UnsupportedEncodingException {
-        return TEST_STRING.getBytes(StandardCharsets.UTF_8);
+        return TEST_STRING.getBytes("UTF-8");
     }
 
     @Benchmark
@@ -38,7 +38,7 @@ public class EncodingBenchmark {
 
     @Benchmark
     public final String stringDecode() throws UnsupportedEncodingException {
-       return new String(TEST_BYTES, StandardCharsets.UTF_8);
+       return new String(TEST_BYTES, "UTF8");
     }
 
     @Benchmark
