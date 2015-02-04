@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
 /**
@@ -50,13 +51,20 @@ public final class PipedOutputStream extends OutputStream {
     private int endIdx;
     private boolean writerClosed;
     private int nrReadStreams;
+    private final SizedRecyclingSupplier<byte[]> bufferProvider;
 
     public PipedOutputStream() {
         this(8192);
     }
 
     public PipedOutputStream(final int bufferSize) {
-        buffer = ArraySuppliers.Bytes.SUPPLIER.get(bufferSize);
+        this(bufferSize, ArraySuppliers.Bytes.JAVA_NEW);
+    }
+            
+    public PipedOutputStream(final int bufferSize,
+            final SizedRecyclingSupplier<byte[]> bufferProvider) {
+        this.bufferProvider = bufferProvider;
+        buffer = bufferProvider.get(bufferSize);
         startIdx = 0;
         endIdx = 0;
         writerClosed = false;
@@ -156,7 +164,7 @@ public final class PipedOutputStream extends OutputStream {
                 sync.notifyAll();
             }
         } finally {
-            ArraySuppliers.Bytes.SUPPLIER.recycle(buffer);
+            bufferProvider.recycle(buffer);
         }
     }
 

@@ -45,12 +45,12 @@ public class TestRecyclingAlocator {
 
     @Benchmark
     public String testRecycler() throws IOException {
-        byte[] array = ArraySuppliers.Bytes.SUPPLIER.get(SIZE);
+        byte[] array = ArraySuppliers.Bytes.TL_SUPPLIER.get(SIZE);
         try {
         System.arraycopy(TEST_ARRAY, 0, array, 0, SIZE);
         return Strings.fromUtf8(array);
         } finally {
-            ArraySuppliers.Bytes.SUPPLIER.recycle(array);
+            ArraySuppliers.Bytes.TL_SUPPLIER.recycle(array);
         }
     }
 }

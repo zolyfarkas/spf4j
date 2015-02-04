@@ -22,6 +22,7 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
 @SuppressFBWarnings("VO_VOLATILE_REFERENCE_TO_ARRAY")
@@ -41,6 +42,8 @@ public final class BufferedInputStream extends FilterInputStream {
     private int markpos = -1;
 
     private int marklimit;
+
+    private final SizedRecyclingSupplier<byte[]> bufferProvider;
 
     private InputStream getInIfOpen() throws IOException {
         InputStream input = in;
@@ -63,11 +66,17 @@ public final class BufferedInputStream extends FilterInputStream {
     }
 
     public BufferedInputStream(final InputStream in, final int size) {
+        this(in, size, ArraySuppliers.Bytes.JAVA_NEW);
+    }
+
+    public BufferedInputStream(final InputStream in, final int size,
+            final SizedRecyclingSupplier<byte[]> bufferProvider) {
         super(in);
         if (size <= 0) {
             throw new IllegalArgumentException("Buffer size <= 0 : " + size);
         }
-        buf = ArraySuppliers.Bytes.SUPPLIER.get(size);
+        this.bufferProvider = bufferProvider;
+        buf = bufferProvider.get(size);
     }
 
     private void fill() throws IOException {
@@ -88,13 +97,13 @@ public final class BufferedInputStream extends FilterInputStream {
                 if (nsz > marklimit) {
                     nsz = marklimit;
                 }
-                byte[] nbuf = ArraySuppliers.Bytes.SUPPLIER.get(nsz);
+                byte[] nbuf = bufferProvider.get(nsz);
                 if (!BUF_UPDATER.compareAndSet(this, buffer, nbuf)) {
-                    ArraySuppliers.Bytes.SUPPLIER.recycle(nbuf);
+                    bufferProvider.recycle(nbuf);
                     throw new IOException("Stream closed " + in);
                 }
                 System.arraycopy(buffer, 0, nbuf, 0, pos);
-                ArraySuppliers.Bytes.SUPPLIER.recycle(buffer);
+                bufferProvider.recycle(buffer);
                 buffer = nbuf;
             }
         }
@@ -218,7 +227,7 @@ public final class BufferedInputStream extends FilterInputStream {
         byte[] buffer;
         while ((buffer = buf) != null) {
             if (BUF_UPDATER.compareAndSet(this, buffer, null)) {
-                ArraySuppliers.Bytes.SUPPLIER.recycle(buffer);
+                bufferProvider.recycle(buffer);
                 InputStream input = in;
                 in = null;
                 if (input != null) {

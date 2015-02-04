@@ -34,7 +34,7 @@ public final class ArraySuppliers {
 
         private Bytes() { }
 
-      public static final SizedRecyclingSupplier<byte[]> SUPPLIER
+      public static final SizedRecyclingSupplier<byte[]> TL_SUPPLIER
               = new SizedThreadLocalRecyclingSupplier2<>(
                 new SizedRecyclingSupplier.Factory<byte[]>() {
 
@@ -49,6 +49,23 @@ public final class ArraySuppliers {
                 return object.length;
             }
         }, ReferenceType.SOFT);
+
+      public static final SizedRecyclingSupplier<byte[]> JAVA_NEW
+              = new SizedRecyclingSupplier<byte[]>() {
+
+            @Override
+            @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+            public byte[] get(final int size) {
+                return new byte[size];
+            }
+
+            @Override
+            public void recycle(final byte[] object) {
+                // Let the GC deal with this
+            }
+        };
+
+
     }
 
 }

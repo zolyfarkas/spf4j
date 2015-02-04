@@ -57,7 +57,7 @@ public final class Streams {
      */
     public static long copy(final InputStream is, final OutputStream os, final int buffSize) throws IOException {
         long total = 0;
-        byte[] buffer = ArraySuppliers.Bytes.SUPPLIER.get(buffSize);
+        byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(buffSize);
         try {
             boolean done = false;
             long bytesCopiedSinceLastFlush = 0;
@@ -94,7 +94,7 @@ public final class Streams {
                 }
             }
         } finally {
-            ArraySuppliers.Bytes.SUPPLIER.recycle(buffer);
+            ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
         }
         return total;
     }

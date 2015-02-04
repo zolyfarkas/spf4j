@@ -19,6 +19,7 @@ package org.spf4j.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
 /**
@@ -30,6 +31,7 @@ public final class BufferedOutputStream extends OutputStream {
     private byte[] buf;
     private final int length;
     private final OutputStream os;
+    private final SizedRecyclingSupplier<byte[]> bufferProvider;
 
     private int count;
 
@@ -38,10 +40,16 @@ public final class BufferedOutputStream extends OutputStream {
     }
 
     public BufferedOutputStream(final OutputStream out, final int size) {
+        this(out, size, ArraySuppliers.Bytes.JAVA_NEW);
+    }
+
+    public BufferedOutputStream(final OutputStream out, final int size,
+            final SizedRecyclingSupplier<byte[]> bufferProvider) {
         if (size <= 0) {
             throw new IllegalArgumentException("Buffer size <= 0 : " + size);
         }
-        buf = ArraySuppliers.Bytes.SUPPLIER.get(size);
+        this.bufferProvider = bufferProvider;
+        buf = bufferProvider.get(size);
         length = size;
         this.os = out;
     }
@@ -96,7 +104,7 @@ public final class BufferedOutputStream extends OutputStream {
             try (OutputStream los = os) {
                 flush();
             } finally {
-                ArraySuppliers.Bytes.SUPPLIER.recycle(buf);
+                this.bufferProvider.recycle(buf);
                 buf = null;
             }
         }
