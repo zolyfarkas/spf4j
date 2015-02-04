@@ -44,6 +44,8 @@ public final class PipedOutputStream extends OutputStream {
 
     private final byte[] buffer;
 
+    private final Object sync = new Object();
+
     private int startIdx;
     private int endIdx;
     private boolean writerClosed;
@@ -66,7 +68,7 @@ public final class PipedOutputStream extends OutputStream {
         long deadline = org.spf4j.base.Runtime.DEADLINE.get();
         int bytesWritten = 0;
         while (bytesWritten < len) {
-            synchronized (buffer) {
+            synchronized (sync) {
                 int availableToWrite = 0;
                 while (!writerClosed &&  nrReadStreams > 0 && (availableToWrite = availableToWrite()) < 1) {
                     long timeToWait = deadline - System.currentTimeMillis();
@@ -74,7 +76,7 @@ public final class PipedOutputStream extends OutputStream {
                         throw new IOException("Write timed out, deadline was: " + deadline);
                     }
                     try {
-                        buffer.wait(timeToWait);
+                        sync.wait(timeToWait);
                     } catch (InterruptedException ex) {
                         throw new IOException("Interrupted while writing " + Arrays.toString(b), ex);
                     }
@@ -97,7 +99,7 @@ public final class PipedOutputStream extends OutputStream {
                 } else if (endIdx >= buffer.length) {
                     endIdx = 0;
                 }
-                buffer.notifyAll();
+                sync.notifyAll();
             }
         }
     }
@@ -105,14 +107,14 @@ public final class PipedOutputStream extends OutputStream {
     @Override
     public void write(final int b) throws IOException {
         long deadline = org.spf4j.base.Runtime.DEADLINE.get();
-        synchronized (buffer) {
+        synchronized (sync) {
             while (!writerClosed && nrReadStreams > 0 && availableToWrite() < 1) {
                 try {
                     long timeToWait = deadline - System.currentTimeMillis();
                     if (timeToWait <= 0) {
                         throw new IOException("Write timed out, deadline was: " + deadline);
                     }
-                    buffer.wait(timeToWait);
+                    sync.wait(timeToWait);
                 } catch (InterruptedException ex) {
                     throw new IOException("Interrupted while writing " + b, ex);
                 }
@@ -126,7 +128,7 @@ public final class PipedOutputStream extends OutputStream {
             if (endIdx >= buffer.length) {
                 endIdx = 0;
             }
-            buffer.notifyAll();
+            sync.notifyAll();
         }
     }
 
@@ -149,9 +151,9 @@ public final class PipedOutputStream extends OutputStream {
     @Override
     public void close() {
         try {
-            synchronized (buffer) {
+            synchronized (sync) {
                 writerClosed = true;
-                buffer.notifyAll();
+                sync.notifyAll();
             }
         } finally {
             ArraySuppliers.Bytes.SUPPLIER.recycle(buffer);
@@ -159,7 +161,7 @@ public final class PipedOutputStream extends OutputStream {
     }
 
     public InputStream getInputStream() {
-        synchronized (buffer) {
+        synchronized (sync) {
             nrReadStreams++;
             return new InputStream() {
 
@@ -168,7 +170,7 @@ public final class PipedOutputStream extends OutputStream {
                 @Override
                 public int read() throws IOException {
                     long deadline = org.spf4j.base.Runtime.DEADLINE.get();
-                    synchronized (buffer) {
+                    synchronized (sync) {
                         int availableToRead = 0;
                         while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
                             long timeToWait = deadline - System.currentTimeMillis();
@@ -176,7 +178,7 @@ public final class PipedOutputStream extends OutputStream {
                                 throw new IOException("Write timed out, deadline was: " + deadline);
                             }
                             try {
-                                buffer.wait(timeToWait);
+                                sync.wait(timeToWait);
                             } catch (InterruptedException ex) {
                                 throw new IOException("Interrupted while reading from "
                                         + PipedOutputStream.this, ex);
@@ -196,7 +198,7 @@ public final class PipedOutputStream extends OutputStream {
                         if (startIdx >= buffer.length) {
                             startIdx = 0;
                         }
-                        buffer.notifyAll();
+                        sync.notifyAll();
                         return result;
                     }
                 }
@@ -205,7 +207,7 @@ public final class PipedOutputStream extends OutputStream {
                 public int read(final byte[] b, final int off, final int len) throws IOException {
                     long deadline = org.spf4j.base.Runtime.DEADLINE.get();
                     int bytesWritten = 0;
-                    synchronized (buffer) {
+                    synchronized (sync) {
                         int availableToRead = 0;
                         while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
                             long timeToWait = deadline - System.currentTimeMillis();
@@ -213,7 +215,7 @@ public final class PipedOutputStream extends OutputStream {
                                 throw new IOException("Write timed out, deadline was: " + deadline);
                             }
                             try {
-                                buffer.wait(timeToWait);
+                                sync.wait(timeToWait);
                             } catch (InterruptedException ex) {
                                 throw new IOException("Interrupted while reading from " + PipedOutputStream.this, ex);
                             }
@@ -241,24 +243,24 @@ public final class PipedOutputStream extends OutputStream {
                             startIdx = 0;
                         }
 
-                        buffer.notifyAll();
+                        sync.notifyAll();
                         return bytesWritten;
                     }
                 }
 
                 @Override
                 public int available() throws IOException {
-                    synchronized (buffer) {
+                    synchronized (sync) {
                         return availableToRead();
                     }
                 }
 
                 @Override
                 public void close() {
-                    synchronized (buffer) {
+                    synchronized (sync) {
                         nrReadStreams--;
                         readerClosed = true;
-                        buffer.notifyAll();
+                        sync.notifyAll();
                     }
                 }
             };
@@ -268,8 +270,8 @@ public final class PipedOutputStream extends OutputStream {
 
     @Override
     public String toString() {
-        synchronized (buffer) {
-            return "PipedOutputStream{" + "buffer=" + Arrays.toString(buffer) + ", startIdx=" + startIdx
+        synchronized (sync) {
+            return "PipedOutputStream{" + "bufferLength=" + buffer.length + ", startIdx=" + startIdx
                     + ", endIdx=" + endIdx + ", closed=" + writerClosed + '}';
         }
     }
