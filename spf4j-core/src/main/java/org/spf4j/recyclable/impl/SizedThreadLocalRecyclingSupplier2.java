@@ -18,6 +18,7 @@
 package org.spf4j.recyclable.impl;
 
 import java.lang.ref.Reference;
+import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.LinkedList;
 import org.spf4j.base.IntMath;
@@ -46,7 +47,7 @@ public final class SizedThreadLocalRecyclingSupplier2<T> implements SizedRecycli
             protected  Deque<Reference<T>> [] initialValue() {
                 Deque<Reference<T>> [] result =  new Deque[28];
                 for (int i = 0; i < result.length; i++) {
-                    result[i] = new LinkedList<>();
+                    result[i] = new ArrayDeque<>();
                 }
                 return result;
             }
