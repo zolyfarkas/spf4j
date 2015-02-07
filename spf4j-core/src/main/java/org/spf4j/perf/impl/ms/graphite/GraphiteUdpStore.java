@@ -10,6 +10,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.spf4j.base.Handler;
 import org.spf4j.base.Strings;
 import org.spf4j.io.ByteArrayBuilder;
@@ -42,11 +44,22 @@ public final class GraphiteUdpStore implements MeasurementStore {
 
         @Override
         public DatagramChannel create() throws ObjectCreationException {
+            DatagramChannel datagramChannel;
             try {
-                DatagramChannel datagramChannel = DatagramChannel.open();
+                datagramChannel = DatagramChannel.open();
+            } catch (IOException ex) {
+                throw new ObjectCreationException(ex);
+            }
+            try {
                 datagramChannel.connect(address);
                 return datagramChannel;
             } catch (IOException ex) {
+                try {
+                    datagramChannel.close();
+                } catch (IOException ex1) {
+                    ex1.addSuppressed(ex);
+                    throw new ObjectCreationException(ex1);
+                }
                 throw new ObjectCreationException(ex);
             }
         }
@@ -76,11 +89,11 @@ public final class GraphiteUdpStore implements MeasurementStore {
    public GraphiteUdpStore(final String hostPort) throws ObjectCreationException, URISyntaxException {
         this(new URI("graphiteUdp://" + hostPort));
     }
-    
+
     public GraphiteUdpStore(final URI uri) throws ObjectCreationException {
         this(uri.getHost(), uri.getPort());
     }
-    
+
     public GraphiteUdpStore(final String hostName, final int port) throws ObjectCreationException {
         address = new InetSocketAddress(hostName, port);
         datagramChannelSupplier = new RecyclingSupplierBuilder<DatagramChannel>(1,
@@ -149,9 +162,9 @@ public final class GraphiteUdpStore implements MeasurementStore {
         public void handle(final DatagramChannel datagramChannel, final long deadline) throws IOException {
             ByteArrayBuilder bos = new ByteArrayBuilder();
             OutputStreamWriter os = new OutputStreamWriter(bos, Charsets.UTF_8);
-            
+
             int msgStart = 0, msgEnd = 0, prevEnd = 0;
-            
+
             for (int i = 0; i < measurements.length; i++) {
                 writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),
                         measurements[i], timeStampMillis, os);
