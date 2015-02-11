@@ -50,8 +50,9 @@ public final class SizedGlobalRecyclingSupplier<T> implements SizedRecyclingSupp
     public T get(final int size) {
         int idx = IntMath.closestPowerOf2(size);
         BlockingQueue<Reference<T>> refs = objects[idx];
-        Reference<T> ref = refs.poll();
+        Reference<T> ref;
         do {
+            ref = refs.poll();
             if (ref == null) {
                 int actualSize = 1 << idx;
                 return factory.create(actualSize);
