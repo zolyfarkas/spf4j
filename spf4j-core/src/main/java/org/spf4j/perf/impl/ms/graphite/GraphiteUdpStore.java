@@ -10,8 +10,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.spf4j.base.Handler;
 import org.spf4j.base.Strings;
 import org.spf4j.io.ByteArrayBuilder;
