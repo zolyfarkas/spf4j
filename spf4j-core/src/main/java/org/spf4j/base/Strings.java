@@ -430,7 +430,20 @@ public final class Strings {
 
     }
 
-
+    public static boolean endsWith(final CharSequence qc, final CharSequence with) {
+        int l = qc.length();
+        int start = l - with.length();
+        if (start >= 0) {
+            for (int i = start, j = 0; i < l; i++, j++) {
+                if (qc.charAt(i) != qc.charAt(j)) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
 
 
 }

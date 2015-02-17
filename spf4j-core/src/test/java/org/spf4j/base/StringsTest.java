@@ -68,4 +68,14 @@ public final class StringsTest {
     }
 
 
+    public void testEndsWith() {
+
+        Assert.assertEquals(true, Strings.endsWith("dfjkshfks", ""));
+        Assert.assertEquals(true, Strings.endsWith("dfjkshfks", "hfks"));
+        Assert.assertEquals(false, Strings.endsWith("dfjkshfks", "hfk"));
+        Assert.assertEquals(true, Strings.endsWith("dfjkshfks", "dfjkshfks"));
+        Assert.assertEquals(false, Strings.endsWith("dfjkshfks", "dfjkshfksu"));
+    }
+
+
 }
