@@ -5,6 +5,8 @@ import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import org.spf4j.base.AbstractRunnable;
+import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.ds.UpdateablePriorityQueue;
 import org.spf4j.recyclable.ObjectBorrowException;
 import org.spf4j.recyclable.ObjectCreationException;
@@ -122,30 +124,47 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
     }
 
     @Override
-    @SuppressFBWarnings("REC_CATCH_EXCEPTION")
-    public synchronized void recycle(final T object, final Exception e) {
+    public void recycle(final T object, final Exception e) {
         if (e != null) {
-            if (o2Queue.containsKey(object)) { // element still in queue
-                boolean isValid;
-                try {
-                    isValid = factory.validate(object, e); // validate
-                } catch (Exception ex) {
-                    // findbugs suggest rethrowing Runtime exception here.
-                    // not realisting since people missuse RuntimeExceptions.
-                    isValid = false;
+            DefaultExecutor.INSTANCE.execute(new AbstractRunnable(true) {
+
+                @Override
+                public void doRun() throws Exception {
+                    validate(object, e);
                 }
-                if (!isValid) { // remove from pool
-                    UpdateablePriorityQueue.ElementRef qref = o2Queue.remove(object);
-                    nrObjects--;
-                    qref.remove();
-                }
-            } // element already retired. TODO: retirement queue to validate the object beloged tot this pool.
+            });
         } else {
-            //return to queue
-            UpdateablePriorityQueue<SharedObject<T>>.ElementRef ref = o2Queue.get(object);
-            ref.getElem().dec();
-            ref.elementMutated();
+            returnToQueue(object);
         }
+    }
+
+    @SuppressFBWarnings("REC_CATCH_EXCEPTION")
+    private synchronized void validate(final T object, final Exception e) {
+        if (o2Queue.containsKey(object)) {
+            // element still in queue
+            boolean isValid;
+            try {
+                isValid = factory.validate(object, e); // validate
+            } catch (Exception ex) {
+            // findbugs suggest rethrowing Runtime exception here.
+                // not realisting since people missuse RuntimeExceptions.
+                isValid = false;
+            }
+            if (!isValid) { // remove from pool
+                UpdateablePriorityQueue.ElementRef qref = o2Queue.remove(object);
+                nrObjects--;
+                qref.remove();
+            } else {
+                returnToQueue(object);
+            }
+        }
+    }
+
+    private synchronized void returnToQueue(final T object) {
+        // object is valid
+        UpdateablePriorityQueue<SharedObject<T>>.ElementRef ref = o2Queue.get(object);
+        ref.getElem().dec();
+        ref.elementMutated();
     }
 
     @Override
