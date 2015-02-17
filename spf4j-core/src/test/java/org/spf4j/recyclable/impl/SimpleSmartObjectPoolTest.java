@@ -64,7 +64,7 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
             } catch (InterruptedException ex) {
                 throw new RuntimeException(ex);
             }
-            instance.returnObject(borowedObject, this);
+            instance.recycle(borowedObject, this);
         }
         return Either.left(Action.NONE);
     }
@@ -86,6 +86,11 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
 
     @Override
     public Collection<TestObject> tryReturnObjectsIfNotInUse() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void nevermind(final TestObject object) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -113,13 +118,13 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
     }
 
     /**
-     * Test of borrowObject method, of class SimpleSmartObjectPool.
+     * Test of get method, of class SimpleSmartObjectPool.
      */
     @Test
     public void testPool() throws Exception {
         System.out.println("borrowObject");
-        borowedObject = instance.borrowObject(this);
-        instance.returnObject(borowedObject, this);
+        borowedObject = instance.get(this);
+        instance.recycle(borowedObject, this);
         instance.dispose();
     }
 }

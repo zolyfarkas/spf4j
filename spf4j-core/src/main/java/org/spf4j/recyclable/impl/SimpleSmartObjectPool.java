@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
@@ -34,13 +35,13 @@ import org.spf4j.recyclable.ObjectBorower.Action;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
-import org.spf4j.recyclable.SmartObjectPool;
+import org.spf4j.recyclable.SmartRecyclingSupplier;
 
 /**
  *
  * @author zoly
  */
-final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
+final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
 
     private int maxSize;
     private final LinkedHashMultimap<ObjectBorower<T>, T> borrowedObjects;
@@ -64,7 +65,7 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     }
 
     @Override
-    public T borrowObject(final ObjectBorower borower) throws InterruptedException,
+    public T get(final ObjectBorower borower) throws InterruptedException,
             TimeoutException, ObjectCreationException {
         long deadline = org.spf4j.base.Runtime.DEADLINE.get();
         lock.lock();
@@ -144,10 +145,26 @@ final class SimpleSmartObjectPool<T> implements SmartObjectPool<T> {
     }
 
     @Override
-    public void returnObject(final T object, final ObjectBorower borower) {
+    public void recycle(final T object, final ObjectBorower borower) {
         lock.lock();
         try {
-            borrowedObjects.remove(borower, object);
+            if (!borrowedObjects.remove(borower, object)) {
+                // returned somebody else's object.
+                Entry<ObjectBorower<T>, T> found = null;
+                for (Entry<ObjectBorower<T>, T> entry : borrowedObjects.entries()) {
+                    if (entry.getValue().equals(object)) {
+                        found = entry;
+                        break;
+                    }
+                }
+                if (found == null) {
+                    throw new IllegalStateException("Object " + object + " has not been borrowed from this pool");
+                } else {
+                    final ObjectBorower<T> borrower = found.getKey();
+                    borrowedObjects.remove(borrower, object);
+                    borrower.nevermind(object);
+                }
+            }
             availableObjects.add(object);
             available.signalAll();
         } finally {

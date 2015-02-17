@@ -32,7 +32,7 @@ import org.spf4j.recyclable.ObjectBorower;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
-import org.spf4j.recyclable.SmartObjectPool;
+import org.spf4j.recyclable.SmartRecyclingSupplier;
 
 /**
  *
@@ -42,12 +42,12 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
 
     private final Queue<ObjectHolder<T>> localObjects;
     private final Map<T, ObjectHolder<T>> borrowedObjects;
-    private final SmartObjectPool<ObjectHolder<T>> globalPool;
+    private final SmartRecyclingSupplier<ObjectHolder<T>> globalPool;
     private int reqReturnObjects;
     private final Thread thread;
     private final ReentrantLock lock;
 
-    public LocalObjectPool(final SmartObjectPool<ObjectHolder<T>> globalPool) {
+    public LocalObjectPool(final SmartRecyclingSupplier<ObjectHolder<T>> globalPool) {
         localObjects = new LinkedList<>();
         borrowedObjects = new HashMap<>();
         this.globalPool = globalPool;
@@ -65,7 +65,7 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
             ObjectHolder<T> objectHolder;
             do {
                 if (localObjects.isEmpty()) {
-                    objectHolder = globalPool.borrowObject(this);
+                    objectHolder = globalPool.get(this);
                 } else {
                     objectHolder = localObjects.remove();
                 }
@@ -84,20 +84,19 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
         try {
             ObjectHolder holder = borrowedObjects.remove(object);
             if (holder == null) {
-                throw new IllegalArgumentException("Object " + object
-                        + " has not been borrowed from this pool or thread");
-            }
-            try {
-                holder.returnObject(object, e);
-            } finally {
-                if (reqReturnObjects > 0) {
-                    reqReturnObjects--;
-                    globalPool.returnObject(holder, this);
-                } else {
-                    localObjects.add(holder);
+                globalPool.recycle(new ObjectHolder<>(object), this);
+            } else {
+                try {
+                    holder.returnObject(object, e);
+                } finally {
+                    if (reqReturnObjects > 0) {
+                        reqReturnObjects--;
+                        globalPool.recycle(holder, this);
+                    } else {
+                        localObjects.add(holder);
+                    }
                 }
             }
-
         } finally {
             lock.unlock();
         }
@@ -216,5 +215,17 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
     @Override
     public void recycle(final T object) {
         recycle(object, null);
+    }
+
+    @Override
+    public void nevermind(final ObjectHolder<T> object) {
+        lock.lock();
+        try {
+            if (borrowedObjects.remove(object.getObj()) == null) {
+                throw new IllegalStateException("Object " + object + " returned multiple times!");
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 }

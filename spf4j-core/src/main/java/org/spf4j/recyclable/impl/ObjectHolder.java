@@ -18,6 +18,7 @@
 package org.spf4j.recyclable.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Objects;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
@@ -50,6 +51,34 @@ final class ObjectHolder<T> {
         if (!lazy) {
             obj = factory.create();
         }
+    }
+
+    public ObjectHolder(final T object) {
+        this.factory = null;
+        borrowed = false;
+        this.obj = object;
+    }
+
+    public synchronized T getObj() {
+        return obj;
+    }
+
+    @Override
+    public synchronized int hashCode() {
+        int hash = 7;
+        return 59 * hash + Objects.hashCode(this.obj);
+    }
+
+    @Override
+    public synchronized boolean equals(final Object pobj) {
+        if (pobj == null) {
+            return false;
+        }
+        if (getClass() != pobj.getClass()) {
+            return false;
+        }
+        final ObjectHolder<?> other = (ObjectHolder<?>) pobj;
+        return Objects.equals(this.obj, other.getObj());
     }
 
     public synchronized T borrowOrCreateObjectIfPossible() throws ObjectCreationException {

@@ -30,7 +30,7 @@ public interface ObjectBorower<T> extends Scanable<T> {
 
 
     public enum Action { REQUEST_MADE, NONE }
-    
+
     /**
      * Non Blocking method.
      *
@@ -49,14 +49,14 @@ public interface ObjectBorower<T> extends Scanable<T> {
     @Nullable
     T tryReturnObjectIfNotInUse() throws InterruptedException;
 
-    
+
     /**
      * Return all objects that are not currently in use.
      */
-    
+
     @Nullable
     Collection<T> tryReturnObjectsIfNotInUse() throws InterruptedException;
-    
+
     /**
      * This method is a cleanup method. The purpose is to recover all borrowed objects before once this borrower will
      * never use them anymore...
@@ -65,4 +65,14 @@ public interface ObjectBorower<T> extends Scanable<T> {
      */
     @Nullable
     Collection<T> tryReturnObjectsIfNotNeededAnymore() throws InterruptedException;
+
+
+    /**
+     * Notify borower that object has been received back from another borrower.
+     * @param object
+     */
+
+    void nevermind(T object);
+
+
 }

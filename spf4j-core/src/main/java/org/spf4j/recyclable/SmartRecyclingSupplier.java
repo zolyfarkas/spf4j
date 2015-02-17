@@ -25,11 +25,24 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public interface SmartObjectPool<T> extends Disposable, Scanable<T> {
-    
-    T borrowObject(ObjectBorower borower) throws InterruptedException,
+public interface SmartRecyclingSupplier<T> extends Disposable, Scanable<T> {
+
+    /**
+     * Borrow object from pool.
+     * @param borower
+     * @return
+     * @throws InterruptedException
+     * @throws TimeoutException
+     * @throws ObjectCreationException
+     */
+    T get(ObjectBorower borower) throws InterruptedException,
             TimeoutException, ObjectCreationException;
-    
-    void returnObject(T object, ObjectBorower borower);
-    
+
+    /**
+     * Return object to pool.
+     * @param object
+     * @param borower
+     */
+    void recycle(T object, ObjectBorower borower);
+
 }

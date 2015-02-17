@@ -28,6 +28,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,6 +37,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeoutException;
 import junit.framework.Assert;
 import org.junit.Test;
+import org.spf4j.concurrent.DefaultExecutor;
 
 /**
  *
@@ -59,6 +61,32 @@ public final class ObjectPoolBuilderTest {
         pool.recycle(object, null);
         System.out.println(pool);
     }
+
+
+    @Test
+    public void testBuild2()
+            throws ObjectCreationException, ObjectBorrowException,
+            InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+        System.out.println("build");
+        final RecyclingSupplier<ExpensiveTestObject> pool =
+                new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
+        System.out.println(pool);
+        final ExpensiveTestObject object = pool.get();
+        System.out.println(pool);
+        Future<Void> submit = DefaultExecutor.INSTANCE.submit(new Callable<Void>() {
+
+            @Override
+            public Void call() throws Exception {
+                pool.recycle(object, null);
+                return null;
+            }
+        });
+        submit.get();
+        final ExpensiveTestObject object2 = pool.get();
+        Assert.assertTrue(object == object2);
+        System.out.println(pool);
+    }
+
 
 
     @Test(timeout = 20000)
