@@ -18,8 +18,8 @@
 package org.spf4j.recyclable.impl;
 
 import java.lang.ref.Reference;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import org.spf4j.base.IntMath;
 import org.spf4j.base.ReferenceType;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
@@ -29,48 +29,60 @@ import org.spf4j.recyclable.SizedRecyclingSupplier;
  * Recycling objects is dangerous business, care should be used.
  * @author zoly
  */
-public final class SizedGlobalRecyclingSupplier<T> implements SizedRecyclingSupplier<T> {
+public final class Powerof2ThreadLocalRecyclingSupplier<T> implements SizedRecyclingSupplier<T> {
 
     private final SizedRecyclingSupplier.Factory<T> factory;
 
     private final ReferenceType refType;
 
-    private final BlockingQueue<Reference<T>> [] objects;
+    private final ThreadLocal<Deque<Reference<T>> []> localObjects;
 
-    public SizedGlobalRecyclingSupplier(final Factory<T> factory, final ReferenceType refType) {
+    public Powerof2ThreadLocalRecyclingSupplier(final Factory<T> factory, final ReferenceType refType) {
         this.factory = factory;
         this.refType = refType;
-        objects = new BlockingQueue[28];
-        for (int i = 0; i < objects.length; i++) {
-            objects [i] = new LinkedBlockingQueue<>();
-        }
+        localObjects = new ThreadLocal<Deque<Reference<T>> []>() {
+
+            @Override
+            protected  Deque<Reference<T>> [] initialValue() {
+                Deque<Reference<T>> [] result =  new Deque[28];
+                for (int i = 0; i < result.length; i++) {
+                    result[i] = new ArrayDeque<>();
+                }
+                return result;
+            }
+        };
     }
 
     @Override
     public T get(final int size) {
+        Deque<Reference<T>> [] available = localObjects.get();
         int idx = IntMath.closestPowerOf2(size);
-        BlockingQueue<Reference<T>> refs = objects[idx];
-        Reference<T> ref;
-        do {
-            ref = refs.poll();
-            if (ref == null) {
+        Deque<Reference<T>> refs = available[idx];
+        if (refs.isEmpty()) {
+            int actualSize = 1 << idx;
+            return factory.create(actualSize);
+        } else {
+            T result;
+            do {
+                Reference<T> removeLast = refs.removeLast();
+                result = removeLast.get();
+            } while (result == null && !refs.isEmpty());
+            if (result == null) {
                 int actualSize = 1 << idx;
                 return factory.create(actualSize);
             } else {
-                T result = ref.get();
-                if (result != null) {
-                    return result;
-                }
+                return result;
             }
-        } while (true);
+        }
     }
 
     @Override
     public void recycle(final T object) {
         int size = factory.size(object);
         int idx = IntMath.closestPowerOf2(size);
-        BlockingQueue<Reference<T>> refs = objects[idx];
-        refs.add(refType.create(object));
+        Deque<Reference<T>> [] available = localObjects.get();
+        Deque<Reference<T>> refs = available[idx];
+        refs.addLast(refType.create(object));
     }
 
 }

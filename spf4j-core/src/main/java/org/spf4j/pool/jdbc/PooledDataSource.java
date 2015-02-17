@@ -38,31 +38,24 @@ import org.spf4j.recyclable.impl.RecyclingSupplierBuilder;
 public final class PooledDataSource implements DataSource {
 
     private final RecyclingSupplier<Connection> pool;
-    
-    
+
+
     public PooledDataSource(final int coreSize, final int maxSize,
             final String driverName, final String url, final String user, final String password)
             throws ObjectCreationException {
         final JdbcConnectionFactory jdbcConnectionFactory =
                 new JdbcConnectionFactory(driverName, url, user, password);
         RecyclingSupplierBuilder<Connection> builder =
-                new RecyclingSupplierBuilder<Connection>(
-                maxSize, jdbcConnectionFactory);
+                new RecyclingSupplierBuilder<>(maxSize, jdbcConnectionFactory);
         pool = builder.build();
         jdbcConnectionFactory.setPool(pool);
     }
-    
+
     @Override
     public Connection getConnection() throws SQLException {
         try {
             return pool.get();
-        } catch (InterruptedException ex) {
-            throw new SQLException(ex);
-        } catch (TimeoutException ex) {
-            throw new SQLException(ex);
-        } catch (ObjectBorrowException ex) {
-            throw new SQLException(ex);
-        } catch (ObjectCreationException ex) {
+        } catch (InterruptedException | TimeoutException | ObjectBorrowException | ObjectCreationException ex) {
             throw new SQLException(ex);
         }
     }
@@ -106,8 +99,9 @@ public final class PooledDataSource implements DataSource {
         return iface.equals(DataSource.class) || iface.equals(PooledDataSource.class);
     }
 
+    @Override
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
 }

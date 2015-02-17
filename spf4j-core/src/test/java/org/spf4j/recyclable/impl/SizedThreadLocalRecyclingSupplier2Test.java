@@ -16,7 +16,7 @@ public class SizedThreadLocalRecyclingSupplier2Test {
 
     @Test
     public void testSupplier() {
-        SizedRecyclingSupplier<byte[]> supplier = new SizedThreadLocalRecyclingSupplier2<>(
+        SizedRecyclingSupplier<byte[]> supplier = new Powerof2ThreadLocalRecyclingSupplier<>(
                 new SizedRecyclingSupplier.Factory<byte[]>() {
 
             @Override

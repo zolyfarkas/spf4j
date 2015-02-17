@@ -18,11 +18,11 @@
 
 package org.spf4j.annotations;
 
-import com.google.common.base.Predicate;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.spf4j.base.Callables.AdvancedRetryPredicate;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -31,5 +31,5 @@ public @interface Retry {
     int immediateRetries() default 5;
     int retryDelayMillis() default 1000;
     int timeoutMillis() default 300000;
-    Class<? extends Predicate<Exception>> exRetry() default VoidPredicate.class;
+    Class<? extends AdvancedRetryPredicate<Exception>> exRetry() default VoidPredicate.class;
 }

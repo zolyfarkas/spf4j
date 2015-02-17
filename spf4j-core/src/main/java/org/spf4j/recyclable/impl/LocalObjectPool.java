@@ -48,8 +48,8 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
     private final ReentrantLock lock;
 
     public LocalObjectPool(final SmartObjectPool<ObjectHolder<T>> globalPool) {
-        localObjects = new LinkedList<ObjectHolder<T>>();
-        borrowedObjects = new HashMap<T, ObjectHolder<T>>();
+        localObjects = new LinkedList<>();
+        borrowedObjects = new HashMap<>();
         this.globalPool = globalPool;
         reqReturnObjects = 0;
         thread = Thread.currentThread();
@@ -84,7 +84,8 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
         try {
             ObjectHolder holder = borrowedObjects.remove(object);
             if (holder == null) {
-                throw new IllegalArgumentException("Object " + object + " has not been borrowed from this pool");
+                throw new IllegalArgumentException("Object " + object
+                        + " has not been borrowed from this pool or thread");
             }
             try {
                 holder.returnObject(object, e);
@@ -96,7 +97,7 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
                     localObjects.add(holder);
                 }
             }
-            
+
         } finally {
             lock.unlock();
         }
@@ -122,10 +123,10 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
         }
     }
 
-    
+
     private static final  Either<Action, ObjectHolder<?>> REQ_MADE = Either.left(Action.REQUEST_MADE);
     private static final  Either<Action, ObjectHolder<?>> NONE = Either.left(Action.NONE);
-    
+
     @Override
     public Either<Action, ObjectHolder<T>> tryRequestReturnObject() throws InterruptedException {
         boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
@@ -163,8 +164,8 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
             return null;
         }
     }
-    
-    
+
+
     @Override
     public Collection<ObjectHolder<T>> tryReturnObjectsIfNotInUse() throws InterruptedException {
         boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
@@ -184,7 +185,7 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
             return null;
         }
     }
-    
+
 
     @Override
     public Collection<ObjectHolder<T>> tryReturnObjectsIfNotNeededAnymore() throws InterruptedException {

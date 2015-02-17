@@ -19,7 +19,7 @@ public class SizedGlobalRecyclingSupplierTest {
 
     @Test
     public void testSupplier() {
-        SizedRecyclingSupplier<byte[]> supplier = new SizedGlobalRecyclingSupplier<>(
+        SizedRecyclingSupplier<byte[]> supplier = new Powerof2SizedGlobalRecyclingSupplier<>(
                 new SizedRecyclingSupplier.Factory<byte[]>() {
 
             @Override

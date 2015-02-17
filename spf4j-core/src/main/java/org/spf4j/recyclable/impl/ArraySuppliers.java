@@ -51,10 +51,10 @@ public final class ArraySuppliers {
         };
 
       public static final SizedRecyclingSupplier<byte[]> TL_SUPPLIER
-              = new SizedThreadLocalRecyclingSupplier2<>(FACTORY, ReferenceType.SOFT);
+              = new Powerof2ThreadLocalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
 
       public static final SizedRecyclingSupplier<byte[]> GL_SUPPLIER
-              = new SizedGlobalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
+              = new Powerof2SizedGlobalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
 
       public static final SizedRecyclingSupplier<byte[]> JAVA_NEW
               = new SizedRecyclingSupplier<byte[]>() {

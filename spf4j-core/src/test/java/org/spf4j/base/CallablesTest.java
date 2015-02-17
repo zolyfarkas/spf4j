@@ -17,11 +17,14 @@
  */
 package org.spf4j.base;
 
-import com.google.common.base.Predicate;
 import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.base.Callables.Action;
+import org.spf4j.base.Callables.AdvancedAction;
+import org.spf4j.base.Callables.AdvancedRetryPredicate;
 import org.spf4j.base.Callables.TimeoutCallable;
+import org.spf4j.base.Callables.TimeoutRetryPredicate;
 
 /**
  *
@@ -42,8 +45,8 @@ public final class CallablesTest {
             }
         }, 3, 10);
     }
-    
-    
+
+
     /**
      * Test of executeWithRetry method, of class Callables.
      */
@@ -64,7 +67,7 @@ public final class CallablesTest {
      */
     @Test
     public void testExecuteWithRetry4args2() throws Exception {
-        System.out.println("executeWithRetry");
+        System.out.println("testExecuteWithRetry4args2");
         long startTime = System.currentTimeMillis();
         Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(60000) {
             private int count;
@@ -83,7 +86,7 @@ public final class CallablesTest {
         Assert.assertEquals(1L, result.longValue());
         Assert.assertTrue("Operation has to take at least 10 ms", elapsedTime > 10L);
     }
-    
+
     @Test
     public void testExecuteWithRetryFailureTest() throws Exception {
         System.out.println("executeWithRetry");
@@ -107,7 +110,7 @@ public final class CallablesTest {
 
     }
 
-    
+
     @Test
     public void testSuppression() throws Exception {
         System.out.println("executeWithRetry");
@@ -124,23 +127,23 @@ public final class CallablesTest {
 
                 return 1;
             }
-        }, 1, 10, new Predicate<Exception>() {
+        }, 1, 10, new AdvancedRetryPredicate<Exception>() {
 
             @Override
-            public boolean apply(final Exception input) {
+            public AdvancedAction apply(final Exception input) {
                 final Throwable[] suppressed = Throwables.getSuppressed(input);
                 if (suppressed.length > 0) {
                     throw new RuntimeException();
                 }
-                return true;
+                return AdvancedAction.RETRY;
             }
         });
         long elapsedTime = System.currentTimeMillis() - startTime;
         Assert.assertEquals(1L, result.longValue());
         Assert.assertTrue("Operation has to take at least 10 ms", elapsedTime > 10L);
     }
-    
-    
+
+
     @Test(expected = IOException.class)
     public void testExecuteWithRetryTimeout() throws InterruptedException, IOException {
         System.out.println("executeWithRetryTimeout");
@@ -159,7 +162,7 @@ public final class CallablesTest {
         }, 1, 10);
         Assert.assertEquals(1L, result.longValue());
     }
-    
+
     @Test(expected = IOException.class)
     public void testExecuteWithRetryTimeout2() throws InterruptedException, IOException {
         System.out.println("executeWithRetryTimeout2");
@@ -178,8 +181,8 @@ public final class CallablesTest {
         }, 0, 100);
         Assert.assertEquals(1L, result.longValue());
     }
-    
-    
+
+
     /**
      * Test of executeWithRetry method, of class Callables.
      */
@@ -194,16 +197,16 @@ public final class CallablesTest {
             System.out.println("Exception as expected " + e);
         }
     }
-    
-    
+
+
     public void testExecuteWithRetry5args3() throws Exception {
         System.out.println("executeWithRetry");
         final CallableImpl2 callableImpl = new CallableImpl2(60000);
-        Callables.executeWithRetry(callableImpl, 2, 10, new Predicate<Integer>() {
+        Callables.executeWithRetry(callableImpl, 2, 10, new TimeoutRetryPredicate<Integer>() {
 
             @Override
-            public boolean apply(final Integer t) {
-                return t > 0;
+            public Action apply(final Integer t, final long deadline) {
+                return t > 0 ? Action.RETRY : Action.ABORT;
             }
         },
                 Callables.DEFAULT_EXCEPTION_RETRY);
@@ -218,7 +221,7 @@ public final class CallablesTest {
         public CallableImpl(final int timeoutMillis) {
             super(timeoutMillis);
         }
-        
+
         @Override
         public Integer call(final long deadline) throws Exception {
             count++;
@@ -228,18 +231,18 @@ public final class CallablesTest {
         public int getCount() {
             return count;
         }
-        
+
     }
-    
+
     private static class CallableImpl2 extends TimeoutCallable<Integer, Exception> {
 
-        
+
         private int count;
 
         public CallableImpl2(final int timeoutMillis) {
             super(timeoutMillis);
         }
-        
+
         @Override
         public Integer call(final long deadline) throws Exception {
             count++;
@@ -249,8 +252,8 @@ public final class CallablesTest {
         public int getCount() {
             return count;
         }
-        
+
     }
-    
-    
+
+
 }

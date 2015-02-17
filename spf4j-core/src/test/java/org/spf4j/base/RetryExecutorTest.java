@@ -32,7 +32,7 @@ import org.spf4j.concurrent.RetryExecutor;
  * @author zoly
  */
 public final class RetryExecutorTest {
-    
+
     public RetryExecutorTest() {
     }
 
@@ -40,7 +40,7 @@ public final class RetryExecutorTest {
     public void testSubmitCallable() throws InterruptedException, ExecutionException {
         System.out.println("submit");
         RetryExecutor instance = new RetryExecutor(Executors.newFixedThreadPool(10), 3,
-                10, 100, Callables.DEFAULT_EXCEPTION_RETRY, null);
+                10, 100, Callables.DEFAULT_EXCEPTION_RETRY_PREDICATE, null);
         Future result = instance.submit(new Callable<Integer>() {
 
             private int count;
@@ -51,7 +51,7 @@ public final class RetryExecutorTest {
                 if (count < 5) {
                     throw new IOException("Aaaaaaaaaaa" + count);
                 }
-                    
+
                 return 1;
             }
         });

@@ -17,7 +17,6 @@
  */
 package org.spf4j.recyclable.impl;
 
-import org.spf4j.recyclable.impl.RecyclingSupplierBuilder;
 import org.spf4j.base.Callables;
 import org.spf4j.concurrent.RetryExecutor;
 import org.spf4j.recyclable.ObjectBorrowException;
@@ -41,9 +40,9 @@ import org.junit.Test;
  * @author zoly
  */
 public final class ObjectPoolVsApache {
-  
+
     private static final int TEST_TASKS = 1000000;
-    
+
     @Test(timeout = 200000)
     public void testPerformance()
             throws ObjectCreationException, ObjectBorrowException, InterruptedException,
@@ -56,12 +55,12 @@ public final class ObjectPoolVsApache {
         ExecutorService execService = Executors.newFixedThreadPool(10);
         BlockingQueue<Future<Integer>> completionQueue = new LinkedBlockingDeque<Future<Integer>>();
         RetryExecutor<Integer> exec
-                = new RetryExecutor<Integer>(execService, 8, 16, 5000, Callables.DEFAULT_EXCEPTION_RETRY,
+                = new RetryExecutor<>(execService, 8, 16, 5000, Callables.DEFAULT_EXCEPTION_RETRY_PREDICATE,
                  completionQueue);
         long zpooltime = testPool(exec, pool, completionQueue);
         long apooltime = testPoolApache(exec, apool, completionQueue);
         Assert.assertTrue("apache pool must be slower", apooltime > zpooltime);
-        
+
     }
 
     private long testPool(final RetryExecutor<Integer> exec, final RecyclingSupplier<ExpensiveTestObject> pool,
@@ -77,8 +76,8 @@ public final class ObjectPoolVsApache {
         System.out.println("Completed all " + TEST_TASKS + " tasks in " + elapsedTime + "ms ");
         return elapsedTime;
     }
-    
-    
+
+
     private long testPoolApache(final RetryExecutor<Integer> exec,
             final org.apache.commons.pool.impl.GenericObjectPool pool,
             final BlockingQueue<Future<Integer>> completionQueue) throws InterruptedException, ExecutionException {
@@ -93,7 +92,7 @@ public final class ObjectPoolVsApache {
         System.out.println("Completed all " + TEST_TASKS + " tasks in " + elapsedTime + "ms ");
         return elapsedTime;
     }
-    
-    
-  
+
+
+
 }

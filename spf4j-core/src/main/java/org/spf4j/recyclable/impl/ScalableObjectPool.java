@@ -32,10 +32,10 @@ import java.util.concurrent.TimeoutException;
 final class ScalableObjectPool<T> implements RecyclingSupplier<T>,  Scanable<ObjectHolder<T>> {
 
     private final SimpleSmartObjectPool<ObjectHolder<T>> globalPool;
-    
+
     private final ThreadLocal<LocalObjectPool<T>> localPool;
-    
-    
+
+
     public ScalableObjectPool(final int initialSize, final int maxSize, final RecyclingSupplier.Factory<T> factory,
             final boolean fair) throws ObjectCreationException {
         globalPool = new SimpleSmartObjectPool<>(initialSize, maxSize,
@@ -47,9 +47,9 @@ final class ScalableObjectPool<T> implements RecyclingSupplier<T>,  Scanable<Obj
                     }
         };
     }
-    
-    
-    
+
+
+
     @Override
     public T get() throws ObjectCreationException, InterruptedException, TimeoutException {
         return localPool.get().get();
@@ -69,7 +69,7 @@ final class ScalableObjectPool<T> implements RecyclingSupplier<T>,  Scanable<Obj
     public boolean scan(final ScanHandler<ObjectHolder<T>> handler) throws Exception {
         return globalPool.scan(handler);
     }
-    
+
     public void requestReturnFromBorrowersIfNotInUse() throws InterruptedException {
         globalPool.requestReturnFromBorrowersIfNotInUse();
     }
@@ -83,5 +83,5 @@ final class ScalableObjectPool<T> implements RecyclingSupplier<T>,  Scanable<Obj
     public void recycle(final T object) {
         recycle(object, null);
     }
-    
+
 }

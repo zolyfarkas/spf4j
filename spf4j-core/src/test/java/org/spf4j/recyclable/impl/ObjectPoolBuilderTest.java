@@ -17,7 +17,6 @@
  */
 package org.spf4j.recyclable.impl;
 
-import org.spf4j.recyclable.impl.RecyclingSupplierBuilder;
 import org.spf4j.base.Callables;
 import org.spf4j.concurrent.RetryExecutor;
 import org.spf4j.recyclable.ObjectBorrowException;
@@ -43,7 +42,7 @@ import org.junit.Test;
  * @author zoly
  */
 public final class ObjectPoolBuilderTest {
-  
+
     /**
      * Test of build method, of class RecyclingSupplierBuilder.
      */
@@ -60,8 +59,8 @@ public final class ObjectPoolBuilderTest {
         pool.recycle(object, null);
         System.out.println(pool);
     }
-    
- 
+
+
     @Test(timeout = 20000)
     public void testPoolUseNoFailures()
                 throws ObjectCreationException, ObjectBorrowException, InterruptedException,
@@ -72,8 +71,8 @@ public final class ObjectPoolBuilderTest {
         runTest(pool, 0, 10000);
         pool.dispose();
     }
-    
-    
+
+
     @Test(timeout = 20000)
     public void testPoolUse()
             throws ObjectCreationException, ObjectBorrowException, InterruptedException,
@@ -89,7 +88,7 @@ public final class ObjectPoolBuilderTest {
             ex.printStackTrace();
         }
     }
-    
+
     @Test(timeout = 200000)
     public void testPoolUseWithMaintenance()
             throws ObjectCreationException, ObjectBorrowException, InterruptedException,
@@ -107,7 +106,7 @@ public final class ObjectPoolBuilderTest {
     }
 
     private volatile boolean isDeadlock = false;
-    
+
     private Thread startDeadlockMonitor(final long deadlockTimeout) {
         isDeadlock = false;
         Thread monitor = new Thread(new Runnable() {
@@ -132,9 +131,9 @@ public final class ObjectPoolBuilderTest {
             final long sleepBetweenSubmit, final long deadlockTimeout) throws InterruptedException, ExecutionException {
         Thread monitor = startDeadlockMonitor(deadlockTimeout);
         ExecutorService execService = Executors.newFixedThreadPool(10);
-        BlockingQueue<Future<Integer>> completionQueue = new LinkedBlockingDeque<Future<Integer>>();
+        BlockingQueue<Future<Integer>> completionQueue = new LinkedBlockingDeque<>();
         RetryExecutor<Integer> exec
-                = new RetryExecutor<Integer>(execService, 8, 16, 5000, Callables.DEFAULT_EXCEPTION_RETRY,
+                = new RetryExecutor<Integer>(execService, 8, 16, 5000, Callables.DEFAULT_EXCEPTION_RETRY_PREDICATE,
                  completionQueue);
         int nrTests = 1000;
         for (int i = 0; i < nrTests; i++) {
@@ -152,6 +151,6 @@ public final class ObjectPoolBuilderTest {
             Assert.fail("deadlock detected");
         }
     }
-   
-  
+
+
 }

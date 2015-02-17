@@ -18,12 +18,14 @@
  */
 package org.spf4j.base;
 
+import java.util.Objects;
+
 /**
  *
  * @author zoly
  */
-public final  class MutableHolder<T> {
-    
+public final  class MutableHolder<T> implements Comparable<MutableHolder<T>> {
+
     private T value;
 
     public MutableHolder(final T value) {
@@ -46,5 +48,43 @@ public final  class MutableHolder<T> {
     public String toString() {
         return "MutableHolder{" + "value=" + value + '}';
     }
-    
+
+    @Override
+    public int compareTo(final MutableHolder<T> o) {
+        if (this.value == null) {
+            if (o.value == null) {
+                return 0;
+            } else {
+                return -1;
+            }
+        } else {
+            if (o.value == null) {
+                return 1;
+            } else {
+                return ((Comparable) this.value).compareTo(o.value);
+            }
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        return 79 * hash + Objects.hashCode(this.value);
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final MutableHolder<?> other = (MutableHolder<?>) obj;
+        return Objects.equals(this.value, other.value);
+    }
+
+
+
+
 }

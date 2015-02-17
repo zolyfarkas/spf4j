@@ -57,10 +57,10 @@ public interface RecyclingSupplier<T> extends Disposable {
      * @param e
      */
     void recycle(T object, @Nullable Exception e);
-    
+
 
     void recycle(T object);
-    
+
 
     @ParametersAreNonnullByDefault
     public interface Factory<T> {
@@ -84,11 +84,12 @@ public interface RecyclingSupplier<T> extends Disposable {
         /**
          * Validate the object, return true if valid,
          * false of throw an Exception with validation detail otherwise.
+         * in case of throwing an exception the object is considered invalid.
          */
         @Nullable
         @CheckReturnValue
         boolean validate(T object, @Nullable Exception e) throws Exception;
-        
-        
+
+
     }
 }

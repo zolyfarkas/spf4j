@@ -1,13 +1,15 @@
 
 package org.spf4j.annotations;
 
-import com.google.common.base.Predicate;
+import org.spf4j.base.Callables;
 
-public final class VoidPredicate implements Predicate<Exception> {
+public final class VoidPredicate implements Callables.AdvancedRetryPredicate<Exception> {
 
     @Override
-    public boolean apply(final Exception input) {
+    public Callables.AdvancedAction apply(final Exception value) {
         throw new UnsupportedOperationException();
     }
-    
+
+
+
 }
