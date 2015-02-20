@@ -132,6 +132,7 @@ public final class ByteArrayBuilder extends OutputStream {
             byte [] old = buf;
             buf = arraySupplier.get(newCapacity);
             System.arraycopy(old, 0, buf, 0, old.length);
+            arraySupplier.recycle(old);
         }
     }
 
