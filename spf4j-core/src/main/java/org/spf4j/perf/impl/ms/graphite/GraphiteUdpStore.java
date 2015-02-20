@@ -158,27 +158,28 @@ public final class GraphiteUdpStore implements MeasurementStore {
 
         @Override
         public void handle(final DatagramChannel datagramChannel, final long deadline) throws IOException {
-            ByteArrayBuilder bos = new ByteArrayBuilder();
-            OutputStreamWriter os = new OutputStreamWriter(bos, Charsets.UTF_8);
+            try (ByteArrayBuilder bos = new ByteArrayBuilder();
+            OutputStreamWriter os = new OutputStreamWriter(bos, Charsets.UTF_8)) {
 
-            int msgStart = 0, msgEnd = 0, prevEnd = 0;
+                int msgStart = 0, msgEnd = 0, prevEnd = 0;
 
-            for (int i = 0; i < measurements.length; i++) {
-                writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),
-                        measurements[i], timeStampMillis, os);
-                os.flush();
-                msgEnd = bos.size();
-                int length = msgEnd - msgStart;
-                if (length > MAX_UDP_MSG_SIZE) {
-                    ByteBuffer byteBuffer = ByteBuffer.wrap(bos.getBuffer(), msgStart, prevEnd - msgStart);
-                    datagramChannel.write(byteBuffer);
-                    msgStart = prevEnd;
+                for (int i = 0; i < measurements.length; i++) {
+                    writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),
+                            measurements[i], timeStampMillis, os);
+                    os.flush();
+                    msgEnd = bos.size();
+                    int length = msgEnd - msgStart;
+                    if (length > MAX_UDP_MSG_SIZE) {
+                        ByteBuffer byteBuffer = ByteBuffer.wrap(bos.getBuffer(), msgStart, prevEnd - msgStart);
+                        datagramChannel.write(byteBuffer);
+                        msgStart = prevEnd;
+                    }
+                    prevEnd = msgEnd;
                 }
-                prevEnd = msgEnd;
-            }
-            if (msgEnd > msgStart) {
-                ByteBuffer byteBuffer = ByteBuffer.wrap(bos.getBuffer(), msgStart, msgEnd - msgStart);
-                datagramChannel.write(byteBuffer);
+                if (msgEnd > msgStart) {
+                    ByteBuffer byteBuffer = ByteBuffer.wrap(bos.getBuffer(), msgStart, msgEnd - msgStart);
+                    datagramChannel.write(byteBuffer);
+                }
             }
         }
     }

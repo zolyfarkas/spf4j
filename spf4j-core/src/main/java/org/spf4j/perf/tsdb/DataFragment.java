@@ -75,11 +75,12 @@ final class DataFragment {
     }
 
     public void writeTo(final RandomAccessFile raf) throws IOException {
-        ByteArrayBuilder bos = new ByteArrayBuilder();
-        DataOutput dos = new DataOutputStream(bos);
-        writeTo(dos);
-        raf.seek(location);
-        raf.write(bos.getBuffer(), 0, bos.size());
+        try (ByteArrayBuilder bos = new ByteArrayBuilder()) {
+            DataOutput dos = new DataOutputStream(bos);
+            writeTo(dos);
+            raf.seek(location);
+            raf.write(bos.getBuffer(), 0, bos.size());
+        }
     }
 
     public void addData(final long timestamp, final long[] dataRow) {

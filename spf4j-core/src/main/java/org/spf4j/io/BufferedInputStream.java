@@ -17,15 +17,18 @@
  */
 package org.spf4j.io;
 
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import javax.annotation.WillClose;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
 @SuppressFBWarnings("VO_VOLATILE_REFERENCE_TO_ARRAY")
+@CleanupObligation
 public final class BufferedInputStream extends FilterInputStream {
 
     private static int defaultBufferSize = 8192;
@@ -223,6 +226,7 @@ public final class BufferedInputStream extends FilterInputStream {
     }
 
     @Override
+    @WillClose
     public void close() throws IOException {
         byte[] buffer;
         while ((buffer = buf) != null) {

@@ -64,10 +64,10 @@ public final class TSTable {
 
     /**
      * This is a shalow copy.
-     * 
+     *
      * @param copyOf
      */
-    
+
     TSTable(final TSTable copyOf) {
         this.location = copyOf.location;
         this.nextTableInfo = copyOf.nextTableInfo;
@@ -91,7 +91,7 @@ public final class TSTable {
     TSTable(final RandomAccessFile raf) throws IOException {
         this(raf, raf.getFilePointer());
     }
-    
+
     TSTable(final RandomAccessFile raf, final long location) throws IOException {
         this.location = location;
         raf.seek(location);
@@ -119,8 +119,8 @@ public final class TSTable {
             columnMetaData[i] = colMetaData;
         }
     }
-    
-    
+
+
 
     void writeTo(final DataOutput dos) throws IOException {
         dos.writeLong(nextTableInfo);
@@ -143,12 +143,13 @@ public final class TSTable {
     }
 
     void writeTo(final RandomAccessFile raf) throws IOException {
-        ByteArrayBuilder bos = new ByteArrayBuilder();
-        DataOutput dos = new DataOutputStream(bos);
-        writeTo(dos);
+        try (ByteArrayBuilder bos = new ByteArrayBuilder()) {
+            DataOutput dos = new DataOutputStream(bos);
+            writeTo(dos);
 
-        raf.seek(location);
-        raf.write(bos.getBuffer(), 0, bos.size());
+            raf.seek(location);
+            raf.write(bos.getBuffer(), 0, bos.size());
+        }
     }
 
     public String[] getColumnNames() {

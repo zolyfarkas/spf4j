@@ -18,10 +18,12 @@
 
 package org.spf4j.io;
 
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import javax.annotation.WillClose;
 
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
@@ -41,6 +43,7 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  */
 @ThreadSafe
 //CHECKSTYLE IGNORE InnerAssignment FOR NEXT 2000 LINES
+@CleanupObligation
 public final class PipedOutputStream extends OutputStream {
 
     private final byte[] buffer;
@@ -60,7 +63,7 @@ public final class PipedOutputStream extends OutputStream {
     public PipedOutputStream(final int bufferSize) {
         this(bufferSize, ArraySuppliers.Bytes.JAVA_NEW);
     }
-            
+
     public PipedOutputStream(final int bufferSize,
             final SizedRecyclingSupplier<byte[]> bufferProvider) {
         this.bufferProvider = bufferProvider;
@@ -157,6 +160,7 @@ public final class PipedOutputStream extends OutputStream {
     }
 
     @Override
+    @WillClose
     public void close() {
         try {
             synchronized (sync) {

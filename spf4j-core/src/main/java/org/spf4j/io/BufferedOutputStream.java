@@ -17,8 +17,10 @@
  */
 package org.spf4j.io;
 
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import java.io.IOException;
 import java.io.OutputStream;
+import javax.annotation.WillClose;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
@@ -26,6 +28,7 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  * Better that the JDK outpustream, no exception swallowing...
  * @author zoly
  */
+@CleanupObligation
 public final class BufferedOutputStream extends OutputStream {
 
     private byte[] buf;
@@ -99,6 +102,7 @@ public final class BufferedOutputStream extends OutputStream {
     }
 
     @Override
+    @WillClose
     public synchronized void close() throws IOException {
         if (buf != null) {
             try (OutputStream los = os) {
