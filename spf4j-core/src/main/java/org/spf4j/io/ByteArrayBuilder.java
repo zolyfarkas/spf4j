@@ -256,7 +256,7 @@ public final class ByteArrayBuilder extends OutputStream {
      */
     @WillClose
     @Override
-    public synchronized void close() throws IOException {
+    public synchronized void close() {
         if (arraySupplier != null) {
             arraySupplier.recycle(buf);
         }
