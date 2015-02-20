@@ -142,6 +142,11 @@ public final class ByteArrayBuilder extends OutputStream {
         return (minCapacity > MAX_ARRAY_SIZE) ? Integer.MAX_VALUE : MAX_ARRAY_SIZE;
     }
 
+    @Override
+    public void write(final byte [] b) {
+        write(b, 0, b.length);
+    }    
+
     /**
      * Writes the specified byte to this byte array output stream.
      *
