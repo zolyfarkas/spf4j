@@ -145,7 +145,7 @@ public final class ByteArrayBuilder extends OutputStream {
     @Override
     public void write(final byte [] b) {
         write(b, 0, b.length);
-    }    
+    }
 
     /**
      * Writes the specified byte to this byte array output stream.
