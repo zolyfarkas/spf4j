@@ -63,12 +63,6 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
     public void beforeTrial(final BenchmarkParams benchmarkParams) {
     }
 
-    @Override
-    public Collection<? extends Result> afterTrial(final BenchmarkParams benchmarkParams,
-            final File stdOut, final File stdErr) {
-        NoResult r = new NoResult("Profile saved to " + dumpFile);
-        return Collections.singleton(r);
-    }
 
     @Override
     public boolean allowPrintOut() {
@@ -94,6 +88,13 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
     @Override
     public String getDescription() {
         return "Java Flight Recording profiler runs for every benchmark.";
+    }
+
+    @Override
+    public Collection<? extends Result> afterTrial(final BenchmarkParams bp, final long l,
+            final File file, final File file1) {
+        NoResult r = new NoResult("Profile saved to " + dumpFile);
+        return Collections.singleton(r);
     }
 
     private static final class NoResult extends Result<NoResult> {
