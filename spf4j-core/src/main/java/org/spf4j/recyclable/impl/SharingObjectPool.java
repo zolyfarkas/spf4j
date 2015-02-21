@@ -163,7 +163,9 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
     private synchronized void returnToQueue(final T object) {
         // object is valid
         UpdateablePriorityQueue<SharedObject<T>>.ElementRef ref = o2Queue.get(object);
-        ref.getElem().dec();
+        final SharedObject<T> elem = ref.getElem();
+        elem.dec();
+        this.notifyAll();
         ref.elementMutated();
     }
 
@@ -173,11 +175,14 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
     }
 
     @Override
-    public synchronized void dispose() throws ObjectDisposeException {
+    public synchronized void dispose() throws ObjectDisposeException, InterruptedException {
         closed = true;
         ObjectDisposeException exres = null;
         for (SharedObject<T> obj : pooledObjects) {
             try {
+                while (obj.getNrTimesShared() > 0) {
+                    this.wait(5000);
+                }
                 factory.dispose(obj.getObject());
             } catch (ObjectDisposeException ex) {
                 if (exres == null) {
