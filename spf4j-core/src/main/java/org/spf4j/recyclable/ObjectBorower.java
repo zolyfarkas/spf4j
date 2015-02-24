@@ -69,10 +69,11 @@ public interface ObjectBorower<T> extends Scanable<T> {
 
     /**
      * Notify borower that object has been received back from another borrower.
+     * return true is indeed object was from here, false otherwise.
      * @param object
      */
 
-    void nevermind(T object);
+    boolean nevermind(T object);
 
 
 }

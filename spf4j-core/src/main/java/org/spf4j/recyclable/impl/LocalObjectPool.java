@@ -135,8 +135,12 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
                 if (objectHolder != null) {
                     return Either.right(objectHolder);
                 } else {
-                    reqReturnObjects++;
-                    return (Either) REQ_MADE;
+                    if (borrowedObjects.size() > reqReturnObjects) {
+                        reqReturnObjects++;
+                        return (Either) REQ_MADE;
+                    } else {
+                        return (Either) NONE;
+                    }
                 }
             } finally {
                 lock.unlock();
@@ -171,7 +175,7 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
         if (acquired) {
             try {
                 if (!localObjects.isEmpty()) {
-                    Collection<ObjectHolder<T>> result = new ArrayList<ObjectHolder<T>>(localObjects);
+                    Collection<ObjectHolder<T>> result = new ArrayList<>(localObjects);
                     localObjects.clear();
                     return result;
                 } else {
@@ -218,12 +222,10 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
     }
 
     @Override
-    public void nevermind(final ObjectHolder<T> object) {
+    public boolean nevermind(final ObjectHolder<T> object) {
         lock.lock();
         try {
-            if (borrowedObjects.remove(object.getObj()) == null) {
-                throw new IllegalStateException("Object " + object + " returned multiple times!");
-            }
+            return borrowedObjects.remove(object.getObj()) != null;
         } finally {
             lock.unlock();
         }

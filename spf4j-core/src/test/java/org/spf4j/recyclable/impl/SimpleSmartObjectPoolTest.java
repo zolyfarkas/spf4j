@@ -90,7 +90,7 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
     }
 
     @Override
-    public void nevermind(final TestObject object) {
+    public boolean nevermind(final TestObject object) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

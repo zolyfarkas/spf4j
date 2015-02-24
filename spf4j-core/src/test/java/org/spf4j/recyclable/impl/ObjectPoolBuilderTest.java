@@ -52,7 +52,7 @@ public final class ObjectPoolBuilderTest {
     public void testBuild()
             throws ObjectCreationException, ObjectBorrowException,
             InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException {
-        System.out.println("build");
+        System.out.println("test=build");
         RecyclingSupplier<ExpensiveTestObject> pool =
                 new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
         System.out.println(pool);
@@ -67,7 +67,7 @@ public final class ObjectPoolBuilderTest {
     public void testBuild2()
             throws ObjectCreationException, ObjectBorrowException,
             InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
-        System.out.println("build");
+        System.out.println("test=build2");
         final RecyclingSupplier<ExpensiveTestObject> pool =
                 new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
         System.out.println(pool);
@@ -93,10 +93,21 @@ public final class ObjectPoolBuilderTest {
     public void testPoolUseNoFailures()
                 throws ObjectCreationException, ObjectBorrowException, InterruptedException,
                 TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
-        System.out.println("poolUse");
+        System.out.println("test=poolUse");
         RecyclingSupplier<ExpensiveTestObject> pool
                 = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory(1000000, 1000000, 1, 5)).build();
         runTest(pool, 0, 10000);
+        pool.dispose();
+    }
+
+    @Test(timeout = 16000)
+    public void testPoolUseNoFailuresStarvation()
+                throws ObjectCreationException, ObjectBorrowException, InterruptedException,
+                TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+        System.out.println("test=poolUse");
+        RecyclingSupplier<ExpensiveTestObject> pool
+                = new RecyclingSupplierBuilder(1, new ExpensiveTestObjectFactory(1000000, 1000000, 1, 5)).build();
+        runTest(pool, 0, 15000);
         pool.dispose();
     }
 
@@ -105,7 +116,7 @@ public final class ObjectPoolBuilderTest {
     public void testPoolUse()
             throws ObjectCreationException, ObjectBorrowException, InterruptedException,
             TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
-                System.out.println("poolUse");
+                System.out.println("test=poolUse");
         final RecyclingSupplier<ExpensiveTestObject> pool
                 = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
 
@@ -117,15 +128,15 @@ public final class ObjectPoolBuilderTest {
         }
     }
 
-    @Test(timeout = 200000)
+    @Test(timeout = 20000)
     public void testPoolUseWithMaintenance()
             throws ObjectCreationException, ObjectBorrowException, InterruptedException,
             TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
-        System.out.println("poolUseWithMainteinance");
+        System.out.println("test=poolUseWithMainteinance");
 
         final RecyclingSupplier<ExpensiveTestObject> pool = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory())
                 .withMaintenance(org.spf4j.concurrent.DefaultScheduler.INSTANCE, 10, true).build();
-        runTest(pool, 5, 100000);
+        runTest(pool, 5, 20000);
         try {
             pool.dispose();
         } catch (ObjectDisposeException ex) {
@@ -135,7 +146,8 @@ public final class ObjectPoolBuilderTest {
 
     private volatile boolean isDeadlock = false;
 
-    private Thread startDeadlockMonitor(final long deadlockTimeout) {
+    private Thread startDeadlockMonitor(final RecyclingSupplier<ExpensiveTestObject> pool,
+            final long deadlockTimeout) {
         isDeadlock = false;
         Thread monitor = new Thread(new Runnable() {
 
@@ -145,6 +157,7 @@ public final class ObjectPoolBuilderTest {
                     Thread.sleep(deadlockTimeout);
                     ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
                     System.err.println(Arrays.toString(threadMX.dumpAllThreads(true, true)));
+                    System.err.println(pool.toString());
                     isDeadlock = true;
                 } catch (InterruptedException ex) {
                     // terminating monitor
@@ -155,13 +168,14 @@ public final class ObjectPoolBuilderTest {
         monitor.start();
         return monitor;
     }
+
    private void runTest(final RecyclingSupplier<ExpensiveTestObject> pool,
             final long sleepBetweenSubmit, final long deadlockTimeout) throws InterruptedException, ExecutionException {
-        Thread monitor = startDeadlockMonitor(deadlockTimeout);
+        Thread monitor = startDeadlockMonitor(pool, deadlockTimeout);
         ExecutorService execService = Executors.newFixedThreadPool(10);
         BlockingQueue<Future<Integer>> completionQueue = new LinkedBlockingDeque<>();
         RetryExecutor<Integer> exec
-                = new RetryExecutor<Integer>(execService, 8, 16, 5000, Callables.DEFAULT_EXCEPTION_RETRY_PREDICATE,
+                = new RetryExecutor<>(execService, 8, 16, 100, Callables.DEFAULT_EXCEPTION_RETRY_PREDICATE,
                  completionQueue);
         int nrTests = 1000;
         for (int i = 0; i < nrTests; i++) {

@@ -18,6 +18,7 @@
 package org.spf4j.recyclable.impl;
 
 import com.google.common.collect.LinkedHashMultimap;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -65,6 +66,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
     }
 
     @Override
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
     public T get(final ObjectBorower borower) throws InterruptedException,
             TimeoutException, ObjectCreationException {
         long deadline = org.spf4j.base.Runtime.DEADLINE.get();
@@ -98,6 +100,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
                     }
                 }
                 Either<ObjectBorower.Action, T> object;
+                boolean requestNotMade = true;
                 do {
                     Iterator<ObjectBorower<T>> itt = borrowedObjects.keySet().iterator();
                     ObjectBorower<T> b = itt.next();
@@ -121,7 +124,14 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
                     } while (object.isLeft() && object.getLeft() != Action.REQUEST_MADE
                             && (itt.hasNext() && ((b = itt.next()) != null)));
                     //CHECKSTYLE:ON
-                } while (object.isLeft() && object.getLeft() != Action.REQUEST_MADE);
+                    // if request has not been made, do a wait and trya again.
+                    requestNotMade = object.isLeft() && object.getLeft() != Action.REQUEST_MADE;
+                    if (requestNotMade) {
+                        do {
+                            available.await(1, TimeUnit.MILLISECONDS);
+                        } while (borrowedObjects.isEmpty());
+                    }
+                } while (requestNotMade);
 
                 while (availableObjects.isEmpty()) {
                     long waitTime = deadline - System.currentTimeMillis();
@@ -150,19 +160,21 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
         try {
             if (!borrowedObjects.remove(borower, object)) {
                 // returned somebody else's object.
-                Entry<ObjectBorower<T>, T> found = null;
+                Entry<ObjectBorower<T>, T> foundEntry = null;
                 for (Entry<ObjectBorower<T>, T> entry : borrowedObjects.entries()) {
-                    if (entry.getValue().equals(object)) {
-                        found = entry;
+                    final ObjectBorower<T> lb = entry.getKey();
+                    if (lb == borower) {
+                        continue;
+                    }
+                    if (lb.nevermind(entry.getValue())) {
+                        foundEntry = entry;
                         break;
                     }
                 }
-                if (found == null) {
+                if (foundEntry == null) {
                     throw new IllegalStateException("Object " + object + " has not been borrowed from this pool");
                 } else {
-                    final ObjectBorower<T> borrower = found.getKey();
-                    borrowedObjects.remove(borrower, object);
-                    borrower.nevermind(object);
+                    borrowedObjects.remove(foundEntry.getKey(), foundEntry.getValue());
                 }
             }
             availableObjects.add(object);
@@ -319,7 +331,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
         lock.lock();
         try {
             return "SimpleSmartObjectPool{" + "maxSize=" + maxSize + ", borrowedObjects="
-                    + borrowedObjects.values() + ", returnedObjects=" + availableObjects
+                    + borrowedObjects + ", returnedObjects=" + availableObjects
                     + ", factory=" + factory + '}';
         } finally {
             lock.unlock();
