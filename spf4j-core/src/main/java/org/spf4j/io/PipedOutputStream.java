@@ -102,15 +102,17 @@ public final class PipedOutputStream extends OutputStream {
                 System.arraycopy(b, off + bytesWritten, buffer, endIdx, wrToEnd);
                 endIdx += wrToEnd;
                 bytesWritten += wrToEnd;
-                int wrapArrond = availableToWrite - wrToEnd;
-                if (wrapArrond > 0) {
-                    System.arraycopy(b, off + bytesWritten, buffer, 0, wrapArrond);
-                    endIdx = wrapArrond;
-                    bytesWritten += wrapArrond;
+                int wrapArround = availableToWrite - wrToEnd;
+                if (wrapArround > 0) {
+                    System.arraycopy(b, off + bytesWritten, buffer, 0, wrapArround);
+                    endIdx = wrapArround;
+                    bytesWritten += wrapArround;
                 } else if (endIdx >= buffer.length) {
                     endIdx = 0;
                 }
-                sync.notifyAll();
+                if (availableToWrite() < 1) {
+                    sync.notifyAll();
+                }
             }
         }
     }
@@ -139,7 +141,9 @@ public final class PipedOutputStream extends OutputStream {
             if (endIdx >= buffer.length) {
                 endIdx = 0;
             }
-            sync.notifyAll();
+            if (availableToWrite() < 1) {
+                sync.notifyAll();
+            }
         }
     }
 
@@ -160,15 +164,26 @@ public final class PipedOutputStream extends OutputStream {
     }
 
     @Override
+    public void flush() {
+        synchronized (sync) {
+            sync.notifyAll();
+        }
+    }
+
+
+    @Override
     @WillClose
     public void close() {
-        try {
-            synchronized (sync) {
-                writerClosed = true;
-                sync.notifyAll();
+        synchronized (sync) {
+            if (!writerClosed) {
+                try {
+                    writerClosed = true;
+                    sync.notifyAll();
+
+                } finally {
+                    bufferProvider.recycle(buffer);
+                }
             }
-        } finally {
-            bufferProvider.recycle(buffer);
         }
     }
 
