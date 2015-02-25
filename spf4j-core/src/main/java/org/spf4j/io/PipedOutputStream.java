@@ -168,8 +168,10 @@ public final class PipedOutputStream extends OutputStream {
     @Override
     public void flush() {
         synchronized (sync) {
-            readerPerceivedEndIdx = endIdx;
-            sync.notifyAll();
+            if (readerPerceivedEndIdx != endIdx) {
+                readerPerceivedEndIdx = endIdx;
+                sync.notifyAll();
+            }
         }
     }
 
