@@ -52,6 +52,7 @@ public final class PipedOutputStream extends OutputStream {
 
     private int startIdx;
     private int endIdx;
+    private int readerPerceivedEndIdx;
     private boolean writerClosed;
     private int nrReadStreams;
     private final SizedRecyclingSupplier<byte[]> bufferProvider;
@@ -70,6 +71,7 @@ public final class PipedOutputStream extends OutputStream {
         buffer = bufferProvider.get(bufferSize);
         startIdx = 0;
         endIdx = 0;
+        readerPerceivedEndIdx = 0;
         writerClosed = false;
         nrReadStreams = 0;
     }
@@ -111,7 +113,7 @@ public final class PipedOutputStream extends OutputStream {
                     endIdx = 0;
                 }
                 if (availableToWrite() < 1) {
-                    sync.notifyAll();
+                    flush();
                 }
             }
         }
@@ -142,7 +144,7 @@ public final class PipedOutputStream extends OutputStream {
                 endIdx = 0;
             }
             if (availableToWrite() < 1) {
-                sync.notifyAll();
+                flush();
             }
         }
     }
@@ -156,16 +158,17 @@ public final class PipedOutputStream extends OutputStream {
     }
 
     private int availableToRead() {
-        if (startIdx <= endIdx) {
-            return endIdx - startIdx;
+        if (startIdx <= readerPerceivedEndIdx) {
+            return readerPerceivedEndIdx - startIdx;
         } else {
-            return buffer.length - startIdx + endIdx;
+            return buffer.length - startIdx + readerPerceivedEndIdx;
         }
     }
 
     @Override
     public void flush() {
         synchronized (sync) {
+            readerPerceivedEndIdx = endIdx;
             sync.notifyAll();
         }
     }
@@ -178,8 +181,7 @@ public final class PipedOutputStream extends OutputStream {
             if (!writerClosed) {
                 try {
                     writerClosed = true;
-                    sync.notifyAll();
-
+                    flush();
                 } finally {
                     bufferProvider.recycle(buffer);
                 }

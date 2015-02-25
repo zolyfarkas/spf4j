@@ -72,6 +72,7 @@ public class PipedOutputStreamTest {
         final PipedOutputStream pos = new PipedOutputStream(1024);
         try (InputStream is = pos.getInputStream()) {
             pos.write(123);
+            pos.flush();
             int val = is.read();
             Assert.assertEquals(123, val);
         }
