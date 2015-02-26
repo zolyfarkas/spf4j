@@ -82,6 +82,13 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
 
     public SharingObjectPool(final Factory<T> factory, final int coreSize, final int maxSize)
             throws ObjectCreationException {
+        if (maxSize <= 0) {
+            throw new IllegalArgumentException("max size must be greater than zero and not " + maxSize);
+        }
+        if (maxSize < coreSize) {
+            throw new IllegalArgumentException("max size must be greater than core size  and not "
+                    + maxSize + " < " + coreSize);
+        }
         this.factory = factory;
         this.pooledObjects = new UpdateablePriorityQueue<>(maxSize, SH_COMP);
         this.nrObjects = 0;
@@ -99,8 +106,8 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
         if (closed) {
             throw new ObjectBorrowException("Reclycler is closed " + this);
         }
-        if (nrObjects > 0) {
-            UpdateablePriorityQueue<SharedObject<T>>.ElementRef peekEntry = pooledObjects.peekEntry();
+        UpdateablePriorityQueue<SharedObject<T>>.ElementRef peekEntry = pooledObjects.peekEntry();
+        if (peekEntry != null) {
             final SharedObject<T> elem = peekEntry.getElem();
             if (elem.getNrTimesShared() == 0) {
                 elem.inc();

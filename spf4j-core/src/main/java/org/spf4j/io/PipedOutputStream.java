@@ -37,6 +37,8 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  *
  * Implementation supports multiple readers and writers.
  *
+ * Data is available to readers only after it is flushed. (happens automatically when buffer is full)
+ *
  * This implementation should be slightly faster than the JDK implementation.
  *
  * @author zoly

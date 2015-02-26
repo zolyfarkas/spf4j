@@ -28,9 +28,13 @@ import java.lang.management.RuntimeMXBean;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.spf4j.base.Runtime.Lsof.LSOF_CMD;
+import org.spf4j.concurrent.DefaultScheduler;
 
 /**
  *
@@ -128,10 +132,44 @@ public final class Runtime {
         return OS_NAME.startsWith("Windows");
     }
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings
+    public static final class Lsof {
+
+        public static final File LSOF;
+
+        public static final String [] LSOF_CMD = {"/usr/sbin/lsof", "-p", Integer.toString(PID) };
+
+        static {
+            File lsofFile = new File("/usr/sbin/lsof");
+            if (!lsofFile.exists()) {
+                lsofFile = new File("/usr/bin/lsof");
+                if (!lsofFile.exists()) {
+                    lsofFile = new File("/usr/local/bin/lsof");
+                    if (!lsofFile.exists()) {
+                        lsofFile = null;
+                    }
+                }
+            }
+            LSOF = lsofFile;
+        }
+
+    }
+
+    /**
+     *
+     * @return -1 if cannot get nr of open files
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
+
     public static int getNrOpenFiles() throws IOException, InterruptedException, ExecutionException {
         if (isMacOsx()) {
+            if (Lsof.LSOF == null) {
+                return -1;
+            }
             LineCountCharHandler handler = new LineCountCharHandler();
-            run("/usr/sbin/lsof -p " + PID, handler);
+            run(LSOF_CMD, handler, 60000);
             return handler.getLineCount() - 1;
         } else {
             if (FD_FOLDER.exists()) {
@@ -147,20 +185,9 @@ public final class Runtime {
     }
 
     @Nullable
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings
     public static String getLsofOutput() throws IOException, InterruptedException, ExecutionException {
-        File lsofFile = new File("/usr/sbin/lsof");
-        if (!lsofFile.exists()) {
-            lsofFile = new File("/usr/bin/lsof");
-            if (!lsofFile.exists()) {
-                lsofFile = new File("/usr/local/bin/lsof");
-                if (!lsofFile.exists()) {
-                    return null;
-                }
-            }
-        }
         StringBuilderCharHandler handler = new StringBuilderCharHandler();
-        run(lsofFile.getAbsolutePath() + " -p " + PID, handler);
+        run(LSOF_CMD, handler, 60000);
         return handler.toString();
     }
 
@@ -171,9 +198,19 @@ public final class Runtime {
         void handleStdErr(int character);
     }
 
-    public static int run(final String command, final ProcOutputHandler handler)
+    public static int run(final String [] command, final ProcOutputHandler handler,
+            final long timeoutMillis)
             throws IOException, InterruptedException, ExecutionException {
-        Process proc = java.lang.Runtime.getRuntime().exec(command);
+        final Process proc = java.lang.Runtime.getRuntime().exec(command);
+        ScheduledFuture<?> schedule = DefaultScheduler.INSTANCE.schedule(new AbstractRunnable(false) {
+
+            @Override
+            public void doRun() throws Exception {
+                if (proc.isAlive()) {
+                    proc.destroyForcibly();
+                }
+            }
+        }, timeoutMillis, TimeUnit.MILLISECONDS);
         try (InputStream pos = proc.getInputStream();
                 InputStream pes = proc.getErrorStream();
                 OutputStream pis = proc.getOutputStream()) {
@@ -191,8 +228,10 @@ public final class Runtime {
                 handler.handleStdOut(cos);
             }
             esh.get();
+            return proc.waitFor();
+        } finally {
+            schedule.cancel(false);
         }
-        return proc.waitFor();
     }
 
     private static class LineCountCharHandler implements ProcOutputHandler {
