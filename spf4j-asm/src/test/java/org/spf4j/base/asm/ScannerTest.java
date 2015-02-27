@@ -1,13 +1,9 @@
 
 package org.spf4j.base.asm;
 
-import org.spf4j.base.asm.Scanner;
-import org.spf4j.base.asm.Invocation;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.List;
 import org.junit.Test;
 import org.objectweb.asm.Type;
@@ -17,14 +13,14 @@ import org.objectweb.asm.Type;
  * @author zoly
  */
 public final class ScannerTest {
-    
-    
+
+
     public static class A {
         Object getValue() {
             return new Object();
         }
     }
-    
+
     public static class B extends A {
         @Override
         String getValue() {
@@ -43,33 +39,28 @@ public final class ScannerTest {
        Integer.getInteger("someInt.value", 3);
        Long.getLong("someLong.value", 5);
     }
-    
-    
+
+
     @Test
     public void testScan() throws NoSuchMethodException, IOException {
-        final Supplier<InputStream> claszSupplier = new Supplier<InputStream>() {
-            
-            @Override
-            public InputStream get() {
-                return new BufferedInputStream(ScannerTest.class.getClassLoader().getResourceAsStream(
-                        ScannerTest.class.getName().replaceAll("\\.", "/") + ".class"));
-            }
-        };
-       
-        List<Invocation> findUsages = Scanner.findUsages(claszSupplier, ImmutableSet.of(A.class.getDeclaredMethod("getValue")));
-        System.out.println(findUsages);
-        List<Invocation> findUsages2 = Scanner.findUsages(claszSupplier,
-                ImmutableSet.of(System.class.getDeclaredMethod("getProperty", String.class),
-                        System.class.getDeclaredMethod("getProperty", String.class, String.class),
-                        Integer.class.getDeclaredMethod("getInteger", String.class),
-                        Integer.class.getDeclaredMethod("getInteger", String.class, int.class),
-                        Integer.class.getDeclaredMethod("getInteger", String.class, Integer.class),
-                        Long.class.getDeclaredMethod("getLong", String.class),
-                        Long.class.getDeclaredMethod("getLong", String.class, Long.class),
-                        Long.class.getDeclaredMethod("getLong", String.class, long.class)));
-        System.out.println(findUsages2);
 
-        
+        List<Invocation> findUsages = Scanner.findUsages(ScannerTest.class,
+                ImmutableSet.of(A.class.getDeclaredMethod("getValue")));
+        System.out.println(findUsages);
+        final ImmutableSet<Method> lookFor = ImmutableSet.of(System.class.getDeclaredMethod("getProperty", String.class),
+                System.class.getDeclaredMethod("getProperty", String.class, String.class),
+                Integer.class.getDeclaredMethod("getInteger", String.class),
+                Integer.class.getDeclaredMethod("getInteger", String.class, int.class),
+                Integer.class.getDeclaredMethod("getInteger", String.class, Integer.class),
+                Long.class.getDeclaredMethod("getLong", String.class),
+                Long.class.getDeclaredMethod("getLong", String.class, Long.class),
+                Long.class.getDeclaredMethod("getLong", String.class, long.class),
+                Boolean.class.getDeclaredMethod("getBoolean", String.class));
+        List<Invocation> findUsages2 = Scanner.findUsages(ScannerTest.class, lookFor);
+        System.out.println("Scan 1 = " + findUsages2);
+        List<Invocation> findUsages3 = Scanner.findUsages(ScannerTest.class.getPackage().getName(), lookFor);
+        System.out.println("Scan 2 = " + findUsages3);
+
     }
-    
+
 }
