@@ -26,16 +26,16 @@ import org.spf4j.base.Pair;
 
 
 public final  class MemoryBuilder {
-    
+
     private final List<Object> memory;
-    
+
     private final Map<String, Integer> symbolTable;
-   
+
     private int idx = 0;
-    
+
     public MemoryBuilder() {
-        memory = new ArrayList<Object>();
-        symbolTable = new HashMap<String, Integer>();
+        memory = new ArrayList<>();
+        symbolTable = new HashMap<>();
     }
 
     MemoryBuilder(final List<Object> memory, final Map<String, Integer> symbolTable) {
@@ -43,14 +43,14 @@ public final  class MemoryBuilder {
         this.symbolTable = symbolTable;
         this.idx = memory.size();
     }
-    
+
     public void addSymbol(final String symbol) {
         if (!symbolTable.containsKey(symbol)) {
             memory.add(null);
             symbolTable.put(symbol, idx++);
         }
     }
-    
+
     public void addSymbol(final String symbol, final Object value) {
         if (!symbolTable.containsKey(symbol)) {
             memory.add(value);
@@ -59,15 +59,15 @@ public final  class MemoryBuilder {
             memory.set(symbolTable.get(symbol).intValue(), value);
         }
     }
-    
-    
+
+
     public Pair<Object[], Map<String, Integer>> build() {
-        return Pair.of(memory.toArray(), (Map<String, Integer>) new HashMap<String, Integer>(symbolTable));
+        return Pair.of(memory.toArray(), (Map<String, Integer>) new HashMap<>(symbolTable));
     }
-    
-    
+
+
     public MemoryBuilder copy() {
-        return new MemoryBuilder(new ArrayList<Object>(memory), new HashMap<String, Integer>(symbolTable));
+        return new MemoryBuilder(new ArrayList<>(memory), new HashMap<String, Integer>(symbolTable));
     }
-    
+
 }

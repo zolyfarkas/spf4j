@@ -87,8 +87,8 @@ public final class SimpleStack<T>
             elems = java.util.Arrays.copyOf(elems, newCapacity);
         }
     }
-    
-    
+
+
 
     /**
      * Push more objects into the stack
@@ -116,7 +116,14 @@ public final class SimpleStack<T>
         elems[top] = null;
         return o;
     }
-    
+
+    public void remove() {
+        --top;
+        // this is for the garbage collector  to avoid memory leaks if storing big objects in stack
+        elems[top] = null;
+    }
+
+
     public T[] pop(final int n) {
         int ot = top;
         top -= n;
@@ -128,6 +135,15 @@ public final class SimpleStack<T>
         return result;
     }
 
+    public void removeFromTop(final int n) {
+        int ot = top;
+        top -= n;
+        for (int i = top; i < ot; i++) {
+            elems[i] = null;
+        }
+    }
+
+
     public T [] popUntil(final T until) {
         int i = top - 1;
         while (elems[i] != until) {
@@ -138,7 +154,7 @@ public final class SimpleStack<T>
         top = i;
         return result;
     }
-    
+
 
     /**
      * take a look at the top of stack
@@ -148,16 +164,21 @@ public final class SimpleStack<T>
     public T peek() {
         return elems[top - 1];
     }
-    
+
     public T peekFromTop(final int n) {
         return elems[top - 1 - n];
     }
 
-    
+    public void replaceFromTop(final int n, final T value) {
+        elems[top - 1 - n] = value;
+    }
+
+
+
     public T[] peek(final int n) {
         return java.util.Arrays.copyOfRange(elems, top - n, top);
     }
-    
+
     public T [] peekUntil(final T until) {
         int i = top - 1;
         while (elems[i] != until) {
@@ -165,7 +186,7 @@ public final class SimpleStack<T>
         }
         return java.util.Arrays.copyOfRange(elems, i + 1, top);
     }
-    
+
     public T peekElemAfter(final T until) {
         int i = top - 1;
         while (elems[i] != until) {
@@ -173,7 +194,7 @@ public final class SimpleStack<T>
         }
         return elems[i - 1];
     }
-    
+
     /**
      * Clear the stack - also makes sure the stack objects are not referenced anymore
      */

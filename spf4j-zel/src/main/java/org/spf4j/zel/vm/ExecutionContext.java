@@ -40,7 +40,7 @@ import static org.spf4j.zel.vm.Program.ExecutionType.SYNC;
  */
 @ParametersAreNonnullByDefault
 public final class ExecutionContext {
-    
+
     private static final long serialVersionUID = 1L;
 
     //CHECKSTYLE:OFF
@@ -132,8 +132,8 @@ public final class ExecutionContext {
         this(program, globalMem, program.hasDeterministicFunctions() ? new SimpleResultCache() : null,
                 in, out, err, execService);
     }
-    
-    
+
+
     ExecutionContext(final Program program, final Object[] globalMem,
             @Nullable final ResultCache resultCache,
             @Nullable final InputStream in, @Nullable final PrintStream out, @Nullable final PrintStream err,
@@ -190,24 +190,24 @@ public final class ExecutionContext {
         };
     }
 
-    
-    
-    
+
+
+
     /**
      * pops object out of stack
      *
      * @return Object
      */
     public Object popSyncStackVal() throws SuspendedException {
-        Object result = this.stack.pop();
+        Object result = this.stack.peek();
         if (result instanceof VMFuture<?>) {
             try {
                 final VMFuture<Object> resFut = (VMFuture<Object>) result;
                 Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
                 if (resultStore != null) {
+                    this.stack.remove();
                     return FutureBean.processResult(resultStore);
                 } else {
-                    this.stack.push(result);
                     suspend(resFut);
                     throw new IllegalThreadStateException();
                 }
@@ -215,24 +215,26 @@ public final class ExecutionContext {
                 throw new RuntimeException(ex);
             }
         } else {
+            this.stack.remove();
             return result;
         }
     }
-    
-    public void syncStackVal() throws SuspendedException {
+
+    public void syncStackVal() throws SuspendedException, ExecutionException {
         Object result = this.stack.peek();
         if (result instanceof VMFuture<?>) {
                 final VMFuture<Object> resFut = (VMFuture<Object>) result;
                 Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
                 if (resultStore == null) {
-                    this.stack.push(result);
                     suspend(resFut);
                     throw new IllegalThreadStateException();
+                } else {
+                    this.stack.replaceFromTop(0, FutureBean.processResult(resultStore));
                 }
         }
     }
 
-    
+
 
     public Object[] popStackVals(final int nvals) {
         return stack.pop(nvals);
@@ -243,17 +245,15 @@ public final class ExecutionContext {
     }
 
     public Object[] popSyncStackVals(final int nvals) throws SuspendedException {
-        Object[] result = stack.pop(nvals);
         for (int i = 0; i < nvals; i++) {
-            Object obj = result[i];
+            Object obj = stack.peekFromTop(i);
             if (obj instanceof VMFuture<?>) {
                 try {
                     final VMFuture<Object> resFut = (VMFuture<Object>) obj;
                     Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
                     if (resultStore != null) {
-                        result[i] = FutureBean.processResult(resultStore);
+                        stack.replaceFromTop(i, FutureBean.processResult(resultStore));
                     } else {
-                        stack.pushAll(result);
                         suspend(resFut);
                         throw new IllegalStateException();
                     }
@@ -262,23 +262,21 @@ public final class ExecutionContext {
                 }
             }
         }
-        return result;
+        return stack.pop(nvals);
     }
 
     public Object popFirstAvail(final int nr) throws SuspendedException {
-        Object[] params = stack.peek(nr);
-        int l = params.length;
         int nrErrors = 0;
         ExecutionException e = null;
         List<VMFuture<Object>> futures = null;
-        for (int i = 0; i < l; i++) {
-            Object obj = params[i];
+        for (int i = 0; i < nr; i++) {
+            Object obj = stack.peekFromTop(i);
             if (obj instanceof VMFuture<?>) {
                 final VMFuture<Object> resFut = (VMFuture<Object>) obj;
                 Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
                 if (resultStore != null) {
                     if (resultStore.isLeft()) {
-                        stack.pop(nr);
+                        stack.removeFromTop(nr);
                         return resultStore.getLeft();
                     } else {
                         nrErrors++;
@@ -290,16 +288,16 @@ public final class ExecutionContext {
                     }
                 } else {
                     if (futures == null) {
-                        futures = new ArrayList<VMFuture<Object>>(l);
+                        futures = new ArrayList<>(nr);
                     }
                     futures.add(resFut);
                 }
             } else {
-                stack.pop(nr);
+                stack.removeFromTop(nr);
                 return obj;
             }
         }
-        if (nrErrors == l) {
+        if (nrErrors == nr) {
             if (e == null) {
                 throw new IllegalStateException();
             } else {
@@ -379,6 +377,6 @@ public final class ExecutionContext {
         return isChildContext;
     }
 
-    
-    
+
+
 }
