@@ -22,23 +22,23 @@ import org.spf4j.concurrent.DefaultExecutor;
 @Fork(2)
 @Threads(value = 1)
 public class PipedStreamsBenchmark {
-   
+
     private static final String testStr = "asfsdfhjgsdjhfgsjhdgfjhsdgfjhgsdjhfgjsdhgkjfsdkhf34hfHGHDG"
            + "SFDGHJJIU&^%ERSDFGVNHKJU&^%!#@#$%^&*()OJHGCXFDGHJUYTRWERTGFHHJYREWRDFGHJUYTredscxvbbhuytdsdfbvnmjhgfd"
            + "dkjhfkjsdhfkdskgfskjdhfjkdfghsdkjhfglskdfhjgkldfhgksjdfhgklhsdfkghklsfdhgkdfhlkfghfslkdjhgklsdhkghs";
-    
+
     @Benchmark
     public void testSpf4Pipe() throws IOException {
         testSpf(testStr, 64);
     }
-    
+
     @Benchmark
     public void testjavaPipe() throws IOException {
         testJdk(testStr, 64);
     }
-    
-    
-    
+
+
+
     private void testSpf(final String testStr, final int buffSize) throws IOException {
         final PipedOutputStream pos = new PipedOutputStream(buffSize);
         final InputStream pis = pos.getInputStream();
@@ -50,7 +50,8 @@ public class PipedStreamsBenchmark {
                     final byte[] utf8 = Strings.toUtf8(testStr);
                     os.write(utf8[0]);
                     os.write(utf8, 1, 10);
-                    os.write(utf8, 11, utf8.length - 11);
+                    os.write(utf8, 11, 10);
+                    os.write(utf8, 21, utf8.length - 21);
                 }
             }
         });
@@ -64,7 +65,7 @@ public class PipedStreamsBenchmark {
         }
         Assert.assertEquals(testStr, sb.toString());
     }
-    
+
     private void testJdk(final String testStr, final int buffSize) throws IOException {
         final java.io.PipedOutputStream pos = new java.io.PipedOutputStream();
         final java.io.PipedInputStream pis = new java.io.PipedInputStream(pos, buffSize);
@@ -76,7 +77,8 @@ public class PipedStreamsBenchmark {
                     final byte[] utf8 = Strings.toUtf8(testStr);
                     os.write(utf8[0]);
                     os.write(utf8, 1, 10);
-                    os.write(utf8, 11, utf8.length - 11);
+                    os.write(utf8, 11, 10);
+                    os.write(utf8, 21, utf8.length - 21);
                 }
             }
         });
@@ -91,6 +93,6 @@ public class PipedStreamsBenchmark {
         Assert.assertEquals(testStr, sb.toString());
     }
 
-    
-    
+
+
 }
