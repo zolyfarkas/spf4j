@@ -115,7 +115,8 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
                         object = b.tryRequestReturnObject();
                         if (object.isRight()) {
                             if (!borrowedObjects.remove(b, object)) {
-                                throw new IllegalStateException("Returned Object hasn't been borrowed " + object);
+                                throw new IllegalStateException("Returned Object " + object
+                                        + "hasn't been borrowed: " + borrowedObjects);
                             }
                             borrowedObjects.put(borower, (T) object);
                             return  object.getRight();
