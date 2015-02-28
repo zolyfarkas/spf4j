@@ -92,8 +92,10 @@ public final class Program implements Serializable {
     private final int localMemSize;
     private final Map<String, Integer> localSymbolTable;
     private final Map<String, Integer> globalSymbolTable;
+    private final String name;
 
-    Program(final Map<String, Integer> globalTable, final Object[] globalMem, final Map<String, Integer> localTable,
+
+    Program(final String name, final Map<String, Integer> globalTable, final Object[] globalMem, final Map<String, Integer> localTable,
             @Nonnull final Instruction[] objs, final Location[] debug, final String source, @Nonnegative final int start,
             @Nonnegative final int end, final Type progType, final ExecutionType execType,
             final boolean hasDeterministicFunctions, final String... parameterNames) throws CompileException {
@@ -110,9 +112,10 @@ public final class Program implements Serializable {
         this.globalSymbolTable = globalTable;
         this.debug = debug;
         this.source = source;
+        this.name = name;
     }
 
-    Program(final Map<String, Integer> globalTable, final Object[] globalMem, final Map<String, Integer> localTable,
+    Program(final String name, final Map<String, Integer> globalTable, final Object[] globalMem, final Map<String, Integer> localTable,
             @Nonnull final Instruction[] instructions, final Location[] debug, final  String source,
             final Type progType, final ExecutionType execType,
             final boolean hasDeterministicFunctions) throws CompileException {
@@ -127,15 +130,21 @@ public final class Program implements Serializable {
         this.globalSymbolTable = globalTable;
         this.debug = debug;
         this.source = source;
+        this.name = name;
     }
 
-    public Location[] getDebug() {
+    Location[] getDebug() {
         return debug;
     }
 
     public String getSource() {
         return source;
     }
+
+    public String getName() {
+        return name;
+    }
+
 
     private static Map<String, Integer> buildLocalSymTable(final Instruction [] instructions,
             final String[] parameterNames1,
@@ -239,12 +248,13 @@ public final class Program implements Serializable {
             throws CompileException {
 
         ParsingContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());
+        final String srcId = ZelFrame.newSource(zExpr);
         try {
-            ZCompiler.compile(zExpr, cc);
+            ZCompiler.compile(srcId, zExpr, cc);
         } catch (TokenMgrError | ParseException err) {
             throw new CompileException(err);
         }
-        return RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram(zExpr, varNames));
+        return RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram("anon@root", srcId, varNames));
     }
 
 
@@ -257,12 +267,13 @@ public final class Program implements Serializable {
 
         ParsingContext cc = new CompileContext(new MemoryBuilder(
                 new ArrayList<>(Arrays.asList(globalMem)), globalTable));
+        final String srcId = ZelFrame.newSource(zExpr);
         try {
-            ZCompiler.compile(zExpr, cc);
+            ZCompiler.compile(srcId, zExpr, cc);
         } catch (TokenMgrError | ParseException err) {
             throw new CompileException(err);
         }
-        return cc.getProgramBuilder().toProgram(zExpr, varNames, localTable);
+        return cc.getProgramBuilder().toProgram("anon@root", srcId, varNames, localTable);
     }
 
     public Object execute() throws ExecutionException, InterruptedException {

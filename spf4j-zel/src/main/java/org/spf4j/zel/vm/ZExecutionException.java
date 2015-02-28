@@ -18,7 +18,9 @@
 package org.spf4j.zel.vm;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 public final class ZExecutionException extends ExecutionException {
@@ -68,9 +70,15 @@ public final class ZExecutionException extends ExecutionException {
         result.append(msg);
         result.append('\n');
         result.append("Zel trace:\n");
+        Set<String> sourceIds = new HashSet<>();
         for (ZelFrame frame : zelframes) {
             result.append(frame.toString());
             result.append('\n');
+            sourceIds.add(frame.getSource());
+        }
+        for (String sourceId : sourceIds) {
+            result.append(sourceId).append(":\n");
+            result.append(ZelFrame.getDetail(sourceId)).append("\n");
         }
         return result.toString();
     }

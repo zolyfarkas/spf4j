@@ -176,7 +176,8 @@ public final class ExecutionContext {
                 } catch (SuspendedException | InterruptedException e) {
                     throw e;
                 } catch (ZExecutionException e) {
-                    e.addZelFrame(new ZelFrame(code.toString(), code.getDebug()[ip].getRow()));
+                    e.addZelFrame(new ZelFrame(code.getName(), code.getSource(),
+                            code.getDebug()[ip].getRow()));
                     throw e;
                 }
             }

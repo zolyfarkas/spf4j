@@ -47,7 +47,7 @@ public final class RefOptimizer implements Function<Program, Program> {
         }
 
         try {
-            return new Program(input.getGlobalSymbolTable(),
+            return new Program(input.getName(), input.getGlobalSymbolTable(),
                     input.getGlobalMem(), input.getLocalSymbolTable(),
                     instructions, input.getDebug(), input.getSource(),
                     input.getType(), input.getExecType(),

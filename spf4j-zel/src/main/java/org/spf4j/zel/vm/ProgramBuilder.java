@@ -218,11 +218,11 @@ public final class ProgramBuilder {
         return hasAsyncCalls;
     }
 
-    public Program toProgram(final String source, final String[] parameterNames) throws CompileException {
-       return toProgram(source, parameterNames, Collections.EMPTY_MAP);
+    public Program toProgram(final String name, final String source, final String[] parameterNames) throws CompileException {
+       return toProgram(name, source, parameterNames, Collections.EMPTY_MAP);
     }
 
-    public Program toProgram(final String source, final String[] parameterNames,
+    public Program toProgram(final String name, final String source, final String[] parameterNames,
             final Map<String, Integer> localTable)
             throws CompileException {
         intern(instructions);
@@ -238,7 +238,7 @@ public final class ProgramBuilder {
                 }
             }
         }
-        return new Program(build.getSecond(), build.getFirst(), localTable, instructions,
+        return new Program(name, build.getSecond(), build.getFirst(), localTable, instructions,
                 debugInfo.toArray(new Location[debugInfo.size()]), source,  0, instrNumber, type,
                 hasAsyncPrograms || this.execType == Program.ExecutionType.ASYNC || hasAsyncCalls()
                         ? (this.execType == null ? Program.ExecutionType.ASYNC : this.execType)
@@ -248,8 +248,8 @@ public final class ProgramBuilder {
 
 
 
-    public Program toProgram(final String source, final List<String> parameterNames) throws CompileException {
-        return toProgram(source, parameterNames.toArray(new String[parameterNames.size()]));
+    public Program toProgram(final String name, final String source, final List<String> parameterNames) throws CompileException {
+        return toProgram(name, source, parameterNames.toArray(new String[parameterNames.size()]));
     }
 
     private static final class HasDeterministicFunc implements Function<Object, Boolean> {
