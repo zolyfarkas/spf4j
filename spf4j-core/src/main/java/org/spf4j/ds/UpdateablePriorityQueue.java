@@ -71,7 +71,7 @@ public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializab
         }
 
         public void remove() {
-            if (this.index < 1) {
+            if (this.index < 0) {
                 throw new RuntimeException("Element " + this + " already deleted");
             }
             removeAt(this.index);

@@ -34,17 +34,17 @@ import org.slf4j.LoggerFactory;
 public final class SimpleExecutor implements Executor {
 
     private final BlockingQueue<Runnable> queuedTasks;
-    
+
     private final ThreadFactory threadFactory;
 
     private volatile boolean terminated;
-    
+
     private volatile Thread [] threads;
 
     private static final Logger LOG = LoggerFactory.getLogger(SimpleExecutor.class);
 
     public SimpleExecutor() {
-        queuedTasks = new LinkedBlockingQueue<Runnable>();
+        queuedTasks = new LinkedBlockingQueue<>();
         terminated = false;
         threads = null;
         threadFactory = new CustomThreadFactory("SimpleExecutor", true);
@@ -78,11 +78,11 @@ public final class SimpleExecutor implements Executor {
         }
         threads = newThreads;
     }
-    
+
     public void shutdown() {
         terminated = true;
     }
-    
+
     public void shutdownAndWait(final long timeout) throws InterruptedException {
         terminated = true;
         long deadline = timeout + System.currentTimeMillis();
@@ -91,7 +91,7 @@ public final class SimpleExecutor implements Executor {
             t.join(deadline - System.currentTimeMillis());
         }
     }
-    
+
 
     @Override
     public void execute(final Runnable command) {
