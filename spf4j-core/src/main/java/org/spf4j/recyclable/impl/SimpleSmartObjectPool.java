@@ -99,7 +99,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
                         }
                     }
                 }
-                Either<ObjectBorower.Action, T> object;
+                Either<ObjectBorower.Action, T> objOrPromise;
                 boolean requestNotMade = true;
                 do {
                     Iterator<ObjectBorower<T>> itt = borrowedObjects.keySet().iterator();
@@ -112,21 +112,23 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
                                 + "max number of pool objects");
                     }
                     do {
-                        object = b.tryRequestReturnObject();
-                        if (object.isRight()) {
-                            if (!borrowedObjects.remove(b, object)) {
-                                throw new IllegalStateException("Returned Object " + object
-                                        + "hasn't been borrowed: " + borrowedObjects);
+                        objOrPromise = b.tryRequestReturnObject();
+                        if (objOrPromise.isRight()) {
+                            T obj = objOrPromise.getRight();
+                            if (!borrowedObjects.remove(b, obj)) {
+                                throw new IllegalStateException("Returned Object " + obj
+                                        + " hasn't been borrowed: " + borrowedObjects);
                             }
-                            borrowedObjects.put(borower, (T) object);
-                            return  object.getRight();
+
+                            borrowedObjects.put(borower, obj);
+                            return  obj;
                         }
                         //CHECKSTYLE:OFF -- inner assignement
-                    } while (object.isLeft() && object.getLeft() != Action.REQUEST_MADE
+                    } while (objOrPromise.isLeft() && objOrPromise.getLeft() != Action.REQUEST_MADE
                             && (itt.hasNext() && ((b = itt.next()) != null)));
                     //CHECKSTYLE:ON
                     // if request has not been made, do a wait and trya again.
-                    requestNotMade = object.isLeft() && object.getLeft() != Action.REQUEST_MADE;
+                    requestNotMade = objOrPromise.isLeft() && objOrPromise.getLeft() != Action.REQUEST_MADE;
                     if (requestNotMade) {
                         do {
                             available.await(1, TimeUnit.MILLISECONDS);
@@ -160,7 +162,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
         lock.lock();
         try {
             if (!borrowedObjects.remove(borower, object)) {
-                // returned somebody else's object.
+                // returned somebody else's objOrPromise.
                 Entry<ObjectBorower<T>, T> foundEntry = null;
                 for (Entry<ObjectBorower<T>, T> entry : borrowedObjects.entries()) {
                     final ObjectBorower<T> lb = entry.getKey();
