@@ -18,6 +18,7 @@
 package org.spf4j.zel.instr;
 
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 import org.spf4j.zel.vm.Program;
@@ -35,7 +36,7 @@ public final class CALL extends Instruction {
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, InterruptedException, SuspendedException {
+            throws ExecutionException, InterruptedException, SuspendedException {
         Integer nrParams = (Integer) context.pop();
         Object function = context.peekFromTop(nrParams);
         if (function instanceof Program) {
@@ -84,7 +85,7 @@ public final class CALL extends Instruction {
         context.pop(); // extract function
         return parameters;
     }
-    
+
     static Object[] getParams(final ExecutionContext context, final Integer nrParams)
             throws SuspendedException {
         Object [] parameters = context.popStackVals(nrParams);

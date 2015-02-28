@@ -36,6 +36,7 @@ import java.util.*;
 import java.math.*;
 import org.spf4j.zel.vm.*;
 import org.spf4j.zel.instr.*;
+import org.spf4j.zel.vm.ParsingContext.Location;
 
 public class ZCompiler
 {
@@ -97,6 +98,7 @@ TOKEN : /* OPERATORS & KEYWORDS*/
   |	< RETURN: ("return" | "ret")>
   |	< MEMORY: ("memory" | "mem")>
   |	< SLEEP: "sleep">
+  |     < THROW: "throw">
   |	< FOR: "for">
   |	< FUNCTION: ("function" | "func")>
   |	< DETERMINISTIC: ("deterministic" | "det" )>
@@ -232,7 +234,7 @@ void mainprogram(ParsingContext context) :
 }
 { 
  (program(context)) ?
- {context.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);}
+ {context.generateCode(new Location(token.beginLine, token.beginColumn), org.spf4j.zel.instr.HALT.INSTANCE);}
  <EOF>
 }
 
@@ -253,16 +255,21 @@ void statement(ParsingContext context) :
   | LOOKAHEAD(swap(context)) swap(context)
   | expression(context) {
     if (context.getLast() != org.spf4j.zel.instr.CALLA.INSTANCE) {
-        context.generateCode(org.spf4j.zel.instr.SYNC.INSTANCE);
+        context.generateCode(new Location(token.beginLine, token.beginColumn), org.spf4j.zel.instr.SYNC.INSTANCE);
     }
    }
   | zreturn(context)
   | forStmt(context)
   | ifStmt(context)
-  | (<SLEEP> expression(context) {context.generateCode(org.spf4j.zel.instr.SLEEP.INSTANCE);})
-  | (<SYNC> expression(context) {context.generateCode(org.spf4j.zel.instr.SYNC.INSTANCE);})
+  | (<SLEEP> expression(context) {context.generateCode(new Location(token.beginLine, token.beginColumn),
+                                                   org.spf4j.zel.instr.SLEEP.INSTANCE);})
+  | (<THROW> expression(context) {context.generateCode(new Location(token.beginLine, token.beginColumn),
+                                                   org.spf4j.zel.instr.THROW.INSTANCE);})
+  | (<SYNC> expression(context) {context.generateCode(new Location(token.beginLine, token.beginColumn),
+                                                   org.spf4j.zel.instr.SYNC.INSTANCE);})
   | (<USE> <DECIMAL> <INTEGER> 
-    {context.generateCode(new org.spf4j.zel.instr.MCTX(parseInteger(token.image).intValue()));})
+    {context.generateCode(new Location(token.beginLine, token.beginColumn),
+                        new org.spf4j.zel.instr.MCTX(parseInteger(token.image).intValue()));})
 }
 
 void forStmt(ParsingContext context) :
@@ -270,9 +277,10 @@ void forStmt(ParsingContext context) :
   int condAddr = -1;
   ParsingContext postAssign = (ParsingContext) context.createSubContext();
   ParsingContext loopBlock = (ParsingContext) context.createSubContext();
+  Location loc = null;
 }
 {
-  <FOR>
+  <FOR> {loc = new Location(token.beginLine, token.beginColumn);}
     ((assignement(context) 
     (<COMMA> assignement(context))* ) <SCL>)?
     
@@ -285,10 +293,12 @@ void forStmt(ParsingContext context) :
     programBlock(loopBlock)
     
     {
-      context.generateCode(new org.spf4j.zel.instr.FJMP(loopBlock.getAddress() + postAssign.getAddress() + 2));
+      context.generateCode(loc,
+                        new org.spf4j.zel.instr.FJMP(loopBlock.getAddress() + postAssign.getAddress() + 2));
       context.generateCodeAll(loopBlock);
       context.generateCodeAll(postAssign);
-      context.generateCode(new org.spf4j.zel.instr.JMP(condAddr - context.getAddress()));
+      context.generateCode(new Location(token.beginLine, token.beginColumn),
+                              new org.spf4j.zel.instr.JMP(condAddr - context.getAddress()));
     }
   
 }
@@ -300,18 +310,20 @@ void ifStmt(ParsingContext context) :
  boolean isElse = false;
  ParsingContext left = (ParsingContext) context.createSubContext();
  ParsingContext right = (ParsingContext) context.createSubContext();
+ Location loc = null;
+ Location loc2 = null;
 }
 {
-    (<IF>
+    (<IF> {loc = new Location(token.beginLine, token.beginColumn);}
     logical(context)
     (programBlock(left) | statement(left)))
 
-    (<ELSE> {isElse = true;}
+    (<ELSE> {isElse = true; loc2 = new Location(token.beginLine, token.beginColumn);}
     (programBlock(right) | statement(right)))?
-        {context.generateCode(new org.spf4j.zel.instr.FJMP(left.getAddress() + 1 + ((isElse) ? 1 : 0)));
+        {context.generateCode(loc, new org.spf4j.zel.instr.FJMP(left.getAddress() + 1 + ((isElse) ? 1 : 0)));
          context.generateCodeAll(left);
          if (isElse) {
-         context.generateCode(new org.spf4j.zel.instr.JMP(right.getAddress() + 1));
+         context.generateCode(loc2, new org.spf4j.zel.instr.JMP(right.getAddress() + 1));
          context.generateCodeAll(right);
          }}
 }
@@ -330,7 +342,7 @@ void zreturn(ParsingContext context) :
 {
   <RETURN> (expression(context))?
  { 
-  context.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);
+  context.generateCode(new Location(token.beginLine, token.beginColumn), org.spf4j.zel.instr.HALT.INSTANCE);
  }
 }
 
@@ -338,30 +350,33 @@ void assignement(ParsingContext context) :
 {
  int nr = 0;
  int nre = 0;
+ Location loc = null;
 }
 {
-   assignableExpression(context) {nr++;} (<COMMA> assignableExpression(context) {nr++;})*
+   assignableExpression(context) {nr++;loc = new Location(token.beginLine, token.beginColumn);}
+   (<COMMA> assignableExpression(context) {nr++;})*
   ((<EQUAL> expression(context)
    {
     if (nr > 1) {
-      context.generateCode(new org.spf4j.zel.instr.MOVN(nr));
+      context.generateCode(loc, new org.spf4j.zel.instr.MOVN(nr));
     } else { 
-      context.generateCode(org.spf4j.zel.instr.MOV.INSTANCE);
+      context.generateCode(loc, org.spf4j.zel.instr.MOV.INSTANCE);
     }
    })
   | (<INC>
-   {context.generateCode(org.spf4j.zel.instr.INC.INSTANCE);})
+   {context.generateCode(loc, org.spf4j.zel.instr.INC.INSTANCE);})
   | (<DEC>
-   {context.generateCode(org.spf4j.zel.instr.DEC.INSTANCE);}))
+   {context.generateCode(loc, org.spf4j.zel.instr.DEC.INSTANCE);}))
 }
 
 void swap(ParsingContext context) :
 {
+Location loc = null;
 }
 {
    assignableExpression(context) 
-   <SWAP> assignableExpression(context)
-   {context.generateCode(org.spf4j.zel.instr.SWAP.INSTANCE);}
+   <SWAP> {loc = new Location(token.beginLine, token.beginColumn);} assignableExpression(context)
+   {context.generateCode(loc, org.spf4j.zel.instr.SWAP.INSTANCE);}
  
 }
 
@@ -373,13 +388,15 @@ String name;
 }
 {
     (<ID> {name = token.image; 
-            context.generateCode(new org.spf4j.zel.instr.LODAX(name));
+            context.generateCode(new Location(token.beginLine, token.beginColumn),
+                                 new org.spf4j.zel.instr.LODAX(name));
        })
     ( LOOKAHEAD( 2 )
-        ( params(context) {context.generateCode(org.spf4j.zel.instr.CALLREF.INSTANCE);} )
-	| (((<DOT> <ID> {name = token.image; context.generateCode(new PUSH(name));} ) 
+        ( params(context) {context.generateCode(new Location(token.beginLine, token.beginColumn), org.spf4j.zel.instr.CALLREF.INSTANCE);} )
+	| (((<DOT> <ID> {name = token.image; context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(name));} ) 
            | (<LBRACKET> expression(context) <RBRACKET>))
-            {context.generateCode(org.spf4j.zel.instr.REF.INSTANCE);})
+            {context.generateCode(new Location(token.beginLine, token.beginColumn),
+                   org.spf4j.zel.instr.REF.INSTANCE);})
     )*
 }
 
@@ -397,18 +414,19 @@ void ternary(ParsingContext context) :
  int jmp2;
  ParsingContext left = (ParsingContext) context.createSubContext();
  ParsingContext right = (ParsingContext) context.createSubContext();
+ Location loc = null;
 }
 {
     logical(context)
 (
-	( <CONDITION> )
+	( <CONDITION> {loc = new Location(token.beginLine, token.beginColumn);})
         ternary(left)
         <CLM>
         ternary(right)
 
-        {context.generateCode(new org.spf4j.zel.instr.FJMP(left.getAddress() + 2));
+        {context.generateCode(loc, new org.spf4j.zel.instr.FJMP(left.getAddress() + 2));
          context.generateCodeAll(left);
-         context.generateCode(new org.spf4j.zel.instr.JMP(right.getAddress() + 1));
+         context.generateCode(loc, new org.spf4j.zel.instr.JMP(right.getAddress() + 1));
          context.generateCodeAll(right);}
 )?
 }
@@ -419,17 +437,18 @@ void logical(ParsingContext context) :
 {Token x;}
 {
     compare(context) (
-	( x = <AND> | x = <OR> | x = <XOR> )  compare(context)
+	( x = <AND> | x = <OR> | x = <XOR> ) 
+    compare(context)
 	{
 	    switch (x.kind) {
 		case AND:
-                    context.generateCode(org.spf4j.zel.instr.AND.INSTANCE);
+                    context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.AND.INSTANCE);
 		    break;
 		case OR:
-                    context.generateCode(org.spf4j.zel.instr.OR.INSTANCE);
+                    context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.OR.INSTANCE);
 		    break;
 		case XOR:
-                    context.generateCode(org.spf4j.zel.instr.XOR.INSTANCE);
+                    context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.XOR.INSTANCE);
 		    break;
                 default:
                     throw new RuntimeException("Unsupported token type " + x);
@@ -449,22 +468,22 @@ void compare(ParsingContext context) :
 	{
 	    switch (x.kind) {
 		case GT:
-                    context.generateCode(org.spf4j.zel.instr.GT.INSTANCE);
+                    context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.GT.INSTANCE);
 		    break;
 		case LT:
-                    context.generateCode(org.spf4j.zel.instr.LT.INSTANCE);
+                    context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.LT.INSTANCE);
 		    break;
 		case GE:
-                    context.generateCode(org.spf4j.zel.instr.GE.INSTANCE);
+                    context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.GE.INSTANCE);
 		    break;
 		case LE:
-                    context.generateCode(org.spf4j.zel.instr.LE.INSTANCE);
+                    context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.LE.INSTANCE);
 		    break;
 		case EQ:
-                    context.generateCode(org.spf4j.zel.instr.EQ.INSTANCE);
+                    context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.EQ.INSTANCE);
 		    break;
 		case NEQ:
-                    context.generateCode(org.spf4j.zel.instr.NEQ.INSTANCE);
+                    context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.NEQ.INSTANCE);
 		    break;
                 default:
                     throw new RuntimeException("Unsupported token type " + x);
@@ -483,9 +502,9 @@ void sum(ParsingContext context) :
 	( x = <PLUS> | x = <MINUS> ) term(context)
 	{
 	    if ( x.kind == PLUS )
-                    context.generateCode(org.spf4j.zel.instr.ADD.INSTANCE);
+                    context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.ADD.INSTANCE);
 	    else
-                    context.generateCode(org.spf4j.zel.instr.SUB.INSTANCE);
+                    context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.SUB.INSTANCE);
 	}
 
     )*
@@ -498,43 +517,43 @@ void term(ParsingContext context) :
 	( x = <MULTIPLY> | x = <DIVIDE> | x = <MOD> ) exponent(context)
 	{
 	    if ( x.kind == MULTIPLY )
-                    context.generateCode(org.spf4j.zel.instr.MUL.INSTANCE);
+                    context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.MUL.INSTANCE);
 	    else if ( x.kind == DIVIDE )
-                    context.generateCode(org.spf4j.zel.instr.DIV.INSTANCE);
-        else context.generateCode(org.spf4j.zel.instr.MOD.INSTANCE);
+                    context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.DIV.INSTANCE);
+        else context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.MOD.INSTANCE);
 	}
 
     )*
 }
 
 void exponent(ParsingContext context) :
-{ }
+{ Location loc = null; }
 {
     unaryPost(context) ( LOOKAHEAD( <POW> )
-	<POW> unaryPost(context)
+	<POW> {loc = new Location(token.beginLine, token.beginColumn);} unaryPost(context)
 	{
-             context.generateCode(org.spf4j.zel.instr.POW.INSTANCE);
+             context.generateCode(loc, org.spf4j.zel.instr.POW.INSTANCE);
 	}
     )*
 }
 
 void unaryPost(ParsingContext context) :
 {
- Token x;
+ Location loc = null;
  boolean asyncForce = false;
 }
 {
-     unary(context, true)
+     unary(context, true) {loc = new Location(token.beginLine, token.beginColumn);}
      (LOOKAHEAD(2)
       ( params(context) (<SAND> {asyncForce = true;})? 
         {if (asyncForce)  {
-            context.generateCode(org.spf4j.zel.instr.CALLA.INSTANCE);
+            context.generateCode(loc, org.spf4j.zel.instr.CALLA.INSTANCE);
           } else {
-            context.generateCode(org.spf4j.zel.instr.CALL.INSTANCE);
+            context.generateCode(loc, org.spf4j.zel.instr.CALL.INSTANCE);
           }})
       | 
-	(((<DOT> <ID> {context.generateCode(new org.spf4j.zel.instr.DEREFX(token.image));} ) |
-        (<LBRACKET> expression(context) <RBRACKET> {context.generateCode(org.spf4j.zel.instr.DEREF.INSTANCE);} )))
+	(((<DOT> <ID> {context.generateCode(loc, new org.spf4j.zel.instr.DEREFX(token.image));} ) |
+        (<LBRACKET> expression(context) <RBRACKET> {context.generateCode(loc, org.spf4j.zel.instr.DEREF.INSTANCE);} )))
      ) *
 }
 
@@ -546,12 +565,12 @@ void unary(ParsingContext context, boolean left) :
 	{
             if ( x.kind == MINUS )
             {
-                context.generateCode(new PUSH(-1));
-                context.generateCode(org.spf4j.zel.instr.MUL.INSTANCE);
+                context.generateCode(new Location(x.beginLine, x.beginColumn), new PUSH(-1));
+                context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.MUL.INSTANCE);
             }
             else
             {
-                context.generateCode(org.spf4j.zel.instr.NOT.INSTANCE);
+                context.generateCode(new Location(x.beginLine, x.beginColumn), org.spf4j.zel.instr.NOT.INSTANCE);
             }
 	})
    | element(context, left)
@@ -571,18 +590,22 @@ void element(ParsingContext context, boolean left) :
         (  <ID> {
             name = token.image; 
             if (left) {
-                context.generateCode(new org.spf4j.zel.instr.LODX(name));
+                context.generateCode(new Location(token.beginLine, token.beginColumn),
+                              new org.spf4j.zel.instr.LODX(name));
             }} )
     | sysFunction(context)
-    | ( <FIRST> params(context) {context.generateCode(org.spf4j.zel.instr.FIRST.INSTANCE);})
+    | ( <FIRST> params(context) {context.generateCode(new Location(token.beginLine, token.beginColumn),
+                                org.spf4j.zel.instr.FIRST.INSTANCE);})
     |  <LPAREN> expression(context) <RPAREN>
     |  (<LBRACE>(expression(context) {nre++;} (<COMMA> expression(context) {nre++;})*)?<RBRACE> 
        {
-        context.generateCode(new org.spf4j.zel.instr.ARR(nre));
+        context.generateCode(new Location(token.beginLine, token.beginColumn),
+                            new org.spf4j.zel.instr.ARR(nre));
        })
     |  (<PIPE>expression(context)<PIPE> 
        {
-        context.generateCode(org.spf4j.zel.instr.ABS.INSTANCE);
+        context.generateCode(new Location(token.beginLine, token.beginColumn),
+                        org.spf4j.zel.instr.ABS.INSTANCE);
        })
   )
 }
@@ -594,7 +617,7 @@ void params(ParsingContext context) :
 {
     <LPAREN>
         (expression(context) {i++;} (<COMMA> expression(context) {i++;} )*)?
-        {context.generateCode(new PUSH(i));}
+        {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(i));}
     <RPAREN>
 }
 
@@ -607,36 +630,36 @@ void constant(ParsingContext context) :
      <FLOATING_POINT>
           {   try {
                 if (token.image.endsWith("f") || token.image.endsWith("F")) {
-                    context.generateCode(new PUSH(Float.parseFloat(token.image)));
+                    context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(Float.parseFloat(token.image)));
                 } else if (token.image.endsWith("d") || token.image.endsWith("D")) {
-                    context.generateCode(new PUSH(Double.parseDouble(token.image)));
+                    context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(Double.parseDouble(token.image)));
                 } else {
-                    context.generateCode(new PUSH(new BigDecimal(token.image)));
+                    context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(new BigDecimal(token.image)));
                 }
               } catch (NumberFormatException ee) {
                   throw new ParseException(ee.toString());
               }
           }
     |  <INTEGER>
-      {context.generateCode(new PUSH(parseInteger(token.image)));}
+      {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(parseInteger(token.image)));}
     |   <TRUE>
-	  {context.generateCode(new PUSH(Boolean.valueOf(true)));}
+	  {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(Boolean.valueOf(true)));}
     |   <FALSE>
-	  {context.generateCode(new PUSH(Boolean.valueOf(false)));}
+	  {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(Boolean.valueOf(false)));}
     |  <CHARACTER>
-      {context.generateCode(new PUSH(token.image.substring(1, token.image.length()-1)));}
+      {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(token.image.substring(1, token.image.length()-1)));}
     |  <NULL>
-      {context.generateCode(new PUSH(ResultCache.NULL));}
+      {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(ResultCache.NULL));}
     |  <STRING>
-      {context.generateCode(new PUSH(org.spf4j.base.Strings.unescape(token.image.substring(1, token.image.length()-1))));}
+      {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(org.spf4j.base.Strings.unescape(token.image.substring(1, token.image.length()-1))));}
     |  <MATCHEXP>
     {  String rExp = token.image.substring(1, token.image.length()-1);
        context.process(new WildCardMatcher(rExp));
-       context.generateCode(new PUSH(new WildCardMatcher(rExp)));}
+       context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(new WildCardMatcher(rExp)));}
     )
-    | <E> {context.generateCode(new PUSH(Math.E));}
-    | <PI> {context.generateCode(new PUSH(Math.PI));}
-    | <MEMORY> {context.generateCode(PUSHM.INSTANCE);}
+    | <E> {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(Math.E));}
+    | <PI> {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(Math.PI));}
+    | <MEMORY> {context.generateCode(new Location(token.beginLine, token.beginColumn), PUSHM.INSTANCE);}
 }
 
 JAVACODE
@@ -664,9 +687,6 @@ Number parseInteger(String intStr)
        return obj;
 }
 
-
-
-
 void sysFunction(ParsingContext context) :
 {
     int count = 0;
@@ -674,10 +694,12 @@ void sysFunction(ParsingContext context) :
     Program.Type pType = Program.Type.NONDETERMINISTIC;
     Program.ExecutionType eType = Program.ExecutionType.ASYNC;
     String staticName = null;
+    String functionName = "";
+    Token x;
 }
 {
 
- (<FUNCTION> 
+ (x = <FUNCTION>
     (<DETERMINISTIC> {pType = Program.Type.DETERMINISTIC;})?
     ((<SYNC> {eType = Program.ExecutionType.SYNC;}) 
      | (<ASYNC> {eType = Program.ExecutionType.ASYNC;}))?
@@ -688,19 +710,22 @@ void sysFunction(ParsingContext context) :
  <RPAREN>)?)
    {ParsingContext pc = (ParsingContext) context.createSubContext();}
    programBlock(pc)
-   {pc.generateCode(org.spf4j.zel.instr.HALT.INSTANCE);}
+   {pc.generateCode(new Location(token.beginLine, token.beginColumn), org.spf4j.zel.instr.HALT.INSTANCE);}
    {ProgramBuilder p= pc.getProgramBuilder();
     p.setType(pType);
     p.setExecType(eType);
     try { 
       if (staticName != null) {
           context.staticSymbol(staticName, null);
+          functionName = staticName;
+      } else {
+          functionName = "anon@" + (x.beginLine - 1);
       }
-      Program prog = p.toProgram(parameterNames);
+      Program prog = p.toProgram(functionName, parameterNames);
       if (staticName != null) {
           context.staticSymbol(staticName, prog);
       }
-      context.generateCode(new PUSH(prog));
+      context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(prog));
     } catch (CompileException e) {
         throw new ParseException(e.toString());
     }

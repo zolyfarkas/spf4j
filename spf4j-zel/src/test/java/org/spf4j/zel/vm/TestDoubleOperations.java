@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.vm;
 
+import java.util.concurrent.ExecutionException;
 import junit.framework.Assert;
 import org.junit.Test;
 
@@ -25,15 +26,15 @@ import org.junit.Test;
  * @author zoly
  */
 public final  class TestDoubleOperations {
-    
-    
+
+
     @Test
-    public void test() throws CompileException, ZExecutionException, InterruptedException {
+    public void test() throws CompileException, ExecutionException, InterruptedException {
         Program prog = Program.compile("(1d+3d-2)/2*1");
         Double result = (Double) prog.execute();
         System.out.println(result.toString());
         Assert.assertEquals(1, result.intValue());
     }
-    
-    
+
+
 }

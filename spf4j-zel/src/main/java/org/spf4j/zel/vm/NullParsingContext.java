@@ -29,10 +29,6 @@ public final class NullParsingContext implements ParsingContext {
     private NullParsingContext() {
     }
 
-    @Override
-    public void generateCode(final Instruction... args) {
-    }
-
     /**
      * return the current code address
      *
@@ -71,6 +67,14 @@ public final class NullParsingContext implements ParsingContext {
     @Override
     public Instruction getLast() {
         return NOP.INSTANCE;
+    }
+
+    @Override
+    public void generateCode(final Location[] loc, final Instruction... args) {
+    }
+
+    @Override
+    public void generateCode(final Location loc, final Instruction instr) {
     }
 
 }

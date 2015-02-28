@@ -18,6 +18,7 @@
 package org.spf4j.zel.instr;
 
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
@@ -27,15 +28,15 @@ import org.spf4j.zel.vm.ZExecutionException;
 
 public final class CALLREF extends Instruction {
 
-    private static final long serialVersionUID = 759722625722456554L;
+    private static final long serialVersionUID = 1L;
 
     private CALLREF() {
     }
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+//    @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, InterruptedException, SuspendedException {
+            throws ExecutionException, InterruptedException, SuspendedException {
         final Integer nrParams = (Integer) context.pop();
         final Object[] parameters;
         try {
@@ -78,7 +79,7 @@ public final class CALLREF extends Instruction {
         }
 
         @Override
-        public Object get() throws ZExecutionException, InterruptedException {
+        public Object get() throws ExecutionException, InterruptedException {
 
             if (function instanceof Program) {
                 final Program p = (Program) function;

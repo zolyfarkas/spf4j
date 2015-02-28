@@ -22,15 +22,44 @@ import org.spf4j.zel.instr.Instruction;
 
 public interface ParsingContext {
 
+
+    public static final class Location {
+        private final int row;
+        private final int column;
+
+        public Location(final int row, final int column) {
+            this.row = row - 1;
+            this.column = column;
+        }
+
+        @Override
+        public String toString() {
+            return "Location{" + "row=" + row + ", column=" + column + '}';
+        }
+
+        public int getRow() {
+            return row;
+        }
+
+        public int getColumn() {
+            return column;
+        }
+
+    }
+
+
     /**
      * generate instruction code with argument
      *
      * @param instr Instruction
      * @param arg Object
      */
-    void generateCode(Instruction... args);
- 
-    
+    void generateCode(Location [] loc, Instruction... args);
+
+
+    void generateCode(Location loc, Instruction instr);
+
+
     void staticSymbol(String name, Object object);
 
     /**
@@ -40,15 +69,15 @@ public interface ParsingContext {
      */
     void generateCodeAll(ParsingContext parsingContext);
 
-    
+
     /**
      * return the current code address
      *
      * @return
      */
     int getAddress();
-    
-    
+
+
     Instruction getLast();
 
     /**

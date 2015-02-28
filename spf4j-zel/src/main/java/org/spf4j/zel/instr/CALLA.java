@@ -19,6 +19,7 @@ package org.spf4j.zel.instr;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
@@ -38,7 +39,7 @@ public final class CALLA extends Instruction {
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, InterruptedException, SuspendedException {
+            throws ExecutionException, InterruptedException, SuspendedException {
         Integer nrParams = (Integer) context.pop();
         final Object function = context.peekFromTop(nrParams);
         if (function instanceof Program) {

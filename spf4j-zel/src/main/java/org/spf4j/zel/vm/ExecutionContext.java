@@ -156,7 +156,7 @@ public final class ExecutionContext {
 
             @Override
             public Object call()
-                    throws ZExecutionException, InterruptedException, SuspendedException {
+                    throws ExecutionException, InterruptedException, SuspendedException {
                 suspendedAt = null;
                 if (mathContext != null) {
                     Operator.MATH_CONTEXT.set(mathContext);
@@ -173,12 +173,10 @@ public final class ExecutionContext {
                     } else {
                         return null;
                     }
-                } catch (SuspendedException e) {
+                } catch (SuspendedException | InterruptedException e) {
                     throw e;
                 } catch (ZExecutionException e) {
-                    // TODO: a better frame description should be added.
-                    throw new ZExecutionException("Program exec failed, state:" + ExecutionContext.this, e);
-                } catch (InterruptedException e) {
+                    e.addZelFrame(new ZelFrame(code.toString(), code.getDebug()[ip].getRow()));
                     throw e;
                 }
             }
@@ -238,6 +236,10 @@ public final class ExecutionContext {
 
     public Object[] popStackVals(final int nvals) {
         return stack.pop(nvals);
+    }
+
+    public Object popStackVal() {
+        return stack.pop();
     }
 
     public int getNrStackVals() {

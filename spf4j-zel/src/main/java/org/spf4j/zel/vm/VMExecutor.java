@@ -39,7 +39,7 @@ import org.spf4j.concurrent.SimpleExecutor;
 public final class VMExecutor {
 
     public static class Lazy {
-        
+
          private static final SimpleExecutor DEF_EXEC = new SimpleExecutor();
          static {
              DEF_EXEC.startThreads(org.spf4j.base.Runtime.NR_PROCESSORS);
@@ -61,21 +61,21 @@ public final class VMExecutor {
     public interface Suspendable<T> extends Callable<T> {
 
         @Override
-        T call() throws SuspendedException, ZExecutionException, InterruptedException;
-        
+        T call() throws SuspendedException, ExecutionException, InterruptedException;
+
         List<VMFuture<Object>> getSuspendedAt();
-        
+
     }
-    
-    
-    
+
+
+
     public static <T> Suspendable<T> synchronize(final Suspendable<T> what) {
         return new Suspendable<T>() {
 
             private volatile boolean isRunning = false;
-            
+
             @Override
-            public T call() throws SuspendedException, ZExecutionException, InterruptedException {
+            public T call() throws SuspendedException, ExecutionException, InterruptedException {
                 if (!isRunning) {
                     synchronized (this) {
                         if (!isRunning) {
@@ -104,7 +104,7 @@ public final class VMExecutor {
     public VMExecutor(final Executor exec) {
         this.exec = exec;
     }
-    
+
     public <T> Future<T> submitNonSuspendable(final Callable<T> callable) {
         FutureTask task = new FutureTask(callable);
         exec.execute(task);
@@ -116,15 +116,15 @@ public final class VMExecutor {
         submit(callable, resultFuture);
         return resultFuture;
     }
-    
+
     /**
      * Returns a future that will not get notified when callable completes.
-     * 
+     *
      * @param <T>
      * @param callable
      * @return
      */
-    
+
     public <T> Future<T> submitInternal(final Suspendable<T> callable) {
         final VMFuture<T> resultFuture = new VMASyncFuture<T>();
         submit(callable, resultFuture);
@@ -134,7 +134,7 @@ public final class VMExecutor {
     /**
      * Map from Future -> Suspendables suspended at this futures and their futures.
      */
-    
+
     private final ConcurrentMap<VMFuture<Object>, List<Pair<Suspendable<Object>, VMFuture<Object>>>> futToSuspMap
             = new ConcurrentHashMap<VMFuture<Object>, List<Pair<Suspendable<Object>, VMFuture<Object>>>>();
 
@@ -199,16 +199,19 @@ public final class VMExecutor {
                         addSuspendable(fut,
                             (Suspendable<Object>) callable, (VMFuture<Object>) future);
                     }
-                } catch (Exception e) {
+                } catch (ExecutionException e) {
+                    future.setExceptionResult(e);
+                    resumeSuspendables((VMFuture<Object>) future);
+                }  catch (RuntimeException | InterruptedException e) {
                     future.setExceptionResult(new ExecutionException(e));
                     resumeSuspendables((VMFuture<Object>) future);
                 }
             }
         });
     }
-    
-    
-    
-    
+
+
+
+
 
 }

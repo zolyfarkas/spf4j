@@ -18,6 +18,7 @@
 package org.spf4j.zel.vm;
 
 import java.math.BigInteger;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.Assert;
@@ -32,13 +33,13 @@ public final class ZelTest {
 
     @Test
     public void helloWorld()
-            throws CompileException, ZExecutionException, InterruptedException {
+            throws CompileException, ExecutionException, InterruptedException {
         Program.compile("out(\"Hello World\")").execute();
     }
 
     @Test
     public void testBasicArithmetic()
-            throws CompileException, ZExecutionException, InterruptedException {
+            throws CompileException, ExecutionException, InterruptedException {
         Program prog = Program.compile("// simple expression \n 1+5*4/(1+1)");
         Number result = (Number) prog.execute();
         assertEquals(11, result.intValue());
@@ -46,15 +47,15 @@ public final class ZelTest {
 
     @Test
     public void testJavaExec()
-            throws CompileException, ZExecutionException, InterruptedException {
+            throws CompileException, ExecutionException, InterruptedException {
         Program prog = Program.compile("a.toString().substring(0, 1 + 1)", "a");
         String result = (String) prog.execute(Integer.valueOf(100));
         assertEquals("100".substring(0, 2), result);
     }
-    
+
     @Test
     public void testJavaExecStatic()
-            throws CompileException, ZExecutionException, InterruptedException {
+            throws CompileException, ExecutionException, InterruptedException {
         Program prog = Program.compile("s.format(\"Number %d\", 3)", "s");
         String result = (String) prog.execute(String.class);
         assertEquals(String.format("Number %d", 3), result);
@@ -62,7 +63,7 @@ public final class ZelTest {
 
     @Test
     public void testAssignement()
-            throws CompileException, ZExecutionException, InterruptedException {
+            throws CompileException, ExecutionException, InterruptedException {
         Program prog = Program.compile("a = a + 1", "a");
         Integer result = (Integer) prog.execute(100);
         assertEquals(101, result.intValue());
@@ -70,7 +71,7 @@ public final class ZelTest {
 
     @Test
     public void testFib()
-            throws CompileException, ZExecutionException, InterruptedException {
+            throws CompileException, ExecutionException, InterruptedException {
         String program
                 = "function deterministic fib (x) { fib(x-1) + fib(x-2) };\n"
                 + "fib(0) = 0;\n"
@@ -122,7 +123,7 @@ public final class ZelTest {
     }
 
     @Test
-    public void testFibPerformance() throws CompileException, ZExecutionException, InterruptedException {
+    public void testFibPerformance() throws CompileException, ExecutionException, InterruptedException {
         String fib = "func det fib (x) {fib(x-1) + fib(x-2)}; fib(0) = 0; fib(1) = 1; fib(x)";
         Program fibZel = Program.compile(fib, "x");
         long startTime = System.currentTimeMillis();
@@ -147,7 +148,7 @@ public final class ZelTest {
     }
 
     @Test
-    public void testParallelism() throws CompileException, ZExecutionException, InterruptedException {
+    public void testParallelism() throws CompileException, ExecutionException, InterruptedException {
         String program = "f1 = func {sleep 5000; 1};"
                 + "f2 = func {sleep 5000; 2};"
                 + "f1() + f2()";
@@ -160,9 +161,9 @@ public final class ZelTest {
         Assert.assertTrue("functions need to execute in parallel not in " + (endTime - startTime),
                 endTime - startTime < 5200);
     }
-    
+
         @Test
-    public void testParallelism2() throws CompileException, ZExecutionException, InterruptedException {
+    public void testParallelism2() throws CompileException, ExecutionException, InterruptedException {
         String program = "f1 = func {sleep 5000; 1};"
                 + "f2 = func {sleep 5000; 2};"
                 + "f1() + f2()";
@@ -175,10 +176,10 @@ public final class ZelTest {
         Assert.assertTrue("functions need to execute in parallel not in " + (endTime - startTime),
                 endTime - startTime < 5200);
     }
-    
-    
+
+
     @Test
-    public void testCond() throws CompileException, ZExecutionException, InterruptedException {
+    public void testCond() throws CompileException, ExecutionException, InterruptedException {
         Boolean result = (Boolean) Program.compile("x == 1", "x").execute(1);
         Assert.assertTrue(result);
         result = (Boolean) Program.compile("x != 1", "x").execute(1);
@@ -201,9 +202,9 @@ public final class ZelTest {
         Assert.assertEquals(1, n.intValue());
 
     }
-    
+
     @Test
-    public void testAsync() throws CompileException, ZExecutionException, InterruptedException {
+    public void testAsync() throws CompileException, ExecutionException, InterruptedException {
         String prog = "f = func (a, b) {sleep 1000; a + b };"
                 + "f(f(1, 2),f(3, 4))";
         ExecutorService newFixedThreadPool = Executors.newFixedThreadPool(8);
@@ -215,16 +216,16 @@ public final class ZelTest {
         Assert.assertEquals(10, result.intValue());
         newFixedThreadPool.shutdown();
     }
-    
+
     private static class TestF {
         public static int f(final int a, final int b) throws InterruptedException {
             Thread.sleep(1000);
             return a + b;
         }
     }
-    
+
     @Test
-    public void testAsync2() throws CompileException, ZExecutionException, InterruptedException {
+    public void testAsync2() throws CompileException, ExecutionException, InterruptedException {
         ExecutorService newFixedThreadPool = Executors.newFixedThreadPool(8);
         String prog = "f(f(1, 2)&,f(3, 4)&)&";
         long startTime = System.currentTimeMillis();
@@ -235,60 +236,60 @@ public final class ZelTest {
         Assert.assertEquals(10, result.intValue());
         newFixedThreadPool.shutdown();
     }
-    
-    
+
+
     @Test
-    public void testArrays() throws CompileException, ZExecutionException, InterruptedException {
+    public void testArrays() throws CompileException, ExecutionException, InterruptedException {
        String result = (String) Program.compile("x.split(\",\")[1]", "x").execute("a,b,c");
        Assert.assertEquals("b", result);
        result = (String) Program.compile("x.split(\",\")[1] = \"A\"", "x").execute("a,b,c");
        Assert.assertEquals("A", result);
     }
-    
+
     @Test
-    public void testCond2() throws CompileException, ZExecutionException, InterruptedException {
+    public void testCond2() throws CompileException, ExecutionException, InterruptedException {
        Program p = Program.compile("x >= 0 ? \"positive\" : \"negative\" ", "x");
        System.out.println(p);
        String result = (String) p.execute(1);
        Assert.assertEquals("positive", result);
     }
-    
+
     @Test
-    public void testCond3() throws CompileException, ZExecutionException, InterruptedException {
+    public void testCond3() throws CompileException, ExecutionException, InterruptedException {
        Program p = Program.compile(" if x >= 0 { \"positive\" } else { \"negative\" } ", "x");
        System.out.println(p);
        String result = (String) p.execute(1);
        Assert.assertEquals("positive", result);
     }
-    
+
     @Test
-    public void testFor() throws CompileException, ZExecutionException, InterruptedException {
+    public void testFor() throws CompileException, ExecutionException, InterruptedException {
        Program p = Program.compile("x = 0; for i=0; i < 10; i++ {out(i); x = x + i}; x ");
        System.out.println(p);
        Integer result = (Integer) p.execute(1);
        Assert.assertEquals(45, result.intValue());
     }
-    
+
     @Test
-    public void testSwap() throws CompileException, ZExecutionException, InterruptedException {
+    public void testSwap() throws CompileException, ExecutionException, InterruptedException {
        Program p = Program.compile("x[0] <-> x[1]; x[1]", "x");
        System.out.println(p);
        String [] testArray = new String[] {"a", "b"};
        String result = (String) p.execute(new Object [] {testArray});
        Assert.assertEquals("a", result);
     }
-    
+
     @Test
-    public void testArray() throws CompileException, ZExecutionException, InterruptedException {
+    public void testArray() throws CompileException, ExecutionException, InterruptedException {
        Program p = Program.compile("x = array(2); x.length");
        System.out.println(p);
        Integer result = (Integer) p.execute();
        Assert.assertEquals(2, result.intValue());
     }
-    
-    
+
+
     @Test
-    public void testMultiRet() throws CompileException, ZExecutionException, InterruptedException {
+    public void testMultiRet() throws CompileException, ExecutionException, InterruptedException {
        Program p = Program.compile("func test {"
                + "ret {1, 2} };"
                + "x,y = test();"
@@ -297,25 +298,25 @@ public final class ZelTest {
        Integer result = (Integer) p.execute();
        Assert.assertEquals(1, result.intValue());
     }
-    
-    
+
+
     @Test
-    public void testMultiAssignement() throws CompileException, ZExecutionException, InterruptedException {
+    public void testMultiAssignement() throws CompileException, ExecutionException, InterruptedException {
        Program p = Program.compile("x, y, z = {1, 2, 3}; ret y");
        System.out.println(p);
        Integer result = (Integer) p.execute();
        Assert.assertEquals(2, result.intValue());
     }
-    
-    
+
+
     @Test
-    public void testAbs() throws CompileException, ZExecutionException, InterruptedException {
+    public void testAbs() throws CompileException, ExecutionException, InterruptedException {
        Program p = Program.compile("|3 - 5|");
        System.out.println(p);
        Integer result = (Integer) p.execute();
        Assert.assertEquals(2, result.intValue());
     }
 
-    
+
 
 }

@@ -22,6 +22,7 @@ import com.google.common.io.Resources;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -32,16 +33,16 @@ import org.junit.Test;
 public final class QSortTest {
 
     @Test
-    public void test() throws CompileException, ZExecutionException, InterruptedException, IOException {
+    public void test() throws CompileException, ExecutionException, InterruptedException, IOException {
         String qsort = Resources.toString(Resources.getResource(QSortTest.class, "sort.zel"),
                 Charsets.US_ASCII);
         Program p = Program.compile(qsort);
         System.out.println(p);
         p.execute();
     }
-    
+
     @Test
-    public void testSort() throws CompileException, ZExecutionException, InterruptedException, IOException {
+    public void testSort() throws CompileException, ExecutionException, InterruptedException, IOException {
        String qsort = Resources.toString(Resources.getResource(QSortTest.class, "sortFunc.zel"),
                 Charsets.US_ASCII);
         Program p = Program.compile(qsort, "x");
@@ -50,7 +51,7 @@ public final class QSortTest {
         for (int i = 0; i < testArray.length; i++) {
             testArray[i] = random.nextInt();
         }
-        
+
         Integer [] resultPar = null;
         for (int i = 0; i < 3; i++) {
             long startTime = System.currentTimeMillis();
@@ -58,7 +59,7 @@ public final class QSortTest {
             p.execute(new Object [] {resultPar});
             System.out.println("Parallel exec time = " + (System.currentTimeMillis() - startTime));
         }
-        
+
         Integer [] resultSt = null;
         for (int i = 0; i < 3; i++) {
             long startTime = System.currentTimeMillis();
@@ -66,11 +67,11 @@ public final class QSortTest {
             p.executeSingleThreaded(new Object [] {resultSt});
             System.out.println("ST exec time = " + (System.currentTimeMillis() - startTime));
         }
-        
+
         Arrays.sort(testArray);
-        
+
         Assert.assertArrayEquals((Object []) resultSt, (Object []) resultPar);
         Assert.assertArrayEquals((Object []) resultSt, testArray);
     }
-    
+
 }

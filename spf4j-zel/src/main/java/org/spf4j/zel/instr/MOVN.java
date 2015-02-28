@@ -17,24 +17,25 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 public final class MOVN extends Instruction {
-    
+
     private static final long serialVersionUID = -7101682855885757988L;
-    
+
     private final int nr;
-    
+
     public MOVN(final int nr) {
         this.nr = nr;
     }
-    
+
     @Override
     public int execute(final ExecutionContext context)
-            throws SuspendedException, ZExecutionException, InterruptedException {
+            throws SuspendedException, ExecutionException, InterruptedException {
         Object [] what = (Object []) context.popSyncStackVal();
         Object [] tos = context.popStackVals(what.length);
         int i = 0;

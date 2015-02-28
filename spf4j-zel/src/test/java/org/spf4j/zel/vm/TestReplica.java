@@ -20,6 +20,7 @@ package org.spf4j.zel.vm;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import org.junit.Test;
 
 /**
@@ -29,7 +30,7 @@ import org.junit.Test;
 public final class TestReplica {
 
     @Test
-    public void test() throws CompileException, ZExecutionException, InterruptedException, IOException {
+    public void test() throws CompileException, ExecutionException, InterruptedException, IOException {
         String replicas = Resources.toString(Resources.getResource(TestZelMultiThreaded.class, "replicas.zel"),
                 Charsets.US_ASCII);
         Program fibZel = Program.compile(replicas);

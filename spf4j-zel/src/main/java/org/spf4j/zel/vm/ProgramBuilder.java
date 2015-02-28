@@ -21,6 +21,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.spf4j.base.Pair;
 import org.spf4j.zel.instr.CALLA;
 import org.spf4j.zel.instr.Instruction;
+import org.spf4j.zel.vm.ParsingContext.Location;
 
 /**
  *
@@ -42,18 +44,20 @@ public final class ProgramBuilder {
 
     private Instruction[] instructions;
 
+    private List<Location> debugInfo;
+
     private int instrNumber;
 
     private Program.Type type;
-    
+
     private Program.ExecutionType execType;
 
     private static final AtomicInteger COUNTER = new AtomicInteger();
-    
+
     private final Interner<String> stringInterner;
-    
+
     private final MemoryBuilder staticMemBuilder;
-    
+
     public static int generateID() {
         return COUNTER.getAndIncrement();
     }
@@ -67,8 +71,9 @@ public final class ProgramBuilder {
         type = Program.Type.NONDETERMINISTIC;
         execType = null; //Program.ExecutionType.ASYNC;
         stringInterner = Interners.newStrongInterner();
+        debugInfo = new ArrayList<>();
     }
-    
+
     public void intern(final Object[] array) {
         for (int i = 0; i < array.length; i++) {
             Object obj = array[i];
@@ -77,7 +82,7 @@ public final class ProgramBuilder {
             }
         }
     }
-    
+
     /**
      * @return the type
      */
@@ -92,20 +97,21 @@ public final class ProgramBuilder {
         this.type = ptype;
         return this;
     }
-    
+
     public ProgramBuilder setExecType(final Program.ExecutionType pexecType) {
         this.execType = pexecType;
         return this;
     }
-    
-    
 
-    public ProgramBuilder add(final Instruction object) {
+
+
+    public ProgramBuilder add(final Instruction object, final Location loc) {
         ensureCapacity(instrNumber + 1);
         instructions[instrNumber++] = object;
+        debugInfo.add(loc);
         return this;
     }
-    
+
     public boolean contains(final Class<? extends Instruction> instr) {
         Boolean res = itterate(new Program.HasClass(instr));
         if (res == null) {
@@ -113,7 +119,7 @@ public final class ProgramBuilder {
         }
         return res;
     }
-    
+
     public <T> T itterate(final Function<Object, T> func) {
          for (int i = 0; i < instrNumber; i++) {
             Instruction code = instructions[i];
@@ -132,13 +138,13 @@ public final class ProgramBuilder {
                 if (res != null) {
                    return res;
                 }
-                
+
             }
         }
         return null;
     }
-    
-    
+
+
 
     public ProgramBuilder set(final int idx, final Instruction object) {
         ensureCapacity(idx + 1);
@@ -147,24 +153,26 @@ public final class ProgramBuilder {
         return this;
     }
 
-    public ProgramBuilder addAll(final Instruction[] objects) {
+    public ProgramBuilder addAll(final Instruction[] objects, final List<Location> debug) {
         ensureCapacity(instrNumber + objects.length);
         System.arraycopy(objects, 0, instructions, instrNumber, objects.length);
         instrNumber += objects.length;
+        this.debugInfo.addAll(debug);
         return this;
     }
 
-    public ProgramBuilder setAll(final int idx, final Object[] objects) {
-        ensureCapacity(idx + objects.length);
-        System.arraycopy(objects, 0, instructions, idx, objects.length);
-        instrNumber = Math.max(objects.length + idx, instrNumber);
-        return this;
-    }
+//    public ProgramBuilder setAll(final int idx, final Object[] objects) {
+//        ensureCapacity(idx + objects.length);
+//        System.arraycopy(objects, 0, instructions, idx, objects.length);
+//        instrNumber = Math.max(objects.length + idx, instrNumber);
+//        return this;
+//    }
 
     public ProgramBuilder addAll(final ProgramBuilder opb) {
         ensureCapacity(instrNumber + opb.instrNumber);
         System.arraycopy(opb.instructions, 0, instructions, instrNumber, opb.instrNumber);
         instrNumber += opb.instrNumber;
+        this.debugInfo.addAll(opb.debugInfo);
         return this;
     }
 
@@ -200,21 +208,22 @@ public final class ProgramBuilder {
         }
         return hasDetFuncs;
     }
-    
+
     public boolean hasAsyncCalls() {
          Boolean hasAsyncCalls = itterate(new HasAsyncFunc());
         if (hasAsyncCalls == null) {
-            
+
             return false;
         }
         return hasAsyncCalls;
     }
-    
-    public Program toProgram(final String[] parameterNames) throws CompileException {
-       return toProgram(parameterNames, Collections.EMPTY_MAP);
+
+    public Program toProgram(final String source, final String[] parameterNames) throws CompileException {
+       return toProgram(source, parameterNames, Collections.EMPTY_MAP);
     }
-    
-    public Program toProgram(final String[] parameterNames, final Map<String, Integer> localTable)
+
+    public Program toProgram(final String source, final String[] parameterNames,
+            final Map<String, Integer> localTable)
             throws CompileException {
         intern(instructions);
         intern(parameterNames);
@@ -229,17 +238,18 @@ public final class ProgramBuilder {
                 }
             }
         }
-        return new Program(build.getSecond(), build.getFirst(), localTable, instructions, 0, instrNumber, type,
+        return new Program(build.getSecond(), build.getFirst(), localTable, instructions,
+                debugInfo.toArray(new Location[debugInfo.size()]), source,  0, instrNumber, type,
                 hasAsyncPrograms || this.execType == Program.ExecutionType.ASYNC || hasAsyncCalls()
                         ? (this.execType == null ? Program.ExecutionType.ASYNC : this.execType)
                         : Program.ExecutionType.SYNC,
                 hasDeterministicFunctions(), parameterNames);
     }
 
-    
-    
-    public Program toProgram(final List<String> parameterNames) throws CompileException {
-        return toProgram(parameterNames.toArray(new String[parameterNames.size()]));
+
+
+    public Program toProgram(final String source, final List<String> parameterNames) throws CompileException {
+        return toProgram(source, parameterNames.toArray(new String[parameterNames.size()]));
     }
 
     private static final class HasDeterministicFunc implements Function<Object, Boolean> {

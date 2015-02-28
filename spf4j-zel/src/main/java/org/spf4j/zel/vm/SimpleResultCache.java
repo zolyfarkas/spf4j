@@ -42,7 +42,7 @@ public final class SimpleResultCache implements ResultCache {
     private final LoadingCache<Program,
             Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>>> cache;
 
-    
+
         static class CacheLoaderImpl extends
             CacheLoader<Program,
             Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>>> {
@@ -60,7 +60,7 @@ public final class SimpleResultCache implements ResultCache {
             return Pair.of(new ConcurrentHashMap<List<Object>, Object>(), trCache);
         }
     }
-    
+
     public SimpleResultCache() {
         this(100000);
     }
@@ -98,16 +98,12 @@ public final class SimpleResultCache implements ResultCache {
     @Override
     public Object getResult(final Program program,
             @Nonnull final List<Object> params, final Callable<Object> compute)
-            throws ZExecutionException {
+            throws ExecutionException {
         final Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>> prCache =
                 cache.getUnchecked(program);
         Object result = prCache.getFirst().get(params);
         if (result == null) {
-            try {
-                result = prCache.getSecond().get(params, new CallableNullWrapper(compute));
-            } catch (ExecutionException ex) {
-                throw new ZExecutionException(ex);
-            }
+            result = prCache.getSecond().get(params, new CallableNullWrapper(compute));
         }
         if (result == ResultCache.NULL) {
             result = null;
@@ -139,5 +135,5 @@ public final class SimpleResultCache implements ResultCache {
         }
     }
 
-    
+
 }

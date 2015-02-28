@@ -21,9 +21,9 @@ import org.spf4j.zel.instr.LODXF;
 public final class RefOptimizer implements Function<Program, Program> {
 
     private RefOptimizer() { }
-    
+
     public static final Function<Program, Program> INSTANCE = new RefOptimizer();
-    
+
     @Override
     public Program apply(final Program input) {
         if (input == null) {
@@ -32,7 +32,7 @@ public final class RefOptimizer implements Function<Program, Program> {
         Instruction [] instructions = input.getInstructions().clone();
         Map<String, Integer> lsym = input.getLocalSymbolTable();
         Map<String, Integer> gsym = input.getGlobalSymbolTable();
-        
+
         for (int i = 0; i < instructions.length; i++) {
             Instruction instr = instructions[i];
             if (LODX.class.equals(instr.getClass())) {
@@ -45,11 +45,12 @@ public final class RefOptimizer implements Function<Program, Program> {
                 instructions[i] = new LODAXF(addr);
             }
         }
-        
+
         try {
             return new Program(input.getGlobalSymbolTable(),
                     input.getGlobalMem(), input.getLocalSymbolTable(),
-                    instructions, input.getType(), input.getExecType(),
+                    instructions, input.getDebug(), input.getSource(),
+                    input.getType(), input.getExecType(),
                     input.hasDeterministicFunctions());
         } catch (CompileException ex) {
             throw new RuntimeException(ex);
@@ -68,5 +69,5 @@ public final class RefOptimizer implements Function<Program, Program> {
         }
         return addr;
     }
-    
+
 }

@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
 
 /**
  * @author zoly
@@ -35,13 +34,9 @@ public final class SYNC extends Instruction {
     }
 
     @Override
-    public int execute(final ExecutionContext context) throws SuspendedException, ZExecutionException {
-        try {
+    public int execute(final ExecutionContext context) throws SuspendedException, ExecutionException {
             context.syncStackVal();
             return 1;
-        } catch (ExecutionException ex) {
-            throw new ZExecutionException(ex);
-        }
     }
 
     public static final Instruction INSTANCE = new SYNC();

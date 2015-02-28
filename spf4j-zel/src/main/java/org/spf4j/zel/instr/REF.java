@@ -19,12 +19,12 @@ package org.spf4j.zel.instr;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.JavaMethodCall;
 import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
 
 /**
  * @author zoly
@@ -38,7 +38,7 @@ public final class REF extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException, InterruptedException {
+            throws ExecutionException, SuspendedException, InterruptedException {
         Object[] vals = context.popSyncStackVals(2);
         final Object ref = vals[1];
         final Object relTo = vals[0];

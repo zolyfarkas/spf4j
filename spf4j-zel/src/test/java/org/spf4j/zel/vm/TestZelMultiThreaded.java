@@ -20,6 +20,7 @@ package org.spf4j.zel.vm;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,7 +29,7 @@ import org.junit.Test;
  * @author zoly
  */
 public final class TestZelMultiThreaded {
-    
+
     /**
      * GO equivalent:
      *
@@ -53,14 +54,14 @@ public final class TestZelMultiThreaded {
      * @throws InterruptedException
      */
     @Test
-    public void testParallelPi() throws CompileException, ZExecutionException, InterruptedException  {
+    public void testParallelPi() throws CompileException, ExecutionException, InterruptedException  {
         for (int i = 0; i < 3; i++) {
             testParallelPiImpl();
         }
     }
-    
-    
-    public void testParallelPiImpl() throws CompileException, ZExecutionException, InterruptedException {
+
+
+    public void testParallelPiImpl() throws CompileException, ExecutionException, InterruptedException {
         String pi = "pi = func (x) {"
                 + "term = func (k) {4 * (-1 ** k) / (2d * k + 1)};"
                 + "for i = 0; i < x; i = i + 1 { parts[i] = term(i) };"
@@ -74,17 +75,17 @@ public final class TestZelMultiThreaded {
         System.out.println("zel pi par = " + result + " in " + (endTime - startTime) + "ms");
         // pi is 3.141592653589793
         Assert.assertEquals(3.141592653589793, result.doubleValue(), 0.0001);
-        
+
         startTime = System.currentTimeMillis();
         double dresult = pi(100000);
         endTime = System.currentTimeMillis();
         System.out.println("java pi = " + dresult + " in " + (endTime - startTime) + "ms");
     }
-    
+
      private static  double term(final int k) {
         return 4 * Math.pow(-1, k) / (2d * k + 1);
      }
-    
+
      private static double pi(final int nr) {
          double result = 0;
          for (int i = 0; i < nr; i++) {
@@ -94,13 +95,13 @@ public final class TestZelMultiThreaded {
      }
 
     @Test
-    public void testParallelPi2() throws CompileException, ZExecutionException, InterruptedException, IOException  {
+    public void testParallelPi2() throws CompileException, ExecutionException, InterruptedException, IOException  {
         for (int i = 0; i < 3; i++) {
             testParallelPi2Impl();
         }
     }
-     
-    public void testParallelPi2Impl() throws CompileException, ZExecutionException, InterruptedException, IOException {
+
+    public void testParallelPi2Impl() throws CompileException, ExecutionException, InterruptedException, IOException {
         String pi = Resources.toString(Resources.getResource(TestZelMultiThreaded.class, "parallelPi.zel"),
                 Charsets.US_ASCII);
         Program prog = Program.compile(pi, "x");
@@ -110,9 +111,9 @@ public final class TestZelMultiThreaded {
         System.out.println("zel pi par optimized = " + result + " in " + (endTime - startTime) + "ms");
         // pi is 3.141592653589793
         Assert.assertEquals(3.141592653589793, result.doubleValue(), 0.0001);
-        
+
     }
 
 
-    
+
 }

@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.vm;
 
+import java.util.concurrent.ExecutionException;
 import org.junit.Test;
 
 /**
@@ -24,11 +25,11 @@ import org.junit.Test;
  * @author zoly
  */
 public final  class ChannelTest {
-    
-    
+
+
     @Test
-    public void test() throws CompileException, ZExecutionException, InterruptedException {
-        
+    public void test() throws CompileException, ExecutionException, InterruptedException {
+
         String prog = "ch = channel();"
                     + "func prod(ch) { for i = 0; i < 100 ; i++ { ch.write(i) }; ch.close()}; "
                     + "func cons(ch, nr) "
@@ -38,14 +39,14 @@ public final  class ChannelTest {
                     + " out(\"fin(\", nr, \",\", sum,\")\") };"
                     + "prod(ch)&; "
                     + "for i = 0; i < 10; i++ { cons(ch, i)& } ";
-        
+
 //        String prog =
 //                     "func prod(ch) { out(\"A\"); for i = 0; i < 10 ; i++ { out(i); ch.write(i) }; out(\"B\")}; "
 //                    + "func cons(ch) { out(ch.read()) };"
 //                    + "prod(channel()) ";
 //                    + "for i = 0; i < 10; i++ { cons(ch) } ";
-        
-        
+
+
         Program p = Program.compile(prog);
         System.out.println(p);
         p.execute();

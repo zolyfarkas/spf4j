@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.vm;
 
+import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -27,14 +28,14 @@ import org.junit.Test;
 public final class TestZelSingleThreaded {
 
     @Test
-    public void testPi() throws CompileException, ZExecutionException, InterruptedException {
+    public void testPi() throws CompileException, ExecutionException, InterruptedException {
         for (int i = 0; i < 3; i++) {
             testPiImpl();
         }
     }
-    
-    
-    public void testPiImpl() throws CompileException, ZExecutionException, InterruptedException {
+
+
+    public void testPiImpl() throws CompileException, ExecutionException, InterruptedException {
         String pi = "pi = func sync (x) {"
                 + "term = func sync (k) {4 * (-1 ** k) / (2d * k + 1)};"
                 + "for i = 0, result = 0; i < x; i = i + 1 { result = result + term(i) };"

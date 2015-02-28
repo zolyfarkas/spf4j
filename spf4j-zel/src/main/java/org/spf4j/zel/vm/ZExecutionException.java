@@ -17,45 +17,63 @@
  */
 package org.spf4j.zel.vm;
 
-public final class ZExecutionException extends Exception {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+public final class ZExecutionException extends ExecutionException {
 
     private static final long serialVersionUID = 8823469923479284L;
 
-    public ZExecutionException(final String message, final Exception e,
-            final String context) {
-        super(message, e);
-        this.context = context;
-    }
-
     public ZExecutionException(final String message, final Exception e) {
         super(message, e);
-        this.context = null;
+        this.payload = null;
     }
 
 
     public ZExecutionException(final Exception e) {
         super(e);
-        this.context = null;
+        this.payload = null;
     }
-    
-      public ZExecutionException(final String msg) {
+
+    public ZExecutionException(final String msg) {
         super(msg);
-        this.context = null;
+        this.payload = null;
     }
-    
 
-    /**
-     * the execution context in which the exception happened
-     */
-    private final String context;
-
-    /**
-     * the execution context where the exception happened
-     *
-     * @return
-     */
-    public String getContext() {
-        return context;
+    public ZExecutionException(final Object object) {
+        super();
+        this.payload = object;
     }
+
+
+    private final Object payload;
+
+
+    public final void addZelFrame(final ZelFrame frame) {
+        zelframes.add(frame);
+    }
+
+    public List<ZelFrame> getZelframes() {
+        return zelframes;
+    }
+
+
+    private final List<ZelFrame> zelframes = new ArrayList<>();
+
+    @Override
+    public String toString() {
+        String msg = super.toString();
+        StringBuilder result = new StringBuilder(1024);
+        result.append(msg);
+        result.append('\n');
+        result.append("Zel trace:\n");
+        for (ZelFrame frame : zelframes) {
+            result.append(frame.toString());
+            result.append('\n');
+        }
+        return result.toString();
+    }
+
 
 }

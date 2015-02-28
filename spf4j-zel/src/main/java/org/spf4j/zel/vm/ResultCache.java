@@ -19,6 +19,7 @@ package org.spf4j.zel.vm;
 
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -35,8 +36,8 @@ public interface ResultCache {
 
     @Nullable
     Object getResult(Program program, @Nonnull List<Object> params, Callable<Object> compute)
-            throws ZExecutionException;
-    
+            throws ExecutionException;
+
     Object NULL = new Object();
-    
+
 }

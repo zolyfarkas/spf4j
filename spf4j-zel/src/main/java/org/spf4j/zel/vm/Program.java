@@ -52,6 +52,7 @@ import org.spf4j.zel.instr.var.MIN;
 import org.spf4j.zel.instr.var.OUT;
 import org.spf4j.zel.instr.var.RANDOM;
 import org.spf4j.zel.instr.var.SQRT;
+import org.spf4j.zel.vm.ParsingContext.Location;
 import org.spf4j.zel.vm.gen.ParseException;
 import org.spf4j.zel.vm.gen.TokenMgrError;
 import org.spf4j.zel.vm.gen.ZCompiler;
@@ -84,14 +85,16 @@ public final class Program implements Serializable {
     private final int id; // program ID, unique ID identifying the program
 
     private final Instruction[] instructions;
+    private final Location[] debug;
+    private final String source;
     private final boolean hasDeterministicFunctions;
     private final Object[] globalMem;
     private final int localMemSize;
     private final Map<String, Integer> localSymbolTable;
     private final Map<String, Integer> globalSymbolTable;
-    
+
     Program(final Map<String, Integer> globalTable, final Object[] globalMem, final Map<String, Integer> localTable,
-            @Nonnull final Instruction[] objs, @Nonnegative final int start,
+            @Nonnull final Instruction[] objs, final Location[] debug, final String source, @Nonnegative final int start,
             @Nonnegative final int end, final Type progType, final ExecutionType execType,
             final boolean hasDeterministicFunctions, final String... parameterNames) throws CompileException {
         this.globalMem = globalMem;
@@ -105,10 +108,13 @@ public final class Program implements Serializable {
         this.localSymbolTable = buildLocalSymTable(objs, parameterNames, length, globalTable, localTable);
         this.localMemSize = localSymbolTable.size();
         this.globalSymbolTable = globalTable;
+        this.debug = debug;
+        this.source = source;
     }
-    
+
     Program(final Map<String, Integer> globalTable, final Object[] globalMem, final Map<String, Integer> localTable,
-            @Nonnull final Instruction[] instructions, final Type progType, final ExecutionType execType,
+            @Nonnull final Instruction[] instructions, final Location[] debug, final  String source,
+            final Type progType, final ExecutionType execType,
             final boolean hasDeterministicFunctions) throws CompileException {
         this.globalMem = globalMem;
         this.instructions = instructions;
@@ -119,16 +125,24 @@ public final class Program implements Serializable {
         this.localSymbolTable = localTable;
         this.localMemSize = localSymbolTable.size();
         this.globalSymbolTable = globalTable;
+        this.debug = debug;
+        this.source = source;
     }
-    
-    
+
+    public Location[] getDebug() {
+        return debug;
+    }
+
+    public String getSource() {
+        return source;
+    }
 
     private static Map<String, Integer> buildLocalSymTable(final Instruction [] instructions,
             final String[] parameterNames1,
             final int length, final Map<String, Integer> globalTable,
             final Map<String, Integer> addTo) throws CompileException {
         final int addToSize = addTo.size();
-        Map<String, Integer> symbolTable = new HashMap<String, Integer>(addToSize + parameterNames1.length);
+        Map<String, Integer> symbolTable = new HashMap<>(addToSize + parameterNames1.length);
         symbolTable.putAll(addTo);
         // allocate program params
         int i = addToSize;
@@ -163,7 +177,7 @@ public final class Program implements Serializable {
     public Map<String, Integer> getLocalSymbolTable() {
         return localSymbolTable;
     }
-    
+
     public int getLocalMemSize() {
        return localMemSize;
     }
@@ -171,10 +185,10 @@ public final class Program implements Serializable {
     Object[] getGlobalMem() {
         return globalMem;
     }
-    
-    
-    
-    
+
+
+
+
     @Override
     @CheckReturnValue
     public boolean equals(final Object obj) {
@@ -227,15 +241,13 @@ public final class Program implements Serializable {
         ParsingContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());
         try {
             ZCompiler.compile(zExpr, cc);
-        } catch (TokenMgrError err) {
+        } catch (TokenMgrError | ParseException err) {
             throw new CompileException(err);
-        } catch (ParseException ex) {
-            throw new CompileException(ex);
         }
-        return RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram(varNames));
+        return RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram(zExpr, varNames));
     }
-    
-    
+
+
     static Program compile(@Nonnull final String zExpr,
             final Map<String, Integer> localTable,
             final Object [] globalMem,
@@ -244,31 +256,29 @@ public final class Program implements Serializable {
             throws CompileException {
 
         ParsingContext cc = new CompileContext(new MemoryBuilder(
-                new ArrayList<Object>(Arrays.asList(globalMem)), globalTable));
+                new ArrayList<>(Arrays.asList(globalMem)), globalTable));
         try {
             ZCompiler.compile(zExpr, cc);
-        } catch (TokenMgrError err) {
+        } catch (TokenMgrError | ParseException err) {
             throw new CompileException(err);
-        } catch (ParseException ex) {
-            throw new CompileException(ex);
         }
-        return cc.getProgramBuilder().toProgram(varNames, localTable);
+        return cc.getProgramBuilder().toProgram(zExpr, varNames, localTable);
     }
 
-    public Object execute() throws ZExecutionException, InterruptedException {
+    public Object execute() throws ExecutionException, InterruptedException {
         return execute(System.in, System.out, System.err);
     }
 
-    public Object execute(final Object... args) throws ZExecutionException, InterruptedException {
+    public Object execute(final Object... args) throws ExecutionException, InterruptedException {
         return execute(System.in, System.out, System.err, args);
     }
 
     public Object execute(@Nonnull final ExecutorService execService,
-            final Object... args) throws ZExecutionException, InterruptedException {
+            final Object... args) throws ExecutionException, InterruptedException {
         return execute(new VMExecutor(execService), System.in, System.out, System.err, args);
     }
-    
-    public Object executeSingleThreaded(final Object... args) throws ZExecutionException, InterruptedException {
+
+    public Object executeSingleThreaded(final Object... args) throws ExecutionException, InterruptedException {
         return execute(null, System.in, System.out, System.err, args);
     }
 
@@ -295,19 +305,19 @@ public final class Program implements Serializable {
             @Nullable final PrintStream out,
             @Nullable final PrintStream err,
             final Object... args)
-            throws ZExecutionException, InterruptedException {
+            throws ExecutionException, InterruptedException {
         final ExecutionContext ectx = new ExecutionContext(this, globalMem, in, out, err, execService);
         System.arraycopy(args, 0, ectx.mem, 0, args.length);
         return execute(ectx);
     }
-    
+
     public Pair<Object, ExecutionContext> executeX(@Nullable final VMExecutor execService,
             @Nullable final InputStream in,
             @Nullable final PrintStream out,
             @Nullable final PrintStream err,
             final ResultCache resultCache,
             final Object... args)
-            throws ZExecutionException, InterruptedException {
+            throws ExecutionException, InterruptedException {
         final ExecutionContext ectx = new ExecutionContext(this, globalMem, resultCache, in, out, err, execService);
         System.arraycopy(args, 0, ectx.mem, 0, args.length);
         return Pair.of(execute(ectx), ectx);
@@ -316,7 +326,7 @@ public final class Program implements Serializable {
     // TODO: Need to employ Either here
     @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
     public static Object executeSyncOrAsync(@Nonnull final ExecutionContext ectx)
-            throws ZExecutionException, InterruptedException {
+            throws ExecutionException, InterruptedException {
         final VMExecutor.Suspendable<Object> execution = ectx.getCallable();
         if (ectx.execService != null && ectx.code.getExecType() == ExecutionType.ASYNC) {
             if (ectx.isChildContext()) {
@@ -336,7 +346,7 @@ public final class Program implements Serializable {
     @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
     // TODO: Need to employ Either here
     public static Object executeAsync(@Nonnull final ExecutionContext ectx)
-            throws ZExecutionException, InterruptedException {
+            throws ExecutionException, InterruptedException {
         final VMExecutor.Suspendable<Object> execution = ectx.getCallable();
         if (ectx.execService != null) {
             if (ectx.isChildContext()) {
@@ -354,7 +364,7 @@ public final class Program implements Serializable {
     }
 
     public static Object executeSync(@Nonnull final ExecutionContext ectx) throws
-            ZExecutionException, InterruptedException {
+            ExecutionException, InterruptedException {
         try {
             return ectx.getCallable().call();
         } catch (SuspendedException ex) {
@@ -363,14 +373,10 @@ public final class Program implements Serializable {
     }
 
     public static Object execute(@Nonnull final ExecutionContext ectx)
-            throws ZExecutionException, InterruptedException {
+            throws ExecutionException, InterruptedException {
         Object result = executeSyncOrAsync(ectx);
         if (result instanceof Future) {
-            try {
-                return ((Future<Object>) result).get();
-            } catch (ExecutionException ex) {
-                throw new ZExecutionException(ex);
-            }
+            return ((Future<Object>) result).get();
         } else {
             return result;
         }
@@ -378,7 +384,7 @@ public final class Program implements Serializable {
 
     public Object execute(@Nonnull final InputStream in,
             @Nonnull final PrintStream out, @Nonnull final PrintStream err, final Object... args)
-            throws ZExecutionException, InterruptedException {
+            throws ExecutionException, InterruptedException {
         if (execType == ExecutionType.SYNC) {
             return execute((VMExecutor) null, in, out, err, args);
         } else {
@@ -498,7 +504,7 @@ public final class Program implements Serializable {
                         resCache = execCtx.resultCache;
                     } catch (CompileException ex) {
                         System.out.println("Syntax Error: " + Throwables.getStackTraceAsString(ex));
-                    } catch (ZExecutionException ex) {
+                    } catch (ExecutionException ex) {
                         System.out.println("Execution Error: " + Throwables.getStackTraceAsString(ex));
                     }
                 }
@@ -506,8 +512,7 @@ public final class Program implements Serializable {
         }
     }
 
-    @Override
-    public String toString() {
+    public String toAssemblyString() {
         StringBuilder result = new StringBuilder();
         result.append("Program: \n");
         for (int i = 0; i < instructions.length; i++) {
@@ -520,6 +525,12 @@ public final class Program implements Serializable {
         result.append("execType = ").append(this.execType).append("\n");
         result.append("type = ").append(this.type).append("\n");
         return result.toString();
+    }
+
+
+    @Override
+    public String toString() {
+        return source;
     }
 
     /**

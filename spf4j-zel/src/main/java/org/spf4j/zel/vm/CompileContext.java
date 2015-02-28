@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.vm;
 
+import java.util.Arrays;
 import org.spf4j.zel.instr.Instruction;
 
 
@@ -24,9 +25,9 @@ import org.spf4j.zel.instr.Instruction;
 public final class CompileContext implements ParsingContext {
 
     private final ProgramBuilder prog;
-    
+
     private final MemoryBuilder staticMemBuilder;
-    
+
     private Instruction last;
 
     public CompileContext(final MemoryBuilder staticMemBuilder) {
@@ -36,8 +37,8 @@ public final class CompileContext implements ParsingContext {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void generateCode(final Instruction... args) {
-        prog.addAll(args);
+    public void generateCode(final Location [] locs, final Instruction... args) {
+        prog.addAll(args, Arrays.asList(locs));
         last = args[args.length - 1];
     }
 
@@ -79,6 +80,12 @@ public final class CompileContext implements ParsingContext {
     @Override
     public Instruction getLast() {
        return last;
+    }
+
+    @Override
+    public void generateCode(final Location loc, final Instruction instr) {
+        prog.add(instr, loc);
+        last = instr;
     }
 
 

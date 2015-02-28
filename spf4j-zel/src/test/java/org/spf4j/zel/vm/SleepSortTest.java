@@ -22,6 +22,7 @@ import com.google.common.io.Resources;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,7 +34,7 @@ public final class SleepSortTest {
 
 
     @Test
-    public void testSort() throws CompileException, ZExecutionException, InterruptedException, IOException {
+    public void testSort() throws CompileException, ExecutionException, InterruptedException, IOException {
        String sort = Resources.toString(Resources.getResource(SleepSortTest.class, "sleepSort.zel"),
                 Charsets.US_ASCII);
         Program p = Program.compile(sort, "x");
@@ -42,7 +43,7 @@ public final class SleepSortTest {
         for (int i = 0; i < testArray.length; i++) {
             testArray[i] = Math.abs(random.nextInt()) % 100;
         }
-        
+
         Integer [] resutlSt = testArray.clone();
         p.execute(new Object [] {resutlSt});
         System.out.println("Sort input = " + Arrays.toString(testArray));
@@ -51,5 +52,5 @@ public final class SleepSortTest {
         Arrays.sort(testArray);
         Assert.assertArrayEquals(testArray, (Object []) resutlSt);
     }
-    
+
 }

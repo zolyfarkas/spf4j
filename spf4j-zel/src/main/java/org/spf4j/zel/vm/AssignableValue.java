@@ -17,14 +17,16 @@
  */
 package org.spf4j.zel.vm;
 
+import java.util.concurrent.ExecutionException;
+
 /**
  *
  * @author zoly
  */
 public interface AssignableValue {
-    
-    void assign(Object object) throws ZExecutionException, InterruptedException;
-    
-    Object get() throws ZExecutionException, InterruptedException;
-    
+
+    void assign(Object object) throws ExecutionException, InterruptedException;
+
+    Object get() throws ExecutionException, InterruptedException;
+
 }

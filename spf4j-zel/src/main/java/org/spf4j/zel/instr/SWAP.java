@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.AssignableValue;
@@ -24,15 +25,15 @@ import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 public final class SWAP extends Instruction {
-    
+
     private static final long serialVersionUID = -7101682855885757988L;
-    
+
     private SWAP() {
     }
-    
+
     @Override
     public int execute(final ExecutionContext context)
-            throws SuspendedException, ZExecutionException, InterruptedException {
+            throws SuspendedException, ExecutionException, InterruptedException {
         Object v1 = context.pop();
         Object v2 = context.pop();
         if (v1 instanceof AssignableValue &&  v2 instanceof AssignableValue) {

@@ -17,13 +17,14 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
+
 
 public final class INC extends Instruction {
 
@@ -31,11 +32,11 @@ public final class INC extends Instruction {
 
     private INC() {
     }
-    
+
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public int execute(final ExecutionContext context)
-            throws SuspendedException, ZExecutionException, InterruptedException {
+            throws SuspendedException, ExecutionException, InterruptedException {
         Object val = context.popSyncStackVal();
         if (val instanceof AssignableValue) {
             AssignableValue aval = (AssignableValue) val;
