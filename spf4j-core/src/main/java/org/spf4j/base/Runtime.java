@@ -206,8 +206,13 @@ public final class Runtime {
 
             @Override
             public void doRun() throws Exception {
-                if (proc.isAlive()) {
-                    proc.destroyForcibly();
+                if (JAVA_PLATFORM.ordinal() >= Version.V1_8.ordinal()) {
+                    final Class<? extends Process> aClass = proc.getClass();
+                    if ((Boolean) aClass.getMethod("isAlive").invoke(proc)) {
+                        aClass.getMethod("destroyForcibly").invoke(proc);
+                    }
+                } else {
+                    proc.destroy();
                 }
             }
         }, timeoutMillis, TimeUnit.MILLISECONDS);
