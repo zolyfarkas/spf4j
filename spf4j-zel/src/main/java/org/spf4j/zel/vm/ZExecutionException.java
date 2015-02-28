@@ -51,8 +51,12 @@ public final class ZExecutionException extends ExecutionException {
 
     private final Object payload;
 
+    public Object getPayload() {
+        return payload;
+    }
 
-    public final void addZelFrame(final ZelFrame frame) {
+
+    public void addZelFrame(final ZelFrame frame) {
         zelframes.add(frame);
     }
 
@@ -72,7 +76,7 @@ public final class ZExecutionException extends ExecutionException {
         result.append("Zel trace:\n");
         Set<String> sourceIds = new HashSet<>();
         for (ZelFrame frame : zelframes) {
-            result.append(frame.toString());
+            result.append(frame);
             result.append('\n');
             sourceIds.add(frame.getSource());
         }

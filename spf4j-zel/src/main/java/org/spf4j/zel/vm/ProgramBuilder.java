@@ -218,7 +218,8 @@ public final class ProgramBuilder {
         return hasAsyncCalls;
     }
 
-    public Program toProgram(final String name, final String source, final String[] parameterNames) throws CompileException {
+    public Program toProgram(final String name, final String source, final String[] parameterNames)
+            throws CompileException {
        return toProgram(name, source, parameterNames, Collections.EMPTY_MAP);
     }
 
@@ -248,7 +249,8 @@ public final class ProgramBuilder {
 
 
 
-    public Program toProgram(final String name, final String source, final List<String> parameterNames) throws CompileException {
+    public Program toProgram(final String name, final String source, final List<String> parameterNames)
+            throws CompileException {
         return toProgram(name, source, parameterNames.toArray(new String[parameterNames.size()]));
     }
 

@@ -94,11 +94,14 @@ public final class Program implements Serializable {
     private final Map<String, Integer> globalSymbolTable;
     private final String name;
 
-
-    Program(final String name, final Map<String, Integer> globalTable, final Object[] globalMem, final Map<String, Integer> localTable,
-            @Nonnull final Instruction[] objs, final Location[] debug, final String source, @Nonnegative final int start,
+//CHECKSTYLE:OFF
+    Program(final String name, final Map<String, Integer> globalTable, final Object[] globalMem,
+            final Map<String, Integer> localTable,
+            @Nonnull final Instruction[] objs, final Location[] debug,
+            final String source, @Nonnegative final int start,
             @Nonnegative final int end, final Type progType, final ExecutionType execType,
             final boolean hasDeterministicFunctions, final String... parameterNames) throws CompileException {
+        //CHECKSTYLE:ON
         this.globalMem = globalMem;
         int length = end - start;
         this.instructions = new Instruction[length];
@@ -115,10 +118,13 @@ public final class Program implements Serializable {
         this.name = name;
     }
 
-    Program(final String name, final Map<String, Integer> globalTable, final Object[] globalMem, final Map<String, Integer> localTable,
+    //CHECKSTYLE:OFF
+    Program(final String name, final Map<String, Integer> globalTable, final Object[] globalMem,
+            final Map<String, Integer> localTable,
             @Nonnull final Instruction[] instructions, final Location[] debug, final  String source,
             final Type progType, final ExecutionType execType,
             final boolean hasDeterministicFunctions) throws CompileException {
+        //CHECKSTYLE:ON
         this.globalMem = globalMem;
         this.instructions = instructions;
         this.type = progType;
@@ -412,7 +418,7 @@ public final class Program implements Serializable {
      * @return Object
      */
     public static Object getValue(@Nonnull final java.util.Map mem, @Nonnull final String name)
-            throws CompileException, ZExecutionException, InterruptedException, ExecutionException {
+            throws CompileException, InterruptedException, ExecutionException {
         return Program.compile(name + ";").execute(mem);
     }
 
@@ -428,7 +434,7 @@ public final class Program implements Serializable {
      */
     public static void addValue(@Nonnull final java.util.Map mem, @Nonnull final String name,
             final Object value)
-            throws CompileException, ZExecutionException, InterruptedException, ExecutionException {
+            throws CompileException, InterruptedException, ExecutionException {
         Program.compile(name + "=" + value + ";").execute(mem);
     }
 

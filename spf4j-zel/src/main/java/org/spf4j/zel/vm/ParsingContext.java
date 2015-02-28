@@ -17,13 +17,15 @@
  */
 package org.spf4j.zel.vm;
 
+import java.io.Serializable;
 import org.spf4j.zel.instr.Instruction;
 
 
 public interface ParsingContext {
 
 
-    public static final class Location {
+    public static final class Location implements Serializable {
+        private static final long serialVersionUID = 1L;
         private final int row;
         private final int column;
 

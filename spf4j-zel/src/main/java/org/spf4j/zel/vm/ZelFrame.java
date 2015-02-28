@@ -1,6 +1,7 @@
 
 package org.spf4j.zel.vm;
 
+import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -9,12 +10,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author zoly
  */
-public final class ZelFrame {
+public final class ZelFrame implements Serializable {
 
 
     private static final ConcurrentMap<String, String> SOURCES = new ConcurrentHashMap();
 
     private static final AtomicInteger IDX = new AtomicInteger();
+    private static final long serialVersionUID = 1L;
 
     public static String newSource(final String sourceDetail) {
         String id = "zel_" + IDX.getAndIncrement();
