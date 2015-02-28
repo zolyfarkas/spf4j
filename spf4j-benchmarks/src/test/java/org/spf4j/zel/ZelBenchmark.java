@@ -6,6 +6,7 @@ import groovy.lang.Script;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import org.mvel2.MVEL;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
@@ -14,7 +15,6 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
 import org.spf4j.zel.vm.CompileException;
 import org.spf4j.zel.vm.Program;
-import org.spf4j.zel.vm.ZExecutionException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -43,7 +43,7 @@ public class ZelBenchmark {
      * 3) Spring expression language is slow like hell, and there is no excuse for it :-)
      *
      */
-    
+
     static {
         String testScript = "a-b+1+c.length() - d.toString().substring(0, 1).length()";
         try {
@@ -61,7 +61,7 @@ public class ZelBenchmark {
 
     @Benchmark
     public Object testZel()
-            throws ZExecutionException, InterruptedException {
+            throws ExecutionException, InterruptedException {
         return ZEL_PROG.execute(3, 2, " ", "bla");
     }
 
@@ -86,7 +86,7 @@ public class ZelBenchmark {
         return MVEL.executeExpression(MVEL_PROG, vars);
 
     }
-    
+
     @Benchmark
     public Object testSpring() {
         Map vars = new HashMap();
