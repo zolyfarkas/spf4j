@@ -123,7 +123,7 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
         }
     }
 
-    private T createObject(final int nrTimesShared) throws ObjectCreationException {
+    private synchronized T createObject(final int nrTimesShared) throws ObjectCreationException {
         T obj = factory.create();
         o2Queue.put(obj, pooledObjects.add(new SharedObject<>(obj, nrTimesShared)));
         nrObjects++;
