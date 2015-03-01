@@ -152,7 +152,8 @@ public final class Runtime {
             LSOF = lsofFile;
         }
 
-        public static final String [] LSOF_CMD = {LSOF.getAbsolutePath(), "-p", Integer.toString(PID) };
+        public static final String [] LSOF_CMD = (LSOF == null) ? null
+                : new String [] {LSOF.getAbsolutePath(), "-p", Integer.toString(PID) };
 
     }
 
