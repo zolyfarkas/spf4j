@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.spf4j.base.Runtime.Lsof.LSOF;
 import static org.spf4j.base.Runtime.Lsof.LSOF_CMD;
 import org.spf4j.concurrent.DefaultScheduler;
 
@@ -137,21 +138,21 @@ public final class Runtime {
 
         public static final File LSOF;
 
-        public static final String [] LSOF_CMD = {"/usr/sbin/lsof", "-p", Integer.toString(PID) };
-
         static {
             File lsofFile = new File("/usr/sbin/lsof");
-            if (!lsofFile.exists()) {
+            if (!lsofFile.exists() || !lsofFile.canExecute()) {
                 lsofFile = new File("/usr/bin/lsof");
-                if (!lsofFile.exists()) {
+                if (!lsofFile.exists() || !lsofFile.canExecute()) {
                     lsofFile = new File("/usr/local/bin/lsof");
-                    if (!lsofFile.exists()) {
+                    if (!lsofFile.exists() || !lsofFile.canExecute()) {
                         lsofFile = null;
                     }
                 }
             }
             LSOF = lsofFile;
         }
+
+        public static final String [] LSOF_CMD = {LSOF.getAbsolutePath(), "-p", Integer.toString(PID) };
 
     }
 
@@ -186,6 +187,9 @@ public final class Runtime {
 
     @Nullable
     public static String getLsofOutput() throws IOException, InterruptedException, ExecutionException {
+        if (LSOF == null) {
+            return null;
+        }
         StringBuilderCharHandler handler = new StringBuilderCharHandler();
         run(LSOF_CMD, handler, 60000);
         return handler.toString();
