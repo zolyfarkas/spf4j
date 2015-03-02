@@ -169,8 +169,9 @@ public final class ExecutionContext {
                         ip += icode.execute(ExecutionContext.this);
                     }
                     if (!isStackEmpty()) {
-                        Object[] results = popSyncStackVals(stack.size());
-                        return results[results.length - 1];
+                        Object result = popSyncStackVal();
+                        syncStackVals();
+                        return result;
                     } else {
                         return null;
                     }
@@ -227,6 +228,22 @@ public final class ExecutionContext {
                 } else {
                     this.stack.replaceFromTop(0, FutureBean.processResult(resultStore));
                 }
+        }
+    }
+
+    public void syncStackVals() throws SuspendedException, ExecutionException {
+        for (int i = 0; i < stack.size(); i++) {
+            Object result = this.stack.peekFromTop(i);
+            if (result instanceof VMFuture<?>) {
+                    final VMFuture<Object> resFut = (VMFuture<Object>) result;
+                    Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+                    if (resultStore == null) {
+                        suspend(resFut);
+                        throw new IllegalThreadStateException();
+                    } else {
+                        this.stack.replaceFromTop(i, FutureBean.processResult(resultStore));
+                    }
+            }
         }
     }
 
