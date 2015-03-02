@@ -17,10 +17,10 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
 
 public final class GT extends Instruction {
 
@@ -31,8 +31,9 @@ public final class GT extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
-        Object [] vals = context.popSyncStackVals(2);
+            throws SuspendedException, ExecutionException {
+        final Object[] vals = context.tuple();
+        context.popSyncStackVals(vals);
         context.push(((Comparable) vals[1]).
                 compareTo(vals[0]) < 0);
         return 1;

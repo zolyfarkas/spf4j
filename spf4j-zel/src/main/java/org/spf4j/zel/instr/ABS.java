@@ -19,10 +19,10 @@ package org.spf4j.zel.instr;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
 
 
 public final class ABS extends Instruction {
@@ -34,7 +34,7 @@ public final class ABS extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
+            throws ExecutionException, SuspendedException {
         Number nr = (Number) context.popSyncStackVal();
         if (nr instanceof Integer) {
             int integer = ((Integer) nr);

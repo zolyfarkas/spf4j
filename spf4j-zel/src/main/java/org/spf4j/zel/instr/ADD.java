@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
@@ -30,11 +31,12 @@ public final class ADD extends Instruction {
 
     private ADD() {
     }
-    
+
     @Override
     public int execute(final ExecutionContext context)
-            throws SuspendedException {
-        final Object[] vals = context.popSyncStackVals(2);
+            throws SuspendedException, ExecutionException {
+        final Object[] vals = context.tuple();
+        context.popSyncStackVals(vals);
         context.push(Operators.apply(Operator.Enum.Add, vals[0], vals[1]));
         return 1;
     }

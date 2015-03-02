@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
@@ -28,12 +29,12 @@ public final class FJMP extends Instruction {
     public FJMP(final int relAddr) {
         this.relAddr = relAddr;
     }
-    
+
     private final int relAddr;
 
     @Override
     public int execute(final ExecutionContext context)
-            throws SuspendedException {
+            throws SuspendedException, ExecutionException {
         boolean cond = (java.lang.Boolean) context.popSyncStackVal();
         if (!cond) {
             return relAddr;

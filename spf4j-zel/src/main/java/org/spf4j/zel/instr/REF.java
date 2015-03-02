@@ -39,7 +39,8 @@ public final class REF extends Instruction {
     @Override
     public int execute(final ExecutionContext context)
             throws ExecutionException, SuspendedException, InterruptedException {
-        Object[] vals = context.popSyncStackVals(2);
+        final Object[] vals = context.tuple();
+        context.popSyncStackVals(vals);
         final Object ref = vals[1];
         final Object relTo = vals[0];
         final Object relativeTo;

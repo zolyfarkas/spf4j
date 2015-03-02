@@ -17,12 +17,12 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
 
 
 
@@ -35,8 +35,9 @@ public final class SUB extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
-        Object[] vals = context.popSyncStackVals(2);
+            throws SuspendedException, ExecutionException {
+        final Object[] vals = context.tuple();
+        context.popSyncStackVals(vals);
         context.push(Operators.apply(Operator.Enum.Sub, vals[0], vals[1]));
         return 1;
     }

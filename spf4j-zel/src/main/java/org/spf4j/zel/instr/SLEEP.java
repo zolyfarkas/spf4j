@@ -18,13 +18,13 @@
 package org.spf4j.zel.instr;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.Arrays;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.VMASyncFuture;
-import org.spf4j.zel.vm.ZExecutionException;
 
 /**
  *
@@ -40,7 +40,7 @@ public final class SLEEP extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException, InterruptedException {
+            throws SuspendedException, InterruptedException, ExecutionException {
         Number param = (Number) context.popSyncStackVal();
         final long sleepMillis = param.longValue();
         if (sleepMillis > 0) {

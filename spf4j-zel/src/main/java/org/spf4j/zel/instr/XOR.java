@@ -17,10 +17,10 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
 
 
 
@@ -37,8 +37,9 @@ public final class XOR extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
-        Object [] vals = context.popSyncStackVals(2);
+            throws SuspendedException, ExecutionException {
+        final Object[] vals = context.tuple();
+        context.popSyncStackVals(vals);
         boolean v1 = (java.lang.Boolean) vals[0];
         boolean v2 = (java.lang.Boolean) vals[1];
         context.push(v1 ^ v2);

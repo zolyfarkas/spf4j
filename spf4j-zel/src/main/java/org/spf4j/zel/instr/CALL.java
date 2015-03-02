@@ -64,7 +64,7 @@ public final class CALL extends Instruction {
             Object[] parameters = getParamsSync(context, nrParams);
             try {
                 context.push(((Method) function).invoke(context, parameters));
-            } catch (Exception ex) {
+            } catch (RuntimeException ex) {
                 throw new ZExecutionException("cannot invoke " + function, ex);
             }
         } else {
@@ -74,7 +74,7 @@ public final class CALL extends Instruction {
     }
 
     static Object[] getParamsSync(final ExecutionContext context, final Integer nrParams)
-            throws SuspendedException {
+            throws SuspendedException, ExecutionException {
         Object [] parameters;
         try {
             parameters = context.popSyncStackVals(nrParams);

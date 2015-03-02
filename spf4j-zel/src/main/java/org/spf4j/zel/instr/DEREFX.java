@@ -17,26 +17,25 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import static org.spf4j.zel.instr.DEREF.pushDeref;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
-
 
 public final class DEREFX extends Instruction {
 
     private static final long serialVersionUID = 1L;
 
     private final Object ref;
-    
+
     public DEREFX(final Object ref) {
         this.ref = ref;
     }
-    
+
 
     @Override
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
+            throws SuspendedException, ExecutionException {
        Object relativeTo = context.popSyncStackVal();
        pushDeref(relativeTo, ref, context);
        return 1;
