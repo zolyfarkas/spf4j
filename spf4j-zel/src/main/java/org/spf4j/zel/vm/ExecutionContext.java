@@ -245,6 +245,9 @@ public final class ExecutionContext {
     }
 
     public Object[] popSyncStackVals(final int nvals) throws SuspendedException, ExecutionException {
+        if (nvals == 0) {
+            return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+        }
         Object [] result = new Object[nvals];
         popSyncStackVals(result);
         return result;
