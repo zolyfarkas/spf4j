@@ -102,9 +102,13 @@ public final class CallablesTest {
             Assert.fail("Should not get here");
         } catch (IOException e) {
             if (Runtime.JAVA_PLATFORM == Runtime.Version.V1_6) {
-                Assert.assertTrue(Throwables.getSuppressed(e).length >= 4);
+                Assert.assertTrue("must have supressed exceptions: "
+                        + com.google.common.base.Throwables.getStackTraceAsString(e),
+                        Throwables.getSuppressed(e).length >= 1);
             } else {
-                Assert.assertTrue(Throwables.getSuppressed(e).length >= 1);
+                Assert.assertTrue("must have supressed exceptions: "
+                        + com.google.common.base.Throwables.getStackTraceAsString(e),
+                        Throwables.getSuppressed(e).length >= 1);
             }
         }
 

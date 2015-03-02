@@ -30,6 +30,31 @@ public final class ArraySuppliers {
 
     private ArraySuppliers() { }
 
+    public static final class Objects {
+
+       private Objects() { }
+
+       private static final SizedRecyclingSupplier.Factory FACTORY =
+               new SizedRecyclingSupplier.Factory<Object []>() {
+
+            @Override
+            @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+            public Object[] create(final int size) {
+                return new Object[size];
+            }
+
+            @Override
+            public int size(final Object[] object) {
+                return object.length;
+            }
+        };
+
+      public static final SizedRecyclingSupplier<Object []> TL_SUPPLIER
+              = new Powerof2ThreadLocalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
+    }
+
+
+
     public static final class Bytes {
 
         private Bytes() { }

@@ -51,7 +51,7 @@ public final class Throwables {
     private static final Field CAUSE_FIELD;
 
     private static final Method ADD_SUPPRESSED;
-    
+
     private static final Method GET_SUPPRESSED;
 
     static {
@@ -61,9 +61,7 @@ public final class Throwables {
                 Field causeField;
                 try {
                     causeField = Throwable.class.getDeclaredField("cause");
-                } catch (NoSuchFieldException ex) {
-                    throw new RuntimeException(ex);
-                } catch (SecurityException ex) {
+                } catch (NoSuchFieldException | SecurityException ex) {
                     throw new RuntimeException(ex);
                 }
                 causeField.setAccessible(true);
@@ -170,7 +168,7 @@ public final class Throwables {
         }
         chain0(result, newRootCauseChain.get(newChainIdx));
         return result;
-  
+
     }
 
 
@@ -195,11 +193,7 @@ public final class Throwables {
                 }
                 ADD_SUPPRESSED.invoke(clone, suppressed);
                 return clone;
-            } catch (IllegalAccessException ex) {
-                throw new RuntimeException(ex);
-            } catch (IllegalArgumentException ex) {
-                throw new RuntimeException(ex);
-            } catch (InvocationTargetException ex) {
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                 throw new RuntimeException(ex);
             }
         } else {
@@ -212,16 +206,12 @@ public final class Throwables {
             return chain(t, new SuppressedThrowable(suppressed));
         }
     }
-    
+
     public static Throwable [] getSuppressed(final Throwable t) {
         if (GET_SUPPRESSED != null) {
             try {
                 return (Throwable []) GET_SUPPRESSED.invoke(t);
-            } catch (IllegalAccessException ex) {
-                throw new RuntimeException(ex);
-            } catch (IllegalArgumentException ex) {
-                throw new RuntimeException(ex);
-            } catch (InvocationTargetException ex) {
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                 throw new RuntimeException(ex);
             }
         } else {
@@ -232,7 +222,7 @@ public final class Throwables {
                 LOG.info("Unable to clone exception", t);
                 chain = com.google.common.base.Throwables.getCausalChain(t);
             }
-            List<Throwable> result = new ArrayList<Throwable>();
+            List<Throwable> result = new ArrayList<>(chain.size());
             Throwable prev = null;
             for (Throwable comp : chain) {
                 if (comp instanceof SuppressedThrowable) {
@@ -246,6 +236,6 @@ public final class Throwables {
             return result.toArray(new Throwable [result.size()]);
         }
     }
-    
+
 
 }
