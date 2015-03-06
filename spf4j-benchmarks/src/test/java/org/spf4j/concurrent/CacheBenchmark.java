@@ -32,12 +32,20 @@ public class CacheBenchmark {
             .build(TEST_LOADER);
     private static final LoadingCache<String, String> SPF4J = new UnboundedLoadingCache<>(16, 16, TEST_LOADER);
 
+    private static final LoadingCache<String, String> SPF4J_RACY =
+            new UnboundedRacyLoadingCache<>(16, 16, TEST_LOADER);
+
 
     private static final IntMath.XorShift32 RND = new IntMath.XorShift32();
 
     @Benchmark
     public final String spf4jCache() {
         return SPF4J.getUnchecked("key" + (RND.nextInt() % 100));
+    }
+
+    @Benchmark
+    public final String spf4jRacyCache() {
+        return SPF4J_RACY.getUnchecked("key" + (RND.nextInt() % 100));
     }
 
     @Benchmark
