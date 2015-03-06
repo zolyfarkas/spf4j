@@ -23,9 +23,9 @@
 
  [SPF4J Github hosted repo](https://github.com/zolyfarkas/spf4j/)
 
- Look for latest releases [at(http://search.maven.org/#search|ga|1|spf4j)]
+ Look for latest releases [at](http://search.maven.org/#search|ga|1|spf4j)
 
- Download snapshot and release artifacts [from (https://oss.sonatype.org/content/groups/public)]
+ Download snapshot and release artifacts [from] (https://oss.sonatype.org/content/groups/public)
 
  [![Coverity Badge](https://scan.coverity.com/projects/3158/badge.svg)](https://scan.coverity.com/projects/3158)
 
