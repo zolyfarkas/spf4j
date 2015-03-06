@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.AssignableValue;
@@ -24,32 +25,32 @@ import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 public final class MOV extends Instruction {
-    
+
     private static final long serialVersionUID = -7101682855885757988L;
-    
-<span class="fc" id="L30">    private MOV() {</span>
-<span class="fc" id="L31">    }</span>
-    
+
+<span class="fc" id="L31">    private MOV() {</span>
+<span class="fc" id="L32">    }</span>
+
     @Override
     public int execute(final ExecutionContext context)
-            throws SuspendedException, ZExecutionException, InterruptedException {
-<span class="fc" id="L36">        Object what = context.pop();</span>
-<span class="fc" id="L37">        Object to = context.pop();</span>
-<span class="pc bpc" id="L38" title="1 of 2 branches missed.">        if (to instanceof AssignableValue) {</span>
-<span class="fc" id="L39">            AssignableValue assignTo = (AssignableValue) to;</span>
-<span class="fc" id="L40">            assignTo.assign(what);</span>
-<span class="fc" id="L41">            context.push(what);</span>
-<span class="fc" id="L42">        } else {</span>
-<span class="nc" id="L43">            throw new ZExecutionException(&quot;Lvalue expected insted of &quot; + to);</span>
+            throws SuspendedException, ExecutionException, InterruptedException {
+<span class="fc" id="L37">        Object what = context.pop();</span>
+<span class="fc" id="L38">        Object to = context.pop();</span>
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">        if (to instanceof AssignableValue) {</span>
+<span class="fc" id="L40">            AssignableValue assignTo = (AssignableValue) to;</span>
+<span class="fc" id="L41">            assignTo.assign(what);</span>
+<span class="fc" id="L42">            context.push(what);</span>
+<span class="fc" id="L43">        } else {</span>
+<span class="nc" id="L44">            throw new ZExecutionException(&quot;Lvalue expected insted of &quot; + to);</span>
         }
-<span class="fc" id="L45">        return 1;</span>
+<span class="fc" id="L46">        return 1;</span>
     }
 
-<span class="fc" id="L48">    public static final Instruction INSTANCE = new MOV();</span>
+<span class="fc" id="L49">    public static final Instruction INSTANCE = new MOV();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L52">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L53">        return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

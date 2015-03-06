@@ -42,7 +42,7 @@ public final class SimpleResultCache implements ResultCache {
     private final LoadingCache&lt;Program,
             Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt;&gt; cache;
 
-    
+
         static class CacheLoaderImpl extends
             CacheLoader&lt;Program,
             Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt;&gt; {
@@ -60,7 +60,7 @@ public final class SimpleResultCache implements ResultCache {
 <span class="fc" id="L60">            return Pair.of(new ConcurrentHashMap&lt;List&lt;Object&gt;, Object&gt;(), trCache);</span>
         }
     }
-    
+
     public SimpleResultCache() {
 <span class="fc" id="L65">        this(100000);</span>
 <span class="fc" id="L66">    }</span>
@@ -98,47 +98,43 @@ public final class SimpleResultCache implements ResultCache {
     @Override
     public Object getResult(final Program program,
             @Nonnull final List&lt;Object&gt; params, final Callable&lt;Object&gt; compute)
-            throws ZExecutionException {
+            throws ExecutionException {
 <span class="fc" id="L102">        final Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; prCache =</span>
                 cache.getUnchecked(program);
 <span class="fc" id="L104">        Object result = prCache.getFirst().get(params);</span>
 <span class="fc bfc" id="L105" title="All 2 branches covered.">        if (result == null) {</span>
-            try {
-<span class="fc" id="L107">                result = prCache.getSecond().get(params, new CallableNullWrapper(compute));</span>
-<span class="nc" id="L108">            } catch (ExecutionException ex) {</span>
-<span class="nc" id="L109">                throw new ZExecutionException(ex);</span>
-<span class="fc" id="L110">            }</span>
+<span class="fc" id="L106">            result = prCache.getSecond().get(params, new CallableNullWrapper(compute));</span>
         }
-<span class="pc bpc" id="L112" title="1 of 2 branches missed.">        if (result == ResultCache.NULL) {</span>
-<span class="nc" id="L113">            result = null;</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        if (result == ResultCache.NULL) {</span>
+<span class="nc" id="L109">            result = null;</span>
         }
-<span class="fc" id="L115">        return result;</span>
+<span class="fc" id="L111">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L120">        return &quot;SimpleResultCache{&quot; + &quot;cache=&quot; + cache + '}';</span>
+<span class="nc" id="L116">        return &quot;SimpleResultCache{&quot; + &quot;cache=&quot; + cache + '}';</span>
     }
 
     private static class CallableNullWrapper implements Callable&lt;Object&gt; {
 
         private final Callable&lt;Object&gt; compute;
 
-<span class="fc" id="L127">        public CallableNullWrapper(final Callable&lt;Object&gt; compute) {</span>
-<span class="fc" id="L128">            this.compute = compute;</span>
-<span class="fc" id="L129">        }</span>
+<span class="fc" id="L123">        public CallableNullWrapper(final Callable&lt;Object&gt; compute) {</span>
+<span class="fc" id="L124">            this.compute = compute;</span>
+<span class="fc" id="L125">        }</span>
 
         @Override
         public Object call() throws Exception {
-<span class="fc" id="L133">            Object result = compute.call();</span>
-<span class="pc bpc" id="L134" title="1 of 2 branches missed.">            if (result == null) {</span>
-<span class="nc" id="L135">                return ResultCache.NULL;</span>
+<span class="fc" id="L129">            Object result = compute.call();</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">            if (result == null) {</span>
+<span class="nc" id="L131">                return ResultCache.NULL;</span>
             } else {
-<span class="fc" id="L137">                return result;</span>
+<span class="fc" id="L133">                return result;</span>
             }
         }
     }
 
-    
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

@@ -24,37 +24,41 @@ package org.spf4j.base;
 public final class IntMath {
 
 <span class="nc" id="L26">    private IntMath() { }</span>
-    
+
     public static int closestPowerOf2(final int number) {
-<span class="nc bnc" id="L29" title="All 2 branches missed.">        return number == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(number - 1);</span>
+<span class="pc bpc" id="L29" title="1 of 2 branches missed.">        return number == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(number - 1);</span>
     }
-    
-<span class="fc" id="L32">    public static final class XorShift32 {</span>
+
+    public static int closestPowerOf2Number(final int number) {
+<span class="nc bnc" id="L33" title="All 2 branches missed.">       return number == 0 ? 0 : 1 &lt;&lt; (32 - Integer.numberOfLeadingZeros(number - 1));</span>
+    }
+
+<span class="fc" id="L36">    public static final class XorShift32 {</span>
         // XorShift128 PRNG with a 2^32-1 period.
-<span class="fc" id="L34">        private int x = System.identityHashCode(this);</span>
+<span class="fc" id="L38">        private int x = System.identityHashCode(this);</span>
 
         public int nextInt() {
-<span class="fc" id="L37">            x ^= (x &lt;&lt; 6);</span>
-<span class="fc" id="L38">            x ^= (x &gt;&gt;&gt; 21);</span>
-<span class="fc" id="L39">            return x ^ (x &lt;&lt; 7);</span>
+<span class="fc" id="L41">            x ^= (x &lt;&lt; 6);</span>
+<span class="fc" id="L42">            x ^= (x &gt;&gt;&gt; 21);</span>
+<span class="fc" id="L43">            return x ^ (x &lt;&lt; 7);</span>
         }
     }
 
-<span class="fc" id="L43">    public static final class XorShift128 {</span>
+<span class="fc" id="L47">    public static final class XorShift128 {</span>
         // XorShift128 PRNG with a 2^128-1 period.
-<span class="fc" id="L45">        private int x = System.identityHashCode(this);</span>
-<span class="fc" id="L46">        private int y = -938745813;</span>
-<span class="fc" id="L47">        private int z = 452465366;</span>
-<span class="fc" id="L48">        private int w = 1343246171;</span>
+<span class="fc" id="L49">        private int x = System.identityHashCode(this);</span>
+<span class="fc" id="L50">        private int y = -938745813;</span>
+<span class="fc" id="L51">        private int z = 452465366;</span>
+<span class="fc" id="L52">        private int w = 1343246171;</span>
 
         public int nextInt() {
-<span class="fc" id="L51">            int t = x ^ (x &lt;&lt; 15);</span>
-<span class="fc" id="L52">            x = y; y = z; z = w;</span>
-<span class="fc" id="L53">            w = (w ^ (w &gt;&gt;&gt; 21)) ^ (t ^ (t &gt;&gt;&gt; 4));</span>
-<span class="fc" id="L54">            return w;</span>
+<span class="fc" id="L55">            int t = x ^ (x &lt;&lt; 15);</span>
+<span class="fc" id="L56">            x = y; y = z; z = w;</span>
+<span class="fc" id="L57">            w = (w ^ (w &gt;&gt;&gt; 21)) ^ (t ^ (t &gt;&gt;&gt; 4));</span>
+<span class="fc" id="L58">            return w;</span>
         }
     }
-    
-    
+
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

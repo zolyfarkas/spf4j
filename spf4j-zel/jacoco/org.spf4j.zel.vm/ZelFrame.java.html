@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ZelFrame.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.vm</a> &gt; <span class="el_source">ZelFrame.java</span></div><h1>ZelFrame.java</h1><pre class="source lang-java linenums">
+package org.spf4j.zel.vm;
+
+import java.io.Serializable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ *
+ * @author zoly
+ */
+public final class ZelFrame implements Serializable {
+
+
+<span class="fc" id="L16">    private static final ConcurrentMap&lt;String, String&gt; SOURCES = new ConcurrentHashMap();</span>
+
+<span class="fc" id="L18">    private static final AtomicInteger IDX = new AtomicInteger();</span>
+    private static final long serialVersionUID = 1L;
+
+    public static String newSource(final String sourceDetail) {
+<span class="fc" id="L22">        String id = &quot;zel_&quot; + IDX.getAndIncrement();</span>
+<span class="fc" id="L23">        SOURCES.put(id, sourceDetail);</span>
+<span class="fc" id="L24">        return id;</span>
+    }
+
+    public static String getDetail(final String id) {
+<span class="fc" id="L28">        return SOURCES.get(id);</span>
+    }
+
+    private final String programName;
+
+    private final String source;
+
+    private final int index;
+
+<span class="fc" id="L37">    public ZelFrame(final String programName, final String source, final int index) {</span>
+<span class="fc" id="L38">        this.programName = programName;</span>
+<span class="fc" id="L39">        this.index = index;</span>
+<span class="fc" id="L40">        this.source = source;</span>
+<span class="fc" id="L41">    }</span>
+
+    @Override
+    public String toString() {
+<span class="fc" id="L45">        return programName + &quot;(&quot; + source + &quot;:&quot; + index + &quot;)&quot;;</span>
+    }
+
+    public String getProgramName() {
+<span class="nc" id="L49">        return programName;</span>
+    }
+
+    public String getSource() {
+<span class="fc" id="L53">        return source;</span>
+    }
+
+    public int getIndex() {
+<span class="nc" id="L57">        return index;</span>
+    }
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

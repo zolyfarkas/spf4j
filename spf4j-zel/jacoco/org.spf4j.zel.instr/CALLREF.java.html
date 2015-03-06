@@ -18,6 +18,7 @@
 package org.spf4j.zel.instr;
 
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
@@ -27,35 +28,35 @@ import org.spf4j.zel.vm.ZExecutionException;
 
 public final class CALLREF extends Instruction {
 
-    private static final long serialVersionUID = 759722625722456554L;
+    private static final long serialVersionUID = 1L;
 
-<span class="fc" id="L32">    private CALLREF() {</span>
-<span class="fc" id="L33">    }</span>
+<span class="fc" id="L33">    private CALLREF() {</span>
+<span class="fc" id="L34">    }</span>
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
+//    @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, InterruptedException, SuspendedException {
-<span class="fc" id="L39">        final Integer nrParams = (Integer) context.pop();</span>
+            throws ExecutionException, InterruptedException, SuspendedException {
+<span class="fc" id="L40">        final Integer nrParams = (Integer) context.pop();</span>
         final Object[] parameters;
         try {
-<span class="fc" id="L42">            parameters = context.popSyncStackVals(nrParams);</span>
-<span class="nc" id="L43">        } catch (SuspendedException e) {</span>
-<span class="nc" id="L44">            context.push(nrParams);</span>
-<span class="nc" id="L45">            throw e;</span>
-<span class="fc" id="L46">        }</span>
-<span class="fc" id="L47">        final Object function = ((AssignableValue) context.pop()).get();</span>
+<span class="fc" id="L43">            parameters = context.popSyncStackVals(nrParams);</span>
+<span class="nc" id="L44">        } catch (SuspendedException e) {</span>
+<span class="nc" id="L45">            context.push(nrParams);</span>
+<span class="nc" id="L46">            throw e;</span>
+<span class="fc" id="L47">        }</span>
+<span class="fc" id="L48">        final Object function = ((AssignableValue) context.pop()).get();</span>
 
-<span class="fc" id="L49">        context.push(new FunctionDeref(context, function, parameters));</span>
+<span class="fc" id="L50">        context.push(new FunctionDeref(context, function, parameters));</span>
 
-<span class="fc" id="L51">        return 1;</span>
+<span class="fc" id="L52">        return 1;</span>
     }
 
-<span class="fc" id="L54">    public static final Instruction INSTANCE = new CALLREF();</span>
+<span class="fc" id="L55">    public static final Instruction INSTANCE = new CALLREF();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L58">        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L59">        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 
     private static final class FunctionDeref implements AssignableValue {
@@ -64,51 +65,51 @@ public final class CALLREF extends Instruction {
         private final Object function;
         private final Object[] parameters;
 
-<span class="fc" id="L67">        public FunctionDeref(final ExecutionContext context, final Object function, final Object[] parameters) {</span>
-<span class="fc" id="L68">            this.context = context;</span>
-<span class="fc" id="L69">            this.function = function;</span>
-<span class="fc" id="L70">            this.parameters = parameters;</span>
-<span class="fc" id="L71">        }</span>
+<span class="fc" id="L68">        public FunctionDeref(final ExecutionContext context, final Object function, final Object[] parameters) {</span>
+<span class="fc" id="L69">            this.context = context;</span>
+<span class="fc" id="L70">            this.function = function;</span>
+<span class="fc" id="L71">            this.parameters = parameters;</span>
+<span class="fc" id="L72">        }</span>
 
         @Override
         public void assign(final Object object) {
-<span class="fc" id="L75">            context.resultCache.putPermanentResult((Program) function,</span>
+<span class="fc" id="L76">            context.resultCache.putPermanentResult((Program) function,</span>
                     Arrays.asList(parameters), object);
 
-<span class="fc" id="L78">        }</span>
+<span class="fc" id="L79">        }</span>
 
         @Override
-        public Object get() throws ZExecutionException, InterruptedException {
+        public Object get() throws ExecutionException, InterruptedException {
 
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">            if (function instanceof Program) {</span>
-<span class="nc" id="L84">                final Program p = (Program) function;</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">            if (function instanceof Program) {</span>
+<span class="nc" id="L85">                final Program p = (Program) function;</span>
                 final ExecutionContext nctx;
                 Object obj;
-<span class="nc bnc" id="L87" title="All 3 branches missed.">                switch (p.getType()) {</span>
+<span class="nc bnc" id="L88" title="All 3 branches missed.">                switch (p.getType()) {</span>
                     case DETERMINISTIC:
-<span class="nc" id="L89">                        nctx = context.getSyncSubProgramContext(p, parameters);</span>
-<span class="nc" id="L90">                        obj = context.resultCache.getResult(p, Arrays.asList(parameters), new SyncCallable(nctx));</span>
+<span class="nc" id="L90">                        nctx = context.getSyncSubProgramContext(p, parameters);</span>
+<span class="nc" id="L91">                        obj = context.resultCache.getResult(p, Arrays.asList(parameters), new SyncCallable(nctx));</span>
 
-<span class="nc" id="L92">                        break;</span>
+<span class="nc" id="L93">                        break;</span>
                     case NONDETERMINISTIC:
-<span class="nc" id="L94">                        nctx = context.getSyncSubProgramContext(p, parameters);</span>
-<span class="nc" id="L95">                        obj = Program.executeSync(nctx);</span>
-<span class="nc" id="L96">                        break;</span>
+<span class="nc" id="L95">                        nctx = context.getSyncSubProgramContext(p, parameters);</span>
+<span class="nc" id="L96">                        obj = Program.executeSync(nctx);</span>
+<span class="nc" id="L97">                        break;</span>
                     default:
-<span class="nc" id="L98">                        throw new UnsupportedOperationException(p.getType().toString());</span>
+<span class="nc" id="L99">                        throw new UnsupportedOperationException(p.getType().toString());</span>
                 }
-<span class="nc" id="L100">                return obj;</span>
-<span class="pc bpc" id="L101" title="1 of 2 branches missed.">            } else if (function instanceof Method) {</span>
+<span class="nc" id="L101">                return obj;</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">            } else if (function instanceof Method) {</span>
                 try {
-<span class="fc" id="L103">                    return ((Method) function).invoke(context, parameters);</span>
-<span class="nc" id="L104">                } catch (Exception ex) {</span>
-<span class="nc" id="L105">                    throw new ZExecutionException(&quot;cannot invoke &quot; + function, ex);</span>
+<span class="fc" id="L104">                    return ((Method) function).invoke(context, parameters);</span>
+<span class="nc" id="L105">                } catch (Exception ex) {</span>
+<span class="nc" id="L106">                    throw new ZExecutionException(&quot;cannot invoke &quot; + function, ex);</span>
                 }
             } else {
-<span class="nc" id="L108">                throw new ZExecutionException(&quot;cannot invoke &quot; + function);</span>
+<span class="nc" id="L109">                throw new ZExecutionException(&quot;cannot invoke &quot; + function);</span>
             }
 
         }
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

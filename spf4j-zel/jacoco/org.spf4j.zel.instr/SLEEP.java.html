@@ -18,13 +18,13 @@
 package org.spf4j.zel.instr;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.Arrays;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.VMASyncFuture;
-import org.spf4j.zel.vm.ZExecutionException;
 
 /**
  *
@@ -40,7 +40,7 @@ public final class SLEEP extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException, InterruptedException {
+            throws SuspendedException, InterruptedException, ExecutionException {
 <span class="nc" id="L44">        Number param = (Number) context.popSyncStackVal();</span>
 <span class="nc" id="L45">        final long sleepMillis = param.longValue();</span>
 <span class="nc bnc" id="L46" title="All 2 branches missed.">        if (sleepMillis &gt; 0) {</span>
@@ -85,4 +85,4 @@ public final class SLEEP extends Instruction {
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

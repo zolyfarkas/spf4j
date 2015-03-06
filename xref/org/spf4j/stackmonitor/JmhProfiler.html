@@ -44,12 +44,12 @@
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment"> */</em>
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/stackmonitor/JmhProfiler.html">JmhProfiler</a> <strong class="jxr_keyword">implements</strong> InternalProfiler {
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>   
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>      <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment">     * Sampling period</em>
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> SAMPLE_PERIOD_MSEC = Integer.getInteger(<span class="jxr_string">"jmh.stack.period"</span>, 5);
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>      
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> SAMPLE_PERIOD_MSEC = Integer.getInteger(<span class="jxr_string">"jmh.stack.period"</span>, 10);
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String DUMP_FOLDER = System.getProperty(<span class="jxr_string">"jmh.stack.profiles"</span>, org.spf4j.base.Runtime.USER_DIR);
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>  
 <a class="jxr_linenumber" name="L47" href="#L47">47</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a> SAMPLER = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a>(SAMPLE_PERIOD_MSEC, Integer.MAX_VALUE,
@@ -93,14 +93,14 @@
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>      }
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>  
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/stackmonitor/JmhProfiler.html">StackResult</a> <strong class="jxr_keyword">extends</strong> Result&lt;StackResult&gt; {
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>          
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>          <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 1L;
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>  
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>          <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/SampleNode.html">SampleNode</a> samples;
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>          <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String benchmark;
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>          <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String fileName;
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>  
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>          
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>  
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>          <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/JmhProfiler.html">StackResult</a>(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/SampleNode.html">SampleNode</a> samples, <strong class="jxr_keyword">final</strong> String benchmark, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> isIteration)
 <a class="jxr_linenumber" name="L97" href="#L97">97</a>          <strong class="jxr_keyword">throws</strong> IOException {
 <a class="jxr_linenumber" name="L98" href="#L98">98</a>              <strong class="jxr_keyword">super</strong>(ResultRole.SECONDARY, <span class="jxr_string">"@stack"</span>, of(Double.NaN), <span class="jxr_string">"---"</span>, AggregationPolicy.AVG);
@@ -113,7 +113,7 @@
 <a class="jxr_linenumber" name="L105" href="#L105">105</a>                 Converter.saveToFile(fileName, samples);
 <a class="jxr_linenumber" name="L106" href="#L106">106</a>             }
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>         }
-<a class="jxr_linenumber" name="L108" href="#L108">108</a>         
+<a class="jxr_linenumber" name="L108" href="#L108">108</a> 
 <a class="jxr_linenumber" name="L109" href="#L109">109</a> 
 <a class="jxr_linenumber" name="L110" href="#L110">110</a>         <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/SampleNode.html">SampleNode</a> getSamples() {
 <a class="jxr_linenumber" name="L111" href="#L111">111</a>             <strong class="jxr_keyword">return</strong> samples;
@@ -132,7 +132,7 @@
 <a class="jxr_linenumber" name="L124" href="#L124">124</a>         <strong class="jxr_keyword">protected</strong> Aggregator&lt;StackResult&gt; getIterationAggregator() {
 <a class="jxr_linenumber" name="L125" href="#L125">125</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/stackmonitor/JmhProfiler.html">StackAggregator</a>();
 <a class="jxr_linenumber" name="L126" href="#L126">126</a>         }
-<a class="jxr_linenumber" name="L127" href="#L127">127</a>         
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> 
 <a class="jxr_linenumber" name="L128" href="#L128">128</a>         @Override
 <a class="jxr_linenumber" name="L129" href="#L129">129</a>         <strong class="jxr_keyword">public</strong> String toString() {
 <a class="jxr_linenumber" name="L130" href="#L130">130</a>             <strong class="jxr_keyword">return</strong> <span class="jxr_string">"&lt;delayed till summary&gt;"</span>;
@@ -146,14 +146,14 @@
 <a class="jxr_linenumber" name="L138" href="#L138">138</a>                 <strong class="jxr_keyword">return</strong> <span class="jxr_string">"Stack sampling profile at: "</span> + fileName;
 <a class="jxr_linenumber" name="L139" href="#L139">139</a>             }
 <a class="jxr_linenumber" name="L140" href="#L140">140</a>         }
-<a class="jxr_linenumber" name="L141" href="#L141">141</a>         
+<a class="jxr_linenumber" name="L141" href="#L141">141</a> 
 <a class="jxr_linenumber" name="L142" href="#L142">142</a> 
 <a class="jxr_linenumber" name="L143" href="#L143">143</a>     }
 <a class="jxr_linenumber" name="L144" href="#L144">144</a> 
 <a class="jxr_linenumber" name="L145" href="#L145">145</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/stackmonitor/JmhProfiler.html">StackAggregator</a> <strong class="jxr_keyword">implements</strong> Aggregator&lt;StackResult&gt; {
 <a class="jxr_linenumber" name="L146" href="#L146">146</a> 
 <a class="jxr_linenumber" name="L147" href="#L147">147</a>         @Override
-<a class="jxr_linenumber" name="L148" href="#L148">148</a>         <strong class="jxr_keyword">public</strong> Result aggregate(<strong class="jxr_keyword">final</strong> Collection&lt;StackResult&gt; results) {
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>         <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/JmhProfiler.html">StackResult</a> aggregate(<strong class="jxr_keyword">final</strong> Collection&lt;StackResult&gt; results) {
 <a class="jxr_linenumber" name="L149" href="#L149">149</a>             <strong class="jxr_keyword">if</strong> (results.isEmpty()) {
 <a class="jxr_linenumber" name="L150" href="#L150">150</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Nothig to aggregate: "</span> + results);
 <a class="jxr_linenumber" name="L151" href="#L151">151</a>             }
@@ -181,6 +181,6 @@
 <a class="jxr_linenumber" name="L173" href="#L173">173</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2014. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2015. All rights reserved.</div>
 </body>
 </html>

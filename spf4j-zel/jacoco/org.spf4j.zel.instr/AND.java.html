@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
@@ -26,24 +27,25 @@ public final class AND extends Instruction {
 
     private static final long serialVersionUID = -7010871353287467986L;
 
-<span class="nc" id="L29">    private AND() {</span>
-<span class="nc" id="L30">    }</span>
+<span class="nc" id="L30">    private AND() {</span>
+<span class="nc" id="L31">    }</span>
 
     @Override
     public int execute(final ExecutionContext context)
-            throws SuspendedException {
-<span class="nc" id="L35">        Object [] vals = context.popSyncStackVals(2);</span>
-<span class="nc bnc" id="L36" title="All 4 branches missed.">        context.push(((java.lang.Boolean) vals[0]) &amp;&amp; ((java.lang.Boolean) vals[1]));</span>
-<span class="nc" id="L37">        return 1;</span>
+            throws SuspendedException, ExecutionException {
+<span class="nc" id="L36">        final Object[] vals = context.tuple();</span>
+<span class="nc" id="L37">        context.popSyncStackVals(vals);</span>
+<span class="nc bnc" id="L38" title="All 4 branches missed.">        context.push(((java.lang.Boolean) vals[0]) &amp;&amp; ((java.lang.Boolean) vals[1]));</span>
+<span class="nc" id="L39">        return 1;</span>
     }
 
-<span class="nc" id="L40">    public static final Instruction INSTANCE = new AND();</span>
+<span class="nc" id="L42">    public static final Instruction INSTANCE = new AND();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="nc" id="L44">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="nc" id="L46">        return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

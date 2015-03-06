@@ -42,27 +42,38 @@ public final class GraphiteUdpStore implements MeasurementStore {
 
         @Override
         public DatagramChannel create() throws ObjectCreationException {
+            DatagramChannel datagramChannel;
             try {
-<span class="fc" id="L46">                DatagramChannel datagramChannel = DatagramChannel.open();</span>
-<span class="fc" id="L47">                datagramChannel.connect(address);</span>
-<span class="fc" id="L48">                return datagramChannel;</span>
-<span class="nc" id="L49">            } catch (IOException ex) {</span>
-<span class="nc" id="L50">                throw new ObjectCreationException(ex);</span>
+<span class="fc" id="L47">                datagramChannel = DatagramChannel.open();</span>
+<span class="nc" id="L48">            } catch (IOException ex) {</span>
+<span class="nc" id="L49">                throw new ObjectCreationException(ex);</span>
+<span class="fc" id="L50">            }</span>
+            try {
+<span class="fc" id="L52">                datagramChannel.connect(address);</span>
+<span class="fc" id="L53">                return datagramChannel;</span>
+<span class="nc" id="L54">            } catch (IOException ex) {</span>
+                try {
+<span class="nc" id="L56">                    datagramChannel.close();</span>
+<span class="nc" id="L57">                } catch (IOException ex1) {</span>
+<span class="nc" id="L58">                    ex1.addSuppressed(ex);</span>
+<span class="nc" id="L59">                    throw new ObjectCreationException(ex1);</span>
+<span class="nc" id="L60">                }</span>
+<span class="nc" id="L61">                throw new ObjectCreationException(ex);</span>
             }
         }
 
         @Override
         public void dispose(final DatagramChannel object) throws ObjectDisposeException {
             try {
-<span class="nc" id="L57">                object.close();</span>
-<span class="nc" id="L58">            } catch (IOException ex) {</span>
-<span class="nc" id="L59">                throw new ObjectDisposeException(ex);</span>
-<span class="nc" id="L60">            }</span>
-<span class="nc" id="L61">        }</span>
+<span class="nc" id="L68">                object.close();</span>
+<span class="nc" id="L69">            } catch (IOException ex) {</span>
+<span class="nc" id="L70">                throw new ObjectDisposeException(ex);</span>
+<span class="nc" id="L71">            }</span>
+<span class="nc" id="L72">        }</span>
 
         @Override
         public boolean validate(final DatagramChannel object, final Exception e) throws Exception {
-<span class="nc bnc" id="L65" title="All 4 branches missed.">            return e == null || !(Throwables.getRootCause(e) instanceof IOException);</span>
+<span class="nc bnc" id="L76" title="All 4 branches missed.">            return e == null || !(Throwables.getRootCause(e) instanceof IOException);</span>
         }
 
     }
@@ -74,65 +85,63 @@ public final class GraphiteUdpStore implements MeasurementStore {
     public static final int MAX_UDP_MSG_SIZE = 512;
 
    public GraphiteUdpStore(final String hostPort) throws ObjectCreationException, URISyntaxException {
-<span class="fc" id="L77">        this(new URI(&quot;graphiteUdp://&quot; + hostPort));</span>
-<span class="fc" id="L78">    }</span>
-    
+<span class="fc" id="L88">        this(new URI(&quot;graphiteUdp://&quot; + hostPort));</span>
+<span class="fc" id="L89">    }</span>
+
     public GraphiteUdpStore(final URI uri) throws ObjectCreationException {
-<span class="fc" id="L81">        this(uri.getHost(), uri.getPort());</span>
-<span class="fc" id="L82">    }</span>
-    
-<span class="fc" id="L84">    public GraphiteUdpStore(final String hostName, final int port) throws ObjectCreationException {</span>
-<span class="fc" id="L85">        address = new InetSocketAddress(hostName, port);</span>
-<span class="fc" id="L86">        datagramChannelSupplier = new RecyclingSupplierBuilder&lt;DatagramChannel&gt;(1,</span>
+<span class="fc" id="L92">        this(uri.getHost(), uri.getPort());</span>
+<span class="fc" id="L93">    }</span>
+
+<span class="fc" id="L95">    public GraphiteUdpStore(final String hostName, final int port) throws ObjectCreationException {</span>
+<span class="fc" id="L96">        address = new InetSocketAddress(hostName, port);</span>
+<span class="fc" id="L97">        datagramChannelSupplier = new RecyclingSupplierBuilder&lt;DatagramChannel&gt;(1,</span>
                 new DatagramChannelSupplierFactory(address)).build();
-<span class="fc" id="L88">    }</span>
+<span class="fc" id="L99">    }</span>
 
     @Override
     public void alocateMeasurements(final EntityMeasurementsInfo measurement, final int sampleTimeMillis) {
         // DO NOTHING.
-<span class="fc" id="L93">    }</span>
+<span class="fc" id="L104">    }</span>
 
     @Override
     public void saveMeasurements(final EntityMeasurementsInfo measurementInfo,
             final long timeStampMillis, final int sampleTimeMillis, final long... measurements) throws IOException {
 
         try {
-<span class="fc" id="L100">            Template.doOnSupplied(new HandlerImpl(measurements, measurementInfo, timeStampMillis),</span>
+<span class="fc" id="L111">            Template.doOnSupplied(new HandlerImpl(measurements, measurementInfo, timeStampMillis),</span>
                     datagramChannelSupplier, 3, 1000, 60000);
-<span class="nc" id="L102">        } catch (InterruptedException ex) {</span>
-<span class="nc" id="L103">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L104">        }</span>
+<span class="nc" id="L113">        } catch (InterruptedException ex) {</span>
+<span class="nc" id="L114">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L115">        }</span>
 
-<span class="fc" id="L106">    }</span>
+<span class="fc" id="L117">    }</span>
 
     public static void writeMetric(final EntityMeasurementsInfo measurementInfo, final String measurementName,
             final long measurement, final long timeStampMillis, final Writer os)
             throws IOException {
-<span class="fc" id="L111">        Strings.writeReplaceWhitespaces(measurementInfo.getMeasuredEntity().toString(), '-', os);</span>
-<span class="fc" id="L112">        os.append('/');</span>
-<span class="fc" id="L113">        Strings.writeReplaceWhitespaces(measurementName, '-', os);</span>
-<span class="fc" id="L114">        os.append(' ');</span>
-<span class="fc" id="L115">        os.append(Long.toString(measurement));</span>
-<span class="fc" id="L116">        os.append(' ');</span>
-<span class="fc" id="L117">        os.append(Long.toString(timeStampMillis));</span>
-<span class="fc" id="L118">        os.append('\n');</span>
-<span class="fc" id="L119">    }</span>
+<span class="fc" id="L122">        Strings.writeReplaceWhitespaces(measurementInfo.getMeasuredEntity().toString(), '-', os);</span>
+<span class="fc" id="L123">        os.append('/');</span>
+<span class="fc" id="L124">        Strings.writeReplaceWhitespaces(measurementName, '-', os);</span>
+<span class="fc" id="L125">        os.append(' ');</span>
+<span class="fc" id="L126">        os.append(Long.toString(measurement));</span>
+<span class="fc" id="L127">        os.append(' ');</span>
+<span class="fc" id="L128">        os.append(Long.toString(timeStampMillis));</span>
+<span class="fc" id="L129">        os.append('\n');</span>
+<span class="fc" id="L130">    }</span>
 
     @Override
     public String toString() {
-<span class="fc" id="L123">        return &quot;GraphiteUdpStore{address=&quot; + address + '}';</span>
+<span class="fc" id="L134">        return &quot;GraphiteUdpStore{address=&quot; + address + '}';</span>
     }
 
     @Override
     public void close() throws IOException {
         try {
-<span class="nc" id="L129">            datagramChannelSupplier.dispose();</span>
-<span class="nc" id="L130">        } catch (ObjectDisposeException ex) {</span>
-<span class="nc" id="L131">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L132">        } catch (InterruptedException ex) {</span>
-<span class="nc" id="L133">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L134">        }</span>
-<span class="nc" id="L135">    }</span>
+<span class="nc" id="L140">            datagramChannelSupplier.dispose();</span>
+<span class="nc" id="L141">        } catch (ObjectDisposeException | InterruptedException ex) {</span>
+<span class="nc" id="L142">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L143">        }</span>
+<span class="nc" id="L144">    }</span>
 
     private static class HandlerImpl implements Handler&lt;DatagramChannel, IOException&gt; {
 
@@ -141,38 +150,39 @@ public final class GraphiteUdpStore implements MeasurementStore {
         private final long timeStampMillis;
 
         public HandlerImpl(final long[] measurements, final EntityMeasurementsInfo measurementInfo,
-<span class="fc" id="L144">                final long timeStampMillis) {</span>
-<span class="fc" id="L145">            this.measurements = measurements;</span>
-<span class="fc" id="L146">            this.measurementInfo = measurementInfo;</span>
-<span class="fc" id="L147">            this.timeStampMillis = timeStampMillis;</span>
-<span class="fc" id="L148">        }</span>
+<span class="fc" id="L153">                final long timeStampMillis) {</span>
+<span class="fc" id="L154">            this.measurements = measurements;</span>
+<span class="fc" id="L155">            this.measurementInfo = measurementInfo;</span>
+<span class="fc" id="L156">            this.timeStampMillis = timeStampMillis;</span>
+<span class="fc" id="L157">        }</span>
 
         @Override
         public void handle(final DatagramChannel datagramChannel, final long deadline) throws IOException {
-<span class="fc" id="L152">            ByteArrayBuilder bos = new ByteArrayBuilder();</span>
-<span class="fc" id="L153">            OutputStreamWriter os = new OutputStreamWriter(bos, Charsets.UTF_8);</span>
-            
-<span class="fc" id="L155">            int msgStart = 0, msgEnd = 0, prevEnd = 0;</span>
-            
-<span class="fc bfc" id="L157" title="All 2 branches covered.">            for (int i = 0; i &lt; measurements.length; i++) {</span>
-<span class="fc" id="L158">                writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),</span>
-                        measurements[i], timeStampMillis, os);
-<span class="fc" id="L160">                os.flush();</span>
-<span class="fc" id="L161">                msgEnd = bos.size();</span>
-<span class="fc" id="L162">                int length = msgEnd - msgStart;</span>
-<span class="fc bfc" id="L163" title="All 2 branches covered.">                if (length &gt; MAX_UDP_MSG_SIZE) {</span>
-<span class="fc" id="L164">                    ByteBuffer byteBuffer = ByteBuffer.wrap(bos.getBuffer(), msgStart, prevEnd - msgStart);</span>
-<span class="fc" id="L165">                    datagramChannel.write(byteBuffer);</span>
-<span class="fc" id="L166">                    msgStart = prevEnd;</span>
+<span class="pc" id="L161">            try (ByteArrayBuilder bos = new ByteArrayBuilder();</span>
+<span class="fc" id="L162">            OutputStreamWriter os = new OutputStreamWriter(bos, Charsets.UTF_8)) {</span>
+
+<span class="fc" id="L164">                int msgStart = 0, msgEnd = 0, prevEnd = 0;</span>
+
+<span class="fc bfc" id="L166" title="All 2 branches covered.">                for (int i = 0; i &lt; measurements.length; i++) {</span>
+<span class="fc" id="L167">                    writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),</span>
+                            measurements[i], timeStampMillis, os);
+<span class="fc" id="L169">                    os.flush();</span>
+<span class="fc" id="L170">                    msgEnd = bos.size();</span>
+<span class="fc" id="L171">                    int length = msgEnd - msgStart;</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">                    if (length &gt; MAX_UDP_MSG_SIZE) {</span>
+<span class="fc" id="L173">                        ByteBuffer byteBuffer = ByteBuffer.wrap(bos.getBuffer(), msgStart, prevEnd - msgStart);</span>
+<span class="fc" id="L174">                        datagramChannel.write(byteBuffer);</span>
+<span class="fc" id="L175">                        msgStart = prevEnd;</span>
+                    }
+<span class="fc" id="L177">                    prevEnd = msgEnd;</span>
                 }
-<span class="fc" id="L168">                prevEnd = msgEnd;</span>
-            }
-<span class="pc bpc" id="L170" title="1 of 2 branches missed.">            if (msgEnd &gt; msgStart) {</span>
-<span class="fc" id="L171">                ByteBuffer byteBuffer = ByteBuffer.wrap(bos.getBuffer(), msgStart, msgEnd - msgStart);</span>
-<span class="fc" id="L172">                datagramChannel.write(byteBuffer);</span>
-            }
-<span class="fc" id="L174">        }</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">                if (msgEnd &gt; msgStart) {</span>
+<span class="fc" id="L180">                    ByteBuffer byteBuffer = ByteBuffer.wrap(bos.getBuffer(), msgStart, msgEnd - msgStart);</span>
+<span class="fc" id="L181">                    datagramChannel.write(byteBuffer);</span>
+                }
+<span class="pc bpc" id="L183" title="12 of 16 branches missed.">            }</span>
+<span class="fc" id="L184">        }</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

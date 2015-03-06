@@ -17,12 +17,12 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
 
 
 
@@ -35,17 +35,18 @@ public final class POW extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
-<span class="fc" id="L39">        Object [] vals = context.popSyncStackVals(2);</span>
-<span class="fc" id="L40">        context.push(Operators.apply(Operator.Enum.Pow, vals[0], vals[1]));</span>
-<span class="fc" id="L41">        return 1;</span>
+            throws ExecutionException, SuspendedException {
+<span class="fc" id="L39">        final Object[] vals = context.tuple();</span>
+<span class="fc" id="L40">        context.popSyncStackVals(vals);</span>
+<span class="fc" id="L41">        context.push(Operators.apply(Operator.Enum.Pow, vals[0], vals[1]));</span>
+<span class="fc" id="L42">        return 1;</span>
     }
 
-<span class="fc" id="L44">    public static final Instruction INSTANCE = new POW();</span>
+<span class="fc" id="L45">    public static final Instruction INSTANCE = new POW();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L48">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L49">        return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
@@ -29,21 +30,23 @@ public final class MOD extends Instruction {
 
     private static final long serialVersionUID = -8318761232689949542L;
 
-<span class="nc" id="L32">    private MOD() {</span>
-<span class="nc" id="L33">    }</span>
+<span class="nc" id="L33">    private MOD() {</span>
+<span class="nc" id="L34">    }</span>
 
     @Override
-    public int execute(final ExecutionContext context) throws SuspendedException {
-<span class="nc" id="L37">        Object [] vals = context.popSyncStackVals(2);</span>
-<span class="nc" id="L38">        context.push(Operators.apply(Operator.Enum.Mod, vals[0], vals[1]));</span>
-<span class="nc" id="L39">        return 1;</span>
+    public int execute(final ExecutionContext context)
+            throws SuspendedException, ExecutionException {
+<span class="nc" id="L39">        final Object[] vals = context.tuple();</span>
+<span class="nc" id="L40">        context.popSyncStackVals(vals);</span>
+<span class="nc" id="L41">        context.push(Operators.apply(Operator.Enum.Mod, vals[0], vals[1]));</span>
+<span class="nc" id="L42">        return 1;</span>
     }
 
-<span class="nc" id="L42">    public static final Instruction INSTANCE = new MOD();</span>
+<span class="nc" id="L45">    public static final Instruction INSTANCE = new MOD();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="nc" id="L46">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="nc" id="L49">        return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

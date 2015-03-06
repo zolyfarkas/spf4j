@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>BufferedInputStream.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io</a> &gt; <span class="el_source">BufferedInputStream.java</span></div><h1>BufferedInputStream.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.io;
+
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import javax.annotation.WillClose;
+import org.spf4j.recyclable.SizedRecyclingSupplier;
+import org.spf4j.recyclable.impl.ArraySuppliers;
+
+@SuppressFBWarnings(&quot;VO_VOLATILE_REFERENCE_TO_ARRAY&quot;)
+@CleanupObligation
+public final class BufferedInputStream extends FilterInputStream {
+
+<span class="nc" id="L34">    private static int defaultBufferSize = 8192;</span>
+
+    private volatile byte[] buf;
+
+<span class="nc" id="L38">    private static final AtomicReferenceFieldUpdater&lt;BufferedInputStream, byte[]&gt; BUF_UPDATER</span>
+            = AtomicReferenceFieldUpdater.newUpdater(BufferedInputStream.class, byte[].class, &quot;buf&quot;);
+
+    private int count;
+
+    private int pos;
+
+<span class="nc" id="L45">    private int markpos = -1;</span>
+
+    private int marklimit;
+
+    private final SizedRecyclingSupplier&lt;byte[]&gt; bufferProvider;
+
+    private InputStream getInIfOpen() throws IOException {
+<span class="nc" id="L52">        InputStream input = in;</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (input == null) {</span>
+<span class="nc" id="L54">            throw new IOException(&quot;Stream closed &quot; + in);</span>
+        }
+<span class="nc" id="L56">        return input;</span>
+    }
+
+    private byte[] getBufIfOpen() throws IOException {
+<span class="nc" id="L60">        byte[] buffer = buf;</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (buffer == null) {</span>
+<span class="nc" id="L62">            throw new IOException(&quot;Stream closed &quot; + in);</span>
+        }
+<span class="nc" id="L64">        return buffer;</span>
+    }
+
+    public BufferedInputStream(final InputStream in) {
+<span class="nc" id="L68">        this(in, defaultBufferSize);</span>
+<span class="nc" id="L69">    }</span>
+
+    public BufferedInputStream(final InputStream in, final int size) {
+<span class="nc" id="L72">        this(in, size, ArraySuppliers.Bytes.JAVA_NEW);</span>
+<span class="nc" id="L73">    }</span>
+
+    public BufferedInputStream(final InputStream in, final int size,
+            final SizedRecyclingSupplier&lt;byte[]&gt; bufferProvider) {
+<span class="nc" id="L77">        super(in);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (size &lt;= 0) {</span>
+<span class="nc" id="L79">            throw new IllegalArgumentException(&quot;Buffer size &lt;= 0 : &quot; + size);</span>
+        }
+<span class="nc" id="L81">        this.bufferProvider = bufferProvider;</span>
+<span class="nc" id="L82">        buf = bufferProvider.get(size);</span>
+<span class="nc" id="L83">    }</span>
+
+    private void fill() throws IOException {
+<span class="nc" id="L86">        byte[] buffer = getBufIfOpen();</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        if (markpos &lt; 0) {</span>
+<span class="nc" id="L88">            pos = 0;</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        } else if (pos &gt;= buffer.length) {</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            if (markpos &gt; 0) {</span>
+<span class="nc" id="L91">                int sz = pos - markpos;</span>
+<span class="nc" id="L92">                System.arraycopy(buffer, markpos, buffer, 0, sz);</span>
+<span class="nc" id="L93">                pos = sz;</span>
+<span class="nc" id="L94">                markpos = 0;</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">            } else if (buffer.length &gt;= marklimit) {</span>
+<span class="nc" id="L96">                markpos = -1;</span>
+<span class="nc" id="L97">                pos = 0;</span>
+            } else {
+<span class="nc" id="L99">                int nsz = pos * 2;</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">                if (nsz &gt; marklimit) {</span>
+<span class="nc" id="L101">                    nsz = marklimit;</span>
+                }
+<span class="nc" id="L103">                byte[] nbuf = bufferProvider.get(nsz);</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                if (!BUF_UPDATER.compareAndSet(this, buffer, nbuf)) {</span>
+<span class="nc" id="L105">                    bufferProvider.recycle(nbuf);</span>
+<span class="nc" id="L106">                    throw new IOException(&quot;Stream closed &quot; + in);</span>
+                }
+<span class="nc" id="L108">                System.arraycopy(buffer, 0, nbuf, 0, pos);</span>
+<span class="nc" id="L109">                bufferProvider.recycle(buffer);</span>
+<span class="nc" id="L110">                buffer = nbuf;</span>
+            }
+        }
+<span class="nc" id="L113">        count = pos;</span>
+<span class="nc" id="L114">        int n = getInIfOpen().read(buffer, pos, buffer.length - pos);</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (n &gt; 0) {</span>
+<span class="nc" id="L116">            count = n + pos;</span>
+        }
+<span class="nc" id="L118">    }</span>
+
+    public synchronized int read() throws IOException {
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (pos &gt;= count) {</span>
+<span class="nc" id="L122">            fill();</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">            if (pos &gt;= count) {</span>
+<span class="nc" id="L124">                return -1;</span>
+            }
+        }
+<span class="nc" id="L127">        return getBufIfOpen()[pos++] &amp; 0xff;</span>
+    }
+
+    private int read1(final byte[] b, final int off, final int len) throws IOException {
+<span class="nc" id="L131">        int avail = count - pos;</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        if (avail &lt;= 0) {</span>
+<span class="nc bnc" id="L133" title="All 4 branches missed.">            if (len &gt;= getBufIfOpen().length &amp;&amp; markpos &lt; 0) {</span>
+<span class="nc" id="L134">                return getInIfOpen().read(b, off, len);</span>
+            }
+<span class="nc" id="L136">            fill();</span>
+<span class="nc" id="L137">            avail = count - pos;</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            if (avail &lt;= 0) {</span>
+<span class="nc" id="L139">                return -1;</span>
+            }
+        }
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        int cnt = (avail &lt; len) ? avail : len;</span>
+<span class="nc" id="L143">        System.arraycopy(getBufIfOpen(), pos, b, off, cnt);</span>
+<span class="nc" id="L144">        pos += cnt;</span>
+<span class="nc" id="L145">        return cnt;</span>
+    }
+
+    @Override
+    public synchronized int read(final byte[] b, final int off, final int len)
+            throws IOException {
+<span class="nc" id="L151">        getBufIfOpen(); // Check for closed stream</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        if ((off | len | (off + len) | (b.length - (off + len))) &lt; 0) {</span>
+<span class="nc" id="L153">            throw new IndexOutOfBoundsException();</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        } else if (len == 0) {</span>
+<span class="nc" id="L155">            return 0;</span>
+        }
+
+<span class="nc" id="L158">        int n = 0;</span>
+        for (;;) {
+<span class="nc" id="L160">            int nread = read1(b, off + n, len - n);</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">            if (nread &lt;= 0) {</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">                return (n == 0) ? nread : n;</span>
+            }
+<span class="nc" id="L164">            n += nread;</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">            if (n &gt;= len) {</span>
+<span class="nc" id="L166">                return n;</span>
+            }
+            // if not closed but no bytes available, return
+<span class="nc" id="L169">            InputStream input = in;</span>
+<span class="nc bnc" id="L170" title="All 4 branches missed.">            if (input != null &amp;&amp; input.available() &lt;= 0) {</span>
+<span class="nc" id="L171">                return n;</span>
+            }
+<span class="nc" id="L173">        }</span>
+    }
+
+    @Override
+    public synchronized long skip(final long n) throws IOException {
+<span class="nc" id="L178">        getBufIfOpen(); // Check for closed stream</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">        if (n &lt;= 0) {</span>
+<span class="nc" id="L180">            return 0;</span>
+        }
+<span class="nc" id="L182">        long avail = count - pos;</span>
+
+<span class="nc bnc" id="L184" title="All 2 branches missed.">        if (avail &lt;= 0) {</span>
+            // If no mark position set then don't keep in buffer
+<span class="nc bnc" id="L186" title="All 2 branches missed.">            if (markpos &lt; 0) {</span>
+<span class="nc" id="L187">                return getInIfOpen().skip(n);</span>
+            }
+
+            // Fill in buffer to save bytes for reset
+<span class="nc" id="L191">            fill();</span>
+<span class="nc" id="L192">            avail = count - pos;</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">            if (avail &lt;= 0) {</span>
+<span class="nc" id="L194">                return 0;</span>
+            }
+        }
+
+<span class="nc bnc" id="L198" title="All 2 branches missed.">        long skipped = (avail &lt; n) ? avail : n;</span>
+<span class="nc" id="L199">        pos += skipped;</span>
+<span class="nc" id="L200">        return skipped;</span>
+    }
+
+    @Override
+    public synchronized int available() throws IOException {
+<span class="nc" id="L205">        return getInIfOpen().available() + (count - pos);</span>
+    }
+
+    @Override
+    public synchronized void mark(final int readlimit) {
+<span class="nc" id="L210">        marklimit = readlimit;</span>
+<span class="nc" id="L211">        markpos = pos;</span>
+<span class="nc" id="L212">    }</span>
+
+    @Override
+    public synchronized void reset() throws IOException {
+<span class="nc" id="L216">        getBufIfOpen(); // Cause exception if closed</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">        if (markpos &lt; 0) {</span>
+<span class="nc" id="L218">            throw new IOException(&quot;Resetting to invalid mark&quot;);</span>
+        }
+<span class="nc" id="L220">        pos = markpos;</span>
+<span class="nc" id="L221">    }</span>
+
+    @Override
+    public boolean markSupported() {
+<span class="nc" id="L225">        return true;</span>
+    }
+
+    @Override
+    @WillClose
+    public void close() throws IOException {
+        byte[] buffer;
+<span class="nc bnc" id="L232" title="All 2 branches missed.">        while ((buffer = buf) != null) {</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">            if (BUF_UPDATER.compareAndSet(this, buffer, null)) {</span>
+<span class="nc" id="L234">                bufferProvider.recycle(buffer);</span>
+<span class="nc" id="L235">                InputStream input = in;</span>
+<span class="nc" id="L236">                in = null;</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">                if (input != null) {</span>
+<span class="nc" id="L238">                    input.close();</span>
+                }
+<span class="nc" id="L240">                return;</span>
+            }
+        }
+<span class="nc" id="L243">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

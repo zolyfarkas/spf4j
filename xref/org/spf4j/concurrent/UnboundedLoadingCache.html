@@ -38,21 +38,21 @@
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.MemorizedCallable;
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment"> *</em>
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment"> */</em>
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  @ParametersAreNonnullByDefault
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> UnboundedLoadingCache&lt;K, V&gt; <strong class="jxr_keyword">implements</strong> LoadingCache&lt;K, V&gt; {
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ConcurrentMap&lt;K, MemorizedCallable&lt;? <strong class="jxr_keyword">extends</strong> V&gt;&gt; map;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ConcurrentMap&lt;K, Callable&lt;? <strong class="jxr_keyword">extends</strong> V&gt;&gt; map;
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> CacheLoader&lt;K, V&gt; loader;
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>  
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/concurrent/UnboundedLoadingCache.html">UnboundedLoadingCache</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> initialSize, <strong class="jxr_keyword">final</strong> CacheLoader&lt;K, V&gt; loader) {
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>          <strong class="jxr_keyword">this</strong>(initialSize, 8, loader);
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>      }
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>      
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>      
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
 <a class="jxr_linenumber" name="L48" href="#L48">48</a>      <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/concurrent/UnboundedLoadingCache.html">UnboundedLoadingCache</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> initialSize, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> concurrency, <strong class="jxr_keyword">final</strong> CacheLoader&lt;K, V&gt; loader) {
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>          <strong class="jxr_keyword">this</strong>.map = <strong class="jxr_keyword">new</strong> ConcurrentHashMap&lt;&gt;(
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>                  initialSize, 0.75f, concurrency);
@@ -62,9 +62,9 @@
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>  
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>      @Override
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">public</strong> V get(<strong class="jxr_keyword">final</strong> K key) <strong class="jxr_keyword">throws</strong> ExecutionException {
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>          MemorizedCallable&lt;? <strong class="jxr_keyword">extends</strong> V&gt; existingValHolder = map.get(key);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          Callable&lt;? <strong class="jxr_keyword">extends</strong> V&gt; existingValHolder = map.get(key);
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>          <strong class="jxr_keyword">if</strong> (existingValHolder == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>              MemorizedCallable&lt;? <strong class="jxr_keyword">extends</strong> V&gt; newHolder = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/base/MemorizedCallable.html">MemorizedCallable</a>(<strong class="jxr_keyword">new</strong> Callable&lt;V&gt;() {
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>              Callable&lt;? <strong class="jxr_keyword">extends</strong> V&gt; newHolder = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/base/MemorizedCallable.html">MemorizedCallable</a>(<strong class="jxr_keyword">new</strong> Callable&lt;V&gt;() {
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>                  @Override
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>                  <strong class="jxr_keyword">public</strong> V call() <strong class="jxr_keyword">throws</strong> Exception {
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>                      <strong class="jxr_keyword">return</strong> loader.load(key);
@@ -122,7 +122,7 @@
 <a class="jxr_linenumber" name="L114" href="#L114">114</a> 
 <a class="jxr_linenumber" name="L115" href="#L115">115</a>     @Override
 <a class="jxr_linenumber" name="L116" href="#L116">116</a>     <strong class="jxr_keyword">public</strong> V getIfPresent(<strong class="jxr_keyword">final</strong> Object key) {
-<a class="jxr_linenumber" name="L117" href="#L117">117</a>         MemorizedCallable&lt;? <strong class="jxr_keyword">extends</strong> V&gt; existingValHolder = map.get(key);
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>         Callable&lt;? <strong class="jxr_keyword">extends</strong> V&gt; existingValHolder = map.get(key);
 <a class="jxr_linenumber" name="L118" href="#L118">118</a>         <strong class="jxr_keyword">if</strong> (existingValHolder != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L119" href="#L119">119</a>             <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L120" href="#L120">120</a>                 <strong class="jxr_keyword">return</strong> existingValHolder.call();
@@ -136,9 +136,9 @@
 <a class="jxr_linenumber" name="L128" href="#L128">128</a> 
 <a class="jxr_linenumber" name="L129" href="#L129">129</a>     @Override
 <a class="jxr_linenumber" name="L130" href="#L130">130</a>     <strong class="jxr_keyword">public</strong> V get(<strong class="jxr_keyword">final</strong> K key, <strong class="jxr_keyword">final</strong> Callable&lt;? <strong class="jxr_keyword">extends</strong> V&gt; valueLoader) <strong class="jxr_keyword">throws</strong> ExecutionException {
-<a class="jxr_linenumber" name="L131" href="#L131">131</a>         MemorizedCallable&lt;? <strong class="jxr_keyword">extends</strong> V&gt; existingValHolder = map.get(key);
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>         Callable&lt;? <strong class="jxr_keyword">extends</strong> V&gt; existingValHolder = map.get(key);
 <a class="jxr_linenumber" name="L132" href="#L132">132</a>         <strong class="jxr_keyword">if</strong> (existingValHolder == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L133" href="#L133">133</a>             MemorizedCallable&lt;? <strong class="jxr_keyword">extends</strong> V&gt; newHolder = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/base/MemorizedCallable.html">MemorizedCallable</a>(valueLoader);
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>             Callable&lt;? <strong class="jxr_keyword">extends</strong> V&gt; newHolder = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/base/MemorizedCallable.html">MemorizedCallable</a>(valueLoader);
 <a class="jxr_linenumber" name="L134" href="#L134">134</a>             existingValHolder = map.putIfAbsent(key, newHolder);
 <a class="jxr_linenumber" name="L135" href="#L135">135</a>             <strong class="jxr_keyword">if</strong> (existingValHolder == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L136" href="#L136">136</a>                 existingValHolder = newHolder;
@@ -165,13 +165,13 @@
 <a class="jxr_linenumber" name="L157" href="#L157">157</a> 
 <a class="jxr_linenumber" name="L158" href="#L158">158</a>     @Override
 <a class="jxr_linenumber" name="L159" href="#L159">159</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> put(<strong class="jxr_keyword">final</strong> K key, <strong class="jxr_keyword">final</strong> V value) {
-<a class="jxr_linenumber" name="L160" href="#L160">160</a>         map.put(key, <strong class="jxr_keyword">new</strong> MemorizedCallable&lt;V&gt;(<strong class="jxr_keyword">new</strong> Callable&lt;V&gt;() {
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>         map.put(key, <strong class="jxr_keyword">new</strong> Callable&lt;V&gt;() {
 <a class="jxr_linenumber" name="L161" href="#L161">161</a> 
 <a class="jxr_linenumber" name="L162" href="#L162">162</a>             @Override
 <a class="jxr_linenumber" name="L163" href="#L163">163</a>             <strong class="jxr_keyword">public</strong> V call() <strong class="jxr_keyword">throws</strong> Exception {
 <a class="jxr_linenumber" name="L164" href="#L164">164</a>                 <strong class="jxr_keyword">return</strong> value;
 <a class="jxr_linenumber" name="L165" href="#L165">165</a>             }
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>         }));
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>         });
 <a class="jxr_linenumber" name="L167" href="#L167">167</a>     }
 <a class="jxr_linenumber" name="L168" href="#L168">168</a> 
 <a class="jxr_linenumber" name="L169" href="#L169">169</a>     @Override
@@ -216,6 +216,6 @@
 <a class="jxr_linenumber" name="L208" href="#L208">208</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2014. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2015. All rights reserved.</div>
 </body>
 </html>

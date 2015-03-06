@@ -34,7 +34,6 @@ public final class RecyclingSupplierBuilder&lt;T&gt; {
 
     private final int maxSize;
     private final RecyclingSupplier.Factory&lt;T&gt; factory;
-    private long timeoutMillis;
     private boolean fair;
     private ScheduledExecutorService maintenanceExecutor;
     private long maintenanceIntervalMillis;
@@ -43,61 +42,56 @@ public final class RecyclingSupplierBuilder&lt;T&gt; {
     private int initialSize;
     private boolean collectBorrowed;
 
-<span class="fc" id="L46">    public RecyclingSupplierBuilder(final int maxSize, final RecyclingSupplier.Factory&lt;T&gt; factory) {</span>
-<span class="fc" id="L47">        this.fair = true;</span>
-<span class="fc" id="L48">        this.timeoutMillis = 60000;</span>
-<span class="fc" id="L49">        this.maxSize = maxSize;</span>
-<span class="fc" id="L50">        this.factory = factory;</span>
-<span class="fc" id="L51">        this.initialSize = 0;</span>
-<span class="fc" id="L52">    }</span>
+<span class="fc" id="L45">    public RecyclingSupplierBuilder(final int maxSize, final RecyclingSupplier.Factory&lt;T&gt; factory) {</span>
+<span class="fc" id="L46">        this.fair = true;</span>
+<span class="fc" id="L47">        this.maxSize = maxSize;</span>
+<span class="fc" id="L48">        this.factory = factory;</span>
+<span class="fc" id="L49">        this.initialSize = 0;</span>
+<span class="fc" id="L50">    }</span>
 
     public RecyclingSupplierBuilder&lt;T&gt; unfair() {
-<span class="nc" id="L55">        this.fair = false;</span>
-<span class="nc" id="L56">        return this;</span>
+<span class="nc" id="L53">        this.fair = false;</span>
+<span class="nc" id="L54">        return this;</span>
     }
 
     public RecyclingSupplierBuilder&lt;T&gt; withInitialSize(final int pinitialSize) {
-<span class="nc" id="L60">        this.initialSize = pinitialSize;</span>
-<span class="nc" id="L61">        return this;</span>
+<span class="nc" id="L58">        this.initialSize = pinitialSize;</span>
+<span class="nc" id="L59">        return this;</span>
     }
     
-    public RecyclingSupplierBuilder&lt;T&gt; withOperationTimeout(final long ptimeoutMillis) {
-<span class="nc" id="L65">        this.timeoutMillis = ptimeoutMillis;</span>
-<span class="nc" id="L66">        return this;</span>
-    }
 
     public RecyclingSupplierBuilder&lt;T&gt; withMaintenance(final ScheduledExecutorService pexec,
             final long pmaintenanceIntervalMillis, final boolean pcollectBorrowed) {
-<span class="fc" id="L71">        this.maintenanceExecutor = pexec;</span>
-<span class="fc" id="L72">        this.maintenanceIntervalMillis = pmaintenanceIntervalMillis;</span>
-<span class="fc" id="L73">        this.collectBorrowed = pcollectBorrowed;</span>
-<span class="fc" id="L74">        return this;</span>
+<span class="fc" id="L65">        this.maintenanceExecutor = pexec;</span>
+<span class="fc" id="L66">        this.maintenanceIntervalMillis = pmaintenanceIntervalMillis;</span>
+<span class="fc" id="L67">        this.collectBorrowed = pcollectBorrowed;</span>
+<span class="fc" id="L68">        return this;</span>
     }
 
     public RecyclingSupplierBuilder&lt;T&gt; withGetHook(final Handler&lt;T, ? extends Exception&gt; phook) {
-<span class="nc" id="L78">        this.borrowHook = phook;</span>
-<span class="nc" id="L79">        return this;</span>
+<span class="nc" id="L72">        this.borrowHook = phook;</span>
+<span class="nc" id="L73">        return this;</span>
     }
 
     public RecyclingSupplierBuilder&lt;T&gt; withRecycleHook(final Handler&lt;T, ? extends Exception&gt; phook) {
-<span class="nc" id="L83">        this.returnHook = phook;</span>
-<span class="nc" id="L84">        return this;</span>
+<span class="nc" id="L77">        this.returnHook = phook;</span>
+<span class="nc" id="L78">        return this;</span>
     }
 
     public RecyclingSupplier&lt;T&gt; build() throws ObjectCreationException {
-<span class="fc" id="L88">        final ScalableObjectPool&lt;T&gt; underlyingPool =</span>
-                new ScalableObjectPool&lt;T&gt;(initialSize, maxSize, factory, timeoutMillis, fair);
+<span class="fc" id="L82">        final ScalableObjectPool&lt;T&gt; underlyingPool =</span>
+                new ScalableObjectPool&lt;&gt;(initialSize, maxSize, factory, fair);
         final RecyclingSupplier&lt;T&gt; pool;
-<span class="pc bpc" id="L91" title="2 of 4 branches missed.">        if (borrowHook != null || returnHook != null) {</span>
-<span class="nc" id="L92">            pool = new ObjectPoolWrapper&lt;T&gt;(underlyingPool, borrowHook, returnHook);</span>
+<span class="pc bpc" id="L85" title="2 of 4 branches missed.">        if (borrowHook != null || returnHook != null) {</span>
+<span class="nc" id="L86">            pool = new ObjectPoolWrapper&lt;&gt;(underlyingPool, borrowHook, returnHook);</span>
         } else {
-<span class="fc" id="L94">            pool = underlyingPool;</span>
+<span class="fc" id="L88">            pool = underlyingPool;</span>
         }
-<span class="fc bfc" id="L96" title="All 2 branches covered.">        if (maintenanceExecutor != null) {</span>
-<span class="fc" id="L97">            maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnableImpl&lt;T&gt;(underlyingPool, collectBorrowed),</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (maintenanceExecutor != null) {</span>
+<span class="fc" id="L91">            maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnableImpl&lt;&gt;(underlyingPool, collectBorrowed),</span>
                     maintenanceIntervalMillis, maintenanceIntervalMillis, TimeUnit.MILLISECONDS);
         }
-<span class="fc" id="L100">        return pool;</span>
+<span class="fc" id="L94">        return pool;</span>
     }
 
     public static final class AbstractRunnableImpl&lt;T&gt; extends AbstractRunnable {
@@ -106,25 +100,25 @@ public final class RecyclingSupplierBuilder&lt;T&gt; {
         private final boolean collectBorrowed;
 
         public AbstractRunnableImpl(final ScalableObjectPool&lt;T&gt; underlyingPool, final boolean collectBorrowed) {
-<span class="fc" id="L109">            super(true);</span>
-<span class="fc" id="L110">            this.underlyingPool = underlyingPool;</span>
-<span class="fc" id="L111">            this.collectBorrowed = collectBorrowed;</span>
-<span class="fc" id="L112">        }</span>
+<span class="fc" id="L103">            super(true);</span>
+<span class="fc" id="L104">            this.underlyingPool = underlyingPool;</span>
+<span class="fc" id="L105">            this.collectBorrowed = collectBorrowed;</span>
+<span class="fc" id="L106">        }</span>
 
         @Override
         public void doRun() throws Exception {
-<span class="pc bpc" id="L116" title="1 of 2 branches missed.">                if (collectBorrowed) {</span>
-<span class="fc" id="L117">                    underlyingPool.requestReturnFromBorrowersIfNotInUse();</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">                if (collectBorrowed) {</span>
+<span class="fc" id="L111">                    underlyingPool.requestReturnFromBorrowersIfNotInUse();</span>
                 }
-<span class="fc" id="L119">                underlyingPool.scan(new Scanable.ScanHandler&lt;ObjectHolder&lt;T&gt;&gt;() {</span>
+<span class="fc" id="L113">                underlyingPool.scan(new Scanable.ScanHandler&lt;ObjectHolder&lt;T&gt;&gt;() {</span>
                     @Override
                     public boolean handle(final ObjectHolder&lt;T&gt; object) throws ObjectDisposeException {
-<span class="fc" id="L122">                        object.validateObjectIfNotBorrowed();</span>
-<span class="fc" id="L123">                        return true;</span>
+<span class="fc" id="L116">                        object.validateObjectIfNotBorrowed();</span>
+<span class="fc" id="L117">                        return true;</span>
                     }
                 });
            
-<span class="fc" id="L127">        }</span>
+<span class="fc" id="L121">        }</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

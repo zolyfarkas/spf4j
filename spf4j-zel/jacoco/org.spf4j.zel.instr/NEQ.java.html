@@ -18,10 +18,10 @@
 package org.spf4j.zel.instr;
 
 import com.google.common.base.Objects;
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
 
 
 public final class NEQ extends Instruction {
@@ -33,17 +33,18 @@ public final class NEQ extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
-<span class="fc" id="L37">        Object [] vals = context.popSyncStackVals(2);</span>
-<span class="fc bfc" id="L38" title="All 2 branches covered.">        context.push(!Objects.equal(vals[0], vals[1]));</span>
-<span class="fc" id="L39">        return 1;</span>
+            throws SuspendedException, ExecutionException {
+<span class="fc" id="L37">        final Object[] vals = context.tuple();</span>
+<span class="fc" id="L38">        context.popSyncStackVals(vals);</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        context.push(!Objects.equal(vals[0], vals[1]));</span>
+<span class="fc" id="L40">        return 1;</span>
     }
 
-<span class="fc" id="L42">    public static final Instruction INSTANCE = new NEQ();</span>
+<span class="fc" id="L43">    public static final Instruction INSTANCE = new NEQ();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L46">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L47">        return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

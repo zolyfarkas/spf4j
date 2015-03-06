@@ -17,10 +17,10 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
 
 
 
@@ -33,20 +33,21 @@ public final class OR extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
-<span class="nc" id="L37">        Object [] vals = context.popSyncStackVals(2);</span>
+            throws SuspendedException, ExecutionException {
+<span class="nc" id="L37">        final Object[] vals = context.tuple();</span>
+<span class="nc" id="L38">        context.popSyncStackVals(vals);</span>
         // TODO: optimize this for or we don't need to sync wait for both values
-<span class="nc" id="L39">        boolean v1 = (java.lang.Boolean) vals[0];</span>
-<span class="nc" id="L40">        boolean v2 = (java.lang.Boolean) vals[1];</span>
-<span class="nc bnc" id="L41" title="All 4 branches missed.">        context.push(v1 || v2);</span>
-<span class="nc" id="L42">        return 1;</span>
+<span class="nc" id="L40">        boolean v1 = (java.lang.Boolean) vals[0];</span>
+<span class="nc" id="L41">        boolean v2 = (java.lang.Boolean) vals[1];</span>
+<span class="nc bnc" id="L42" title="All 4 branches missed.">        context.push(v1 || v2);</span>
+<span class="nc" id="L43">        return 1;</span>
     }
 
-<span class="nc" id="L45">    public static final Instruction INSTANCE = new OR();</span>
+<span class="nc" id="L46">    public static final Instruction INSTANCE = new OR();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="nc" id="L49">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="nc" id="L50">        return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

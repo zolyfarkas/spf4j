@@ -19,10 +19,10 @@ package org.spf4j.zel.instr;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.JavaMethodCall;
 import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
 
 
 public final class DEREF extends Instruction {
@@ -31,47 +31,48 @@ public final class DEREF extends Instruction {
 
 <span class="fc" id="L32">    private DEREF() {</span>
 <span class="fc" id="L33">    }</span>
-    
+
 
     @Override
     public int execute(final ExecutionContext context)
-            throws ZExecutionException, SuspendedException {
-<span class="fc" id="L39">       Object [] vals = context.popSyncStackVals(2);</span>
-<span class="fc" id="L40">       pushDeref(vals[0], vals[1], context);</span>
-<span class="fc" id="L41">       return 1;</span>
+            throws ExecutionException, SuspendedException {
+<span class="fc" id="L39">       final Object[] vals = context.tuple();</span>
+<span class="fc" id="L40">       context.popSyncStackVals(vals);</span>
+<span class="fc" id="L41">       pushDeref(vals[0], vals[1], context);</span>
+<span class="fc" id="L42">       return 1;</span>
     }
 
     static void pushDeref(final Object relativeTo, final Object ref, final ExecutionContext context) {
-<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (relativeTo instanceof Map) {</span>
-<span class="fc" id="L46">            context.push(((Map) relativeTo).get(ref));</span>
-<span class="fc bfc" id="L47" title="All 2 branches covered.">        } else if (relativeTo instanceof Object[]) {</span>
-<span class="pc bpc" id="L48" title="1 of 4 branches missed.">            if (ref instanceof String &amp;&amp; ref.equals(&quot;length&quot;)) {</span>
-<span class="fc" id="L49">                context.push(((Object []) relativeTo).length);</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (relativeTo instanceof Map) {</span>
+<span class="fc" id="L47">            context.push(((Map) relativeTo).get(ref));</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        } else if (relativeTo instanceof Object[]) {</span>
+<span class="pc bpc" id="L49" title="1 of 4 branches missed.">            if (ref instanceof String &amp;&amp; ref.equals(&quot;length&quot;)) {</span>
+<span class="fc" id="L50">                context.push(((Object []) relativeTo).length);</span>
             } else {
-<span class="fc" id="L51">                context.push(((Object []) relativeTo)[((Number) ref).intValue()]);</span>
+<span class="fc" id="L52">                context.push(((Object []) relativeTo)[((Number) ref).intValue()]);</span>
             }
-<span class="pc bpc" id="L53" title="1 of 2 branches missed.">        } else if (relativeTo instanceof int[]) {</span>
-<span class="nc" id="L54">            context.push(((int []) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        } else if (relativeTo instanceof byte[]) {</span>
-<span class="nc" id="L56">            context.push(((byte []) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="pc bpc" id="L57" title="1 of 2 branches missed.">        } else if (relativeTo instanceof char[]) {</span>
-<span class="nc" id="L58">            context.push(((char []) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="pc bpc" id="L59" title="1 of 2 branches missed.">        } else if (relativeTo instanceof long[]) {</span>
-<span class="nc" id="L60">            context.push(((long []) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        } else if (relativeTo instanceof short[]) {</span>
-<span class="nc" id="L62">            context.push(((short []) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="pc bpc" id="L63" title="1 of 2 branches missed.">        } else if (relativeTo instanceof List) {</span>
-<span class="nc" id="L64">            context.push(((List) relativeTo).get(((Number) ref).intValue()));</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        } else if (relativeTo instanceof int[]) {</span>
+<span class="nc" id="L55">            context.push(((int []) relativeTo)[((Number) ref).intValue()]);</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        } else if (relativeTo instanceof byte[]) {</span>
+<span class="nc" id="L57">            context.push(((byte []) relativeTo)[((Number) ref).intValue()]);</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">        } else if (relativeTo instanceof char[]) {</span>
+<span class="nc" id="L59">            context.push(((char []) relativeTo)[((Number) ref).intValue()]);</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        } else if (relativeTo instanceof long[]) {</span>
+<span class="nc" id="L61">            context.push(((long []) relativeTo)[((Number) ref).intValue()]);</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        } else if (relativeTo instanceof short[]) {</span>
+<span class="nc" id="L63">            context.push(((short []) relativeTo)[((Number) ref).intValue()]);</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">        } else if (relativeTo instanceof List) {</span>
+<span class="nc" id="L65">            context.push(((List) relativeTo).get(((Number) ref).intValue()));</span>
         } else {
-<span class="fc" id="L66">            context.push(new JavaMethodCall(relativeTo, (String) ref));</span>
+<span class="fc" id="L67">            context.push(new JavaMethodCall(relativeTo, (String) ref));</span>
         }
-<span class="fc" id="L68">    }</span>
+<span class="fc" id="L69">    }</span>
 
-<span class="fc" id="L70">    public static final Instruction INSTANCE = new DEREF();</span>
+<span class="fc" id="L71">    public static final Instruction INSTANCE = new DEREF();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L74">        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L75">        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

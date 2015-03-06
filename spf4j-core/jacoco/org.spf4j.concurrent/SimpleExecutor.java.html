@@ -34,17 +34,17 @@ import org.slf4j.LoggerFactory;
 public final class SimpleExecutor implements Executor {
 
     private final BlockingQueue&lt;Runnable&gt; queuedTasks;
-    
+
     private final ThreadFactory threadFactory;
 
     private volatile boolean terminated;
-    
+
     private volatile Thread [] threads;
 
 <span class="nc" id="L44">    private static final Logger LOG = LoggerFactory.getLogger(SimpleExecutor.class);</span>
 
 <span class="nc" id="L46">    public SimpleExecutor() {</span>
-<span class="nc" id="L47">        queuedTasks = new LinkedBlockingQueue&lt;Runnable&gt;();</span>
+<span class="nc" id="L47">        queuedTasks = new LinkedBlockingQueue&lt;&gt;();</span>
 <span class="nc" id="L48">        terminated = false;</span>
 <span class="nc" id="L49">        threads = null;</span>
 <span class="nc" id="L50">        threadFactory = new CustomThreadFactory(&quot;SimpleExecutor&quot;, true);</span>
@@ -78,11 +78,11 @@ public final class SimpleExecutor implements Executor {
         }
 <span class="nc" id="L79">        threads = newThreads;</span>
 <span class="nc" id="L80">    }</span>
-    
+
     public void shutdown() {
 <span class="nc" id="L83">        terminated = true;</span>
 <span class="nc" id="L84">    }</span>
-    
+
     public void shutdownAndWait(final long timeout) throws InterruptedException {
 <span class="nc" id="L87">        terminated = true;</span>
 <span class="nc" id="L88">        long deadline = timeout + System.currentTimeMillis();</span>
@@ -91,7 +91,7 @@ public final class SimpleExecutor implements Executor {
 <span class="nc" id="L91">            t.join(deadline - System.currentTimeMillis());</span>
         }
 <span class="nc" id="L93">    }</span>
-    
+
 
     @Override
     public void execute(final Runnable command) {
@@ -103,4 +103,4 @@ public final class SimpleExecutor implements Executor {
 <span class="nc" id="L103">    }</span>
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

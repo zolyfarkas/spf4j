@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.vm.ExecutionContext;
@@ -27,21 +28,22 @@ public final class DIV extends Instruction {
 
     private static final long serialVersionUID = -2148283081301406237L;
 
-<span class="fc" id="L30">    private DIV() {</span>
-<span class="fc" id="L31">    }</span>
-    
+<span class="fc" id="L31">    private DIV() {</span>
+<span class="fc" id="L32">    }</span>
+
     @Override
-    public int execute(final ExecutionContext context) throws SuspendedException {
-<span class="fc" id="L35">        final Object [] vals = context.popSyncStackVals(2);</span>
-<span class="fc" id="L36">        context.push(Operators.apply(Operator.Enum.Div, vals[0], vals[1]));</span>
-<span class="fc" id="L37">        return 1;</span>
+    public int execute(final ExecutionContext context) throws SuspendedException, ExecutionException {
+<span class="fc" id="L36">        final Object[] vals = context.tuple();</span>
+<span class="fc" id="L37">        context.popSyncStackVals(vals);</span>
+<span class="fc" id="L38">        context.push(Operators.apply(Operator.Enum.Div, vals[0], vals[1]));</span>
+<span class="fc" id="L39">        return 1;</span>
     }
 
-<span class="fc" id="L40">    public static final Instruction INSTANCE = new DIV();</span>
+<span class="fc" id="L42">    public static final Instruction INSTANCE = new DIV();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L44">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L46">        return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

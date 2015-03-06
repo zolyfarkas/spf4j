@@ -18,6 +18,7 @@
 package org.spf4j.zel.instr;
 
 import com.google.common.base.Objects;
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
@@ -27,21 +28,22 @@ public final class EQ extends Instruction {
 
     private static final long serialVersionUID = 3636486821507786259L;
 
-<span class="fc" id="L30">    private EQ() {</span>
-<span class="fc" id="L31">    }</span>
+<span class="fc" id="L31">    private EQ() {</span>
+<span class="fc" id="L32">    }</span>
 
     @Override
-    public int execute(final ExecutionContext context) throws SuspendedException {
-<span class="fc" id="L35">        Object [] vals = context.popSyncStackVals(2);</span>
-<span class="fc" id="L36">        context.push(Objects.equal(vals[0], vals[1]));</span>
-<span class="fc" id="L37">        return 1;</span>
+    public int execute(final ExecutionContext context) throws SuspendedException, ExecutionException {
+<span class="fc" id="L36">        final Object[] vals = context.tuple();</span>
+<span class="fc" id="L37">        context.popSyncStackVals(vals);</span>
+<span class="fc" id="L38">        context.push(Objects.equal(vals[0], vals[1]));</span>
+<span class="fc" id="L39">        return 1;</span>
     }
 
-<span class="fc" id="L40">    public static final Instruction INSTANCE = new EQ();</span>
+<span class="fc" id="L42">    public static final Instruction INSTANCE = new EQ();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L44">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L46">        return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

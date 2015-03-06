@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
@@ -25,27 +26,27 @@ public final class FJMP extends Instruction {
 
     private static final long serialVersionUID = 584597000187469774L;
 
-<span class="fc" id="L28">    public FJMP(final int relAddr) {</span>
-<span class="fc" id="L29">        this.relAddr = relAddr;</span>
-<span class="fc" id="L30">    }</span>
-    
+<span class="fc" id="L29">    public FJMP(final int relAddr) {</span>
+<span class="fc" id="L30">        this.relAddr = relAddr;</span>
+<span class="fc" id="L31">    }</span>
+
     private final int relAddr;
 
     @Override
     public int execute(final ExecutionContext context)
-            throws SuspendedException {
-<span class="fc" id="L37">        boolean cond = (java.lang.Boolean) context.popSyncStackVal();</span>
-<span class="fc bfc" id="L38" title="All 2 branches covered.">        if (!cond) {</span>
-<span class="fc" id="L39">            return relAddr;</span>
+            throws SuspendedException, ExecutionException {
+<span class="fc" id="L38">        boolean cond = (java.lang.Boolean) context.popSyncStackVal();</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        if (!cond) {</span>
+<span class="fc" id="L40">            return relAddr;</span>
         } else {
-<span class="fc" id="L41">            return 1;</span>
+<span class="fc" id="L42">            return 1;</span>
         }
     }
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L47">        return new Object [] {relAddr};</span>
+<span class="fc" id="L48">        return new Object [] {relAddr};</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

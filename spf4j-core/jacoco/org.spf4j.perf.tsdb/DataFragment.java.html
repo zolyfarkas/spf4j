@@ -75,75 +75,76 @@ final class DataFragment {
 <span class="fc" id="L75">    }</span>
 
     public void writeTo(final RandomAccessFile raf) throws IOException {
-<span class="fc" id="L78">        ByteArrayBuilder bos = new ByteArrayBuilder();</span>
-<span class="fc" id="L79">        DataOutput dos = new DataOutputStream(bos);</span>
-<span class="fc" id="L80">        writeTo(dos);</span>
-<span class="fc" id="L81">        raf.seek(location);</span>
-<span class="fc" id="L82">        raf.write(bos.getBuffer(), 0, bos.size());</span>
-<span class="fc" id="L83">    }</span>
+<span class="pc" id="L78">        try (ByteArrayBuilder bos = new ByteArrayBuilder()) {</span>
+<span class="fc" id="L79">            DataOutput dos = new DataOutputStream(bos);</span>
+<span class="fc" id="L80">            writeTo(dos);</span>
+<span class="fc" id="L81">            raf.seek(location);</span>
+<span class="fc" id="L82">            raf.write(bos.getBuffer(), 0, bos.size());</span>
+<span class="pc bpc" id="L83" title="6 of 8 branches missed.">        }</span>
+<span class="fc" id="L84">    }</span>
 
     public void addData(final long timestamp, final long[] dataRow) {
-<span class="fc" id="L86">        data.add(dataRow);</span>
-<span class="fc" id="L87">        timestamps.add((int) (timestamp - startTimeMillis));</span>
-<span class="fc" id="L88">    }</span>
+<span class="fc" id="L87">        data.add(dataRow);</span>
+<span class="fc" id="L88">        timestamps.add((int) (timestamp - startTimeMillis));</span>
+<span class="fc" id="L89">    }</span>
 
     public void setNextDataFragment(final long pnextDataFragment, final RandomAccessFile raf) throws IOException {
-<span class="nc" id="L91">        this.nextDataFragment = pnextDataFragment;</span>
-<span class="nc" id="L92">        setNextDataFragment(location, nextDataFragment, raf);</span>
-<span class="nc" id="L93">    }</span>
+<span class="nc" id="L92">        this.nextDataFragment = pnextDataFragment;</span>
+<span class="nc" id="L93">        setNextDataFragment(location, nextDataFragment, raf);</span>
+<span class="nc" id="L94">    }</span>
 
     public static void setNextDataFragment(final long dataFragmentPosition, final long nextDataFragment,
             final RandomAccessFile raf) throws IOException {
-<span class="fc" id="L97">        raf.seek(dataFragmentPosition);</span>
-<span class="fc" id="L98">        raf.writeLong(nextDataFragment);</span>
-<span class="fc" id="L99">    }</span>
+<span class="fc" id="L98">        raf.seek(dataFragmentPosition);</span>
+<span class="fc" id="L99">        raf.writeLong(nextDataFragment);</span>
+<span class="fc" id="L100">    }</span>
 
     public long getNextDataFragment() {
-<span class="fc" id="L102">        return nextDataFragment;</span>
+<span class="fc" id="L103">        return nextDataFragment;</span>
     }
 
     public long getLocation() {
-<span class="fc" id="L106">        return location;</span>
+<span class="fc" id="L107">        return location;</span>
     }
 
     private void loadData(final int nrSamples, final int samplesLength, final DataInput raf) throws IOException {
-<span class="fc" id="L110">        data = new ArrayList(nrSamples);</span>
-<span class="fc" id="L111">        timestamps = new TIntArrayList(nrSamples);</span>
-<span class="fc bfc" id="L112" title="All 2 branches covered.">        for (int i = 0; i &lt; nrSamples; i++) {</span>
-<span class="fc" id="L113">            timestamps.add(raf.readInt());</span>
-<span class="fc" id="L114">            long[] row = new long[samplesLength];</span>
-<span class="fc bfc" id="L115" title="All 2 branches covered.">            for (int j = 0; j &lt; samplesLength; j++) {</span>
-<span class="fc" id="L116">                row[j] = raf.readLong();</span>
+<span class="fc" id="L111">        data = new ArrayList(nrSamples);</span>
+<span class="fc" id="L112">        timestamps = new TIntArrayList(nrSamples);</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">        for (int i = 0; i &lt; nrSamples; i++) {</span>
+<span class="fc" id="L114">            timestamps.add(raf.readInt());</span>
+<span class="fc" id="L115">            long[] row = new long[samplesLength];</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">            for (int j = 0; j &lt; samplesLength; j++) {</span>
+<span class="fc" id="L117">                row[j] = raf.readLong();</span>
             }
-<span class="fc" id="L118">            data.add(row);</span>
+<span class="fc" id="L119">            data.add(row);</span>
         }
-<span class="fc" id="L120">    }</span>
+<span class="fc" id="L121">    }</span>
 
     public long getStartTimeMillis() {
-<span class="fc" id="L123">        return startTimeMillis;</span>
+<span class="fc" id="L124">        return startTimeMillis;</span>
     }
 
     public int getNrRows() {
-<span class="nc" id="L127">        return data.size();</span>
+<span class="nc" id="L128">        return data.size();</span>
     }
 
     public List&lt;long[]&gt; getData() {
-<span class="fc" id="L131">        return data;</span>
+<span class="fc" id="L132">        return data;</span>
     }
 
     public TIntArrayList getTimestamps() {
-<span class="fc" id="L135">        return timestamps;</span>
+<span class="fc" id="L136">        return timestamps;</span>
     }
 
     public void setLocation(final long location) {
-<span class="fc" id="L139">        this.location = location;</span>
-<span class="fc" id="L140">    }</span>
+<span class="fc" id="L140">        this.location = location;</span>
+<span class="fc" id="L141">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L144">        return &quot;DataFragment{&quot; + &quot;location=&quot; + location + &quot;, nextDataFragment=&quot; + nextDataFragment</span>
+<span class="nc" id="L145">        return &quot;DataFragment{&quot; + &quot;location=&quot; + location + &quot;, nextDataFragment=&quot; + nextDataFragment</span>
                 + &quot;, startTimeMillis=&quot; + startTimeMillis + &quot;, data=&quot; + data + &quot;, timestamps=&quot; + timestamps + '}';
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

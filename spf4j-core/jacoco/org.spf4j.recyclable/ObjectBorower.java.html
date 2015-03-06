@@ -30,7 +30,7 @@ public interface ObjectBorower&lt;T&gt; extends Scanable&lt;T&gt; {
 
 
 <span class="pc" id="L32">    public enum Action { REQUEST_MADE, NONE }</span>
-    
+
     /**
      * Non Blocking method.
      *
@@ -49,14 +49,14 @@ public interface ObjectBorower&lt;T&gt; extends Scanable&lt;T&gt; {
     @Nullable
     T tryReturnObjectIfNotInUse() throws InterruptedException;
 
-    
+
     /**
      * Return all objects that are not currently in use.
      */
-    
+
     @Nullable
     Collection&lt;T&gt; tryReturnObjectsIfNotInUse() throws InterruptedException;
-    
+
     /**
      * This method is a cleanup method. The purpose is to recover all borrowed objects before once this borrower will
      * never use them anymore...
@@ -65,5 +65,16 @@ public interface ObjectBorower&lt;T&gt; extends Scanable&lt;T&gt; {
      */
     @Nullable
     Collection&lt;T&gt; tryReturnObjectsIfNotNeededAnymore() throws InterruptedException;
+
+
+    /**
+     * Notify borower that object has been received back from another borrower.
+     * return true is indeed object was from here, false otherwise.
+     * @param object
+     */
+
+    boolean nevermind(T object);
+
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

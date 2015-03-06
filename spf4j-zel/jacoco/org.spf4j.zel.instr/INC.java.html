@@ -17,46 +17,47 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
-import org.spf4j.zel.vm.ZExecutionException;
+
 
 public final class INC extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
 
-<span class="fc" id="L32">    private INC() {</span>
-<span class="fc" id="L33">    }</span>
-    
+<span class="fc" id="L33">    private INC() {</span>
+<span class="fc" id="L34">    }</span>
+
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
     public int execute(final ExecutionContext context)
-            throws SuspendedException, ZExecutionException, InterruptedException {
-<span class="fc" id="L39">        Object val = context.popSyncStackVal();</span>
-<span class="pc bpc" id="L40" title="1 of 2 branches missed.">        if (val instanceof AssignableValue) {</span>
-<span class="fc" id="L41">            AssignableValue aval = (AssignableValue) val;</span>
-<span class="fc" id="L42">            Number nr = (Number) aval.get();</span>
-<span class="fc" id="L43">            Number result = (Number) Operators.apply(Operator.Enum.Add, nr, 1);</span>
-<span class="fc" id="L44">            aval.assign(result);</span>
-<span class="fc" id="L45">        } else {</span>
-<span class="nc" id="L46">            context.push(Operators.apply(Operator.Enum.Add, val, 1));</span>
+            throws SuspendedException, ExecutionException, InterruptedException {
+<span class="fc" id="L40">        Object val = context.popSyncStackVal();</span>
+<span class="pc bpc" id="L41" title="1 of 2 branches missed.">        if (val instanceof AssignableValue) {</span>
+<span class="fc" id="L42">            AssignableValue aval = (AssignableValue) val;</span>
+<span class="fc" id="L43">            Number nr = (Number) aval.get();</span>
+<span class="fc" id="L44">            Number result = (Number) Operators.apply(Operator.Enum.Add, nr, 1);</span>
+<span class="fc" id="L45">            aval.assign(result);</span>
+<span class="fc" id="L46">        } else {</span>
+<span class="nc" id="L47">            context.push(Operators.apply(Operator.Enum.Add, val, 1));</span>
         }
-<span class="fc" id="L48">        return 1;</span>
+<span class="fc" id="L49">        return 1;</span>
     }
     /**
      * Add instance
      */
-<span class="fc" id="L53">    public static final Instruction INSTANCE = new INC();</span>
+<span class="fc" id="L54">    public static final Instruction INSTANCE = new INC();</span>
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L57">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L58">        return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

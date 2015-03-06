@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.vm;
 
+import java.util.Arrays;
 import org.spf4j.zel.instr.Instruction;
 
 
@@ -24,31 +25,31 @@ import org.spf4j.zel.instr.Instruction;
 public final class CompileContext implements ParsingContext {
 
     private final ProgramBuilder prog;
-    
+
     private final MemoryBuilder staticMemBuilder;
-    
+
     private Instruction last;
 
-<span class="fc" id="L32">    public CompileContext(final MemoryBuilder staticMemBuilder) {</span>
-<span class="fc" id="L33">        this.prog = new ProgramBuilder(staticMemBuilder);</span>
-<span class="fc" id="L34">        this.staticMemBuilder = staticMemBuilder;</span>
-<span class="fc" id="L35">    }</span>
+<span class="fc" id="L33">    public CompileContext(final MemoryBuilder staticMemBuilder) {</span>
+<span class="fc" id="L34">        this.prog = new ProgramBuilder(staticMemBuilder);</span>
+<span class="fc" id="L35">        this.staticMemBuilder = staticMemBuilder;</span>
+<span class="fc" id="L36">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     @Override
-    public void generateCode(final Instruction... args) {
-<span class="fc" id="L40">        prog.addAll(args);</span>
-<span class="fc" id="L41">        last = args[args.length - 1];</span>
-<span class="fc" id="L42">    }</span>
+    public void generateCode(final Location [] locs, final Instruction... args) {
+<span class="nc" id="L41">        prog.addAll(args, Arrays.asList(locs));</span>
+<span class="nc" id="L42">        last = args[args.length - 1];</span>
+<span class="nc" id="L43">    }</span>
 
     @Override
     public void generateCodeAll(final ParsingContext parsingContext) {
-<span class="fc" id="L46">        prog.addAll(parsingContext.getProgramBuilder());</span>
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L47">        prog.addAll(parsingContext.getProgramBuilder());</span>
+<span class="fc" id="L48">    }</span>
 
     @Override
     public int getAddress() {
-<span class="fc" id="L51">        return prog.size();</span>
+<span class="fc" id="L52">        return prog.size();</span>
     }
 
     /**
@@ -58,29 +59,35 @@ public final class CompileContext implements ParsingContext {
      */
     @Override
     public void process(final Object obj) {
-<span class="nc" id="L61">    }</span>
+<span class="nc" id="L62">    }</span>
 
 
     @Override
     public ProgramBuilder getProgramBuilder() {
-<span class="fc" id="L66">        return prog;</span>
+<span class="fc" id="L67">        return prog;</span>
     }
 
     @Override
     public CompileContext createSubContext() {
-<span class="fc" id="L71">        return new CompileContext(staticMemBuilder);</span>
+<span class="fc" id="L72">        return new CompileContext(staticMemBuilder);</span>
     }
 
     @Override
     public void staticSymbol(final String name, final Object object) {
-<span class="fc" id="L76">        staticMemBuilder.addSymbol(name, object);</span>
-<span class="fc" id="L77">    }</span>
+<span class="fc" id="L77">        staticMemBuilder.addSymbol(name, object);</span>
+<span class="fc" id="L78">    }</span>
 
     @Override
     public Instruction getLast() {
-<span class="fc" id="L81">       return last;</span>
+<span class="fc" id="L82">       return last;</span>
     }
+
+    @Override
+    public void generateCode(final Location loc, final Instruction instr) {
+<span class="fc" id="L87">        prog.add(instr, loc);</span>
+<span class="fc" id="L88">        last = instr;</span>
+<span class="fc" id="L89">    }</span>
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

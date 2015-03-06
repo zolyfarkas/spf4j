@@ -17,42 +17,43 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 public final class MOVN extends Instruction {
-    
+
     private static final long serialVersionUID = -7101682855885757988L;
-    
+
     private final int nr;
-    
-<span class="fc" id="L31">    public MOVN(final int nr) {</span>
-<span class="fc" id="L32">        this.nr = nr;</span>
-<span class="fc" id="L33">    }</span>
-    
+
+<span class="fc" id="L32">    public MOVN(final int nr) {</span>
+<span class="fc" id="L33">        this.nr = nr;</span>
+<span class="fc" id="L34">    }</span>
+
     @Override
     public int execute(final ExecutionContext context)
-            throws SuspendedException, ZExecutionException, InterruptedException {
-<span class="fc" id="L38">        Object [] what = (Object []) context.popSyncStackVal();</span>
-<span class="fc" id="L39">        Object [] tos = context.popStackVals(what.length);</span>
-<span class="fc" id="L40">        int i = 0;</span>
-<span class="fc bfc" id="L41" title="All 2 branches covered.">        for (Object to : tos) {</span>
-<span class="pc bpc" id="L42" title="1 of 2 branches missed.">            if (to instanceof AssignableValue) {</span>
-<span class="fc" id="L43">                AssignableValue assignTo = (AssignableValue) to;</span>
-<span class="fc" id="L44">                assignTo.assign(what[i++]);</span>
-<span class="fc" id="L45">                context.push(what);</span>
-<span class="fc" id="L46">            } else {</span>
-<span class="nc" id="L47">                throw new ZExecutionException(&quot;Lvalue expected insted of &quot; + to);</span>
+            throws SuspendedException, ExecutionException, InterruptedException {
+<span class="fc" id="L39">        Object [] what = (Object []) context.popSyncStackVal();</span>
+<span class="fc" id="L40">        Object [] tos = context.popStackVals(what.length);</span>
+<span class="fc" id="L41">        int i = 0;</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        for (Object to : tos) {</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">            if (to instanceof AssignableValue) {</span>
+<span class="fc" id="L44">                AssignableValue assignTo = (AssignableValue) to;</span>
+<span class="fc" id="L45">                assignTo.assign(what[i++]);</span>
+<span class="fc" id="L46">                context.push(what);</span>
+<span class="fc" id="L47">            } else {</span>
+<span class="nc" id="L48">                throw new ZExecutionException(&quot;Lvalue expected insted of &quot; + to);</span>
             }
         }
-<span class="fc" id="L50">        return 1;</span>
+<span class="fc" id="L51">        return 1;</span>
     }
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L55">        return new Object [] {nr};</span>
+<span class="fc" id="L56">        return new Object [] {nr};</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

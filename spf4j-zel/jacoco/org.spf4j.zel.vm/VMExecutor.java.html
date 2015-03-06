@@ -39,7 +39,7 @@ import org.spf4j.concurrent.SimpleExecutor;
 public final class VMExecutor {
 
 <span class="nc" id="L41">    public static class Lazy {</span>
-        
+
 <span class="fc" id="L43">         private static final SimpleExecutor DEF_EXEC = new SimpleExecutor();</span>
          static {
 <span class="fc" id="L45">             DEF_EXEC.startThreads(org.spf4j.base.Runtime.NR_PROCESSORS);</span>
@@ -61,21 +61,21 @@ public final class VMExecutor {
     public interface Suspendable&lt;T&gt; extends Callable&lt;T&gt; {
 
         @Override
-        T call() throws SuspendedException, ZExecutionException, InterruptedException;
-        
+        T call() throws SuspendedException, ExecutionException, InterruptedException;
+
         List&lt;VMFuture&lt;Object&gt;&gt; getSuspendedAt();
-        
+
     }
-    
-    
-    
+
+
+
     public static &lt;T&gt; Suspendable&lt;T&gt; synchronize(final Suspendable&lt;T&gt; what) {
 <span class="fc" id="L73">        return new Suspendable&lt;T&gt;() {</span>
 
 <span class="fc" id="L75">            private volatile boolean isRunning = false;</span>
-            
+
             @Override
-            public T call() throws SuspendedException, ZExecutionException, InterruptedException {
+            public T call() throws SuspendedException, ExecutionException, InterruptedException {
 <span class="fc bfc" id="L79" title="All 2 branches covered.">                if (!isRunning) {</span>
 <span class="fc" id="L80">                    synchronized (this) {</span>
 <span class="pc bpc" id="L81" title="1 of 2 branches missed.">                        if (!isRunning) {</span>
@@ -104,7 +104,7 @@ public final class VMExecutor {
 <span class="fc" id="L104">    public VMExecutor(final Executor exec) {</span>
 <span class="fc" id="L105">        this.exec = exec;</span>
 <span class="fc" id="L106">    }</span>
-    
+
     public &lt;T&gt; Future&lt;T&gt; submitNonSuspendable(final Callable&lt;T&gt; callable) {
 <span class="nc" id="L109">        FutureTask task = new FutureTask(callable);</span>
 <span class="nc" id="L110">        exec.execute(task);</span>
@@ -116,15 +116,15 @@ public final class VMExecutor {
 <span class="fc" id="L116">        submit(callable, resultFuture);</span>
 <span class="fc" id="L117">        return resultFuture;</span>
     }
-    
+
     /**
      * Returns a future that will not get notified when callable completes.
-     * 
+     *
      * @param &lt;T&gt;
      * @param callable
      * @return
      */
-    
+
     public &lt;T&gt; Future&lt;T&gt; submitInternal(final Suspendable&lt;T&gt; callable) {
 <span class="fc" id="L129">        final VMFuture&lt;T&gt; resultFuture = new VMASyncFuture&lt;T&gt;();</span>
 <span class="fc" id="L130">        submit(callable, resultFuture);</span>
@@ -134,7 +134,7 @@ public final class VMExecutor {
     /**
      * Map from Future -&gt; Suspendables suspended at this futures and their futures.
      */
-    
+
 <span class="fc" id="L138">    private final ConcurrentMap&lt;VMFuture&lt;Object&gt;, List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt;&gt; futToSuspMap</span>
             = new ConcurrentHashMap&lt;VMFuture&lt;Object&gt;, List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt;&gt;();
 
@@ -154,7 +154,7 @@ public final class VMExecutor {
 
 <span class="fc" id="L155">        List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; suspended</span>
                 = futToSuspMap.get(futureSuspendedFor);
-<span class="pc bpc" id="L157" title="1 of 2 branches missed.">        if (suspended == null) {</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">        if (suspended == null) {</span>
 <span class="fc" id="L158">            suspended = new LinkedList&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt;();</span>
 <span class="fc" id="L159">            List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; old</span>
                     = futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);
@@ -199,17 +199,20 @@ public final class VMExecutor {
 <span class="fc" id="L199">                        addSuspendable(fut,</span>
                             (Suspendable&lt;Object&gt;) callable, (VMFuture&lt;Object&gt;) future);
 <span class="fc" id="L201">                    }</span>
-<span class="fc" id="L202">                } catch (Exception e) {</span>
-<span class="fc" id="L203">                    future.setExceptionResult(new ExecutionException(e));</span>
+<span class="fc" id="L202">                } catch (ExecutionException e) {</span>
+<span class="fc" id="L203">                    future.setExceptionResult(e);</span>
 <span class="fc" id="L204">                    resumeSuspendables((VMFuture&lt;Object&gt;) future);</span>
-<span class="fc" id="L205">                }</span>
-<span class="fc" id="L206">            }</span>
+<span class="fc" id="L205">                }  catch (RuntimeException | InterruptedException e) {</span>
+<span class="fc" id="L206">                    future.setExceptionResult(new ExecutionException(e));</span>
+<span class="fc" id="L207">                    resumeSuspendables((VMFuture&lt;Object&gt;) future);</span>
+<span class="fc" id="L208">                }</span>
+<span class="fc" id="L209">            }</span>
         });
-<span class="fc" id="L208">    }</span>
-    
-    
-    
-    
+<span class="fc" id="L211">    }</span>
+
+
+
+
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
