@@ -20,7 +20,6 @@ package org.spf4j.concurrent;
 import com.google.common.base.Charsets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
@@ -31,6 +30,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.WillClose;
+import org.spf4j.base.IntMath;
 
 /**
  * File based Lock implementation, that can be used as IPC method.
@@ -43,8 +44,16 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     private final RandomAccessFile file;
     private final Lock jvmLock;
     private FileLock fileLock;
+    private volatile Thread owner;
+    private int reentranceCount = 0;
 
-    public FileBasedLock(final File lockFile) throws FileNotFoundException {
+    private static final IntMath.XorShift32 RND = new IntMath.XorShift32();
+
+    private static int next(final int maxVal) {
+        return Math.abs(Math.abs(RND.nextInt()) % maxVal);
+    }
+
+    public FileBasedLock(final File lockFile) throws IOException {
         file = new RandomAccessFile(lockFile, "rws");
         String filePath = lockFile.getPath();
         synchronized (JVM_LOCKS) {
@@ -62,15 +71,33 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     @SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
     public void lock() {
         jvmLock.lock();
+        final Thread currentThread = Thread.currentThread();
+        if (currentThread.equals(owner)) {
+                // already own the lock.
+                reentranceCount++;
+                return;
+        }
         try {
             fileLock = file.getChannel().lock();
+            owner = currentThread;
+            reentranceCount++;
             writeHolderInfo();
         } catch (IOException ex) {
-            jvmLock.unlock();
+            unlockInternal();
             throw new RuntimeException(ex);
         } catch (RuntimeException ex) {
-            jvmLock.unlock();
+            unlockInternal();
             throw ex;
+        }
+    }
+
+    private void unlockInternal() {
+        jvmLock.unlock();
+        reentranceCount--;
+        if (reentranceCount == 0) {
+            owner = null;
+        } else if (reentranceCount < 0) {
+            throw new RuntimeException("Not owner of this lock " + this);
         }
     }
 
@@ -78,26 +105,31 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "EXS_EXCEPTION_SOFTENING_HAS_CHECKED", "MDM_THREAD_YIELD" })
     public void lockInterruptibly() throws InterruptedException {
         jvmLock.lockInterruptibly();
+        final Thread currentThread = Thread.currentThread();
+        if (currentThread.equals(owner)) {
+                // already own the lock.
+                reentranceCount++;
+                return;
+        }
         try {
             final FileChannel channel = file.getChannel();
             //CHECKSTYLE:OFF
             while ((fileLock = channel.tryLock()) == null && !Thread.interrupted()) {
                 //CHECKSTYLE:ON
-                Thread.sleep(1);
+                Thread.sleep(next(1000));
             }
+            owner = currentThread;
+            reentranceCount++;
             if (Thread.interrupted()) {
                 throw new InterruptedException();
             }
             writeHolderInfo();
-        } catch (InterruptedException ex) {
-            jvmLock.unlock();
+        } catch (InterruptedException | RuntimeException ex) {
+            unlockInternal();
             throw ex;
         } catch (IOException ex) {
-            jvmLock.unlock();
+            unlockInternal();
             throw new RuntimeException(ex);
-        } catch (RuntimeException ex) {
-            jvmLock.unlock();
-            throw ex;
         }
     }
 
@@ -105,19 +137,27 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     @SuppressFBWarnings("MDM_THREAD_FAIRNESS")
     public boolean tryLock() {
         if (jvmLock.tryLock()) {
+            final Thread currentThread = Thread.currentThread();
+            if (currentThread.equals(owner)) {
+                    // already own the lock.
+                    reentranceCount++;
+                    return true;
+            }
             try {
                 fileLock = file.getChannel().tryLock();
                 if (fileLock != null) {
+                    owner = currentThread;
+                    reentranceCount++;
                     writeHolderInfo();
                     return true;
                 } else {
                     return false;
                 }
             } catch (IOException ex) {
-                jvmLock.unlock();
+                unlockInternal();
                 throw new RuntimeException(ex);
             } catch (RuntimeException ex) {
-                jvmLock.unlock();
+                unlockInternal();
                 throw ex;
             }
         } else {
@@ -129,17 +169,25 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     @Override
     public boolean tryLock(final long time, final TimeUnit unit) throws InterruptedException {
         if (jvmLock.tryLock(time, unit)) {
+            final Thread currentThread = Thread.currentThread();
+            if (currentThread.equals(owner)) {
+                    // already own the lock.
+                    reentranceCount++;
+                    return true;
+            }
             try {
                 long waitTime = 0;
                 long maxWaitTime = unit.toMillis(time);
                 while (waitTime < maxWaitTime
                         //CHECKSTYLE:OFF
-                        && (fileLock = file.getChannel().tryLock()) != null
+                        && (fileLock = file.getChannel().tryLock()) == null
                         //CHECKSTYLE:ON
                         && !Thread.interrupted()) {
-                    Thread.sleep(1);
+                    Thread.sleep(next(1000));
                     waitTime++;
                 }
+                owner = currentThread;
+                reentranceCount++;
                 if (Thread.interrupted()) {
                     throw new InterruptedException();
                 }
@@ -149,15 +197,12 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
                 } else {
                     return false;
                 }
-            } catch (InterruptedException ex) {
-                jvmLock.unlock();
+            } catch (InterruptedException | RuntimeException ex) {
+                unlockInternal();
                 throw ex;
             } catch (IOException ex) {
-                jvmLock.unlock();
+                unlockInternal();
                 throw new RuntimeException(ex);
-            } catch (RuntimeException ex) {
-                jvmLock.unlock();
-                throw ex;
             }
         } else {
             return false;
@@ -166,17 +211,21 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
 
     @Override
     public void unlock() {
+        if (!Thread.currentThread().equals(owner)) {
+            throw new IllegalStateException("Lock " + this + " not owned by current thread " + Thread.currentThread());
+        }
         try {
             fileLock.release();
         } catch (IOException ex) {
             throw new RuntimeException(ex);
+        } finally {
+            unlockInternal();
         }
-        jvmLock.unlock();
     }
 
     @Override
     public Condition newCondition() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return jvmLock.newCondition();
     }
 
     @Override
@@ -187,12 +236,25 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     }
 
     @Override
+    @WillClose
     public void close() throws IOException {
-        try {
+        Thread o = owner;
+        if (o == null) {
             file.close();
-        } finally {
-            jvmLock.unlock();
+        } else if (Thread.currentThread().equals(o)) {
+            try {
+                file.close();
+            } finally {
+                unlockInternal();
+            }
+        } else {
+            throw new IllegalStateException("Lock " + this + " not owned by current thread " + Thread.currentThread());
         }
+    }
+
+    @WillClose
+    public void forceClose() throws IOException {
+        file.close();
     }
 
     private void writeHolderInfo() throws IOException {

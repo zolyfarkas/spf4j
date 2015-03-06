@@ -18,7 +18,6 @@
 package org.spf4j.concurrent;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
@@ -74,7 +73,26 @@ public final class FileBasedLockTest {
 
     }
 
-    public static void main(final String[] args) throws FileNotFoundException, InterruptedException {
+    @Test
+    public void testReentrace() throws IOException {
+        File tmp = File.createTempFile("bla", ".lock");
+        try (FileBasedLock lock = new FileBasedLock(tmp)) {
+            lock.lock();
+            try {
+                lock.lock();
+                try {
+                    System.out.println("Reentered lock");
+                } finally {
+                    lock.unlock();
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+
+
+    public static void main(final String[] args) throws  InterruptedException, IOException {
         FileBasedLock lock = new FileBasedLock(new File(LOCK_FILE));
         lock.lock();
         try {
