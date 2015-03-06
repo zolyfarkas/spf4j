@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -36,6 +37,8 @@ import org.slf4j.LoggerFactory;
 import static org.spf4j.base.Runtime.Lsof.LSOF;
 import static org.spf4j.base.Runtime.Lsof.LSOF_CMD;
 import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.io.ByteArrayBuilder;
+import org.spf4j.recyclable.impl.ArraySuppliers;
 
 /**
  *
@@ -198,9 +201,13 @@ public final class Runtime {
 
     public interface ProcOutputHandler {
 
-        void handleStdOut(int character);
+        void handleStdOut(byte[] bytes, int length);
 
-        void handleStdErr(int character);
+        void stdOutDone();
+
+        void handleStdErr(byte[] bytes, int length);
+
+        void stdErrDone();
     }
 
     public static int run(final String [] command, final ProcOutputHandler handler,
@@ -228,14 +235,26 @@ public final class Runtime {
                 @Override
                 public void doRun() throws Exception {
                     int eos;
-                    while ((eos = pes.read()) >= 0) {
-                        handler.handleStdErr(eos);
+                    byte [] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
+                    try {
+                        while ((eos = pes.read(buffer)) >= 0) {
+                            handler.handleStdErr(buffer, eos);
+                        }
+                    } finally {
+                        ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
+                        handler.stdErrDone();
                     }
                 }
             });
             int cos;
-            while ((cos = pos.read()) >= 0) {
-                handler.handleStdOut(cos);
+            byte [] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
+            try {
+                while ((cos = pos.read(buffer)) >= 0) {
+                    handler.handleStdOut(buffer, cos);
+                }
+            } finally {
+                ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
+                handler.stdOutDone();
             }
             esh.get();
             return proc.waitFor();
@@ -244,7 +263,10 @@ public final class Runtime {
         }
     }
 
-    private static class LineCountCharHandler implements ProcOutputHandler {
+    /**
+     * todo: character enconding is not really don eproperly...
+     */
+    public static final class LineCountCharHandler implements ProcOutputHandler {
 
         public LineCountCharHandler() {
             lineCount = 0;
@@ -252,9 +274,12 @@ public final class Runtime {
         private int lineCount;
 
         @Override
-        public void handleStdOut(final int c) {
-            if (c == '\n') {
-                lineCount++;
+        public void handleStdOut(final byte [] buffer, final int length) {
+            for (int i = 0; i < length; i++) {
+                byte c = buffer[i];
+                if (c ==  (byte) '\n') {
+                    lineCount++;
+                }
             }
         }
 
@@ -263,30 +288,54 @@ public final class Runtime {
         }
 
         @Override
-        public void handleStdErr(final int character) {
+        public void handleStdErr(final byte [] buffer, final int length) {
+            handleStdOut(buffer, length);
+        }
+
+        @Override
+        public void stdOutDone() {
+        }
+
+        @Override
+        public void stdErrDone() {
         }
     }
 
-    private static class StringBuilderCharHandler implements ProcOutputHandler {
+    public static final class StringBuilderCharHandler implements ProcOutputHandler {
+
+        private final Charset charset;
+
+        public StringBuilderCharHandler(final Charset charset) {
+            builder = new ByteArrayBuilder(PID, ArraySuppliers.Bytes.JAVA_NEW);
+            this.charset = charset;
+        }
 
         public StringBuilderCharHandler() {
-            builder = new StringBuilder();
+            this(Charset.defaultCharset());
         }
-        private final StringBuilder builder;
+        private final ByteArrayBuilder builder;
 
         @Override
-        public void handleStdOut(final int c) {
-            builder.append((char) c);
+        public void handleStdOut(final byte [] buffer, final int length) {
+            builder.write(buffer, 0, length);
         }
 
         @Override
         public String toString() {
-            return builder.toString();
+            return new String(builder.getBuffer(), 0, builder.size(), charset);
         }
 
         @Override
-        public void handleStdErr(final int c) {
-            builder.append(c);
+        public void handleStdErr(final byte [] buffer, final int length) {
+            handleStdOut(buffer, length);
+        }
+
+        @Override
+        public void stdOutDone() {
+        }
+
+        @Override
+        public void stdErrDone() {
         }
     }
     private static final LinkedList<Runnable> SHUTDOWN_HOOKS = new LinkedList<>();
