@@ -2,7 +2,7 @@
 package org.spf4j;
 
 import java.io.IOException;
-import org.junit.Ignore;
+//import org.junit.Ignore;
 import org.junit.Test;
 import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
@@ -16,7 +16,7 @@ import org.spf4j.stackmonitor.JmhProfiler;
  *
  * @author zoly
  */
-@Ignore
+//@Ignore
 public final class JmhTest {
 
     @Test
