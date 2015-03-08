@@ -17,6 +17,8 @@
 
  Contributions/Contributors to spf4j are welcome.
 
+ Articles about java, and this library are on my [blog](http://blogs.zoltran.com)
+
 ## 3. Code, Binaries, Build
 
  [SPF4J Google hosted repo](http://code.google.com/p/spf4j/)
@@ -241,6 +243,10 @@ Callable<?> monitoredCallable =
  I recommend to deploy your code with profiling turned on as much as you can.
  In my case I have profiling data collection turned on in test/qa environments all the time. (with 100ms sampling interval). If you can afford to do it in PROD do it.
  Another good time to profile your code is during your JMH (http://openjdk.java.net/projects/code-tools/jmh/) benchmarks.
+ A good practice is to have a benchmark module in your project, that will benchmark key functionality of your application.
+ These benchmarks will be run as part of your build process, and you can monitor the performance of your project with a
+ Jenkins JMH [plugin](https://github.com/blackboard/jmh-jenkins)
+  
 
 ### 5.3. How to profile your code?
 
@@ -426,7 +432,7 @@ Usage:
  Creating a pool is simple:
 
 ```
-RecyclingSupplier<ExpensiveTestObject> pool = new ObjectPoolBuilder(10, new ExpensiveTestObjectFactory()).build();
+RecyclingSupplier<ExpensiveTestObject> pool = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
 ```
 
  at minimum you will need to provide the maximum size and the object factory.
@@ -468,8 +474,12 @@ Template.doOnSupplied(new Handler<PooledObject, SomeException>() {
 
  IPC: org.spf4j.concurrent.FileBasedLock
 
- RTree: org.spf4j.ds.RTree
+ Data Structures: org.spf4j.ds.RTree; org.spf4j.ds.Graph; org.spf4j.ds.UpdateablePriorityQueue 
 
  Process control: org.spf4j.base.Runtime
+
+ Object recyclers: org.spf4j.recyclable.impl.*
+
+ Concurrency: org.spf4j.io.PipedOutputStream
 
  
