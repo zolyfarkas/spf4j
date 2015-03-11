@@ -100,9 +100,10 @@ public final class UIDGenerator {
     }
 
     public CharSequence next() {
-        base.setLength(baseLength);
-        appendUnsignedString(base, sequence.next(), 5);
-        return base.toString();
+        StringBuilder result = new StringBuilder(maxSize);
+        result.append(base);
+        appendUnsignedString(result, sequence.next(), 5);
+        return result;
     }
 
     private static final char[] DIGITS = {
