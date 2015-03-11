@@ -194,24 +194,43 @@ public final class Strings {
                 }
             });
 
+        if (Runtime.JAVA_PLATFORM.ordinal() >= Runtime.Version.V1_8.ordinal()) {
+            //String(int offset, int count, char value[]) {
         PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction<Constructor<String>>() {
                 @Override
                 public Constructor<String> run() {
                     Constructor<String> constr;
                     try {
-                        constr = String.class.getDeclaredConstructor(char[].class, boolean.class);
+                        constr = String.class.getDeclaredConstructor(int.class, int.class, char[].class);
+                        constr.setAccessible(true);
                     } catch (NoSuchMethodException ex) {
                         LOG.info("building String from char[] fast not supported", ex);
                         constr = null;
                     } catch (SecurityException ex) {
                         throw new RuntimeException(ex);
                     }
-                    if (constr != null) {
+                    return constr;
+                }
+            });
+
+        } else {
+        PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction<Constructor<String>>() {
+                @Override
+                public Constructor<String> run() {
+                    Constructor<String> constr;
+                    try {
+                        constr = String.class.getDeclaredConstructor(char[].class, boolean.class);
                         constr.setAccessible(true);
+                    } catch (NoSuchMethodException ex) {
+                        LOG.info("building String from char[] fast not supported", ex);
+                        constr = null;
+                    } catch (SecurityException ex) {
+                        throw new RuntimeException(ex);
                     }
                     return constr;
                 }
             });
+        }
 
     }
 
@@ -243,7 +262,11 @@ public final class Strings {
             return new String(chars);
         } else {
             try {
-                return PROTECTED_STR_CONSTR.newInstance(chars, Boolean.TRUE);
+                if (Runtime.JAVA_PLATFORM.ordinal() >= Runtime.Version.V1_8.ordinal()) {
+                    return PROTECTED_STR_CONSTR.newInstance(0, chars.length, chars);
+                } else {
+                    return PROTECTED_STR_CONSTR.newInstance(chars, Boolean.TRUE);
+                }
             } catch (InstantiationException | IllegalAccessException
                     | IllegalArgumentException | InvocationTargetException ex) {
                 throw new RuntimeException(ex);
