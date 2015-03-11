@@ -40,13 +40,18 @@ public final class UIDGenerator {
     private final String base;
 
     private final int maxSize;
-      
+
     public UIDGenerator(final Sequence sequence) {
         this(sequence, 0);
     }
-    
+
+    public UIDGenerator(final Sequence sequence, final String prefix) {
+        this(sequence, BaseEncoding.base64Url(), 0, '.', prefix);
+    }
+
+
     public UIDGenerator(final Sequence sequence, final long customEpoch) {
-        this(sequence, BaseEncoding.base64Url(), customEpoch, '.');
+        this(sequence, BaseEncoding.base64Url(), customEpoch, '.', "");
     }
 
     /**
@@ -55,9 +60,10 @@ public final class UIDGenerator {
      * @param baseEncoding - if null MAC address based ID will not be included.
      */
     public UIDGenerator(final Sequence sequence, @Nullable final BaseEncoding baseEncoding,
-            final long customEpoch, final char separator) {
+            final long customEpoch, final char separator, final String prefix) {
         this.sequence = sequence;
-        StringBuilder sb = new StringBuilder(16);
+        StringBuilder sb = new StringBuilder(16 + prefix.length());
+        sb.append(prefix);
         if (baseEncoding != null) {
             byte[] intfMac;
             try {
