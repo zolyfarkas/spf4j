@@ -37,9 +37,11 @@ public final class UIDGenerator {
 
     private final Sequence sequence;
 
-    private final String base;
+    private final StringBuilder base;
 
     private final int maxSize;
+
+    private final int baseLength;
 
     public UIDGenerator(final Sequence sequence) {
         this(sequence, 0);
@@ -87,8 +89,9 @@ public final class UIDGenerator {
         sb.append(separator);
         appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);
         sb.append(separator);
-        base = sb.toString();
-        maxSize = base.length() + 16;
+        base = sb;
+        baseLength = base.length();
+        maxSize = baseLength + 16;
     }
 
     public int getMaxSize() {
@@ -96,10 +99,9 @@ public final class UIDGenerator {
     }
 
     public CharSequence next() {
-        StringBuilder result = new StringBuilder(maxSize);
-        result.append(base);
-        appendUnsignedString(result, sequence.next(), 5);
-        return result;
+        base.setLength(baseLength);
+        appendUnsignedString(base, sequence.next(), 5);
+        return base.toString();
     }
 
     private static final char[] DIGITS = {
