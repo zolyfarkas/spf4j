@@ -18,6 +18,7 @@
 package org.spf4j.concurrent;
 
 import com.google.common.io.BaseEncoding;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
@@ -113,9 +114,19 @@ public final class UIDGenerator {
         'u', 'v', 'w', 'x', 'y', 'z'
     };
 
+    private static final ThreadLocal<char[]> BUFF = new ThreadLocal<char[]>() {
+
+        @Override
+        @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+        protected char[] initialValue() {
+            return new char[64];
+        }
+
+    };
+
     private static void appendUnsignedString(final StringBuilder sb, final long nr, final int shift) {
         long i = nr;
-        char[] buf = new char[64];
+        char[] buf = BUFF.get();
         int charPos = 64;
         int radix = 1 << shift;
         long mask = radix - 1;
