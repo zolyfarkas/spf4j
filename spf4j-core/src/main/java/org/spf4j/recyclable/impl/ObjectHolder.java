@@ -82,7 +82,7 @@ final class ObjectHolder<T> {
         return obj;
     }
 
-    public synchronized void returnObject(final T object, final Exception e) {
+    public synchronized void returnObject(final T object, @Nullable final Exception e) {
         if (!borrowed || object != obj) {
             throw new IllegalStateException("Cannot return something that was "
                     + "not borrowed from here " + object);

@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
@@ -194,10 +195,15 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
         try {
             maxSize = 0;
             List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<>();
-            for (ObjectBorower<T> b : borrowedObjects.keySet()) {
-                Either<Action, T> object =  b.tryRequestReturnObject();
-                if (object.isRight()) {
-                    returnedObjects.add(Pair.of(b, object.getRight()));
+            final Set<ObjectBorower<T>> borrowers = borrowedObjects.keySet();
+            for (Entry<ObjectBorower<T>, Collection<T>>  b : borrowedObjects.asMap().entrySet()) {
+                ObjectBorower<T> borrower = b.getKey();
+                final int nrObjects = b.getValue().size();
+                for (int i = 0; i < nrObjects; i++) {
+                    Either<Action, T> object =  borrower.tryRequestReturnObject();
+                    if (object.isRight()) {
+                        returnedObjects.add(Pair.of(borrower, object.getRight()));
+                    }
                 }
             }
             for (Pair<ObjectBorower<T>, T> objectAndBorrower : returnedObjects) {
@@ -211,7 +217,8 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
             while (!borrowedObjects.isEmpty()) {
                 long waitTime = deadline - System.currentTimeMillis();
                 if (waitTime <= 0) {
-                        throw new TimeoutException("Object wait timeout expired, deadline = " + deadline);
+                        throw new TimeoutException("Object wait timeout expired, deadline = " + deadline
+                        + " still borrowed by " + borrowers);
                 }
                 if (!available.await(waitTime, TimeUnit.MILLISECONDS)) {
                     throw new TimeoutException("Object wait timeout expired, deadline = " + deadline);
@@ -221,12 +228,10 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
             if (exception != null) {
                 throw exception;
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | RuntimeException e) {
             throw e;
         } catch (TimeoutException e) {
             throw new ObjectDisposeException(e);
-        } catch (RuntimeException e) {
-            throw e;
         } finally {
             lock.unlock();
         }
@@ -310,7 +315,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
     public void requestReturnFromBorrowersIfNotInUse() throws InterruptedException {
         lock.lock();
         try {
-            List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<Pair<ObjectBorower<T>, T>>();
+            List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<>();
             for (ObjectBorower<T> b : borrowedObjects.keySet()) {
                 Collection<T> objects = b.tryReturnObjectsIfNotInUse();
                 if (objects != null) {

@@ -21,6 +21,7 @@ package org.spf4j.recyclable.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
@@ -131,9 +132,24 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
         boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
         if (acquired) {
             try {
+
                 ObjectHolder<T> objectHolder = tryReturnObjectIfNotInUse();
                 if (objectHolder != null) {
                     return Either.right(objectHolder);
+                } else if (this.thread == Thread.currentThread()) {
+                    // this will happen is the same thread is closing the pool.
+                    // in this case whatever objects the thread is borrowing, we will return
+                    // even if not officially returnes.
+                    if (this.borrowedObjects.isEmpty()) {
+                        return (Either) NONE;
+                    } else {
+                        Iterator<Map.Entry<T, ObjectHolder<T>>> it = this.borrowedObjects.entrySet().iterator();
+                        Map.Entry<T, ObjectHolder<T>> next = it.next();
+                        ObjectHolder<T> result = next.getValue();
+                        result.returnObject(next.getKey(), null);
+                        it.remove();
+                        return Either.right(result);
+                    }
                 } else {
                     if (borrowedObjects.size() > reqReturnObjects) {
                         reqReturnObjects++;

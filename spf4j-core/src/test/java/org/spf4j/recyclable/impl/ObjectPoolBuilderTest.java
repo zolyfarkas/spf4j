@@ -62,6 +62,23 @@ public final class ObjectPoolBuilderTest {
         System.out.println(pool);
     }
 
+    @Test
+    public void testBuildSimple()
+            throws ObjectCreationException, ObjectBorrowException,
+            InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException {
+        System.out.println("test=buildSimple");
+        RecyclingSupplier<ExpensiveTestObject> pool =
+                new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
+        System.out.println(pool);
+        ExpensiveTestObject object = pool.get();
+        object = pool.get();
+        System.out.println(pool);
+        org.spf4j.base.Runtime.setDeadline(System.currentTimeMillis() + 1000);
+        pool.dispose();
+        System.out.println(pool);
+    }
+
+
 
     @Test
     public void testBuild2()
