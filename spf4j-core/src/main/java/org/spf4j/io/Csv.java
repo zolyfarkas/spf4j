@@ -56,6 +56,10 @@ public final class Csv {
 
         void startRow();
 
+        /**
+         * @param elem - the CharSequence instance is being reused, between invocations.
+         * value should be copied or parsed into a new object.
+         */
         void element(CharSequence elem);
 
         void endRow();
@@ -73,7 +77,7 @@ public final class Csv {
 
     public interface CsvMapHandler<T> {
 
-        void row(Map<String, CharSequence> row);
+        void row(Map<String, String> row);
 
         T eof();
     }
@@ -128,7 +132,7 @@ public final class Csv {
 
             private int elemIdx;
 
-            private Map<String, CharSequence> row = null;
+            private Map<String, String> row = null;
 
             @Override
             public void startRow() {
@@ -143,7 +147,7 @@ public final class Csv {
                 if (first) {
                     header.add(elem.toString());
                 } else {
-                    row.put(header.get(elemIdx), elem);
+                    row.put(header.get(elemIdx), elem.toString());
                 }
                 elemIdx++;
             }
@@ -214,12 +218,13 @@ public final class Csv {
      */
     public static <T> T readNoBom(final PushbackReader reader, final CsvHandler<T> handler) throws IOException {
         boolean start = true;
+        StringBuilder strB = new StringBuilder();
         do {
             if (start) {
                 handler.startRow();
                 start = false;
             }
-            StringBuilder strB = new StringBuilder();
+            strB.setLength(0);
             int c = readCsvElement(reader, strB);
             handler.element(strB);
             if (c == '\r') {
