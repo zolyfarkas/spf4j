@@ -21,8 +21,6 @@
 
 ## 3. Code, Binaries, Build
 
- [SPF4J Google hosted repo](http://code.google.com/p/spf4j/)
-
  [SPF4J Github hosted repo](https://github.com/zolyfarkas/spf4j/)
 
  Look for latest releases [at](http://search.maven.org/#search|ga|1|spf4j)
