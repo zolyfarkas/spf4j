@@ -140,10 +140,6 @@ public final class Reflections {
 
     /**
      * Equivalent to Class.getConstructor, only that it does not throw an exception.
-     * @param c
-     * @param methodName
-     * @param paramTypes
-     * @return
      */
 
     @Nullable

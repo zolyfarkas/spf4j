@@ -34,18 +34,17 @@ import javax.management.remote.JMXServiceURL;
 
 /**
  * Simple Jmx Client utilities.
- * 
+ *
  * @author zoly
  */
 @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // FB gets it wrong here
 public final class Client {
-    
+
     private Client() { }
 
     /**
      *
      * @param serviceUrl "service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"
-     * @throws MalformedURLException
      */
     public static Object getAttribute(@Nonnull final String serviceUrl,
             @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String attribName)
@@ -57,7 +56,7 @@ public final class Client {
             return mbsc.getAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName), attribName);
         }
     }
-    
+
     public static void setAttribute(@Nonnull final String serviceUrl,
             @Nonnull final String domain, @Nonnull final String mbeanName,
             @Nonnull final String attribName, @Nonnull final Object attribValue)
@@ -70,8 +69,8 @@ public final class Client {
                     new Attribute(attribName, attribValue));
         }
     }
-    
-    
+
+
     public static Object callOperation(@Nonnull final String serviceUrl,
             @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String operationName,
             final Object ... parameters)
@@ -84,6 +83,6 @@ public final class Client {
                     operationName, parameters, null);
         }
     }
-    
+
 
 }

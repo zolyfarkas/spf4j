@@ -119,9 +119,9 @@ public final class InverseGrayScale
 
     /**
      * Returns the alpha transparency that was specified in the constructor.
-     * 
+     *
      * @return The alpha transparency (in the range 0 to 255).
-     * 
+     *
      * @since 1.0.13
      */
     public int getAlpha() {
@@ -192,8 +192,6 @@ public final class InverseGrayScale
      *
      * @return A clone.
      *
-     * @throws CloneNotSupportedException if there is a problem cloning this
-     *     instance.
      */
     @Override
     public InverseGrayScale clone() {
@@ -203,7 +201,7 @@ public final class InverseGrayScale
            throw new RuntimeException(ex);
         }
     }
-    
+
     private static final long serialVersionUID = 1L;
 
 }

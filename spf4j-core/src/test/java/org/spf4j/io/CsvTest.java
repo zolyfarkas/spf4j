@@ -18,10 +18,13 @@
 package org.spf4j.io;
 
 import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,11 +47,12 @@ public final class CsvTest {
 
         File testFile = createTestCsv();
 
-        List<Map<String, String>> data = Csv.read(testFile, Charsets.UTF_8, new Csv.CsvHandler<List<Map<String, String>>>() {
+        List<Map<String, String>> data =
+                Csv.read(testFile, Charsets.UTF_8, new Csv.CsvHandler<List<Map<String, String>>>() {
 
             private boolean firstRow = true;
 
-            private final List<Map<String, String>> result = new ArrayList<Map<String, String>>();
+            private final List<Map<String, String>> result = new ArrayList<>();
 
             private List<String> header;
             private Map<String, String> row;
@@ -57,9 +61,9 @@ public final class CsvTest {
             @Override
             public void startRow() {
                 if (firstRow) {
-                    header = new ArrayList<String>();
+                    header = new ArrayList<>();
                 } else {
-                    row = new HashMap<String, String>(header.size());
+                    row = new HashMap<>(header.size());
                     i = 0;
                 }
             }
@@ -123,17 +127,54 @@ public final class CsvTest {
     private File createTestCsv() throws IOException {
         File testFile = File.createTempFile("csvTest", ".csv");
         System.out.println("test file : " + testFile);
-        BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(new FileOutputStream(testFile), Charsets.UTF_8));
-        try {
+        try (BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(testFile), Charsets.UTF_8))) {
             Csv.writeCsvRow(writer, "a", "b", "c", "d");
             Csv.writeCsvRow(writer, "1.2\r", "1", "1,3", 1);
             Csv.writeCsvRow(writer, "0", "\"", "0\n", "1,3");
-        } finally {
-            writer.close();
         }
         System.out.println("test file written");
         return testFile;
+    }
+
+
+    public static void main(final String [] params) throws IOException {
+        CsvTest test = new CsvTest();
+        for (int i=0 ; i < 10 ; i++) {
+            test.testLargeFileRead();
+        }
+    }
+
+    @Test
+    public void testLargeFileRead() throws IOException {
+        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(
+                Resources.getResource("worldcitiespop.txt").openStream(), Charsets.UTF_8), 65536)) {
+        long startTime = System.currentTimeMillis();
+        long count = Csv.read(reader,
+                new Csv.CsvHandler<Long>() {
+
+                    private long count = 0;
+                    @Override
+                    public void startRow() {
+                    }
+
+                    @Override
+                    public void element(CharSequence elem) {
+                    }
+
+                    @Override
+                    public void endRow() {
+                        count++;
+                    }
+
+                    @Override
+                    public Long eof() {
+                        return count;
+                    }
+                });
+        System.out.println("Line count is " + count + " in " + (System.currentTimeMillis() - startTime));
+        Assert.assertEquals(3173959L, count);
+        }
     }
 
 }

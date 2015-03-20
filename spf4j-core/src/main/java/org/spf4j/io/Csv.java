@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PushbackReader;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -43,7 +42,7 @@ import org.spf4j.base.Strings;
  *
  * why another implementation?
  * because I need one that is as fast as possible, and as flexible as possible.
- * 
+ *
  * @author zoly
  */
 @ParametersAreNonnullByDefault
@@ -63,22 +62,22 @@ public final class Csv {
 
         T eof();
     }
-    
+
     public interface CsvRowHandler<T> {
 
         void element(CharSequence elem);
 
         T eof();
     }
-    
-    
+
+
     public interface CsvMapHandler<T> {
 
         void row(Map<String, CharSequence> row);
 
         T eof();
     }
-    
+
 
     public static void writeCsvRow(final Writer writer, final Object... elems) throws IOException {
         if (elems.length > 0) {
@@ -104,33 +103,33 @@ public final class Csv {
         writer.write('\n');
     }
 
-        
+
     public static <T> T read(final File file, final Charset charset,
             final CsvMapHandler<T> handler) throws IOException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {
             return read(br, handler);
         }
     }
-    
+
     public static <T> T read(final File file, final Charset charset,
             final CsvHandler<T> handler) throws IOException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {
             return read(br, handler);
         }
     }
-    
+
     public static <T> T read(final Reader preader,
             final CsvMapHandler<T> handler) throws IOException {
         return read(preader, new CsvHandler<T>() {
 
             private boolean first = true;
-            
+
             private final List<String> header = new ArrayList<>();
-            
+
             private int elemIdx;
-            
+
             private Map<String, CharSequence> row = null;
-            
+
             @Override
             public void startRow() {
                 elemIdx = 0;
@@ -164,8 +163,8 @@ public final class Csv {
             }
         });
     }
-    
-    
+
+
     public static <T> T readRow(final Reader reader, final CsvRowHandler<T> handler) throws IOException {
         return read(reader, new CsvHandler<T>() {
 
@@ -188,7 +187,7 @@ public final class Csv {
             }
         });
     }
- 
+
     public static <T> T read(final Reader preader,
             final CsvHandler<T> handler) throws IOException {
         PushbackReader reader = new PushbackReader(preader);
@@ -203,7 +202,7 @@ public final class Csv {
      * http://unicode.org/faq/utf_bom.html#BOM
      */
     public static final int UTF_BOM = '\uFEFF';
- 
+
     /**
      * reads CSV format until EOF of reader.
      *
@@ -213,8 +212,7 @@ public final class Csv {
      * @return
      * @throws IOException
      */
-    public static <T> T readNoBom(final PushbackReader preader, final CsvHandler<T> handler) throws IOException {
-        final Reader reader = preader;
+    public static <T> T readNoBom(final PushbackReader reader, final CsvHandler<T> handler) throws IOException {
         boolean start = true;
         do {
             if (start) {
@@ -229,7 +227,7 @@ public final class Csv {
                 start = true;
                 int c2 = reader.read();
                 if (c2 != '\n') {
-                    preader.unread(c2);
+                    reader.unread(c2);
                 }
             } else if (c == '\n') {
                 handler.endRow();
@@ -285,7 +283,7 @@ public final class Csv {
      * @param reader
      * @param addElemTo
      * @return
-     * @throws IOException.
+     * @throws IOException
      */
     @CheckReturnValue
     public static int readCsvElement(final Reader reader, final StringBuilder addElemTo) throws IOException {
@@ -313,7 +311,7 @@ public final class Csv {
                 c = reader.read();
             }
         } else {
-            while (c >= 0 && c != ',' && c != '\n' && c != '\r') {
+            while (c != ',' && c != '\n' && c != '\r' && c >= 0) {
                 addElemTo.append((char) c);
                 c = reader.read();
             }

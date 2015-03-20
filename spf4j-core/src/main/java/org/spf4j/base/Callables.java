@@ -114,15 +114,6 @@ public final class Callables {
     /**
      * After the immediate retries are done,
      * delayed retry with randomized Fibonacci values up to the specified max is executed.
-     * @param <T>
-     * @param what
-     * @param doBeforeRetry
-     * @param nrImmediateRetries
-     * @param maxWaitMillis
-     * @param retryOnReturnVal
-     * @param retryOnException
-     * @return
-     * @throws InterruptedException
      */
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
             final int nrImmediateRetries, final int maxWaitMillis,
@@ -363,12 +354,6 @@ public final class Callables {
      * thread if the result and exception predicates. before retry, a callable can be executed that can abort the retry
      * and finish the function with the previous result.
      *
-     * @param what
-     * @param doBeforeRetry
-     * @param retryOnReturnVal
-     * @param retryOnException
-     * @return
-     * @throws InterruptedException
      */
     public static <T, EX extends Exception> T executeWithRetry(
             final CheckedCallable<T, EX> what,

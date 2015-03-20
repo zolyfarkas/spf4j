@@ -214,7 +214,7 @@ public final class OpenTypeConverter {
     /**
      *
      * @param type
-     * @return Converter<OpenType, Object>
+     * @return Converter
      * @throws OpenDataException
      */
     public static Converter<Object, Object> getConverter(final Class<?> type) throws OpenDataException {
