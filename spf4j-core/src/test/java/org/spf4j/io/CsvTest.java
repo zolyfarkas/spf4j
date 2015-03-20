@@ -26,10 +26,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 import junit.framework.Assert;
 import org.junit.Test;
 
@@ -148,7 +150,9 @@ public final class CsvTest {
     @Test
     public void testLargeFileRead() throws IOException {
         try (final BufferedReader reader = new BufferedReader(new InputStreamReader(
-                Resources.getResource("worldcitiespop.txt").openStream(), Charsets.UTF_8), 65536)) {
+                new GZIPInputStream(
+                        new URL("http://www.maxmind.com/download/worldcities/worldcitiespop.txt.gz").openStream()),
+                Charsets.UTF_8), 65536)) {
         long startTime = System.currentTimeMillis();
         long count = Csv.read(reader,
                 new Csv.CsvHandler<Long>() {
