@@ -46,6 +46,7 @@ import org.spf4j.recyclable.SmartRecyclingSupplier;
 final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
 
     private int maxSize;
+    private int waitingForReturn;
     private final LinkedHashMultimap<ObjectBorower<T>, T> borrowedObjects;
     private final List<T> availableObjects;
     private final ReentrantLock lock;
@@ -64,6 +65,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
         for (int i = 0; i < initialSize; i++) {
             availableObjects.add(factory.create());
         }
+        waitingForReturn = 0;
     }
 
     @Override
@@ -73,7 +75,8 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
         long deadline = org.spf4j.base.Runtime.DEADLINE.get();
         lock.lock();
         try {
-            if (availableObjects.size() > 0) {
+            // trying to be fair here, if others are already waiting, we will not get one.
+            if (availableObjects.size() - waitingForReturn > 0) {
                 Iterator<T> it = availableObjects.iterator();
                 T object = it.next();
                 it.remove();
@@ -84,10 +87,17 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
                 borrowedObjects.put(borower, object);
                 return object;
             } else {
-                if (borrowedObjects.isEmpty()) {
+                if (borrowedObjects.isEmpty() && availableObjects.isEmpty()) {
                     throw new RuntimeException(
-                            "Pool is probably closing down or is missconfigured withe size 0 " + this);
+                            "Pool is probably closing down or is missconfigured with size 0 " + this);
                 }
+                while (borrowedObjects.isEmpty()) {
+                     available.await(1, TimeUnit.MILLISECONDS);
+                     if (deadline < System.currentTimeMillis()) {
+                         throw new TimeoutException("Object wait timeout expired, deadline = " + deadline);
+                     }
+                }
+                // try to reclaim object from borrowers
                 for (ObjectBorower<T> b : borrowedObjects.keySet()) {
                     if (borower != b) {
                         T object = b.tryReturnObjectIfNotInUse();
@@ -100,43 +110,45 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
                         }
                     }
                 }
-                Either<ObjectBorower.Action, T> objOrPromise;
-                boolean requestNotMade = true;
-                do {
-                    Iterator<ObjectBorower<T>> itt = borrowedObjects.keySet().iterator();
-                    ObjectBorower<T> b = itt.next();
-                    while (b == borower && itt.hasNext()) {
-                        b = itt.next();
-                    }
-                    if (b == borower) {
-                        throw new IllegalStateException("Borrower " + b + " already has "
-                                + "max number of pool objects");
-                    }
-                    do {
-                        objOrPromise = b.tryRequestReturnObject();
-                        if (objOrPromise.isRight()) {
-                            T obj = objOrPromise.getRight();
-                            if (!borrowedObjects.remove(b, obj)) {
-                                throw new IllegalStateException("Returned Object " + obj
-                                        + " hasn't been borrowed: " + borrowedObjects);
-                            }
+                // evrything in use, try to place a return request
+                boolean requestMade = false;
+                while (!requestMade) {
+                    boolean hasValidBorowers = false;
+                    for (ObjectBorower<T> b : borrowedObjects.keySet()) {
+                        if (borower != b) {
+                            hasValidBorowers = true;
+                            Either<ObjectBorower.Action, T> objOrPromise = b.tryRequestReturnObject();
+                            if (objOrPromise.isRight()) {
+                                T obj = objOrPromise.getRight();
+                                if (!borrowedObjects.remove(b, obj)) {
+                                    throw new IllegalStateException("Returned Object " + obj
+                                            + " hasn't been borrowed: " + borrowedObjects);
+                                }
 
-                            borrowedObjects.put(borower, obj);
-                            return  obj;
+                                borrowedObjects.put(borower, obj);
+                                return  obj;
+                            } else {
+                                requestMade = objOrPromise.getLeft() == Action.REQUEST_MADE;
+                                if (requestMade) {
+                                    break;
+                                }
+                            }
                         }
-                        //CHECKSTYLE:OFF -- inner assignement
-                    } while (objOrPromise.isLeft() && objOrPromise.getLeft() != Action.REQUEST_MADE
-                            && (itt.hasNext() && ((b = itt.next()) != null)));
-                    //CHECKSTYLE:ON
-                    // if request has not been made, do a wait and trya again.
-                    requestNotMade = objOrPromise.isLeft() && objOrPromise.getLeft() != Action.REQUEST_MADE;
-                    if (requestNotMade) {
+                    }
+                    if (!hasValidBorowers) {
+                        throw new IllegalStateException("Borrower asks for more than possible " + borower);
+                    }
+                    if (!requestMade) {
+                        // probably was unable to acquire the locks
                         do {
                             available.await(1, TimeUnit.MILLISECONDS);
+                            if (deadline < System.currentTimeMillis()) {
+                               throw new TimeoutException("Object wait timeout expired, deadline = " + deadline);
+                            }
                         } while (borrowedObjects.isEmpty());
                     }
-                } while (requestNotMade);
-
+                }
+                waitingForReturn++;
                 while (availableObjects.isEmpty()) {
                     long waitTime = deadline - System.currentTimeMillis();
                     if (waitTime <= 0) {
@@ -146,6 +158,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
                         throw new TimeoutException("Object wait timeout expired, deadline = " + deadline);
                     }
                 }
+                waitingForReturn--;
                 Iterator<T> it = availableObjects.iterator();
                 T objectT = it.next();
                 it.remove();
