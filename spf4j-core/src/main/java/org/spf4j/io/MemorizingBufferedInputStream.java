@@ -224,9 +224,6 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         if (startIdx >= memory.length) {
             startIdx = 0;
         }
-        if (startIdx == endIdx) {
-            throw new IllegalStateException("State " + this);
-        }
         return result;
     }
 
