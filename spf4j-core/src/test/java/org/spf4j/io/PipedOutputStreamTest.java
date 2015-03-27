@@ -19,25 +19,31 @@ public class PipedOutputStreamTest {
 
     @Test
     public void testStreamPiping() throws IOException {
-        test("This is a super cool, mega dupper test string for testing piping..........E", 8);
+        test("This is a super cool, mega dupper test string for testing piping..........E", 8, false);
         final IntMath.XorShift32 random = new IntMath.XorShift32();
         int nrChars = Math.abs(random.nextInt() % 100000);
         StringBuilder sb = generateTestStr(nrChars);
-        test(sb.toString(), Math.abs(random.nextInt() % 10000));
+        test(sb.toString(), Math.abs(random.nextInt() % 10000), false);
     }
 
     public static StringBuilder generateTestStr(int nrChars) {
         final IntMath.XorShift32 random = new IntMath.XorShift32();
         StringBuilder sb = new StringBuilder(nrChars);
         for (int i = 0; i < nrChars; i++) {
-            sb.append((char) Math.abs(random.nextInt() % 128));
+            sb.append((char) Math.abs(random.nextInt() % 127));
         }
         return sb;
     }
 
-    private void test(final String testStr, final int buffSize) throws IOException {
+    public static void test(final String testStr, final int buffSize, final boolean buffered) throws IOException {
         final PipedOutputStream pos = new PipedOutputStream(buffSize);
-        final InputStream pis = pos.getInputStream();
+        final InputStream pis;
+        if (buffered) {
+            pis = new MemorizingBufferedInputStream(pos.getInputStream());
+        } else {
+            pis = pos.getInputStream();
+        }
+
         DefaultExecutor.INSTANCE.execute(new AbstractRunnable() {
 
             @Override

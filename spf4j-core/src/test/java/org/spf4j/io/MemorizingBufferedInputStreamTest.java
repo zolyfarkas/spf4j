@@ -1,0 +1,65 @@
+
+package org.spf4j.io;
+
+import com.google.common.base.Charsets;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import junit.framework.Assert;
+import org.junit.Test;
+import org.spf4j.base.IntMath;
+import org.spf4j.base.Strings;
+import static org.spf4j.io.PipedOutputStreamTest.generateTestStr;
+import static org.spf4j.io.PipedOutputStreamTest.test;
+import org.spf4j.recyclable.impl.ArraySuppliers;
+
+/**
+ *
+ * @author zoly
+ */
+public class MemorizingBufferedInputStreamTest {
+
+    public MemorizingBufferedInputStreamTest() {
+    }
+
+    @Test
+    public void testStreamBuffering() throws IOException {
+        test("This is a super cool, mega dupper test string for testing piping..........E", 8, true);
+        final IntMath.XorShift32 random = new IntMath.XorShift32();
+        int nrChars = Math.abs(random.nextInt() % 100000);
+        StringBuilder sb = generateTestStr(nrChars);
+        test(sb.toString(), Math.abs(random.nextInt() % 10000), true);
+
+        System.out.println("TestString:" + sb);
+        testBuff(sb, 8192);
+        testBuff(sb, 32);
+    }
+
+    private void testBuff(final StringBuilder sb, final int buffSize) throws IOException {
+        final byte[] utf8Bytes = Strings.toUtf8(sb.toString());
+        ByteArrayInputStream bis = new ByteArrayInputStream(utf8Bytes);
+        try (MemorizingBufferedInputStream mbis = new MemorizingBufferedInputStream(bis, buffSize, buffSize / 2,
+                ArraySuppliers.Bytes.GL_SUPPLIER, Charsets.UTF_8)) {
+            int val = mbis.read();
+            System.out.println("Read: " + Strings.fromUtf8(mbis.getReadBytesFromBuffer()));
+            Assert.assertEquals(val, mbis.getReadBytesFromBuffer()[0]);
+            byte [] buff = new byte [8];
+            int read = mbis.read(buff);
+            Assert.assertEquals(8, read);
+            System.out.print(mbis);
+            Assert.assertTrue(Arrays.equals(buff, Arrays.copyOfRange(mbis.getReadBytesFromBuffer(), 1, 9)));
+            System.out.print(mbis);
+            int result;
+            do {
+                result = mbis.read(buff);
+            } while (result >= 0);
+            byte[] unredBytesEnd = mbis.getUnreadBytesFromBuffer();
+            Assert.assertEquals(0, unredBytesEnd.length);
+            final byte[] readBytesFromBuffer = mbis.getReadBytesFromBuffer();
+            System.out.println("readBytes=" + Strings.fromUtf8(readBytesFromBuffer));
+            Assert.assertTrue(Arrays.equals(readBytesFromBuffer,
+                    Arrays.copyOfRange(utf8Bytes, utf8Bytes.length - readBytesFromBuffer.length, utf8Bytes.length)));
+
+        }
+    }
+}
