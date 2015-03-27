@@ -70,9 +70,11 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
 
     @Override
     public synchronized void close() throws IOException {
-        isClosed = true;
-        bufferProvider.recycle(memory);
-        super.close();
+        if (!isClosed) {
+            isClosed = true;
+            bufferProvider.recycle(memory);
+            super.close();
+        }
     }
 
     private int availableToWrite() {
@@ -241,7 +243,9 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         StringBuilder result = new StringBuilder((availableToRead() + availableInMemory()) * 2 + 128);
 
         result.append("MemorizingBufferedInputStream{\n");
-        if (charset == null) {
+        if (isClosed) {
+            result.append("closed");
+        } else if (charset == null) {
             final BaseEncoding base64 = BaseEncoding.base64();
             result.append("readBytes=\"").append(base64.encode(getReadBytesFromBuffer())).append("\",\n");
             result.append("unreadBytes=\"").append(base64.encode(getUnreadBytesFromBuffer())).append("\"\n");
@@ -251,6 +255,7 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
             result.append("unreadStr=\"").append(
                     Strings.fromUtf8(getUnreadBytesFromBuffer())).append("\"\n");
         }
+        result.append("}");
         return result.toString();
     }
 
