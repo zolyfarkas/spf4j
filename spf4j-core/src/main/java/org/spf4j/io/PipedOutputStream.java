@@ -18,6 +18,7 @@
 
 package org.spf4j.io;
 
+import com.google.common.io.BaseEncoding;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import java.io.IOException;
 import java.io.InputStream;
@@ -167,6 +168,14 @@ public final class PipedOutputStream extends OutputStream {
         }
     }
 
+    private int contentInBuffer() {
+        if (startIdx <= endIdx) {
+            return endIdx - startIdx;
+        } else {
+            return buffer.length - startIdx + endIdx;
+        }
+    }
+
     @Override
     public void flush() {
         synchronized (sync) {
@@ -301,11 +310,33 @@ public final class PipedOutputStream extends OutputStream {
 
     }
 
+    public synchronized byte[] getUnreadBytesFromBuffer() {
+        final int size = contentInBuffer();
+        if (size == 0) {
+            return org.spf4j.base.Arrays.EMPTY_BYTE_ARRAY;
+        }
+        byte [] result = new byte[size];
+        if (startIdx < endIdx) {
+            System.arraycopy(buffer, startIdx, result, 0, result.length);
+        } else {
+            final int toEnd = buffer.length - startIdx;
+            System.arraycopy(buffer, startIdx, result, 0, toEnd);
+            System.arraycopy(buffer, 0, result, toEnd, endIdx);
+        }
+        return result;
+    }
+
+
     @Override
     public String toString() {
         synchronized (sync) {
             return "PipedOutputStream{" + "bufferLength=" + buffer.length + ", startIdx=" + startIdx
-                    + ", endIdx=" + endIdx + ", closed=" + writerClosed + '}';
+                    + ", endIdx=" + endIdx
+                    + ", readerPerceivedEndIdx=" + readerPerceivedEndIdx
+                    + ((writerClosed)
+                        ? ", closed=" + writerClosed
+                        : ", unread=" + BaseEncoding.base64().encode(getUnreadBytesFromBuffer()))
+                    + '}';
         }
     }
 

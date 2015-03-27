@@ -69,8 +69,28 @@ public class PipedOutputStreamTest {
 
     @Test(expected = IOException.class)
     public void testNoReaderBehaviour() throws IOException {
-        final PipedOutputStream pos = new PipedOutputStream(1024);
-        pos.write(123);
+        PipedOutputStream os = new PipedOutputStream(1024);
+        try(final PipedOutputStream pos = os) {
+            pos.write(123);
+        } catch(IOException ex) {
+           IOException e = new IOException("Stream=" + os, ex);
+           e.printStackTrace();
+           throw e;
+        }
+    }
+
+    @Test(expected = IOException.class)
+    public void testNoReaderBehaviourP() throws IOException {
+        PipedOutputStream pos = new PipedOutputStream(1024);
+        try {
+            pos.write(123);
+        } catch(IOException ex) {
+           IOException e = new IOException("Stream=" + pos, ex);
+           e.printStackTrace();
+           throw e;
+        } finally {
+            pos.close();
+        }
     }
 
     @Test(expected = IOException.class)

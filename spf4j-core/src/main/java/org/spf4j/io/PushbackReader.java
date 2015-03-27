@@ -142,7 +142,8 @@ public final class PushbackReader extends FilterReader {
 
     @Override
     public String toString() {
-        return "PushbackReader{" + "buf=" + new String(buf) + ", pos=" + pos + '}';
+        return "PushbackReader{" + "buf=" + new String(buf)
+                + ", pos=" + pos + ", wrapped=" + super.in + '}';
     }
 
 
