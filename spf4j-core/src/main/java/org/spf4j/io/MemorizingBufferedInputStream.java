@@ -189,8 +189,12 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
             fill();
             availableToRead = availableToRead();
         }
-        if (availableToRead == 0 && isEof) {
-            return -1;
+        if (availableToRead == 0) {
+            if (isEof) {
+                return -1;
+            } else {
+                throw new IllegalStateException("State=" + this);
+            }
         }
         int toRead = Math.min(availableToRead, len);
         int readToEnd = Math.min(toRead, memory.length - startIdx);
@@ -217,10 +221,14 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
             fill();
             availableToRead = availableToRead();
         }
-        if (availableToRead == 0  && isEof) {
-            return -1;
+        if (availableToRead == 0) {
+            if (isEof) {
+                return -1;
+            } else {
+                throw new IllegalStateException("State=" + this);
+            }
         }
-        int result = memory[startIdx++];
+        int result = memory[startIdx++] & 0xff;
         if (startIdx >= memory.length) {
             startIdx = 0;
         }

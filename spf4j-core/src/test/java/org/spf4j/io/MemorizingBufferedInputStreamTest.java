@@ -22,9 +22,28 @@ public class MemorizingBufferedInputStreamTest {
     public MemorizingBufferedInputStreamTest() {
     }
 
+    private static final String TSTR =
+            "This is a super \u00EF cool, mega dupper test string for testing piping..........E";
+
+    @Test
+    public void testSimpleStreamBuffering() throws IOException {
+        final byte[] array = Strings.toUtf8(TSTR);
+        ByteArrayInputStream bis = new ByteArrayInputStream(array);
+        MemorizingBufferedInputStream mis = new MemorizingBufferedInputStream(bis);
+        int val;
+        int i = 0;
+        while ((val = mis.read()) > 0)  {
+            System.out.print((char) val);
+            Assert.assertEquals(array[i], (byte) val);
+            i++;
+        }
+        Assert.assertEquals(i, array.length);
+    }
+
+
     @Test
     public void testStreamBuffering() throws IOException {
-        test("This is a super cool, mega dupper test string for testing piping..........E", 8, true);
+        test(TSTR, 8, true);
         final IntMath.XorShift32 random = new IntMath.XorShift32();
         int nrChars = Math.abs(random.nextInt() % 100000);
         StringBuilder sb = generateTestStr(nrChars);
