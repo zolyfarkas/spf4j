@@ -10,6 +10,7 @@ import org.openjdk.jmh.infra.BenchmarkParams;
 import org.openjdk.jmh.profile.ExternalProfiler;
 import org.openjdk.jmh.results.AggregationPolicy;
 import org.openjdk.jmh.results.Aggregator;
+import org.openjdk.jmh.results.BenchmarkResult;
 import org.openjdk.jmh.results.Result;
 import org.openjdk.jmh.results.ResultRole;
 
@@ -91,9 +92,10 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
     }
 
     @Override
-    public Collection<? extends Result> afterTrial(final BenchmarkParams bp, final long l,
+    public Collection<? extends Result> afterTrial(final BenchmarkResult bp, final long l,
             final File file, final File file1) {
-        NoResult r = new NoResult("Profile saved to " + dumpFile);
+        NoResult r = new NoResult("Profile saved to " + dumpFile + ", results: " + bp
+            + ", stdOutFile = " + file + ", stdErrFile = " + file1);
         return Collections.singleton(r);
     }
 
