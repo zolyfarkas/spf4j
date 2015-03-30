@@ -139,8 +139,11 @@ final class ObjectHolder<T> {
             return false;
         }
         if (obj != null) {
-            factory.dispose(obj);
-            obj = null;
+            try {
+                factory.dispose(obj);
+            } finally {
+                obj = null;
+            }
         }
         return true;
     }
