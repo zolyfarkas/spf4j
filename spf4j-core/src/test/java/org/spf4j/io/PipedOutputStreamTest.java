@@ -30,7 +30,7 @@ public class PipedOutputStreamTest {
         final IntMath.XorShift32 random = new IntMath.XorShift32();
         StringBuilder sb = new StringBuilder(nrChars);
         for (int i = 0; i < nrChars; i++) {
-            sb.append((char) Math.abs(random.nextInt() % 127));
+            sb.append((char) Math.abs(random.nextInt() % 100) + 20);
         }
         return sb;
     }

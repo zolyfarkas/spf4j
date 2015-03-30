@@ -75,7 +75,7 @@ public class MemorizingBufferedInputStreamTest {
             byte[] unredBytesEnd = mbis.getUnreadBytesFromBuffer();
             Assert.assertEquals(0, unredBytesEnd.length);
             final byte[] readBytesFromBuffer = mbis.getReadBytesFromBuffer();
-            System.out.println("readBytes=" + Strings.fromUtf8(readBytesFromBuffer));
+            System.out.println("\nreadBytes=" + Strings.fromUtf8(readBytesFromBuffer));
             Assert.assertTrue(Arrays.equals(readBytesFromBuffer,
                     Arrays.copyOfRange(utf8Bytes, utf8Bytes.length - readBytesFromBuffer.length, utf8Bytes.length)));
 
