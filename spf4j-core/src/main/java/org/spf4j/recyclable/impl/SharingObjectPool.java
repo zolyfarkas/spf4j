@@ -184,29 +184,33 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
 
     @Override
     public synchronized void dispose() throws ObjectDisposeException, InterruptedException {
-        closed = true;
-        ObjectDisposeException exres = null;
-        Iterator<SharedObject<T>> iterator = pooledObjects.iterator();
-        while (iterator.hasNext()) {
-            SharedObject<T> obj = iterator.next();
-            try {
-                while (obj.getNrTimesShared() > 0) {
-                    this.wait(5000);
-                }
-                factory.dispose(obj.getObject());
-                iterator.remove();
-                nrObjects--;
-            } catch (ObjectDisposeException ex) {
-                if (exres == null) {
-                    exres = ex;
-                } else {
-                    ex.addSuppressed(exres);
-                    exres = ex;
+        if (!closed) {
+            closed = true;
+            ObjectDisposeException exres = null;
+            Iterator<SharedObject<T>> iterator = pooledObjects.iterator();
+            while (iterator.hasNext()) {
+                SharedObject<T> so = iterator.next();
+                try {
+                    while (so.getNrTimesShared() > 0) {
+                        this.wait(5000);
+                    }
+                    T o = so.getObject();
+                    o2Queue.remove(o);
+                    iterator.remove();
+                    nrObjects--;
+                    factory.dispose(o);
+                } catch (ObjectDisposeException ex) {
+                    if (exres == null) {
+                        exres = ex;
+                    } else {
+                        ex.addSuppressed(exres);
+                        exres = ex;
+                    }
                 }
             }
-        }
-        if (exres != null) {
-            throw exres;
+            if (exres != null) {
+                throw exres;
+            }
         }
     }
 
