@@ -22,12 +22,13 @@ public final class PushbackInputStreamEx  extends java.io.PushbackInputStream {
     @Override
     public String toString() {
         return "PushbackInputStream{"
-                + "buf=" + BaseEncoding.base64().encode(buf)
+                + ((buf == null) ? "" : "buf=" + BaseEncoding.base64().encode(buf))
                 + ", pos=" + pos
                 + ", wrapped=" + this.in + '}';
     }
 
-
-
+    public InputStream getUnderlyingStream() {
+        return this.in;
+    }
 
 }
