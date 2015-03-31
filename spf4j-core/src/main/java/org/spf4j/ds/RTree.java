@@ -1,7 +1,7 @@
 /*
  * Copyright 2010 Russ Weeks rweeks@newbrightidea.com Licensed under the GNU
  * LGPL License details here: http://www.gnu.org/licenses/lgpl-3.0.txt
- * 
+ *
  */
 package org.spf4j.ds;
 
@@ -68,7 +68,7 @@ public final class RTree<T> {
     private static final float DIM_FACTOR = -2.0f;
     private static final float FUDGE_FACTOR = 1.001f;
     private static final float INIT_COORD = (float) Math.sqrt(Float.MAX_VALUE);
-    
+
     private Node buildRoot(final boolean asLeaf) {
         float[] initCoords = new float[numDims];
         float[] initDimensions = new float[numDims];
@@ -86,11 +86,11 @@ public final class RTree<T> {
     public RTree() {
         this(50, 2, 2, SeedPicker.LINEAR);
     }
-    
+
     public RTree(final int numDimensions) {
         this(50, 2, numDimensions, SeedPicker.LINEAR);
     }
-    
+
 
     /**
      * @return the maximum number of entries per node
@@ -395,7 +395,8 @@ public final class RTree<T> {
     }
 
     // Implementation of Quadratic PickSeeds
-    private Node[] qPickSeeds(final LinkedList<Node> nn) {
+    @SuppressFBWarnings("MRC_METHOD_RETURNS_CONSTANT")
+    private Node[] qPickSeeds(final List<Node> nn) {
         @SuppressWarnings("unchecked")
         Node[] bestPair = new Node[2];
         float maxWaste = -1.0f * Float.MAX_VALUE;
@@ -620,7 +621,7 @@ public final class RTree<T> {
         return true;
     }
 
-    
+
     // CHECKSTYLE:OFF
     private static class Node {
         final float[] coords;
@@ -657,7 +658,7 @@ public final class RTree<T> {
         }
     }
     //CHECKSTYLE:ON
-    
+
     // The methods below this point can be used to create an HTML rendering
     // of the RTree.  Maybe useful for debugging?
     private static final int ELEM_WIDTH = 150;

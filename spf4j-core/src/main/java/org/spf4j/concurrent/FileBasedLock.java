@@ -40,7 +40,7 @@ import org.spf4j.base.IntMath;
  */
 public final class FileBasedLock implements Lock, java.io.Closeable {
 
-    public static final Map<String, Lock> JVM_LOCKS = new HashMap<>();
+    private static final Map<String, Lock> JVM_LOCKS = new HashMap<>();
     private final RandomAccessFile file;
     private final Lock jvmLock;
     private FileLock fileLock;

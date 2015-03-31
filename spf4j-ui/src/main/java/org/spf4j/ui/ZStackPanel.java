@@ -172,26 +172,23 @@ public final class ZStackPanel extends StackPanelBase {
                         newWidth, rowHeight, fromPoints.toArray(new Point[fromPoints.size()]));
             }
 
+            @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
             private Pair<List<Pair<Method, Integer>>, Double> findEmptySpace(
                     final double newXBase, final double newYBase,
                     final double newWidth, final double maxX) {
                 double tryx = newXBase + (maxX - newXBase) / 2 - newWidth / 2;
                 tryx = fitToViewableArea(tryx, newWidth);
-                List<Pair<Method, Integer>> methods = tooltipDetail.search(
-                        new float[]{(float) tryx, (float) newYBase},
-                        new float[]{(float) newWidth, Float.MAX_VALUE});
+                final float[] oc = new float[]{(float) newWidth, Float.MAX_VALUE};
+                List<Pair<Method, Integer>> methods =
+                        tooltipDetail.search(new float[]{(float) tryx, (float) newYBase}, oc);
                 if (!methods.isEmpty()) {
                     tryx = newXBase;
                     tryx = fitToViewableArea(tryx, newWidth);
-                    methods = tooltipDetail.search(
-                            new float[]{(float) tryx, (float) newYBase},
-                            new float[]{(float) newWidth, Float.MAX_VALUE});
+                    methods = tooltipDetail.search(new float[]{(float) tryx, (float) newYBase}, oc);
                     if (!methods.isEmpty()) {
                         tryx = maxX - newWidth;
                         tryx = fitToViewableArea(tryx, newWidth);
-                        methods = tooltipDetail.search(
-                                new float[]{(float) tryx, (float) newYBase},
-                                new float[]{(float) newWidth, Float.MAX_VALUE});
+                        methods = tooltipDetail.search(new float[]{(float) tryx, (float) newYBase}, oc);
                     }
                 }
                 return Pair.of(methods, tryx);

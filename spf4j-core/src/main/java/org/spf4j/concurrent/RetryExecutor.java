@@ -41,7 +41,7 @@ import org.spf4j.base.Pair;
  * Executor that will execute Callables with retry.
  * This executor cannot be used inside a Completion service.
  * as such it allow
- * 
+ *
  * @author zoly
  */
 public class RetryExecutor<T> implements ExecutorService {
@@ -67,8 +67,9 @@ public class RetryExecutor<T> implements ExecutorService {
         if (this.retryManager == null) {
             synchronized (sync) {
                 if (this.retryManager == null) {
-                    this.retryManager = new RetryManager();
-                    this.retryManager.start();
+                    RetryManager rm = new RetryManager();
+                    rm.start();
+                    this.retryManager = rm;
                 }
             }
         }
@@ -145,8 +146,8 @@ public class RetryExecutor<T> implements ExecutorService {
             return 53 * hash + (this.callable != null ? this.callable.hashCode() : 0);
         }
 
-        
-        
+
+
         public ExecutionException getException() {
             return exception;
         }
@@ -162,9 +163,9 @@ public class RetryExecutor<T> implements ExecutorService {
         public boolean isIsExecution() {
             return isExecution;
         }
-        
-        
-        
+
+
+
     }
 
     private class RetryableCallable<T> implements Callable<T>, Runnable {
@@ -176,7 +177,7 @@ public class RetryExecutor<T> implements ExecutorService {
             this.callable = callable;
             this.future = future;
         }
-        
+
         public RetryableCallable(final Runnable task, final Object result, final FutureBean<T> future) {
             this.callable = new Callable() {
 
@@ -188,7 +189,7 @@ public class RetryExecutor<T> implements ExecutorService {
             };
             this.future = future;
         }
-        
+
 
         @Override
         public T call() {
@@ -328,15 +329,15 @@ public class RetryExecutor<T> implements ExecutorService {
             };
         }
     }
-    
-    
+
+
     @Override
     public final <A> Future<A> submit(final Callable<A> task) {
         FutureBean<T> result = createFutureBean();
         executionService.execute(new RetryableCallable(task, result));
         return (Future<A>) result;
     }
-   
+
 
     @Override
     public final <A> Future<A> submit(final Runnable task, final A result) {
