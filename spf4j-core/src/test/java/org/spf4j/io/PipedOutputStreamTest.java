@@ -21,9 +21,11 @@ public class PipedOutputStreamTest {
     public void testStreamPiping() throws IOException {
         test("This is a super cool, mega dupper test string for testing piping..........E", 8, false);
         final IntMath.XorShift32 random = new IntMath.XorShift32();
-        int nrChars = Math.abs(random.nextInt() % 100000);
-        StringBuilder sb = generateTestStr(nrChars);
-        test(sb.toString(), Math.abs(random.nextInt() % 10000), false);
+        for (int i = 0; i < 100; i++) {
+            int nrChars = Math.abs(random.nextInt() % 100000);
+            StringBuilder sb = generateTestStr(nrChars);
+            test(sb.toString(), Math.abs(random.nextInt() % 10000), false);
+        }
     }
 
     public static StringBuilder generateTestStr(int nrChars) {

@@ -49,7 +49,7 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
 @CleanupObligation
 public final class PipedOutputStream extends OutputStream {
 
-    private final byte[] buffer;
+    private byte[] buffer;
 
     private final Object sync = new Object();
 
@@ -196,7 +196,10 @@ public final class PipedOutputStream extends OutputStream {
                     writerClosed = true;
                     flush();
                 } finally {
-                    bufferProvider.recycle(buffer);
+                    if (nrReadStreams == 0 && availableToRead() == 0) {
+                        bufferProvider.recycle(buffer);
+                        buffer = null;
+                    }
                 }
             }
         }
@@ -302,6 +305,10 @@ public final class PipedOutputStream extends OutputStream {
                     synchronized (sync) {
                         nrReadStreams--;
                         readerClosed = true;
+                        if (writerClosed && nrReadStreams == 0 && availableToRead() == 0) {
+                            bufferProvider.recycle(buffer);
+                            buffer = null;
+                        }
                         sync.notifyAll();
                     }
                 }
