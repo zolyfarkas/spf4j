@@ -341,7 +341,8 @@ public final class PipedOutputStream extends OutputStream {
     @Override
     public String toString() {
         synchronized (sync) {
-            return "PipedOutputStream{" + "bufferLength=" + buffer.length + ", startIdx=" + startIdx
+            return "PipedOutputStream{" + "bufferLength="
+                    + ((buffer == null) ? null : buffer.length) + ", startIdx=" + startIdx
                     + ", endIdx=" + endIdx
                     + ", readerPerceivedEndIdx=" + readerPerceivedEndIdx
                     + ((writerClosed)
