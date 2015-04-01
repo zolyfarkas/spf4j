@@ -247,7 +247,7 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
     }
 
     @Override
-    public String toString() {
+    public synchronized String toString() {
         StringBuilder result = new StringBuilder((availableToRead() + availableInMemory()) * 2 + 128);
 
         result.append("MemorizingBufferedInputStream{\n");
