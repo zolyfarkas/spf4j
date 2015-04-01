@@ -24,7 +24,7 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
 @CleanupObligation
 public final class MemorizingBufferedInputStream extends FilterInputStream {
 
-    private final byte[] memory;
+    private byte[] memory;
 
     private final  SizedRecyclingSupplier<byte[]> bufferProvider;
 
@@ -73,6 +73,7 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         if (!isClosed) {
             isClosed = true;
             bufferProvider.recycle(memory);
+            memory = null;
             super.close();
         }
     }
@@ -139,13 +140,15 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         int canWrite = availableToWrite();
         if (canWrite < size) {
             int toFree = size - canWrite;
-            if (memIdx + toFree >= startIdx) {
-                memIdx = startIdx - 1;
-                return availableToWrite();
-            } else {
-                memIdx += toFree;
-                return size;
+            int availableToFree = availableInMemory();
+            if (toFree > availableToFree) {
+                toFree = availableToFree;
             }
+            memIdx = memIdx + toFree;
+            if (memIdx >= memory.length) {
+                memIdx = memIdx - memory.length;
+            }
+            return toFree + canWrite;
         } else {
             return size;
         }
@@ -260,6 +263,9 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
             result.append("unreadStr=\"").append(
                     Strings.fromUtf8(getUnreadBytesFromBuffer())).append("\"\n");
         }
+        result.append("memIdx=").append(this.memIdx).append("\"\n");
+        result.append("startIdx=").append(this.startIdx).append("\"\n");
+        result.append("endIdx=").append(this.endIdx).append("\"\n");
         result.append("}");
         return result.toString();
     }

@@ -45,13 +45,15 @@ public class MemorizingBufferedInputStreamTest {
     public void testStreamBuffering() throws IOException {
         test(TSTR, 8, true);
         final IntMath.XorShift32 random = new IntMath.XorShift32();
-        int nrChars = Math.abs(random.nextInt() % 100000);
-        StringBuilder sb = generateTestStr(nrChars);
-        test(sb.toString(), Math.abs(random.nextInt() % 10000), true);
+        for (int i = 0; i < 100; i++) {
+            int nrChars = Math.abs(random.nextInt() % 100000);
+            StringBuilder sb = generateTestStr(nrChars);
+            test(sb.toString(), Math.abs(random.nextInt() % 10000), true);
 
-        System.out.println("TestString:" + sb);
-        testBuff(sb, 8192);
-        testBuff(sb, 32);
+            System.out.println("TestString:" + sb);
+            testBuff(sb, 8192);
+            testBuff(sb, 32);
+        }
     }
 
     private void testBuff(final StringBuilder sb, final int buffSize) throws IOException {
