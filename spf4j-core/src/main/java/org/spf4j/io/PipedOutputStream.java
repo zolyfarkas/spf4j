@@ -130,7 +130,7 @@ public final class PipedOutputStream extends OutputStream {
                 try {
                     long timeToWait = deadline - System.currentTimeMillis();
                     if (timeToWait <= 0) {
-                        throw new IOException("Write timed out, deadline was: " + deadline);
+                        throw new IOException("Read timed out, deadline was: " + deadline);
                     }
                     sync.wait(timeToWait);
                 } catch (InterruptedException ex) {
