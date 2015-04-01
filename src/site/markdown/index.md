@@ -27,6 +27,8 @@
 
  Download snapshot and release artifacts [from] (https://oss.sonatype.org/content/groups/public)
 
+ More info can be found on the [blog] (https://blogs.zoltran.com)
+
  [![Coverity Badge](https://scan.coverity.com/projects/3158/badge.svg)](https://scan.coverity.com/projects/3158)
 
  [![CI badge](https://travis-ci.org/zolyfarkas/spf4j.svg?branch=master)](https://travis-ci.org/zolyfarkas/spf4j)
