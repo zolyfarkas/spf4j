@@ -49,8 +49,6 @@ public class MemorizingBufferedInputStreamTest {
             int nrChars = Math.abs(random.nextInt() % 100000);
             StringBuilder sb = generateTestStr(nrChars);
             test(sb.toString(), Math.abs(random.nextInt() % 10000), true);
-
-            System.out.println("TestString:" + sb);
             testBuff(sb, 8192);
             testBuff(sb, 32);
         }
@@ -62,14 +60,11 @@ public class MemorizingBufferedInputStreamTest {
         try (MemorizingBufferedInputStream mbis = new MemorizingBufferedInputStream(bis, buffSize, buffSize / 2,
                 ArraySuppliers.Bytes.GL_SUPPLIER, Charsets.UTF_8)) {
             int val = mbis.read();
-            System.out.println("Read: " + Strings.fromUtf8(mbis.getReadBytesFromBuffer()));
             Assert.assertEquals(val, mbis.getReadBytesFromBuffer()[0]);
             byte [] buff = new byte [8];
             int read = mbis.read(buff);
             Assert.assertEquals(8, read);
-            System.out.print(mbis);
             Assert.assertTrue(Arrays.equals(buff, Arrays.copyOfRange(mbis.getReadBytesFromBuffer(), 1, 9)));
-            System.out.print(mbis);
             int result;
             do {
                 result = mbis.read(buff);
@@ -77,7 +72,6 @@ public class MemorizingBufferedInputStreamTest {
             byte[] unredBytesEnd = mbis.getUnreadBytesFromBuffer();
             Assert.assertEquals(0, unredBytesEnd.length);
             final byte[] readBytesFromBuffer = mbis.getReadBytesFromBuffer();
-            System.out.println("\nreadBytes=" + Strings.fromUtf8(readBytesFromBuffer));
             Assert.assertTrue(Arrays.equals(readBytesFromBuffer,
                     Arrays.copyOfRange(utf8Bytes, utf8Bytes.length - readBytesFromBuffer.length, utf8Bytes.length)));
 
