@@ -200,6 +200,7 @@ public final class PipedOutputStream extends OutputStream {
                         bufferProvider.recycle(buffer);
                         buffer = null;
                     }
+                    sync.notifyAll();
                 }
             }
         }
@@ -224,7 +225,7 @@ public final class PipedOutputStream extends OutputStream {
                         while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
                             long timeToWait = deadline - System.currentTimeMillis();
                             if (timeToWait <= 0) {
-                                throw new IOException("Write timed out, deadline was: " + deadline);
+                                throw new IOException("Read timed out, deadline was: " + deadline);
                             }
                             try {
                                 sync.wait(timeToWait);
