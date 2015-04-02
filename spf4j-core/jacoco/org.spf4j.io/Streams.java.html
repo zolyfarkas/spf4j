@@ -50,8 +50,8 @@ public final class Streams {
      * I believe this behavior will yield better performance in most scenarios. This method also makes use of:
      * Arrays.getBytesTmp. THis method should not be invoked from any context making use of Arrays.getBytesTmp.
      *
-     * @param pis
-     * @param pos
+     * @param is
+     * @param os
      * @param buffSize
      * @throws IOException
      */

@@ -183,8 +183,8 @@ public final class Registry {
 <span class="fc" id="L183">                valueName = prependClass + &quot;.&quot; + valueName;</span>
             }
 <span class="fc" id="L185">            ExportedValueImpl existing = exportedAttributes.get(valueName);</span>
-<span class="fc bfc" id="L186" title="All 2 branches covered.">            if (existing == null) {</span>
-<span class="fc" id="L187">                existing = new ExportedValueImpl(valueName, null,</span>
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">            if (existing == null) {</span>
+<span class="nc" id="L187">                existing = new ExportedValueImpl(valueName, null,</span>
                         null, method, object, method.getParameterTypes()[0]);
             } else {
 <span class="pc bpc" id="L190" title="1 of 2 branches missed.">                if (existing.getValueClass() != method.getParameterTypes()[0]) {</span>
@@ -215,16 +215,16 @@ public final class Registry {
             final Map&lt;String, ExportedValueImpl&gt; exported,
             final Annotation annot, final Method method, final Object object) {
 <span class="fc" id="L217">        ExportedValueImpl existing = exported.get(valueName);</span>
-<span class="fc bfc" id="L218" title="All 2 branches covered.">        if (existing == null) {</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">        if (existing == null) {</span>
 <span class="fc" id="L219">            existing = new ExportedValueImpl(</span>
                     valueName, (String) Reflections.getAnnotationAttribute(annot, &quot;description&quot;),
                     method, null, object, method.getReturnType());
         } else {
-<span class="pc bpc" id="L223" title="1 of 2 branches missed.">            if (existing.getValueClass() != method.getReturnType()) {</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">            if (existing.getValueClass() != method.getReturnType()) {</span>
 <span class="nc" id="L224">                throw new IllegalArgumentException(</span>
                         &quot;Getter and setter icorrectly defined &quot; + existing + &quot; &quot; + method);
             }
-<span class="fc" id="L227">            existing = existing.withGetter(method,</span>
+<span class="nc" id="L227">            existing = existing.withGetter(method,</span>
                     (String) Reflections.getAnnotationAttribute(annot, &quot;description&quot;));
         }
 <span class="fc" id="L230">        exported.put(valueName, existing);</span>

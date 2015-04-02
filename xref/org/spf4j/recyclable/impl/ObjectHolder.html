@@ -90,7 +90,7 @@
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>          <strong class="jxr_keyword">return</strong> obj;
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>      }
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>  
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">void</strong> returnObject(<strong class="jxr_keyword">final</strong> T object, <strong class="jxr_keyword">final</strong> Exception e) {
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">void</strong> returnObject(<strong class="jxr_keyword">final</strong> T object, @Nullable <strong class="jxr_keyword">final</strong> Exception e) {
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>          <strong class="jxr_keyword">if</strong> (!borrowed || object != obj) {
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Cannot return something that was "</span>
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>                      + <span class="jxr_string">"not borrowed from here "</span> + object);
@@ -147,18 +147,21 @@
 <a class="jxr_linenumber" name="L139" href="#L139">139</a>             <strong class="jxr_keyword">return</strong> false;
 <a class="jxr_linenumber" name="L140" href="#L140">140</a>         }
 <a class="jxr_linenumber" name="L141" href="#L141">141</a>         <strong class="jxr_keyword">if</strong> (obj != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L142" href="#L142">142</a>             factory.dispose(obj);
-<a class="jxr_linenumber" name="L143" href="#L143">143</a>             obj = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L144" href="#L144">144</a>         }
-<a class="jxr_linenumber" name="L145" href="#L145">145</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L146" href="#L146">146</a>     }
-<a class="jxr_linenumber" name="L147" href="#L147">147</a> 
-<a class="jxr_linenumber" name="L148" href="#L148">148</a>     @Override
-<a class="jxr_linenumber" name="L149" href="#L149">149</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> String toString() {
-<a class="jxr_linenumber" name="L150" href="#L150">150</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"ObjectHolder{"</span> + <span class="jxr_string">"obj="</span> + obj + <span class="jxr_string">", borrowed="</span> + borrowed + <span class="jxr_string">", factory="</span> + factory + '}';
-<a class="jxr_linenumber" name="L151" href="#L151">151</a>     }
-<a class="jxr_linenumber" name="L152" href="#L152">152</a> 
-<a class="jxr_linenumber" name="L153" href="#L153">153</a> }
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>                 factory.dispose(obj);
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>             } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>                 obj = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>             }
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>         }
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>     }
+<a class="jxr_linenumber" name="L150" href="#L150">150</a> 
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>     @Override
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> String toString() {
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"ObjectHolder{"</span> + <span class="jxr_string">"obj="</span> + obj + <span class="jxr_string">", borrowed="</span> + borrowed + <span class="jxr_string">", factory="</span> + factory + '}';
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>     }
+<a class="jxr_linenumber" name="L155" href="#L155">155</a> 
+<a class="jxr_linenumber" name="L156" href="#L156">156</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2015. All rights reserved.</div>

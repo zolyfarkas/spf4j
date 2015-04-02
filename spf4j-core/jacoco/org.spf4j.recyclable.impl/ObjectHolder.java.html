@@ -82,7 +82,7 @@ final class ObjectHolder&lt;T&gt; {
 <span class="nc" id="L82">        return obj;</span>
     }
 
-    public synchronized void returnObject(final T object, final Exception e) {
+    public synchronized void returnObject(final T object, @Nullable final Exception e) {
 <span class="pc bpc" id="L86" title="2 of 4 branches missed.">        if (!borrowed || object != obj) {</span>
 <span class="nc" id="L87">            throw new IllegalStateException(&quot;Cannot return something that was &quot;</span>
                     + &quot;not borrowed from here &quot; + object);
@@ -139,15 +139,18 @@ final class ObjectHolder&lt;T&gt; {
 <span class="nc" id="L139">            return false;</span>
         }
 <span class="fc bfc" id="L141" title="All 2 branches covered.">        if (obj != null) {</span>
-<span class="fc" id="L142">            factory.dispose(obj);</span>
-<span class="fc" id="L143">            obj = null;</span>
+            try {
+<span class="fc" id="L143">                factory.dispose(obj);</span>
+            } finally {
+<span class="fc" id="L145">                obj = null;</span>
+<span class="fc" id="L146">            }</span>
         }
-<span class="fc" id="L145">        return true;</span>
+<span class="fc" id="L148">        return true;</span>
     }
 
     @Override
     public synchronized String toString() {
-<span class="fc" id="L150">        return &quot;ObjectHolder{&quot; + &quot;obj=&quot; + obj + &quot;, borrowed=&quot; + borrowed + &quot;, factory=&quot; + factory + '}';</span>
+<span class="fc" id="L153">        return &quot;ObjectHolder{&quot; + &quot;obj=&quot; + obj + &quot;, borrowed=&quot; + borrowed + &quot;, factory=&quot; + factory + '}';</span>
     }
 
 }

@@ -60,7 +60,7 @@ public final class SntpClient {
     /**
      * Request NTP time with retries.
      *
-     * @param host - NTP server host.
+     * @param hosts - NTP server hosts.
      * @param timeoutMillis - Max time to attempt to get  NTP time
      * @param ntpResponseTimeout - the time after which if we do not receive a response from the NTP server,
      *                              we consider the call failed (and will retry until timeoutMillis.

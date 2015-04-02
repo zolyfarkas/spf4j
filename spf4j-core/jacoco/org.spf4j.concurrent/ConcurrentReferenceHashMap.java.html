@@ -140,13 +140,13 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
      * An option specifying which Java reference type should be used to refer
      * to a key and/or value.
      */
-<span class="nc" id="L143">    public static enum ReferenceType {</span>
+<span class="pc" id="L143">    public static enum ReferenceType {</span>
         /** Indicates a normal Java strong reference should be used */
-<span class="nc" id="L145">        STRONG,</span>
+<span class="fc" id="L145">        STRONG,</span>
         /** Indicates a {@link WeakReference} should be used */
-<span class="nc" id="L147">        WEAK,</span>
+<span class="fc" id="L147">        WEAK,</span>
         /** Indicates a {@link SoftReference} should be used */
-<span class="nc" id="L149">        SOFT</span>
+<span class="fc" id="L149">        SOFT</span>
     };
 
 
@@ -158,9 +158,9 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
 
     /* ---------------- Constants -------------- */
 
-<span class="nc" id="L161">    static final ReferenceType DEFAULT_KEY_TYPE = ReferenceType.WEAK;</span>
+<span class="fc" id="L161">    static final ReferenceType DEFAULT_KEY_TYPE = ReferenceType.WEAK;</span>
 
-<span class="nc" id="L163">    static final ReferenceType DEFAULT_VALUE_TYPE = ReferenceType.STRONG;</span>
+<span class="fc" id="L163">    static final ReferenceType DEFAULT_VALUE_TYPE = ReferenceType.STRONG;</span>
 
 
     /**
@@ -237,15 +237,15 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
      * differ in lower or upper bits.
      */
     private static int hash(final int ph) {
-<span class="nc" id="L240">        int h = ph;</span>
+<span class="fc" id="L240">        int h = ph;</span>
         // Spread bits to regularize both segment and index locations,
         // using variant of single-word Wang/Jenkins hash.
-<span class="nc" id="L243">        h += (h &lt;&lt;  15) ^ 0xffffcd7d;</span>
-<span class="nc" id="L244">        h ^= (h &gt;&gt;&gt; 10);</span>
-<span class="nc" id="L245">        h += (h &lt;&lt;   3);</span>
-<span class="nc" id="L246">        h ^= (h &gt;&gt;&gt;  6);</span>
-<span class="nc" id="L247">        h += (h &lt;&lt;   2) + (h &lt;&lt; 14);</span>
-<span class="nc" id="L248">        return h ^ (h &gt;&gt;&gt; 16);</span>
+<span class="fc" id="L243">        h += (h &lt;&lt;  15) ^ 0xffffcd7d;</span>
+<span class="fc" id="L244">        h ^= (h &gt;&gt;&gt; 10);</span>
+<span class="fc" id="L245">        h += (h &lt;&lt;   3);</span>
+<span class="fc" id="L246">        h ^= (h &gt;&gt;&gt;  6);</span>
+<span class="fc" id="L247">        h += (h &lt;&lt;   2) + (h &lt;&lt; 14);</span>
+<span class="fc" id="L248">        return h ^ (h &gt;&gt;&gt; 16);</span>
     }
 
     /**
@@ -254,11 +254,11 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
      * @return the segment
      */
     final Segment&lt;K, V&gt; segmentFor(final int hash) {
-<span class="nc" id="L257">        return segments[(hash &gt;&gt;&gt; segmentShift) &amp; segmentMask];</span>
+<span class="fc" id="L257">        return segments[(hash &gt;&gt;&gt; segmentShift) &amp; segmentMask];</span>
     }
 
     private int hashOf(final Object key) {
-<span class="nc bnc" id="L261" title="All 2 branches missed.">        return hash(identityComparisons</span>
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">        return hash(identityComparisons</span>
                 ? System.identityHashCode(key) : key.hashCode());
     }
 
@@ -275,9 +275,9 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
     static final class WeakKeyReference&lt;K&gt; extends WeakReference&lt;K&gt;  implements KeyReference {
         private final int hash;
         WeakKeyReference(final K key, final int hash, final ReferenceQueue&lt;Object&gt; refQueue) {
-<span class="nc" id="L278">            super(key, refQueue);</span>
-<span class="nc" id="L279">            this.hash = hash;</span>
-<span class="nc" id="L280">        }</span>
+<span class="fc" id="L278">            super(key, refQueue);</span>
+<span class="fc" id="L279">            this.hash = hash;</span>
+<span class="fc" id="L280">        }</span>
 
         @Override
         public int keyHash() {
@@ -370,18 +370,18 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
 
         HashEntry(final K key, final int hash, final HashEntry&lt;K, V&gt; next, final V value,
                 final ReferenceType keyType, final ReferenceType valueType,
-<span class="nc" id="L373">                final ReferenceQueue&lt;Object&gt; refQueue) {</span>
-<span class="nc" id="L374">            this.hash = hash;</span>
-<span class="nc" id="L375">            this.next = next;</span>
-<span class="nc" id="L376">            this.keyRef = newKeyReference(key, keyType, refQueue);</span>
-<span class="nc" id="L377">            this.valueRef = newValueReference(value, valueType, refQueue);</span>
-<span class="nc" id="L378">        }</span>
+<span class="fc" id="L373">                final ReferenceQueue&lt;Object&gt; refQueue) {</span>
+<span class="fc" id="L374">            this.hash = hash;</span>
+<span class="fc" id="L375">            this.next = next;</span>
+<span class="fc" id="L376">            this.keyRef = newKeyReference(key, keyType, refQueue);</span>
+<span class="fc" id="L377">            this.valueRef = newValueReference(value, valueType, refQueue);</span>
+<span class="fc" id="L378">        }</span>
 
         Object newKeyReference(final K key, final ReferenceType keyType,
                 final ReferenceQueue&lt;Object&gt; refQueue) {
-<span class="nc bnc" id="L382" title="All 4 branches missed.">            switch (keyType) {</span>
+<span class="pc bpc" id="L382" title="3 of 4 branches missed.">            switch (keyType) {</span>
                 case WEAK:
-<span class="nc" id="L384">                return new WeakKeyReference&lt;&gt;(key, hash, refQueue);</span>
+<span class="fc" id="L384">                return new WeakKeyReference&lt;&gt;(key, hash, refQueue);</span>
                 case SOFT:
 <span class="nc" id="L386">                return new SoftKeyReference&lt;&gt;(key, hash, refQueue);</span>
                 case STRONG:
@@ -393,13 +393,13 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
 
         Object newValueReference(final V value, final ReferenceType valueType,
                 final ReferenceQueue&lt;Object&gt; refQueue) {
-<span class="nc bnc" id="L396" title="All 4 branches missed.">            switch (valueType) {</span>
+<span class="pc bpc" id="L396" title="3 of 4 branches missed.">            switch (valueType) {</span>
                 case WEAK:
 <span class="nc" id="L398">                return new WeakValueReference&lt;&gt;(value, keyRef, hash, refQueue);</span>
                 case SOFT:
 <span class="nc" id="L400">                return new SoftValueReference&lt;&gt;(value, keyRef, hash, refQueue);</span>
                 case STRONG:
-<span class="nc" id="L402">                return value;</span>
+<span class="fc" id="L402">                return value;</span>
                 default:
 <span class="nc" id="L404">                    throw new RuntimeException(&quot;Unsupported refference type &quot; + valueType);</span>
             }
@@ -407,22 +407,22 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
 
         @SuppressWarnings(&quot;unchecked&quot;)
         final K key() {
-<span class="nc bnc" id="L410" title="All 2 branches missed.">            if (keyRef instanceof KeyReference)</span>
-<span class="nc" id="L411">                return ((Reference&lt;K&gt;)keyRef).get();</span>
+<span class="pc bpc" id="L410" title="1 of 2 branches missed.">            if (keyRef instanceof KeyReference)</span>
+<span class="fc" id="L411">                return ((Reference&lt;K&gt;)keyRef).get();</span>
 
 <span class="nc" id="L413">            return (K) keyRef;</span>
         }
 
         final V value() {
-<span class="nc" id="L417">            return dereferenceValue(valueRef);</span>
+<span class="fc" id="L417">            return dereferenceValue(valueRef);</span>
         }
 
         @SuppressWarnings(&quot;unchecked&quot;)
         final V dereferenceValue(Object value) {
-<span class="nc bnc" id="L422" title="All 2 branches missed.">            if (value instanceof KeyReference)</span>
+<span class="pc bpc" id="L422" title="1 of 2 branches missed.">            if (value instanceof KeyReference)</span>
 <span class="nc" id="L423">                return ((Reference&lt;V&gt;)value).get();</span>
 
-<span class="nc" id="L425">            return (V) value;</span>
+<span class="fc" id="L425">            return (V) value;</span>
         }
 
         final void setValue(V value, ReferenceType valueType, ReferenceQueue&lt;Object&gt; refQueue) {
@@ -431,7 +431,7 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
 
         @SuppressWarnings(&quot;unchecked&quot;)
         static final &lt;K,V&gt; HashEntry&lt;K,V&gt;[] newArray(int i) {
-<span class="nc" id="L434">            return new HashEntry[i];</span>
+<span class="fc" id="L434">            return new HashEntry[i];</span>
         }
     }
 
@@ -528,21 +528,21 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
         final boolean identityComparisons;
 
         Segment(int initialCapacity, float lf, ReferenceType keyType,
-<span class="nc" id="L531">                ReferenceType valueType, boolean identityComparisons) {</span>
-<span class="nc" id="L532">            loadFactor = lf;</span>
-<span class="nc" id="L533">            this.keyType = keyType;</span>
-<span class="nc" id="L534">            this.valueType = valueType;</span>
-<span class="nc" id="L535">            this.identityComparisons = identityComparisons;</span>
-<span class="nc" id="L536">            setTable(HashEntry.&lt;K,V&gt;newArray(initialCapacity));</span>
-<span class="nc" id="L537">        }</span>
+<span class="fc" id="L531">                ReferenceType valueType, boolean identityComparisons) {</span>
+<span class="fc" id="L532">            loadFactor = lf;</span>
+<span class="fc" id="L533">            this.keyType = keyType;</span>
+<span class="fc" id="L534">            this.valueType = valueType;</span>
+<span class="fc" id="L535">            this.identityComparisons = identityComparisons;</span>
+<span class="fc" id="L536">            setTable(HashEntry.&lt;K,V&gt;newArray(initialCapacity));</span>
+<span class="fc" id="L537">        }</span>
 
         @SuppressWarnings(&quot;unchecked&quot;)
         static final &lt;K,V&gt; Segment&lt;K,V&gt;[] newArray(int i) {
-<span class="nc" id="L541">            return new Segment[i];</span>
+<span class="fc" id="L541">            return new Segment[i];</span>
         }
 
         private boolean keyEq(Object src, Object dest) {
-<span class="nc bnc" id="L545" title="All 4 branches missed.">            return identityComparisons ? src == dest : src.equals(dest);</span>
+<span class="pc bpc" id="L545" title="3 of 4 branches missed.">            return identityComparisons ? src == dest : src.equals(dest);</span>
         }
 
         /**
@@ -550,21 +550,21 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
          * Call only while holding lock or in constructor.
          */
         void setTable(HashEntry&lt;K,V&gt;[] newTable) {
-<span class="nc" id="L553">            threshold = (int)(newTable.length * loadFactor);</span>
-<span class="nc" id="L554">            table = newTable;</span>
-<span class="nc" id="L555">            refQueue = new ReferenceQueue&lt;&gt;();</span>
-<span class="nc" id="L556">        }</span>
+<span class="fc" id="L553">            threshold = (int)(newTable.length * loadFactor);</span>
+<span class="fc" id="L554">            table = newTable;</span>
+<span class="fc" id="L555">            refQueue = new ReferenceQueue&lt;&gt;();</span>
+<span class="fc" id="L556">        }</span>
 
         /**
          * Returns properly casted first entry of bin for given hash.
          */
         HashEntry&lt;K,V&gt; getFirst(int hash) {
-<span class="nc" id="L562">            HashEntry&lt;K,V&gt;[] tab = table;</span>
-<span class="nc" id="L563">            return tab[hash &amp; (tab.length - 1)];</span>
+<span class="fc" id="L562">            HashEntry&lt;K,V&gt;[] tab = table;</span>
+<span class="fc" id="L563">            return tab[hash &amp; (tab.length - 1)];</span>
         }
 
         HashEntry&lt;K,V&gt; newHashEntry(K key, int hash, HashEntry&lt;K, V&gt; next, V value) {
-<span class="nc" id="L567">            return new HashEntry&lt;&gt;(key, hash, next, value, keyType, valueType, refQueue);</span>
+<span class="fc" id="L567">            return new HashEntry&lt;&gt;(key, hash, next, value, keyType, valueType, refQueue);</span>
         }
 
         /**
@@ -587,13 +587,13 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
         /* Specialized implementations of map methods */
 
         V get(Object key, int hash) {
-<span class="nc bnc" id="L590" title="All 2 branches missed.">            if (count != 0) { // read-volatile</span>
-<span class="nc" id="L591">                HashEntry&lt;K,V&gt; e = getFirst(hash);</span>
-<span class="nc bnc" id="L592" title="All 2 branches missed.">                while (e != null) {</span>
-<span class="nc bnc" id="L593" title="All 4 branches missed.">                    if (e.hash == hash &amp;&amp; keyEq(key, e.key())) {</span>
-<span class="nc" id="L594">                        Object opaque = e.valueRef;</span>
-<span class="nc bnc" id="L595" title="All 2 branches missed.">                        if (opaque != null)</span>
-<span class="nc" id="L596">                            return e.dereferenceValue(opaque);</span>
+<span class="pc bpc" id="L590" title="1 of 2 branches missed.">            if (count != 0) { // read-volatile</span>
+<span class="fc" id="L591">                HashEntry&lt;K,V&gt; e = getFirst(hash);</span>
+<span class="pc bpc" id="L592" title="1 of 2 branches missed.">                while (e != null) {</span>
+<span class="pc bpc" id="L593" title="2 of 4 branches missed.">                    if (e.hash == hash &amp;&amp; keyEq(key, e.key())) {</span>
+<span class="fc" id="L594">                        Object opaque = e.valueRef;</span>
+<span class="pc bpc" id="L595" title="1 of 2 branches missed.">                        if (opaque != null)</span>
+<span class="fc" id="L596">                            return e.dereferenceValue(opaque);</span>
 
 <span class="nc" id="L598">                        return readValueUnderLock(e);  // recheck</span>
                     }
@@ -677,45 +677,45 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
 
 
         V put(K key, int hash, V value, boolean onlyIfAbsent) {
-<span class="nc" id="L680">            lock();</span>
+<span class="fc" id="L680">            lock();</span>
             try {
-<span class="nc" id="L682">                removeStale();</span>
-<span class="nc" id="L683">                int c = count;</span>
-<span class="nc bnc" id="L684" title="All 2 branches missed.">                if (c++ &gt; threshold) {// ensure capacity</span>
-<span class="nc" id="L685">                    int reduced = rehash();</span>
-<span class="nc bnc" id="L686" title="All 2 branches missed.">                    if (reduced &gt; 0)  // adjust from possible weak cleanups</span>
+<span class="fc" id="L682">                removeStale();</span>
+<span class="fc" id="L683">                int c = count;</span>
+<span class="fc bfc" id="L684" title="All 2 branches covered.">                if (c++ &gt; threshold) {// ensure capacity</span>
+<span class="fc" id="L685">                    int reduced = rehash();</span>
+<span class="pc bpc" id="L686" title="1 of 2 branches missed.">                    if (reduced &gt; 0)  // adjust from possible weak cleanups</span>
 <span class="nc" id="L687">                        count = (c -= reduced) - 1; // write-volatile</span>
                 }
 
-<span class="nc" id="L690">                HashEntry&lt;K,V&gt;[] tab = table;</span>
-<span class="nc" id="L691">                int index = hash &amp; (tab.length - 1);</span>
-<span class="nc" id="L692">                HashEntry&lt;K,V&gt; first = tab[index];</span>
-<span class="nc" id="L693">                HashEntry&lt;K,V&gt; e = first;</span>
-<span class="nc bnc" id="L694" title="All 6 branches missed.">                while (e != null &amp;&amp; (e.hash != hash || !keyEq(key, e.key())))</span>
-<span class="nc" id="L695">                    e = e.next;</span>
+<span class="fc" id="L690">                HashEntry&lt;K,V&gt;[] tab = table;</span>
+<span class="fc" id="L691">                int index = hash &amp; (tab.length - 1);</span>
+<span class="fc" id="L692">                HashEntry&lt;K,V&gt; first = tab[index];</span>
+<span class="fc" id="L693">                HashEntry&lt;K,V&gt; e = first;</span>
+<span class="pc bpc" id="L694" title="3 of 6 branches missed.">                while (e != null &amp;&amp; (e.hash != hash || !keyEq(key, e.key())))</span>
+<span class="fc" id="L695">                    e = e.next;</span>
 
                 V oldValue;
-<span class="nc bnc" id="L698" title="All 2 branches missed.">                if (e != null) {</span>
+<span class="pc bpc" id="L698" title="1 of 2 branches missed.">                if (e != null) {</span>
 <span class="nc" id="L699">                    oldValue = e.value();</span>
 <span class="nc bnc" id="L700" title="All 2 branches missed.">                    if (!onlyIfAbsent)</span>
 <span class="nc" id="L701">                        e.setValue(value, valueType, refQueue);</span>
                 }
                 else {
-<span class="nc" id="L704">                    oldValue = null;</span>
-<span class="nc" id="L705">                    ++modCount;</span>
-<span class="nc" id="L706">                    tab[index] = newHashEntry(key, hash, first, value);</span>
-<span class="nc" id="L707">                    count = c; // write-volatile</span>
+<span class="fc" id="L704">                    oldValue = null;</span>
+<span class="fc" id="L705">                    ++modCount;</span>
+<span class="fc" id="L706">                    tab[index] = newHashEntry(key, hash, first, value);</span>
+<span class="fc" id="L707">                    count = c; // write-volatile</span>
                 }
-<span class="nc" id="L709">                return oldValue;</span>
+<span class="fc" id="L709">                return oldValue;</span>
             } finally {
-<span class="nc" id="L711">                unlock();</span>
+<span class="pc" id="L711">                unlock();</span>
             }
         }
 
         int rehash() {
-<span class="nc" id="L716">            HashEntry&lt;K,V&gt;[] oldTable = table;</span>
-<span class="nc" id="L717">            int oldCapacity = oldTable.length;</span>
-<span class="nc bnc" id="L718" title="All 2 branches missed.">            if (oldCapacity &gt;= MAXIMUM_CAPACITY)</span>
+<span class="fc" id="L716">            HashEntry&lt;K,V&gt;[] oldTable = table;</span>
+<span class="fc" id="L717">            int oldCapacity = oldTable.length;</span>
+<span class="pc bpc" id="L718" title="1 of 2 branches missed.">            if (oldCapacity &gt;= MAXIMUM_CAPACITY)</span>
 <span class="nc" id="L719">                return 0;</span>
 
             /*
@@ -732,54 +732,54 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
              * right now.
              */
 
-<span class="nc" id="L735">            HashEntry&lt;K, V&gt;[] newTable = HashEntry.newArray(oldCapacity&lt;&lt;1);</span>
-<span class="nc" id="L736">            threshold = (int)(newTable.length * loadFactor);</span>
-<span class="nc" id="L737">            int sizeMask = newTable.length - 1;</span>
-<span class="nc" id="L738">            int reduce = 0;</span>
-<span class="nc bnc" id="L739" title="All 2 branches missed.">            for (int i = 0; i &lt; oldCapacity ; i++) {</span>
+<span class="fc" id="L735">            HashEntry&lt;K, V&gt;[] newTable = HashEntry.newArray(oldCapacity&lt;&lt;1);</span>
+<span class="fc" id="L736">            threshold = (int)(newTable.length * loadFactor);</span>
+<span class="fc" id="L737">            int sizeMask = newTable.length - 1;</span>
+<span class="fc" id="L738">            int reduce = 0;</span>
+<span class="fc bfc" id="L739" title="All 2 branches covered.">            for (int i = 0; i &lt; oldCapacity ; i++) {</span>
                 // We need to guarantee that any existing reads of old Map can
                 //  proceed. So we cannot yet null out each bin.
-<span class="nc" id="L742">                HashEntry&lt;K,V&gt; e = oldTable[i];</span>
+<span class="fc" id="L742">                HashEntry&lt;K,V&gt; e = oldTable[i];</span>
 
-<span class="nc bnc" id="L744" title="All 2 branches missed.">                if (e != null) {</span>
-<span class="nc" id="L745">                    HashEntry&lt;K,V&gt; next = e.next;</span>
-<span class="nc" id="L746">                    int idx = e.hash &amp; sizeMask;</span>
+<span class="fc bfc" id="L744" title="All 2 branches covered.">                if (e != null) {</span>
+<span class="fc" id="L745">                    HashEntry&lt;K,V&gt; next = e.next;</span>
+<span class="fc" id="L746">                    int idx = e.hash &amp; sizeMask;</span>
 
                     //  Single node on list
-<span class="nc bnc" id="L749" title="All 2 branches missed.">                    if (next == null)</span>
-<span class="nc" id="L750">                        newTable[idx] = e;</span>
+<span class="fc bfc" id="L749" title="All 2 branches covered.">                    if (next == null)</span>
+<span class="fc" id="L750">                        newTable[idx] = e;</span>
 
                     else {
                         // Reuse trailing consecutive sequence at same slot
-<span class="nc" id="L754">                        HashEntry&lt;K,V&gt; lastRun = e;</span>
-<span class="nc" id="L755">                        int lastIdx = idx;</span>
-<span class="nc" id="L756">                        for (HashEntry&lt;K,V&gt; last = next;</span>
-<span class="nc bnc" id="L757" title="All 2 branches missed.">                             last != null;</span>
-<span class="nc" id="L758">                             last = last.next) {</span>
-<span class="nc" id="L759">                            int k = last.hash &amp; sizeMask;</span>
-<span class="nc bnc" id="L760" title="All 2 branches missed.">                            if (k != lastIdx) {</span>
-<span class="nc" id="L761">                                lastIdx = k;</span>
-<span class="nc" id="L762">                                lastRun = last;</span>
+<span class="fc" id="L754">                        HashEntry&lt;K,V&gt; lastRun = e;</span>
+<span class="fc" id="L755">                        int lastIdx = idx;</span>
+<span class="fc" id="L756">                        for (HashEntry&lt;K,V&gt; last = next;</span>
+<span class="fc bfc" id="L757" title="All 2 branches covered.">                             last != null;</span>
+<span class="fc" id="L758">                             last = last.next) {</span>
+<span class="fc" id="L759">                            int k = last.hash &amp; sizeMask;</span>
+<span class="fc bfc" id="L760" title="All 2 branches covered.">                            if (k != lastIdx) {</span>
+<span class="fc" id="L761">                                lastIdx = k;</span>
+<span class="fc" id="L762">                                lastRun = last;</span>
                             }
                         }
-<span class="nc" id="L765">                        newTable[lastIdx] = lastRun;</span>
+<span class="fc" id="L765">                        newTable[lastIdx] = lastRun;</span>
                         // Clone all remaining nodes
-<span class="nc bnc" id="L767" title="All 2 branches missed.">                        for (HashEntry&lt;K,V&gt; p = e; p != lastRun; p = p.next) {</span>
+<span class="fc bfc" id="L767" title="All 2 branches covered.">                        for (HashEntry&lt;K,V&gt; p = e; p != lastRun; p = p.next) {</span>
                             // Skip GC'd weak refs
-<span class="nc" id="L769">                            K key = p.key();</span>
-<span class="nc bnc" id="L770" title="All 2 branches missed.">                            if (key == null) {</span>
+<span class="fc" id="L769">                            K key = p.key();</span>
+<span class="pc bpc" id="L770" title="1 of 2 branches missed.">                            if (key == null) {</span>
 <span class="nc" id="L771">                                reduce++;</span>
 <span class="nc" id="L772">                                continue;</span>
                             }
-<span class="nc" id="L774">                            int k = p.hash &amp; sizeMask;</span>
-<span class="nc" id="L775">                            HashEntry&lt;K,V&gt; n = newTable[k];</span>
-<span class="nc" id="L776">                            newTable[k] = newHashEntry(key, p.hash, n, p.value());</span>
+<span class="fc" id="L774">                            int k = p.hash &amp; sizeMask;</span>
+<span class="fc" id="L775">                            HashEntry&lt;K,V&gt; n = newTable[k];</span>
+<span class="fc" id="L776">                            newTable[k] = newHashEntry(key, p.hash, n, p.value());</span>
                         }
                     }
                 }
             }
-<span class="nc" id="L781">            table = newTable;</span>
-<span class="nc" id="L782">            return reduce;</span>
+<span class="fc" id="L781">            table = newTable;</span>
+<span class="fc" id="L782">            return reduce;</span>
         }
 
         /**
@@ -831,10 +831,10 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
 
         final void removeStale() {
             KeyReference ref;
-<span class="nc bnc" id="L834" title="All 2 branches missed.">            while ((ref = (KeyReference) refQueue.poll()) != null) {</span>
+<span class="pc bpc" id="L834" title="1 of 2 branches missed.">            while ((ref = (KeyReference) refQueue.poll()) != null) {</span>
 <span class="nc" id="L835">                remove(ref.keyRef(), ref.keyHash(), null, true);</span>
             }
-<span class="nc" id="L837">        }</span>
+<span class="fc" id="L837">        }</span>
 
         void clear() {
 <span class="nc bnc" id="L840" title="All 2 branches missed.">            if (count != 0) {</span>
@@ -883,47 +883,47 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
     public ConcurrentReferenceHashMap(final int pinitialCapacity,
                              final float loadFactor, final int pconcurrencyLevel,
                              final ReferenceType keyType, final ReferenceType valueType,
-<span class="nc" id="L886">                             final EnumSet&lt;Option&gt; options) {</span>
-<span class="nc bnc" id="L887" title="All 6 branches missed.">        if (!(loadFactor &gt; 0) || pinitialCapacity &lt; 0 || pconcurrencyLevel &lt;= 0)</span>
+<span class="fc" id="L886">                             final EnumSet&lt;Option&gt; options) {</span>
+<span class="pc bpc" id="L887" title="3 of 6 branches missed.">        if (!(loadFactor &gt; 0) || pinitialCapacity &lt; 0 || pconcurrencyLevel &lt;= 0)</span>
 <span class="nc" id="L888">            throw new IllegalArgumentException();</span>
 
         int concurrencyLevel;
-<span class="nc bnc" id="L891" title="All 2 branches missed.">        if (pconcurrencyLevel &gt; MAX_SEGMENTS) {</span>
+<span class="pc bpc" id="L891" title="1 of 2 branches missed.">        if (pconcurrencyLevel &gt; MAX_SEGMENTS) {</span>
 <span class="nc" id="L892">            concurrencyLevel = MAX_SEGMENTS;</span>
         } else {
-<span class="nc" id="L894">            concurrencyLevel = pconcurrencyLevel;</span>
+<span class="fc" id="L894">            concurrencyLevel = pconcurrencyLevel;</span>
         }
 
         // Find power-of-two sizes best matching arguments
-<span class="nc" id="L898">        int sshift = 0;</span>
-<span class="nc" id="L899">        int ssize = 1;</span>
-<span class="nc bnc" id="L900" title="All 2 branches missed.">        while (ssize &lt; concurrencyLevel) {</span>
-<span class="nc" id="L901">            ++sshift;</span>
-<span class="nc" id="L902">            ssize &lt;&lt;= 1;</span>
+<span class="fc" id="L898">        int sshift = 0;</span>
+<span class="fc" id="L899">        int ssize = 1;</span>
+<span class="fc bfc" id="L900" title="All 2 branches covered.">        while (ssize &lt; concurrencyLevel) {</span>
+<span class="fc" id="L901">            ++sshift;</span>
+<span class="fc" id="L902">            ssize &lt;&lt;= 1;</span>
         }
-<span class="nc" id="L904">        segmentShift = 32 - sshift;</span>
-<span class="nc" id="L905">        segmentMask = ssize - 1;</span>
-<span class="nc" id="L906">        this.segments = Segment.newArray(ssize);</span>
+<span class="fc" id="L904">        segmentShift = 32 - sshift;</span>
+<span class="fc" id="L905">        segmentMask = ssize - 1;</span>
+<span class="fc" id="L906">        this.segments = Segment.newArray(ssize);</span>
 
         int initialCapacity;
-<span class="nc bnc" id="L909" title="All 2 branches missed.">        if (pinitialCapacity &gt; MAXIMUM_CAPACITY) {</span>
+<span class="pc bpc" id="L909" title="1 of 2 branches missed.">        if (pinitialCapacity &gt; MAXIMUM_CAPACITY) {</span>
 <span class="nc" id="L910">            initialCapacity = MAXIMUM_CAPACITY;</span>
         } else {
-<span class="nc" id="L912">            initialCapacity = pinitialCapacity;</span>
+<span class="fc" id="L912">            initialCapacity = pinitialCapacity;</span>
         }
-<span class="nc" id="L914">        int c = initialCapacity / ssize;</span>
-<span class="nc bnc" id="L915" title="All 2 branches missed.">        if (c * ssize &lt; initialCapacity)</span>
+<span class="fc" id="L914">        int c = initialCapacity / ssize;</span>
+<span class="pc bpc" id="L915" title="1 of 2 branches missed.">        if (c * ssize &lt; initialCapacity)</span>
 <span class="nc" id="L916">            ++c;</span>
-<span class="nc" id="L917">        int cap = 1;</span>
-<span class="nc bnc" id="L918" title="All 2 branches missed.">        while (cap &lt; c)</span>
+<span class="fc" id="L917">        int cap = 1;</span>
+<span class="pc bpc" id="L918" title="1 of 2 branches missed.">        while (cap &lt; c)</span>
 <span class="nc" id="L919">            cap &lt;&lt;= 1;</span>
 
-<span class="nc bnc" id="L921" title="All 4 branches missed.">        identityComparisons = options != null &amp;&amp; options.contains(Option.IDENTITY_COMPARISONS);</span>
+<span class="pc bpc" id="L921" title="3 of 4 branches missed.">        identityComparisons = options != null &amp;&amp; options.contains(Option.IDENTITY_COMPARISONS);</span>
 
-<span class="nc bnc" id="L923" title="All 2 branches missed.">        for (int i = 0; i &lt; this.segments.length; ++i)</span>
-<span class="nc" id="L924">            this.segments[i] = new Segment&lt;&gt;(cap, loadFactor,</span>
+<span class="fc bfc" id="L923" title="All 2 branches covered.">        for (int i = 0; i &lt; this.segments.length; ++i)</span>
+<span class="fc" id="L924">            this.segments[i] = new Segment&lt;&gt;(cap, loadFactor,</span>
                     keyType, valueType, identityComparisons);
-<span class="nc" id="L926">    }</span>
+<span class="fc" id="L926">    }</span>
 
     /**
      * Creates a new, empty map with the specified initial
@@ -943,9 +943,9 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
      */
     public ConcurrentReferenceHashMap(final int initialCapacity,
                              final float loadFactor, final int concurrencyLevel) {
-<span class="nc" id="L946">        this(initialCapacity, loadFactor, concurrencyLevel,</span>
+<span class="fc" id="L946">        this(initialCapacity, loadFactor, concurrencyLevel,</span>
                 DEFAULT_KEY_TYPE, DEFAULT_VALUE_TYPE, null);
-<span class="nc" id="L948">    }</span>
+<span class="fc" id="L948">    }</span>
 
     /**
      * Creates a new, empty map with the specified initial capacity
@@ -1034,8 +1034,8 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
      * load factor (0.75) and concurrencyLevel (16).
      */
     public ConcurrentReferenceHashMap() {
-<span class="nc" id="L1037">        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL);</span>
-<span class="nc" id="L1038">    }</span>
+<span class="fc" id="L1037">        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL);</span>
+<span class="fc" id="L1038">    }</span>
 
     /**
      * Creates a new map with the same mappings as the given map.
@@ -1099,33 +1099,33 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
      */
     @Override
     public int size() {
-<span class="nc" id="L1102">        final Segment&lt;K,V&gt;[] segments = this.segments;</span>
-<span class="nc" id="L1103">        long sum = 0;</span>
-<span class="nc" id="L1104">        long check = 0;</span>
-<span class="nc" id="L1105">        int[] mc = new int[segments.length];</span>
+<span class="fc" id="L1102">        final Segment&lt;K,V&gt;[] segments = this.segments;</span>
+<span class="fc" id="L1103">        long sum = 0;</span>
+<span class="fc" id="L1104">        long check = 0;</span>
+<span class="fc" id="L1105">        int[] mc = new int[segments.length];</span>
         // Try a few times to get accurate count. On failure due to
         // continuous async changes in table, resort to locking.
-<span class="nc bnc" id="L1108" title="All 2 branches missed.">        for (int k = 0; k &lt; RETRIES_BEFORE_LOCK; ++k) {</span>
-<span class="nc" id="L1109">            check = 0;</span>
-<span class="nc" id="L1110">            sum = 0;</span>
-<span class="nc" id="L1111">            int mcsum = 0;</span>
-<span class="nc bnc" id="L1112" title="All 2 branches missed.">            for (int i = 0; i &lt; segments.length; ++i) {</span>
-<span class="nc" id="L1113">                sum += segments[i].count;</span>
-<span class="nc" id="L1114">                mcsum += mc[i] = segments[i].modCount;</span>
+<span class="pc bpc" id="L1108" title="1 of 2 branches missed.">        for (int k = 0; k &lt; RETRIES_BEFORE_LOCK; ++k) {</span>
+<span class="fc" id="L1109">            check = 0;</span>
+<span class="fc" id="L1110">            sum = 0;</span>
+<span class="fc" id="L1111">            int mcsum = 0;</span>
+<span class="fc bfc" id="L1112" title="All 2 branches covered.">            for (int i = 0; i &lt; segments.length; ++i) {</span>
+<span class="fc" id="L1113">                sum += segments[i].count;</span>
+<span class="fc" id="L1114">                mcsum += mc[i] = segments[i].modCount;</span>
             }
-<span class="nc bnc" id="L1116" title="All 2 branches missed.">            if (mcsum != 0) {</span>
-<span class="nc bnc" id="L1117" title="All 2 branches missed.">                for (int i = 0; i &lt; segments.length; ++i) {</span>
-<span class="nc" id="L1118">                    check += segments[i].count;</span>
-<span class="nc bnc" id="L1119" title="All 2 branches missed.">                    if (mc[i] != segments[i].modCount) {</span>
+<span class="pc bpc" id="L1116" title="1 of 2 branches missed.">            if (mcsum != 0) {</span>
+<span class="fc bfc" id="L1117" title="All 2 branches covered.">                for (int i = 0; i &lt; segments.length; ++i) {</span>
+<span class="fc" id="L1118">                    check += segments[i].count;</span>
+<span class="pc bpc" id="L1119" title="1 of 2 branches missed.">                    if (mc[i] != segments[i].modCount) {</span>
 <span class="nc" id="L1120">                        check = -1; // force retry</span>
 <span class="nc" id="L1121">                        break;</span>
                     }
                 }
             }
-<span class="nc bnc" id="L1125" title="All 2 branches missed.">            if (check == sum)</span>
-<span class="nc" id="L1126">                break;</span>
+<span class="pc bpc" id="L1125" title="1 of 2 branches missed.">            if (check == sum)</span>
+<span class="fc" id="L1126">                break;</span>
         }
-<span class="nc bnc" id="L1128" title="All 2 branches missed.">        if (check != sum) { // Resort to locking all segments</span>
+<span class="pc bpc" id="L1128" title="1 of 2 branches missed.">        if (check != sum) { // Resort to locking all segments</span>
 <span class="nc" id="L1129">            sum = 0;</span>
 <span class="nc bnc" id="L1130" title="All 2 branches missed.">            for (int i = 0; i &lt; segments.length; ++i)</span>
 <span class="nc" id="L1131">                segments[i].lock();</span>
@@ -1134,10 +1134,10 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
 <span class="nc bnc" id="L1134" title="All 2 branches missed.">            for (int i = 0; i &lt; segments.length; ++i)</span>
 <span class="nc" id="L1135">                segments[i].unlock();</span>
         }
-<span class="nc bnc" id="L1137" title="All 2 branches missed.">        if (sum &gt; Integer.MAX_VALUE)</span>
+<span class="pc bpc" id="L1137" title="1 of 2 branches missed.">        if (sum &gt; Integer.MAX_VALUE)</span>
 <span class="nc" id="L1138">            return Integer.MAX_VALUE;</span>
         else
-<span class="nc" id="L1140">            return (int)sum;</span>
+<span class="fc" id="L1140">            return (int)sum;</span>
     }
 
     /**
@@ -1153,8 +1153,8 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
      */
     @Override
     public V get(final Object key) {
-<span class="nc" id="L1156">        int hash = hashOf(key);</span>
-<span class="nc" id="L1157">        return segmentFor(hash).get(key, hash);</span>
+<span class="fc" id="L1156">        int hash = hashOf(key);</span>
+<span class="fc" id="L1157">        return segmentFor(hash).get(key, hash);</span>
     }
 
     /**
@@ -1268,10 +1268,10 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
      */
     @Override
     public V put(final K key, final V value) {
-<span class="nc bnc" id="L1271" title="All 2 branches missed.">        if (value == null)</span>
+<span class="pc bpc" id="L1271" title="1 of 2 branches missed.">        if (value == null)</span>
 <span class="nc" id="L1272">            throw new NullPointerException();</span>
-<span class="nc" id="L1273">        int hash = hashOf(key);</span>
-<span class="nc" id="L1274">        return segmentFor(hash).put(key, hash, value, false);</span>
+<span class="fc" id="L1273">        int hash = hashOf(key);</span>
+<span class="fc" id="L1274">        return segmentFor(hash).put(key, hash, value, false);</span>
     }
 
     /**
@@ -1445,8 +1445,8 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
      */
     @Override
     public Set&lt;Map.Entry&lt;K, V&gt;&gt; entrySet() {
-<span class="nc" id="L1448">        Set&lt;Map.Entry&lt;K,V&gt;&gt; es = entrySet;</span>
-<span class="nc bnc" id="L1449" title="All 2 branches missed.">        return (es != null) ? es : (entrySet = new EntrySet());</span>
+<span class="fc" id="L1448">        Set&lt;Map.Entry&lt;K,V&gt;&gt; es = entrySet;</span>
+<span class="pc bpc" id="L1449" title="1 of 2 branches missed.">        return (es != null) ? es : (entrySet = new EntrySet());</span>
     }
 
     /**
@@ -1479,58 +1479,58 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
         HashEntry&lt;K, V&gt; lastReturned;
         K currentKey; // Strong reference to weak key (prevents gc)
 
-<span class="nc" id="L1482">        HashIterator() {</span>
-<span class="nc" id="L1483">            nextSegmentIndex = segments.length - 1;</span>
-<span class="nc" id="L1484">            nextTableIndex = -1;</span>
-<span class="nc" id="L1485">            advance();</span>
-<span class="nc" id="L1486">        }</span>
+<span class="fc" id="L1482">        HashIterator() {</span>
+<span class="fc" id="L1483">            nextSegmentIndex = segments.length - 1;</span>
+<span class="fc" id="L1484">            nextTableIndex = -1;</span>
+<span class="fc" id="L1485">            advance();</span>
+<span class="fc" id="L1486">        }</span>
 
 <span class="nc" id="L1488">        public boolean hasMoreElements() { return hasNext(); }</span>
 
         final void advance() {
-<span class="nc bnc" id="L1491" title="All 4 branches missed.">            if (nextEntry != null &amp;&amp; (nextEntry = nextEntry.next) != null)</span>
-<span class="nc" id="L1492">                return;</span>
+<span class="fc bfc" id="L1491" title="All 4 branches covered.">            if (nextEntry != null &amp;&amp; (nextEntry = nextEntry.next) != null)</span>
+<span class="fc" id="L1492">                return;</span>
 
-<span class="nc bnc" id="L1494" title="All 2 branches missed.">            while (nextTableIndex &gt;= 0) {</span>
-<span class="nc bnc" id="L1495" title="All 2 branches missed.">                if ( (nextEntry = currentTable[nextTableIndex--]) != null)</span>
-<span class="nc" id="L1496">                    return;</span>
+<span class="fc bfc" id="L1494" title="All 2 branches covered.">            while (nextTableIndex &gt;= 0) {</span>
+<span class="fc bfc" id="L1495" title="All 2 branches covered.">                if ( (nextEntry = currentTable[nextTableIndex--]) != null)</span>
+<span class="fc" id="L1496">                    return;</span>
             }
 
-<span class="nc bnc" id="L1499" title="All 2 branches missed.">            while (nextSegmentIndex &gt;= 0) {</span>
-<span class="nc" id="L1500">                Segment&lt;K,V&gt; seg = segments[nextSegmentIndex--];</span>
-<span class="nc bnc" id="L1501" title="All 2 branches missed.">                if (seg.count != 0) {</span>
-<span class="nc" id="L1502">                    currentTable = seg.table;</span>
-<span class="nc bnc" id="L1503" title="All 2 branches missed.">                    for (int j = currentTable.length - 1; j &gt;= 0; --j) {</span>
-<span class="nc bnc" id="L1504" title="All 2 branches missed.">                        if ( (nextEntry = currentTable[j]) != null) {</span>
-<span class="nc" id="L1505">                            nextTableIndex = j - 1;</span>
-<span class="nc" id="L1506">                            return;</span>
+<span class="fc bfc" id="L1499" title="All 2 branches covered.">            while (nextSegmentIndex &gt;= 0) {</span>
+<span class="fc" id="L1500">                Segment&lt;K,V&gt; seg = segments[nextSegmentIndex--];</span>
+<span class="pc bpc" id="L1501" title="1 of 2 branches missed.">                if (seg.count != 0) {</span>
+<span class="fc" id="L1502">                    currentTable = seg.table;</span>
+<span class="pc bpc" id="L1503" title="1 of 2 branches missed.">                    for (int j = currentTable.length - 1; j &gt;= 0; --j) {</span>
+<span class="fc bfc" id="L1504" title="All 2 branches covered.">                        if ( (nextEntry = currentTable[j]) != null) {</span>
+<span class="fc" id="L1505">                            nextTableIndex = j - 1;</span>
+<span class="fc" id="L1506">                            return;</span>
                         }
                     }
                 }
 <span class="nc" id="L1510">            }</span>
-<span class="nc" id="L1511">        }</span>
+<span class="fc" id="L1511">        }</span>
 
         public boolean hasNext() {
-<span class="nc bnc" id="L1514" title="All 2 branches missed.">            while (nextEntry != null) {</span>
-<span class="nc bnc" id="L1515" title="All 2 branches missed.">                if (nextEntry.key() != null)</span>
-<span class="nc" id="L1516">                    return true;</span>
+<span class="fc bfc" id="L1514" title="All 2 branches covered.">            while (nextEntry != null) {</span>
+<span class="pc bpc" id="L1515" title="1 of 2 branches missed.">                if (nextEntry.key() != null)</span>
+<span class="fc" id="L1516">                    return true;</span>
 <span class="nc" id="L1517">                advance();</span>
             }
 
-<span class="nc" id="L1520">            return false;</span>
+<span class="fc" id="L1520">            return false;</span>
         }
 
         HashEntry&lt;K, V&gt; nextEntry() {
             do {
-<span class="nc bnc" id="L1525" title="All 2 branches missed.">                if (nextEntry == null)</span>
+<span class="pc bpc" id="L1525" title="1 of 2 branches missed.">                if (nextEntry == null)</span>
 <span class="nc" id="L1526">                    throw new NoSuchElementException();</span>
 
-<span class="nc" id="L1528">                lastReturned = nextEntry;</span>
-<span class="nc" id="L1529">                currentKey = lastReturned.key();</span>
-<span class="nc" id="L1530">                advance();</span>
-<span class="nc bnc" id="L1531" title="All 2 branches missed.">            } while (currentKey == null); // Skip GC'd keys</span>
+<span class="fc" id="L1528">                lastReturned = nextEntry;</span>
+<span class="fc" id="L1529">                currentKey = lastReturned.key();</span>
+<span class="fc" id="L1530">                advance();</span>
+<span class="pc bpc" id="L1531" title="1 of 2 branches missed.">            } while (currentKey == null); // Skip GC'd keys</span>
 
-<span class="nc" id="L1533">            return lastReturned;</span>
+<span class="fc" id="L1533">            return lastReturned;</span>
         }
 
         public void remove() {
@@ -1571,10 +1571,10 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
         private final K key;
         private V value;
 
-<span class="nc" id="L1574">        public SimpleEntry(final K key, final V value) {</span>
-<span class="nc" id="L1575">            this.key = key;</span>
-<span class="nc" id="L1576">            this.value = value;</span>
-<span class="nc" id="L1577">        }</span>
+<span class="fc" id="L1574">        public SimpleEntry(final K key, final V value) {</span>
+<span class="fc" id="L1575">            this.key = key;</span>
+<span class="fc" id="L1576">            this.value = value;</span>
+<span class="fc" id="L1577">        }</span>
 
 <span class="nc" id="L1579">        public SimpleEntry(final Entry&lt;? extends K, ? extends V&gt; entry) {</span>
 <span class="nc" id="L1580">            this.key = entry.getKey();</span>
@@ -1632,9 +1632,9 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
     {
         private static final long serialVersionUID = -7900634345345313646L;
 
-<span class="nc" id="L1635">        WriteThroughEntry(K k, V v) {</span>
-<span class="nc" id="L1636">            super(k,v);</span>
-<span class="nc" id="L1637">        }</span>
+<span class="fc" id="L1635">        WriteThroughEntry(K k, V v) {</span>
+<span class="fc" id="L1636">            super(k,v);</span>
+<span class="fc" id="L1637">        }</span>
 
         /**
          * Set our entry's value and write through to the map. The
@@ -1654,14 +1654,14 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
         }
     }
 
-<span class="nc" id="L1657">    final class EntryIterator</span>
+<span class="fc" id="L1657">    final class EntryIterator</span>
         extends HashIterator
         implements Iterator&lt;Entry&lt;K,V&gt;&gt;
     {
         @Override
         public Map.Entry&lt;K,V&gt; next() {
-<span class="nc" id="L1663">            HashEntry&lt;K,V&gt; e = super.nextEntry();</span>
-<span class="nc" id="L1664">            return new WriteThroughEntry(e.key(), e.value());</span>
+<span class="fc" id="L1663">            HashEntry&lt;K,V&gt; e = super.nextEntry();</span>
+<span class="fc" id="L1664">            return new WriteThroughEntry(e.key(), e.value());</span>
         }
     }
 
@@ -1715,10 +1715,10 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
 <span class="nc" id="L1715">        }</span>
     }
 
-<span class="nc" id="L1718">    final class EntrySet extends AbstractSet&lt;Map.Entry&lt;K,V&gt;&gt; {</span>
+<span class="fc" id="L1718">    final class EntrySet extends AbstractSet&lt;Map.Entry&lt;K,V&gt;&gt; {</span>
         @Override
         public Iterator&lt;Map.Entry&lt;K,V&gt;&gt; iterator() {
-<span class="nc" id="L1721">            return new EntryIterator();</span>
+<span class="fc" id="L1721">            return new EntryIterator();</span>
         }
         @Override
         public boolean contains(Object o) {
