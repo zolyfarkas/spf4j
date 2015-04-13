@@ -36,7 +36,7 @@ import org.spf4j.base.Reflections;
 import org.spf4j.base.Strings;
 
 public final class Registry {
-    
+
     private Registry() { }
 
     private static final MBeanServer MBEAN_SERVER = ManagementFactory.getPlatformMBeanServer();
@@ -45,19 +45,13 @@ public final class Registry {
         if (MBEAN_SERVER.isRegistered(objectName)) {
             try {
                 MBEAN_SERVER.unregisterMBean(objectName);
-            } catch (InstanceNotFoundException ex) {
-                throw new RuntimeException(ex);
-            } catch (MBeanRegistrationException ex) {
+            } catch (InstanceNotFoundException | MBeanRegistrationException ex) {
                 throw new RuntimeException(ex);
             }
         }
         try {
             MBEAN_SERVER.registerMBean(mbean, objectName);
-        } catch (InstanceAlreadyExistsException ex) {
-            throw new RuntimeException(ex);
-        } catch (MBeanRegistrationException ex) {
-            throw new RuntimeException(ex);
-        } catch (NotCompliantMBeanException ex) {
+        } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -65,7 +59,7 @@ public final class Registry {
     static void register(final String domain, final String name, final Object object) {
         register(ExportedValuesMBean.createObjectName(domain, name), object);
     }
-    
+
     public static void unregister(final Object object) {
         final Class<? extends Object> aClass = object.getClass();
         unregister(aClass.getPackage().getName(), aClass.getSimpleName());
@@ -80,17 +74,13 @@ public final class Registry {
         if (MBEAN_SERVER.isRegistered(objectName)) {
             try {
                 MBEAN_SERVER.unregisterMBean(objectName);
-            } catch (InstanceNotFoundException ex) {
-                throw new RuntimeException(ex);
-            } catch (MBeanRegistrationException ex) {
+            } catch (InstanceNotFoundException | MBeanRegistrationException ex) {
                 throw new RuntimeException(ex);
             }
         }
         try {
             MBEAN_SERVER.unregisterMBean(objectName);
-        } catch (InstanceNotFoundException ex) {
-            throw new RuntimeException(ex);
-        } catch (MBeanRegistrationException ex) {
+        } catch (InstanceNotFoundException | MBeanRegistrationException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -99,18 +89,18 @@ public final class Registry {
         final Class<? extends Object> aClass = object.getClass();
         export(aClass.getPackage().getName(), aClass.getSimpleName(), object);
     }
-    
+
     public static void export(final Class<?> object) {
         export(object.getPackage().getName(), object.getSimpleName(), object);
     }
-    
+
     public static void export(final String packageName, final String mbeanName, final Object ... objects) {
-        
-        Map<String, ExportedValueImpl> exportedAttributes = new HashMap<String, ExportedValueImpl>();
-        Map<String, ExportedOperationImpl> exportedOps = new HashMap<String, ExportedOperationImpl>();
+
+        Map<String, ExportedValueImpl> exportedAttributes = new HashMap<>();
+        Map<String, ExportedOperationImpl> exportedOps = new HashMap<>();
         boolean haveToPrependClass = objects.length > 1;
         for (Object object : objects) {
- 
+
             if (object instanceof Class) {
                 for (Method method : ((Class<?>) object).getMethods()) {
                     if (Modifier.isStatic(method.getModifiers())) {
@@ -136,7 +126,7 @@ public final class Registry {
                     }
                 }
             }
-            
+
         }
         if (exportedAttributes.isEmpty() && exportedOps.isEmpty()) {
             return;
@@ -150,7 +140,7 @@ public final class Registry {
                 throw new IllegalArgumentException("If setter is exported, getter must be exported as well " + expVal);
             }
         }
-        
+
         ExportedValuesMBean mbean = new ExportedValuesMBean(packageName, mbeanName, values,
                         exportedOps.values().toArray(new ExportedOperation [exportedOps.size()]));
         register(mbean.getObjectName(), mbean);

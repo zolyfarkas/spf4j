@@ -22,8 +22,6 @@ import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.impl.RecorderFactory;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
@@ -49,8 +47,6 @@ public final class OpenFilesSampler {
     private static final MeasurementRecorder NR_OPEN_FILES =
             RecorderFactory.createScalableMinMaxAvgRecorder("nr-open-files", "count", AGG_INTERVAL);
 
-    private static final MemoryMXBean MBEAN = ManagementFactory.getMemoryMXBean();
-
     private static ScheduledFuture<?> samplingFuture;
 
     private static final Logger LOG = LoggerFactory.getLogger(OpenFilesSampler.class);
@@ -65,13 +61,18 @@ public final class OpenFilesSampler {
         }, "shutdown-memory-sampler"));
     }
 
-    public static void startFileUsageSampling(final long sampleTime) {
-        startFileUsageSampling(sampleTime, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
-                Runtime.Ulimit.MAX_NR_OPENFILES);
+    public static void startFileUsageSampling(final long sampleTimeMillis) {
+        startFileUsageSampling(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
+                Runtime.Ulimit.MAX_NR_OPENFILES, true);
     }
 
-    public static synchronized void startFileUsageSampling(final long sampleTime,
-            final int warnThreshold, final int errorThreshold) {
+    public static void startFileUsageSampling(final long sampleTimeMillis, final boolean shutdownOnError) {
+        startFileUsageSampling(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
+                Runtime.Ulimit.MAX_NR_OPENFILES, shutdownOnError);
+    }
+
+    public static synchronized void startFileUsageSampling(final long sampleTimeMillis,
+            final int warnThreshold, final int errorThreshold, final boolean shutdownOnError) {
         if (samplingFuture == null) {
             samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
 
@@ -81,13 +82,17 @@ public final class OpenFilesSampler {
                     if (nrOpenFiles > errorThreshold) {
                         LOG.error("Nr open files is {} and exceeds error threshold {}, detail:\n{}",
                                 nrOpenFiles, errorThreshold, Runtime.getLsofOutput());
+                        if (shutdownOnError) {
+                            Runtime.goDownWithError(null, 666);
+                        }
                     } else if (nrOpenFiles > warnThreshold) {
                         LOG.warn("Nr open files is {} and exceeds warn threshold {}, detail:\n{} ",
                                 nrOpenFiles, warnThreshold, Runtime.getLsofOutput());
+                        Runtime.gc(60000); // this is to ameliorate a leak.
                     }
                     NR_OPEN_FILES.record(nrOpenFiles);
                 }
-            }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
+            }, sampleTimeMillis, sampleTimeMillis, TimeUnit.MILLISECONDS);
         }
     }
 

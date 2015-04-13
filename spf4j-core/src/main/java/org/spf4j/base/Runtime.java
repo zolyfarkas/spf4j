@@ -18,6 +18,7 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.concurrent.DefaultExecutor;
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +26,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
@@ -73,7 +75,9 @@ public final class Runtime {
             Lazy.LOGGER.error("Unrecoverable Error, going down", t);
         } finally {
             try {
-                t.printStackTrace();
+                if (t != null) {
+                    t.printStackTrace();
+                }
             } finally {
                 java.lang.Runtime.getRuntime().halt(exitCode);
             }
@@ -425,6 +429,23 @@ public final class Runtime {
 
     public static void setDeadline(final long deadline) {
         DEADLINE.set(deadline);
+    }
+
+    /**
+     * Attempts to run the GC in a verifiable way.
+     * @param timeoutMillis
+     * @return true if GC executed for sure, false otherwise.
+     */
+    @SuppressFBWarnings
+    public static boolean gc(final long timeoutMillis) {
+        Object obj = new Object();
+        WeakReference ref = new WeakReference<>(obj);
+        obj = null;
+        long deadline = System.currentTimeMillis() + timeoutMillis;
+        do {
+            System.gc();
+        } while (ref.get() != null && System.currentTimeMillis() < deadline);
+        return ref.get() == null;
     }
 
 }
