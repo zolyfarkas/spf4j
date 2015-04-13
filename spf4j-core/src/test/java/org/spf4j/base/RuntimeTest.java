@@ -27,7 +27,7 @@ import org.junit.Test;
  * @author zoly
  */
 public final class RuntimeTest {
-    
+
     public RuntimeTest() {
     }
 
@@ -36,9 +36,10 @@ public final class RuntimeTest {
      */
     @Test
     public void testGoDownWithError() throws IOException, InterruptedException, ExecutionException {
-        System.out.println(Runtime.PID);
-        System.out.println(Runtime.OS_NAME);
-        System.out.println(Runtime.getNrOpenFiles());
-        System.out.println(Runtime.getLsofOutput());
+        System.out.println("PID=" + Runtime.PID);
+        System.out.println("OSNAME=" + Runtime.OS_NAME);
+        System.out.println("NR_OPEN_FILES=" + Runtime.getNrOpenFiles());
+        System.out.println("LSOF_OUT=" + Runtime.getLsofOutput());
+        System.out.println("MAX_OPEN_FILES=" + Runtime.Ulimit.MAX_NR_OPENFILES);
     }
 }

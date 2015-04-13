@@ -79,7 +79,11 @@ public final class ByteArrayBuilder extends OutputStream {
         }
         this.arraySupplier = arraySupplier;
         if (arraySupplier == null) {
-            buf = new byte[size];
+            if (size == 0) {
+                buf = org.spf4j.base.Arrays.EMPTY_BYTE_ARRAY;
+            } else {
+                buf = new byte[size];
+            }
         } else {
             buf = arraySupplier.get(size);
         }

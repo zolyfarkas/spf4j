@@ -136,7 +136,7 @@ public final class Runtime {
         return OS_NAME.startsWith("Windows");
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     public static final class Lsof {
 
         public static final File LSOF;
@@ -159,6 +159,39 @@ public final class Runtime {
                 : new String [] {LSOF.getAbsolutePath(), "-p", Integer.toString(PID) };
 
     }
+
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
+    public static final class Ulimit {
+
+        private static final File ULIMIT = new File("/usr/bin/ulimit");
+
+        private static final String [] MFILES_CMD = new String [] {ULIMIT.getPath(), "-Sn" };
+
+        public static final int MAX_NR_OPENFILES;
+
+        static {
+            int mfiles;
+            if (ULIMIT.exists() && ULIMIT.canExecute()) {
+                try {
+                    String result = Runtime.run(MFILES_CMD, 10000);
+                    if (result.contains("unlimited")) {
+                        mfiles = Integer.MAX_VALUE;
+                    } else {
+                        mfiles = Integer.parseInt(result.trim());
+                    }
+                } catch (IOException | InterruptedException | ExecutionException ex) {
+                    Lazy.LOGGER.error("Error while running ulimit, assuming no limit", ex);
+                    mfiles = Integer.MAX_VALUE;
+                }
+            } else {
+                Lazy.LOGGER.warn("No ulimit, assuming no limit");
+                mfiles = Integer.MAX_VALUE;
+            }
+            MAX_NR_OPENFILES = mfiles;
+        }
+
+    }
+
 
     /**
      *
@@ -194,9 +227,7 @@ public final class Runtime {
         if (LSOF == null) {
             return null;
         }
-        StringBuilderCharHandler handler = new StringBuilderCharHandler();
-        run(LSOF_CMD, handler, 60000);
-        return handler.toString();
+        return run(LSOF_CMD, 60000);
     }
 
     public interface ProcOutputHandler {
@@ -209,6 +240,19 @@ public final class Runtime {
 
         void stdErrDone();
     }
+
+    public static String run(final String [] command,
+            final long timeoutMillis) throws IOException, InterruptedException, ExecutionException {
+        StringBuilderCharHandler handler = new StringBuilderCharHandler();
+        int result = run(command, handler, timeoutMillis);
+        if (result != 0) {
+            throw new ExecutionException("Error While Executing: " + java.util.Arrays.toString(command)
+                                           + "; returned " + result + "; stdErr = " + handler.getStdErr(), null);
+        } else {
+            return handler.getStdOut();
+        }
+    }
+
 
     public static int run(final String [] command, final ProcOutputHandler handler,
             final long timeoutMillis)
@@ -305,29 +349,42 @@ public final class Runtime {
 
         private final Charset charset;
 
+        private final ByteArrayBuilder stdout;
+
+        private final ByteArrayBuilder stderr;
+
+
         public StringBuilderCharHandler(final Charset charset) {
-            builder = new ByteArrayBuilder(PID, ArraySuppliers.Bytes.JAVA_NEW);
+            stdout = new ByteArrayBuilder(128, ArraySuppliers.Bytes.JAVA_NEW);
+            stderr = new ByteArrayBuilder(0, ArraySuppliers.Bytes.JAVA_NEW);
             this.charset = charset;
         }
 
         public StringBuilderCharHandler() {
             this(Charset.defaultCharset());
         }
-        private final ByteArrayBuilder builder;
 
         @Override
         public void handleStdOut(final byte [] buffer, final int length) {
-            builder.write(buffer, 0, length);
+            stdout.write(buffer, 0, length);
         }
 
         @Override
         public String toString() {
-            return new String(builder.getBuffer(), 0, builder.size(), charset);
+            return new String(stdout.getBuffer(), 0, stdout.size(), charset);
+        }
+
+        public String getStdOut() {
+            return toString();
+        }
+
+        public String getStdErr() {
+            return new String(stderr.getBuffer(), 0, stderr.size(), charset);
         }
 
         @Override
         public void handleStdErr(final byte [] buffer, final int length) {
-            handleStdOut(buffer, length);
+            stderr.write(buffer, 0, length);
         }
 
         @Override

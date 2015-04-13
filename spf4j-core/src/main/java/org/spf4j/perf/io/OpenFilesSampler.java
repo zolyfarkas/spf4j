@@ -35,27 +35,27 @@ import org.spf4j.base.Runtime;
  * for your java process.
  *  start data recording by calling the startMemoryUsageSampling method,
  *  stop the data recording by calling the method: startMemoryUsageSampling.
- * 
+ *
  * @author zoly
  */
 public final class OpenFilesSampler {
-    
+
     private OpenFilesSampler() { }
-    
+
     private static final int AGG_INTERVAL =
             Integer.parseInt(System.getProperty("perf.io.openFiles.sampleAggMillis", "600000"));
-    
- 
+
+
     private static final MeasurementRecorder NR_OPEN_FILES =
             RecorderFactory.createScalableMinMaxAvgRecorder("nr-open-files", "count", AGG_INTERVAL);
-    
+
     private static final MemoryMXBean MBEAN = ManagementFactory.getMemoryMXBean();
-    
+
     private static ScheduledFuture<?> samplingFuture;
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(OpenFilesSampler.class);
-    
-    
+
+
     static {
         java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {
             @Override
@@ -64,7 +64,12 @@ public final class OpenFilesSampler {
             }
         }, "shutdown-memory-sampler"));
     }
-    
+
+    public static void startFileUsageSampling(final long sampleTime) {
+        startFileUsageSampling(sampleTime, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
+                Runtime.Ulimit.MAX_NR_OPENFILES);
+    }
+
     public static synchronized void startFileUsageSampling(final long sampleTime,
             final int warnThreshold, final int errorThreshold) {
         if (samplingFuture == null) {
@@ -85,14 +90,14 @@ public final class OpenFilesSampler {
             }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
         }
     }
-    
+
     public static synchronized void stopFileUsageSampling() {
          if (samplingFuture != null) {
              samplingFuture.cancel(false);
              samplingFuture = null;
          }
     }
-    
-    
-    
+
+
+
 }
