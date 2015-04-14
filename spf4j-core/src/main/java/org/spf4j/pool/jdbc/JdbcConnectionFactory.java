@@ -47,13 +47,13 @@ public final class JdbcConnectionFactory  implements RecyclingSupplier.Factory<C
         this.password = password;
         this.user = user;
     }
-    
+
     private final String url;
     private final String user;
     private final String password;
     private RecyclingSupplier<Connection> pool;
-    
-    
+
+
     @Override
     public Connection create() throws ObjectCreationException {
         final Connection conn;
@@ -62,13 +62,13 @@ public final class JdbcConnectionFactory  implements RecyclingSupplier.Factory<C
         } catch (SQLException ex) {
             throw new ObjectCreationException(ex);
         }
-        
+
         return (Connection) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
                 new Class<?> [] {Connection.class}, new InvocationHandler() {
 
             private Exception ex;
 
-            
+
             @Override
             public Object invoke(final Object proxy, final Method method, final Object[] args) throws Exception {
                 if ("close".equals(method.getName())) {
@@ -78,23 +78,14 @@ public final class JdbcConnectionFactory  implements RecyclingSupplier.Factory<C
                 } else {
                     try {
                         return method.invoke(conn, args);
-                    } catch (IllegalAccessException e) {
-                        ex = e;
-                        throw e;
-                    } catch (IllegalArgumentException e) {
-                        ex = e;
-                        throw e;
-                    } catch (InvocationTargetException e) {
-                        ex = e;
-                        throw e;
-                    } catch (RuntimeException e) {
+                    } catch (IllegalAccessException | InvocationTargetException | RuntimeException e) {
                         ex = e;
                         throw e;
                     }
                 }
             }
         });
-        
+
     }
 
     @Override
@@ -106,7 +97,7 @@ public final class JdbcConnectionFactory  implements RecyclingSupplier.Factory<C
         }
     }
 
-    
+
     @Override
     public boolean validate(final Connection object, final Exception e) throws SQLException {
         return object.isValid(60);
@@ -115,5 +106,5 @@ public final class JdbcConnectionFactory  implements RecyclingSupplier.Factory<C
     void setPool(final RecyclingSupplier<Connection> pool) {
         this.pool = pool;
     }
-    
+
 }
