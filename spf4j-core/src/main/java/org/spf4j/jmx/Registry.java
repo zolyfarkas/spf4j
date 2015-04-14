@@ -41,9 +41,13 @@ public final class Registry {
 
     private static final MBeanServer MBEAN_SERVER = ManagementFactory.getPlatformMBeanServer();
 
-    private static void register(final ObjectName objectName, final Object mbean) {
+    private static final Map<ObjectName, Object> REGISTERED = new HashMap<>();
+
+    public static synchronized Object register(final ObjectName objectName, final Object mbean) {
+        Object replaced = null;
         if (MBEAN_SERVER.isRegistered(objectName)) {
             try {
+                replaced = REGISTERED.remove(objectName);
                 MBEAN_SERVER.unregisterMBean(objectName);
             } catch (InstanceNotFoundException | MBeanRegistrationException ex) {
                 throw new RuntimeException(ex);
@@ -54,6 +58,8 @@ public final class Registry {
         } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException ex) {
             throw new RuntimeException(ex);
         }
+        REGISTERED.put(objectName, mbean);
+        return replaced;
     }
 
     static void register(final String domain, final String name, final Object object) {
@@ -69,20 +75,22 @@ public final class Registry {
         unregister(object.getPackage().getName(), object.getSimpleName());
     }
 
-    private static void unregister(final String packageName, final String mbeanName) {
+    public static Object unregister(final String packageName, final String mbeanName) {
         ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
+        return unregister(objectName);
+    }
+
+    public static synchronized Object unregister(final ObjectName objectName) {
+        Object result = null;
         if (MBEAN_SERVER.isRegistered(objectName)) {
             try {
+                result = REGISTERED.remove(objectName);
                 MBEAN_SERVER.unregisterMBean(objectName);
             } catch (InstanceNotFoundException | MBeanRegistrationException ex) {
                 throw new RuntimeException(ex);
             }
         }
-        try {
-            MBEAN_SERVER.unregisterMBean(objectName);
-        } catch (InstanceNotFoundException | MBeanRegistrationException ex) {
-            throw new RuntimeException(ex);
-        }
+        return result;
     }
 
     public static void export(final Object object) {
@@ -94,11 +102,13 @@ public final class Registry {
         export(object.getPackage().getName(), object.getSimpleName(), object);
     }
 
-    public static void export(final String packageName, final String mbeanName, final Object ... objects) {
+    public static synchronized ExportedValuesMBean export(final String packageName, final String mbeanName,
+            final Object ... objects) {
 
+        ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
+        ExportedValuesMBean existing = (ExportedValuesMBean) unregister(objectName);
         Map<String, ExportedValueImpl> exportedAttributes = new HashMap<>();
         Map<String, ExportedOperationImpl> exportedOps = new HashMap<>();
-        boolean haveToPrependClass = objects.length > 1;
         for (Object object : objects) {
 
             if (object instanceof Class) {
@@ -107,21 +117,18 @@ public final class Registry {
                         Annotation [] annotations = method.getAnnotations();
                         for (Annotation annot : annotations) {
                             if (annot.annotationType() == JmxExport.class) {
-                                exportMethod(method, haveToPrependClass ? ((Class) object).getSimpleName() : null,
-                                        null, exportedAttributes, exportedOps, annot);
+                                exportMethod(method, null, exportedAttributes, exportedOps, annot);
                             }
                         }
                     }
                 }
             } else {
                 final Class<? extends Object> oClass = object.getClass();
-                String oClassName = oClass.getSimpleName();
                 for (Method method : oClass.getMethods()) {
                     Annotation [] annotations = method.getAnnotations();
                     for (Annotation annot : annotations) {
                         if (annot.annotationType() == JmxExport.class) {
-                            exportMethod(method, haveToPrependClass ? oClassName : null,
-                                    object, exportedAttributes, exportedOps, annot);
+                            exportMethod(method, object, exportedAttributes, exportedOps, annot);
                         }
                     }
                 }
@@ -129,7 +136,7 @@ public final class Registry {
 
         }
         if (exportedAttributes.isEmpty() && exportedOps.isEmpty()) {
-            return;
+            return null;
         }
         ExportedValue<?> [] values = new ExportedValue[exportedAttributes.size()];
         int i = 0;
@@ -140,13 +147,19 @@ public final class Registry {
                 throw new IllegalArgumentException("If setter is exported, getter must be exported as well " + expVal);
             }
         }
-
-        ExportedValuesMBean mbean = new ExportedValuesMBean(packageName, mbeanName, values,
+        ExportedValuesMBean mbean;
+        if (existing == null) {
+            mbean = new ExportedValuesMBean(objectName, values,
                         exportedOps.values().toArray(new ExportedOperation [exportedOps.size()]));
+        } else {
+            mbean = new ExportedValuesMBean(existing, values,
+                        exportedOps.values().toArray(new ExportedOperation [exportedOps.size()]));
+        }
         register(mbean.getObjectName(), mbean);
+        return mbean;
     }
 
-    private static void exportMethod(final Method method, @Nullable final String prependClass,
+    private static void exportMethod(final Method method,
             @Nullable final Object object, final Map<String, ExportedValueImpl> exportedAttributes,
             final Map<String, ExportedOperationImpl> exportedOps, final Annotation annot) {
         method.setAccessible(true); // this is to speed up invocation
@@ -155,43 +168,18 @@ public final class Registry {
         if (methodName.startsWith("get") && nrParams == 0) {
             String valueName = methodName.substring("get".length());
             valueName = Strings.withFirstCharLower(valueName);
-            if (prependClass != null) {
-                valueName = prependClass + "." + valueName;
-            }
             addGetter(valueName, exportedAttributes, annot, method, object);
         } else if (methodName.startsWith("is") && nrParams == 0) {
             String valueName = methodName.substring("is".length());
             valueName = Strings.withFirstCharLower(valueName);
-            if (prependClass != null) {
-                valueName = prependClass + "." + valueName;
-            }
             addGetter(valueName, exportedAttributes, annot, method, object);
         } else if (methodName.startsWith("set") && nrParams == 1) {
-            String valueName = methodName.substring("set".length());
-            valueName = Strings.withFirstCharLower(valueName);
-            if (prependClass != null) {
-                valueName = prependClass + "." + valueName;
-            }
-            ExportedValueImpl existing = exportedAttributes.get(valueName);
-            if (existing == null) {
-                existing = new ExportedValueImpl(valueName, null,
-                        null, method, object, method.getParameterTypes()[0]);
-            } else {
-                if (existing.getValueClass() != method.getParameterTypes()[0]) {
-                    throw new IllegalArgumentException(
-                            "Getter and setter icorrectly defined " + existing + " " + method);
-                }
-                existing = existing.withSetter(method);
-            }
-            exportedAttributes.put(valueName, existing);
+            addSetter(methodName, exportedAttributes, method, object, annot);
         } else {
             String opName = methodName;
             String nameOverwrite = (String) Reflections.getAnnotationAttribute(annot, "name");
             if (!"".equals(nameOverwrite)) {
                 opName = nameOverwrite;
-            }
-            if (prependClass != null) {
-                opName = prependClass + "." + opName;
             }
             ExportedOperationImpl existing = exportedOps.put(opName, new ExportedOperationImpl(opName,
                     (String) Reflections.getAnnotationAttribute(annot, "description"), method, object));
@@ -201,9 +189,36 @@ public final class Registry {
         }
     }
 
-    private static void addGetter(final String valueName,
+    private static void addSetter(final String methodName, final Map<String, ExportedValueImpl> exportedAttributes,
+            final Method method, final Object object, final Annotation annot) {
+        String customName = (String) Reflections.getAnnotationAttribute(annot, "name");
+        String valueName;
+        if ("".equals(customName)) {
+            valueName = methodName.substring("set".length());
+            valueName = Strings.withFirstCharLower(valueName);
+        } else {
+            valueName = customName;
+        }
+
+        ExportedValueImpl existing = exportedAttributes.get(valueName);
+        if (existing == null) {
+            existing = new ExportedValueImpl(valueName, null,
+                    null, method, object, method.getParameterTypes()[0]);
+        } else {
+            if (existing.getValueClass() != method.getParameterTypes()[0]) {
+                throw new IllegalArgumentException(
+                        "Getter and setter icorrectly defined " + existing + " " + method);
+            }
+            existing = existing.withSetter(method);
+        }
+        exportedAttributes.put(valueName, existing);
+    }
+
+    private static void addGetter(final String pvalueName,
             final Map<String, ExportedValueImpl> exported,
             final Annotation annot, final Method method, final Object object) {
+        String customName = (String) Reflections.getAnnotationAttribute(annot, "name");
+        String valueName = "".equals(customName) ? pvalueName : customName;
         ExportedValueImpl existing = exported.get(valueName);
         if (existing == null) {
             existing = new ExportedValueImpl(

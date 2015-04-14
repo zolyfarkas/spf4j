@@ -65,10 +65,18 @@ class ExportedValueImpl implements ExportedValue<Object> {
     }
 
     public ExportedValueImpl withSetter(@Nonnull final Method psetMethod) {
+        if (setMethod != null) {
+            throw new IllegalArgumentException("duplicate value registration attemted " + setMethod
+                    + ", " + psetMethod);
+        }
         return new ExportedValueImpl(name, description, getMethod, psetMethod, object, valueClass);
     }
 
     public ExportedValueImpl withGetter(@Nonnull final Method pgetMethod, @Nonnull final String pdescription) {
+        if (getMethod != null) {
+            throw new IllegalArgumentException("duplicate value registration attemted " + getMethod
+                    + ", " + pgetMethod);
+        }
         return new ExportedValueImpl(name, pdescription, pgetMethod, setMethod, object, valueClass);
     }
 
@@ -92,11 +100,7 @@ class ExportedValueImpl implements ExportedValue<Object> {
             } else {
                 return getMethod.invoke(object);
             }
-        } catch (IllegalAccessException ex) {
-            throw new RuntimeException(ex);
-        } catch (IllegalArgumentException ex) {
-            throw new RuntimeException(ex);
-        } catch (InvocationTargetException ex) {
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -113,11 +117,7 @@ class ExportedValueImpl implements ExportedValue<Object> {
             } else {
                 setMethod.invoke(object, value);
             }
-        } catch (IllegalAccessException ex) {
-            throw new RuntimeException(ex);
-        } catch (IllegalArgumentException ex) {
-            throw new RuntimeException(name + " has an invalid type ", ex);
-        } catch (InvocationTargetException ex) {
+        } catch (IllegalAccessException | InvocationTargetException ex) {
             throw new RuntimeException(ex);
         }
     }

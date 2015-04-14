@@ -30,15 +30,15 @@ import org.spf4j.base.Reflections;
  * @author zoly
  */
 final class ExportedOperationImpl implements ExportedOperation {
-    
+
     private final String name;
-    
+
     private final String description;
-    
+
     private final Method method;
-    
+
     private final Object object;
-    
+
     private final  MBeanParameterInfo[] paramInfos;
 
     public ExportedOperationImpl(final String name, final String description,
@@ -66,10 +66,10 @@ final class ExportedOperationImpl implements ExportedOperation {
             paramInfos[i] = new MBeanParameterInfo(pname, parameterTypes[i].getName(), pdesc);
         }
     }
-    
-    
-    
-    
+
+
+
+
 
     @Override
     public String getName() {
@@ -86,11 +86,7 @@ final class ExportedOperationImpl implements ExportedOperation {
     public Object invoke(final Object[] parameters) {
         try {
             return method.invoke(object, parameters);
-        } catch (IllegalAccessException ex) {
-            throw new RuntimeException(ex);
-        } catch (IllegalArgumentException ex) {
-            throw new RuntimeException(ex);
-        } catch (InvocationTargetException ex) {
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -104,5 +100,5 @@ final class ExportedOperationImpl implements ExportedOperation {
     public Class<?> getReturnType() {
         return method.getReturnType();
     }
-    
+
 }

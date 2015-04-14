@@ -43,11 +43,11 @@ import org.spf4j.base.Reflections;
 
 class ExportedValuesMBean implements DynamicMBean {
 
-  
+
     private static final Pattern INVALID_CHARS = Pattern.compile("[^a-zA-Z0-9_\\-\\.]");
 
     private final Map<String, ExportedValue<?>> exportedValues;
-    
+
     private final Map<String, ExportedOperation> exportedOperations;
 
     private final ObjectName objectName;
@@ -55,19 +55,37 @@ class ExportedValuesMBean implements DynamicMBean {
     private final MBeanInfo beanInfo;
 
 
-    ExportedValuesMBean(final String domain, final String name,
+    ExportedValuesMBean(final ObjectName objectName,
             final ExportedValue<?> [] exported, final ExportedOperation [] operations) {
-        this.exportedValues = new HashMap<String, ExportedValue<?>>(exported.length);
+        this.exportedValues = new HashMap<>(exported.length);
         for (ExportedValue<?> val : exported) {
             this.exportedValues.put(val.getName(), val);
         }
-        this.exportedOperations = new HashMap<String, ExportedOperation>(exported.length);
+        this.exportedOperations = new HashMap<>(operations.length);
         for (ExportedOperation op : operations) {
             this.exportedOperations.put(op.getName(), op);
         }
-        this.objectName = createObjectName(domain, name);
+        this.objectName = objectName;
         this.beanInfo = createBeanInfo();
     }
+
+    ExportedValuesMBean(final ExportedValuesMBean extend,
+            final ExportedValue<?> [] exported, final ExportedOperation [] operations) {
+        this.exportedValues = new HashMap<>(exported.length + extend.exportedValues.size());
+        this.exportedValues.putAll(extend.exportedValues);
+        for (ExportedValue<?> val : exported) {
+            this.exportedValues.put(val.getName(), val);
+        }
+        this.exportedOperations = new HashMap<>(operations.length + extend.exportedOperations.size());
+        this.exportedOperations.putAll(extend.exportedOperations);
+        for (ExportedOperation op : operations) {
+            this.exportedOperations.put(op.getName(), op);
+        }
+        this.objectName = extend.getObjectName();
+        this.beanInfo = extend.beanInfo;
+    }
+
+
 
     /**
      * Returns the object name built from the {@link com.netflix.servo.monitor.MonitorConfig}.
@@ -188,17 +206,8 @@ class ExportedValuesMBean implements DynamicMBean {
         } else {
             type = openType.getTypeName();
         }
-        
-  //      if (openType == null) {
-//            return new MBeanAttributeInfo(
-//                val.getName(),
-//                type,
-//                val.getDescription(),
-//                true,   // isReadable
-//                val.isWriteable(),  // isWritable
-//                valClass == Boolean.class); // isIs
-//        } else {
-           return new MBeanAttributeInfo(
+
+        return new MBeanAttributeInfo(
                 val.getName(),
                 type,
                 val.getDescription(),
@@ -207,10 +216,8 @@ class ExportedValuesMBean implements DynamicMBean {
                 valClass == Boolean.class,
                 new ImmutableDescriptor(new String[] {"openType", "originalType"},
                         new Object[] {openType, oClass.getName()}));
-//        }
-//
-        
-        
+
+
     }
-    
+
 }
