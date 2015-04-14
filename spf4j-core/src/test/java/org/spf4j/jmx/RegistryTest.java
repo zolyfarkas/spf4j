@@ -35,26 +35,26 @@ import org.junit.Test;
 public final class RegistryTest {
 
     public static final class JmxTest {
-        
+
         private volatile String stringVal;
-        
+
         private volatile double doubleVal;
-        
+
         private volatile boolean booleanFlag;
-        
+
         private final String [][] matrix = {{"a", "b"}, {"c", "d"}};
-        
+
         private volatile TestEnum enumVal = TestEnum.VAL2;
-        
+
         private final TestBean bean = new TestBean(3, "bla");
-        
+
         @JmxExport
         public String [][] getMatrix() {
             return matrix;
         }
-        
+
         private final String [] array = {"a", "b"};
-        
+
         @JmxExport
         public String [] getArray() {
             return array;
@@ -105,25 +105,25 @@ public final class RegistryTest {
         public TestBean getBean() {
             return bean;
         }
-        
-        
-        
+
+
+
     }
-    
+
     public static final class JmxTest2 {
-            
+
         private volatile String stringVal;
 
-        @JmxExport
+        @JmxExport(name = "stringVal2")
         public String getStringVal() {
             return stringVal;
         }
 
-        @JmxExport
+        @JmxExport(name = "stringVal2")
         public void setStringVal(final String stringVal) {
             this.stringVal = stringVal;
         }
-        
+
         private static volatile String testStr;
 
         @JmxExport
@@ -134,16 +134,16 @@ public final class RegistryTest {
         public static void setTestStr(final String testStr) {
             JmxTest2.testStr = testStr;
         }
-        
+
         @JmxExport(description = "test operation")
         public String doStuff(@JmxExport(name = "what", description = "some param") final String what,
                 final String where) {
             return "Doing " + what + " " + where;
         }
-        
-        
+
+
     }
-    
+
     @Test
     public void testRegistry()
             throws InterruptedException, IOException, InstanceNotFoundException, MBeanException,
@@ -151,79 +151,90 @@ public final class RegistryTest {
         JmxTest testObj = new JmxTest();
         Registry.export("test", "Test", testObj);
         Registry.register("test2", "TestClassic", new org.spf4j.jmx.Test());
-        
+
 //        Thread.sleep(300000);
-        
+
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "booleanFlag", true);
-       
+
         Object ret = Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "booleanFlag");
         Assert.assertEquals(Boolean.TRUE, ret);
-        
+
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "stringVal", "bla bla");
-       
+
         Object ret2 = Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "stringVal");
         Assert.assertEquals("bla bla", ret2);
-        
+
         try {
             Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "doubleVal", 0.0);
         } catch (InvalidAttributeValueException e) {
             e.printStackTrace();
         }
-        
+
     }
 
-    
+
     @Test
     public void testRegistry2()
             throws InterruptedException, IOException, InstanceNotFoundException, MBeanException,
             AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
         JmxTest testObj = new JmxTest();
         JmxTest2 testObj2 = new JmxTest2();
+        Registry.unregister("test", "Test");
         Registry.export("test", "Test", testObj, testObj2);
         Registry.export("test", "TestStatic", JmxTest2.class);
-   
+
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
-                "test", "Test", "JmxTest.booleanFlag", true);
-       
+                "test", "Test", "booleanFlag", true);
+
         Object ret = Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
-                "test", "Test", "JmxTest.booleanFlag");
+                "test", "Test", "booleanFlag");
         Assert.assertEquals(Boolean.TRUE, ret);
-        
+
+        Registry.export("test", "Test", new Object() {
+            @JmxExport(name = "customName")
+            public int getMyValue() { return 13; }
+        });
+
+        Object retCustom = Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+                "test", "Test", "customName");
+
+        Assert.assertEquals(Integer.valueOf(13), retCustom);
+
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
-                "test", "Test", "JmxTest.stringVal", "bla bla");
-       
+                "test", "Test", "stringVal", "bla bla");
+
         Object ret2 = Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
-                "test", "Test", "JmxTest.stringVal");
+                "test", "Test", "stringVal");
         Assert.assertEquals("bla bla", ret2);
-        
+
         try {
             Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
-                "test", "Test", "JmxTest.doubleVal", 0.0);
+                "test", "Test", "doubleVal", 0.0);
         } catch (InvalidAttributeValueException e) {
             e.printStackTrace();
         }
-        
+
         testObj2.setStringVal("cucu");
         Object ret3 = Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
-                "test", "Test", "JmxTest2.stringVal");
+                "test", "Test", "stringVal2");
         Assert.assertEquals("cucu", ret3);
-        
+
         JmxTest2.setTestStr("bubu");
         Object ret4 = Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
-                "test", "Test", "JmxTest2.testStr");
+                "test", "Test", "testStr");
         Assert.assertEquals("bubu", ret4);
-        
+
         Object ret5 = Client.callOperation("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
-                "test", "Test", "JmxTest2.doStuff", "a", "b");
+                "test", "Test", "doStuff", "a", "b");
         Assert.assertEquals("Doing a b", ret5);
-        
+
     }
 
-    
-    
+
+
 }
