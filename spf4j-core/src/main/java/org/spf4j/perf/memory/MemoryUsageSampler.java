@@ -33,26 +33,26 @@ import java.util.concurrent.TimeUnit;
  * for your java process.
  *  start data recording by calling the startMemoryUsageSampling method,
  *  stop the data recording by calling the method: startMemoryUsageSampling.
- * 
+ *
  * @author zoly
  */
 public final class MemoryUsageSampler {
-    
+
     private MemoryUsageSampler() { }
-    
+
     private static final int AGG_INTERVAL =
             Integer.parseInt(System.getProperty("perf.memory.sampleAggMillis", "300000"));
-    
+
     private static final MeasurementRecorder HEAP_COMMITED =
             RecorderFactory.createScalableMinMaxAvgRecorder("heap-commited", "bytes", AGG_INTERVAL);
     private static final MeasurementRecorder HEAP_USED =
             RecorderFactory.createScalableMinMaxAvgRecorder("heap-used", "bytes", AGG_INTERVAL);
-    
+
     private static final MemoryMXBean MBEAN = ManagementFactory.getMemoryMXBean();
-    
+
     private static ScheduledFuture<?> samplingFuture;
-    
-    
+
+
     static {
         java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {
             @Override
@@ -61,7 +61,7 @@ public final class MemoryUsageSampler {
             }
         }, "shutdown-memory-sampler"));
     }
-    
+
     public static synchronized void startMemoryUsageSampling(final long sampleTime) {
         if (samplingFuture == null) {
             samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
@@ -73,16 +73,18 @@ public final class MemoryUsageSampler {
                     HEAP_USED.record(usage.getUsed());
                 }
             }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
+        } else {
+            throw new IllegalStateException("Memory usage sampling already started " + samplingFuture);
         }
     }
-    
+
     public static synchronized void stopMemoryUsageSampling() {
          if (samplingFuture != null) {
              samplingFuture.cancel(false);
              samplingFuture = null;
          }
     }
-    
-    
-    
+
+
+
 }

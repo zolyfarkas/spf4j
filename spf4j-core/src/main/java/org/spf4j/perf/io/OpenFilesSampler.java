@@ -93,6 +93,8 @@ public final class OpenFilesSampler {
                     NR_OPEN_FILES.record(nrOpenFiles);
                 }
             }, sampleTimeMillis, sampleTimeMillis, TimeUnit.MILLISECONDS);
+        } else {
+            throw new IllegalStateException("Open file usage sampling already started " + samplingFuture);
         }
     }
 

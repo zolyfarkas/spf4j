@@ -69,6 +69,8 @@ public final class GCUsageSampler {
                     }
                 }
             }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
+        } else {
+            throw new IllegalStateException("GC usage sampling already started " + samplingFuture);
         }
     }
 

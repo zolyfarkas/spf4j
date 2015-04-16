@@ -60,6 +60,8 @@ public final class CpuUsageSampler {
                      lastValue = currTime;
                 }
             }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
+        } else {
+            throw new IllegalStateException("Cpu time Sampling already started " + samplingFuture);
         }
     }
 
