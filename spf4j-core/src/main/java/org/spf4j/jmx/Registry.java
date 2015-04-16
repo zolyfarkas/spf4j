@@ -43,7 +43,7 @@ public final class Registry {
 
     private static final Map<ObjectName, Object> REGISTERED = new HashMap<>();
 
-    public static synchronized Object register(final ObjectName objectName, final Object mbean) {
+    public static synchronized Object registerMBean(final ObjectName objectName, final Object mbean) {
         Object replaced = null;
         if (MBEAN_SERVER.isRegistered(objectName)) {
             try {
@@ -62,17 +62,17 @@ public final class Registry {
         return replaced;
     }
 
-    static void register(final String domain, final String name, final Object object) {
-        register(ExportedValuesMBean.createObjectName(domain, name), object);
+    public static void registerMBean(final String domain, final String name, final Object object) {
+        Registry.registerMBean(ExportedValuesMBean.createObjectName(domain, name), object);
     }
 
-    public static void unregister(final Object object) {
+    public static Object unregister(final Object object) {
         final Class<? extends Object> aClass = object.getClass();
-        unregister(aClass.getPackage().getName(), aClass.getSimpleName());
+        return unregister(aClass.getPackage().getName(), aClass.getSimpleName());
     }
 
-    public static void unregister(final Class<?> object) {
-        unregister(object.getPackage().getName(), object.getSimpleName());
+    public static Object unregister(final Class<?> object) {
+        return unregister(object.getPackage().getName(), object.getSimpleName());
     }
 
     public static Object unregister(final String packageName, final String mbeanName) {
@@ -155,7 +155,7 @@ public final class Registry {
             mbean = new ExportedValuesMBean(existing, values,
                         exportedOps.values().toArray(new ExportedOperation [exportedOps.size()]));
         }
-        register(mbean.getObjectName(), mbean);
+        Registry.registerMBean(mbean.getObjectName(), mbean);
         return mbean;
     }
 

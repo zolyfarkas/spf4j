@@ -150,7 +150,7 @@ public final class RegistryTest {
             AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
         JmxTest testObj = new JmxTest();
         Registry.export("test", "Test", testObj);
-        Registry.register("test2", "TestClassic", new org.spf4j.jmx.Test());
+        Registry.registerMBean("test2", "TestClassic", new org.spf4j.jmx.Test());
 
 //        Thread.sleep(300000);
 
