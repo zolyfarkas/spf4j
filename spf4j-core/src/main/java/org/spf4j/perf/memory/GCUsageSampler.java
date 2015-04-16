@@ -18,6 +18,8 @@
  */
 package org.spf4j.perf.memory;
 
+import gnu.trove.map.TObjectLongMap;
+import gnu.trove.map.hash.TObjectLongHashMap;
 import java.lang.management.GarbageCollectorMXBean;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -49,6 +51,7 @@ public final class GCUsageSampler {
                 stopGCUsageSampling();
             }
         }, "shutdown-memory-sampler"));
+
     }
 
     public static synchronized void startGCUsageSampling(final int sampleTime) {
@@ -56,9 +59,14 @@ public final class GCUsageSampler {
             final MeasurementRecorder gcUsage =
                 RecorderFactory.createDirectRecorder("gc-time", "ms", sampleTime);
             samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
+
+                private final TObjectLongMap lastValues = new TObjectLongHashMap();
+
                 @Override
                 public void doRun() throws Exception {
-                    gcUsage.record(getGCTime(MBEANS));
+                    synchronized (lastValues) {
+                        gcUsage.record(getGCTimeDiff(MBEANS, lastValues));
+                    }
                 }
             }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
         }
@@ -71,6 +79,17 @@ public final class GCUsageSampler {
         }
     }
 
+    public static long getGCTimeDiff(final List<GarbageCollectorMXBean> gcBeans, final TObjectLongMap lastValues) {
+        long gcTime = 0;
+        for (GarbageCollectorMXBean gcBean : gcBeans) {
+            long prevVal = lastValues.get(gcBean);
+            long currVal = gcBean.getCollectionTime();
+            gcTime += currVal - prevVal;
+            lastValues.put(gcBean, currVal);
+        }
+        return gcTime;
+    }
+
     public static long getGCTime(final List<GarbageCollectorMXBean> gcBeans) {
         long gcTime = 0;
         for (GarbageCollectorMXBean gcBean : gcBeans) {
@@ -78,4 +97,5 @@ public final class GCUsageSampler {
         }
         return gcTime;
     }
+
 }
