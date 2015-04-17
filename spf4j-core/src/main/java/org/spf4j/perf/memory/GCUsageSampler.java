@@ -56,7 +56,8 @@ public final class GCUsageSampler {
         Registry.export(GCUsageSampler.class);
     }
 
-    public static synchronized void start(final int sampleTime) {
+    @JmxExport
+    public static synchronized void start(@JmxExport("sampleTimeMillis") final int sampleTime) {
         if (samplingFuture == null) {
             final MeasurementRecorder gcUsage =
                 RecorderFactory.createDirectRecorder("gc-time", "ms", sampleTime);
@@ -95,13 +96,22 @@ public final class GCUsageSampler {
         return gcTime;
     }
 
-    @JmxExport
     public static long getGCTime(final List<GarbageCollectorMXBean> gcBeans) {
         long gcTime = 0;
         for (GarbageCollectorMXBean gcBean : gcBeans) {
             gcTime += gcBean.getCollectionTime();
         }
         return gcTime;
+    }
+
+    @JmxExport
+    public static long getGCTime() {
+        return getGCTime(MBEANS);
+    }
+
+    @JmxExport
+    public static synchronized boolean isStarted() {
+        return samplingFuture != null;
     }
 
 }

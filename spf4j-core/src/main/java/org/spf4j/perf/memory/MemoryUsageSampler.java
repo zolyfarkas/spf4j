@@ -66,7 +66,7 @@ public final class MemoryUsageSampler {
     }
 
     @JmxExport
-    public static synchronized void start(final long sampleTime) {
+    public static synchronized void start(@JmxExport("sampleTimeMillis") final long sampleTime) {
         if (samplingFuture == null) {
             samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
 
@@ -90,6 +90,10 @@ public final class MemoryUsageSampler {
          }
     }
 
+    @JmxExport
+    public static synchronized boolean isStarted() {
+        return samplingFuture != null;
+    }
 
 
 }

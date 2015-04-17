@@ -56,7 +56,7 @@ final class ExportedOperationImpl implements ExportedOperation {
             String pdesc = "";
             for (Annotation annot : annotations) {
                 if (annot.getClass() == JmxExport.class) {
-                    pname = (String) Reflections.getAnnotationAttribute(annot, "name");
+                    pname = (String) Reflections.getAnnotationAttribute(annot, "value");
                     pdesc = (String) Reflections.getAnnotationAttribute(annot, "description");
                 }
             }

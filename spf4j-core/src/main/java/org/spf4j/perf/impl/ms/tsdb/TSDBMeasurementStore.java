@@ -65,7 +65,7 @@ public final class TSDBMeasurementStore
         String groupName = measurement.getMeasuredEntity().toString();
         alocateMeasurements(groupName, measurement, sampleTimeMillis);
     }
-    
+
     private void alocateMeasurements(final String groupName, final EntityMeasurementsInfo measurement,
             final int sampleTimeMillis) throws IOException {
         synchronized (database) {
@@ -123,7 +123,7 @@ public final class TSDBMeasurementStore
      * @return
      * @throws IOException
      */
-    @JmxExport(name = "generateChartsInterval",
+    @JmxExport(value = "generateChartsInterval",
             description = "generate charts for all measurements in specified interval")
     public List<String> generateCharts(final long startTimeMillis, final long endTimeMillis,
             final int width, final int height) throws IOException {
@@ -210,8 +210,8 @@ public final class TSDBMeasurementStore
     public static boolean canGenerateCount(final TSTable info) {
         return ((info.getColumnIndex("count") >= 0));
     }
-    
-    
+
+
     public static boolean canGenerateHeatChart(final TSTable info) {
         for (String mname : info.getColumnNames()) {
             if (mname.startsWith("Q") && mname.contains("_")) {

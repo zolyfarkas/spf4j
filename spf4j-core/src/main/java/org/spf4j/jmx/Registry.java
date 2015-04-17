@@ -177,7 +177,7 @@ public final class Registry {
             addSetter(methodName, exportedAttributes, method, object, annot);
         } else {
             String opName = methodName;
-            String nameOverwrite = (String) Reflections.getAnnotationAttribute(annot, "name");
+            String nameOverwrite = (String) Reflections.getAnnotationAttribute(annot, "value");
             if (!"".equals(nameOverwrite)) {
                 opName = nameOverwrite;
             }
@@ -191,7 +191,7 @@ public final class Registry {
 
     private static void addSetter(final String methodName, final Map<String, ExportedValueImpl> exportedAttributes,
             final Method method, final Object object, final Annotation annot) {
-        String customName = (String) Reflections.getAnnotationAttribute(annot, "name");
+        String customName = (String) Reflections.getAnnotationAttribute(annot, "value");
         String valueName;
         if ("".equals(customName)) {
             valueName = methodName.substring("set".length());
@@ -217,7 +217,7 @@ public final class Registry {
     private static void addGetter(final String pvalueName,
             final Map<String, ExportedValueImpl> exported,
             final Annotation annot, final Method method, final Object object) {
-        String customName = (String) Reflections.getAnnotationAttribute(annot, "name");
+        String customName = (String) Reflections.getAnnotationAttribute(annot, "value");
         String valueName = "".equals(customName) ? pvalueName : customName;
         ExportedValueImpl existing = exported.get(valueName);
         if (existing == null) {

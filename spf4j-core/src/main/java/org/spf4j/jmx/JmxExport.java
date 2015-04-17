@@ -29,13 +29,21 @@ import java.lang.annotation.Target;
  * Only setters and getters are supported.
  * name of the jmx attribute exported will be extracted from sette/getter name.
  * attribute description can be added to the annotation.
- * 
+ *
  * @author zoly
  */
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.PARAMETER })
 public @interface JmxExport {
-     String name() default "";
+    /**
+     * the name of the operation or attribute or parameter.
+     * @return
+     */
+     String value() default "";
+     /**
+      * the description of the operation attribute or parameter.
+      * @return
+      */
      String description() default "";
 }

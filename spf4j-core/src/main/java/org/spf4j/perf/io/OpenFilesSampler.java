@@ -70,7 +70,8 @@ public final class OpenFilesSampler {
     }
 
     @JmxExport
-    public static void start(final long sampleTimeMillis, final boolean shutdownOnError) {
+    public static void start(@JmxExport("sampleTimeMillis") final long sampleTimeMillis,
+            @JmxExport("shutdownOnError") final boolean shutdownOnError) {
         start(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
                 Runtime.Ulimit.MAX_NR_OPENFILES, shutdownOnError);
     }
@@ -110,6 +111,10 @@ public final class OpenFilesSampler {
          }
     }
 
+    @JmxExport
+    public static synchronized boolean isStarted() {
+        return samplingFuture != null;
+    }
 
 
 }

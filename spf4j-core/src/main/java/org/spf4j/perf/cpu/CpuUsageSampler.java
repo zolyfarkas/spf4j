@@ -49,7 +49,7 @@ public final class CpuUsageSampler {
     }
 
     @JmxExport
-    public static synchronized void start(final int sampleTime) {
+    public static synchronized void start(@JmxExport("sampleTimeMillis") final int sampleTime) {
         if (samplingFuture == null) {
             final MeasurementRecorder cpuUsage =
                 RecorderFactory.createDirectRecorder("cpu-time", "ms", sampleTime);
@@ -75,6 +75,11 @@ public final class CpuUsageSampler {
             samplingFuture.cancel(false);
             samplingFuture = null;
         }
+    }
+
+    @JmxExport
+    public static synchronized boolean isStarted() {
+        return samplingFuture != null;
     }
 
 }

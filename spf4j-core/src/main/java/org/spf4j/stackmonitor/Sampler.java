@@ -40,10 +40,10 @@ import org.spf4j.stackmonitor.proto.Converter;
 /**
  * Utility to sample stack traces.
  * Stack traces can be persisted for later analysis.
- * 
+ *
  * please read http://sape.inf.usi.ch/sites/default/files/publication/pldi10.pdf
  * pure java stack sampling will probably have safepoint bias.
- * 
+ *
  * @author zoly
  */
 @ThreadSafe
@@ -54,7 +54,7 @@ public final class Sampler {
     private volatile int dumpTimeMillis;
     private final StackCollector stackCollector;
     private volatile long lastDumpTime = System.currentTimeMillis();
-    
+
     @GuardedBy("this")
     private Thread samplingThread;
     private final String filePrefix;
@@ -66,9 +66,9 @@ public final class Sampler {
                 + lastDumpTime + ", filePrefix=" + filePrefix + '}';
     }
 
-    
-    
-    
+
+
+
     public Sampler() {
         this(10, 3600000, new FastStackCollector(false));
     }
@@ -80,7 +80,7 @@ public final class Sampler {
     public Sampler(final StackCollector collector) {
         this(10, 3600000, collector);
     }
-    
+
     public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final StackCollector collector) {
         this(sampleTimeMillis, dumpTimeMillis, collector,
                 System.getProperty("perf.db.folder", System.getProperty("java.io.tmpdir")),
@@ -103,11 +103,11 @@ public final class Sampler {
     private static final StackTraceElement [] GC_FAKE_STACK = new StackTraceElement[] {
         new StackTraceElement("java.lang.System", "gc", "System.java", -1)
     };
-    
+
     private final IntMath.XorShift32 random = new IntMath.XorShift32();
-    
+
     private static final int STOP_FLAG_READ_MILLIS = 2000;
-    
+
     @JmxExport(description = "start stack sampling")
     public synchronized void start() {
         if (stopped) {
@@ -115,7 +115,7 @@ public final class Sampler {
             final int stMillis = sampleTimeMillis;
             final List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
             samplingThread = new Thread(new AbstractRunnable() {
-                
+
                 @SuppressWarnings("SleepWhileInLoop")
                 @SuppressFBWarnings("MDM_THREAD_YIELD")
                 @Override
@@ -163,14 +163,14 @@ public final class Sampler {
         }
 
     }
-    
+
     private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();
 
     @JmxExport(description = "save stack samples to file")
     public String dumpToFile() throws IOException {
         return dumpToFile(null);
     }
-    
+
     /**
      * Dumps the sampled stacks to file.
      * the collected samples are reset
@@ -178,10 +178,10 @@ public final class Sampler {
      * returns the name of the file.
      * @throws IOException
      */
-    
-    @JmxExport(name = "dumpToSpecificFile", description = "save stack samples to file")
+
+    @JmxExport(value = "dumpToSpecificFile", description = "save stack samples to file")
     public synchronized String dumpToFile(
-            @JmxExport(name = "fileName", description = "the file name to save to")
+            @JmxExport(value = "fileName", description = "the file name to save to")
             @Nullable final String id) throws IOException {
         final MutableHolder<String> result = new MutableHolder<>();
         SampleNode collected = stackCollector.clear();

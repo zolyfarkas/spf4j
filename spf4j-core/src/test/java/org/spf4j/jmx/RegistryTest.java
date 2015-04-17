@@ -114,12 +114,12 @@ public final class RegistryTest {
 
         private volatile String stringVal;
 
-        @JmxExport(name = "stringVal2")
+        @JmxExport("stringVal2")
         public String getStringVal() {
             return stringVal;
         }
 
-        @JmxExport(name = "stringVal2")
+        @JmxExport("stringVal2")
         public void setStringVal(final String stringVal) {
             this.stringVal = stringVal;
         }
@@ -136,7 +136,7 @@ public final class RegistryTest {
         }
 
         @JmxExport(description = "test operation")
-        public String doStuff(@JmxExport(name = "what", description = "some param") final String what,
+        public String doStuff(@JmxExport(value = "what", description = "some param") final String what,
                 final String where) {
             return "Doing " + what + " " + where;
         }
@@ -196,7 +196,7 @@ public final class RegistryTest {
         Assert.assertEquals(Boolean.TRUE, ret);
 
         Registry.export("test", "Test", new Object() {
-            @JmxExport(name = "customName")
+            @JmxExport("customName")
             public int getMyValue() { return 13; }
         });
 
