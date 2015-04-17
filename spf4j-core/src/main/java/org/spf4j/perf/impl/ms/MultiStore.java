@@ -19,6 +19,8 @@ package org.spf4j.perf.impl.ms;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.spf4j.base.Throwables;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
@@ -30,15 +32,15 @@ import org.spf4j.perf.MeasurementStore;
 public final class MultiStore implements MeasurementStore {
 
     private final MeasurementStore [] stores;
-    
+
     public MultiStore(final MeasurementStore ... stores) {
         if (stores.length <= 1) {
             throw new IllegalArgumentException("You need to supply more than 1 store, not " + Arrays.toString(stores));
         }
         this.stores = stores;
     }
-    
-    
+
+
     @Override
     public void alocateMeasurements(final EntityMeasurementsInfo measurement,
             final int sampleTimeMillis) throws IOException {
@@ -115,6 +117,10 @@ public final class MultiStore implements MeasurementStore {
         if (ex != null) {
             throw ex;
         }
+    }
+
+    public List<MeasurementStore> getStores() {
+        return Collections.unmodifiableList(Arrays.asList(stores));
     }
     
 }

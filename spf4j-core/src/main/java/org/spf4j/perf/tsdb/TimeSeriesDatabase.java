@@ -62,7 +62,7 @@ import static org.spf4j.perf.impl.chart.Charts.fillGaps;
  * 4. implementation biased towards write performance.
  *
  * Format:
- * 
+ *
  * Header: TSDB[version:int][metadata:bytes]
  * Table of Contents: firstTableInfoPtr, lastTableInfoPtr
  * TableInfo:
@@ -72,11 +72,11 @@ import static org.spf4j.perf.impl.chart.Charts.fillGaps;
  * TableInfo:
  * DataFragment:
  * EOF
- * 
+ *
  * @author zoly
  */
 public final class TimeSeriesDatabase implements Closeable {
-    
+
     public static final int VERSION = 1;
     private final ConcurrentMap<String, TSTable> tables;
     private final RandomAccessFile file;
@@ -87,17 +87,17 @@ public final class TimeSeriesDatabase implements Closeable {
     private final Map<String, DataFragment> writeDataFragments;
     private final String path;
     private final FileChannel ch;
-    
+
     private static final Interner<String> INTERNER = Interners.newStrongInterner();
-    
+
     public TimeSeriesDatabase(final String pathToDatabaseFile) throws IOException {
         this(pathToDatabaseFile, false);
     }
-    
+
     public TimeSeriesDatabase(final String pathToDatabaseFile, final byte ... metaData) throws IOException {
         this(pathToDatabaseFile, true, metaData);
     }
-    
+
     public TimeSeriesDatabase(final String pathToDatabaseFile, final boolean isWrite, final byte... metaData)
             throws IOException {
         file = new RandomAccessFile(pathToDatabaseFile, isWrite ? "rw" : "r");
@@ -168,7 +168,7 @@ public final class TimeSeriesDatabase implements Closeable {
             lock.release();
         }
     }
-    
+
     private void readTableInfos() throws IOException {
         final long firstColumnInfo = toc.getFirstTableInfoPtr();
         if (firstColumnInfo > 0) {
@@ -184,7 +184,7 @@ public final class TimeSeriesDatabase implements Closeable {
             }
         }
     }
-    
+
     private void readLastTableInfo() throws IOException {
         toc = new TableOfContents(file, toc.getLocation()); // reread toc
         if (toc.getLastTableInfoPtr() == 0) {
@@ -192,7 +192,7 @@ public final class TimeSeriesDatabase implements Closeable {
         }
         lastTableInfo = new TSTable(file, toc.getLastTableInfoPtr()); // update last table info
     }
-    
+
     @Override
     public void close() throws IOException {
         synchronized (path) {
@@ -201,14 +201,14 @@ public final class TimeSeriesDatabase implements Closeable {
             }
         }
     }
-    
+
     public boolean hasTSTable(final String tableName) {
         synchronized (path) {
             return tables.containsKey(tableName);
         }
     }
-    
-    
+
+
     public void addTSTable(final String tableName,
             final byte[] tableMetaData, final int sampleTime, final String[] columnNames,
             final String[] columnMetaData) throws IOException {
@@ -218,7 +218,7 @@ public final class TimeSeriesDatabase implements Closeable {
         }
         addTSTable(tableName, tableMetaData, sampleTime, columnNames, metadata);
     }
-    
+
     public void addTSTable(final String tableName,
             final byte[] tableMetaData, final int sampleTime, final String[] columnNames,
             final byte[][] columnMetaData) throws IOException {
@@ -253,12 +253,12 @@ public final class TimeSeriesDatabase implements Closeable {
                 }
             }
             lock.release();
-            
+
             lastTableInfo = colInfo;
             tables.put(tableName, colInfo);
         }
     }
-    
+
     public void write(final long time, final String tableName, final long[] values) throws IOException {
         if (!hasTSTable(tableName)) {
             throw new IllegalArgumentException("Unknown table name" + tableName);
@@ -272,7 +272,7 @@ public final class TimeSeriesDatabase implements Closeable {
             writeDataFragment.addData(time, values);
         }
     }
-    
+
     public void flush() throws IOException {
         synchronized (path) {
             List<Map.Entry<String, DataFragment>> lwriteDataFragments;
@@ -316,19 +316,19 @@ public final class TimeSeriesDatabase implements Closeable {
             lock.release();
         }
     }
-    
+
     public String[] getColumnNames(final String tableName) {
         synchronized (path) {
             return tables.get(tableName).getColumnNames();
         }
     }
-    
+
     public TSTable getTSTable(final String tableName) {
         synchronized (path) {
             return new TSTable(tables.get(tableName));
         }
     }
-    
+
     public  Collection<TSTable> getTSTables() {
         synchronized (path) {
             Collection<TSTable> result = new ArrayList<>(tables.size());
@@ -338,7 +338,7 @@ public final class TimeSeriesDatabase implements Closeable {
             return result;
         }
     }
-    
+
     public Map<String, TSTable> getTsTables() {
         synchronized (path) {
            Map<String, TSTable> result = new HashMap<>(tables.size());
@@ -348,7 +348,7 @@ public final class TimeSeriesDatabase implements Closeable {
            return result;
         }
     }
-    
+
     public TimeSeries readAll(final String tableName) throws IOException {
         synchronized (path) {
             return read(tableName, 0, Long.MAX_VALUE);
@@ -455,30 +455,30 @@ public final class TimeSeriesDatabase implements Closeable {
             return new TimeSeries(timeStamps.toArray(), data.toArray(new long[data.size()][]));
         }
     }
-    
+
     private void sync() throws IOException {
         file.getFD().sync();
     }
-    
+
     public String getDBFilePath() {
         return path;
     }
-    
+
     public JFreeChart createHeatJFreeChart(final String tableName) throws IOException {
         return createHeatJFreeChart(tableName, 0, Long.MAX_VALUE);
     }
-    
+
     public JFreeChart createHeatJFreeChart(final String tableName, final long startTime,
             final long endTime) throws IOException {
         TSTable info = this.getTSTable(tableName);
         TimeSeries data = this.read(tableName, startTime, endTime);
         return createHeatJFreeChart(data, info);
     }
-    
+
     public JFreeChart createMinMaxAvgJFreeChart(final String tableName) throws IOException {
         return createMinMaxAvgJFreeChart(tableName, 0, Long.MAX_VALUE);
     }
-    
+
     public JFreeChart createMinMaxAvgJFreeChart(final String tableName, final long startTime,
             final long endTime) throws IOException {
         TSTable info = this.getTSTable(tableName);
@@ -489,25 +489,25 @@ public final class TimeSeriesDatabase implements Closeable {
     public JFreeChart createCountJFreeChart(final String tableName) throws IOException {
         return createCountJFreeChart(tableName, 0, Long.MAX_VALUE);
     }
-    
+
     public JFreeChart createCountJFreeChart(final String tableName, final long startTime,
             final long endTime) throws IOException {
         TSTable info = this.getTSTable(tableName);
         TimeSeries data = this.read(tableName, startTime, endTime);
         return createCountJFreeChart(data, info);
     }
-    
+
     public List<JFreeChart> createJFreeCharts(final String tableName) throws IOException {
         return createJFreeCharts(tableName, 0, Long.MAX_VALUE);
     }
-    
+
     public List<JFreeChart> createJFreeCharts(final String tableName, final long startTime,
             final long endTime) throws IOException {
         TSTable info = this.getTSTable(tableName);
         TimeSeries data = this.read(tableName, startTime, endTime);
         return createJFreeCharts(data, info);
     }
-    
+
     public static JFreeChart createHeatJFreeChart(final TimeSeries data, final TSTable info) {
         Pair<long[], double[][]> mData = fillGaps(data.getTimeStamps(), data.getValues(),
                 info.getSampleTime(), info.getColumnNames().length);
@@ -517,7 +517,7 @@ public final class TimeSeriesDatabase implements Closeable {
                 new String(info.getColumnMetaData()[totalColumnIndex], Charsets.UTF_8), "Measurements distribution for "
                 + info.getTableName() + ", sampleTime " + info.getSampleTime() + "ms, generated by spf4j");
     }
-    
+
     public static JFreeChart createMinMaxAvgJFreeChart(final TimeSeries data, final TSTable info) {
         long[][] vals = data.getValues();
         double[] min = Arrays.getColumnAsDoubles(vals, info.getColumnIndex("min"));
@@ -537,7 +537,7 @@ public final class TimeSeriesDatabase implements Closeable {
                 new String[]{"min", "max", "avg"}, new String(info.getColumnMetaData()[totalColumnIndex],
                         Charsets.UTF_8), new double[][]{min, max, Arrays.divide(total, count)});
     }
-    
+
     public static JFreeChart createCountJFreeChart(final TimeSeries data, final TSTable info) {
         long[][] vals = data.getValues();
         double[] count = Arrays.getColumnAsDoubles(vals, info.getColumnIndex("count"));
@@ -546,7 +546,7 @@ public final class TimeSeriesDatabase implements Closeable {
                 + info.getTableName() + ", sampleTime " + info.getSampleTime() + " ms, generated by spf4j", timestamps,
                 new String[]{"count"}, "count", new double[][]{count});
     }
-    
+
     public static List<JFreeChart> createJFreeCharts(final TimeSeries data, final TSTable info) {
         long[][] vals = data.getValues();
         List<JFreeChart> result = new ArrayList<>();
@@ -575,11 +575,11 @@ public final class TimeSeriesDatabase implements Closeable {
         }
         return result;
     }
-    
+
     public byte[] getMetaData() {
         return header.getMetaData().clone();
     }
-    
+
     public void writeCsvTable(final String tableName, final File output) throws IOException {
         TSTable table = getTSTable(tableName);
         TimeSeries data = readAll(tableName);
@@ -603,7 +603,7 @@ public final class TimeSeriesDatabase implements Closeable {
             }
         }
     }
-    
+
     public void writeCsvTables(final List<String> tableNames, final File output) throws IOException {
         DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8))) {
@@ -617,7 +617,7 @@ public final class TimeSeriesDatabase implements Closeable {
                 Csv.writeCsvElement(colName, writer);
             }
             writer.write('\n');
-            
+
             for (String tableName : tableNames) {
                 TimeSeries data = readAll(tableName);
                 long[] timestamps = data.getTimeStamps();
@@ -635,12 +635,12 @@ public final class TimeSeriesDatabase implements Closeable {
             }
         }
     }
-    
+
     @Override
     public String toString() {
         return "TimeSeriesDatabase{" + "groups=" + tables + ", pathToDatabaseFile=" + path + '}';
     }
-    
+
     @SuppressFBWarnings("MDM_THREAD_YIELD")
     public void tail(final long pollMillis, final long from, final TSDataHandler handler)
             throws IOException {
@@ -694,7 +694,11 @@ public final class TimeSeriesDatabase implements Closeable {
             }
         }
     }
-    
-    
-    
+
+
+    public String getFilePath() {
+        return path;
+    }
+
+
 }

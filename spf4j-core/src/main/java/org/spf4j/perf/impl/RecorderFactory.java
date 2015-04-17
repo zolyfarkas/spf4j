@@ -46,9 +46,13 @@ public final class RecorderFactory {
 
     private RecorderFactory() {
     }
+
     public static final MeasurementStore MEASUREMENT_STORE;
 
-    
+    public static MeasurementStore getMeasurementStore() {
+        return MEASUREMENT_STORE;
+    }
+
     /**
      * Configuration is a coma separated list of stores:
      * TSDB@/path/to/file.tsdb,TSDB_TXT@/path/to/file.tsdbtxt,GRAPHITE_UDP@1.1.1.1:8080,GRAPHITE_TCP@1.1.1.1:8080
@@ -58,17 +62,17 @@ public final class RecorderFactory {
     @Nonnull
     private static MeasurementStore buildStoreFromConfig(@Nullable final String configuration)
             throws IOException, ObjectCreationException {
-        
+
         if (configuration == null || configuration.trim().isEmpty()) {
             return new TSDBMeasurementStore(System.getProperty("perf.db.folder",
                     System.getProperty("java.io.tmpdir")) + File.separator + System.getProperty("perf.db.name",
                     ManagementFactory.getRuntimeMXBean().getName() + ".tsdb"));
         }
-        
+
         List<String> stores = Csv.readRow(new StringReader(configuration), new Csv.CsvRowHandler<List<String>>() {
 
-            private final List<String> result = new ArrayList<String>(4);
-     
+            private final List<String> result = new ArrayList<>(4);
+
 
             @Override
             public void element(final CharSequence elem) {
@@ -93,8 +97,8 @@ public final class RecorderFactory {
             return new MultiStore(mstores);
         }
     }
-    
-    private static MeasurementStore fromString(final String string) throws IOException, ObjectCreationException {
+
+    public static MeasurementStore fromString(final String string) throws IOException, ObjectCreationException {
         int atIdx = string.indexOf('@');
         if (atIdx < 0) {
             throw new IllegalArgumentException("Invalid measuremnt store configuration " + string);
@@ -102,15 +106,13 @@ public final class RecorderFactory {
         StoreType type = StoreType.valueOf(string.substring(0, atIdx));
         return type.create(string.substring(atIdx + 1));
     }
-    
-    
+
+
     static {
         try {
             MEASUREMENT_STORE = buildStoreFromConfig(System.getProperty("perf.ms.config", null));
-            Flusher.flushEvery(60000, MEASUREMENT_STORE);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        } catch (ObjectCreationException ex) {
+            Flusher.flushEvery(Integer.getInteger("perf.ms.flushIntervalMillis", 60000), MEASUREMENT_STORE);
+        } catch (IOException | ObjectCreationException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -165,20 +167,20 @@ public final class RecorderFactory {
             final String unitOfMeasurement, final int sampleTimeMillis) {
         return new DirectRecorder(forWhat, "", unitOfMeasurement, sampleTimeMillis, MEASUREMENT_STORE);
     }
-    
-    
+
+
     public static MeasurementRecorderSource createDirectRecorderSource(final Object forWhat,
             final String unitOfMeasurement) {
         return new DirectRecorderSource(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE);
     }
-    
+
     public static MeasurementRecorder createDirectGraphiteUdpRecorder(final Object forWhat,
             final String unitOfMeasurement,
             final String graphiteHost, final int graphitePort) throws ObjectCreationException {
         return new DirectRecorder(forWhat, "", unitOfMeasurement, 0,
                 new GraphiteUdpStore(graphiteHost, graphitePort));
     }
-    
+
     public static MeasurementRecorder createDirectGraphiteTcpRecorder(final Object forWhat,
             final String unitOfMeasurement,
             final String graphiteHost, final int graphitePort) throws ObjectCreationException {

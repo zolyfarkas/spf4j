@@ -286,4 +286,8 @@ public final class TSDBMeasurementStore
         return "TSDBMeasurementStore{" + "database=" + database + '}';
     }
 
+    public TimeSeriesDatabase getDatabase() {
+        return database;
+    }
+
 }
