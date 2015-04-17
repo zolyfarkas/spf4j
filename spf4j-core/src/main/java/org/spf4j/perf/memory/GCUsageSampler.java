@@ -29,6 +29,8 @@ import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
 
 /**
  * This class allows you to poll and record to a file the heap commited and heap used for your java process. start data
@@ -48,13 +50,13 @@ public final class GCUsageSampler {
         java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {
             @Override
             public void doRun() throws Exception {
-                stopGCUsageSampling();
+                stop();
             }
         }, "shutdown-memory-sampler"));
-
+        Registry.export(GCUsageSampler.class);
     }
 
-    public static synchronized void startGCUsageSampling(final int sampleTime) {
+    public static synchronized void start(final int sampleTime) {
         if (samplingFuture == null) {
             final MeasurementRecorder gcUsage =
                 RecorderFactory.createDirectRecorder("gc-time", "ms", sampleTime);
@@ -74,7 +76,8 @@ public final class GCUsageSampler {
         }
     }
 
-    public static synchronized void stopGCUsageSampling() {
+    @JmxExport
+    public static synchronized void stop() {
         if (samplingFuture != null) {
             samplingFuture.cancel(false);
             samplingFuture = null;
@@ -92,6 +95,7 @@ public final class GCUsageSampler {
         return gcTime;
     }
 
+    @JmxExport
     public static long getGCTime(final List<GarbageCollectorMXBean> gcBeans) {
         long gcTime = 0;
         for (GarbageCollectorMXBean gcBean : gcBeans) {

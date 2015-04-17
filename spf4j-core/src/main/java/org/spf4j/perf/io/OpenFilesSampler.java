@@ -27,6 +27,8 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.Runtime;
+import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
 
 /**
  * This class allows you to poll and record to a file the heap commited and heap used
@@ -56,22 +58,24 @@ public final class OpenFilesSampler {
         java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {
             @Override
             public void doRun() throws Exception {
-                stopFileUsageSampling();
+                stop();
             }
         }, "shutdown-memory-sampler"));
+        Registry.export(OpenFilesSampler.class);
     }
 
-    public static void startFileUsageSampling(final long sampleTimeMillis) {
-        startFileUsageSampling(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
+    public static void start(final long sampleTimeMillis) {
+        start(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
                 Runtime.Ulimit.MAX_NR_OPENFILES, true);
     }
 
-    public static void startFileUsageSampling(final long sampleTimeMillis, final boolean shutdownOnError) {
-        startFileUsageSampling(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
+    @JmxExport
+    public static void start(final long sampleTimeMillis, final boolean shutdownOnError) {
+        start(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
                 Runtime.Ulimit.MAX_NR_OPENFILES, shutdownOnError);
     }
 
-    public static synchronized void startFileUsageSampling(final long sampleTimeMillis,
+    public static synchronized void start(final long sampleTimeMillis,
             final int warnThreshold, final int errorThreshold, final boolean shutdownOnError) {
         if (samplingFuture == null) {
             samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
@@ -98,7 +102,8 @@ public final class OpenFilesSampler {
         }
     }
 
-    public static synchronized void stopFileUsageSampling() {
+    @JmxExport
+    public static synchronized void stop() {
          if (samplingFuture != null) {
              samplingFuture.cancel(false);
              samplingFuture = null;

@@ -55,8 +55,8 @@ public final class SamplingAllocationMonitorAspectTest {
         System.setProperty("perf.io.openFiles.sampleAggMillis", "1000");
         System.setProperty("perf.allocations.sampleTimeMillis", "1000");
         System.setProperty("perf.allocations.sampleCount", "10");
-        MemoryUsageSampler.startMemoryUsageSampling(500);
-        OpenFilesSampler.startFileUsageSampling(500, 512, 1000, false);
+        MemoryUsageSampler.start(500);
+        OpenFilesSampler.start(500, 512, 1000, false);
         for (int i = 0; i < 1000; i++) {
             System.err.println("T" + i);
             if (i % 100 == 0) {

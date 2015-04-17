@@ -8,6 +8,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.impl.RecorderFactory;
 
@@ -29,6 +31,7 @@ public final class CpuUsageSampler {
         } else {
             OS_MBEAN = null;
         }
+        Registry.export(CpuUsageSampler.class);
     }
 
 
@@ -39,13 +42,14 @@ public final class CpuUsageSampler {
             java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {
                 @Override
                 public void doRun() throws Exception {
-                    stopCPUUsageSampling();
+                    stop();
                 }
             }, "shutdown-CPU-sampler"));
         }
     }
 
-    public static synchronized void startCPUUsageSampling(final int sampleTime) {
+    @JmxExport
+    public static synchronized void start(final int sampleTime) {
         if (samplingFuture == null) {
             final MeasurementRecorder cpuUsage =
                 RecorderFactory.createDirectRecorder("cpu-time", "ms", sampleTime);
@@ -65,7 +69,8 @@ public final class CpuUsageSampler {
         }
     }
 
-    public static synchronized void stopCPUUsageSampling() {
+    @JmxExport
+    public static synchronized void stop() {
         if (samplingFuture != null) {
             samplingFuture.cancel(false);
             samplingFuture = null;

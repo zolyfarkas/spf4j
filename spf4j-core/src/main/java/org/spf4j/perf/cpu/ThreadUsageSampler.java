@@ -61,14 +61,16 @@ public final class ThreadUsageSampler {
         java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {
             @Override
             public void doRun() throws Exception {
-                stopThreadUsageSampling();
+                stop();
                 writePeakThreadInfo(System.err);
             }
 
         }, "shutdown-CPU-sampler"));
+        Registry.export(ThreadUsageSampler.class);
     }
 
-    public static synchronized void startThreadUsageSampling(final int sampleTime) {
+    @JmxExport
+    public static synchronized void start(final int sampleTime) {
         if (samplingFuture == null) {
             final MeasurementRecorder cpuUsage
                     = RecorderFactory.createDirectRecorder("peak-thread-count", "count", sampleTime);
@@ -100,15 +102,13 @@ public final class ThreadUsageSampler {
                     TH_BEAN.resetPeakThreadCount();
                 }
             }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
-            if (Registry.unregister(ThreadUsageSampler.class) == null) {
-                Registry.export(ThreadUsageSampler.class);
-            }
         } else {
             throw new IllegalStateException("Thread sampling already started " + samplingFuture);
         }
     }
 
-    public static synchronized void stopThreadUsageSampling() {
+    @JmxExport
+    public static synchronized void stop() {
         if (samplingFuture != null) {
             samplingFuture.cancel(false);
             samplingFuture = null;

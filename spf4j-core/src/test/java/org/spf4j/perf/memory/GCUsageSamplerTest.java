@@ -25,20 +25,20 @@ import org.junit.Test;
  * @author zoly
  */
 public final class GCUsageSamplerTest {
-    
+
     public GCUsageSamplerTest() {
     }
 
     @Test
     public void testSomeMethod() throws InterruptedException {
         System.setProperty("perf.memory.sampleAggMillis", "1000");
-        GCUsageSampler.startGCUsageSampling(100);
-        MemoryUsageSampler.startMemoryUsageSampling(100);
+        GCUsageSampler.start(100);
+        MemoryUsageSampler.start(100);
         for (int i = 0; i < 100000; i++) {
             String str = Integer.toString(i);
         }
         Thread.sleep(1000);
-        MemoryUsageSampler.stopMemoryUsageSampling();
-        GCUsageSampler.stopGCUsageSampling();
+        MemoryUsageSampler.stop();
+        GCUsageSampler.stop();
     }
 }

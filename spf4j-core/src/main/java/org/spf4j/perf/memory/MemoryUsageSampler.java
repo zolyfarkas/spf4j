@@ -27,6 +27,8 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
 
 /**
  * This class allows you to poll and record to a file the heap commited and heap used
@@ -57,12 +59,14 @@ public final class MemoryUsageSampler {
         java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {
             @Override
             public void doRun() throws Exception {
-                stopMemoryUsageSampling();
+                stop();
             }
         }, "shutdown-memory-sampler"));
+        Registry.export(MemoryUsageSampler.class);
     }
 
-    public static synchronized void startMemoryUsageSampling(final long sampleTime) {
+    @JmxExport
+    public static synchronized void start(final long sampleTime) {
         if (samplingFuture == null) {
             samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
 
@@ -78,7 +82,8 @@ public final class MemoryUsageSampler {
         }
     }
 
-    public static synchronized void stopMemoryUsageSampling() {
+    @JmxExport
+    public static synchronized void stop() {
          if (samplingFuture != null) {
              samplingFuture.cancel(false);
              samplingFuture = null;
