@@ -49,6 +49,10 @@ public final class JmhProfiler implements InternalProfiler {
     private static final Sampler SAMPLER = new Sampler(SAMPLE_PERIOD_MSEC, Integer.MAX_VALUE,
             new FastStackCollector(true));
 
+    public static Sampler getStackSampler() {
+        return SAMPLER;
+    }
+
     @Override
     public void beforeIteration(final BenchmarkParams benchmarkParams, final IterationParams iterationParams) {
         SAMPLER.start();
