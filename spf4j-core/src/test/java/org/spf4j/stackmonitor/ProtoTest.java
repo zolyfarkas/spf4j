@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
@@ -54,7 +56,7 @@ public final class ProtoTest {
 
     @Test
     public void testProto() throws InterruptedException, MalformedObjectNameException,
-            InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, IOException {
+            InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, IOException, ExecutionException, TimeoutException {
 
         Sampler sampler = new Sampler(1);
         sampler.registerJmx();
@@ -98,7 +100,7 @@ public final class ProtoTest {
                 public void handle(final Method vertex, final Map<SampleNode.InvocationCount, Method> edges) {
                     System.out.println("Method: " + vertex + " from " + edges);
                 }
-                
+
             }, true);
         } finally {
             fis.close();

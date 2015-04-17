@@ -23,6 +23,10 @@ import java.io.IOException;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.GuardedBy;
@@ -32,6 +36,7 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.IntMath;
 import org.spf4j.base.MutableHolder;
+import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 import org.spf4j.perf.memory.GCUsageSampler;
@@ -56,7 +61,7 @@ public final class Sampler {
     private volatile long lastDumpTime = System.currentTimeMillis();
 
     @GuardedBy("this")
-    private Thread samplingThread;
+    private Future<?> samplingThread;
     private final String filePrefix;
 
     @Override
@@ -114,7 +119,7 @@ public final class Sampler {
             stopped = false;
             final int stMillis = sampleTimeMillis;
             final List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
-            samplingThread = new Thread(new AbstractRunnable() {
+            samplingThread = DefaultExecutor.INSTANCE.submit(new AbstractRunnable("SPF4J-Sampling-Thread") {
 
                 @SuppressWarnings("SleepWhileInLoop")
                 @SuppressFBWarnings("MDM_THREAD_YIELD")
@@ -156,8 +161,7 @@ public final class Sampler {
                         Thread.sleep(sleepTime);
                    }
                 }
-            }, "Stack Sampling Thread");
-            samplingThread.start();
+            });
         } else {
             throw new IllegalStateException("Sampling can only be started once for " + this);
         }
@@ -198,12 +202,14 @@ public final class Sampler {
 
 
     @JmxExport(description = "stop stack sampling")
-    public synchronized void stop() throws InterruptedException {
+    public synchronized void stop() throws InterruptedException, ExecutionException, TimeoutException {
         if (!stopped) {
             stopped = true;
-            samplingThread.join(STOP_FLAG_READ_MILLIS << 2);
-            if (samplingThread.isAlive()) {
-                throw new RuntimeException("Sampling thread failed to stoo in " + (STOP_FLAG_READ_MILLIS << 2));
+            try {
+                samplingThread.get(STOP_FLAG_READ_MILLIS << 2, TimeUnit.MILLISECONDS);
+            } catch (TimeoutException ex) {
+                samplingThread.cancel(true);
+                throw ex;
             }
         }
     }
@@ -234,7 +240,7 @@ public final class Sampler {
     }
 
     @PreDestroy
-    public void dispose() throws InterruptedException {
+    public void dispose() throws InterruptedException, ExecutionException, TimeoutException {
         stop();
         Registry.unregister(this);
     }

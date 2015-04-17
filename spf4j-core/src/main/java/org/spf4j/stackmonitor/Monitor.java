@@ -20,6 +20,8 @@ package org.spf4j.stackmonitor;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
@@ -33,37 +35,37 @@ import org.spf4j.base.AbstractRunnable;
 public final class Monitor {
 
     private Monitor() { }
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(Monitor.class);
-    
+
     private static class Options {
-        
+
         @Option(name = "-df", usage = "dump folder")
         private String dumpFolder = System.getProperty("perf.db.folder", System.getProperty("java.io.tmpdir"));
-        
+
         @Option(name = "-dp", usage = "dump file prefix")
         private String dumpFilePrefix =
                 System.getProperty("perf.db.name", ManagementFactory.getRuntimeMXBean().getName());
 
         @Option(name = "-main", usage = "the main class name", required = true)
         private String mainClass;
-        
+
         @Option(name = "-si", usage = "the stack sampling interval in milliseconds")
         private int sampleInterval = 100;
-        
+
         @Option(name = "-di", usage = "the stack dump to file interval in milliseconds")
         private int dumpInterval = 3600000;
-        
+
         @Option(name = "-ss", usage = "start the stack sampling thread. (can also be done manually via jmx)")
         private boolean startSampler = false;
-        
-        
+
+
     }
 
     public static void main(final String[] args)
             throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
             InvocationTargetException  {
-      
+
         int sepPos = args.length;
         for (int i = 0; i < args.length; i++) {
             if ("--".equals(args[i])) {
@@ -97,7 +99,7 @@ public final class Monitor {
         Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable() {
 
             @Override
-            public void doRun() throws InterruptedException, IOException {
+            public void doRun() throws InterruptedException, IOException, ExecutionException, TimeoutException {
                 sampler.stop();
                 sampler.dumpToFile();
                 sampler.dispose();
@@ -111,6 +113,6 @@ public final class Monitor {
         }
         Class.forName(options.mainClass).getMethod("main", String[].class).invoke(null, (Object) newArgs);
     }
-    
-    
+
+
 }

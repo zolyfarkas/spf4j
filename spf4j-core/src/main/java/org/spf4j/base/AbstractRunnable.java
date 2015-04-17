@@ -18,24 +18,36 @@
 package org.spf4j.base;
 
 import com.google.common.base.Throwables;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
 /**
- * 
+ *
  * @author zoly
  */
 public abstract class AbstractRunnable implements Runnable {
 
     private final boolean lenient;
 
-    public AbstractRunnable(final boolean lenient) {
+    private final String threadName;
+
+    public AbstractRunnable(final boolean lenient, @Nullable final String threadName) {
         this.lenient = lenient;
+        this.threadName = threadName;
+    }
+
+    public AbstractRunnable(final boolean lenient) {
+       this(lenient, null);
     }
 
     public AbstractRunnable() {
-        this(false);
+        this(false, null);
+    }
+
+    public AbstractRunnable(final String threadName) {
+        this(false, null);
     }
 
     public static final int ERROR_EXIT_CODE = 666;
@@ -44,6 +56,14 @@ public abstract class AbstractRunnable implements Runnable {
 
     @Override
     public final void run() {
+        Thread thread = null;
+        String origName = null;
+        if (threadName != null) {
+             thread = Thread.currentThread();
+             origName = thread.getName();
+             thread.setName(threadName);
+        }
+
         try {
             doRun();
         } catch (Exception ex) {
@@ -58,6 +78,10 @@ public abstract class AbstractRunnable implements Runnable {
             }
         } catch (Throwable ex) {
            Runtime.goDownWithError(ex, ERROR_EXIT_CODE);
+        } finally {
+            if (thread != null) {
+               thread.setName(origName);
+            }
         }
     }
 
