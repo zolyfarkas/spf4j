@@ -119,11 +119,6 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
             return new NoResultAggregator();
         }
 
-        @Override
-        public String extendedInfo(final String label) {
-            return "JFR Messages:\n--------------------------------------------\n" + output;
-        }
-
         private static class NoResultAggregator implements Aggregator<NoResult> {
 
             @Override

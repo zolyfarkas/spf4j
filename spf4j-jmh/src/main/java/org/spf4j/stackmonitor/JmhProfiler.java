@@ -29,6 +29,7 @@ import org.openjdk.jmh.infra.IterationParams;
 import org.openjdk.jmh.profile.InternalProfiler;
 import org.openjdk.jmh.results.AggregationPolicy;
 import org.openjdk.jmh.results.Aggregator;
+import org.openjdk.jmh.results.IterationResult;
 import org.openjdk.jmh.results.Result;
 import org.openjdk.jmh.results.ResultRole;
 import org.spf4j.stackmonitor.proto.Converter;
@@ -60,7 +61,7 @@ public final class JmhProfiler implements InternalProfiler {
 
     @Override
     public Collection<? extends Result> afterIteration(final BenchmarkParams benchmarkParams,
-            final IterationParams iterationParams) {
+            final IterationParams iterationParams, final IterationResult ir) {
         try {
             SAMPLER.stop();
         } catch (InterruptedException ex) {
@@ -98,7 +99,6 @@ public final class JmhProfiler implements InternalProfiler {
 
         private final SampleNode samples;
         private final String benchmark;
-        private final String fileName;
 
 
         public StackResult(final SampleNode samples, final String benchmark, final boolean isIteration)
@@ -106,10 +106,8 @@ public final class JmhProfiler implements InternalProfiler {
             super(ResultRole.SECONDARY, "@stack", of(Double.NaN), "---", AggregationPolicy.AVG);
             this.samples = samples;
             this.benchmark = benchmark;
-            if (isIteration) {
-                this.fileName = null;
-            } else {
-                this.fileName = DUMP_FOLDER + "/" + benchmark + ".ssdump";
+            if (!isIteration) {
+                String fileName = DUMP_FOLDER + "/" + benchmark + ".ssdump";
                 Converter.saveToFile(fileName, samples);
             }
         }
@@ -136,15 +134,6 @@ public final class JmhProfiler implements InternalProfiler {
         @Override
         public String toString() {
             return "<delayed till summary>";
-        }
-
-        @Override
-        public String extendedInfo(final String label) {
-            if (fileName == null) {
-                return samples.toString();
-            } else {
-                return "Stack sampling profile at: " + fileName;
-            }
         }
 
 
