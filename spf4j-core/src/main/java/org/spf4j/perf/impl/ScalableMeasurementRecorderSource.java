@@ -43,30 +43,30 @@ public final class ScalableMeasurementRecorderSource implements
 
     private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorderSource.class);
 
-    
+
     private final Map<Thread, Map<Object, MeasurementProcessor>> measurementProcessorMap;
-    
+
     private final ThreadLocal<Map<Object, MeasurementProcessor>> threadLocalMeasurementProcessorMap;
-    
+
 
     private final ScheduledFuture<?> samplingFuture;
     private final MeasurementProcessor processorTemplate;
-    
+
     ScalableMeasurementRecorderSource(final MeasurementProcessor processor,
             final int sampleTimeMillis, final MeasurementStore database) {
         this.processorTemplate = processor;
-        measurementProcessorMap = new HashMap<Thread, Map<Object, MeasurementProcessor>>();
+        measurementProcessorMap = new HashMap<>();
         threadLocalMeasurementProcessorMap = new ThreadLocal<Map<Object, MeasurementProcessor>>() {
 
             @Override
             protected Map<Object, MeasurementProcessor> initialValue() {
-                Map<Object, MeasurementProcessor> result = new HashMap<Object, MeasurementProcessor>();
+                Map<Object, MeasurementProcessor> result = new HashMap<>();
                 synchronized (measurementProcessorMap) {
                     measurementProcessorMap.put(Thread.currentThread(), result);
                 }
                 return result;
             }
-            
+
         };
         final AbstractRunnable persister = new AbstractRunnable(true) {
             private volatile long lastRun = 0;
@@ -88,8 +88,8 @@ public final class ScalableMeasurementRecorderSource implements
             }
         };
         samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);
-                org.spf4j.base.Runtime.addHookAtBeginning(new AbstractRunnable(true) {
-            
+        org.spf4j.base.Runtime.addHookAtBeginning(new AbstractRunnable(true) {
+
             @Override
             public void doRun() throws Exception {
                 persister.doRun();
@@ -97,7 +97,7 @@ public final class ScalableMeasurementRecorderSource implements
             }
         });
     }
-    
+
     @Override
     public MeasurementRecorder getRecorder(final Object forWhat) {
         Map<Object, MeasurementProcessor> recorders = threadLocalMeasurementProcessorMap.get();
@@ -114,11 +114,11 @@ public final class ScalableMeasurementRecorderSource implements
 
     @Override
     public Map<Object, EntityMeasurements> getEntitiesMeasurements() {
-        Map<Object, EntityMeasurements> result = new HashMap<Object, EntityMeasurements>();
-        
+        Map<Object, EntityMeasurements> result = new HashMap<>();
+
         synchronized (measurementProcessorMap) {
             for (Map.Entry<Thread, Map<Object, MeasurementProcessor>> entry : measurementProcessorMap.entrySet()) {
-                
+
                 Map<Object, MeasurementProcessor> measurements = entry.getValue();
                 synchronized (measurements) {
                     for (Map.Entry<Object, MeasurementProcessor> lentry : measurements.entrySet()) {
@@ -140,11 +140,11 @@ public final class ScalableMeasurementRecorderSource implements
 
     @Override
     public Map<Object, EntityMeasurements> getEntitiesMeasurementsAndReset() {
-        Map<Object, EntityMeasurements> result = new HashMap<Object, EntityMeasurements>();
-        
+        Map<Object, EntityMeasurements> result = new HashMap<>();
+
         synchronized (measurementProcessorMap) {
             for (Map.Entry<Thread, Map<Object, MeasurementProcessor>> entry : measurementProcessorMap.entrySet()) {
-                
+
                 Map<Object, MeasurementProcessor> measurements = entry.getValue();
                 synchronized (measurements) {
                     for (Map.Entry<Object, MeasurementProcessor> lentry : measurements.entrySet()) {
@@ -163,12 +163,12 @@ public final class ScalableMeasurementRecorderSource implements
         }
         return result;
     }
-    
-    
-    
+
+
+
     @Override
     public void close() {
         samplingFuture.cancel(false);
     }
-    
+
 }

@@ -40,6 +40,7 @@ import javax.imageio.ImageIO;
 import org.jfree.chart.JFreeChart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.Strings;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.perf.tsdb.TimeSeries;
 
@@ -62,18 +63,18 @@ public final class TSDBMeasurementStore
     @Override
     public void alocateMeasurements(final EntityMeasurementsInfo measurement,
                                     final int sampleTimeMillis) throws IOException {
-        String groupName = measurement.getMeasuredEntity().toString();
-        alocateMeasurements(groupName, measurement, sampleTimeMillis);
+        String tableName = measurement.getMeasuredEntity().toString();
+        alocateMeasurements(tableName, measurement, sampleTimeMillis);
     }
 
-    private void alocateMeasurements(final String groupName, final EntityMeasurementsInfo measurement,
+    private void alocateMeasurements(final String tableName, final EntityMeasurementsInfo measurement,
             final int sampleTimeMillis) throws IOException {
         synchronized (database) {
-            if (!database.hasTSTable(groupName)) {
+            if (!database.hasTSTable(tableName)) {
                 String[] measurementNames = measurement.getMeasurementNames();
-                byte[] description = measurement.getDescription().getBytes(Charsets.UTF_8);
+                byte[] description = Strings.toUtf8(measurement.getDescription());
                 String [] uoms = measurement.getMeasurementUnits();
-                database.addTSTable(groupName, description, sampleTimeMillis, measurementNames, uoms);
+                database.addTSTable(tableName, description, sampleTimeMillis, measurementNames, uoms);
             }
         }
     }
@@ -83,9 +84,9 @@ public final class TSDBMeasurementStore
     public void saveMeasurements(final EntityMeasurementsInfo measurementInfo,
             final long timeStampMillis, final int sampleTimeMillis, final long ... measurements)
             throws IOException {
-        String groupName = measurementInfo.getMeasuredEntity().toString();
-        alocateMeasurements(groupName, measurementInfo, sampleTimeMillis);
-        database.write(timeStampMillis, groupName, measurements);
+        String tableName = measurementInfo.getMeasuredEntity().toString();
+        alocateMeasurements(tableName, measurementInfo, sampleTimeMillis);
+        database.write(timeStampMillis, tableName, measurements);
     }
 
     @Override
