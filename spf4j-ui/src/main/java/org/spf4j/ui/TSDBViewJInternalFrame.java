@@ -65,12 +65,12 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         Collection<TSTable> columnsInfo = tsDb.getTSTables();
         Map<String, DefaultMutableTreeNode> gNodes = new HashMap<>();
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(databaseFile);
-        long startDate = System.currentTimeMillis();
+        long startDateMillis = System.currentTimeMillis();
         for (TSTable info : columnsInfo) {
             String groupName = info.getTableName();
             long tableStart = tsDb.readStartDate(groupName);
-            if (tableStart < startDate) {
-                startDate = tableStart;
+            if (tableStart < startDateMillis) {
+                startDateMillis = tableStart;
             }
             Pair<String, String> pair = Pair.from(groupName);
             if (pair == null) {
@@ -96,7 +96,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         }
         measurementTree.setModel(new DefaultTreeModel(root));
         measurementTree.setVisible(true);
-        this.startDate.setValue(new DateTime().toDate());
+        this.startDate.setValue(new DateTime(startDateMillis).toDate());
     }
 
     /**
