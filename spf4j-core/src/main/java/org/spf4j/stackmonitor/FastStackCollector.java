@@ -99,6 +99,17 @@ public final class FastStackCollector extends AbstractStackCollector {
     }
 
 
+    public static  StackTraceElement[][] getStackTraces(final Thread[] threads) {
+        StackTraceElement[][] stackDump;
+        try {
+            stackDump = (StackTraceElement[][]) DUMP_THREADS.invoke(null, (Object) threads);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+            throw new RuntimeException(ex);
+        }
+        return stackDump;
+    }
+
+
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
     public void sample(final Thread ignore) {
@@ -112,16 +123,12 @@ public final class FastStackCollector extends AbstractStackCollector {
                     threads[i] = null;
                 }
             }
-        try {
-            StackTraceElement[][] stackDump = (StackTraceElement[][]) DUMP_THREADS.invoke(null, (Object) threads);
+            StackTraceElement[][] stackDump = getStackTraces(threads);
             for (StackTraceElement[] stackTrace : stackDump) {
                 if (stackTrace != null && stackTrace.length > 0) {
                         addSample(stackTrace);
                 }
             }
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            throw new RuntimeException(ex);
-        }
     }
 
 }
