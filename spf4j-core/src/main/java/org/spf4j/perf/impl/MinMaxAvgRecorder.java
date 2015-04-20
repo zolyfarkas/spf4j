@@ -33,7 +33,7 @@ public final class MinMaxAvgRecorder
     private long min;
     private long max;
     private final EntityMeasurementsInfo info;
-    
+
     private static final String [] MEASUREMENTS = {"count", "total", "min", "max"};
 
     private MinMaxAvgRecorder(final Object measuredEntity, final String description, final String unitOfMeasurement,
@@ -49,13 +49,13 @@ public final class MinMaxAvgRecorder
     public MinMaxAvgRecorder(final Object measuredEntity, final String description, final String unitOfMeasurement) {
         this(measuredEntity, description, unitOfMeasurement, 0, 0, Long.MAX_VALUE, Long.MIN_VALUE);
     }
-    
-    
+
+
     public String getUnitOfMeasurement() {
         return info.getMeasurementUnit(1);
     }
-    
-    
+
+
     @Override
     public synchronized void record(final long measurement) {
         total += measurement;
@@ -69,8 +69,13 @@ public final class MinMaxAvgRecorder
     }
 
     @Override
+    @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
     public synchronized long[] getMeasurements() {
-        return new long[] {counter, total, min, max};
+        if (counter == 0) {
+            return null;
+        } else {
+            return new long[] {counter, total, min, max};
+        }
     }
 
     @SuppressFBWarnings({"CLI_CONSTANT_LIST_INDEX", "NOS_NON_OWNED_SYNCHRONIZATION" })
@@ -108,16 +113,26 @@ public final class MinMaxAvgRecorder
 
     @Override
     public synchronized MinMaxAvgRecorder reset() {
-        MinMaxAvgRecorder result = createClone();
-        counter = 0;
-        total = 0;
-        min = Long.MAX_VALUE;
-        max = Long.MIN_VALUE;
-        return result;
+        if (counter == 0) {
+            return null;
+        } else {
+            MinMaxAvgRecorder result = createClone();
+            counter = 0;
+            total = 0;
+            min = Long.MAX_VALUE;
+            max = Long.MIN_VALUE;
+            return result;
+        }
     }
 
     @Override
+    @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
     public long[] getMeasurementsAndReset() {
-        return reset().getMeasurements();
+        final MinMaxAvgRecorder vals = reset();
+        if (vals == null) {
+            return null;
+        } else {
+            return vals.getMeasurements();
+        }
     }
 }

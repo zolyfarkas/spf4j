@@ -19,7 +19,9 @@
 package org.spf4j.perf.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.beans.ConstructorProperties;
 import java.io.IOException;
+import org.spf4j.jmx.JmxExport;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MeasurementRecorder;
@@ -29,25 +31,33 @@ import org.spf4j.perf.MeasurementRecorder;
  * @author zoly
  */
 public final class DirectRecorder implements MeasurementRecorder {
-    
+
     private final EntityMeasurementsInfo info;
     private static final String[] MEASUREMENTS = {"value"};
     private final MeasurementStore measurementStore;
     private final int sampleTimeMillis;
 
-    
+    private volatile long lastRecordedTS;
+
+    private volatile long lastRecordedValue;
+
     public DirectRecorder(final Object measuredEntity, final String description, final String unitOfMeasurement,
             final int sampleTimeMillis, final MeasurementStore measurementStore) {
         this.info = new EntityMeasurementsInfoImpl(measuredEntity, description,
                 MEASUREMENTS, new String[]{unitOfMeasurement});
         this.measurementStore = measurementStore;
         this.sampleTimeMillis = sampleTimeMillis;
+        try {
+            measurementStore.alocateMeasurements(info, sampleTimeMillis);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
-    
+
     public String getUnitOfMeasurement() {
         return info.getMeasurementUnit(0);
     }
-    
+
 
     @Override
     public void record(final long measurement) {
@@ -56,12 +66,38 @@ public final class DirectRecorder implements MeasurementRecorder {
 
     @Override
     @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
-    public void record(final long measurement, final long timestampMillis) {
+    public synchronized void record(final long measurement, final long timestampMillis) {
+        lastRecordedValue = measurement;
+        lastRecordedTS = timestampMillis;
         try {
             measurementStore.saveMeasurements(info, timestampMillis, sampleTimeMillis, measurement);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
-    
+
+    public static final class RecordedValue {
+        private final long ts;
+        private final long value;
+
+        @ConstructorProperties({"ts", "value" })
+        public RecordedValue(final long ts, final long value) {
+            this.ts = ts;
+            this.value = value;
+        }
+
+        public long getTs() {
+            return ts;
+        }
+
+        public long getValue() {
+            return value;
+        }
+    }
+
+    @JmxExport
+    public RecordedValue getLastRecorded() {
+        return new RecordedValue(lastRecordedTS, lastRecordedValue);
+    }
+
 }

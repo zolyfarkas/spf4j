@@ -31,8 +31,8 @@ public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo 
     private final String description;
     private final String[] measurementNames;
     private final String[] measurementUnits;
-    
- 
+
+
 
     public EntityMeasurementsInfoImpl(final Object measuredEntity, final String description,
             final String [] measurementNames, final String[] measurementUnits) {
@@ -86,7 +86,8 @@ public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo 
     public String toString() {
         return "EntityMeasurementsInfoImpl{" + "measuredEntity=" + measuredEntity
                 + ", description=" + description + ", measurementNames="
-                + Arrays.toString(measurementNames) + '}';
+                + Arrays.toString(measurementNames) + ", measurementUnits="
+                + Arrays.toString(measurementUnits) + '}';
     }
 
 
@@ -114,6 +115,6 @@ public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo 
     public int getMeasurementNr() {
         return measurementNames.length;
     }
-    
-    
+
+
 }

@@ -85,7 +85,6 @@ public final class TSDBMeasurementStore
             final long timeStampMillis, final int sampleTimeMillis, final long ... measurements)
             throws IOException {
         String tableName = measurementInfo.getMeasuredEntity().toString();
-        alocateMeasurements(tableName, measurementInfo, sampleTimeMillis);
         database.write(timeStampMillis, tableName, measurements);
     }
 

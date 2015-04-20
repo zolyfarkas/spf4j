@@ -25,14 +25,16 @@ import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MeasurementProcessor;
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.StringWriter;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.io.Csv;
+import org.spf4j.jmx.JmxExport;
 
 /**
  *
@@ -45,7 +47,7 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
     implements Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);
-    
+
     private final Map<Thread, MeasurementProcessor> threadLocalRecorders;
     private final ThreadLocal<MeasurementProcessor> threadLocalRecorder;
     private final ScheduledFuture<?> samplingFuture;
@@ -53,7 +55,7 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
 
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
     ScalableMeasurementRecorder(final MeasurementProcessor processor, final int sampleTimeMillis,
-            final MeasurementStore database) {
+            final MeasurementStore measurementStore) {
         threadLocalRecorders = new HashMap<>();
         processorTemplate = processor;
         threadLocalRecorder = new ThreadLocal<MeasurementProcessor>() {
@@ -68,7 +70,7 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
             }
         };
         try {
-            database.alocateMeasurements(processor.getInfo(), sampleTimeMillis);
+            measurementStore.alocateMeasurements(processor.getInfo(), sampleTimeMillis);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -80,8 +82,11 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
                 long currentTime = System.currentTimeMillis();
                 if (currentTime > lastRun) {
                     lastRun = currentTime;
-                    database.saveMeasurements(ScalableMeasurementRecorder.this.getInfo(),
-                            currentTime, sampleTimeMillis, ScalableMeasurementRecorder.this.getMeasurementsAndReset());
+                    final long[] measurements = ScalableMeasurementRecorder.this.getMeasurementsAndReset();
+                    if (measurements != null) {
+                        measurementStore.saveMeasurements(ScalableMeasurementRecorder.this.getInfo(),
+                            currentTime, sampleTimeMillis, measurements);
+                    }
                 } else {
                     LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
                             lastRun, currentTime);
@@ -90,7 +95,7 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
         };
         samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);
         org.spf4j.base.Runtime.addHookAtBeginning(new AbstractRunnable(true) {
-            
+
             @Override
             public void doRun() throws Exception {
                 persister.doRun();
@@ -117,8 +122,28 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
                 }
             }
         }
-        return (result == null) ? processorTemplate.getMeasurements() : result.getMeasurements();
+        return (result == null) ? null : result.getMeasurements();
     }
+
+    @JmxExport
+    public String getMeasurementsAsString() {
+        StringWriter sw = new StringWriter(128);
+        EntityMeasurementsInfo info = getInfo();
+        try {
+            Csv.writeCsvRow(sw, (Object[]) info.getMeasurementNames());
+            Csv.writeCsvRow(sw, (Object[]) info.getMeasurementUnits());
+            Csv.writeCsvRow(sw, getMeasurements());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        return sw.toString();
+    }
+
+    @JmxExport
+    public void clear() {
+        getMeasurementsAndReset();
+    }
+
 
     @Override
     public EntityMeasurements aggregate(final EntityMeasurements mSource) {
@@ -162,24 +187,24 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
     public long[] getMeasurementsAndReset() {
         EntityMeasurements result  = null;
         synchronized (threadLocalRecorders) {
-            List<Thread> removeThreads = new ArrayList<Thread>();
-            for (Map.Entry<Thread, MeasurementProcessor> entry : threadLocalRecorders.entrySet()) {
+            Iterator<Map.Entry<Thread, MeasurementProcessor>> iterator = threadLocalRecorders.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<Thread, MeasurementProcessor> entry = iterator.next();
                 Thread t = entry.getKey();
                 if (!t.isAlive()) {
-                    removeThreads.add(t);
+                    iterator.remove();
                 }
                 EntityMeasurements measurements = entry.getValue().reset();
                 if (result == null) {
                     result = measurements;
                 } else {
-                    result = result.aggregate(measurements);
+                    if (measurements != null) {
+                        result = result.aggregate(measurements);
+                    }
                 }
             }
-            for (Thread t : removeThreads) {
-                threadLocalRecorders.remove(t);
-            }
         }
-        return (result == null) ? processorTemplate.getMeasurements() : result.getMeasurements();
+        return (result == null) ? null : result.getMeasurements();
     }
-    
+
 }

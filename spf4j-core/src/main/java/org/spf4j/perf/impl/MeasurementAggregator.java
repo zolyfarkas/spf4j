@@ -11,18 +11,19 @@ public abstract class MeasurementAggregator implements MeasurementProcessor {
 
     private long minTime;
     private long maxTime;
-    
+
     public MeasurementAggregator() {
-        minTime = 0;
+        minTime = Long.MAX_VALUE;
         maxTime = 0;
     }
-    
+
     @Override
     public final void record(final long measurement, final long timestampMillis) {
         this.record(measurement);
-        if (minTime < timestampMillis) {
-            minTime = maxTime;
-        } else if (timestampMillis > maxTime) {
+        if (minTime >  timestampMillis) {
+            minTime = timestampMillis;
+        }
+        if (timestampMillis > maxTime) {
             maxTime = timestampMillis;
         }
     }
@@ -34,5 +35,5 @@ public abstract class MeasurementAggregator implements MeasurementProcessor {
     public final long getMaxTime() {
         return maxTime;
     }
-    
+
 }

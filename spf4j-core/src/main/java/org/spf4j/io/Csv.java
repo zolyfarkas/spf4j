@@ -86,10 +86,42 @@ public final class Csv {
     public static void writeCsvRow(final Writer writer, final Object... elems) throws IOException {
         if (elems.length > 0) {
             int i = 0;
-            writeCsvElement(elems[i++].toString(), writer);
+            Object elem = elems[i++];
+            if (elem != null) {
+                writeCsvElement(elem.toString(), writer);
+            }
             while (i < elems.length) {
                 writer.write(',');
-                writeCsvElement(elems[i++].toString(), writer);
+                elem = elems[i++];
+                if (elem != null) {
+                    writeCsvElement(elem.toString(), writer);
+                }
+            }
+        }
+        writer.write('\n');
+    }
+
+
+    public static void writeCsvRow2(final Writer writer, final Object obj, final Object... elems) throws IOException {
+        if (obj != null) {
+            writeCsvElement(obj.toString(), writer);
+        }
+        for (Object elem : elems) {
+            writer.write(',');
+            if (elem != null) {
+                writeCsvElement(elem.toString(), writer);
+            }
+        }
+        writer.write('\n');
+    }
+
+    public static void writeCsvRow(final Writer writer, final long... elems) throws IOException {
+        if (elems.length > 0) {
+            int i = 0;
+            writer.write(Long.toString(elems[i++]));
+            while (i < elems.length) {
+                writer.write(',');
+                writer.write(Long.toString(elems[i++]));
             }
         }
         writer.write('\n');

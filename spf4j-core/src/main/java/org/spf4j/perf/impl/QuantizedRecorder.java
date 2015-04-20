@@ -27,7 +27,7 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- *
+ * inspired by DTrace LLQUANTIZE
  * @author zoly
  */
 @ThreadSafe
@@ -149,11 +149,11 @@ public final class QuantizedRecorder extends MeasurementAggregator {
         this.quatizedMeasurements = quatizedMeasurements;
         this.info = info;
     }
-    
+
     public String getUnitOfMeasurement() {
         return info.getMeasurementUnit(0);
     }
-    
+
 
     @Override
     public synchronized void record(final long measurement) {
@@ -188,19 +188,24 @@ public final class QuantizedRecorder extends MeasurementAggregator {
     }
 
     @Override
+    @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
     public synchronized long[] getMeasurements() {
-        long[] result = new long[info.getNumberOfMeasurements()];
-        int i = 0;
-        result[i++] = this.measurementTotal;
-        result[i++] = this.measurementCount;
+        if (measurementCount == 0) {
+            return null;
+        } else {
+            long[] result = new long[info.getNumberOfMeasurements()];
+            int i = 0;
+            result[i++] = this.measurementTotal;
+            result[i++] = this.measurementCount;
 
-        result[i++] = this.minMeasurement;
-        result[i++] = this.maxMeasurement;
+            result[i++] = this.minMeasurement;
+            result[i++] = this.maxMeasurement;
 
-        for (int j = 0; j < this.quatizedMeasurements.length; j++) {
-            result[i++] = this.quatizedMeasurements[j];
+            for (int j = 0; j < this.quatizedMeasurements.length; j++) {
+                result[i++] = this.quatizedMeasurements[j];
+            }
+            return result;
         }
-        return result;
     }
 
     @Override
@@ -254,13 +259,17 @@ public final class QuantizedRecorder extends MeasurementAggregator {
 
     @Override
     public synchronized QuantizedRecorder reset() {
-        QuantizedRecorder result = createClone();
-        this.minMeasurement = Long.MAX_VALUE;
-        this.maxMeasurement = Long.MIN_VALUE;
-        this.measurementCount = 0;
-        this.measurementTotal = 0;
-        Arrays.fill(this.quatizedMeasurements, 0L);
-        return result;
+        if (measurementCount == 0) {
+            return null;
+        } else {
+            QuantizedRecorder result = createClone();
+            this.minMeasurement = Long.MAX_VALUE;
+            this.maxMeasurement = Long.MIN_VALUE;
+            this.measurementCount = 0;
+            this.measurementTotal = 0;
+            Arrays.fill(this.quatizedMeasurements, 0L);
+            return result;
+        }
     }
 
     @Override
@@ -299,7 +308,13 @@ public final class QuantizedRecorder extends MeasurementAggregator {
     }
 
     @Override
+    @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
     public long[] getMeasurementsAndReset() {
-        return reset().getMeasurements();
+        final QuantizedRecorder vals = reset();
+        if (vals == null) {
+            return null;
+        } else {
+            return vals.getMeasurements();
+        }
     }
 }

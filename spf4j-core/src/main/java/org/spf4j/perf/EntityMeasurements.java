@@ -20,6 +20,7 @@ package org.spf4j.perf;
 
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 
 /**
@@ -28,29 +29,34 @@ import javax.annotation.Nonnull;
  */
 
 public interface EntityMeasurements {
-    
-    @Nonnull
+
+    @Nullable
     long [] getMeasurements();
-    
-    @Nonnull
+
+    /**
+     * @return null when no measurements have been made.
+     */
+
+    @Nullable
     long [] getMeasurementsAndReset();
-    
+
     @Nonnull
     EntityMeasurements  aggregate(@Nonnull EntityMeasurements mSource);
-    
+
     @Nonnull
     EntityMeasurements createClone();
-  
+
     /**
      * reset this entity.
-     * @return a clone of the object prior to reset.
+     * @return a clone of the object prior to reset or null if no measurements have been made.
      */
-    @Nonnull
+    @Nullable
     EntityMeasurements reset();
-    
+
     @Nonnull
-    EntityMeasurements createLike(Object entity);
-    
+    EntityMeasurements createLike(@Nonnull Object entity);
+
+    @Nonnull
     EntityMeasurementsInfo getInfo();
-    
+
 }

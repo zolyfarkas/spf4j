@@ -48,7 +48,7 @@ public final class CountingRecorder
     public String getUnitOfMeasurement() {
         return info.getMeasurementUnit(1);
     }
-    
+
     @Override
     public synchronized void record(final long measurement) {
         total += measurement;
@@ -56,8 +56,13 @@ public final class CountingRecorder
     }
 
     @Override
+    @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
     public synchronized long[] getMeasurements() {
-        return new long[]{counter, total};
+        if (counter == 0) {
+            return null;
+        } else {
+            return new long[]{counter, total};
+        }
     }
 
     @SuppressFBWarnings({"CLI_CONSTANT_LIST_INDEX", "NOS_NON_OWNED_SYNCHRONIZATION" })
@@ -93,15 +98,25 @@ public final class CountingRecorder
 
     @Override
     public synchronized EntityMeasurements reset() {
-        EntityMeasurements result = this.createClone();
-        counter = 0;
-        total = 0;
-        return result;
+        if (counter == 0) {
+            return null;
+        } else {
+            EntityMeasurements result = this.createClone();
+            counter = 0;
+            total = 0;
+            return result;
+        }
     }
 
     @Override
+    @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
     public long[] getMeasurementsAndReset() {
-        return reset().getMeasurements();
+        final EntityMeasurements vals = reset();
+        if (vals == null) {
+            return null;
+        } else {
+            return vals.getMeasurements();
+        }
     }
 
 }

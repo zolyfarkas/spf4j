@@ -19,16 +19,22 @@ package org.spf4j.perf.impl;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.base.Pair;
+import org.spf4j.io.Csv;
+import org.spf4j.jmx.JmxExport;
 import org.spf4j.perf.EntityMeasurements;
+import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.EntityMeasurementsSource;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MeasurementProcessor;
@@ -78,8 +84,9 @@ public final class ScalableMeasurementRecorderSource implements
                     lastRun = currentTime;
                     for (EntityMeasurements m
                             : ScalableMeasurementRecorderSource.this.getEntitiesMeasurementsAndReset().values()) {
-                        database.saveMeasurements(
-                                m.getInfo(), currentTime, sampleTimeMillis, m.getMeasurementsAndReset());
+                        final EntityMeasurementsInfo info = m.getInfo();
+                        database.alocateMeasurements(info, sampleTimeMillis);
+                        database.saveMeasurements(info, currentTime, sampleTimeMillis, m.getMeasurementsAndReset());
                     }
                 } else {
                     LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
@@ -117,8 +124,10 @@ public final class ScalableMeasurementRecorderSource implements
         Map<Object, EntityMeasurements> result = new HashMap<>();
 
         synchronized (measurementProcessorMap) {
-            for (Map.Entry<Thread, Map<Object, MeasurementProcessor>> entry : measurementProcessorMap.entrySet()) {
-
+            Iterator<Map.Entry<Thread, Map<Object, MeasurementProcessor>>> iterator =
+                    measurementProcessorMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<Thread, Map<Object, MeasurementProcessor>> entry = iterator.next();
                 Map<Object, MeasurementProcessor> measurements = entry.getValue();
                 synchronized (measurements) {
                     for (Map.Entry<Object, MeasurementProcessor> lentry : measurements.entrySet()) {
@@ -139,24 +148,42 @@ public final class ScalableMeasurementRecorderSource implements
     }
 
     @Override
+    @Nonnull
     public Map<Object, EntityMeasurements> getEntitiesMeasurementsAndReset() {
         Map<Object, EntityMeasurements> result = new HashMap<>();
 
         synchronized (measurementProcessorMap) {
-            for (Map.Entry<Thread, Map<Object, MeasurementProcessor>> entry : measurementProcessorMap.entrySet()) {
-
+            Iterator<Map.Entry<Thread, Map<Object, MeasurementProcessor>>> iterator =
+                    measurementProcessorMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<Thread, Map<Object, MeasurementProcessor>> entry = iterator.next();
+                Thread thread = entry.getKey();
+                if (!thread.isAlive()) {
+                    iterator.remove();
+                }
                 Map<Object, MeasurementProcessor> measurements = entry.getValue();
                 synchronized (measurements) {
-                    for (Map.Entry<Object, MeasurementProcessor> lentry : measurements.entrySet()) {
-
+                    Iterator<Map.Entry<Object, MeasurementProcessor>> iterator1 = measurements.entrySet().iterator();
+                    while (iterator1.hasNext()) {
+                        Map.Entry<Object, MeasurementProcessor> lentry = iterator1.next();
                         Object what = lentry.getKey();
                         EntityMeasurements existingMeasurement = result.get(what);
                         if (existingMeasurement == null) {
                             existingMeasurement = lentry.getValue().reset();
+                            if (existingMeasurement == null) {
+                                iterator1.remove();
+                            } else {
+                                result.put(what, existingMeasurement);
+                            }
                         } else {
-                            existingMeasurement = existingMeasurement.aggregate(lentry.getValue().reset());
+                            final EntityMeasurements vals = lentry.getValue().reset();
+                            if (vals != null) {
+                                existingMeasurement = existingMeasurement.aggregate(vals);
+                                result.put(what, existingMeasurement);
+                            } else {
+                                iterator1.remove();
+                            }
                         }
-                        result.put(what, existingMeasurement);
                     }
                 }
             }
@@ -170,5 +197,34 @@ public final class ScalableMeasurementRecorderSource implements
     public void close() {
         samplingFuture.cancel(false);
     }
+
+    @JmxExport
+    public String getMeasurementsAsString() {
+        StringWriter sw = new StringWriter(128);
+        Map<Object, EntityMeasurements> entitiesMeasurements = getEntitiesMeasurements();
+        EntityMeasurementsInfo info = this.processorTemplate.getInfo();
+        try {
+            Csv.writeCsvRow2(sw, "Measured", (Object[]) info.getMeasurementNames());
+            Csv.writeCsvRow2(sw, "string", (Object[]) info.getMeasurementUnits());
+            for (Map.Entry<Object, EntityMeasurements> entry : entitiesMeasurements.entrySet()) {
+                Csv.writeCsvElement(entry.getKey().toString(), sw);
+                sw.write(',');
+                final long[] measurements = entry.getValue().getMeasurements();
+                if (measurements != null) {
+                    Csv.writeCsvRow(sw, measurements);
+                }
+            }
+
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        return sw.toString();
+    }
+
+    @JmxExport
+    public void clear() {
+        getEntitiesMeasurementsAndReset();
+    }
+
 
 }
