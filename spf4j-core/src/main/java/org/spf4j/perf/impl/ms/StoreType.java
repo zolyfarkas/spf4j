@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import org.spf4j.jmx.Registry;
 import org.spf4j.perf.MeasurementStore;
+import org.spf4j.perf.impl.NopMeasurementStore;
 import org.spf4j.perf.impl.ms.graphite.GraphiteTcpStore;
 import org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
@@ -38,12 +39,14 @@ public enum StoreType {
         public MeasurementStore create(final String config) throws IOException {
             return new TSDBMeasurementStore(config);
         }
-    }), TSDB_TXT(new StoreFactory() {
+    }),
+    TSDB_TXT(new StoreFactory() {
         @Override
         public MeasurementStore create(final String config) throws IOException {
             return new TSDBTxtMeasurementStore(config);
         }
-    }), GRAPHITE_UDP(new StoreFactory() {
+    }),
+    GRAPHITE_UDP(new StoreFactory() {
         @Override
         public MeasurementStore create(final String config) throws IOException, ObjectCreationException {
             try {
@@ -52,7 +55,8 @@ public enum StoreType {
                 throw new IllegalArgumentException("Invalid configuration " + config, ex);
             }
         }
-    }), GRAPHITE_TCP(new StoreFactory() {
+    }),
+    GRAPHITE_TCP(new StoreFactory() {
         @Override
         public MeasurementStore create(final String config) throws IOException, ObjectCreationException {
             try {
@@ -60,6 +64,13 @@ public enum StoreType {
             } catch (URISyntaxException ex) {
                 throw new IllegalArgumentException("Invalid configuration " + config, ex);
             }
+        }
+    }),
+    NOP_STORE(new StoreFactory() {
+
+        @Override
+        public MeasurementStore create(final String config) throws IOException, ObjectCreationException {
+            return new NopMeasurementStore();
         }
     });
     private final StoreFactory factory;
@@ -74,5 +85,5 @@ public enum StoreType {
                     store.toString(), store);
         return store;
     }
-    
+
 }

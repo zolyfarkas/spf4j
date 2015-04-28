@@ -101,11 +101,16 @@ public final class RecorderFactory {
 
     public static MeasurementStore fromString(final String string) throws IOException, ObjectCreationException {
         int atIdx = string.indexOf('@');
+        final int length = string.length();
         if (atIdx < 0) {
-            throw new IllegalArgumentException("Invalid measuremnt store configuration " + string);
+            atIdx = length;
         }
         StoreType type = StoreType.valueOf(string.substring(0, atIdx));
-        return type.create(string.substring(atIdx + 1));
+        if (atIdx >= length) {
+            return type.create("");
+        } else {
+            return type.create(string.substring(atIdx + 1));
+        }
     }
 
 
