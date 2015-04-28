@@ -34,7 +34,7 @@ import org.junit.Test;
  */
 public final class RegistryTest {
 
-    public static final class JmxTest {
+    public static final class JmxTest extends PropertySource {
 
         private volatile String stringVal;
 
@@ -106,6 +106,15 @@ public final class RegistryTest {
             return bean;
         }
 
+        @JmxExport
+        public String getProperty(final String name) {
+            return "bla";
+        }
+
+        @JmxExport
+        public void setProperty(final String name, final Object value) {
+            //do nothing
+        }
 
 
     }

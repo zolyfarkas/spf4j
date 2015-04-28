@@ -42,6 +42,8 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
 
     private boolean isClosed;
 
+    private long readBytes;
+
     public MemorizingBufferedInputStream(final InputStream in) {
         this(in, 16384, 8192, ArraySuppliers.Bytes.GL_SUPPLIER, Charsets.UTF_8);
     }
@@ -66,6 +68,7 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         this.readSize = readSize;
         this.isEof = false;
         this.isClosed = false;
+        this.readBytes = 0;
     }
 
     @Override
@@ -210,6 +213,7 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         } else if (startIdx >= memory.length) {
             startIdx = 0;
         }
+        this.readBytes += toRead;
         return toRead;
     }
 
@@ -235,6 +239,7 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         if (startIdx >= memory.length) {
             startIdx = 0;
         }
+        this.readBytes++;
         return result;
     }
 
@@ -269,6 +274,25 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         result.append("}");
         return result.toString();
     }
+
+    public synchronized long getReadBytes() {
+        return readBytes;
+    }
+
+    @Override
+    public synchronized long skip(final long n) throws IOException {
+        long nrSkipped = 0;
+        for (int i = 0; i < n; i++) {
+            int read = read();
+            if (read < 0) {
+                break;
+            } else {
+                nrSkipped++;
+            }
+        }
+        return nrSkipped;
+    }
+
 
 
 

@@ -1,0 +1,55 @@
+@namespace("org.spf4j.tsdb2.avro")
+protocol Tsdb2 {
+
+    /** file header */
+    record Header {
+        /** file content schema */
+        string contentSchema;
+        /** file description */
+        string description;
+    }
+
+    enum Type {LONG, DOUBLE}
+
+    /** column definition */
+    record ColumnDef {
+        /** column name */
+        string name;
+        /** column value type */
+        Type type = "LONG";
+        /** unit of measurement for the data */
+        string unitOfMeasurement;
+        /** Column description */
+        string description;
+    }
+
+    /** table definition, name, column names and descriptions */
+    record TableDef {
+        /** table name */
+        string name;
+        /** table description */
+        string description;
+        /** column definitions */
+        array<ColumnDef> columns = [];
+        /** the interval */
+        int sampleTime;
+    }
+    
+    /** data row */
+    record DataRow {
+        /** row relative timestamp */
+        int relTimeStamp;
+        /** the file pointer where the Table definition for the data is */
+        long tableDefPtr;
+        /** the row data */
+        array<long> data;
+    }
+
+    /** a block of table data */
+    record DataBlock {
+        /** the UTC timestamp that all timestamps in this block are relative to */
+        long baseTimestamp;
+        /** rows */
+        array<DataRow> values = [];
+    }
+}

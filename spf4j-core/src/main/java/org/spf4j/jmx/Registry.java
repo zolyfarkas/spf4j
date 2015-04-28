@@ -62,8 +62,16 @@ public final class Registry {
         return replaced;
     }
 
-    public static void registerMBean(final String domain, final String name, final Object object) {
-        Registry.registerMBean(ExportedValuesMBean.createObjectName(domain, name), object);
+    public static synchronized  Object getRegistered(final ObjectName objectName) {
+        return REGISTERED.get(objectName);
+    }
+
+    public static synchronized  Object getRegistered(final String domain, final String name) {
+        return getRegistered(ExportedValuesMBean.createObjectName(domain, name));
+    }
+
+    public static Object registerMBean(final String domain, final String name, final Object object) {
+        return Registry.registerMBean(ExportedValuesMBean.createObjectName(domain, name), object);
     }
 
     public static Object unregister(final Object object) {
@@ -113,6 +121,9 @@ public final class Registry {
 
             if (object instanceof Class) {
                 for (Method method : ((Class<?>) object).getMethods()) {
+                    if (method.isSynthetic()) {
+                        continue;
+                    }
                     if (Modifier.isStatic(method.getModifiers())) {
                         Annotation [] annotations = method.getAnnotations();
                         for (Annotation annot : annotations) {
@@ -125,6 +136,9 @@ public final class Registry {
             } else {
                 final Class<? extends Object> oClass = object.getClass();
                 for (Method method : oClass.getMethods()) {
+                    if (method.isSynthetic()) {
+                        continue;
+                    }
                     Annotation [] annotations = method.getAnnotations();
                     for (Annotation annot : annotations) {
                         if (annot.annotationType() == JmxExport.class) {
