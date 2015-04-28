@@ -20,6 +20,7 @@
 package org.spf4j.jmx;
 
 import java.io.IOException;
+import java.util.Properties;
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.InvalidAttributeValueException;
@@ -158,7 +159,10 @@ public final class RegistryTest {
             throws InterruptedException, IOException, InstanceNotFoundException, MBeanException,
             AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
         JmxTest testObj = new JmxTest();
-        Registry.export("test", "Test", testObj);
+        Properties props = new Properties();
+        props.setProperty("propKey", "propvalue");
+        Registry.export("caca", "maca", props);
+        Registry.export("test", "Test", props, testObj);
         Registry.registerMBean("test2", "TestClassic", new org.spf4j.jmx.Test());
 
 //        Thread.sleep(300000);
@@ -166,9 +170,17 @@ public final class RegistryTest {
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "booleanFlag", true);
 
+        Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+                "test", "Test", "propKey", "caca");
+
         Object ret = Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "booleanFlag");
         Assert.assertEquals(Boolean.TRUE, ret);
+
+        String prop = (String) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+                "test", "Test", "propKey");
+        Assert.assertEquals("caca", prop);
+        Assert.assertEquals("caca", props.get("propKey"));
 
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "stringVal", "bla bla");

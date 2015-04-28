@@ -19,12 +19,14 @@
 
 package org.spf4j.jmx;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import javax.annotation.Nullable;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
@@ -101,21 +103,37 @@ public final class Registry {
         return result;
     }
 
-    public static void export(final Object object) {
+    public static ExportedValuesMBean export(final Object object) {
         final Class<? extends Object> aClass = object.getClass();
-        export(aClass.getPackage().getName(), aClass.getSimpleName(), object);
+        return export(aClass.getPackage().getName(), aClass.getSimpleName(), object);
     }
 
-    public static void export(final Class<?> object) {
-        export(object.getPackage().getName(), object.getSimpleName(), object);
+    public static ExportedValuesMBean export(final Class<?> object) {
+        return export(object.getPackage().getName(), object.getSimpleName(), object);
     }
 
     public static synchronized ExportedValuesMBean export(final String packageName, final String mbeanName,
             final Object ... objects) {
+        return export(packageName, mbeanName, (Map) null, objects);
+    }
+
+    @SuppressFBWarnings("OCP_OVERLY_CONCRETE_PARAMETER")
+    public static synchronized ExportedValuesMBean export(final String packageName, final String mbeanName,
+            final Properties attributes, final Object ... objects) {
+        return export(packageName, mbeanName, (Map) attributes, objects);
+    }
+
+    public static synchronized ExportedValuesMBean export(final String packageName, final String mbeanName,
+            final Map<String, Object> attributes, final Object ... objects) {
 
         ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
         ExportedValuesMBean existing = (ExportedValuesMBean) unregister(objectName);
-        Map<String, ExportedValueImpl> exportedAttributes = new HashMap<>();
+        Map<String, ExportedValue> exportedAttributes = new HashMap<>();
+        if (attributes != null) {
+            for (String attrName : attributes.keySet()) {
+                exportedAttributes.put(attrName, new MapExportedValue(attributes, null, attrName));
+            }
+        }
         Map<String, ExportedOperationImpl> exportedOps = new HashMap<>();
         for (Object object : objects) {
 
@@ -154,11 +172,11 @@ public final class Registry {
         }
         ExportedValue<?> [] values = new ExportedValue[exportedAttributes.size()];
         int i = 0;
-        for (ExportedValueImpl expVal : exportedAttributes.values()) {
-            if (expVal.isValid()) {
-                values[i++] = expVal;
+        for (ExportedValue expVal : exportedAttributes.values()) {
+            if (expVal instanceof ExportedValueImpl && !((ExportedValueImpl) expVal).isValid()) {
+               throw new IllegalArgumentException("If setter is exported, getter must be exported as well " + expVal);
             } else {
-                throw new IllegalArgumentException("If setter is exported, getter must be exported as well " + expVal);
+               values[i++] = expVal;
             }
         }
         ExportedValuesMBean mbean;
@@ -174,7 +192,7 @@ public final class Registry {
     }
 
     private static void exportMethod(final Method method,
-            @Nullable final Object object, final Map<String, ExportedValueImpl> exportedAttributes,
+            @Nullable final Object object, final Map<String, ExportedValue> exportedAttributes,
             final Map<String, ExportedOperationImpl> exportedOps, final Annotation annot) {
         method.setAccessible(true); // this is to speed up invocation
         String methodName = method.getName();
@@ -203,7 +221,7 @@ public final class Registry {
         }
     }
 
-    private static void addSetter(final String methodName, final Map<String, ExportedValueImpl> exportedAttributes,
+    private static void addSetter(final String methodName, final Map<String, ExportedValue> exportedAttributes,
             final Method method, final Object object, final Annotation annot) {
         String customName = (String) Reflections.getAnnotationAttribute(annot, "value");
         String valueName;
@@ -214,7 +232,7 @@ public final class Registry {
             valueName = customName;
         }
 
-        ExportedValueImpl existing = exportedAttributes.get(valueName);
+        ExportedValueImpl existing = (ExportedValueImpl) exportedAttributes.get(valueName);
         if (existing == null) {
             existing = new ExportedValueImpl(valueName, null,
                     null, method, object, method.getParameterTypes()[0]);
@@ -229,11 +247,11 @@ public final class Registry {
     }
 
     private static void addGetter(final String pvalueName,
-            final Map<String, ExportedValueImpl> exported,
+            final Map<String, ExportedValue> exported,
             final Annotation annot, final Method method, final Object object) {
         String customName = (String) Reflections.getAnnotationAttribute(annot, "value");
         String valueName = "".equals(customName) ? pvalueName : customName;
-        ExportedValueImpl existing = exported.get(valueName);
+        ExportedValueImpl existing = (ExportedValueImpl) exported.get(valueName);
         if (existing == null) {
             existing = new ExportedValueImpl(
                     valueName, (String) Reflections.getAnnotationAttribute(annot, "description"),
