@@ -3,8 +3,11 @@ package org.spf4j.tsdb2;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.Either;
+import org.spf4j.perf.tsdb.TimeSeries;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.DataBlock;
 import org.spf4j.tsdb2.avro.TableDef;
@@ -20,7 +23,7 @@ public class TSDBReaderTest {
     public void testTsdb() throws IOException {
         File TEST_FILE = File.createTempFile("test", ".tsdb2");
         TSDBWriter writer = new TSDBWriter(TEST_FILE, 4, "test", true);
-        long tableId = writer.writeTableDef(TableDef.newBuilder()
+        final TableDef tableDef = TableDef.newBuilder()
                 .setName("test")
                 .setDescription("test")
                 .setSampleTime(0)
@@ -28,7 +31,8 @@ public class TSDBReaderTest {
                         ColumnDef.newBuilder().setName("a").setDescription("atest").setUnitOfMeasurement("ms").build(),
                         ColumnDef.newBuilder().setName("b").setDescription("btest").setUnitOfMeasurement("ms").build(),
                         ColumnDef.newBuilder().setName("c").setDescription("ctest").setUnitOfMeasurement("ms").build()))
-                .build());
+                .build();
+        long tableId = writer.writeTableDef(tableDef);
         final long time = System.currentTimeMillis();
         writer.writeDataRow(tableId, time, 0, 1, 2);
         writer.writeDataRow(tableId, time + 10, 1, 1, 2);
@@ -42,6 +46,12 @@ public class TSDBReaderTest {
             System.out.println(read);
         }
         reader.close();
+
+        List<TableDef> allTables = TSDBQuery.getAllTables(TEST_FILE);
+        Assert.assertEquals(1, allTables.size());
+        Assert.assertEquals(tableDef.name, allTables.get(0).name.toString());
+        TimeSeries timeSeries = TSDBQuery.getTimeSeries(TEST_FILE, tableId, 0, Long.MAX_VALUE);
+        Assert.assertEquals(2L, timeSeries.getValues()[2][0]);
 
     }
 

@@ -14,6 +14,7 @@ import javax.net.SocketFactory;
 import org.spf4j.base.Handler;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
+import org.spf4j.perf.impl.ms.Id2Info;
 import static org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore.writeMetric;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
@@ -83,11 +84,11 @@ public final class GraphiteTcpStore implements MeasurementStore {
     public GraphiteTcpStore(final String hostPort) throws ObjectCreationException, URISyntaxException {
         this(new URI("graphiteTcp://" + hostPort));
     }
-    
+
     public GraphiteTcpStore(final URI uri) throws ObjectCreationException {
         this(uri.getHost(), uri.getPort());
     }
-    
+
     public GraphiteTcpStore(final String hostName, final int port) throws ObjectCreationException {
         this(hostName, port, SocketFactory.getDefault());
     }
@@ -100,16 +101,15 @@ public final class GraphiteTcpStore implements MeasurementStore {
     }
 
     @Override
-    public void alocateMeasurements(final EntityMeasurementsInfo measurement, final int sampleTimeMillis) {
-        // DO NOTHING.
+    public long alocateMeasurements(final EntityMeasurementsInfo measurement, final int sampleTimeMillis) {
+        return Id2Info.getId(measurement);
     }
 
     @Override
-    public void saveMeasurements(final EntityMeasurementsInfo measurementInfo,
-            final long timeStampMillis, final int sampleTimeMillis, final long... measurements) throws IOException {
-
+    public void saveMeasurements(final long tableId,
+            final long timeStampMillis, final long... measurements) throws IOException {
         try {
-            Template.doOnSupplied(new HandlerImpl(measurements, measurementInfo, timeStampMillis),
+            Template.doOnSupplied(new HandlerImpl(measurements, Id2Info.getInfo(tableId), timeStampMillis),
                     socketWriterSupplier, 3, 1000, 60000);
         } catch (InterruptedException ex) {
             throw new RuntimeException(ex);
@@ -160,5 +160,5 @@ public final class GraphiteTcpStore implements MeasurementStore {
     public void flush() {
         // No buffering yet
     }
-    
+
 }

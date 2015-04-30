@@ -18,13 +18,16 @@
 package org.spf4j.perf.tsdb;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.base.Pair;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
+import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
@@ -33,6 +36,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
 import java.io.Writer;
+import java.lang.management.ManagementFactory;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.ArrayList;
@@ -42,11 +46,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import javax.imageio.ImageIO;
 import org.jfree.chart.JFreeChart;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.Arrays;
 import org.spf4j.io.Csv;
+import org.spf4j.jmx.JmxExport;
 import org.spf4j.perf.impl.chart.Charts;
 import static org.spf4j.perf.impl.chart.Charts.fillGaps;
 
@@ -699,6 +705,188 @@ public final class TimeSeriesDatabase implements Closeable {
     public String getFilePath() {
         return path;
     }
+
+
+    /**
+     * Quantized recorders will have min, max avg charts and distribution charts
+     * generated. Counting recorders will have simple charts generated.
+     *
+     * @param startTimeMillis
+     * @param endTimeMillis
+     * @param width
+     * @param height
+     * @return
+     * @throws IOException
+     */
+    @JmxExport(value = "generateChartsInterval",
+            description = "generate charts for all measurements in specified interval")
+    public List<String> generateCharts(final long startTimeMillis, final long endTimeMillis,
+            final int width, final int height) throws IOException {
+        try {
+            this.flush();
+            List<String> result = new ArrayList<>();
+            Collection<TSTable> columnsInfo = this.getTSTables();
+            for (TSTable info : columnsInfo) {
+                TimeSeries data = this.read(info.getTableName(), startTimeMillis, endTimeMillis);
+                if (data.getTimeStamps().length > 0) {
+                    if (canGenerateMinMaxAvgCount(info)) {
+                        result.add(generateMinMaxAvgCountChart(info, data, width, height));
+                    }
+                    if (canGenerateHeatChart(info)) {
+                        result.add(generateHeatChart(info, data, width, height));
+                    }
+                }
+            }
+            Multimap<String, TSTable> counters = getCounters(columnsInfo);
+            for (Map.Entry<String, Collection<TSTable>> entry : counters.asMap().entrySet()) {
+                Collection<TSTable> ltables = entry.getValue();
+                int l = ltables.size();
+                long[][] timestamps = new long[l][];
+                double[][] cdata = new double[l][];
+                double[][] cdata2 = new double[l][];
+                int i = 0;
+                String[] measurementNames = new String[cdata.length];
+                String[] measurementNames2 = new String[cdata2.length];
+                String uom1 = "count";
+                String uom2 = "";
+                for (TSTable colInfo : ltables) {
+                    TimeSeries data = this.read(colInfo.getTableName(), startTimeMillis, endTimeMillis);
+                    timestamps[i] = data.getTimeStamps();
+                    final long[][] values = data.getValues();
+                    cdata[i] = Arrays.getColumnAsDoubles(values, colInfo.getColumnIndex("count"));
+                    cdata2[i] = Arrays.getColumnAsDoubles(values, colInfo.getColumnIndex("total"));
+                    measurementNames[i] = colInfo.getTableName() + ".count";
+                    measurementNames2[i] = colInfo.getTableName() + ".total";
+                    uom2 = new String(colInfo.getTableMetaData(), Charsets.UTF_8);
+                    i++;
+                }
+                result.add(generateCountChart(entry.getKey(), timestamps, measurementNames,
+                        measurementNames2, uom1, uom2, cdata, cdata2, width, height));
+            }
+            return result;
+        } catch (IOException | RuntimeException ex) {
+            throw ex;
+        }
+    }
+
+    private static Multimap<String, TSTable> getCounters(final Collection<TSTable> columnInfos) {
+        Multimap<String, TSTable> result = HashMultimap.create();
+        for (TSTable info : columnInfos) {
+            if (isCounterOnly(info)) {
+                String groupName = info.getTableName();
+                if (groupName.startsWith("(")) {
+                    int cidx = groupName.indexOf(',');
+                    if (cidx > 0) {
+                        groupName = groupName.substring(1, cidx);
+                    }
+                }
+                result.put(groupName, info);
+            }
+        }
+        return result;
+    }
+
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
+    public static boolean isCounterOnly(final TSTable info) {
+        String[] columns = info.getColumnNames();
+        return columns.length == 2 && "count".equals(columns[0])
+                && "total".equals(columns[1]);
+    }
+
+    public static boolean canGenerateMinMaxAvgCount(final TSTable info) {
+        return ((info.getColumnIndex("min") >= 0)
+                && (info.getColumnIndex("max") >= 0)
+                && (info.getColumnIndex("total") >= 0)
+                && (info.getColumnIndex("count") >= 0));
+    }
+
+    public static boolean canGenerateCount(final TSTable info) {
+        return ((info.getColumnIndex("count") >= 0));
+    }
+
+
+    public static boolean canGenerateHeatChart(final TSTable info) {
+        for (String mname : info.getColumnNames()) {
+            if (mname.startsWith("Q") && mname.contains("_")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String generateMinMaxAvgCountChart(
+            final TSTable info, final TimeSeries data,
+            final int width, final int height) throws IOException {
+        long[][] vals = data.getValues();
+        double[] min = Arrays.getColumnAsDoubles(vals, info.getColumnIndex("min"));
+        double[] max = Arrays.getColumnAsDoubles(vals, info.getColumnIndex("max"));
+        double[] total = Arrays.getColumnAsDoubles(vals, info.getColumnIndex("total"));
+        double[] count = Arrays.getColumnAsDoubles(vals, info.getColumnIndex("count"));
+        for (int i = 0; i < count.length; i++) {
+            if (count[i] == 0) {
+                min[i] = 0;
+                max[i] = 0;
+            }
+        }
+        long[] timestamps = data.getTimeStamps();
+        BufferedImage combined = Charts.createMinMaxAvgCountImg("Measurements for "
+                + info.getTableName() + " generated by spf4j",
+                timestamps, min, max, total, count, new String(info.getTableMetaData(), Charsets.UTF_8), width, height);
+        File dbFile = new File(this.getDBFilePath());
+        File graphicFile = File.createTempFile(dbFile.getName() + "_" + fixName(info.getTableName()), ".mmac.png",
+                dbFile.getParentFile());
+        ImageIO.write(combined, "png", graphicFile);
+        return graphicFile.getPath();
+    }
+
+    private String generateCountChart(
+            final String groupName, final long[][] timestamps,
+            final String[] measurementNames, final String[] measurementNames2,
+            final String uom1, final String uom2,
+            final double[][] measurements, final double[][] measurements2,
+            final int width, final int height) throws IOException {
+        BufferedImage combined = Charts.generateCountTotalChart(
+                groupName, timestamps, measurementNames, uom1, measurements, width, height,
+                measurementNames2, uom2, measurements2);
+        File dbFile = new File(this.getDBFilePath());
+        File graphicFile = File.createTempFile(dbFile.getName() + "_" + fixName(groupName), ".count.png",
+                dbFile.getParentFile());
+        ImageIO.write(combined, "png", graphicFile);
+        return graphicFile.getPath();
+    }
+
+
+
+    private String generateHeatChart(final TSTable info, final TimeSeries data,
+            final int width, final int height) throws IOException {
+        JFreeChart chart = TimeSeriesDatabase.createHeatJFreeChart(data, info);
+        BufferedImage img = chart.createBufferedImage(width, height);
+        File dbFile = new File(this.getDBFilePath());
+        File graphicFile = File.createTempFile(dbFile.getName() + "_" + fixName(info.getTableName()), ".dist.png",
+                dbFile.getParentFile());
+        ImageIO.write(img, "png", graphicFile);
+        return graphicFile.getAbsolutePath();
+    }
+
+    private static String fixName(final String name) {
+        final int length = name.length();
+        StringBuilder result = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            char c = name.charAt(i);
+            if (Character.isJavaIdentifierPart(c)) {
+                result.append(c);
+            }
+        }
+        return result.toString();
+    }
+
+    @JmxExport(description = "generate charts for all measurements")
+    public List<String> generateCharts(final int width, final int height) throws IOException {
+        long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
+        long endTime = System.currentTimeMillis();
+        return generateCharts(startTime, endTime, width, height);
+    }
+
 
 
 }

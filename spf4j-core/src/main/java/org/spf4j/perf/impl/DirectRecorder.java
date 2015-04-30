@@ -35,7 +35,7 @@ public final class DirectRecorder implements MeasurementRecorder {
     private final EntityMeasurementsInfo info;
     private static final String[] MEASUREMENTS = {"value"};
     private final MeasurementStore measurementStore;
-    private final int sampleTimeMillis;
+    private final long tableId;
 
     private volatile long lastRecordedTS;
 
@@ -46,9 +46,8 @@ public final class DirectRecorder implements MeasurementRecorder {
         this.info = new EntityMeasurementsInfoImpl(measuredEntity, description,
                 MEASUREMENTS, new String[]{unitOfMeasurement});
         this.measurementStore = measurementStore;
-        this.sampleTimeMillis = sampleTimeMillis;
         try {
-            measurementStore.alocateMeasurements(info, sampleTimeMillis);
+            tableId = measurementStore.alocateMeasurements(info, sampleTimeMillis);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -70,7 +69,7 @@ public final class DirectRecorder implements MeasurementRecorder {
         lastRecordedValue = measurement;
         lastRecordedTS = timestampMillis;
         try {
-            measurementStore.saveMeasurements(info, timestampMillis, sampleTimeMillis, measurement);
+            measurementStore.saveMeasurements(tableId, timestampMillis, measurement);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -95,9 +94,16 @@ public final class DirectRecorder implements MeasurementRecorder {
         }
     }
 
-    @JmxExport
+    @JmxExport(description = "Last recorded value")
     public RecordedValue getLastRecorded() {
         return new RecordedValue(lastRecordedTS, lastRecordedValue);
     }
+
+    @JmxExport
+    public String getInfo() {
+        return info.toString();
+    }
+
+
 
 }

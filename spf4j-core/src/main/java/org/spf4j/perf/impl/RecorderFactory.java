@@ -67,7 +67,7 @@ public final class RecorderFactory {
         if (configuration == null || configuration.trim().isEmpty()) {
             return new TSDBMeasurementStore(System.getProperty("perf.db.folder",
                     System.getProperty("java.io.tmpdir")) + File.separator + System.getProperty("perf.db.name",
-                    ManagementFactory.getRuntimeMXBean().getName() + ".tsdb"));
+                    ManagementFactory.getRuntimeMXBean().getName() + ".tsdb2"));
         }
 
         List<String> stores = Csv.readRow(new StringReader(configuration), new Csv.CsvRowHandler<List<String>>() {

@@ -262,5 +262,6 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
         byte [] data = org.spf4j.base.Runtime.PROCESS_NAME.getBytes(Charsets.UTF_8);
         file.write(data);
         file.setLength(data.length);
+        file.getChannel().force(true);
     }
 }

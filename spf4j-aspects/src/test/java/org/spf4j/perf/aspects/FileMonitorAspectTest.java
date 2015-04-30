@@ -26,20 +26,23 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
+import org.spf4j.tsdb2.TSDBQuery;
+import org.spf4j.tsdb2.TSDBWriter;
+import org.spf4j.tsdb2.avro.TableDef;
 
 
 /**
  * @author zoly
  */
 public final class FileMonitorAspectTest {
-    
+
     public FileMonitorAspectTest() {
     }
 
-    private final long startTime = System.currentTimeMillis();
-    
+
     /**
      * Test of nioReadLong method, of class FileMonitorAspect.
      */
@@ -48,28 +51,21 @@ public final class FileMonitorAspectTest {
         System.setProperty("perf.file.sampleTimeMillis", "1000");
         File tempFile = File.createTempFile("test", ".tmp");
         tempFile.deleteOnExit();
-        Writer fw = new OutputStreamWriter(new FileOutputStream(tempFile));
-        try {
+        try (Writer fw = new OutputStreamWriter(new FileOutputStream(tempFile))) {
             for (int i = 0; i < 10; i++) {
                 fw.write("bla bla test\n");
                 Thread.sleep(500);
             }
-        } finally {
-            fw.close();
         }
         Thread.sleep(1000);
-        BufferedReader fr = new BufferedReader(new InputStreamReader(new FileInputStream(tempFile)));
-        try {
+        try (BufferedReader fr = new BufferedReader(new InputStreamReader(new FileInputStream(tempFile)))) {
             String line = fr.readLine();
             while (line != null) {
                 System.out.println(line);
                 line = fr.readLine();
                 Thread.sleep(500);
             }
-        } finally {
-            fr.close();
         }
-       System.out.println(((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime, System.currentTimeMillis(), 1200, 600));
     }
 
 }

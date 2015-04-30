@@ -19,13 +19,18 @@
 package org.spf4j.perf.aspects;
 
 import com.google.common.base.Strings;
+import java.io.File;
 import org.spf4j.perf.impl.RecorderFactory;
 import java.io.IOException;
+import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 import org.spf4j.perf.io.OpenFilesSampler;
 import org.spf4j.perf.memory.MemoryUsageSampler;
 import org.spf4j.perf.memory.TestClass;
+import org.spf4j.tsdb2.TSDBQuery;
+import org.spf4j.tsdb2.TSDBWriter;
+import org.spf4j.tsdb2.avro.TableDef;
 
 /**
  *
@@ -64,7 +69,10 @@ public final class AllocationMonitorAspectTest {
         }
         testAllocInStaticContext();
         TestClass.testAllocInStaticContext();
-        System.out.println(((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime,
-                System.currentTimeMillis(), 1200, 600));
+        final TSDBWriter dbWriter = ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).getDBWriter();
+        dbWriter.flush();
+        File file = dbWriter.getFile();
+        TableDef tableDef = TSDBQuery.getTableDef(file, "heap-used");
+        Assert.assertTrue(tableDef != null);
     }
 }

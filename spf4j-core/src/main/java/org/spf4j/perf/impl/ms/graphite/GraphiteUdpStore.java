@@ -15,6 +15,7 @@ import org.spf4j.base.Strings;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
+import org.spf4j.perf.impl.ms.Id2Info;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
@@ -99,16 +100,16 @@ public final class GraphiteUdpStore implements MeasurementStore {
     }
 
     @Override
-    public void alocateMeasurements(final EntityMeasurementsInfo measurement, final int sampleTimeMillis) {
-        // DO NOTHING.
+    public long alocateMeasurements(final EntityMeasurementsInfo measurement, final int sampleTimeMillis) {
+        return Id2Info.getId(measurement);
     }
 
     @Override
-    public void saveMeasurements(final EntityMeasurementsInfo measurementInfo,
-            final long timeStampMillis, final int sampleTimeMillis, final long... measurements) throws IOException {
+    public void saveMeasurements(final long tableId,
+            final long timeStampMillis, final long... measurements) throws IOException {
 
         try {
-            Template.doOnSupplied(new HandlerImpl(measurements, measurementInfo, timeStampMillis),
+            Template.doOnSupplied(new HandlerImpl(measurements, Id2Info.getInfo(tableId), timeStampMillis),
                     datagramChannelSupplier, 3, 1000, 60000);
         } catch (InterruptedException ex) {
             throw new RuntimeException(ex);

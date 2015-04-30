@@ -17,6 +17,10 @@
  */
 package org.spf4j.perf.impl.ms;
 
+import gnu.trove.map.TLongObjectMap;
+import gnu.trove.map.TObjectLongMap;
+import gnu.trove.map.hash.TLongObjectHashMap;
+import gnu.trove.map.hash.TObjectLongHashMap;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,42 +36,64 @@ import org.spf4j.perf.MeasurementStore;
 public final class MultiStore implements MeasurementStore {
 
     private final MeasurementStore [] stores;
+    private final TLongObjectMap<long []> idToIds;
+    private final TObjectLongMap<EntityMeasurementsInfo> infoToId;
+    private long idSeq;
 
     public MultiStore(final MeasurementStore ... stores) {
         if (stores.length <= 1) {
             throw new IllegalArgumentException("You need to supply more than 1 store, not " + Arrays.toString(stores));
         }
         this.stores = stores;
+        this.idToIds = new TLongObjectHashMap<>();
+        this.infoToId = new TObjectLongHashMap<>();
+        this.idSeq = 1L;
     }
 
 
     @Override
-    public void alocateMeasurements(final EntityMeasurementsInfo measurement,
+    public long alocateMeasurements(final EntityMeasurementsInfo measurement,
             final int sampleTimeMillis) throws IOException {
         IOException ex = null;
-        for (MeasurementStore store : stores) {
-            try {
-                store.alocateMeasurements(measurement, sampleTimeMillis);
-            } catch (IOException e) {
-                if (ex == null) {
-                    ex = e;
-                } else {
-                    ex = Throwables.suppress(e, ex);
+        synchronized (idToIds) {
+            long id = infoToId.get(measurement);
+            if (id <= 0) {
+                long [] ids = new long [stores.length];
+                int i = 0;
+                for (MeasurementStore store : stores) {
+                    try {
+                        ids[i++] = store.alocateMeasurements(measurement, sampleTimeMillis);
+                    } catch (IOException e) {
+                        if (ex == null) {
+                            ex = e;
+                        } else {
+                            ex = Throwables.suppress(e, ex);
+                        }
+                    }
                 }
+                if (ex != null) {
+                    throw ex;
+                }
+                id = idSeq++;
+                infoToId.put(measurement, id);
+                idToIds.put(id, ids);
             }
-        }
-        if (ex != null) {
-            throw ex;
+            return id;
         }
     }
 
     @Override
-    public void saveMeasurements(final EntityMeasurementsInfo measurementInfo,
-            final long timeStampMillis, final int sampleTimeMillis, final long... measurements) throws IOException {
+    public void saveMeasurements(final long tableId,
+            final long timeStampMillis,  final long... measurements) throws IOException {
                 IOException ex = null;
+        long [] ids;
+        synchronized (idToIds) {
+            ids = idToIds.get(tableId);
+        }
+        int i = 0;
         for (MeasurementStore store : stores) {
             try {
-                store.saveMeasurements(measurementInfo, timeStampMillis, sampleTimeMillis, measurements);
+                store.saveMeasurements(ids[i++], timeStampMillis, measurements);
             } catch (IOException e) {
                 if (ex == null) {
                     ex = e;
@@ -122,5 +148,5 @@ public final class MultiStore implements MeasurementStore {
     public List<MeasurementStore> getStores() {
         return Collections.unmodifiableList(Arrays.asList(stores));
     }
-    
+
 }

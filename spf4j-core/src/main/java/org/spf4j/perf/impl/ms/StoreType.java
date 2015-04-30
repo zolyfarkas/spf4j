@@ -36,7 +36,13 @@ import org.spf4j.recyclable.ObjectCreationException;
 public enum StoreType {
     TSDB(new StoreFactory() {
         @Override
-        public MeasurementStore create(final String config) throws IOException {
+        public MeasurementStore create(final String pconfig) throws IOException {
+            String config;
+            if (!pconfig.endsWith("tsdb2"))  {
+                config = pconfig + "tsdb2";
+            } else {
+                config = pconfig;
+            }
             return new TSDBMeasurementStore(config);
         }
     }),

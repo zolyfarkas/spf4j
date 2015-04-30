@@ -19,6 +19,7 @@ package org.spf4j.perf.aspects;
 
 import org.spf4j.perf.impl.RecorderFactory;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -28,10 +29,14 @@ import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
+import org.spf4j.tsdb2.TSDBQuery;
+import org.spf4j.tsdb2.TSDBWriter;
+import org.spf4j.tsdb2.avro.TableDef;
 
 /**
  *
@@ -39,13 +44,13 @@ import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
  */
 public final class NetworkMonitorAspectTest {
 
-    
+
     private final long startTime = System.currentTimeMillis();
-     
+
     private volatile boolean terminated = false;
 
     private final CountDownLatch latch = new CountDownLatch(1);
-    
+
     public void runServer() throws IOException {
         ServerSocket server;
         try {
@@ -84,7 +89,7 @@ public final class NetworkMonitorAspectTest {
     public void testNetworkUsageRecording() throws Exception {
         System.setProperty("perf.network.sampleTimeMillis", "1000");
         Future<String> serverFuture = DefaultExecutor.INSTANCE.submit(new AbstractRunnable() {
-            
+
             @Override
             public void doRun() throws Exception {
                 runServer();
@@ -101,9 +106,6 @@ public final class NetworkMonitorAspectTest {
         terminated = true;
         clientTest();
         serverFuture.get();
-        
-        System.out.println(((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime,
-                System.currentTimeMillis(), 1200, 600));
     }
 
 

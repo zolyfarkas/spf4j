@@ -17,6 +17,8 @@
  */
 package org.spf4j.perf.impl;
 
+import gnu.trove.map.TObjectLongMap;
+import gnu.trove.map.hash.TObjectLongHashMap;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -58,6 +60,10 @@ public final class ScalableMeasurementRecorderSource implements
     private final ScheduledFuture<?> samplingFuture;
     private final MeasurementProcessor processorTemplate;
 
+    private final TObjectLongMap<EntityMeasurementsInfo> tableIds;
+
+    private final AbstractRunnable persister;
+
     ScalableMeasurementRecorderSource(final MeasurementProcessor processor,
             final int sampleTimeMillis, final MeasurementStore database) {
         this.processorTemplate = processor;
@@ -74,7 +80,8 @@ public final class ScalableMeasurementRecorderSource implements
             }
 
         };
-        final AbstractRunnable persister = new AbstractRunnable(true) {
+        tableIds = new TObjectLongHashMap<>();
+        persister = new AbstractRunnable(true) {
             private volatile long lastRun = 0;
 
             @Override
@@ -85,8 +92,15 @@ public final class ScalableMeasurementRecorderSource implements
                     for (EntityMeasurements m
                             : ScalableMeasurementRecorderSource.this.getEntitiesMeasurementsAndReset().values()) {
                         final EntityMeasurementsInfo info = m.getInfo();
-                        database.alocateMeasurements(info, sampleTimeMillis);
-                        database.saveMeasurements(info, currentTime, sampleTimeMillis, m.getMeasurementsAndReset());
+                        long tableId;
+                        synchronized (tableIds) {
+                            tableId = tableIds.get(info);
+                            if (tableId == 0) {
+                                tableId = database.alocateMeasurements(info, sampleTimeMillis);
+                                tableIds.put(info, tableId);
+                            }
+                        }
+                        database.saveMeasurements(tableId, currentTime, m.getMeasurementsAndReset());
                     }
                 } else {
                     LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
@@ -99,7 +113,6 @@ public final class ScalableMeasurementRecorderSource implements
 
             @Override
             public void doRun() throws Exception {
-                persister.doRun();
                 close();
             }
         });
@@ -196,9 +209,10 @@ public final class ScalableMeasurementRecorderSource implements
     @Override
     public void close() {
         samplingFuture.cancel(false);
+        persister.run();
     }
 
-    @JmxExport
+    @JmxExport(description = "measurements as csv")
     public String getMeasurementsAsString() {
         StringWriter sw = new StringWriter(128);
         Map<Object, EntityMeasurements> entitiesMeasurements = getEntitiesMeasurements();

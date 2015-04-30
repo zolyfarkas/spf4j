@@ -6,7 +6,7 @@ protocol Tsdb2 {
         /** file content schema */
         string contentSchema;
         /** file description */
-        string description;
+        string description = "";
     }
 
     enum Type {LONG, DOUBLE}
@@ -20,11 +20,13 @@ protocol Tsdb2 {
         /** unit of measurement for the data */
         string unitOfMeasurement;
         /** Column description */
-        string description;
+        string description = "";
     }
 
     /** table definition, name, column names and descriptions */
     record TableDef {
+        /** def id */
+        long id = -1;
         /** table name */
         string name;
         /** table description */
@@ -40,7 +42,7 @@ protocol Tsdb2 {
         /** row relative timestamp */
         int relTimeStamp;
         /** the file pointer where the Table definition for the data is */
-        long tableDefPtr;
+        long tableDefId;
         /** the row data */
         array<long> data;
     }

@@ -1,4 +1,20 @@
-
+ /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 package org.spf4j.tsdb2;
 
 import com.google.common.io.ByteStreams;
@@ -113,9 +129,9 @@ public final class TSDBWriter implements Closeable, Flushable {
 
 
     public synchronized long writeTableDef(final TableDef tableDef) throws IOException {
-        flush();
         final long position = raf.getFilePointer();
         bab.reset();
+        tableDef.id = position;
         recordWriter.write(tableDef, encoder);
         raf.write(bab.getBuffer(), 0, bab.size());
         return position;
@@ -130,7 +146,7 @@ public final class TSDBWriter implements Closeable, Flushable {
         long baseTs = writeBlock.baseTimestamp;
         DataRow row = new DataRow();
         row.relTimeStamp = (int) (timestamp - baseTs);
-        row.setTableDefPtr(tableId);
+        row.tableDefId = tableId;
         row.setData(Longs.asList(data));
         this.writeBlock.values.add(row);
     }
@@ -181,8 +197,8 @@ public final class TSDBWriter implements Closeable, Flushable {
             raf.writeLong(filePointer);
             raf.seek(filePointer);
             writeBlock.values.clear();
+            encoder.flush();
         }
-        encoder.flush();
         channel.force(true);
     }
 

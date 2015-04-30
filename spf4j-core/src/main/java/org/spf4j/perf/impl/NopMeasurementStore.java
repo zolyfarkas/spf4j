@@ -11,13 +11,13 @@ import org.spf4j.perf.MeasurementStore;
 public final class NopMeasurementStore implements MeasurementStore {
 
     @Override
-    public void alocateMeasurements(final EntityMeasurementsInfo measurement, final int sampleTimeMillis) {
+    public long alocateMeasurements(final EntityMeasurementsInfo measurement, final int sampleTimeMillis) {
         // Do nothing
+        return -1;
     }
 
     @Override
-    public void saveMeasurements(final EntityMeasurementsInfo measurementInfo, final long timeStampMillis,
-            final int sampleTimeMillis, final long... measurements) {
+    public void saveMeasurements(final long tableId, final long timeStampMillis, final long... measurements) {
         // Do nothing
     }
 

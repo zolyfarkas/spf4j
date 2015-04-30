@@ -41,7 +41,6 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.joda.time.DateTime;
 import org.spf4j.base.Pair;
-import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 import org.spf4j.perf.tsdb.TSTable;
 import org.spf4j.perf.tsdb.TimeSeriesDatabase;
 
@@ -269,7 +268,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         if (selectionPaths == null) {
             return Collections.EMPTY_LIST;
         }
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         for (TreePath path : selectionPaths) {
             Object[] pathArr = path.getPath();
             if (pathArr.length < 2) {
@@ -297,7 +296,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
         TSTable info = tsDb.getTSTable(tableName);
          long startTime = ((Date) startDate.getValue()).getTime();
          long endTime = ((Date) endDate.getValue()).getTime();
-        if (TSDBMeasurementStore.canGenerateHeatChart(info)) {
+        if (TimeSeriesDatabase.canGenerateHeatChart(info)) {
             JFreeChart chart = tsDb.createHeatJFreeChart(info.getTableName(),
                     startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);
@@ -310,7 +309,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
             pannel.setZoomOutFactor(1);
             content.add(pannel);
         }
-        if (TSDBMeasurementStore.canGenerateMinMaxAvgCount(info)) {
+        if (TimeSeriesDatabase.canGenerateMinMaxAvgCount(info)) {
             JFreeChart chart = tsDb.createMinMaxAvgJFreeChart(info.getTableName(),
                     startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);
@@ -318,7 +317,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
             content.add(pannel);
 
         }
-        if (TSDBMeasurementStore.canGenerateCount(info)) {
+        if (TimeSeriesDatabase.canGenerateCount(info)) {
             JFreeChart chart = tsDb.createCountJFreeChart(info.getTableName(),
                     startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);

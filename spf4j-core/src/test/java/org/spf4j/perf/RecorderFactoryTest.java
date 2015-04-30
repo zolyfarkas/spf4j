@@ -19,6 +19,7 @@ package org.spf4j.perf;
 
 import org.spf4j.perf.impl.RecorderFactory;
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -26,6 +27,10 @@ import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
+import org.spf4j.perf.tsdb.TimeSeries;
+import org.spf4j.tsdb2.TSDBQuery;
+import org.spf4j.tsdb2.TSDBWriter;
+import org.spf4j.tsdb2.avro.TableDef;
 
 /**
  *
@@ -33,10 +38,10 @@ import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
  */
 @SuppressWarnings("SleepWhileInLoop")
 public final class RecorderFactoryTest {
-    
+
 
     private final long startTime = System.currentTimeMillis();
-    
+
         @BeforeClass
     public static void init() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -48,15 +53,15 @@ public final class RecorderFactoryTest {
             }
         });
     }
-    
-    
+
+
     /**
      * Test of createScalableQuantizedRecorder method, of class RecorderFactory.
      */
     @Test
     public void testCreateScalableQuantizedRecorder() throws IOException, InterruptedException {
         System.out.println("createScalableQuantizedRecorder");
-        Object forWhat = "test1";
+        String forWhat = "test1";
         String unitOfMeasurement = "ms";
         int sampleTime = 1000;
         int factor = 10;
@@ -69,11 +74,8 @@ public final class RecorderFactoryTest {
             result.record(i);
             Thread.sleep(20);
         }
-        long endTime = System.currentTimeMillis();
-        System.out.println(
-                ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime, endTime, 1200, 600));
         ((Closeable) result).close();
-        
+        validateData(forWhat, 124750);
     }
 
     /**
@@ -95,19 +97,16 @@ public final class RecorderFactoryTest {
             result.getRecorder("X" + i % 2).record(i);
             Thread.sleep(1);
         }
-        long endTime = System.currentTimeMillis();
-        System.out.println(
-                ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime, endTime, 1200, 600));
         ((Closeable) result).close();
     }
-    
-    
-    
-    
+
+
+
+
     @Test
     public void testOutofQuantizedZoneValues() throws IOException, InterruptedException {
         System.out.println("testOutofQuantizedZoneValues");
-        Object forWhat = "largeVals";
+        String forWhat = "largeVals";
         String unitOfMeasurement = "ms";
         int sampleTime = 1000;
         int factor = 10;
@@ -120,21 +119,19 @@ public final class RecorderFactoryTest {
             result.record(10000);
             Thread.sleep(20);
         }
-        long endTime = System.currentTimeMillis();
-        System.out.println(
-                ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime, endTime, 1200, 1600));
         ((Closeable) result).close();
-        
+        validateData(forWhat, 5000000);
+
     }
-    
-    
+
+
        /**
      * Test of createScalableQuantizedRecorderSource method, of class RecorderFactory.
      */
     @Test
     public void testCreateScalableCountingRecorderSource() throws IOException, InterruptedException {
         System.out.println("createScalableCountingRecorderSource");
-        Object forWhat = "counters";
+        String forWhat = "counters";
         String unitOfMeasurement = "counts";
         int sampleTime = 1000;
         MeasurementRecorderSource result = RecorderFactory.createScalableCountingRecorderSource(
@@ -143,15 +140,27 @@ public final class RecorderFactoryTest {
             result.getRecorder("X" + i % 2).record(1);
             Thread.sleep(1);
         }
-        long endTime = System.currentTimeMillis();
-        System.out.println(
-                ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).generateCharts(startTime, endTime, 1200, 600));
         ((Closeable) result).close();
+        validateData("(" + forWhat + ",X1)" , 2500);
     }
-    
-    
+
+    private void validateData(final String forWhat, final long expectedValue) throws IOException {
+        TSDBWriter dbWriter = ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).getDBWriter();
+        dbWriter.flush();
+        final File file = dbWriter.getFile();
+        TableDef tableDef = TSDBQuery.getTableDef(file, forWhat);
+        TimeSeries timeSeries = TSDBQuery.getTimeSeries(file, tableDef.id, 0, Long.MAX_VALUE);
+        long sum = 0;
+        long[][] values = timeSeries.getValues();
+        for (long [] row : values) {
+            sum += row[0];
+        }
+        Assert.assertEquals(expectedValue, sum);
+    }
+
+
     public static void main(final String[] args) throws IOException, InterruptedException {
        new RecorderFactoryTest().testCreateScalableQuantizedRecorder();
     }
-    
+
 }

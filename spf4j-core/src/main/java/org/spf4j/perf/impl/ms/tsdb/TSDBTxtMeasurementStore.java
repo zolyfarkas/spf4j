@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.JmxExport;
+import org.spf4j.perf.impl.ms.Id2Info;
 
 /**
  * File based store implementation.
@@ -43,11 +44,11 @@ public final class TSDBTxtMeasurementStore
     implements MeasurementStore {
 
     private static final Logger LOG = LoggerFactory.getLogger(TSDBTxtMeasurementStore.class);
-    
+
     private final BufferedWriter writer;
-    
+
     private final String fileName;
-    
+
     private static final Interner<String> INTERNER = Interners.newStrongInterner();
 
     public TSDBTxtMeasurementStore(final String fileName) throws IOException {
@@ -56,22 +57,23 @@ public final class TSDBTxtMeasurementStore
     }
 
     @Override
-    public void alocateMeasurements(final EntityMeasurementsInfo measurement,
+    public long alocateMeasurements(final EntityMeasurementsInfo measurement,
                                     final int sampleTimeMillis) {
-        //nothing to allocate
+        return Id2Info.getId(measurement);
     }
 
     @Override
-    public void saveMeasurements(final EntityMeasurementsInfo measurementInfo,
-            final long timeStampMillis, final int sampleTimeMillis, final long ... measurements)
+    public void saveMeasurements(final long tableId,
+            final long timeStampMillis, final long ... measurements)
             throws IOException {
+        EntityMeasurementsInfo measurementInfo = Id2Info.getInfo(tableId);
         String groupName = measurementInfo.getMeasuredEntity().toString();
         synchronized (fileName) {
             Csv.writeCsvElement(groupName, writer);
             writer.write(',');
             writer.write(Long.toString(timeStampMillis));
-            writer.write(',');
-            writer.write(Integer.toString(sampleTimeMillis));
+//            writer.write(',');
+//            writer.write(Integer.toString(sampleTimeMillis));
             for (int i = 0; i < measurements.length; i++) {
                 String measurementName = measurementInfo.getMeasurementName(i);
                 writer.write(',');
@@ -99,5 +101,5 @@ public final class TSDBTxtMeasurementStore
     public String toString() {
         return "TSDBTxtMeasurementStore{" + "fileName=" + fileName + '}';
     }
-    
+
 }

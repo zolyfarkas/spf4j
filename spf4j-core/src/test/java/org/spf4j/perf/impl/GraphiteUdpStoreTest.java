@@ -51,39 +51,39 @@ public final class GraphiteUdpStoreTest {
                 "TSDB@" + tsdb.getAbsolutePath() + "," + "TSDB_TXT@" + tsdbtxt.getAbsolutePath()
                         + ",GRAPHITE_UDP@127.0.0.1:1976");
     }
-    
+
     @Test
     public void testGraphiteUdpStore() throws IOException, ObjectCreationException {
 
         final GraphiteUdpStore store = new GraphiteUdpStore("127.0.0.1", 1976);
-        store.saveMeasurements(new EntityMeasurementsInfoImpl("bla", "ms",
+        long id = store.alocateMeasurements(new EntityMeasurementsInfoImpl("bla", "ms",
                 new String[]{"val1", "val2", "val3"},
-                new String[]{"ms", "ms", "ms"}),
-                System.currentTimeMillis(), 0, 1L, 2L, 3L);
+                new String[]{"ms", "ms", "ms"}), 0);
+        store.saveMeasurements(id, 1L, 2L, 3L);
         System.out.println("measurements sent");
     }
-    
-    
+
+
         @Test
     public void testStore() throws InterruptedException {
-        
+
         MeasurementRecorder recorder = RecorderFactory.createScalableQuantizedRecorder("test measurement",
                 "ms", 1000, 10, 0, 6, 10);
-        
+
         for (int i = 0; i < 100; i++) {
             recorder.record(i);
             Thread.sleep(100);
         }
 
     }
-    
+
 
     private static volatile boolean terminated = false;
     private static volatile Future<?> server;
-    
+
     @BeforeClass
     public static void runUdpServer() throws IOException {
-        
+
         server = org.spf4j.concurrent.DefaultExecutor.INSTANCE.submit(new AbstractRunnable(true) {
 
             @Override
@@ -104,12 +104,12 @@ public final class GraphiteUdpStoreTest {
         });
 
     }
-    
+
     @AfterClass
     public static void stopUdpServer() {
         terminated = true;
         server.cancel(true);
     }
-    
+
 
 }

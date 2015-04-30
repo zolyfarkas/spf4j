@@ -52,6 +52,7 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
     private final ThreadLocal<MeasurementProcessor> threadLocalRecorder;
     private final ScheduledFuture<?> samplingFuture;
     private final MeasurementProcessor processorTemplate;
+    private final AbstractRunnable persister;
 
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
     ScalableMeasurementRecorder(final MeasurementProcessor processor, final int sampleTimeMillis,
@@ -69,12 +70,13 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
                 return result;
             }
         };
+        final long tableId;
         try {
-            measurementStore.alocateMeasurements(processor.getInfo(), sampleTimeMillis);
+           tableId = measurementStore.alocateMeasurements(processor.getInfo(), sampleTimeMillis);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
-        final AbstractRunnable persister = new AbstractRunnable(true) {
+        persister = new AbstractRunnable(true) {
             private volatile long lastRun = 0;
 
             @Override
@@ -84,8 +86,7 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
                     lastRun = currentTime;
                     final long[] measurements = ScalableMeasurementRecorder.this.getMeasurementsAndReset();
                     if (measurements != null) {
-                        measurementStore.saveMeasurements(ScalableMeasurementRecorder.this.getInfo(),
-                            currentTime, sampleTimeMillis, measurements);
+                        measurementStore.saveMeasurements(tableId, currentTime, measurements);
                     }
                 } else {
                     LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
@@ -98,7 +99,6 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
 
             @Override
             public void doRun() throws Exception {
-                persister.doRun();
                 close();
             }
         });
@@ -125,7 +125,7 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
         return (result == null) ? null : result.getMeasurements();
     }
 
-    @JmxExport
+    @JmxExport(description = "measurements as csv")
     public String getMeasurementsAsString() {
         StringWriter sw = new StringWriter(128);
         EntityMeasurementsInfo info = getInfo();
@@ -160,6 +160,7 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
     @Override
     public void close() {
         samplingFuture.cancel(false);
+        persister.run();
     }
 
     @Override
