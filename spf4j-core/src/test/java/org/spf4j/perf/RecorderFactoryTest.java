@@ -27,7 +27,7 @@ import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
-import org.spf4j.perf.tsdb.TimeSeries;
+import org.spf4j.tsdb2.TimeSeries;
 import org.spf4j.tsdb2.TSDBQuery;
 import org.spf4j.tsdb2.TSDBWriter;
 import org.spf4j.tsdb2.avro.TableDef;

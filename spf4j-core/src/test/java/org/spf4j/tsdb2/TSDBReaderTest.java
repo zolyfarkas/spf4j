@@ -7,7 +7,6 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.Either;
-import org.spf4j.perf.tsdb.TimeSeries;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.DataBlock;
 import org.spf4j.tsdb2.avro.TableDef;

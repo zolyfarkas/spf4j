@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
 
 /**
  *
@@ -157,10 +158,15 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    public void registerJmx() {
+        Registry.export("org.spf4j.perf.recorders", processorTemplate.getInfo().getMeasuredEntity().toString(), this);
+    }
+
     @Override
     public void close() {
         samplingFuture.cancel(false);
         persister.run();
+        Registry.unregister("org.spf4j.perf.recorders", processorTemplate.getInfo().getMeasuredEntity().toString());
     }
 
     @Override

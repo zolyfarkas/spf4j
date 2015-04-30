@@ -38,7 +38,7 @@ import org.spf4j.jmx.Registry;
  *
  * @author zoly
  */
-public final class OpenFilesSampler {
+  public final class OpenFilesSampler {
 
     private OpenFilesSampler() { }
 
@@ -54,6 +54,8 @@ public final class OpenFilesSampler {
     private static final Logger LOG = LoggerFactory.getLogger(OpenFilesSampler.class);
 
 
+    private static volatile String lastWarnLsof = "";
+
     static {
         java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {
             @Override
@@ -63,6 +65,8 @@ public final class OpenFilesSampler {
         }, "shutdown-memory-sampler"));
         Registry.export(OpenFilesSampler.class);
     }
+
+
 
     public static void start(final long sampleTimeMillis) {
         start(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
@@ -76,6 +80,12 @@ public final class OpenFilesSampler {
                 Runtime.Ulimit.MAX_NR_OPENFILES, shutdownOnError);
     }
 
+    @JmxExport
+    public static String getWarnLsofDetail() {
+        return lastWarnLsof;
+    }
+
+
     public static synchronized void start(final long sampleTimeMillis,
             final int warnThreshold, final int errorThreshold, final boolean shutdownOnError) {
         if (samplingFuture == null) {
@@ -85,14 +95,16 @@ public final class OpenFilesSampler {
                 public void doRun() throws Exception {
                     int nrOpenFiles = Runtime.getNrOpenFiles();
                     if (nrOpenFiles > errorThreshold) {
+                        lastWarnLsof = Runtime.getLsofOutput();
                         LOG.error("Nr open files is {} and exceeds error threshold {}, detail:\n{}",
-                                nrOpenFiles, errorThreshold, Runtime.getLsofOutput());
+                                nrOpenFiles, errorThreshold, lastWarnLsof);
                         if (shutdownOnError) {
                             Runtime.goDownWithError(null, 666);
                         }
                     } else if (nrOpenFiles > warnThreshold) {
+                        lastWarnLsof = Runtime.getLsofOutput();
                         LOG.warn("Nr open files is {} and exceeds warn threshold {}, detail:\n{} ",
-                                nrOpenFiles, warnThreshold, Runtime.getLsofOutput());
+                                nrOpenFiles, warnThreshold, lastWarnLsof);
                         Runtime.gc(60000); // this is to ameliorate a leak.
                     }
                     NR_OPEN_FILES.record(nrOpenFiles);

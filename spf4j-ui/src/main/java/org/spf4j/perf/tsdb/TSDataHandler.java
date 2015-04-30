@@ -18,6 +18,8 @@
 
 package org.spf4j.perf.tsdb;
 
+import org.spf4j.tsdb2.TimeSeries;
+
 public interface TSDataHandler {
 
     void newTable(String tableName, String[] columnNames);

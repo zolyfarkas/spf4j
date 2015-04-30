@@ -35,6 +35,7 @@ import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.base.Pair;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
 import org.spf4j.perf.EntityMeasurements;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.EntityMeasurementsSource;
@@ -204,12 +205,17 @@ public final class ScalableMeasurementRecorderSource implements
         return result;
     }
 
-
+    public void registerJmx() {
+        Registry.export("org.spf4j.perf.recorders",
+                this.processorTemplate.getInfo().getMeasuredEntity().toString(), this);
+    }
 
     @Override
     public void close() {
         samplingFuture.cancel(false);
         persister.run();
+        Registry.unregister("org.spf4j.perf.recorders",
+                this.processorTemplate.getInfo().getMeasuredEntity().toString());
     }
 
     @JmxExport(description = "measurements as csv")

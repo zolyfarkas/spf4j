@@ -17,6 +17,7 @@
  */
 package org.spf4j.perf.tsdb;
 
+import org.spf4j.tsdb2.TimeSeries;
 import com.google.common.base.Charsets;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Interner;

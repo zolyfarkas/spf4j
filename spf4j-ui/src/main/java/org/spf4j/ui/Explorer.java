@@ -177,6 +177,8 @@ public class Explorer extends javax.swing.JFrame {
         final String absolutePath = file.getAbsolutePath();
         if (fileName.endsWith("tsdb")) {
             frame = new TSDBViewJInternalFrame(absolutePath);
+        } else if (fileName.endsWith("tsdb2")) {
+            frame = new TSDB2ViewJInternalFrame(absolutePath);
         } else if (fileName.endsWith("ssdump")) {
             frame = new StackDumpJInternalFrame(absolutePath, true);
             frame.setVisible(true);
@@ -197,7 +199,7 @@ public class Explorer extends javax.swing.JFrame {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -249,7 +251,7 @@ public class Explorer extends javax.swing.JFrame {
                 return true;
             } else if (f.isFile()) {
                 String name = f.getName();
-                return (name.endsWith("tsdb") || name.endsWith("ssdump"));
+                return (name.endsWith("tsdb") || name.endsWith("tsdb2") || name.endsWith("ssdump"));
             } else {
                 return false;
             }

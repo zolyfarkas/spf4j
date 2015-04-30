@@ -30,7 +30,6 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.spf4j.io.Csv;
-import org.spf4j.jmx.Registry;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.MeasurementStore;
@@ -127,26 +126,26 @@ public final class RecorderFactory {
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis,
             final int factor, final int lowerMagnitude,
             final int higherMagnitude, final int quantasPerMagnitude) {
-        MeasurementRecorder mr = new ScalableMeasurementRecorder(new QuantizedRecorder(forWhat, "",
+        ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new QuantizedRecorder(forWhat, "",
                 unitOfMeasurement, factor, lowerMagnitude, higherMagnitude,
                 quantasPerMagnitude), sampleTimeMillis, MEASUREMENT_STORE);
-        Registry.export("org.spf4j.perf.recorders", forWhat.toString(), mr);
+        mr.registerJmx();
         return mr;
     }
 
     public static MeasurementRecorder createScalableCountingRecorder(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-        MeasurementRecorder mr = new ScalableMeasurementRecorder(new CountingRecorder(forWhat, "",
+        ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new CountingRecorder(forWhat, "",
                 unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
-        Registry.export("org.spf4j.perf.recorders", forWhat.toString(), mr);
+        mr.registerJmx();
         return mr;
     }
 
     public static MeasurementRecorder createScalableMinMaxAvgRecorder(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-        MeasurementRecorder mr = new ScalableMeasurementRecorder(new MinMaxAvgRecorder(forWhat, "",
+        ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new MinMaxAvgRecorder(forWhat, "",
                 unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
-        Registry.export("org.spf4j.perf.recorders", forWhat.toString(), mr);
+        mr.registerJmx();
         return mr;
     }
 
@@ -154,40 +153,40 @@ public final class RecorderFactory {
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis,
             final int factor, final int lowerMagnitude,
             final int higherMagnitude, final int quantasPerMagnitude) {
-        MeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(new QuantizedRecorder(forWhat, "",
+        ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(new QuantizedRecorder(forWhat, "",
                 unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude),
                 sampleTimeMillis, MEASUREMENT_STORE);
-        Registry.export("org.spf4j.perf.recorders", forWhat.toString(), mrs);
+        mrs.registerJmx();
         return mrs;
     }
 
     public static MeasurementRecorderSource createScalableCountingRecorderSource(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-        MeasurementRecorderSource mrs =  new ScalableMeasurementRecorderSource(new CountingRecorder(forWhat, "",
+        ScalableMeasurementRecorderSource mrs =  new ScalableMeasurementRecorderSource(new CountingRecorder(forWhat, "",
                 unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
-        Registry.export("org.spf4j.perf.recorders", forWhat.toString(), mrs);
+        mrs.registerJmx();
         return mrs;
     }
 
     public static MeasurementRecorderSource createScalableMinMaxAvgRecorderSource(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-        MeasurementRecorderSource mrs =  new ScalableMeasurementRecorderSource(new MinMaxAvgRecorder(forWhat, "",
+        ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(new MinMaxAvgRecorder(forWhat, "",
                 unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
-        Registry.export("org.spf4j.perf.recorders", forWhat.toString(), mrs);
+        mrs.registerJmx();
         return mrs;
     }
 
     public static MeasurementRecorder createDirectRecorder(final Object forWhat, final String unitOfMeasurement) {
-        MeasurementRecorder mr = new DirectRecorder(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE);
-        Registry.export("org.spf4j.perf.recorders", forWhat.toString(), mr);
+        DirectRecorder mr = new DirectRecorder(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE);
+        mr.registerJmx();
         return mr;
     }
 
     public static MeasurementRecorder createDirectRecorder(final Object forWhat,
             final String unitOfMeasurement, final int sampleTimeMillis) {
-        MeasurementRecorder mr = new DirectRecorder(
+        DirectRecorder mr = new DirectRecorder(
                 forWhat, "", unitOfMeasurement, sampleTimeMillis, MEASUREMENT_STORE);
-        Registry.export("org.spf4j.perf.recorders", forWhat.toString(), mr);
+        mr.registerJmx();
         return mr;
     }
 
@@ -200,18 +199,18 @@ public final class RecorderFactory {
     public static MeasurementRecorder createDirectGraphiteUdpRecorder(final Object forWhat,
             final String unitOfMeasurement,
             final String graphiteHost, final int graphitePort) throws ObjectCreationException {
-        MeasurementRecorder mr = new DirectRecorder(forWhat, "", unitOfMeasurement, 0,
+        DirectRecorder mr = new DirectRecorder(forWhat, "", unitOfMeasurement, 0,
                 new GraphiteUdpStore(graphiteHost, graphitePort));
-        Registry.export("org.spf4j.perf.recorders", forWhat.toString(), mr);
+        mr.registerJmx();
         return mr;
     }
 
     public static MeasurementRecorder createDirectGraphiteTcpRecorder(final Object forWhat,
             final String unitOfMeasurement,
             final String graphiteHost, final int graphitePort) throws ObjectCreationException {
-        MeasurementRecorder mr =  new DirectRecorder(forWhat, "", unitOfMeasurement, 0,
+        DirectRecorder mr =  new DirectRecorder(forWhat, "", unitOfMeasurement, 0,
                 new GraphiteTcpStore(graphiteHost, graphitePort));
-        Registry.export("org.spf4j.perf.recorders", forWhat.toString(), mr);
+        mr.registerJmx();
         return mr;
     }
 }

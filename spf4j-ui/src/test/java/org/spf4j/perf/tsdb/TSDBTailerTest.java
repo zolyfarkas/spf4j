@@ -27,6 +27,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.spf4j.base.MutableHolder;
 import org.spf4j.concurrent.DefaultExecutor;
+import org.spf4j.tsdb2.TimeSeries;
 
 /**
  *
@@ -77,7 +78,7 @@ public final class TSDBTailerTest {
         finish = true;
         int result = tailFut.get();
         Assert.assertEquals(6, result);
-        
+
         final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
         final String jvmPath
                 = System.getProperties().getProperty("java.home")
@@ -94,7 +95,7 @@ public final class TSDBTailerTest {
             }
         });
         Assert.assertEquals(6, (int) result2.get());
-    
+
     }
 
     private Integer doTail(final TimeSeriesDatabase instance) throws IOException {
@@ -125,7 +126,7 @@ public final class TSDBTailerTest {
         final MutableHolder<Integer> counter = new MutableHolder<>(0);
         TimeSeriesDatabase tsdb = new TimeSeriesDatabase(parameters[0]);
         tsdb.tail(10, 0, new TSDataHandler() {
-            
+
             private int count = 0;
 
             @Override

@@ -22,6 +22,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryDecoder;
@@ -55,7 +56,8 @@ public final  class TSDBReader implements Closeable {
         size = dis.readLong();
         header = reader.read(null, decoder);
         recordReader = new SpecificDatumReader<>(
-                new Schema.Parser().parse(header.getContentSchema().toString()));
+                new Schema.Parser().parse(header.getContentSchema()),
+                Schema.createUnion(Arrays.asList(TableDef.SCHEMA$, DataBlock.SCHEMA$)));
     }
 
 

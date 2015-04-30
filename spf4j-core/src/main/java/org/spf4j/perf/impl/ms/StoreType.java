@@ -39,7 +39,7 @@ public enum StoreType {
         public MeasurementStore create(final String pconfig) throws IOException {
             String config;
             if (!pconfig.endsWith("tsdb2"))  {
-                config = pconfig + "tsdb2";
+                config = pconfig + ".tsdb2";
             } else {
                 config = pconfig;
             }

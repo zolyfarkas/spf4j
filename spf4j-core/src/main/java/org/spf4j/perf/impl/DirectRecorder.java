@@ -20,8 +20,10 @@ package org.spf4j.perf.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.beans.ConstructorProperties;
+import java.io.Closeable;
 import java.io.IOException;
 import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
 import org.spf4j.perf.EntityMeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MeasurementRecorder;
@@ -30,7 +32,7 @@ import org.spf4j.perf.MeasurementRecorder;
  *
  * @author zoly
  */
-public final class DirectRecorder implements MeasurementRecorder {
+public final class DirectRecorder implements MeasurementRecorder, Closeable {
 
     private final EntityMeasurementsInfo info;
     private static final String[] MEASUREMENTS = {"value"};
@@ -75,6 +77,16 @@ public final class DirectRecorder implements MeasurementRecorder {
         }
     }
 
+    public void registerJmx() {
+        Registry.export("org.spf4j.perf.recorders", info.getMeasuredEntity().toString(), this);
+    }
+
+
+    @Override
+    public void close() throws IOException {
+        Registry.unregister("org.spf4j.perf.recorders", info.getMeasuredEntity().toString());
+    }
+
     public static final class RecordedValue {
         private final long ts;
         private final long value;
@@ -100,6 +112,7 @@ public final class DirectRecorder implements MeasurementRecorder {
     }
 
     @JmxExport
+    @SuppressFBWarnings("SPP_NON_USEFUL_TOSTRING")
     public String getInfo() {
         return info.toString();
     }

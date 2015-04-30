@@ -1,5 +1,5 @@
 
-package org.spf4j.perf.tsdb;
+package org.spf4j.tsdb2;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;

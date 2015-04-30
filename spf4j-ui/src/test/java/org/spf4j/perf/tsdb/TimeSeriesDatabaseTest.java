@@ -21,18 +21,19 @@ import java.io.File;
 import java.util.Arrays;
 import junit.framework.Assert;
 import org.junit.Test;
+import org.spf4j.tsdb2.TimeSeries;
 
 /**
  *
  * @author zoly
  */
 public final class TimeSeriesDatabaseTest {
-    
+
     public TimeSeriesDatabaseTest() {
     }
 
     private static final String FILE_NAME = System.getProperty("java.io.tmpdir") + "/testdb.tsdb";
-    
+
     /**
      * Test of close method, of class TimeSeriesDatabase.
      */
@@ -53,7 +54,7 @@ public final class TimeSeriesDatabaseTest {
             instance.addTSTable("gr2", new byte []{}, 5, new String[] {"a", "b"}, new byte [][] {});
             instance.write(System.currentTimeMillis(), "gr2",  new long[] {7, 8});
             instance.flush();
-            
+
             instance.addTSTable("gr3", new byte []{}, 5, new String[] {"a", "b"}, new byte [][] {});
             instance.write(System.currentTimeMillis(), "gr3",  new long[] {7, 8});
             Thread.sleep(5);
@@ -70,16 +71,16 @@ public final class TimeSeriesDatabaseTest {
             Assert.assertEquals(10, readAll.getValues()[1][1]);
             System.out.println(readAll);
         }
-        
+
         TimeSeriesDatabase instanceRead = new TimeSeriesDatabase(FILE_NAME, null);
-        
+
         System.out.println(instanceRead.getTSTables());
         Assert.assertEquals(3, instanceRead.getTSTables().size());
         instanceRead.writeCsvTable("gr1", File.createTempFile("test", ".csv"));
         instanceRead.writeCsvTables(Arrays.asList("gr1", "gr2", "gr3"), File.createTempFile("testAll", ".csv"));
-        
+
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testWriteBadTSDB() throws Exception {
         System.out.println("testWriteBadTSDB");
@@ -90,6 +91,6 @@ public final class TimeSeriesDatabaseTest {
     }
 
 
-    
+
 
 }
