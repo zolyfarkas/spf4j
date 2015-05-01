@@ -22,13 +22,23 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.Arrays;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.spf4j.base.Either;
+import org.spf4j.base.Handler;
+import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.io.MemorizingBufferedInputStream;
 import org.spf4j.tsdb2.avro.DataBlock;
 import org.spf4j.tsdb2.avro.Header;
@@ -42,11 +52,14 @@ public final  class TSDBReader implements Closeable {
 
     private final MemorizingBufferedInputStream bis;
     private final Header header;
-    private final long size;
+    private long size;
     private final BinaryDecoder decoder;
     private final SpecificDatumReader<Object> recordReader;
+    private RandomAccessFile raf;
+    private final File file;
 
     public TSDBReader(final File file, final int bufferSize) throws IOException {
+        this.file = file;
         final FileInputStream fis = new FileInputStream(file);
         bis = new MemorizingBufferedInputStream(fis);
         SpecificDatumReader<Header> reader = new SpecificDatumReader<>(Header.getClassSchema());
@@ -58,6 +71,22 @@ public final  class TSDBReader implements Closeable {
         recordReader = new SpecificDatumReader<>(
                 new Schema.Parser().parse(header.getContentSchema()),
                 Schema.createUnion(Arrays.asList(TableDef.SCHEMA$, DataBlock.SCHEMA$)));
+    }
+
+
+    /**
+     * method useful when implementing tailing.
+     * @return true if size changed.
+     * @throws IOException
+     */
+    public synchronized boolean reReadSize() throws IOException {
+        if (raf == null) {
+            raf = new RandomAccessFile(file, "r");
+        }
+        raf.seek(TSDBWriter.MAGIC.length);
+        long old = size;
+        size = raf.readLong();
+        return size != old;
     }
 
 
@@ -82,15 +111,84 @@ public final  class TSDBReader implements Closeable {
 
     @Override
     public synchronized void close() throws IOException {
-        bis.close();
+        try (InputStream is = bis) {
+            if (raf != null) {
+                raf.close();
+            }
+        }
     }
 
-    public long getSize() {
+    public synchronized long getSize() {
         return size;
     }
 
     public Header getHeader() {
         return header;
     }
+
+    private volatile boolean watch;
+
+    public void stopWatching() {
+        watch =  false;
+    }
+
+
+    //CHECKSTYLE:OFF
+    public synchronized <E extends Exception>  Future<Void> bgWatch(
+            final Handler<Either<TableDef, DataBlock>, E> handler) {
+        //CHECKSTYLE:ON
+        return DefaultExecutor.INSTANCE.submit(new Callable<Void>() {
+
+            @Override
+            public Void call() throws Exception {
+                watch(handler);
+                return null;
+            }
+        });
+    }
+
+    //CHECKSTYLE:OFF
+    public synchronized <E extends Exception>  void watch(final Handler<Either<TableDef, DataBlock>, E> handler)
+            throws IOException, InterruptedException, E {
+        //CHECKSTYLE:ON
+        if (watch) {
+            throw new IllegalStateException("File is already watched " + file);
+        }
+        watch = true;
+        read(handler);
+        final Path path = file.getParentFile().toPath();
+        try (WatchService watchService = path.getFileSystem().newWatchService()) {
+            path.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY, StandardWatchEventKinds.OVERFLOW);
+            do {
+                WatchKey key = watchService.take();
+                if (!key.isValid()) {
+                    key.cancel();
+                    break;
+                }
+                if (!key.pollEvents().isEmpty()) {
+                    if (reReadSize()) {
+                        read(handler);
+                    }
+                }
+                if (!key.reset()) {
+                    key.cancel();
+                    break;
+                }
+            } while (watch);
+        } finally {
+            watch = false;
+        }
+    }
+
+    //CHECKSTYLE:OFF
+    public synchronized <E extends Exception> void read(final Handler<Either<TableDef, DataBlock>, E> handler)
+            throws IOException, E {
+        //CHECKSTYLE:ON
+        Either<TableDef, DataBlock> data;
+        while ((data = read()) != null) {
+            handler.handle(data, Long.MAX_VALUE);
+        }
+    }
+
 
 }
