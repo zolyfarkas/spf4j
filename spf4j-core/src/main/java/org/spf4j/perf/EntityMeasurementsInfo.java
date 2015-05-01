@@ -18,29 +18,31 @@
 package org.spf4j.perf;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
 
 /**
  *
  * @author zoly
  */
+@Immutable
 public interface EntityMeasurementsInfo {
-    
+
     @Nonnull
     Object getMeasuredEntity();
-    
+
     @Nonnull
     String getDescription();
-    
+
     String [] getMeasurementNames();
-    
+
     String [] getMeasurementUnits();
-    
+
     String getMeasurementName(int measurementNr);
-    
+
     String getMeasurementUnit(int measurementNr);
-    
+
     int getMeasurementNr();
-    
+
     int getNumberOfMeasurements();
-    
+
 }

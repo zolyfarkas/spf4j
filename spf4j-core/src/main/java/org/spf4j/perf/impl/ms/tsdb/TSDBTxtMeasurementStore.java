@@ -29,8 +29,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.ThreadSafe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.perf.impl.ms.Id2Info;
@@ -42,8 +40,6 @@ import org.spf4j.perf.impl.ms.Id2Info;
 @ThreadSafe
 public final class TSDBTxtMeasurementStore
     implements MeasurementStore {
-
-    private static final Logger LOG = LoggerFactory.getLogger(TSDBTxtMeasurementStore.class);
 
     private final BufferedWriter writer;
 

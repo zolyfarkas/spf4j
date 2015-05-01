@@ -90,6 +90,9 @@ public final class MultiStore implements MeasurementStore {
         synchronized (idToIds) {
             ids = idToIds.get(tableId);
         }
+        if (ids == null) {
+            throw new IOException("Table id is invalid " + tableId);
+        }
         int i = 0;
         for (MeasurementStore store : stores) {
             try {

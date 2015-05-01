@@ -32,6 +32,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.Either;
@@ -114,6 +116,9 @@ public final class TSDBQuery {
                     long baseTs = right.baseTimestamp;
                     for (DataRow row : right.getValues()) {
                         TableDefEx tdex = id2Def.get(row.tableDefId);
+                        if (tdex == null) {
+                            throw new IOException("Potentially corupted file data row with no tableDef " + row);
+                        }
                         long ts = baseTs + row.relTimeStamp;
                         if (ts < tdex.getStartTime()) {
                             tdex.setStartTime(ts);
@@ -229,13 +234,24 @@ public final class TSDBQuery {
         }
     }
 
-    public static ColumnDef getColumnDef(final TableDef td, final String columnName) {
+    @Nullable
+    public static ColumnDef getColumnDefIfExists(final TableDef td, final String columnName) {
         for (ColumnDef cdef : td.getColumns()) {
             if (Strings.equals(columnName, cdef.getName())) {
                 return cdef;
             }
         }
         return null;
+    }
+
+    @Nonnull
+    public static ColumnDef getColumnDef(final TableDef td, final String columnName) {
+        for (ColumnDef cdef : td.getColumns()) {
+            if (Strings.equals(columnName, cdef.getName())) {
+                return cdef;
+            }
+        }
+        throw new IllegalArgumentException("Column " + columnName + " not found in " + td);
     }
 
 
