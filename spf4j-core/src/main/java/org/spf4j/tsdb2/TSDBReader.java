@@ -17,6 +17,8 @@
  */
 package org.spf4j.tsdb2;
 
+import com.sun.nio.file.SensitivityWatchEventModifier;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.File;
@@ -26,11 +28,13 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryDecoder;
@@ -48,6 +52,7 @@ import org.spf4j.tsdb2.avro.TableDef;
  *
  * @author zoly
  */
+@SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
 public final  class TSDBReader implements Closeable {
 
     private final MemorizingBufferedInputStream bis;
@@ -135,32 +140,60 @@ public final  class TSDBReader implements Closeable {
 
     //CHECKSTYLE:OFF
     public synchronized <E extends Exception>  Future<Void> bgWatch(
-            final Handler<Either<TableDef, DataBlock>, E> handler) {
+            final Handler<Either<TableDef, DataBlock>, E> handler,
+            final EventSensitivity es) {
         //CHECKSTYLE:ON
         return DefaultExecutor.INSTANCE.submit(new Callable<Void>() {
 
             @Override
             public Void call() throws Exception {
-                watch(handler);
+                watch(handler, es);
                 return null;
             }
         });
     }
 
+
+    public enum EventSensitivity {
+        HIGH, MEDIUM, LOW
+    }
+
+
     //CHECKSTYLE:OFF
-    public synchronized <E extends Exception>  void watch(final Handler<Either<TableDef, DataBlock>, E> handler)
+    public synchronized <E extends Exception>  void watch(final Handler<Either<TableDef, DataBlock>, E> handler,
+            final EventSensitivity es)
             throws IOException, InterruptedException, E {
         //CHECKSTYLE:ON
         if (watch) {
             throw new IllegalStateException("File is already watched " + file);
         }
+        SensitivityWatchEventModifier sensitivity;
+        switch (es) {
+            case LOW:
+                sensitivity = SensitivityWatchEventModifier.LOW;
+                break;
+            case MEDIUM:
+                sensitivity = SensitivityWatchEventModifier.MEDIUM;
+                break;
+            case HIGH:
+                sensitivity = SensitivityWatchEventModifier.HIGH;
+                break;
+            default:
+                throw new UnsupportedOperationException("Unsupported sensitivity " + es);
+        }
+
         watch = true;
         read(handler);
         final Path path = file.getParentFile().toPath();
         try (WatchService watchService = path.getFileSystem().newWatchService()) {
-            path.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY, StandardWatchEventKinds.OVERFLOW);
+            path.register(watchService, new WatchEvent.Kind[] {StandardWatchEventKinds.ENTRY_MODIFY,
+                StandardWatchEventKinds.OVERFLOW
+            }, sensitivity);
             do {
-                WatchKey key = watchService.take();
+                WatchKey key = watchService.poll(1000, TimeUnit.MILLISECONDS);
+                if (key == null) {
+                    continue;
+                }
                 if (!key.isValid()) {
                     key.cancel();
                     break;

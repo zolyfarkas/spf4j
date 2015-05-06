@@ -35,12 +35,11 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.IntMath;
-import org.spf4j.base.MutableHolder;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 import org.spf4j.perf.memory.GCUsageSampler;
-import org.spf4j.stackmonitor.proto.Converter;
+import org.spf4j.ssdump2.Converter;
 
 /**
  * Utility to sample stack traces.
@@ -187,19 +186,18 @@ public final class Sampler {
     public synchronized String dumpToFile(
             @JmxExport(value = "fileName", description = "the file name to save to")
             @Nullable final String id) throws IOException {
-        final MutableHolder<String> result = new MutableHolder<>();
         SampleNode collected = stackCollector.clear();
         if (collected != null) {
             String fileName = filePrefix + "_" + ((id == null) ? "" : id + "_")
                     + TS_FORMAT.print(lastDumpTime) + "_"
-                    + TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump";
-            Converter.saveToFile(fileName, collected);
+                    + TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump2";
+            Converter.save(new File(fileName), collected);
             lastDumpTime = System.currentTimeMillis();
-            result.setValue(fileName);
+            return fileName;
+        } else {
+            return null;
         }
-        return result.getValue();
     }
-
 
     @JmxExport(description = "stop stack sampling")
     public synchronized void stop() throws InterruptedException, ExecutionException, TimeoutException {

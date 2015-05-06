@@ -17,6 +17,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,7 +33,7 @@ import org.openjdk.jmh.results.Aggregator;
 import org.openjdk.jmh.results.IterationResult;
 import org.openjdk.jmh.results.Result;
 import org.openjdk.jmh.results.ResultRole;
-import org.spf4j.stackmonitor.proto.Converter;
+import org.spf4j.ssdump2.Converter;
 
 /**
  *
@@ -107,8 +108,8 @@ public final class JmhProfiler implements InternalProfiler {
             this.samples = samples;
             this.benchmark = benchmark;
             if (!isIteration) {
-                String fileName = DUMP_FOLDER + "/" + benchmark + ".ssdump";
-                Converter.saveToFile(fileName, samples);
+                String fileName = DUMP_FOLDER + "/" + benchmark + ".ssdump2";
+                Converter.save(new File(fileName), samples);
             }
         }
 

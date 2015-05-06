@@ -21,6 +21,7 @@ import com.google.common.base.Predicate;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -32,7 +33,7 @@ import org.spf4j.ds.HashMapGraph;
  */
 @ParametersAreNonnullByDefault
 public final class SampleNode implements Serializable {
-    
+
     private static final long serialVersionUID = 1L;
 
     private int sampleCount;
@@ -45,7 +46,7 @@ public final class SampleNode implements Serializable {
             subNodes.put(Method.getMethod(stackTrace[from]), new SampleNode(stackTrace, from - 1));
         }
     }
-    
+
     public static SampleNode createSampleNode(final StackTraceElement... stackTrace) {
         SampleNode result = new SampleNode(1, null);
         SampleNode prevResult = result;
@@ -60,8 +61,8 @@ public final class SampleNode implements Serializable {
         }
         return result;
     }
-    
-    
+
+
     public static void addToSampleNode(final SampleNode node, final StackTraceElement... stackTrace) {
         SampleNode prevResult = node;
         prevResult.sampleCount++;
@@ -85,7 +86,7 @@ public final class SampleNode implements Serializable {
             prevResult = nNode;
         }
     }
-    
+
     public static SampleNode clone(final SampleNode node) {
         if (node.subNodes == null) {
             return new SampleNode(node.sampleCount, null);
@@ -96,7 +97,7 @@ public final class SampleNode implements Serializable {
         }
         return new SampleNode(node.sampleCount, newSubNodes);
     }
-    
+
     public static SampleNode aggregate(final SampleNode node1, final SampleNode node2) {
         int newSampleCount = node1.sampleCount + node2.sampleCount;
         HashMap<Method, SampleNode> newSubNodes;
@@ -167,7 +168,8 @@ public final class SampleNode implements Serializable {
 
     @Override
     public String toString() {
-        return "SampleNode{" + "count=" + sampleCount + ", subNodes=" + subNodes + '}';
+        return "SampleNode{" + "count=" + sampleCount
+                + ((subNodes == null || subNodes.isEmpty()) ? "" : ", subNodes=" + subNodes) + '}';
     }
 
     public int height() {
@@ -185,8 +187,8 @@ public final class SampleNode implements Serializable {
         }
 
     }
-    
-    
+
+
     public int getNrNodes() {
         if (subNodes == null) {
             return 1;
@@ -308,7 +310,7 @@ public final class SampleNode implements Serializable {
                 if (val != null) {
                     to = to.withId(val);
                 }
-                
+
                 InvocationCount ic = result.getEdge(from, to);
 
                 if (ic == null) {
@@ -324,6 +326,39 @@ public final class SampleNode implements Serializable {
         return result;
 
     }
-    
-    
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 89 * hash + this.sampleCount;
+        return 89 * hash + Objects.hashCode(this.subNodes);
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final SampleNode other = (SampleNode) obj;
+        if (this.sampleCount != other.sampleCount) {
+            return false;
+        }
+        if (this.subNodes == other.subNodes) {
+            return true;
+        }
+        if (this.subNodes != null && this.subNodes.isEmpty() && other.subNodes == null) {
+            return true;
+        }
+        if (this.subNodes == null && other.subNodes != null && other.subNodes.isEmpty()) {
+            return true;
+        }
+        return Objects.equals(this.subNodes, other.subNodes);
+    }
+
+
+
+
 }

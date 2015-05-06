@@ -179,7 +179,7 @@ public class Explorer extends javax.swing.JFrame {
             frame = new TSDBViewJInternalFrame(absolutePath);
         } else if (fileName.endsWith("tsdb2")) {
             frame = new TSDB2ViewJInternalFrame(absolutePath);
-        } else if (fileName.endsWith("ssdump")) {
+        } else if (fileName.endsWith("ssdump") || fileName.endsWith("ssdump2")) {
             frame = new StackDumpJInternalFrame(absolutePath, true);
             frame.setVisible(true);
             desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
@@ -251,7 +251,8 @@ public class Explorer extends javax.swing.JFrame {
                 return true;
             } else if (f.isFile()) {
                 String name = f.getName();
-                return (name.endsWith("tsdb") || name.endsWith("tsdb2") || name.endsWith("ssdump"));
+                return (name.endsWith("tsdb") || name.endsWith("tsdb2")
+                        || name.endsWith("ssdump") || name.endsWith("ssdump2"));
             } else {
                 return false;
             }

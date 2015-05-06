@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.Either;
@@ -57,7 +59,7 @@ public class TSDBReaderTest {
     }
 
     @Test
-    public void testTailing() throws IOException, InterruptedException, ExecutionException {
+    public void testTailing() throws IOException, InterruptedException, ExecutionException, TimeoutException {
         File TEST_FILE = File.createTempFile("test", ".tsdb2");
           try (TSDBWriter writer = new TSDBWriter(TEST_FILE, 4, "test", true);
                   TSDBReader reader = new TSDBReader(TEST_FILE, 1024)) {
@@ -68,7 +70,7 @@ public class TSDBReaderTest {
                 public void handle(Either<TableDef, DataBlock> object, long deadline) throws Exception {
                     System.out.println("Tailed " + object);
                 }
-              });
+              }, TSDBReader.EventSensitivity.HIGH);
               Thread.sleep(1000L);
               long tableId = writer.writeTableDef(tableDef);
               writer.flush();
@@ -83,7 +85,7 @@ public class TSDBReaderTest {
               writer.flush();
               Thread.sleep(1000);
               reader.stopWatching();
-              bgWatch.get();
+              bgWatch.get(10000, TimeUnit.MILLISECONDS);
 
        }
 

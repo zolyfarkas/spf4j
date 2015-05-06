@@ -21,6 +21,7 @@ package org.spf4j.ui;
 import com.google.protobuf.CodedInputStream;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import org.spf4j.stackmonitor.SampleNode;
@@ -29,7 +30,7 @@ import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
 
 /**
  * will need to add some standard filtering:
- * 
+ *
  * Pair.of(sun.misc.Unsafe.class.getName(), "park"));
  * Pair.of(java.lang.Object.class.getName(), "wait"));
  * Pair.of(java.lang.Thread.class.getName(), "sleep"));
@@ -48,15 +49,19 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     public StackDumpJInternalFrame(final String sampleFile, final boolean isPro) throws IOException {
         super(sampleFile);
         initComponents();
-        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sampleFile))) {
-            final CodedInputStream is = CodedInputStream.newInstance(bis);
-            is.setRecursionLimit(Short.MAX_VALUE);
-            samples = Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));
+        if (sampleFile.endsWith("ssdump")) {
+            try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sampleFile))) {
+                final CodedInputStream is = CodedInputStream.newInstance(bis);
+                is.setRecursionLimit(Short.MAX_VALUE);
+                samples = Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));
+            }
+        } else {
+            samples = org.spf4j.ssdump2.Converter.load(new File(sampleFile));
         }
         if (isPro) {
             ssScrollPanel.setViewportView(new ZStackPanel(samples));
         } else {
-            ssScrollPanel.setViewportView(new FlameStackPanel(samples));            
+            ssScrollPanel.setViewportView(new FlameStackPanel(samples));
         }
         ssScrollPanel.setVisible(true);
         pack();

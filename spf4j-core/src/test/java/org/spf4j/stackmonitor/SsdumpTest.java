@@ -18,10 +18,7 @@
 package org.spf4j.stackmonitor;
 
 import com.google.common.base.Function;
-import com.google.protobuf.CodedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -37,10 +34,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.spf4j.ds.Traversals;
 import org.spf4j.ds.Graph;
-import org.spf4j.stackmonitor.proto.Converter;
-import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
+import org.spf4j.ssdump2.Converter;
 
-public final class ProtoTest {
+public final class SsdumpTest {
 
     @BeforeClass
     public static void init() {
@@ -56,55 +52,40 @@ public final class ProtoTest {
 
     @Test
     public void testProto() throws InterruptedException, MalformedObjectNameException,
-            InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, IOException, ExecutionException, TimeoutException {
+            InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException,
+            IOException, ExecutionException, TimeoutException {
 
         Sampler sampler = new Sampler(1);
         sampler.registerJmx();
         sampler.start();
         MonitorTest.main(new String[]{});
-        String serializedFile = File.createTempFile("stackSample", ".samp").getPath();
-        final FileOutputStream os = new FileOutputStream(serializedFile);
-        try {
-            sampler.getStackCollector().applyOnSamples(new Function<SampleNode, SampleNode>() {
-                @Override
-                public SampleNode apply(final SampleNode f) {
-                    try {
-                        Converter.fromSampleNodeToProto(f).writeTo(os);
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                    return f;
+        final File serializedFile = File.createTempFile("stackSample", ".samp");
+        sampler.getStackCollector().applyOnSamples(new Function<SampleNode, SampleNode>() {
+            @Override
+            public SampleNode apply(final SampleNode f) {
+                try {
+                    Converter.save(serializedFile, f);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
                 }
-            });
-        } finally {
-            os.close();
-        }
+                return f;
+            }
+        });
         sampler.stop();
         Sampler anotherOne = new Sampler(100);
-        FileInputStream fis = new FileInputStream(serializedFile);
-        try {
-            final CodedInputStream is = CodedInputStream.newInstance(fis);
-            is.setRecursionLimit(Short.MAX_VALUE);
-            final SampleNode samples = Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));
-            anotherOne.getStackCollector().applyOnSamples(new Function<SampleNode, SampleNode>() {
-                @Override
-                public SampleNode apply(final SampleNode f) {
-                    return samples;
-                }
-            });
-            Graph<Method, SampleNode.InvocationCount> graph = SampleNode.toGraph(samples);
-            Traversals.traverse(graph, Method.ROOT,
-                    new Traversals.TraversalCallback<Method, SampleNode.InvocationCount>() {
 
-                @Override
-                public void handle(final Method vertex, final Map<SampleNode.InvocationCount, Method> edges) {
-                    System.out.println("Method: " + vertex + " from " + edges);
-                }
+        final SampleNode samples = Converter.load(serializedFile);
+        Graph<Method, SampleNode.InvocationCount> graph = SampleNode.toGraph(samples);
+        Traversals.traverse(graph, Method.ROOT,
+                new Traversals.TraversalCallback<Method, SampleNode.InvocationCount>() {
 
-            }, true);
-        } finally {
-            fis.close();
-        }
+                    @Override
+                    public void handle(final Method vertex, final Map<SampleNode.InvocationCount, Method> edges) {
+                        System.out.println("Method: " + vertex + " from " + edges);
+                    }
+
+                }, true);
+
         String report = anotherOne.dumpToFile();
         System.out.println(report);
     }

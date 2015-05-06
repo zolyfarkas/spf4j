@@ -1,9 +1,5 @@
-<#if licenseFirst??>
-${licenseFirst}
-</#if>
-${licensePrefix} 
 /*
- * Copyright (c) 2001-2015, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,6 +15,5 @@ ${licensePrefix}
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-<#if licenseLast??>
-${licenseLast}
-</#if>
+@edu.umd.cs.findbugs.annotations.SuppressWarnings
+package org.spf4j.ssdump2.avro;
