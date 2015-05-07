@@ -33,6 +33,7 @@ import org.spf4j.io.Csv;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.MeasurementStore;
+import org.spf4j.perf.MultiMeasurementRecorder;
 import org.spf4j.perf.impl.ms.Flusher;
 import org.spf4j.perf.impl.ms.MultiStore;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
@@ -175,6 +176,15 @@ public final class RecorderFactory {
         mrs.registerJmx();
         return mrs;
     }
+
+    public static MultiMeasurementRecorder createDirectRecorder(final Object measuredEntity, final String description,
+            final String [] measurementNames, final String[] measurementUnits) {
+        DirectMultiRecorder mr = new DirectMultiRecorder(new EntityMeasurementsInfoImpl(measuredEntity, description,
+                measurementNames, measurementUnits), MEASUREMENT_STORE);
+        mr.registerJmx();
+        return mr;
+    }
+
 
     public static MeasurementRecorder createDirectRecorder(final Object forWhat, final String unitOfMeasurement) {
         DirectRecorder mr = new DirectRecorder(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE);

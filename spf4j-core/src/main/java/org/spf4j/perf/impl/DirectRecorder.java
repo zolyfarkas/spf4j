@@ -55,6 +55,7 @@ public final class DirectRecorder implements MeasurementRecorder, Closeable {
         }
     }
 
+    @JmxExport
     public String getUnitOfMeasurement() {
         return info.getMeasurementUnit(0);
     }
@@ -80,7 +81,6 @@ public final class DirectRecorder implements MeasurementRecorder, Closeable {
     public void registerJmx() {
         Registry.export("org.spf4j.perf.recorders", info.getMeasuredEntity().toString(), this);
     }
-
 
     @Override
     public void close() throws IOException {

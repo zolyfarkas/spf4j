@@ -166,6 +166,8 @@ public final class Arrays {
 
     public static final byte [] EMPTY_BYTE_ARRAY = new byte [] {};
 
+    public static final long [] EMPTY_LONG_ARRAY = new long [] {};
+
     private static final ThreadLocal<SoftReference<byte[]>> BYTES_TMP = new ThreadLocal<>();
 
     private static final ThreadLocal<SoftReference<char[]>> CHARS_TMP = new ThreadLocal<>();
