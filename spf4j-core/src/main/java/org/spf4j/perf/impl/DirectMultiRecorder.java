@@ -40,12 +40,12 @@ public final class DirectMultiRecorder implements MultiMeasurementRecorder, Clos
 
     @Override
     public void record(final long... measurement) {
-        record(System.currentTimeMillis(), measurement);
+        recordTs(System.currentTimeMillis(), measurement);
     }
 
     @Override
     @SuppressFBWarnings({"EI_EXPOSE_REP2", "EXS_EXCEPTION_SOFTENING_NO_CHECKED" })
-    public void record(final long timestampMillis, final long... measurement) {
+    public void recordTs(final long timestampMillis, final long... measurement) {
         try {
             measurementStore.saveMeasurements(tableId, timestampMillis, measurement);
         } catch (IOException ex) {
