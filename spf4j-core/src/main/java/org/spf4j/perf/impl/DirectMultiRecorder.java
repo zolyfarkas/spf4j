@@ -65,8 +65,8 @@ public final class DirectMultiRecorder implements MultiMeasurementRecorder, Clos
     }
 
     @JmxExport
-    public EntityMeasurementsInfo getInfo() {
-        return info;
+    public String getInfo() {
+        return info.toString();
     }
 
     @Override
