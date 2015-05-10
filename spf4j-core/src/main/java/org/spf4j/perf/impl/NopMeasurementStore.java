@@ -1,7 +1,7 @@
 
 package org.spf4j.perf.impl;
 
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 
 /**
@@ -11,7 +11,7 @@ import org.spf4j.perf.MeasurementStore;
 public final class NopMeasurementStore implements MeasurementStore {
 
     @Override
-    public long alocateMeasurements(final EntityMeasurementsInfo measurement, final int sampleTimeMillis) {
+    public long alocateMeasurements(final MeasurementsInfo measurement, final int sampleTimeMillis) {
         // Do nothing
         return -1;
     }

@@ -18,14 +18,16 @@
  */
 package org.spf4j.perf;
 
+import java.io.Closeable;
+
 /**
  *
  * @author zoly
  */
-public interface MeasurementRecorder {
-    
+public interface MeasurementRecorder  extends Closeable {
+
     void record(long measurement);
-    
-    void record(long measurement, long timestampMillis);
-    
+
+    void recordAt(long timestampMillis, long measurement);
+
 }

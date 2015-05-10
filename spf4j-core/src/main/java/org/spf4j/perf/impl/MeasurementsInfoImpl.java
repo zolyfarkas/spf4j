@@ -17,7 +17,7 @@
  */
 package org.spf4j.perf.impl;
 
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementsInfo;
 import java.util.Arrays;
 import javax.annotation.concurrent.Immutable;
 
@@ -26,7 +26,7 @@ import javax.annotation.concurrent.Immutable;
  * @author zoly
  */
 @Immutable
-public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo {
+public final class MeasurementsInfoImpl implements MeasurementsInfo {
     private final Object measuredEntity;
     private final String description;
     private final String[] measurementNames;
@@ -34,7 +34,7 @@ public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo 
 
 
 
-    public EntityMeasurementsInfoImpl(final Object measuredEntity, final String description,
+    public MeasurementsInfoImpl(final Object measuredEntity, final String description,
             final String [] measurementNames, final String[] measurementUnits) {
         this.measuredEntity = measuredEntity;
         this.description = description;
@@ -70,7 +70,7 @@ public final class EntityMeasurementsInfoImpl implements EntityMeasurementsInfo 
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final EntityMeasurementsInfoImpl other = (EntityMeasurementsInfoImpl) obj;
+        final MeasurementsInfoImpl other = (MeasurementsInfoImpl) obj;
         if (this.measuredEntity != other.measuredEntity
                 && (this.measuredEntity == null || !this.measuredEntity.equals(other.measuredEntity))) {
             return false;

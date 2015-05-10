@@ -6,7 +6,7 @@ import java.io.IOException;
 import org.spf4j.base.Arrays;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MultiMeasurementRecorder;
 
@@ -15,9 +15,9 @@ import org.spf4j.perf.MultiMeasurementRecorder;
  * @author zoly
  */
 @SuppressFBWarnings("VO_VOLATILE_REFERENCE_TO_ARRAY")
-public final class DirectMultiRecorder implements MultiMeasurementRecorder, Closeable {
+public final class DirectStoreMultiAccumulator implements MultiMeasurementRecorder, Closeable {
 
-    private final EntityMeasurementsInfo info;
+    private final MeasurementsInfo info;
     private final MeasurementStore measurementStore;
     private final long tableId;
 
@@ -25,7 +25,7 @@ public final class DirectMultiRecorder implements MultiMeasurementRecorder, Clos
 
 
 
-    public DirectMultiRecorder(final EntityMeasurementsInfo info, final MeasurementStore measurementStore) {
+    public DirectStoreMultiAccumulator(final MeasurementsInfo info, final MeasurementStore measurementStore) {
         try {
             this.info = info;
             this.measurementStore = measurementStore;
@@ -40,12 +40,12 @@ public final class DirectMultiRecorder implements MultiMeasurementRecorder, Clos
 
     @Override
     public void record(final long... measurement) {
-        recordTs(System.currentTimeMillis(), measurement);
+        recordAt(System.currentTimeMillis(), measurement);
     }
 
     @Override
     @SuppressFBWarnings({"EI_EXPOSE_REP2", "EXS_EXCEPTION_SOFTENING_NO_CHECKED" })
-    public void recordTs(final long timestampMillis, final long... measurement) {
+    public void recordAt(final long timestampMillis, final long... measurement) {
         try {
             measurementStore.saveMeasurements(tableId, timestampMillis, measurement);
         } catch (IOException ex) {

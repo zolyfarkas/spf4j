@@ -33,7 +33,8 @@ import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 
 /**
- * This class allows you to poll and record to a file the heap commited and heap used for your java process. start data
+ * This class allows you to poll and recordAt to a file the heap commited and heap used for your java process.
+ * start data
  * recording by calling the startMemoryUsageSampling method, stop the data recording by calling the method:
  * startMemoryUsageSampling.
  *

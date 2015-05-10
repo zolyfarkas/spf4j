@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
@@ -18,45 +17,32 @@
  */
 package org.spf4j.perf;
 
-
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
+import javax.annotation.concurrent.Immutable;
 
 /**
  *
  * @author zoly
  */
-
-public interface EntityMeasurements {
-
-    @Nullable
-    long [] getMeasurements();
-
-    /**
-     * @return null when no measurements have been made.
-     */
-
-    @Nullable
-    long [] getMeasurementsAndReset();
+@Immutable
+public interface MeasurementsInfo {
 
     @Nonnull
-    EntityMeasurements  aggregate(@Nonnull EntityMeasurements mSource);
+    Object getMeasuredEntity();
 
     @Nonnull
-    EntityMeasurements createClone();
+    String getDescription();
 
-    /**
-     * reset this entity.
-     * @return a clone of the object prior to reset or null if no measurements have been made.
-     */
-    @Nullable
-    EntityMeasurements reset();
+    String [] getMeasurementNames();
 
-    @Nonnull
-    EntityMeasurements createLike(@Nonnull Object entity);
+    String [] getMeasurementUnits();
 
-    @Nonnull
-    EntityMeasurementsInfo getInfo();
+    String getMeasurementName(int measurementNr);
+
+    String getMeasurementUnit(int measurementNr);
+
+    int getMeasurementNr();
+
+    int getNumberOfMeasurements();
 
 }

@@ -30,8 +30,8 @@ import org.spf4j.stackmonitor.StackTrace;
 /**
  * Aspect that intercepts all memory allocations in your code.
  * where and how much has been allocated is stored in a tsdb database.
- * this class needs to remain object allocation free to work!
- * this aspect will record details about every x allocations done in a particular thread...
+ this class needs to remain object allocation free to work!
+ this aspect will recordAt details about every x allocations done in a particular thread...
  * 
  * @author zoly
  */

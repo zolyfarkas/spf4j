@@ -13,7 +13,7 @@ import java.nio.channels.DatagramChannel;
 import org.spf4j.base.Handler;
 import org.spf4j.base.Strings;
 import org.spf4j.io.ByteArrayBuilder;
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.impl.ms.Id2Info;
 import org.spf4j.recyclable.ObjectCreationException;
@@ -100,7 +100,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
     }
 
     @Override
-    public long alocateMeasurements(final EntityMeasurementsInfo measurement, final int sampleTimeMillis) {
+    public long alocateMeasurements(final MeasurementsInfo measurement, final int sampleTimeMillis) {
         return Id2Info.getId(measurement);
     }
 
@@ -117,7 +117,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
 
     }
 
-    public static void writeMetric(final EntityMeasurementsInfo measurementInfo, final String measurementName,
+    public static void writeMetric(final MeasurementsInfo measurementInfo, final String measurementName,
             final long measurement, final long timeStampMillis, final Writer os)
             throws IOException {
         Strings.writeReplaceWhitespaces(measurementInfo.getMeasuredEntity().toString(), '-', os);
@@ -147,10 +147,10 @@ public final class GraphiteUdpStore implements MeasurementStore {
     private static class HandlerImpl implements Handler<DatagramChannel, IOException> {
 
         private final long[] measurements;
-        private final EntityMeasurementsInfo measurementInfo;
+        private final MeasurementsInfo measurementInfo;
         private final long timeStampMillis;
 
-        public HandlerImpl(final long[] measurements, final EntityMeasurementsInfo measurementInfo,
+        public HandlerImpl(final long[] measurements, final MeasurementsInfo measurementInfo,
                 final long timeStampMillis) {
             this.measurements = measurements;
             this.measurementInfo = measurementInfo;

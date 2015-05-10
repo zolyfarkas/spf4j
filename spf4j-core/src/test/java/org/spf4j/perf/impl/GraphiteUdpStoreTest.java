@@ -56,7 +56,7 @@ public final class GraphiteUdpStoreTest {
     public void testGraphiteUdpStore() throws IOException, ObjectCreationException {
 
         final GraphiteUdpStore store = new GraphiteUdpStore("127.0.0.1", 1976);
-        long id = store.alocateMeasurements(new EntityMeasurementsInfoImpl("bla", "ms",
+        long id = store.alocateMeasurements(new MeasurementsInfoImpl("bla", "ms",
                 new String[]{"val1", "val2", "val3"},
                 new String[]{"ms", "ms", "ms"}), 0);
         store.saveMeasurements(id, 1L, 2L, 3L);

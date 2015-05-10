@@ -18,27 +18,27 @@
 package org.spf4j.perf.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.spf4j.perf.EntityMeasurements;
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementAccumulator;
+import org.spf4j.perf.MeasurementsInfo;
 
 /**
  *
  * @author zoly
  */
-public final class MinMaxAvgRecorder
-    extends MeasurementAggregator {
+public final class MinMaxAvgAccumulator
+    extends AbstractMeasurementAccumulator {
 
     private long counter;
     private long total;
     private long min;
     private long max;
-    private final EntityMeasurementsInfo info;
+    private final MeasurementsInfo info;
 
     private static final String [] MEASUREMENTS = {"count", "total", "min", "max"};
 
-    private MinMaxAvgRecorder(final Object measuredEntity, final String description, final String unitOfMeasurement,
+    private MinMaxAvgAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
             final long counter, final long total, final long min, final long max) {
-        this.info = new EntityMeasurementsInfoImpl(measuredEntity, description,
+        this.info = new MeasurementsInfoImpl(measuredEntity, description,
                 MEASUREMENTS, new String [] {"count", unitOfMeasurement, unitOfMeasurement, unitOfMeasurement});
         this.counter = counter;
         this.total = total;
@@ -46,7 +46,7 @@ public final class MinMaxAvgRecorder
         this.max = max;
     }
 
-    public MinMaxAvgRecorder(final Object measuredEntity, final String description, final String unitOfMeasurement) {
+    public MinMaxAvgAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement) {
         this(measuredEntity, description, unitOfMeasurement, 0, 0, Long.MAX_VALUE, Long.MIN_VALUE);
     }
 
@@ -70,7 +70,7 @@ public final class MinMaxAvgRecorder
 
     @Override
     @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
-    public synchronized long[] getMeasurements() {
+    public synchronized long[] get() {
         if (counter == 0) {
             return null;
         } else {
@@ -80,12 +80,12 @@ public final class MinMaxAvgRecorder
 
     @SuppressFBWarnings({"CLI_CONSTANT_LIST_INDEX", "NOS_NON_OWNED_SYNCHRONIZATION" })
     @Override
-    public EntityMeasurements aggregate(final EntityMeasurements mSource) {
-        if (mSource instanceof MinMaxAvgRecorder) {
-            MinMaxAvgRecorder other = (MinMaxAvgRecorder) mSource;
-            long [] measurements = other.getMeasurements();
+    public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
+        if (mSource instanceof MinMaxAvgAccumulator) {
+            MinMaxAvgAccumulator other = (MinMaxAvgAccumulator) mSource;
+            long [] measurements = other.get();
             synchronized (this) {
-                return new MinMaxAvgRecorder(this.info.getMeasuredEntity(), this.info.getDescription(),
+                return new MinMaxAvgAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),
                     getUnitOfMeasurement(),
                     counter + measurements[0], total + measurements[1],
                     Math.min(min, measurements[2]), Math.max(max, measurements[3]));
@@ -96,27 +96,27 @@ public final class MinMaxAvgRecorder
     }
 
     @Override
-    public synchronized MinMaxAvgRecorder createClone() {
-        return new MinMaxAvgRecorder(this.info.getMeasuredEntity(),
+    public synchronized MinMaxAvgAccumulator createClone() {
+        return new MinMaxAvgAccumulator(this.info.getMeasuredEntity(),
                 this.info.getDescription(), getUnitOfMeasurement(), counter, total , min, max);
     }
 
     @Override
-    public EntityMeasurements createLike(final Object entity) {
-        return new MinMaxAvgRecorder(entity, this.info.getDescription(), getUnitOfMeasurement());
+    public MeasurementAccumulator createLike(final Object entity) {
+        return new MinMaxAvgAccumulator(entity, this.info.getDescription(), getUnitOfMeasurement());
     }
 
     @Override
-    public EntityMeasurementsInfo getInfo() {
+    public MeasurementsInfo getInfo() {
         return info;
     }
 
     @Override
-    public synchronized MinMaxAvgRecorder reset() {
+    public synchronized MinMaxAvgAccumulator reset() {
         if (counter == 0) {
             return null;
         } else {
-            MinMaxAvgRecorder result = createClone();
+            MinMaxAvgAccumulator result = createClone();
             counter = 0;
             total = 0;
             min = Long.MAX_VALUE;
@@ -127,12 +127,12 @@ public final class MinMaxAvgRecorder
 
     @Override
     @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
-    public long[] getMeasurementsAndReset() {
-        final MinMaxAvgRecorder vals = reset();
+    public long[] getThenReset() {
+        final MinMaxAvgAccumulator vals = reset();
         if (vals == null) {
             return null;
         } else {
-            return vals.getMeasurements();
+            return vals.get();
         }
     }
 }

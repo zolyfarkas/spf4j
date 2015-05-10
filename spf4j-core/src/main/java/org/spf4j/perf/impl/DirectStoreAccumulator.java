@@ -24,7 +24,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MeasurementRecorder;
 
@@ -32,9 +32,9 @@ import org.spf4j.perf.MeasurementRecorder;
  *
  * @author zoly
  */
-public final class DirectRecorder implements MeasurementRecorder, Closeable {
+public final class DirectStoreAccumulator implements MeasurementRecorder, Closeable {
 
-    private final EntityMeasurementsInfo info;
+    private final MeasurementsInfo info;
     private static final String[] MEASUREMENTS = {"value"};
     private final MeasurementStore measurementStore;
     private final long tableId;
@@ -43,9 +43,9 @@ public final class DirectRecorder implements MeasurementRecorder, Closeable {
 
     private volatile long lastRecordedValue;
 
-    public DirectRecorder(final Object measuredEntity, final String description, final String unitOfMeasurement,
+    public DirectStoreAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
             final int sampleTimeMillis, final MeasurementStore measurementStore) {
-        this.info = new EntityMeasurementsInfoImpl(measuredEntity, description,
+        this.info = new MeasurementsInfoImpl(measuredEntity, description,
                 MEASUREMENTS, new String[]{unitOfMeasurement});
         this.measurementStore = measurementStore;
         try {
@@ -63,12 +63,12 @@ public final class DirectRecorder implements MeasurementRecorder, Closeable {
 
     @Override
     public void record(final long measurement) {
-        record(measurement, System.currentTimeMillis());
+        recordAt(System.currentTimeMillis(), measurement);
     }
 
     @Override
     @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
-    public synchronized void record(final long measurement, final long timestampMillis) {
+    public synchronized void recordAt(final long measurement, final long timestampMillis) {
         lastRecordedValue = measurement;
         lastRecordedTS = timestampMillis;
         try {

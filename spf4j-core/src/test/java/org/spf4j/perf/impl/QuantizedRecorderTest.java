@@ -32,12 +32,12 @@ public final class QuantizedRecorderTest {
 
 
     /**
-     * Test of record method, of class QuantizedRecorder.
+     * Test of record method, of class QuantizedAccumulator.
      */
     @Test
     public void testRecord1() {
         System.out.println("record");
-        QuantizedRecorder instance = new QuantizedRecorder("test", "", "ms",
+        QuantizedAccumulator instance = new QuantizedAccumulator("test", "", "ms",
                 10, 0, 3, 10);
         instance.record(0);
         instance.record(1);
@@ -52,7 +52,7 @@ public final class QuantizedRecorderTest {
         @Test
     public void testRecord2() {
         System.out.println("record");
-        QuantizedRecorder instance = new QuantizedRecorder("test", "", "ms",
+        QuantizedAccumulator instance = new QuantizedAccumulator("test", "", "ms",
                 10, -3, 3, 10);
         instance.record(0);
         instance.record(1);
@@ -68,7 +68,7 @@ public final class QuantizedRecorderTest {
     @Test
     public void testRecord3() {
         System.out.println("record");
-        QuantizedRecorder instance = new QuantizedRecorder("test", "", "ms",
+        QuantizedAccumulator instance = new QuantizedAccumulator("test", "", "ms",
                 10, 0, 1, 10);
         instance.record(0);
         instance.record(1);
@@ -79,7 +79,7 @@ public final class QuantizedRecorderTest {
         instance.record(15000);
         assertArrayEquals(new long[] {0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4}, instance.getQuatizedMeasurements());
         System.out.println(instance);
-        long[] result = instance.getMeasurements();
+        long[] result = instance.get();
         System.out.println(Arrays.toString(result));
     }
   
@@ -87,7 +87,7 @@ public final class QuantizedRecorderTest {
         @Test
     public void testRecord4() {
         System.out.println("record");
-        QuantizedRecorder instance = new QuantizedRecorder("test", "", "ms",
+        QuantizedAccumulator instance = new QuantizedAccumulator("test", "", "ms",
                 10, -1, 1, 10);
         instance.record(0);
         instance.record(1);
@@ -102,7 +102,7 @@ public final class QuantizedRecorderTest {
         assertArrayEquals(new long[] {1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4},
                 instance.getQuatizedMeasurements());
         System.out.println(instance);
-        long[] result = instance.getMeasurements();
+        long[] result = instance.get();
         System.out.println(Arrays.toString(result));
     }
 

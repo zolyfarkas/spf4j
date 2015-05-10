@@ -10,7 +10,7 @@ import org.spf4j.perf.MeasurementRecorderSource;
  * @author zoly
  */
 public final class DirectRecorderSourceTest {
-    
+
 
     @Test
     public void testSomeMethod() throws InterruptedException {
@@ -19,12 +19,12 @@ public final class DirectRecorderSourceTest {
         MeasurementRecorder recorder = recorderSource.getRecorder("A");
         long time = System.currentTimeMillis();
         for (int i = 0; i < 100; i++) {
-            recorder.record(i, time + i * 1000);
+            recorder.recordAt(time + i * 1000, i);
         }
         MeasurementRecorder recorder2 = recorderSource.getRecorder("B");
         for (int i = 0; i < 100; i++) {
-            recorder2.record(i, time + i * 1000);
+            recorder2.recordAt(time + i * 1000, i);
         }
     }
-    
+
 }

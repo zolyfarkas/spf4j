@@ -32,7 +32,7 @@ public interface MeasurementStore extends Closeable {
      * @param sampleTimeMillis
      * @throws IOException
      */
-    long alocateMeasurements(EntityMeasurementsInfo measurement, int sampleTimeMillis)
+    long alocateMeasurements(MeasurementsInfo measurement, int sampleTimeMillis)
             throws IOException;
 
     /**

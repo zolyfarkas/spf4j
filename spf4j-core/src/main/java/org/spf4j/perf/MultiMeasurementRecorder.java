@@ -26,6 +26,6 @@ public interface MultiMeasurementRecorder {
 
     void record(long ... measurement);
 
-    void recordTs(long timestampMillis, long ... measurement);
+    void recordAt(long timestampMillis, long ... measurement);
 
 }

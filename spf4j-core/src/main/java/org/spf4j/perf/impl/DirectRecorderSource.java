@@ -65,7 +65,7 @@ public final class DirectRecorderSource implements MeasurementRecorderSource {
 
         @Override
         public MeasurementRecorder load(final Object key) throws Exception {
-            return new DirectRecorder(Pair.of(forWhat, key), description,
+            return new DirectStoreAccumulator(Pair.of(forWhat, key), description,
                     uom, sampleTimeMillis, store);
         }
     }

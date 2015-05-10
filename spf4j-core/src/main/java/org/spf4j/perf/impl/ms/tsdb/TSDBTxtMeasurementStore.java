@@ -20,7 +20,7 @@ package org.spf4j.perf.impl.ms.tsdb;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -53,7 +53,7 @@ public final class TSDBTxtMeasurementStore
     }
 
     @Override
-    public long alocateMeasurements(final EntityMeasurementsInfo measurement,
+    public long alocateMeasurements(final MeasurementsInfo measurement,
                                     final int sampleTimeMillis) {
         return Id2Info.getId(measurement);
     }
@@ -62,7 +62,7 @@ public final class TSDBTxtMeasurementStore
     public void saveMeasurements(final long tableId,
             final long timeStampMillis, final long ... measurements)
             throws IOException {
-        EntityMeasurementsInfo measurementInfo = Id2Info.getInfo(tableId);
+        MeasurementsInfo measurementInfo = Id2Info.getInfo(tableId);
         String groupName = measurementInfo.getMeasuredEntity().toString();
         synchronized (fileName) {
             Csv.writeCsvElement(groupName, writer);

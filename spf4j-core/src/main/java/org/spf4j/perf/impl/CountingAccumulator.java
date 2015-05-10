@@ -18,30 +18,30 @@
 package org.spf4j.perf.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.spf4j.perf.EntityMeasurements;
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementAccumulator;
+import org.spf4j.perf.MeasurementsInfo;
 
 /**
  *
  * @author zoly
  */
-public final class CountingRecorder
-        extends MeasurementAggregator {
+public final class CountingAccumulator
+        extends AbstractMeasurementAccumulator {
 
     private long counter;
     private long total;
-    private final EntityMeasurementsInfo info;
+    private final MeasurementsInfo info;
     private static final String[] MEASUREMENTS = {"count", "total"};
 
-    private CountingRecorder(final Object measuredEntity, final String description,
+    private CountingAccumulator(final Object measuredEntity, final String description,
             final String unitOfMeasurement, final long counter, final long total) {
-        this.info = new EntityMeasurementsInfoImpl(measuredEntity, description,
+        this.info = new MeasurementsInfoImpl(measuredEntity, description,
                 MEASUREMENTS, new String[]{"count", unitOfMeasurement});
         this.counter = counter;
         this.total = total;
     }
 
-    public CountingRecorder(final Object measuredEntity, final String description, final String unitOfMeasurement) {
+    public CountingAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement) {
         this(measuredEntity, description, unitOfMeasurement, 0, 0);
     }
 
@@ -57,7 +57,7 @@ public final class CountingRecorder
 
     @Override
     @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
-    public synchronized long[] getMeasurements() {
+    public synchronized long[] get() {
         if (counter == 0) {
             return null;
         } else {
@@ -67,12 +67,12 @@ public final class CountingRecorder
 
     @SuppressFBWarnings({"CLI_CONSTANT_LIST_INDEX", "NOS_NON_OWNED_SYNCHRONIZATION" })
     @Override
-    public EntityMeasurements aggregate(final EntityMeasurements mSource) {
-        if (mSource instanceof CountingRecorder) {
-            CountingRecorder other = (CountingRecorder) mSource;
-            long[] measurements = other.getMeasurements();
+    public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
+        if (mSource instanceof CountingAccumulator) {
+            CountingAccumulator other = (CountingAccumulator) mSource;
+            long[] measurements = other.get();
             synchronized (this) {
-                return new CountingRecorder(this.info.getMeasuredEntity(), this.info.getDescription(),
+                return new CountingAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),
                         getUnitOfMeasurement(), counter + measurements[0], total + measurements[1]);
             }
         } else {
@@ -81,27 +81,27 @@ public final class CountingRecorder
     }
 
     @Override
-    public synchronized CountingRecorder createClone() {
-        return new CountingRecorder(this.info.getMeasuredEntity(),
+    public synchronized CountingAccumulator createClone() {
+        return new CountingAccumulator(this.info.getMeasuredEntity(),
                 this.info.getDescription(), getUnitOfMeasurement(), counter, total);
     }
 
     @Override
-    public CountingRecorder createLike(final Object entity) {
-        return new CountingRecorder(entity, this.info.getDescription(), getUnitOfMeasurement());
+    public CountingAccumulator createLike(final Object entity) {
+        return new CountingAccumulator(entity, this.info.getDescription(), getUnitOfMeasurement());
     }
 
     @Override
-    public EntityMeasurementsInfo getInfo() {
+    public MeasurementsInfo getInfo() {
         return info;
     }
 
     @Override
-    public synchronized EntityMeasurements reset() {
+    public synchronized MeasurementAccumulator reset() {
         if (counter == 0) {
             return null;
         } else {
-            EntityMeasurements result = this.createClone();
+            MeasurementAccumulator result = this.createClone();
             counter = 0;
             total = 0;
             return result;
@@ -110,12 +110,12 @@ public final class CountingRecorder
 
     @Override
     @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
-    public long[] getMeasurementsAndReset() {
-        final EntityMeasurements vals = reset();
+    public long[] getThenReset() {
+        final MeasurementAccumulator vals = reset();
         if (vals == null) {
             return null;
         } else {
-            return vals.getMeasurements();
+            return vals.get();
         }
     }
 

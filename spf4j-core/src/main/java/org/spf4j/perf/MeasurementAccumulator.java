@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
@@ -17,32 +18,45 @@
  */
 package org.spf4j.perf;
 
+
 import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
+import javax.annotation.Nullable;
+
 
 /**
  *
  * @author zoly
  */
-@Immutable
-public interface EntityMeasurementsInfo {
+
+public interface MeasurementAccumulator extends MeasurementRecorder {
+
+    @Nullable
+    long [] get();
+
+    /**
+     * @return null when no measurements have been made.
+     */
+
+    @Nullable
+    long [] getThenReset();
 
     @Nonnull
-    Object getMeasuredEntity();
+    MeasurementAccumulator  aggregate(@Nonnull MeasurementAccumulator mSource);
 
     @Nonnull
-    String getDescription();
+    MeasurementAccumulator createClone();
 
-    String [] getMeasurementNames();
+    /**
+     * reset this entity.
+     * @return a clone of the object prior to reset or null if no measurements have been made.
+     */
+    @Nullable
+    MeasurementAccumulator reset();
 
-    String [] getMeasurementUnits();
+    @Nonnull
+    MeasurementAccumulator createLike(@Nonnull Object entity);
 
-    String getMeasurementName(int measurementNr);
-
-    String getMeasurementUnit(int measurementNr);
-
-    int getMeasurementNr();
-
-    int getNumberOfMeasurements();
+    @Nonnull
+    MeasurementsInfo getInfo();
 
 }

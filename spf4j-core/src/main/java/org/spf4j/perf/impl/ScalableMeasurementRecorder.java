@@ -19,11 +19,9 @@ package org.spf4j.perf.impl;
 
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
-import org.spf4j.perf.EntityMeasurements;
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementAccumulator;
+import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
-import org.spf4j.perf.MeasurementProcessor;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.HashMap;
@@ -44,27 +42,26 @@ import org.spf4j.jmx.Registry;
 @ThreadSafe
 // a recorder instance is tipically alive for the entire life of the process
 @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
-public final class ScalableMeasurementRecorder extends MeasurementAggregator
-    implements Closeable {
+public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumulator {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);
 
-    private final Map<Thread, MeasurementProcessor> threadLocalRecorders;
-    private final ThreadLocal<MeasurementProcessor> threadLocalRecorder;
+    private final Map<Thread, MeasurementAccumulator> threadLocalRecorders;
+    private final ThreadLocal<MeasurementAccumulator> threadLocalRecorder;
     private final ScheduledFuture<?> samplingFuture;
-    private final MeasurementProcessor processorTemplate;
+    private final MeasurementAccumulator processorTemplate;
     private final AbstractRunnable persister;
 
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
-    ScalableMeasurementRecorder(final MeasurementProcessor processor, final int sampleTimeMillis,
+    ScalableMeasurementRecorder(final MeasurementAccumulator processor, final int sampleTimeMillis,
             final MeasurementStore measurementStore) {
         threadLocalRecorders = new HashMap<>();
         processorTemplate = processor;
-        threadLocalRecorder = new ThreadLocal<MeasurementProcessor>() {
+        threadLocalRecorder = new ThreadLocal<MeasurementAccumulator>() {
 
             @Override
-            protected MeasurementProcessor initialValue() {
-                MeasurementProcessor result = (MeasurementProcessor) processor.createClone();
+            protected MeasurementAccumulator initialValue() {
+                MeasurementAccumulator result = (MeasurementAccumulator) processor.createClone();
                 synchronized (threadLocalRecorders) {
                     threadLocalRecorders.put(Thread.currentThread(), result);
                 }
@@ -85,7 +82,7 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
                 long currentTime = System.currentTimeMillis();
                 if (currentTime > lastRun) {
                     lastRun = currentTime;
-                    final long[] measurements = ScalableMeasurementRecorder.this.getMeasurementsAndReset();
+                    final long[] measurements = ScalableMeasurementRecorder.this.getThenReset();
                     if (measurements != null) {
                         measurementStore.saveMeasurements(tableId, currentTime, measurements);
                     }
@@ -111,11 +108,11 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
     }
 
     @Override
-    public long [] getMeasurements() {
-        EntityMeasurements result  = null;
+    public long [] get() {
+        MeasurementAccumulator result  = null;
         synchronized (threadLocalRecorders) {
-            for (Map.Entry<Thread, MeasurementProcessor> entry : threadLocalRecorders.entrySet()) {
-                EntityMeasurements measurements = entry.getValue().createClone();
+            for (Map.Entry<Thread, MeasurementAccumulator> entry : threadLocalRecorders.entrySet()) {
+                MeasurementAccumulator measurements = entry.getValue().createClone();
                 if (result == null) {
                     result = measurements;
                 } else {
@@ -123,17 +120,17 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
                 }
             }
         }
-        return (result == null) ? null : result.getMeasurements();
+        return (result == null) ? null : result.get();
     }
 
     @JmxExport(description = "measurements as csv")
     public String getMeasurementsAsString() {
         StringWriter sw = new StringWriter(128);
-        EntityMeasurementsInfo info = getInfo();
+        MeasurementsInfo info = getInfo();
         try {
             Csv.writeCsvRow(sw, (Object[]) info.getMeasurementNames());
             Csv.writeCsvRow(sw, (Object[]) info.getMeasurementUnits());
-            Csv.writeCsvRow(sw, getMeasurements());
+            Csv.writeCsvRow(sw, get());
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -142,19 +139,19 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
 
     @JmxExport
     public void clear() {
-        getMeasurementsAndReset();
+        getThenReset();
     }
 
 
     @Override
-    public EntityMeasurements aggregate(final EntityMeasurements mSource) {
+    public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
         throw new UnsupportedOperationException("Aggregating Scalable Recorders not supported");
     }
 
 
 
     @Override
-    public EntityMeasurements createClone() {
+    public MeasurementAccumulator createClone() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -176,32 +173,32 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
     }
 
     @Override
-    public EntityMeasurements createLike(final Object entity) {
+    public MeasurementAccumulator createLike(final Object entity) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public EntityMeasurementsInfo getInfo() {
+    public MeasurementsInfo getInfo() {
         return processorTemplate.getInfo();
     }
 
     @Override
-    public EntityMeasurements reset() {
+    public MeasurementAccumulator reset() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public long[] getMeasurementsAndReset() {
-        EntityMeasurements result  = null;
+    public long[] getThenReset() {
+        MeasurementAccumulator result  = null;
         synchronized (threadLocalRecorders) {
-            Iterator<Map.Entry<Thread, MeasurementProcessor>> iterator = threadLocalRecorders.entrySet().iterator();
+            Iterator<Map.Entry<Thread, MeasurementAccumulator>> iterator = threadLocalRecorders.entrySet().iterator();
             while (iterator.hasNext()) {
-                Map.Entry<Thread, MeasurementProcessor> entry = iterator.next();
+                Map.Entry<Thread, MeasurementAccumulator> entry = iterator.next();
                 Thread t = entry.getKey();
                 if (!t.isAlive()) {
                     iterator.remove();
                 }
-                EntityMeasurements measurements = entry.getValue().reset();
+                MeasurementAccumulator measurements = entry.getValue().reset();
                 if (result == null) {
                     result = measurements;
                 } else {
@@ -211,7 +208,7 @@ public final class ScalableMeasurementRecorder extends MeasurementAggregator
                 }
             }
         }
-        return (result == null) ? null : result.getMeasurements();
+        return (result == null) ? null : result.get();
     }
 
 }

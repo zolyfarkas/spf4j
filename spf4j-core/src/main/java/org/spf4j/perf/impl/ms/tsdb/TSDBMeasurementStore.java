@@ -17,7 +17,7 @@
  */
 package org.spf4j.perf.impl.ms.tsdb;
 
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +50,7 @@ public final class TSDBMeasurementStore
 
 
     @Override
-    public long alocateMeasurements(final EntityMeasurementsInfo measurement,
+    public long alocateMeasurements(final MeasurementsInfo measurement,
                                     final int sampleTimeMillis) throws IOException {
         String tableName = measurement.getMeasuredEntity().toString();
         TableDef td = new TableDef();

@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.spf4j.base.Throwables;
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 
 /**
@@ -37,7 +37,7 @@ public final class MultiStore implements MeasurementStore {
 
     private final MeasurementStore [] stores;
     private final TLongObjectMap<long []> idToIds;
-    private final TObjectLongMap<EntityMeasurementsInfo> infoToId;
+    private final TObjectLongMap<MeasurementsInfo> infoToId;
     private long idSeq;
 
     public MultiStore(final MeasurementStore ... stores) {
@@ -52,7 +52,7 @@ public final class MultiStore implements MeasurementStore {
 
 
     @Override
-    public long alocateMeasurements(final EntityMeasurementsInfo measurement,
+    public long alocateMeasurements(final MeasurementsInfo measurement,
             final int sampleTimeMillis) throws IOException {
         IOException ex = null;
         synchronized (idToIds) {

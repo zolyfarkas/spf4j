@@ -23,10 +23,10 @@ import java.util.Map;
  *
  * @author zoly
  */
-public interface EntityMeasurementsSource {
- 
-    Map<Object, EntityMeasurements> getEntitiesMeasurements();
-    
-     Map<Object, EntityMeasurements> getEntitiesMeasurementsAndReset();
+public interface MeasurementsSource {
+
+    Map<Object, MeasurementAccumulator> getEntitiesMeasurements();
+
+    Map<Object, MeasurementAccumulator> getEntitiesMeasurementsAndReset();
 
 }

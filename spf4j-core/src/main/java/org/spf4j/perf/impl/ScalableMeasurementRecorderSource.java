@@ -36,11 +36,10 @@ import org.spf4j.base.Pair;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
-import org.spf4j.perf.EntityMeasurements;
-import org.spf4j.perf.EntityMeasurementsInfo;
-import org.spf4j.perf.EntityMeasurementsSource;
+import org.spf4j.perf.MeasurementAccumulator;
+import org.spf4j.perf.MeasurementsInfo;
+import org.spf4j.perf.MeasurementsSource;
 import org.spf4j.perf.MeasurementStore;
-import org.spf4j.perf.MeasurementProcessor;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
 
@@ -48,32 +47,32 @@ import org.spf4j.perf.MeasurementRecorderSource;
 // a recorder instance is tipically alive for the entire life of the process
 @edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
 public final class ScalableMeasurementRecorderSource implements
-        MeasurementRecorderSource, EntityMeasurementsSource, Closeable {
+        MeasurementRecorderSource, MeasurementsSource, Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorderSource.class);
 
 
-    private final Map<Thread, Map<Object, MeasurementProcessor>> measurementProcessorMap;
+    private final Map<Thread, Map<Object, MeasurementAccumulator>> measurementProcessorMap;
 
-    private final ThreadLocal<Map<Object, MeasurementProcessor>> threadLocalMeasurementProcessorMap;
+    private final ThreadLocal<Map<Object, MeasurementAccumulator>> threadLocalMeasurementProcessorMap;
 
 
     private final ScheduledFuture<?> samplingFuture;
-    private final MeasurementProcessor processorTemplate;
+    private final MeasurementAccumulator processorTemplate;
 
-    private final TObjectLongMap<EntityMeasurementsInfo> tableIds;
+    private final TObjectLongMap<MeasurementsInfo> tableIds;
 
     private final AbstractRunnable persister;
 
-    ScalableMeasurementRecorderSource(final MeasurementProcessor processor,
+    ScalableMeasurementRecorderSource(final MeasurementAccumulator processor,
             final int sampleTimeMillis, final MeasurementStore database) {
         this.processorTemplate = processor;
         measurementProcessorMap = new HashMap<>();
-        threadLocalMeasurementProcessorMap = new ThreadLocal<Map<Object, MeasurementProcessor>>() {
+        threadLocalMeasurementProcessorMap = new ThreadLocal<Map<Object, MeasurementAccumulator>>() {
 
             @Override
-            protected Map<Object, MeasurementProcessor> initialValue() {
-                Map<Object, MeasurementProcessor> result = new HashMap<>();
+            protected Map<Object, MeasurementAccumulator> initialValue() {
+                Map<Object, MeasurementAccumulator> result = new HashMap<>();
                 synchronized (measurementProcessorMap) {
                     measurementProcessorMap.put(Thread.currentThread(), result);
                 }
@@ -90,9 +89,9 @@ public final class ScalableMeasurementRecorderSource implements
                 long currentTime = System.currentTimeMillis();
                 if (currentTime > lastRun) {
                     lastRun = currentTime;
-                    for (EntityMeasurements m
+                    for (MeasurementAccumulator m
                             : ScalableMeasurementRecorderSource.this.getEntitiesMeasurementsAndReset().values()) {
-                        final EntityMeasurementsInfo info = m.getInfo();
+                        final MeasurementsInfo info = m.getInfo();
                         long tableId;
                         synchronized (tableIds) {
                             tableId = tableIds.get(info);
@@ -101,7 +100,7 @@ public final class ScalableMeasurementRecorderSource implements
                                 tableIds.put(info, tableId);
                             }
                         }
-                        database.saveMeasurements(tableId, currentTime, m.getMeasurementsAndReset());
+                        database.saveMeasurements(tableId, currentTime, m.getThenReset());
                     }
                 } else {
                     LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
@@ -121,11 +120,11 @@ public final class ScalableMeasurementRecorderSource implements
 
     @Override
     public MeasurementRecorder getRecorder(final Object forWhat) {
-        Map<Object, MeasurementProcessor> recorders = threadLocalMeasurementProcessorMap.get();
+        Map<Object, MeasurementAccumulator> recorders = threadLocalMeasurementProcessorMap.get();
         synchronized (recorders) {
-            MeasurementProcessor result = recorders.get(forWhat);
+            MeasurementAccumulator result = recorders.get(forWhat);
             if (result == null)  {
-                result = (MeasurementProcessor) processorTemplate.createLike(
+                result = (MeasurementAccumulator) processorTemplate.createLike(
                         Pair.of(processorTemplate.getInfo().getMeasuredEntity(), forWhat));
                 recorders.put(forWhat, result);
             }
@@ -134,20 +133,20 @@ public final class ScalableMeasurementRecorderSource implements
     }
 
     @Override
-    public Map<Object, EntityMeasurements> getEntitiesMeasurements() {
-        Map<Object, EntityMeasurements> result = new HashMap<>();
+    public Map<Object, MeasurementAccumulator> getEntitiesMeasurements() {
+        Map<Object, MeasurementAccumulator> result = new HashMap<>();
 
         synchronized (measurementProcessorMap) {
-            Iterator<Map.Entry<Thread, Map<Object, MeasurementProcessor>>> iterator =
+            Iterator<Map.Entry<Thread, Map<Object, MeasurementAccumulator>>> iterator =
                     measurementProcessorMap.entrySet().iterator();
             while (iterator.hasNext()) {
-                Map.Entry<Thread, Map<Object, MeasurementProcessor>> entry = iterator.next();
-                Map<Object, MeasurementProcessor> measurements = entry.getValue();
+                Map.Entry<Thread, Map<Object, MeasurementAccumulator>> entry = iterator.next();
+                Map<Object, MeasurementAccumulator> measurements = entry.getValue();
                 synchronized (measurements) {
-                    for (Map.Entry<Object, MeasurementProcessor> lentry : measurements.entrySet()) {
+                    for (Map.Entry<Object, MeasurementAccumulator> lentry : measurements.entrySet()) {
 
                         Object what = lentry.getKey();
-                        EntityMeasurements existingMeasurement = result.get(what);
+                        MeasurementAccumulator existingMeasurement = result.get(what);
                         if (existingMeasurement == null) {
                             existingMeasurement = lentry.getValue().createClone();
                         } else {
@@ -163,25 +162,25 @@ public final class ScalableMeasurementRecorderSource implements
 
     @Override
     @Nonnull
-    public Map<Object, EntityMeasurements> getEntitiesMeasurementsAndReset() {
-        Map<Object, EntityMeasurements> result = new HashMap<>();
+    public Map<Object, MeasurementAccumulator> getEntitiesMeasurementsAndReset() {
+        Map<Object, MeasurementAccumulator> result = new HashMap<>();
 
         synchronized (measurementProcessorMap) {
-            Iterator<Map.Entry<Thread, Map<Object, MeasurementProcessor>>> iterator =
+            Iterator<Map.Entry<Thread, Map<Object, MeasurementAccumulator>>> iterator =
                     measurementProcessorMap.entrySet().iterator();
             while (iterator.hasNext()) {
-                Map.Entry<Thread, Map<Object, MeasurementProcessor>> entry = iterator.next();
+                Map.Entry<Thread, Map<Object, MeasurementAccumulator>> entry = iterator.next();
                 Thread thread = entry.getKey();
                 if (!thread.isAlive()) {
                     iterator.remove();
                 }
-                Map<Object, MeasurementProcessor> measurements = entry.getValue();
+                Map<Object, MeasurementAccumulator> measurements = entry.getValue();
                 synchronized (measurements) {
-                    Iterator<Map.Entry<Object, MeasurementProcessor>> iterator1 = measurements.entrySet().iterator();
+                    Iterator<Map.Entry<Object, MeasurementAccumulator>> iterator1 = measurements.entrySet().iterator();
                     while (iterator1.hasNext()) {
-                        Map.Entry<Object, MeasurementProcessor> lentry = iterator1.next();
+                        Map.Entry<Object, MeasurementAccumulator> lentry = iterator1.next();
                         Object what = lentry.getKey();
-                        EntityMeasurements existingMeasurement = result.get(what);
+                        MeasurementAccumulator existingMeasurement = result.get(what);
                         if (existingMeasurement == null) {
                             existingMeasurement = lentry.getValue().reset();
                             if (existingMeasurement == null) {
@@ -190,7 +189,7 @@ public final class ScalableMeasurementRecorderSource implements
                                 result.put(what, existingMeasurement);
                             }
                         } else {
-                            final EntityMeasurements vals = lentry.getValue().reset();
+                            final MeasurementAccumulator vals = lentry.getValue().reset();
                             if (vals != null) {
                                 existingMeasurement = existingMeasurement.aggregate(vals);
                                 result.put(what, existingMeasurement);
@@ -221,15 +220,15 @@ public final class ScalableMeasurementRecorderSource implements
     @JmxExport(description = "measurements as csv")
     public String getMeasurementsAsString() {
         StringWriter sw = new StringWriter(128);
-        Map<Object, EntityMeasurements> entitiesMeasurements = getEntitiesMeasurements();
-        EntityMeasurementsInfo info = this.processorTemplate.getInfo();
+        Map<Object, MeasurementAccumulator> entitiesMeasurements = getEntitiesMeasurements();
+        MeasurementsInfo info = this.processorTemplate.getInfo();
         try {
             Csv.writeCsvRow2(sw, "Measured", (Object[]) info.getMeasurementNames());
             Csv.writeCsvRow2(sw, "string", (Object[]) info.getMeasurementUnits());
-            for (Map.Entry<Object, EntityMeasurements> entry : entitiesMeasurements.entrySet()) {
+            for (Map.Entry<Object, MeasurementAccumulator> entry : entitiesMeasurements.entrySet()) {
                 Csv.writeCsvElement(entry.getKey().toString(), sw);
                 sw.write(',');
-                final long[] measurements = entry.getValue().getMeasurements();
+                final long[] measurements = entry.getValue().get();
                 if (measurements != null) {
                     Csv.writeCsvRow(sw, measurements);
                 }

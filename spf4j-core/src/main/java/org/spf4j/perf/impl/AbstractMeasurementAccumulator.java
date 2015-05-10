@@ -1,24 +1,25 @@
 
 package org.spf4j.perf.impl;
 
-import org.spf4j.perf.MeasurementProcessor;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.spf4j.perf.MeasurementAccumulator;
 
 /**
  *
  * @author zoly
  */
-public abstract class MeasurementAggregator implements MeasurementProcessor {
+public abstract class AbstractMeasurementAccumulator implements MeasurementAccumulator {
 
     private long minTime;
     private long maxTime;
 
-    public MeasurementAggregator() {
+    public AbstractMeasurementAccumulator() {
         minTime = Long.MAX_VALUE;
         maxTime = 0;
     }
 
     @Override
-    public final void record(final long measurement, final long timestampMillis) {
+    public final void recordAt(final long timestampMillis, final long measurement) {
         this.record(measurement);
         if (minTime >  timestampMillis) {
             minTime = timestampMillis;
@@ -34,6 +35,12 @@ public abstract class MeasurementAggregator implements MeasurementProcessor {
 
     public final long getMaxTime() {
         return maxTime;
+    }
+
+    @Override
+    @SuppressFBWarnings
+    public void close() {
+        // Default do nothing;
     }
 
 }

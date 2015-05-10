@@ -19,8 +19,8 @@ package org.spf4j.perf.impl;
 
 import com.google.common.math.IntMath;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.spf4j.perf.EntityMeasurements;
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementAccumulator;
+import org.spf4j.perf.MeasurementsInfo;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * @author zoly
  */
 @ThreadSafe
-public final class QuantizedRecorder extends MeasurementAggregator {
+public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
 
     private long minMeasurement;
     private long maxMeasurement;
@@ -39,7 +39,7 @@ public final class QuantizedRecorder extends MeasurementAggregator {
     private long measurementTotal;
     private final int quantasPerMagnitude;
     private final long[] magnitudes;
-    private final EntityMeasurementsInfo info;
+    private final MeasurementsInfo info;
     private final int factor;
     private final int lowerMagnitude;
     private final int higherMagnitude;
@@ -51,7 +51,7 @@ public final class QuantizedRecorder extends MeasurementAggregator {
      */
     private final long[] quatizedMeasurements;
 
-    public QuantizedRecorder(final Object measuredEntity, final String description,  final String unitOfMeasurement,
+    public QuantizedAccumulator(final Object measuredEntity, final String description,  final String unitOfMeasurement,
             final int factor, final int lowerMagnitude,
             final int higherMagnitude, final int quantasPerMagnitude) {
         assert (quantasPerMagnitude <= factor);
@@ -122,13 +122,13 @@ public final class QuantizedRecorder extends MeasurementAggregator {
                     + "_PI");
             uom.add("count");
         }
-        info = new EntityMeasurementsInfoImpl(measuredEntity, description,
+        info = new MeasurementsInfoImpl(measuredEntity, description,
                 result.toArray(new String[result.size()]), uom.toArray(new String[uom.size()]));
 
     }
 
     //CHECKSTYLE:OFF
-    private QuantizedRecorder(final EntityMeasurementsInfo info, final int factor,
+    private QuantizedAccumulator(final MeasurementsInfo info, final int factor,
             final int lowerMagnitude, final int higherMagnitude,
             final long minMeasurement, final long maxMeasurement,
             final long measurementCount, final long measurementTotal,
@@ -189,7 +189,7 @@ public final class QuantizedRecorder extends MeasurementAggregator {
 
     @Override
     @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
-    public synchronized long[] getMeasurements() {
+    public synchronized long[] get() {
         if (measurementCount == 0) {
             return null;
         } else {
@@ -209,16 +209,16 @@ public final class QuantizedRecorder extends MeasurementAggregator {
     }
 
     @Override
-    public EntityMeasurementsInfo getInfo() {
+    public MeasurementsInfo getInfo() {
         return info;
     }
 
     @Override
     @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
-    public EntityMeasurements aggregate(final EntityMeasurements mSource) {
+    public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
 
-        if (mSource instanceof QuantizedRecorder) {
-            QuantizedRecorder other = (QuantizedRecorder) mSource;
+        if (mSource instanceof QuantizedAccumulator) {
+            QuantizedAccumulator other = (QuantizedAccumulator) mSource;
             long[] quantizedM;
             long minMeasurementM;
             long maxMeasurementM;
@@ -231,13 +231,13 @@ public final class QuantizedRecorder extends MeasurementAggregator {
                 measurementCountM = this.measurementCount;
                 measurementTotalM = this.measurementTotal;
             }
-            QuantizedRecorder otherClone =  other.createClone();
+            QuantizedAccumulator otherClone =  other.createClone();
             final long[] lQuatizedMeas = otherClone.getQuatizedMeasurements();
             for (int i = 0; i < quantizedM.length; i++) {
 
                 quantizedM[i] += lQuatizedMeas[i];
             }
-            return new QuantizedRecorder(info, factor, lowerMagnitude, higherMagnitude,
+            return new QuantizedAccumulator(info, factor, lowerMagnitude, higherMagnitude,
                     Math.min(minMeasurementM, otherClone.getMinMeasurement()),
                     Math.max(maxMeasurementM, otherClone.getMaxMeasurement()),
                     measurementCountM + otherClone.getMeasurementCount(),
@@ -251,18 +251,18 @@ public final class QuantizedRecorder extends MeasurementAggregator {
     }
 
     @Override
-    public synchronized QuantizedRecorder createClone() {
-        return new QuantizedRecorder(info, factor, lowerMagnitude, higherMagnitude,
+    public synchronized QuantizedAccumulator createClone() {
+        return new QuantizedAccumulator(info, factor, lowerMagnitude, higherMagnitude,
                 minMeasurement, maxMeasurement, measurementCount, measurementTotal,
                 quantasPerMagnitude, magnitudes, quatizedMeasurements.clone());
     }
 
     @Override
-    public synchronized QuantizedRecorder reset() {
+    public synchronized QuantizedAccumulator reset() {
         if (measurementCount == 0) {
             return null;
         } else {
-            QuantizedRecorder result = createClone();
+            QuantizedAccumulator result = createClone();
             this.minMeasurement = Long.MAX_VALUE;
             this.maxMeasurement = Long.MIN_VALUE;
             this.measurementCount = 0;
@@ -302,19 +302,19 @@ public final class QuantizedRecorder extends MeasurementAggregator {
     }
 
     @Override
-    public synchronized EntityMeasurements createLike(final Object entity) {
-        return new QuantizedRecorder(entity, info.getDescription(), getUnitOfMeasurement(),
+    public synchronized MeasurementAccumulator createLike(final Object entity) {
+        return new QuantizedAccumulator(entity, info.getDescription(), getUnitOfMeasurement(),
                 this.factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
     }
 
     @Override
     @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
-    public long[] getMeasurementsAndReset() {
-        final QuantizedRecorder vals = reset();
+    public long[] getThenReset() {
+        final QuantizedAccumulator vals = reset();
         if (vals == null) {
             return null;
         } else {
-            return vals.getMeasurements();
+            return vals.get();
         }
     }
 }

@@ -127,7 +127,7 @@ public final class RecorderFactory {
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis,
             final int factor, final int lowerMagnitude,
             final int higherMagnitude, final int quantasPerMagnitude) {
-        ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new QuantizedRecorder(forWhat, "",
+        ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new QuantizedAccumulator(forWhat, "",
                 unitOfMeasurement, factor, lowerMagnitude, higherMagnitude,
                 quantasPerMagnitude), sampleTimeMillis, MEASUREMENT_STORE);
         mr.registerJmx();
@@ -136,7 +136,7 @@ public final class RecorderFactory {
 
     public static MeasurementRecorder createScalableCountingRecorder(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-        ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new CountingRecorder(forWhat, "",
+        ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new CountingAccumulator(forWhat, "",
                 unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
         mr.registerJmx();
         return mr;
@@ -144,7 +144,7 @@ public final class RecorderFactory {
 
     public static MeasurementRecorder createScalableMinMaxAvgRecorder(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-        ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new MinMaxAvgRecorder(forWhat, "",
+        ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new MinMaxAvgAccumulator(forWhat, "",
                 unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
         mr.registerJmx();
         return mr;
@@ -154,7 +154,8 @@ public final class RecorderFactory {
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis,
             final int factor, final int lowerMagnitude,
             final int higherMagnitude, final int quantasPerMagnitude) {
-        ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(new QuantizedRecorder(forWhat, "",
+        ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(
+                new QuantizedAccumulator(forWhat, "",
                 unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude),
                 sampleTimeMillis, MEASUREMENT_STORE);
         mrs.registerJmx();
@@ -163,7 +164,8 @@ public final class RecorderFactory {
 
     public static MeasurementRecorderSource createScalableCountingRecorderSource(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-        ScalableMeasurementRecorderSource mrs =  new ScalableMeasurementRecorderSource(new CountingRecorder(forWhat, "",
+        ScalableMeasurementRecorderSource mrs =  new ScalableMeasurementRecorderSource(
+                new CountingAccumulator(forWhat, "",
                 unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
         mrs.registerJmx();
         return mrs;
@@ -171,7 +173,8 @@ public final class RecorderFactory {
 
     public static MeasurementRecorderSource createScalableMinMaxAvgRecorderSource(
             final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-        ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(new MinMaxAvgRecorder(forWhat, "",
+        ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(
+                new MinMaxAvgAccumulator(forWhat, "",
                 unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
         mrs.registerJmx();
         return mrs;
@@ -179,7 +182,8 @@ public final class RecorderFactory {
 
     public static MultiMeasurementRecorder createDirectRecorder(final Object measuredEntity, final String description,
             final String [] measurementNames, final String[] measurementUnits) {
-        DirectMultiRecorder mr = new DirectMultiRecorder(new EntityMeasurementsInfoImpl(measuredEntity, description,
+        DirectStoreMultiAccumulator mr = new DirectStoreMultiAccumulator(
+                new MeasurementsInfoImpl(measuredEntity, description,
                 measurementNames, measurementUnits), MEASUREMENT_STORE);
         mr.registerJmx();
         return mr;
@@ -187,14 +191,14 @@ public final class RecorderFactory {
 
 
     public static MeasurementRecorder createDirectRecorder(final Object forWhat, final String unitOfMeasurement) {
-        DirectRecorder mr = new DirectRecorder(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE);
+        DirectStoreAccumulator mr = new DirectStoreAccumulator(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE);
         mr.registerJmx();
         return mr;
     }
 
     public static MeasurementRecorder createDirectRecorder(final Object forWhat,
             final String unitOfMeasurement, final int sampleTimeMillis) {
-        DirectRecorder mr = new DirectRecorder(
+        DirectStoreAccumulator mr = new DirectStoreAccumulator(
                 forWhat, "", unitOfMeasurement, sampleTimeMillis, MEASUREMENT_STORE);
         mr.registerJmx();
         return mr;
@@ -209,7 +213,7 @@ public final class RecorderFactory {
     public static MeasurementRecorder createDirectGraphiteUdpRecorder(final Object forWhat,
             final String unitOfMeasurement,
             final String graphiteHost, final int graphitePort) throws ObjectCreationException {
-        DirectRecorder mr = new DirectRecorder(forWhat, "", unitOfMeasurement, 0,
+        DirectStoreAccumulator mr = new DirectStoreAccumulator(forWhat, "", unitOfMeasurement, 0,
                 new GraphiteUdpStore(graphiteHost, graphitePort));
         mr.registerJmx();
         return mr;
@@ -218,7 +222,7 @@ public final class RecorderFactory {
     public static MeasurementRecorder createDirectGraphiteTcpRecorder(final Object forWhat,
             final String unitOfMeasurement,
             final String graphiteHost, final int graphitePort) throws ObjectCreationException {
-        DirectRecorder mr =  new DirectRecorder(forWhat, "", unitOfMeasurement, 0,
+        DirectStoreAccumulator mr =  new DirectStoreAccumulator(forWhat, "", unitOfMeasurement, 0,
                 new GraphiteTcpStore(graphiteHost, graphitePort));
         mr.registerJmx();
         return mr;
