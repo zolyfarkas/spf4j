@@ -18,6 +18,7 @@
  */
 package org.spf4j.perf.memory;
 
+import java.io.IOException;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.perf.MeasurementRecorder;
@@ -42,18 +43,10 @@ public final class MemoryUsageSampler {
 
     private MemoryUsageSampler() { }
 
-    private static final int AGG_INTERVAL =
-            Integer.parseInt(System.getProperty("perf.memory.sampleAggMillis", "300000"));
-
-    private static final MeasurementRecorder HEAP_COMMITED =
-            RecorderFactory.createScalableMinMaxAvgRecorder("heap-commited", "bytes", AGG_INTERVAL);
-    private static final MeasurementRecorder HEAP_USED =
-            RecorderFactory.createScalableMinMaxAvgRecorder("heap-used", "bytes", AGG_INTERVAL);
-
     private static final MemoryMXBean MBEAN = ManagementFactory.getMemoryMXBean();
 
     private static ScheduledFuture<?> samplingFuture;
-
+    private static AccumulatorRunnable accumulatorRunnable;
 
     static {
         java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {
@@ -65,18 +58,22 @@ public final class MemoryUsageSampler {
         Registry.export(MemoryUsageSampler.class);
     }
 
-    @JmxExport
-    public static synchronized void start(@JmxExport("sampleTimeMillis") final long sampleTime) {
-        if (samplingFuture == null) {
-            samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
+    public static synchronized void start(final long sampleTimeMilis) {
+        start((int) sampleTimeMilis, (int) sampleTimeMilis * 10);
+    }
 
-                @Override
-                public void doRun() throws Exception {
-                    MemoryUsage usage = MBEAN.getHeapMemoryUsage();
-                    HEAP_COMMITED.record(usage.getCommitted());
-                    HEAP_USED.record(usage.getUsed());
-                }
-            }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
+    public static synchronized void start(final int sampleTimeMilis) {
+        start(sampleTimeMilis, sampleTimeMilis * 10);
+    }
+
+
+    @JmxExport
+    public static synchronized void start(@JmxExport("sampleTimeMillis") final int sampleTimeMilis,
+            @JmxExport("accumulateIntervalMillis") final int accumulateIntervalMillis) {
+        if (samplingFuture == null) {
+            accumulatorRunnable = new AccumulatorRunnable(accumulateIntervalMillis);
+            samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(accumulatorRunnable,
+                    sampleTimeMilis, sampleTimeMilis, TimeUnit.MILLISECONDS);
         } else {
             throw new IllegalStateException("Memory usage sampling already started " + samplingFuture);
         }
@@ -87,12 +84,44 @@ public final class MemoryUsageSampler {
          if (samplingFuture != null) {
              samplingFuture.cancel(false);
              samplingFuture = null;
+             accumulatorRunnable.close();
          }
     }
 
     @JmxExport
     public static synchronized boolean isStarted() {
         return samplingFuture != null;
+    }
+
+    private static class AccumulatorRunnable extends AbstractRunnable {
+
+        public AccumulatorRunnable(final int accumulationIntervalMillis) {
+            heapCommited =
+                RecorderFactory.createScalableMinMaxAvgRecorder("heap-commited", "bytes", accumulationIntervalMillis);
+            heapUsed =
+                RecorderFactory.createScalableMinMaxAvgRecorder("heap-used", "bytes", accumulationIntervalMillis);
+        }
+
+        private final MeasurementRecorder heapCommited;
+        private final MeasurementRecorder heapUsed;
+
+
+        @Override
+        public void doRun() throws Exception {
+            MemoryUsage usage = MBEAN.getHeapMemoryUsage();
+            heapCommited.record(usage.getCommitted());
+            heapUsed.record(usage.getUsed());
+        }
+
+        public void close() {
+            try {
+                heapCommited.close();
+                heapUsed.close();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+
+        }
     }
 
 
