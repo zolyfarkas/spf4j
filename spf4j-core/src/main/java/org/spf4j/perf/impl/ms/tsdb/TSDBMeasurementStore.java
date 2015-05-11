@@ -24,8 +24,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.tsdb2.TSDBWriter;
 import org.spf4j.tsdb2.avro.ColumnDef;
@@ -41,7 +39,6 @@ public final class TSDBMeasurementStore
     implements MeasurementStore {
 
     private final TSDBWriter database;
-    private static final Logger LOG = LoggerFactory.getLogger(TSDBMeasurementStore.class);
 
 
     public TSDBMeasurementStore(final String databaseName) throws IOException {
