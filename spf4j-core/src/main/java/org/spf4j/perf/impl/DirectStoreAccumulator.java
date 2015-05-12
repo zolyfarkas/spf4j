@@ -68,7 +68,7 @@ public final class DirectStoreAccumulator implements MeasurementRecorder, Closea
 
     @Override
     @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
-    public synchronized void recordAt(final long measurement, final long timestampMillis) {
+    public synchronized void recordAt(final long timestampMillis, final long measurement) {
         lastRecordedValue = measurement;
         lastRecordedTS = timestampMillis;
         try {
