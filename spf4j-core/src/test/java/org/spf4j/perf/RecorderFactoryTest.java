@@ -39,9 +39,6 @@ import org.spf4j.tsdb2.avro.TableDef;
 @SuppressWarnings("SleepWhileInLoop")
 public final class RecorderFactoryTest {
 
-
-    private final long startTime = System.currentTimeMillis();
-
         @BeforeClass
     public static void init() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
