@@ -92,9 +92,8 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
             fromValue *= factor;
         }
 
-        final List<String> uom = new ArrayList();
-
-        final List<String> result = new ArrayList();
+        final List<String> uom = new ArrayList(16);
+        final List<String> result = new ArrayList(16);
         result.add("total");
         uom.add(unitOfMeasurement);
         result.add("count");
@@ -112,14 +111,14 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
                 long magVal = magnitudes[i];
                 long intSize = magVal - prevVal;
                 for (j = 0; j < quantasPerMagnitude; j++) {
-                    result.add("Q" + (prevVal + intSize * j / quantasPerMagnitude)
-                            + "_" + (prevVal + intSize * (j + 1) / quantasPerMagnitude));
+                    result.add(new StringBuilder(16).append('Q').append(prevVal + intSize * j / quantasPerMagnitude)
+                            .append('_').append(prevVal + intSize * (j + 1) / quantasPerMagnitude).toString());
                     uom.add("count");
                 }
                 prevVal = magVal;
             }
-            result.add("Q" + prevVal
-                    + "_PI");
+            result.add(new StringBuilder().append('Q').append(prevVal)
+                    .append("_PI").toString());
             uom.add("count");
         }
         info = new MeasurementsInfoImpl(measuredEntity, description,

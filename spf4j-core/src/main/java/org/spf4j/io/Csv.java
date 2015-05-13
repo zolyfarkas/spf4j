@@ -278,7 +278,7 @@ public final class Csv {
 
     private static final char[] TO_ESCAPE = new char[]{',', '\n', '\r', '"'};
 
-    public static void writeCsvElement(final CharSequence elem, final Writer writer) throws IOException {
+    public static void writeCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
         if (Strings.contains(elem, TO_ESCAPE)) {
             writeEscaped(elem, writer);
         } else {
@@ -286,18 +286,18 @@ public final class Csv {
         }
     }
 
-    private static void writeEscaped(final CharSequence elem, final Writer writer) throws IOException {
+    private static void writeEscaped(final CharSequence elem, final Appendable writer) throws IOException {
         int length = elem.length();
-        writer.write('"');
+        writer.append('"');
         for (int i = 0; i < length; i++) {
             char c = elem.charAt(i);
             if (c == '"') {
-                writer.write("\"\"");
+                writer.append("\"\"");
             } else {
-                writer.write(c);
+                writer.append(c);
             }
         }
-        writer.write('"');
+        writer.append('"');
     }
 
     public static CharSequence toCsvElement(final CharSequence elem) {

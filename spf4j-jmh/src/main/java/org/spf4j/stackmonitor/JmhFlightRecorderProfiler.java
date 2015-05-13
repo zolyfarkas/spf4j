@@ -53,7 +53,7 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
      */
     @Override
     public Collection<String> addJVMOptions(final BenchmarkParams params) {
-        dumpFile = DUMP_FOLDER + "/" + params.id() + ".jfr";
+        dumpFile = DUMP_FOLDER + '/' + params.id() + ".jfr";
         String flightRecorderOptions = DEFAULT_OPTIONS + ",dumponexit=true,dumponexitpath=" + dumpFile;
         return Arrays.asList(
                 "-XX:+FlightRecorder",

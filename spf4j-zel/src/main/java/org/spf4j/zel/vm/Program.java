@@ -419,7 +419,7 @@ public final class Program implements Serializable {
      */
     public static Object getValue(@Nonnull final java.util.Map mem, @Nonnull final String name)
             throws CompileException, InterruptedException, ExecutionException {
-        return Program.compile(name + ";").execute(mem);
+        return Program.compile(name + ';').execute(mem);
     }
 
     /**
@@ -435,7 +435,7 @@ public final class Program implements Serializable {
     public static void addValue(@Nonnull final java.util.Map mem, @Nonnull final String name,
             final Object value)
             throws CompileException, InterruptedException, ExecutionException {
-        Program.compile(name + "=" + value + ";").execute(mem);
+        Program.compile(name + '=' + value + ';').execute(mem);
     }
 
     /**
@@ -539,8 +539,8 @@ public final class Program implements Serializable {
             result.append(obj);
             result.append('\n');
         }
-        result.append("execType = ").append(this.execType).append("\n");
-        result.append("type = ").append(this.type).append("\n");
+        result.append("execType = ").append(this.execType).append('\n');
+        result.append("type = ").append(this.type).append('\n');
         return result.toString();
     }
 

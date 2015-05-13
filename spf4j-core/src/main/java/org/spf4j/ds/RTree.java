@@ -682,10 +682,10 @@ public final class RTree<T> {
                 x0, y0, w, h);
         pw.println("<pre>");
         pw.println("Node: " + n + " (root==" + (n == root) + ") \n");
-        pw.println("Coords: " + Arrays.toString(n.coords) + "\n");
-        pw.println("Dimensions: " + Arrays.toString(n.dimensions) + "\n");
-        pw.println("# Children: " + ((n.children == null) ? 0 : n.children.size()) + "\n");
-        pw.println("isLeaf: " + n.leaf + "\n");
+        pw.println("Coords: " + Arrays.toString(n.coords) + '\n');
+        pw.println("Dimensions: " + Arrays.toString(n.dimensions) + '\n');
+        pw.println("# Children: " + ((n.children == null) ? 0 : n.children.size()) + '\n');
+        pw.println("isLeaf: " + n.leaf + '\n');
         pw.println("</pre>");
         int numChildren = (n.children == null) ? 0 : n.children.size();
         for (int i = 0; i < numChildren; i++) {

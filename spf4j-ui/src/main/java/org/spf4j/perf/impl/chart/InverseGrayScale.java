@@ -81,7 +81,7 @@ public final class InverseGrayScale
     public InverseGrayScale(final double lowerBound, final double upperBound, final int alpha) {
         if (lowerBound >= upperBound) {
             throw new IllegalArgumentException(
-                    "Requires " + lowerBound + " < " + upperBound + ".");
+                    "Requires " + lowerBound + " < " + upperBound + '.');
         }
         if (alpha < 0 || alpha > 255) {
             throw new IllegalArgumentException(

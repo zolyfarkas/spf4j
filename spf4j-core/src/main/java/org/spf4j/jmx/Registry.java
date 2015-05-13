@@ -239,7 +239,7 @@ public final class Registry {
         } else {
             if (existing.getValueClass() != method.getParameterTypes()[0]) {
                 throw new IllegalArgumentException(
-                        "Getter and setter icorrectly defined " + existing + " " + method);
+                        "Getter and setter icorrectly defined " + existing + ' ' + method);
             }
             existing = existing.withSetter(method);
         }
@@ -259,7 +259,7 @@ public final class Registry {
         } else {
             if (existing.getValueClass() != method.getReturnType()) {
                 throw new IllegalArgumentException(
-                        "Getter and setter icorrectly defined " + existing + " " + method);
+                        "Getter and setter icorrectly defined " + existing + ' ' + method);
             }
             existing = existing.withGetter(method,
                     (String) Reflections.getAnnotationAttribute(annot, "description"));

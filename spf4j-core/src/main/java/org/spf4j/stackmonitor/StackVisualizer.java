@@ -18,6 +18,7 @@
 package org.spf4j.stackmonitor;
 
 import com.google.common.html.HtmlEscapers;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
@@ -31,7 +32,7 @@ public final class StackVisualizer {
 
     private StackVisualizer() {
     }
-    
+
     private static final String[] COLORS = {"#CCE01B",
         "#DDE01B", "#EEE01B", "#FFE01B", "#FFD01B",
         "#FFC01B", "#FFA01B", "#FF901B", "#FF801B",
@@ -107,14 +108,12 @@ public final class StackVisualizer {
                 + idPfx + "tooltip_bg.setAttributeNS(null,\"x\",xx);\n"
                 +  idPfx + "tooltip_bg.setAttributeNS(null,\"y\",yy);\n"
                 +  idPfx + "tooltip_bg.setAttributeNS(null,\"visibility\",\"visibile\");"
-                + "}"
-                + "\n"
+                + "}\n"
                 + "function " + idPfx + "hh()\n"
                 + "{\n"
                 + "  " + idPfx + "tooltip.setAttributeNS(null,\"visibility\",\"hidden\");\n"
                 + idPfx + "tooltip_bg.setAttributeNS(null,\"visibility\",\"hidden\");\n"
-                + "}"
-                + "]]>"
+                + "}]]>"
                 + "</script>");
 
         generateSubSvg(writer, m, node, x, y + 15, width - 100, maxDepth, idPfx);
@@ -127,6 +126,7 @@ public final class StackVisualizer {
         writer.append("</svg>\n");
     }
 
+    @SuppressFBWarnings("ISB_TOSTRING_APPENDING")
     public static void generateSubSvg(final Writer writer, final Method m, final SampleNode node,
             final int x, final int y, final int width, final int maxDepth, final String idPfx) throws IOException {
 
@@ -134,8 +134,8 @@ public final class StackVisualizer {
         Map<Method, SampleNode> subNodes = node.getSubNodes();
 
         int totalSamples = node.getSampleCount();
-        String id = idPfx + "ix" + x + "y" + y;
-        String content = HtmlEscapers.htmlEscaper().escape(m + ":" + Integer.toString(totalSamples));
+        String id = idPfx + "ix" + x + 'y' + y;
+        String content = HtmlEscapers.htmlEscaper().escape(m.toString() + ':' + totalSamples);
         writer.append("<g onmouseover=\"" + idPfx + "ss(evt,'" + content + "'," + x + ", "
                 + y + " )\" onmouseout=\"" + idPfx + "hh()\">");
         writer.append("<rect id=\"" + id + "\" x=\"" + x + "\" y=\"" + y + "\" width=\"" + width

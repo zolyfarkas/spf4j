@@ -34,7 +34,7 @@ import javax.annotation.concurrent.Immutable;
 // using racy single check idiom makes findbugs think the Method obejct is mutable...
 @edu.umd.cs.findbugs.annotations.SuppressWarnings("JCIP_FIELD_ISNT_FINAL_IN_IMMUTABLE_CLASS")
 public final class Method implements Serializable {
-    
+
     private static final long serialVersionUID = 1L;
 
     private final String declaringClass;
@@ -110,7 +110,7 @@ public final class Method implements Serializable {
 
     @Override
     public String toString() {
-        return methodName + "@" + declaringClass;
+        return methodName + '@' + declaringClass;
     }
 
     public void toWriter(final Writer w) throws IOException {
@@ -131,27 +131,26 @@ public final class Method implements Serializable {
     public Method withNewId() {
         return new Method(declaringClass, methodName, id + 1);
     }
-    
-    
-    private static final Map<String, Map<String, Method>> INSTANCE_REPO =
-            new HashMap<String, Map<String, Method>>(1024);
-    
+
+
+    private static final Map<String, Map<String, Method>> INSTANCE_REPO = new HashMap<>(1024);
+
 
     public static Method getMethod(final StackTraceElement elem) {
         return getMethod(elem.getClassName(), elem.getMethodName());
     }
-    
+
     /*
      * this function is to allow reuse of Method instances.
      * not thread safe, use with care, see description for suppressed findbugs bug for more detail.
      */
-    
+
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_POSSIBLE_MEMORY")
     public static Method getMethod(final String className, final String methodName) {
         Map<String, Method> mtom = INSTANCE_REPO.get(className);
         Method result;
         if (mtom == null) {
-            mtom = new HashMap<String, Method>();
+            mtom = new HashMap<>(4);
             result = new Method(className, methodName);
             mtom.put(methodName, result);
             INSTANCE_REPO.put(className, mtom);
@@ -164,5 +163,5 @@ public final class Method implements Serializable {
         }
         return result;
     }
-    
+
 }

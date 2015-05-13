@@ -188,8 +188,8 @@ public final class Sampler {
             @Nullable final String id) throws IOException {
         SampleNode collected = stackCollector.clear();
         if (collected != null) {
-            String fileName = filePrefix + "_" + ((id == null) ? "" : id + "_")
-                    + TS_FORMAT.print(lastDumpTime) + "_"
+            String fileName = filePrefix + '_' + ((id == null) ? "" : id + '_')
+                    + TS_FORMAT.print(lastDumpTime) + '_'
                     + TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump2";
             Converter.save(new File(fileName), collected);
             lastDumpTime = System.currentTimeMillis();

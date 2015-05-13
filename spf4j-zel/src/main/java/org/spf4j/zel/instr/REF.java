@@ -130,7 +130,7 @@ public final class REF extends Instruction {
         @Override
         public void assign(final Object object) {
             throw new UnsupportedOperationException("Cannot assign " + object + " to "
-                    + relativeTo + "." + ref);
+                    + relativeTo + '.' + ref);
         }
 
         @Override

@@ -42,7 +42,7 @@ public final class ZelFrame implements Serializable {
 
     @Override
     public String toString() {
-        return programName + "(" + source + ":" + index + ")";
+        return programName + '(' + source + ':' + index + ')';
     }
 
     public String getProgramName() {

@@ -106,6 +106,7 @@ public final class ZStackPanel extends StackPanelBase {
                 }
             }
 
+            @SuppressFBWarnings("ISB_TOSTRING_APPENDING")
             private void drawMethod(final Method vertex, final int nrSamples,
                     final double x, final double y, final double width, final double height,
                     final Point... fromLinks) {
@@ -120,7 +121,7 @@ public final class ZStackPanel extends StackPanelBase {
                 FlameStackPanel.setElementColor(counter++, g2);
                 g2.setClip((int) x, (int) y, (int) width, (int) height);
                 g2.fillRect((int) x, (int) y, (int) width, (int) height);
-                String val = vertex + "-" + nrSamples;
+                String val = vertex.toString() + '-' + nrSamples;
 
                 g2.setPaint(Color.BLACK);
                 g2.drawString(val, (int) x, (int) (y + height - 1));

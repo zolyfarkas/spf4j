@@ -315,7 +315,7 @@ public final class Reflections {
 
         @Override
         public String toString() {
-            return "MethodDesc{" + "clasz=" + clasz + ","
+            return "MethodDesc{" + "clasz=" + clasz + ','
                     + " name=" + name + ", paramTypes=" + Arrays.toString(paramTypes) + '}';
         }
 

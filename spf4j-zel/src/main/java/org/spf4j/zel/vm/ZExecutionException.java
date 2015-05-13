@@ -82,7 +82,7 @@ public final class ZExecutionException extends ExecutionException {
         }
         for (String sourceId : sourceIds) {
             result.append(sourceId).append(":\n");
-            result.append(ZelFrame.getDetail(sourceId)).append("\n");
+            result.append(ZelFrame.getDetail(sourceId)).append('\n');
         }
         return result.toString();
     }

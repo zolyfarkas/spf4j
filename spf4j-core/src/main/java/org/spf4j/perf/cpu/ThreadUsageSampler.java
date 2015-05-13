@@ -43,9 +43,13 @@ public final class ThreadUsageSampler {
         int i = 0;
         boolean haveStacktraces = PEAK_THREAD_TRACES.size() > 0;
         for (String tname : PEAK_THREAD_NAMES) {
-            out.print(tname + ", daemon =" + PEAK_THREAD_DAEMON.get(i) + ",");
+            out.print(tname);
+            out.print(", daemon =");
+            out.print(PEAK_THREAD_DAEMON.get(i));
+            out.print(',');
             if (haveStacktraces) {
-                out.print(" " + Arrays.toString(PEAK_THREAD_TRACES.get(i)));
+                out.print(' ');
+                out.print(Arrays.toString(PEAK_THREAD_TRACES.get(i)));
             }
             out.println();
             i++;

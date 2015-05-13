@@ -55,7 +55,7 @@ public abstract class Instruction implements Serializable {
     @Override
     public final String toString() {
         if (getParameters().length > 0) {
-           return this.getClass().getSimpleName() + "(" + Arrays.toString(getParameters()) + ")";
+           return this.getClass().getSimpleName() + '(' + Arrays.toString(getParameters()) + ')';
         } else {
             return this.getClass().getSimpleName();
         }

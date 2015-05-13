@@ -108,7 +108,7 @@ public final class JmhProfiler implements InternalProfiler {
             this.samples = samples;
             this.benchmark = benchmark;
             if (!isIteration) {
-                String fileName = DUMP_FOLDER + "/" + benchmark + ".ssdump2";
+                String fileName = DUMP_FOLDER + '/' + benchmark + ".ssdump2";
                 Converter.save(new File(fileName), samples);
             }
         }

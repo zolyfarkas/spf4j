@@ -50,7 +50,7 @@ public class Pair<A, B> implements Map.Entry<A, B> {
      */
     @Nullable
     public static Pair<String, String> from(final String stringPair) {
-        if (!stringPair.startsWith(PREFIX) || !stringPair.endsWith(SUFFIX)) {
+        if (!(stringPair.charAt(0) == PREFIX) || !(stringPair.charAt(stringPair.length()) == SUFFIX)) {
             return null;
         }
         int commaIdx = stringPair.indexOf(',');
@@ -59,7 +59,7 @@ public class Pair<A, B> implements Map.Entry<A, B> {
         }
 
         StringReader sr = new StringReader(
-                stringPair.substring(PREFIX.length(), stringPair.length() - SUFFIX.length()));
+                stringPair.substring(1, stringPair.length() - 1));
         StringBuilder first = new StringBuilder();
         StringBuilder second = new StringBuilder();
         int comma;
@@ -78,9 +78,9 @@ public class Pair<A, B> implements Map.Entry<A, B> {
         }
         return Pair.of(first.toString(), second.toString());
     }
-    private static final String SUFFIX = ")";
+    private static final char SUFFIX = ')';
 
-    private static final String PREFIX = "(";
+    private static final char PREFIX = '(';
 
     //CHECKSTYLE:OFF
     protected final A first;
@@ -118,8 +118,16 @@ public class Pair<A, B> implements Map.Entry<A, B> {
 
     @Override
     public final String toString() {
-        return PREFIX + Csv.toCsvElement(first.toString())
-                + "," + Csv.toCsvElement(second.toString()) + ')';
+        try {
+            StringBuilder result = new StringBuilder(32).append(PREFIX);
+            Csv.writeCsvElement(first.toString(), result);
+            result.append(',');
+            Csv.writeCsvElement(second.toString(), result);
+            result.append(SUFFIX);
+            return result.toString();
+        } catch (IOException ex) {
+           throw new RuntimeException(ex);
+        }
     }
 
     public final List<Object> toList() {

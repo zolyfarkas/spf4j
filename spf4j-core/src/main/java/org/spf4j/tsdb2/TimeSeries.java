@@ -12,7 +12,7 @@ import java.util.Arrays;
 public final class TimeSeries {
 
     private final long [] timeStamps;
-    
+
     private final long[][] values;
 
     public TimeSeries(final long[] timeStamps, final  long[][] values) {
@@ -33,12 +33,12 @@ public final class TimeSeries {
         StringBuilder result = new StringBuilder();
         result.append("TimeSeries(\n");
         for (int i = 0; i < timeStamps.length; i++) {
-            result.append(timeStamps[i]).append(":").append(Arrays.toString(values[i])).append("\n");
+            result.append(timeStamps[i]).append(':').append(Arrays.toString(values[i])).append('\n');
         }
-        result.append(")");
+        result.append(')');
         return result.toString();
     }
-    
-    
-    
+
+
+
 }

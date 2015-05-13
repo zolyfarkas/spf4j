@@ -26,7 +26,7 @@ import javax.annotation.concurrent.Immutable;
  */
 @Immutable
 public final class Quanta implements Comparable<Quanta>, Serializable {
-   
+
     private final long intervalStart;
     private final long intervalEnd;
 
@@ -68,8 +68,20 @@ public final class Quanta implements Comparable<Quanta>, Serializable {
 
     @Override
     public String toString() {
-        return "Q" + ((intervalStart == Long.MIN_VALUE)
-                ? "NI" : intervalStart) + "_" + ((intervalEnd == Long.MAX_VALUE) ? "PI" : intervalEnd);
+        StringBuilder result = new StringBuilder(16);
+        result.append('Q');
+        if (intervalStart == Long.MIN_VALUE) {
+            result.append("NI");
+        } else {
+            result.append(intervalStart);
+        }
+        result.append('_');
+        if (intervalEnd == Long.MAX_VALUE) {
+            result.append("PI");
+        } else {
+            result.append(intervalEnd);
+        }
+        return result.toString();
     }
 
     @Override
@@ -107,7 +119,7 @@ public final class Quanta implements Comparable<Quanta>, Serializable {
         final Quanta other = (Quanta) obj;
         return this.compareTo(other) == 0;
     }
-    
+
     private static final long serialVersionUID = 1L;
 
 }

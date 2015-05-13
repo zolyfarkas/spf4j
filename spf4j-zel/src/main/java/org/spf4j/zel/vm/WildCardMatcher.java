@@ -74,7 +74,7 @@ public final class WildCardMatcher {
                     buff.append("[^\\[\\]\\.]+");
                     break;
                 case '?':
-                    buff.append(".");
+                    buff.append('.');
                     break;
                 case '[':
                 case ']':
@@ -108,7 +108,7 @@ public final class WildCardMatcher {
 
     @Override
     public String toString() {
-        return "`" + wildcardExp + "`";
+        return new StringBuilder().append('`').append(wildcardExp).append('`').toString();
     }
 
     @Override

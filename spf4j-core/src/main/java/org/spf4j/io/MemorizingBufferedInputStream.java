@@ -271,7 +271,7 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         result.append("memIdx=").append(this.memIdx).append("\"\n");
         result.append("startIdx=").append(this.startIdx).append("\"\n");
         result.append("endIdx=").append(this.endIdx).append("\"\n");
-        result.append("}");
+        result.append('}');
         return result.toString();
     }
 
