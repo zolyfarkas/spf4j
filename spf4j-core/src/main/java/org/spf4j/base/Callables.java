@@ -270,7 +270,7 @@ public final class Callables {
     }
 
 
-    public abstract static class TimeoutCallable<T, EX extends Exception> implements CheckedCallable<T, EX> {
+    public abstract static class TimeoutCallable<T, EX extends Exception> extends CheckedCallable<T, EX> {
 
         private final long mdeadline;
 
@@ -334,9 +334,68 @@ public final class Callables {
     }
 
 
-    public interface CheckedCallable<T, EX extends Exception> extends Callable<T> {
+    /**
+     * A callable that will be retried.
+     * @param <T>
+     * @param <EX>
+     */
+    public abstract static class CheckedCallable<T, EX extends Exception> implements RetryCallable<T, EX> {
+
+        /**
+         * method to process result (after all retries exhausted).
+         * @param lastRet
+         * @return
+         */
+        //design for extension here is not quite right. This case is a case of a "default implementation"
+        //CHECKSTYLE:OFF
+        @Override
+        public  T lastReturn(final T lastRet) {
+            return lastRet;
+        }
+
+        /**
+         * method to press the exception after all retries exhausted.
+         * @param ex
+         * @return
+         */
+        @Override
+        public <T extends Exception> T lastException(final T ex) {
+            return ex;
+        }
+        //CHECKSTYLE:ON
+
+    }
+
+    /**
+     * A callable that will be retried.
+     * @param <T>
+     * @param <EX>
+     */
+    public interface RetryCallable<T, EX extends Exception> extends Callable<T> {
+
+        /**
+         * the method that is retried.
+         * @return
+         * @throws EX
+         * @throws InterruptedException
+         */
         @Override
         T call() throws EX, InterruptedException;
+
+        /**
+         * method to process result (after all retries exhausted).
+         * @param lastRet
+         * @return
+         */
+        T lastReturn(final T lastRet);
+
+        /**
+         * method to press the exception after all retries exhausted.
+         * @param ex
+         * @return
+         */
+        <T extends Exception> T lastException(T ex);
+
     }
 
 
@@ -355,8 +414,9 @@ public final class Callables {
      * and finish the function with the previous result.
      *
      */
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST_OF_RETURN_VALUE")
     public static <T, EX extends Exception> T executeWithRetry(
-            final CheckedCallable<T, EX> what,
+            final RetryCallable<T, EX> what,
             final RetryPredicate<? super T> retryOnReturnVal, final RetryPredicate<Exception> retryOnException)
             throws InterruptedException, EX {
         T result = null;
@@ -364,7 +424,7 @@ public final class Callables {
         try {
             result = what.call();
         } catch (InterruptedException ex1) {
-            throw ex1;
+            throw what.lastException(ex1);
         } catch (Exception e) { // only EX and RuntimeException
             lastEx = e;
         }
@@ -373,14 +433,14 @@ public final class Callables {
                 || retryOnReturnVal.apply(result) == Action.RETRY) {
             if (Thread.interrupted()) {
                 Thread.currentThread().interrupt();
-                throw new InterruptedException();
+                throw what.lastException(new InterruptedException());
             }
             result = null;
             lastEx = null;
             try {
                 result = what.call();
             } catch (InterruptedException ex1) {
-                throw ex1;
+                throw what.lastException(ex1);
             } catch (Exception e) { // only EX and RuntimeException
                 lastEx = e;
                 if (lastExChain != null) {
@@ -392,12 +452,12 @@ public final class Callables {
         }
         if (lastEx != null) {
             if (lastExChain instanceof RuntimeException) {
-                throw (RuntimeException) lastExChain;
+                throw what.lastException((RuntimeException) lastExChain);
             } else {
-                throw (EX) lastExChain;
+                throw what.lastException((EX) lastExChain);
             }
         }
-        return result;
+        return what.lastReturn(result);
     }
 
     public static <T> Callable<T> synchronize(final Callable<T> callable) {
