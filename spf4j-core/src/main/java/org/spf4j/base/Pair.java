@@ -50,7 +50,7 @@ public class Pair<A, B> implements Map.Entry<A, B> {
      */
     @Nullable
     public static Pair<String, String> from(final String stringPair) {
-        if (!(stringPair.charAt(0) == PREFIX) || !(stringPair.charAt(stringPair.length()) == SUFFIX)) {
+        if (!(stringPair.charAt(0) == PREFIX) || !(stringPair.charAt(stringPair.length() - 1) == SUFFIX)) {
             return null;
         }
         int commaIdx = stringPair.indexOf(',');
