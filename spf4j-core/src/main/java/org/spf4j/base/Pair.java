@@ -50,7 +50,8 @@ public class Pair<A, B> implements Map.Entry<A, B> {
      */
     @Nullable
     public static Pair<String, String> from(final String stringPair) {
-        if (!(stringPair.charAt(0) == PREFIX) || !(stringPair.charAt(stringPair.length() - 1) == SUFFIX)) {
+        final int lastCharIdx = stringPair.length() - 1;
+        if (!(stringPair.charAt(0) == PREFIX) || !(stringPair.charAt(lastCharIdx) == SUFFIX)) {
             return null;
         }
         int commaIdx = stringPair.indexOf(',');
@@ -59,7 +60,7 @@ public class Pair<A, B> implements Map.Entry<A, B> {
         }
 
         StringReader sr = new StringReader(
-                stringPair.substring(1, stringPair.length() - 1));
+                stringPair.substring(1, lastCharIdx));
         StringBuilder first = new StringBuilder();
         StringBuilder second = new StringBuilder();
         int comma;
