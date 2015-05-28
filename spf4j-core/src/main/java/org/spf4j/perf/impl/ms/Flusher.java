@@ -36,7 +36,7 @@ public final class Flusher {
                 store.flush();
             }
         }, intervalMillis, intervalMillis, TimeUnit.MILLISECONDS);
-        org.spf4j.base.Runtime.addHookAtEnd(new AbstractRunnable(false) {
+        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(false) {
             @Override
             public void doRun() throws Exception {
                 try {

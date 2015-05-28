@@ -125,7 +125,7 @@ public final class Runtime {
                     }
                 }
             }
-        }, "tsdb shutdown"));
+        }, "spf4j queued shutdown"));
         //JAVA_PLATFORM = Version.fromSpecVersion(runtimeMxBean.getSpecVersion());
         JAVA_PLATFORM = Version.fromSpecVersion(JAVA_VERSION);
     }
@@ -402,15 +402,24 @@ public final class Runtime {
     private static final LinkedList<Runnable> SHUTDOWN_HOOKS = new LinkedList<>();
 
 
-    public static void addHookAtBeginning(final Runnable runnable) {
+    public static void queueHookAtBeginning(final Runnable runnable) {
         synchronized (SHUTDOWN_HOOKS) {
             SHUTDOWN_HOOKS.addFirst(runnable);
         }
     }
 
-    public static void addHookAtEnd(final Runnable runnable) {
+    public static void queueHookAtEnd(final Runnable runnable) {
         synchronized (SHUTDOWN_HOOKS) {
             SHUTDOWN_HOOKS.addLast(runnable);
+        }
+    }
+
+    public static void removeQueuedShutdownHook(final Runnable runnable) {
+        if ("spf4j queued shutdown".equals(Thread.currentThread().getName())) {
+            return;
+        }
+        synchronized (SHUTDOWN_HOOKS) {
+            SHUTDOWN_HOOKS.remove(runnable);
         }
     }
 

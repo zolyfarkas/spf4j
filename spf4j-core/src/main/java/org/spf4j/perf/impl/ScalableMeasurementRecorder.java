@@ -51,6 +51,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     private final ScheduledFuture<?> samplingFuture;
     private final MeasurementAccumulator processorTemplate;
     private final AbstractRunnable persister;
+    private final Runnable shutdownHook;
 
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
     ScalableMeasurementRecorder(final MeasurementAccumulator processor, final int sampleTimeMillis,
@@ -93,17 +94,19 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
             }
         };
         samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);
-        closeOnShutdown();
+        shutdownHook = closeOnShutdown();
     }
 
-    private void closeOnShutdown() {
-        org.spf4j.base.Runtime.addHookAtBeginning(new AbstractRunnable(true) {
+    private Runnable closeOnShutdown() {
+        final AbstractRunnable runnable = new AbstractRunnable(true) {
 
             @Override
             public void doRun() throws Exception {
                 close();
             }
-        });
+        };
+        org.spf4j.base.Runtime.queueHookAtBeginning(runnable);
+        return runnable;
     }
 
     @Override
@@ -166,6 +169,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     @Override
     public void close() {
         if (!samplingFuture.isCancelled()) {
+            org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);
             samplingFuture.cancel(false);
             persister.run();
             Registry.unregister("org.spf4j.perf.recorders", processorTemplate.getInfo().getMeasuredEntity().toString());
