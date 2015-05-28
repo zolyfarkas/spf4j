@@ -109,6 +109,10 @@ public final class ScalableMeasurementRecorderSource implements
             }
         };
         samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);
+        closeOnShutdown();
+    }
+
+    private void closeOnShutdown() {
         org.spf4j.base.Runtime.addHookAtBeginning(new AbstractRunnable(true) {
 
             @Override
@@ -211,10 +215,12 @@ public final class ScalableMeasurementRecorderSource implements
 
     @Override
     public void close() {
-        samplingFuture.cancel(false);
-        persister.run();
-        Registry.unregister("org.spf4j.perf.recorders",
-                this.processorTemplate.getInfo().getMeasuredEntity().toString());
+        if (!samplingFuture.isCancelled()) {
+            samplingFuture.cancel(false);
+            persister.run();
+            Registry.unregister("org.spf4j.perf.recorders",
+                    this.processorTemplate.getInfo().getMeasuredEntity().toString());
+        }
     }
 
     @JmxExport(description = "measurements as csv")
