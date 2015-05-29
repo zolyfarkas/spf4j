@@ -45,6 +45,7 @@ import org.spf4j.base.Pair;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.instr.LValRef;
 import org.spf4j.zel.instr.var.ARRAY;
+import org.spf4j.zel.instr.var.DECODE;
 import org.spf4j.zel.instr.var.INT;
 import org.spf4j.zel.instr.var.LOG;
 import org.spf4j.zel.instr.var.MAX;
@@ -315,6 +316,7 @@ public final class Program implements Serializable {
         ZEL_GLOBAL_FUNC.addSymbol("random", RANDOM.INSTANCE);
         ZEL_GLOBAL_FUNC.addSymbol("channel", Channel.Factory.INSTANCE);
         ZEL_GLOBAL_FUNC.addSymbol("EOF", Channel.EOF);
+        ZEL_GLOBAL_FUNC.addSymbol("decode", DECODE.INSTANCE);
     }
 
     public Object execute(@Nullable final VMExecutor execService,

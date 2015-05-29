@@ -317,6 +317,22 @@ public final class ZelTest {
        Assert.assertEquals(2, result.intValue());
     }
 
+    @Test
+    public void testDecode() throws CompileException, ExecutionException, InterruptedException {
+       Program p = Program.compile("decode(1+1, 3, 0, 1, -1, 2, 666, 777)");
+       System.out.println(p);
+       Integer result = (Integer) p.execute();
+       Assert.assertEquals(666, result.intValue());
+    }
+
+    @Test
+    public void testDecode2() throws CompileException, ExecutionException, InterruptedException {
+       Program p = Program.compile("decode(1+1, 3, 0, 1, -1, 100, 666, 777)");
+       System.out.println(p);
+       Integer result = (Integer) p.execute();
+       Assert.assertEquals(777, result.intValue());
+    }
+
 
 
 }

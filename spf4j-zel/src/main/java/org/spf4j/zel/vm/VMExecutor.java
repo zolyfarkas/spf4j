@@ -43,7 +43,7 @@ public final class VMExecutor {
          private static final SimpleExecutor DEF_EXEC = new SimpleExecutor();
          static {
              DEF_EXEC.startThreads(org.spf4j.base.Runtime.NR_PROCESSORS);
-             org.spf4j.base.Runtime.addHookAtEnd(new Runnable() {
+             org.spf4j.base.Runtime.queueHookAtEnd(new Runnable() {
 
                  @Override
                  public void run() {
