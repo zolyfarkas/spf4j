@@ -18,6 +18,10 @@
  */
 package org.spf4j.perf.memory;
 
+//CHECKSTYLE:OFF
+import com.sun.management.HotSpotDiagnosticMXBean;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+//CHECKSTYLE:ON
 import java.io.IOException;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -28,6 +32,7 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import javax.management.MBeanServer;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 
@@ -39,6 +44,7 @@ import org.spf4j.jmx.Registry;
  *
  * @author zoly
  */
+@SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
 public final class MemoryUsageSampler {
 
     private MemoryUsageSampler() { }
@@ -121,6 +127,30 @@ public final class MemoryUsageSampler {
                 throw new RuntimeException(ex);
             }
 
+        }
+    }
+
+
+    public static void dumpHeap(final String filename, final boolean liveObjectOnly) throws IOException {
+        HOTSPOT_DIAGNOSTIC_INSTANCE.dumpHeap(filename, liveObjectOnly);
+    }
+
+    private static final String HOTSPOT_BEAN_NAME = "com.sun.management:type=HotSpotDiagnostic";
+
+    private static final HotSpotDiagnosticMXBean HOTSPOT_DIAGNOSTIC_INSTANCE = getHotspotMBean();
+
+
+    public static HotSpotDiagnosticMXBean getHotspotDiagnosticBean() {
+        return HOTSPOT_DIAGNOSTIC_INSTANCE;
+    }
+
+    private static HotSpotDiagnosticMXBean getHotspotMBean() {
+        try {
+            MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+            return ManagementFactory.newPlatformMXBeanProxy(server,
+                HOTSPOT_BEAN_NAME, HotSpotDiagnosticMXBean.class);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
