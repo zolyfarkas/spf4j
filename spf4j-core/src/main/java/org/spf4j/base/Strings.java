@@ -173,6 +173,7 @@ public final class Strings {
 
     //String(char[] value, boolean share) {
     private static final Constructor<String> PROTECTED_STR_CONSTR;
+    private static final Class<?> [] PROTECTED_STR_CONSTR_PARAM_TYPES;
 
     static {
         CHARS_FIELD = AccessController.doPrivileged(new PrivilegedAction<Field>() {
@@ -195,7 +196,8 @@ public final class Strings {
             });
 
         if (Runtime.JAVA_PLATFORM.ordinal() >= Runtime.Version.V1_8.ordinal()) {
-            //String(int offset, int count, char value[]) {
+            // up until u45 String(int offset, int count, char value[]) {
+            // u45 reverted to: String(char[] value, boolean share) {
         PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction<Constructor<String>>() {
                 @Override
                 public Constructor<String> run() {
@@ -204,8 +206,17 @@ public final class Strings {
                         constr = String.class.getDeclaredConstructor(int.class, int.class, char[].class);
                         constr.setAccessible(true);
                     } catch (NoSuchMethodException ex) {
-                        LOG.info("building String from char[] fast not supported", ex);
-                        constr = null;
+                        try {
+                            constr = String.class.getDeclaredConstructor(char[].class, boolean.class);
+                            constr.setAccessible(true);
+                        } catch (NoSuchMethodException ex2) {
+                            ex2.addSuppressed(ex);
+                            LOG.info("building String from char[] fast not supported", ex2);
+                            constr = null;
+                        } catch (SecurityException ex2) {
+                            ex2.addSuppressed(ex);
+                            throw new RuntimeException(ex2);
+                        }
                     } catch (SecurityException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -231,6 +242,7 @@ public final class Strings {
                 }
             });
         }
+        PROTECTED_STR_CONSTR_PARAM_TYPES = PROTECTED_STR_CONSTR.getParameterTypes();
 
     }
 
@@ -262,7 +274,7 @@ public final class Strings {
             return new String(chars);
         } else {
             try {
-                if (Runtime.JAVA_PLATFORM.ordinal() >= Runtime.Version.V1_8.ordinal()) {
+                if (PROTECTED_STR_CONSTR_PARAM_TYPES.length == 3) {
                     return PROTECTED_STR_CONSTR.newInstance(0, chars.length, chars);
                 } else {
                     return PROTECTED_STR_CONSTR.newInstance(chars, Boolean.TRUE);
