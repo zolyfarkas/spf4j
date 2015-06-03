@@ -414,12 +414,12 @@ public final class Runtime {
         }
     }
 
-    public static void removeQueuedShutdownHook(final Runnable runnable) {
+    public static boolean removeQueuedShutdownHook(final Runnable runnable) {
         if ("spf4j queued shutdown".equals(Thread.currentThread().getName())) {
-            return;
+            return false;
         }
         synchronized (SHUTDOWN_HOOKS) {
-            SHUTDOWN_HOOKS.remove(runnable);
+            return SHUTDOWN_HOOKS.remove(runnable);
         }
     }
 

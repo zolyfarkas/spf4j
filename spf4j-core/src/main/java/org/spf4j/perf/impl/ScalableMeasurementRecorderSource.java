@@ -67,6 +67,9 @@ public final class ScalableMeasurementRecorderSource implements
 
     ScalableMeasurementRecorderSource(final MeasurementAccumulator processor,
             final int sampleTimeMillis, final MeasurementStore database) {
+        if (sampleTimeMillis < 1000) {
+            throw new IllegalArgumentException("sample time needs to be at least 1000 and not " + sampleTimeMillis);
+        }
         this.processorTemplate = processor;
         measurementProcessorMap = new HashMap<>();
         threadLocalMeasurementProcessorMap = new ThreadLocal<Map<Object, MeasurementAccumulator>>() {
@@ -104,8 +107,8 @@ public final class ScalableMeasurementRecorderSource implements
                         database.saveMeasurements(tableId, currentTime, m.getThenReset());
                     }
                 } else {
-                    LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
-                            lastRun, currentTime);
+                    LOG.warn("Last measurement recording for {} was at {} current run is {}, something is wrong",
+                            processor.getInfo(), lastRun, currentTime);
                 }
             }
         };
@@ -218,12 +221,14 @@ public final class ScalableMeasurementRecorderSource implements
 
     @Override
     public void close() {
-        if (!samplingFuture.isCancelled()) {
-            org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);
-            samplingFuture.cancel(false);
-            persister.run();
-            Registry.unregister("org.spf4j.perf.recorders",
-                    this.processorTemplate.getInfo().getMeasuredEntity().toString());
+        synchronized (processorTemplate) {
+            if (!samplingFuture.isCancelled()) {
+                org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);
+                samplingFuture.cancel(false);
+                persister.run();
+                Registry.unregister("org.spf4j.perf.recorders",
+                        this.processorTemplate.getInfo().getMeasuredEntity().toString());
+            }
         }
     }
 

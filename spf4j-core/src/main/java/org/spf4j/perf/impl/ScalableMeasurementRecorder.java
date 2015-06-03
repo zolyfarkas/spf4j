@@ -56,6 +56,9 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
     ScalableMeasurementRecorder(final MeasurementAccumulator processor, final int sampleTimeMillis,
             final MeasurementStore measurementStore) {
+        if (sampleTimeMillis < 1000) {
+            throw new IllegalArgumentException("sample time needs to be at least 1000 and not " + sampleTimeMillis);
+        }
         threadLocalRecorders = new HashMap<>();
         processorTemplate = processor;
         threadLocalRecorder = new ThreadLocal<MeasurementAccumulator>() {
@@ -88,8 +91,8 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
                         measurementStore.saveMeasurements(tableId, currentTime, measurements);
                     }
                 } else {
-                    LOG.warn("Last measurement recording was at {} current run is {}, something is wrong",
-                            lastRun, currentTime);
+                    LOG.warn("Last measurement recording for {} was at {} current run is {}, something is wrong",
+                            processor.getInfo(), lastRun, currentTime);
                 }
             }
         };
@@ -168,11 +171,14 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
 
     @Override
     public void close() {
-        if (!samplingFuture.isCancelled()) {
-            org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);
-            samplingFuture.cancel(false);
-            persister.run();
-            Registry.unregister("org.spf4j.perf.recorders", processorTemplate.getInfo().getMeasuredEntity().toString());
+        synchronized (processorTemplate) {
+            if (!samplingFuture.isCancelled()) {
+                org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);
+                samplingFuture.cancel(false);
+                persister.run();
+                Registry.unregister("org.spf4j.perf.recorders",
+                        processorTemplate.getInfo().getMeasuredEntity().toString());
+            }
         }
     }
 
