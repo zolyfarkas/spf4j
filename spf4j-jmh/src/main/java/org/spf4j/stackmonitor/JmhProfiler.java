@@ -17,6 +17,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -55,8 +56,16 @@ public final class JmhProfiler implements InternalProfiler {
         return SAMPLER;
     }
 
+    private static volatile String benchmarkName;
+
+    public static String benchmarkName() {
+        return benchmarkName;
+    }
+
     @Override
+    @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     public void beforeIteration(final BenchmarkParams benchmarkParams, final IterationParams iterationParams) {
+        benchmarkName = benchmarkParams.id();
         SAMPLER.start();
     }
 

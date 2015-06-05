@@ -1,5 +1,6 @@
 package org.spf4j.stackmonitor;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
@@ -43,6 +44,13 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
 
     private volatile String dumpFile;
 
+    private static volatile String benchmarkName;
+
+    public static String benchmarkName() {
+        return benchmarkName;
+    }
+
+
     /**
      * See:
      * http://docs.oracle.com/cd/E15289_01/doc.40/e15070/usingjfr.htm
@@ -52,8 +60,11 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
      * @return
      */
     @Override
+    @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     public Collection<String> addJVMOptions(final BenchmarkParams params) {
-        dumpFile = DUMP_FOLDER + '/' + params.id() + ".jfr";
+        final String id = params.id();
+        benchmarkName = id;
+        dumpFile = DUMP_FOLDER + '/' + id + ".jfr";
         String flightRecorderOptions = DEFAULT_OPTIONS + ",dumponexit=true,dumponexitpath=" + dumpFile;
         return Arrays.asList(
                 "-XX:+FlightRecorder",
