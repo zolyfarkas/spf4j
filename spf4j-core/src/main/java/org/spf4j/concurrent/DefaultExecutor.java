@@ -17,7 +17,6 @@
  */
 package org.spf4j.concurrent;
 
-import com.google.common.util.concurrent.MoreExecutors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -31,13 +30,13 @@ public final class DefaultExecutor {
 
     private DefaultExecutor() {
     }
-    
-    public static final ExecutorService INSTANCE = MoreExecutors.getExitingExecutorService(
+
+    public static final ExecutorService INSTANCE =
             new ThreadPoolExecutor(Integer.getInteger("default.executor.coreThreads", 0), Integer.MAX_VALUE,
             60L, TimeUnit.SECONDS,
             new SynchronousQueue<Runnable>(),
-            new CustomThreadFactory("DefaultExecutor", false)));
-    
+            new CustomThreadFactory("DefaultExecutor", false));
+
     public static void shutdown() {
         INSTANCE.shutdown();
     }

@@ -126,15 +126,26 @@ public final class Runtime {
                 synchronized (SHUTDOWN_HOOKS) {
                     for (Map.Entry<Integer, Set<Runnable>> runnables : SHUTDOWN_HOOKS.entrySet()) {
                             final Set<Runnable> values = runnables.getValue();
-                            List<Future<?>> futures = new ArrayList<>(values.size());
-                            for (Runnable runnable : values) {
-                                futures.add(DefaultExecutor.INSTANCE.submit(runnable));
-                            }
-                            for (Future<?> future : futures) {
-                                try {
-                                    future.get();
-                                } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                                    e.printStackTrace();
+                            if (runnables.getKey().intValue() == Integer.MAX_VALUE
+                                    || values.size() <= 1) {
+                                for (Runnable runnable : values) {
+                                    try {
+                                        runnable.run();
+                                    } catch(RuntimeException ex) {
+                                        ex.printStackTrace();
+                                    }
+                                }
+                            } else {
+                                List<Future<?>> futures = new ArrayList<>(values.size());
+                                for (Runnable runnable : values) {
+                                    futures.add(DefaultExecutor.INSTANCE.submit(runnable));
+                                }
+                                for (Future<?> future : futures) {
+                                    try {
+                                        future.get();
+                                    } catch (InterruptedException | ExecutionException | RuntimeException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
                     }
