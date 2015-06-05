@@ -131,7 +131,7 @@ public final class Runtime {
                                 for (Runnable runnable : values) {
                                     try {
                                         runnable.run();
-                                    } catch(RuntimeException ex) {
+                                    } catch (RuntimeException ex) {
                                         ex.printStackTrace();
                                     }
                                 }
