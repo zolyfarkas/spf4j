@@ -1,5 +1,6 @@
 package org.spf4j.tsdb2;
 
+import com.google.common.collect.ListMultimap;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -50,10 +51,10 @@ public class TSDBReaderTest {
                   System.out.println(read);
               } }
 
-        List<TableDef> allTables = TSDBQuery.getAllTables(TEST_FILE);
+        ListMultimap<String, TableDef> allTables = TSDBQuery.getAllTables(TEST_FILE);
         Assert.assertEquals(1, allTables.size());
-        Assert.assertEquals(tableDef.name, allTables.get(0).name.toString());
-        TimeSeries timeSeries = TSDBQuery.getTimeSeries(TEST_FILE, tableId, 0, Long.MAX_VALUE);
+        Assert.assertTrue(allTables.containsKey(tableDef.name));
+        TimeSeries timeSeries = TSDBQuery.getTimeSeries(TEST_FILE, new long[] {tableId}, 0, Long.MAX_VALUE);
         Assert.assertEquals(2L, timeSeries.getValues()[2][0]);
 
     }

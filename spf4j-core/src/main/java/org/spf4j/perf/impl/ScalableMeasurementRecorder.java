@@ -108,7 +108,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
                 close();
             }
         };
-        org.spf4j.base.Runtime.queueHookAtBeginning(runnable);
+        org.spf4j.base.Runtime.queueHook(0, runnable);
         return runnable;
     }
 

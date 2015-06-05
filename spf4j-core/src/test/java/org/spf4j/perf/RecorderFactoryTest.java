@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -145,8 +146,9 @@ public final class RecorderFactoryTest {
         TSDBWriter dbWriter = ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).getDBWriter();
         dbWriter.flush();
         final File file = dbWriter.getFile();
-        TableDef tableDef = TSDBQuery.getTableDef(file, forWhat);
-        TimeSeries timeSeries = TSDBQuery.getTimeSeries(file, tableDef.id, 0, Long.MAX_VALUE);
+        List<TableDef> tableDefs = TSDBQuery.getTableDef(file, forWhat);
+        TableDef tableDef = tableDefs.get(0);
+        TimeSeries timeSeries = TSDBQuery.getTimeSeries(file, new long[] {tableDef.id}, 0, Long.MAX_VALUE);
         long sum = 0;
         long[][] values = timeSeries.getValues();
         for (long [] row : values) {

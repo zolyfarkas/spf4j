@@ -18,6 +18,8 @@
 package org.spf4j.tsdb2;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.primitives.Longs;
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
@@ -32,6 +34,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.joda.time.format.DateTimeFormatter;
@@ -53,18 +57,38 @@ public final class TSDBQuery {
     private TSDBQuery() {
     }
 
-    public static List<TableDef> getAllTables(final File tsdbFile) throws IOException {
-        List<TableDef> result = new ArrayList<>();
+    public static ListMultimap<String, TableDef> getAllTables(final File tsdbFile) throws IOException {
+        ListMultimap<String, TableDef>  result = ArrayListMultimap.create();
         try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {
             Either<TableDef, DataBlock> read;
             while ((read = reader.read()) != null) {
                 if (read.isLeft()) {
-                    result.add(read.getLeft());
+                    final TableDef tdef = read.getLeft();
+                    result.put(tdef.getName(), tdef);
                 }
             }
         }
         return result;
     }
+
+    public static ListMultimap<String, TableDef> getTables(final File tsdbFile, final Set<String> tables)
+            throws IOException {
+        ListMultimap<String, TableDef>  result = ArrayListMultimap.create();
+        try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {
+            Either<TableDef, DataBlock> read;
+            while ((read = reader.read()) != null) {
+                if (read.isLeft()) {
+                    final TableDef tdef = read.getLeft();
+                    final String name = tdef.getName();
+                    if (tables.contains(name)) {
+                        result.put(name, tdef);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
 
     public static final class TableDefEx {
 
@@ -100,8 +124,8 @@ public final class TSDBQuery {
 
     }
 
-    public static Collection<TableDefEx> getAllTablesWithDataRanges(final File tsdbFile) throws IOException {
-        List<TableDefEx> result = new ArrayList<>();
+    public static ListMultimap<String, TableDefEx> getAllTablesWithDataRanges(final File tsdbFile) throws IOException {
+        ListMultimap<String, TableDefEx> result = ArrayListMultimap.create();
         TLongObjectMap<TableDefEx> id2Def = new TLongObjectHashMap<>();
         try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {
             Either<TableDef, DataBlock> read;
@@ -110,7 +134,7 @@ public final class TSDBQuery {
                     final TableDef left = read.getLeft();
                     final TableDefEx tableDefEx = new TableDefEx(left, Long.MAX_VALUE, 0L);
                     id2Def.put(left.id, tableDefEx);
-                    result.add(tableDefEx);
+                    result.put(tableDefEx.getTableDef().getName(), tableDefEx);
                 } else {
                     DataBlock right = read.getRight();
                     long baseTs = right.baseTimestamp;
@@ -133,22 +157,24 @@ public final class TSDBQuery {
         return result;
     }
 
-    public static TableDef getTableDef(final File tsdbFile, final String tableName) throws IOException {
+    @Nonnull
+    public static List<TableDef> getTableDef(final File tsdbFile, final String tableName) throws IOException {
+        List<TableDef> result = new ArrayList<>();
         try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {
             Either<TableDef, DataBlock> read;
             while ((read = reader.read()) != null) {
                 if (read.isLeft()) {
                     TableDef left = read.getLeft();
                     if (Strings.equals(tableName, left.name)) {
-                        return left;
+                       result.add(left);
                     }
                 }
             }
         }
-        return null;
+        return result;
     }
 
-    public static TimeSeries getTimeSeries(final File tsdbFile, final long tableId,
+    public static TimeSeries getTimeSeries(final File tsdbFile, final long [] tableIds,
             final long startTimeMillis, final long endTimeMillis) throws IOException {
         TLongList timestamps = new TLongArrayList();
         List<long[]> metrics = new ArrayList<>();
@@ -159,11 +185,13 @@ public final class TSDBQuery {
                     DataBlock data = read.getRight();
                     long baseTs = data.baseTimestamp;
                     for (DataRow row : data.getValues()) {
-                        if (tableId == row.tableDefId) {
-                            final long ts = baseTs + row.relTimeStamp;
-                            if (ts >= startTimeMillis && ts <= endTimeMillis) {
-                                timestamps.add(ts);
-                                metrics.add(Longs.toArray(row.data));
+                        for (long tableId : tableIds) {
+                            if (tableId == row.tableDefId) {
+                                final long ts = baseTs + row.relTimeStamp;
+                                if (ts >= startTimeMillis && ts <= endTimeMillis) {
+                                    timestamps.add(ts);
+                                    metrics.add(Longs.toArray(row.data));
+                                }
                             }
                         }
                     }
@@ -173,16 +201,25 @@ public final class TSDBQuery {
         return new TimeSeries(timestamps.toArray(), metrics.toArray(new long[metrics.size()][]));
     }
 
+    public static long [] getIds(final Collection<TableDef> tableDefs) {
+        long [] result = new long[tableDefs.size()];
+        int i = 0;
+        for (TableDef tdef : tableDefs) {
+            result[i++] = tdef.id;
+        }
+        return result;
+    }
+
     public static void writeCsvTable(final File tsDB, final String tableName, final File output)
             throws IOException {
 
-        TableDef tableDef = getTableDef(tsDB, tableName);
+        List<TableDef> tableDefs = getTableDef(tsDB, tableName);
 
-        TimeSeries data = getTimeSeries(tsDB, tableDef.id, 0, Long.MAX_VALUE);
+        TimeSeries data = getTimeSeries(tsDB, getIds(tableDefs), 0, Long.MAX_VALUE);
         DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8))) {
             Csv.writeCsvElement("timestamp", writer);
-            for (ColumnDef col : tableDef.getColumns()) {
+            for (ColumnDef col : tableDefs.get(0).getColumns()) {
                 writer.append(',');
                 Csv.writeCsvElement(col.getName(), writer);
             }
@@ -200,12 +237,15 @@ public final class TSDBQuery {
         }
     }
 
-    public static void writeCsvTables(final File tsDB, final List<String> tableNames, final File output)
+    public static void writeCsvTables(final File tsDB, final Set<String> tableNames, final File output)
             throws IOException {
+        if (tableNames.isEmpty()) {
+            return;
+        }
+        ListMultimap<String, TableDef> tables = getTables(tsDB, tableNames);
         DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8))) {
-            String firstTable = tableNames.get(0);
-            TableDef table = getTableDef(tsDB, firstTable);
+            TableDef table = tables.values().iterator().next();
             Csv.writeCsvElement("table", writer);
             writer.append(',');
             Csv.writeCsvElement("timestamp", writer);
@@ -215,13 +255,13 @@ public final class TSDBQuery {
             }
             writer.write('\n');
 
-            for (String tableName : tableNames) {
-                TableDef td = getTableDef(tsDB, firstTable);
-                TimeSeries data = getTimeSeries(tsDB, td.id, 0, Long.MAX_VALUE);
+            for (Map.Entry<String, Collection<TableDef>> tEntry : tables.asMap().entrySet()) {
+
+                TimeSeries data = getTimeSeries(tsDB, getIds(tEntry.getValue()), 0, Long.MAX_VALUE);
                 long[] timestamps = data.getTimeStamps();
                 long[][] values = data.getValues();
                 for (int i = 0; i < timestamps.length; i++) {
-                    Csv.writeCsvElement(tableName, writer);
+                    Csv.writeCsvElement(tEntry.getKey(), writer);
                     writer.append(',');
                     Csv.writeCsvElement(formatter.print(timestamps[i]), writer);
                     for (long val : values[i]) {

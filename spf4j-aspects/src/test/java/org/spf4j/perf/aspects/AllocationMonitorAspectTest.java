@@ -22,6 +22,7 @@ import com.google.common.base.Strings;
 import java.io.File;
 import org.spf4j.perf.impl.RecorderFactory;
 import java.io.IOException;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
@@ -72,7 +73,7 @@ public final class AllocationMonitorAspectTest {
         final TSDBWriter dbWriter = ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).getDBWriter();
         dbWriter.flush();
         File file = dbWriter.getFile();
-        TableDef tableDef = TSDBQuery.getTableDef(file, "heap-used");
-        Assert.assertTrue(tableDef != null);
+        List<TableDef> tableDef = TSDBQuery.getTableDef(file, "heap-used");
+        Assert.assertTrue(!tableDef.isEmpty());
     }
 }

@@ -61,11 +61,11 @@ public final class Charts {
         return false;
     }
 
-    public static JFreeChart createHeatJFreeChart(final File database, final TableDef table, final long startTime,
+    public static JFreeChart createHeatJFreeChart(final File database, final List<TableDef> table, final long startTime,
             final long endTime) throws IOException {
 
-        TimeSeries data = TSDBQuery.getTimeSeries(database, table.id, startTime, endTime);
-        return createHeatJFreeChart(data, table);
+        TimeSeries data = TSDBQuery.getTimeSeries(database, TSDBQuery.getIds(table), startTime, endTime);
+        return createHeatJFreeChart(data, table.get(0));
     }
 
    public static JFreeChart createHeatJFreeChart(final TimeSeries data, final TableDef info) {
@@ -99,10 +99,10 @@ public final class Charts {
                 new double[][]{min, max, Arrays.divide(total, count)});
     }
 
-    public static JFreeChart createMinMaxAvgJFreeChart(final File database, final TableDef table,
+    public static JFreeChart createMinMaxAvgJFreeChart(final File database, final List<TableDef> table,
             final long startTime, final long endTime) throws IOException {
-        TimeSeries data = TSDBQuery.getTimeSeries(database, table.id, startTime, endTime);
-        return createMinMaxAvgJFreeChart(data, table);
+        TimeSeries data = TSDBQuery.getTimeSeries(database, TSDBQuery.getIds(table), startTime, endTime);
+        return createMinMaxAvgJFreeChart(data, table.get(0));
     }
 
 
@@ -115,10 +115,10 @@ public final class Charts {
                 new String[]{"count"}, "count", new double[][]{count});
     }
 
-    public static JFreeChart createCountJFreeChart(final File database, final TableDef info, final long startTime,
+    public static JFreeChart createCountJFreeChart(final File database, final List<TableDef> info, final long startTime,
             final long endTime) throws IOException {
-        TimeSeries data = TSDBQuery.getTimeSeries(database, info.id, startTime, endTime);
-        return createCountJFreeChart(data, info);
+        TimeSeries data = TSDBQuery.getTimeSeries(database, TSDBQuery.getIds(info), startTime, endTime);
+        return createCountJFreeChart(data, info.get(0));
     }
 
 
@@ -154,10 +154,10 @@ public final class Charts {
     }
 
 
-    public static List<JFreeChart> createJFreeCharts(final File database, final TableDef td,
+    public static List<JFreeChart> createJFreeCharts(final File database, final List<TableDef> td,
             final long startTime, final long endTime) throws IOException {
-        TimeSeries data = TSDBQuery.getTimeSeries(database, td.id, startTime, endTime);
-        return createJFreeCharts(data, td);
+        TimeSeries data = TSDBQuery.getTimeSeries(database, TSDBQuery.getIds(td), startTime, endTime);
+        return createJFreeCharts(data, td.get(0));
     }
 
 }

@@ -18,6 +18,7 @@
 //CHECKSTYLE:OFF
 package org.spf4j.ui;
 
+import com.google.common.collect.Multimap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Dimension;
 import java.io.File;
@@ -28,8 +29,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
@@ -64,20 +67,23 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
         super(databaseFile);
         initComponents();
         tsDb = new File(databaseFile);
-        Collection<TableDefEx> columnsInfo = TSDBQuery.getAllTablesWithDataRanges(tsDb);
+        Multimap<String, TableDefEx> columnsInfo = TSDBQuery.getAllTablesWithDataRanges(tsDb);
         Map<String, DefaultMutableTreeNode> gNodes = new HashMap<>();
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(databaseFile);
         long startDateMillis = System.currentTimeMillis();
-        for (TableDefEx info : columnsInfo) {
-            String groupName = info.getTableDef().getName();
-            long tableStart = info.getStartTime();
-            if (tableStart < startDateMillis) {
-                startDateMillis = tableStart;
+        for (Map.Entry<String, Collection<TableDefEx>> info : columnsInfo.asMap().entrySet()) {
+            String groupName = info.getKey();
+            final Collection<TableDefEx> defs = info.getValue();
+            for (TableDefEx tde : defs) {
+                long tableStart = tde.getStartTime();
+                if (tableStart < startDateMillis) {
+                    startDateMillis = tableStart;
+                }
             }
             Pair<String, String> pair = Pair.from(groupName);
             if (pair == null) {
                 DefaultMutableTreeNode child = new DefaultMutableTreeNode(groupName);
-                for (ColumnDef colDef : info.getTableDef().getColumns()) {
+                for (ColumnDef colDef : defs.iterator().next().getTableDef().getColumns()) {
                     child.add(new DefaultMutableTreeNode(colDef.getName()));
                 }
                 root.add(child);
@@ -90,7 +96,7 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
                     root.add(gNode);
                 }
                 DefaultMutableTreeNode child = new DefaultMutableTreeNode(pair.getSecond());
-                for (ColumnDef colDef : info.getTableDef().getColumns()) {
+                for (ColumnDef colDef : defs.iterator().next().getTableDef().getColumns()) {
                     child.add(new DefaultMutableTreeNode(colDef.getName()));
                 }
                 gNode.add(child);
@@ -224,7 +230,7 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         chartPannel.setViewportView(content);
         try {
-            List<String> selectedTables = getSelectedTables(selectionPaths);
+            Set<String> selectedTables = getSelectedTables(selectionPaths);
             for(String tableName : selectedTables) {
                 addChartToPanel(tableName, content);
             }
@@ -237,7 +243,7 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
         @edu.umd.cs.findbugs.annotations.SuppressWarnings("UP_UNUSED_PARAMETER")
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         TreePath[] selectionPaths = measurementTree.getSelectionPaths();
-        List<String> selectedTables = getSelectedTables(selectionPaths);
+        Set<String> selectedTables = getSelectedTables(selectionPaths);
         if (!selectedTables.isEmpty()) {
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogType(JFileChooser.SAVE_DIALOG);
@@ -267,11 +273,11 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
     // End of variables declaration//GEN-END:variables
 
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
-    private static List<String> getSelectedTables(@Nullable final TreePath[] selectionPaths) {
+    private static Set<String> getSelectedTables(@Nullable final TreePath[] selectionPaths) {
         if (selectionPaths == null) {
-            return Collections.EMPTY_LIST;
+            return Collections.EMPTY_SET;
         }
-        List<String> result = new ArrayList<>();
+        Set<String> result = new HashSet<>();
         for (TreePath path : selectionPaths) {
             Object[] pathArr = path.getPath();
             if (pathArr.length < 2) {
@@ -296,10 +302,10 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
     }
 
     private void addChartToPanel(final String tableName, final JPanel content) throws IOException {
-        TableDef info =  TSDBQuery.getTableDef(tsDb, tableName);
+        List<TableDef> info =  TSDBQuery.getTableDef(tsDb, tableName);
         long startTime = ((Date) startDate.getValue()).getTime();
         long endTime = ((Date) endDate.getValue()).getTime();
-        if (Charts.canGenerateHeatChart(info)) {
+        if (Charts.canGenerateHeatChart(info.get(0))) {
             JFreeChart chart = Charts.createHeatJFreeChart(tsDb, info,
                     startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);
@@ -312,7 +318,7 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
             pannel.setZoomOutFactor(1);
             content.add(pannel);
         }
-        if (Charts.canGenerateMinMaxAvgCount(info)) {
+        if (Charts.canGenerateMinMaxAvgCount(info.get(0))) {
             JFreeChart chart = Charts.createMinMaxAvgJFreeChart(tsDb, info,
                     startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);
@@ -320,7 +326,7 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
             content.add(pannel);
 
         }
-        if (Charts.canGenerateCount(info)) {
+        if (Charts.canGenerateCount(info.get(0))) {
             JFreeChart chart = Charts.createCountJFreeChart(tsDb, info,
                     startTime, endTime);
             ChartPanel pannel = new ChartPanel(chart);

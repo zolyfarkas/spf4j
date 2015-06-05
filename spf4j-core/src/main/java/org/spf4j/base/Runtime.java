@@ -28,7 +28,13 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
@@ -92,6 +98,8 @@ public final class Runtime {
     public static final String USER_NAME = System.getProperty("user.name");
     public static final String USER_DIR = System.getProperty("user.dir");
 
+    private static final SortedMap<Integer, Set<Runnable>> SHUTDOWN_HOOKS = new TreeMap<>();
+
     static {
         final java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
@@ -116,12 +124,19 @@ public final class Runtime {
             @Override
             public void doRun() throws Exception {
                 synchronized (SHUTDOWN_HOOKS) {
-                    for (Runnable runnable : SHUTDOWN_HOOKS) {
-                        try {
-                            runnable.run();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                    for (Map.Entry<Integer, Set<Runnable>> runnables : SHUTDOWN_HOOKS.entrySet()) {
+                            final Set<Runnable> values = runnables.getValue();
+                            List<Future<?>> futures = new ArrayList<>(values.size());
+                            for (Runnable runnable : values) {
+                                futures.add(DefaultExecutor.INSTANCE.submit(runnable));
+                            }
+                            for (Future<?> future : futures) {
+                                try {
+                                    future.get();
+                                } catch (InterruptedException | ExecutionException | RuntimeException e) {
+                                    e.printStackTrace();
+                                }
+                            }
                     }
                 }
             }
@@ -399,18 +414,28 @@ public final class Runtime {
         public void stdErrDone() {
         }
     }
-    private static final LinkedList<Runnable> SHUTDOWN_HOOKS = new LinkedList<>();
+
 
 
     public static void queueHookAtBeginning(final Runnable runnable) {
         synchronized (SHUTDOWN_HOOKS) {
-            SHUTDOWN_HOOKS.addFirst(runnable);
+            queueHook(Integer.MIN_VALUE, runnable);
         }
     }
 
     public static void queueHookAtEnd(final Runnable runnable) {
+        queueHook(Integer.MAX_VALUE, runnable);
+    }
+
+    public static void queueHook(final int priority, final Runnable runnable) {
         synchronized (SHUTDOWN_HOOKS) {
-            SHUTDOWN_HOOKS.addLast(runnable);
+            Integer pr = priority;
+            Set<Runnable> runnables = SHUTDOWN_HOOKS.get(pr);
+            if (runnables == null) {
+                runnables = new HashSet<>();
+                SHUTDOWN_HOOKS.put(pr, runnables);
+            }
+            runnables.add(runnable);
         }
     }
 
@@ -419,8 +444,13 @@ public final class Runtime {
             return false;
         }
         synchronized (SHUTDOWN_HOOKS) {
-            return SHUTDOWN_HOOKS.remove(runnable);
+            for (Set<Runnable> entry : SHUTDOWN_HOOKS.values()) {
+                if (entry.remove(runnable)) {
+                    return true;
+                }
+            }
         }
+        return false;
     }
 
     public static final ThreadLocal<Long> DEADLINE = new ThreadLocal<Long>() {
