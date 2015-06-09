@@ -25,7 +25,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
 import static org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_MILLIS;
-import static org.spf4j.concurrent.DefaultExecutor.shutdown;
 
 
 /**
@@ -41,7 +40,7 @@ public final class DefaultScheduler {
 
                 @Override
                 public void doRun() throws InterruptedException {
-                    shutdown();
+                    INSTANCE.shutdown();
                     INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
                     List<Runnable> remaining = INSTANCE.shutdownNow();
                     if (remaining.size() > 0) {
