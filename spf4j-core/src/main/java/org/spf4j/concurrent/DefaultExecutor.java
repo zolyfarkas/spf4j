@@ -17,10 +17,13 @@
  */
 package org.spf4j.concurrent;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.spf4j.base.AbstractRunnable;
+import static org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_MILLIS;
 
 /**
  *
@@ -29,6 +32,21 @@ import java.util.concurrent.TimeUnit;
 public final class DefaultExecutor {
 
     private DefaultExecutor() {
+    }
+
+    static {
+        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {
+
+            @Override
+            public void doRun() throws InterruptedException {
+                shutdown();
+                INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
+                List<Runnable> remaining = INSTANCE.shutdownNow();
+                if (remaining.size() > 0) {
+                    System.err.println("Remaining tasks: " + remaining);
+                }
+            }
+        });
     }
 
     public static final ExecutorService INSTANCE =

@@ -89,6 +89,7 @@ public final class Runtime {
             }
         }
     }
+    public static final int WAIT_FOR_SHUTDOWN_MILLIS = Integer.getInteger("spf4j.waitForShutdownMillis", 30000);
     public static final String TMP_FOLDER = System.getProperty("java.io.tmpdir");
     public static final int PID;
     public static final String OS_NAME;
@@ -122,16 +123,31 @@ public final class Runtime {
 
         runtime.addShutdownHook(new Thread(new AbstractRunnable(false) {
             @Override
-            public void doRun() throws Exception {
+            public void doRun()  {
                 synchronized (SHUTDOWN_HOOKS) {
                     for (Map.Entry<Integer, Set<Runnable>> runnables : SHUTDOWN_HOOKS.entrySet()) {
                             final Set<Runnable> values = runnables.getValue();
-                            if (runnables.getKey().intValue() == Integer.MAX_VALUE
-                                    || values.size() <= 1) {
+                            if (values.size() <= 1) {
                                 for (Runnable runnable : values) {
                                     try {
                                         runnable.run();
                                     } catch (RuntimeException ex) {
+                                        ex.printStackTrace();
+                                    }
+                                }
+                            } else if (runnables.getKey() == Integer.MAX_VALUE) {
+                                Thread [] threads = new Thread[values.size()];
+                                int i = 0;
+                                for (Runnable runnable : values) {
+                                    Thread thread = new Thread(runnable);
+                                    thread.start();
+                                    threads[i++] = thread;
+                                }
+                                long deadline = System.currentTimeMillis() + WAIT_FOR_SHUTDOWN_MILLIS;
+                                for (Thread thread : threads) {
+                                    try {
+                                        thread.join(deadline - System.currentTimeMillis());
+                                    } catch (InterruptedException ex) {
                                         ex.printStackTrace();
                                     }
                                 }

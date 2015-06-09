@@ -18,11 +18,14 @@
  */
 package org.spf4j.concurrent;
 
-import com.google.common.util.concurrent.MoreExecutors;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.spf4j.base.AbstractRunnable;
+import static org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_MILLIS;
+import static org.spf4j.concurrent.DefaultExecutor.shutdown;
 
 
 /**
@@ -32,18 +35,31 @@ import java.util.concurrent.TimeUnit;
 public final class DefaultScheduler {
 
     private DefaultScheduler() { }
-    
-    
-    public static final ScheduledExecutorService INSTANCE =
-            MoreExecutors.getExitingScheduledExecutorService(
-            new ScheduledThreadPoolExecutor(Integer.getInteger("default.scheduler.coreThreads", 2),
-            new CustomThreadFactory("DefaultScheduler", false)));
 
-    
+    static {
+        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {
+
+                @Override
+                public void doRun() throws InterruptedException {
+                    shutdown();
+                    INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
+                    List<Runnable> remaining = INSTANCE.shutdownNow();
+                    if (remaining.size() > 0) {
+                        System.err.println("Remaining tasks: " + remaining);
+                    }
+                }
+        });
+    }
+
+    public static final ScheduledExecutorService INSTANCE =
+            new ScheduledThreadPoolExecutor(Integer.getInteger("default.scheduler.coreThreads", 2),
+            new CustomThreadFactory("DefaultScheduler", false));
+
+
     private static final long HOUR_MILLIS = 3600000;
-    
+
     private static final long DAY_MILLIS = HOUR_MILLIS * 24;
-    
+
     /**
      * this will schedule a runnable aligned to the hour or day.
      * @param command
