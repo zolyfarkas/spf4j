@@ -154,6 +154,24 @@ public final class Csv {
         }
     }
 
+    public static List<Map<String, String>> read(final Reader preader) throws IOException {
+        return read(preader, new CsvMapHandler<List<Map<String, String>>>() {
+
+            List<Map<String, String>> result = new ArrayList<>();
+
+            @Override
+            public void row(Map<String, String> row) {
+                result.add(row);
+            }
+
+            @Override
+            public List<Map<String, String>> eof() {
+                return result;
+            }
+        });
+    }
+
+
     public static <T> T read(final Reader preader,
             final CsvMapHandler<T> handler) throws IOException {
         return read(preader, new CsvHandler<T>() {
