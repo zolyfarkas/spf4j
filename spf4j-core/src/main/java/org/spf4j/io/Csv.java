@@ -157,10 +157,10 @@ public final class Csv {
     public static List<Map<String, String>> read(final Reader preader) throws IOException {
         return read(preader, new CsvMapHandler<List<Map<String, String>>>() {
 
-            List<Map<String, String>> result = new ArrayList<>();
+            private List<Map<String, String>> result = new ArrayList<>();
 
             @Override
-            public void row(Map<String, String> row) {
+            public void row(final Map<String, String> row) {
                 result.add(row);
             }
 
