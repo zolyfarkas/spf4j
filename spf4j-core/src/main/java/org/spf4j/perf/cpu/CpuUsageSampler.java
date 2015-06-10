@@ -39,12 +39,12 @@ public final class CpuUsageSampler {
 
     static {
         if (OS_MBEAN != null) {
-            java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {
+            org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
                 @Override
                 public void doRun() throws Exception {
                     stop();
                 }
-            }, "shutdown-CPU-sampler"));
+            });
         }
     }
 

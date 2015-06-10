@@ -69,14 +69,14 @@ public final class ThreadUsageSampler {
     }
 
     static {
-        java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {
+        org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
             @Override
             public void doRun() throws Exception {
                 stop();
                 writePeakThreadInfo(System.err);
             }
 
-        }, "shutdown-CPU-sampler"));
+        });
         Registry.export(ThreadUsageSampler.class);
     }
 

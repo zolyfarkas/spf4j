@@ -55,12 +55,12 @@ public final class MemoryUsageSampler {
     private static AccumulatorRunnable accumulatorRunnable;
 
     static {
-        java.lang.Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable(true) {
+        org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
             @Override
             public void doRun() throws Exception {
                 stop();
             }
-        }, "shutdown-memory-sampler"));
+        });
         Registry.export(MemoryUsageSampler.class);
     }
 
