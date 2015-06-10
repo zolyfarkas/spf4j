@@ -123,49 +123,52 @@ public final class Runtime {
 
         runtime.addShutdownHook(new Thread(new AbstractRunnable(false) {
             @Override
-            public void doRun()  {
+            public void doRun() {
+                SortedMap<Integer, Set<Runnable>> hooks;
                 synchronized (SHUTDOWN_HOOKS) {
-                    for (Map.Entry<Integer, Set<Runnable>> runnables : SHUTDOWN_HOOKS.entrySet()) {
-                            final Set<Runnable> values = runnables.getValue();
-                            if (values.size() <= 1) {
-                                for (Runnable runnable : values) {
-                                    try {
-                                        runnable.run();
-                                    } catch (RuntimeException ex) {
-                                        ex.printStackTrace();
-                                    }
-                                }
-                            } else if (runnables.getKey() == Integer.MAX_VALUE) {
-                                Thread [] threads = new Thread[values.size()];
-                                int i = 0;
-                                for (Runnable runnable : values) {
-                                    Thread thread = new Thread(runnable);
-                                    thread.start();
-                                    threads[i++] = thread;
-                                }
-                                long deadline = System.currentTimeMillis() + WAIT_FOR_SHUTDOWN_MILLIS;
-                                for (Thread thread : threads) {
-                                    try {
-                                        thread.join(deadline - System.currentTimeMillis());
-                                    } catch (InterruptedException ex) {
-                                        ex.printStackTrace();
-                                    }
-                                }
-                            } else {
-                                List<Future<?>> futures = new ArrayList<>(values.size());
-                                for (Runnable runnable : values) {
-                                    futures.add(DefaultExecutor.INSTANCE.submit(runnable));
-                                }
-                                for (Future<?> future : futures) {
-                                    try {
-                                        future.get();
-                                    } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
+                    hooks = new TreeMap<>(SHUTDOWN_HOOKS);
+                }
+                for (Map.Entry<Integer, Set<Runnable>> runnables : hooks.entrySet()) {
+                    final Set<Runnable> values = runnables.getValue();
+                    if (values.size() <= 1) {
+                        for (Runnable runnable : values) {
+                            try {
+                                runnable.run();
+                            } catch (RuntimeException ex) {
+                                ex.printStackTrace();
                             }
+                        }
+                    } else if (runnables.getKey() == Integer.MAX_VALUE) {
+                        Thread[] threads = new Thread[values.size()];
+                        int i = 0;
+                        for (Runnable runnable : values) {
+                            Thread thread = new Thread(runnable);
+                            thread.start();
+                            threads[i++] = thread;
+                        }
+                        long deadline = System.currentTimeMillis() + WAIT_FOR_SHUTDOWN_MILLIS;
+                        for (Thread thread : threads) {
+                            try {
+                                thread.join(deadline - System.currentTimeMillis());
+                            } catch (InterruptedException ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                    } else {
+                        List<Future<?>> futures = new ArrayList<>(values.size());
+                        for (Runnable runnable : values) {
+                            futures.add(DefaultExecutor.INSTANCE.submit(runnable));
+                        }
+                        for (Future<?> future : futures) {
+                            try {
+                                future.get();
+                            } catch (InterruptedException | ExecutionException | RuntimeException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
                 }
+
             }
         }, "spf4j queued shutdown"));
         //JAVA_PLATFORM = Version.fromSpecVersion(runtimeMxBean.getSpecVersion());
