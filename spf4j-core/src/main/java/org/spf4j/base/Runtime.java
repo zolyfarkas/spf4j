@@ -127,6 +127,9 @@ public final class Runtime {
                 SortedMap<Integer, Set<Runnable>> hooks;
                 synchronized (SHUTDOWN_HOOKS) {
                     hooks = new TreeMap<>(SHUTDOWN_HOOKS);
+                    for (Map.Entry<Integer, Set<Runnable>> entry: hooks.entrySet()) {
+                        entry.setValue(new HashSet<>(entry.getValue()));
+                    }
                 }
                 for (Map.Entry<Integer, Set<Runnable>> runnables : hooks.entrySet()) {
                     final Set<Runnable> values = runnables.getValue();
