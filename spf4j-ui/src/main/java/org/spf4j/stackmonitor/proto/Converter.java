@@ -17,13 +17,14 @@
  */
 package org.spf4j.stackmonitor.proto;
 
+import gnu.trove.map.TMap;
+import gnu.trove.map.hash.THashMap;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import org.spf4j.stackmonitor.Method;
 import org.spf4j.stackmonitor.SampleNode;
 import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -33,10 +34,10 @@ import javax.annotation.Nonnull;
  * @author zoly
  */
 public final class Converter {
-    
+
     private Converter() { }
-    
-    
+
+
     public static void saveToFile(@Nonnull final String fileName, @Nonnull final SampleNode input) throws IOException {
         try (BufferedOutputStream bos = new BufferedOutputStream(
                 new FileOutputStream(fileName))) {
@@ -49,12 +50,12 @@ public final class Converter {
                 .setDeclaringClass(m.getDeclaringClass())
                 .build();
     }
-    
+
     public static ProtoSampleNodes.SampleNode fromSampleNodeToProto(final SampleNode node) {
-        
+
         ProtoSampleNodes.SampleNode.Builder resultBuilder
                 = ProtoSampleNodes.SampleNode.newBuilder().setCount(node.getSampleCount());
-        
+
         Map<Method, SampleNode> subNodes = node.getSubNodes();
         if (subNodes != null) {
            for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
@@ -65,16 +66,16 @@ public final class Converter {
         }
         return resultBuilder.build();
     }
-    
-    
-    
+
+
+
     public static SampleNode  fromProtoToSampleNode(final ProtoSampleNodes.SampleNodeOrBuilder node) {
-        
-        HashMap<Method, SampleNode> subNodes = null;
-        
+
+        TMap<Method, SampleNode> subNodes = null;
+
         List<ProtoSampleNodes.SamplePair> sns =  node.getSubNodesList();
         if (sns != null) {
-            subNodes = new HashMap<>();
+            subNodes = new THashMap<>();
             for (ProtoSampleNodes.SamplePair pair : sns) {
                 final ProtoSampleNodes.Method method = pair.getMethod();
                 subNodes.put(new Method(method.getDeclaringClass(),
@@ -83,9 +84,9 @@ public final class Converter {
             }
         }
         return new SampleNode(node.getCount(), subNodes);
-        
-        
+
+
     }
-    
-    
+
+
 }
