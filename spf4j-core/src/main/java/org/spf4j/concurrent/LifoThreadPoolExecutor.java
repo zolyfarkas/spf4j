@@ -269,6 +269,13 @@ public final class LifoThreadPoolExecutor extends AbstractExecutorService {
                 synchronized (sync) {
                     running = false;
                 }
+                if (toRun != null) {
+                    try {
+                        run(toRun);
+                    } finally {
+                        toRun = null;
+                    }
+                }
                 state.getThreadCount().decrementAndGet();
                 synchronized (state) {
                     state.notifyAll();
