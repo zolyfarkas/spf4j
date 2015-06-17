@@ -2,14 +2,16 @@ package org.spf4j.ssdump2;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.TMap;
+import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.procedure.TObjectObjectProcedure;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PushbackInputStream;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -46,12 +48,12 @@ public final class Converter {
         sample.method = m;
         sample.parentId = parentId;
         handler.handle(sample, Long.MAX_VALUE);
-        final Map<Method, SampleNode> subNodes = node.getSubNodes();
+        final TMap<Method, SampleNode> subNodes = node.getSubNodes();
         int nid = id + 1;
         if (subNodes != null) {
-            for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
-                nid = convert(entry.getKey(), entry.getValue(), id, nid, handler);
-            }
+            final TObjectObjectProcedureImpl proc = new TObjectObjectProcedureImpl(id, handler);
+            subNodes.forEachEntry(proc);
+            nid = proc.getNid();
         }
         return nid;
     }
@@ -60,7 +62,7 @@ public final class Converter {
         TIntObjectMap<SampleNode> index = new TIntObjectHashMap<>();
         while (samples.hasNext()) {
             ASample asmp = samples.next();
-            SampleNode sn = new SampleNode(asmp.count, new HashMap<Method, SampleNode>());
+            SampleNode sn = new SampleNode(asmp.count, new THashMap<Method, SampleNode>());
             SampleNode parent = index.get(asmp.parentId);
             if (parent != null) {
                 AMethod method = asmp.getMethod();
@@ -131,6 +133,36 @@ public final class Converter {
                 }
             });
         }
+    }
+
+    private static final class TObjectObjectProcedureImpl<E extends Exception>
+                        implements TObjectObjectProcedure<Method, SampleNode> {
+
+        private final int id;
+        private final Handler<ASample, E> handler;
+        private int nid;
+
+        public TObjectObjectProcedureImpl(final int id, final Handler<ASample, E> handler) {
+            this.id = id;
+            this.handler = handler;
+            nid = id + 1;
+        }
+
+        @Override
+        public boolean execute(final Method a, final SampleNode b) {
+            try {
+                nid = convert(a, b, id, nid, handler);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+            return true;
+        }
+
+        public int getNid() {
+            return nid;
+        }
+
+
     }
 
 }

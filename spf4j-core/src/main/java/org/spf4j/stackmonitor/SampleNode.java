@@ -18,6 +18,9 @@
 package org.spf4j.stackmonitor;
 
 import com.google.common.base.Predicate;
+import gnu.trove.map.TMap;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.procedure.TObjectObjectProcedure;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,12 +40,12 @@ public final class SampleNode implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private int sampleCount;
-    private HashMap<Method, SampleNode> subNodes;
+    private TMap<Method, SampleNode> subNodes;
 
     public SampleNode(final StackTraceElement[] stackTrace, final int from) {
         sampleCount = 1;
         if (from >= 0) {
-            subNodes = new HashMap();
+            subNodes = new THashMap();
             subNodes.put(Method.getMethod(stackTrace[from]), new SampleNode(stackTrace, from - 1));
         }
     }
@@ -53,7 +56,7 @@ public final class SampleNode implements Serializable {
         for (int i = stackTrace.length - 1; i >= 0; i--) {
             StackTraceElement elem = stackTrace[i];
             if (prevResult.subNodes == null) {
-                prevResult.subNodes = new HashMap<>();
+                prevResult.subNodes = new THashMap<>();
             }
             SampleNode node = new SampleNode(1, null);
             prevResult.subNodes.put(Method.getMethod(elem), node);
@@ -71,7 +74,7 @@ public final class SampleNode implements Serializable {
             final Method method = Method.getMethod(elem);
             SampleNode nNode;
             if (prevResult.subNodes == null) {
-                prevResult.subNodes = new HashMap<>();
+                prevResult.subNodes = new THashMap<>();
                 nNode = new SampleNode(1, null);
                 prevResult.subNodes.put(method, nNode);
             } else {
@@ -91,50 +94,78 @@ public final class SampleNode implements Serializable {
         if (node.subNodes == null) {
             return new SampleNode(node.sampleCount, null);
         }
-        HashMap<Method, SampleNode> newSubNodes = new HashMap<>(node.subNodes.size());
-        for (Map.Entry<Method, SampleNode> entry: node.subNodes.entrySet()) {
-            newSubNodes.put(entry.getKey(), clone(entry.getValue()));
-        }
+        final THashMap<Method, SampleNode> newSubNodes = new THashMap<>(node.subNodes.size());
+        node.subNodes.forEachEntry(new TObjectObjectProcedure<Method, SampleNode>() {
+
+            @Override
+            public boolean execute(final Method a, final SampleNode b) {
+                newSubNodes.put(a, SampleNode.clone(b));
+                return true;
+            }
+        });
         return new SampleNode(node.sampleCount, newSubNodes);
     }
 
     public static SampleNode aggregate(final SampleNode node1, final SampleNode node2) {
         int newSampleCount = node1.sampleCount + node2.sampleCount;
-        HashMap<Method, SampleNode> newSubNodes;
+        TMap<Method, SampleNode> newSubNodes;
         if (node1.subNodes == null && node2.subNodes == null) {
             newSubNodes = null;
         } else if (node1.subNodes == null) {
-            newSubNodes = new HashMap<>(node2.subNodes.size());
-            for (Map.Entry<Method, SampleNode> entry: node2.subNodes.entrySet()) {
-                newSubNodes.put(entry.getKey(), clone(entry.getValue()));
-            }
+            newSubNodes = cloneSubNodes(node2);
         } else if (node2.subNodes == null) {
-            newSubNodes = new HashMap<>(node1.subNodes.size());
-            for (Map.Entry<Method, SampleNode> entry: node1.subNodes.entrySet()) {
-                newSubNodes.put(entry.getKey(), clone(entry.getValue()));
-            }
+            newSubNodes = cloneSubNodes(node1);
         } else {
-            newSubNodes = new HashMap<>(node1.subNodes.size());
-            for (Map.Entry<Method, SampleNode> entry: node1.subNodes.entrySet()) {
-                Method m = entry.getKey();
-                SampleNode other = node2.subNodes.get(m);
-                if (other == null) {
-                    newSubNodes.put(m, clone(entry.getValue()));
-                } else {
-                    newSubNodes.put(m, aggregate(entry.getValue(), other));
+            final THashMap<Method, SampleNode> ns = new THashMap<>(node1.subNodes.size() + node2.subNodes.size());
+
+            node1.subNodes.forEachEntry(new TObjectObjectProcedure<Method, SampleNode>() {
+
+                @Override
+                public boolean execute(final Method m, final SampleNode b) {
+                    SampleNode other = node2.subNodes.get(m);
+                    if (other == null) {
+                        ns.put(m, SampleNode.clone(b));
+                    } else {
+                        ns.put(m, aggregate(b, other));
+                    }
+                    return true;
                 }
-            }
-            for (Map.Entry<Method, SampleNode> entry: node2.subNodes.entrySet()) { // on left not it right
-                Method m = entry.getKey();
-                if (!node1.subNodes.containsKey(m)) {
-                    newSubNodes.put(m, clone(entry.getValue()));
+            });
+            node2.subNodes.forEachEntry(new TObjectObjectProcedure<Method, SampleNode>() {
+
+                @Override
+                public boolean execute(final Method m, final SampleNode b) {
+                    if (!node1.subNodes.containsKey(m)) {
+                        ns.put(m, SampleNode.clone(b));
+                    }
+                    return true;
                 }
-            }
+            });
+            newSubNodes = ns;
+
         }
         return new SampleNode(newSampleCount, newSubNodes);
     }
 
-    public SampleNode(final int count, @Nullable final HashMap<Method, SampleNode> subNodes) {
+    public static TMap<Method, SampleNode> cloneSubNodes(final SampleNode node) {
+        final TMap<Method, SampleNode> ns = new THashMap<>(node.subNodes.size());
+        putAllClones(node.subNodes, ns);
+        return ns;
+    }
+
+    public static void putAllClones(final TMap<Method, SampleNode> source,
+            final TMap<Method, SampleNode> destination) {
+        source.forEachEntry(new TObjectObjectProcedure<Method, SampleNode>() {
+
+            @Override
+            public boolean execute(final Method a, final SampleNode b) {
+                destination.put(a, SampleNode.clone(b));
+                return true;
+            }
+        });
+    }
+
+    public SampleNode(final int count, @Nullable final TMap<Method, SampleNode> subNodes) {
         this.sampleCount = count;
         this.subNodes = subNodes;
     }
@@ -145,7 +176,7 @@ public final class SampleNode implements Serializable {
             Method method = Method.getMethod(stackTrace[from]);
             SampleNode subNode = null;
             if (subNodes == null) {
-                subNodes = new HashMap();
+                subNodes = new THashMap();
             } else {
                 subNode = subNodes.get(method);
             }
@@ -162,7 +193,7 @@ public final class SampleNode implements Serializable {
     }
 
     @Nullable
-    public Map<Method, SampleNode> getSubNodes() {
+    public TMap<Method, SampleNode> getSubNodes() {
         return subNodes;
     }
 
@@ -206,7 +237,7 @@ public final class SampleNode implements Serializable {
 
         int newCount = this.sampleCount;
 
-        HashMap<Method, SampleNode> sns = null;
+        THashMap<Method, SampleNode> sns = null;
         if (this.subNodes != null) {
             for (Map.Entry<Method, SampleNode> entry : this.subNodes.entrySet()) {
                 Method method = entry.getKey();
@@ -215,7 +246,7 @@ public final class SampleNode implements Serializable {
                     newCount -= sn.getSampleCount();
                 } else {
                     if (sns == null) {
-                        sns = new HashMap<>();
+                        sns = new THashMap<>();
                     }
                     SampleNode sn2 = sn.filteredBy(predicate);
                     if (sn2 == null) {
