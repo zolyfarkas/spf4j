@@ -6,7 +6,8 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -23,16 +24,16 @@ import org.objectweb.asm.commons.EmptyVisitor;
 class MethodInvocationClassVisitor extends EmptyVisitor {
 
     private final Collection<Invocation> addCaleesTo;
-    private final Set<String> methodStrings;
+    private final Map<String, Method> methodStrings;
     private String className;
     private String source;
 
     public MethodInvocationClassVisitor(final Collection addCaleesTo,
             final Set<Method> methods) {
         this.addCaleesTo = addCaleesTo;
-        this.methodStrings = new HashSet<>();
+        this.methodStrings = new HashMap<>(methods.size());
         for (Method m : methods) {
-            this.methodStrings.add(TypeUtils.toString(m));
+            this.methodStrings.put(TypeUtils.toString(m), m);
         }
     }
 
@@ -64,7 +65,8 @@ class MethodInvocationClassVisitor extends EmptyVisitor {
 
             @Override
             public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc) {
-                boolean isCallingtarget = methodStrings.contains(owner + '/' + name + desc);
+                final Method invokedMethod = methodStrings.get(owner + '/' + name + desc);
+                boolean isCallingtarget = invokedMethod != null;
                 Type[] parameterTypes = Type.getArgumentTypes(desc);
                 Object[] parameters = new Object[parameterTypes.length];
                 for (int i = parameterTypes.length - 1; i >= 0; i--) {
@@ -76,7 +78,7 @@ class MethodInvocationClassVisitor extends EmptyVisitor {
                 }
                 if (isCallingtarget) {
                     addCaleesTo.add(new Invocation(className, methodName, methodDesc, parameters,
-                            source, lineNumber));
+                            source, lineNumber, invokedMethod));
                 }
             }
 
