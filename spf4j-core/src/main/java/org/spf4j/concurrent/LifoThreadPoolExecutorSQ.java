@@ -110,14 +110,18 @@ public final class LifoThreadPoolExecutorSQ extends AbstractExecutorService {
         if (state.isShutdown()) {
             throw new UnsupportedOperationException("Executor is shutting down, rejecting" + command);
         }
-        QueuedThread nqt = threadQueue.pollLast();
-        if (nqt != null) {
-            if (!nqt.runNext(command)) {
-                newThreadOrQueue(command);
+        do {
+            QueuedThread nqt = threadQueue.pollLast();
+            if (nqt != null) {
+                if (nqt.runNext(command)) {
+                    return;
+                }
+            } else {
+                break;
             }
-        } else {
-            newThreadOrQueue(command);
-        }
+        }  while(true);
+        newThreadOrQueue(command);
+        
     }
 
     public void newThreadOrQueue(final Runnable command) {
