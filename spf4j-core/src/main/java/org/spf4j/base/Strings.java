@@ -182,14 +182,12 @@ public final class Strings {
                     Field charsField;
                     try {
                         charsField = String.class.getDeclaredField("value");
+                        charsField.setAccessible(true);
                     } catch (NoSuchFieldException ex) {
                         LOG.info("char array stealing from String not supported", ex);
                         charsField = null;
                     } catch (SecurityException ex) {
                         throw new RuntimeException(ex);
-                    }
-                    if (charsField != null) {
-                        charsField.setAccessible(true);
                     }
                     return charsField;
                 }
