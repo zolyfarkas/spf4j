@@ -218,6 +218,23 @@ public final class Csv {
         });
     }
 
+    public static List<CharSequence> readRow(final Reader reader) throws IOException {
+        return readRow(reader, new CsvRowHandler<List<CharSequence>>() {
+
+            private List<CharSequence> result = new ArrayList<>();
+
+            @Override
+            public void element(final CharSequence elem) {
+                result.add(elem);
+            }
+
+            @Override
+            public List<CharSequence> eof() {
+                return result;
+            }
+        });
+    }
+
 
     public static <T> T readRow(final Reader reader, final CsvRowHandler<T> handler) throws IOException {
         return read(reader, new CsvHandler<T>() {

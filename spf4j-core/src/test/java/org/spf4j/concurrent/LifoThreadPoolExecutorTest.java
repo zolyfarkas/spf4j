@@ -1,18 +1,11 @@
 package org.spf4j.concurrent;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.Assert;
 import org.junit.Test;
 
@@ -43,6 +36,15 @@ public class LifoThreadPoolExecutorTest {
     }
 
     @Test
+    public void testLifoExecSQ() throws InterruptedException, IOException {
+        int nrProcs = org.spf4j.base.Runtime.NR_PROCESSORS;
+        LifoThreadPoolExecutorSQ executor = new LifoThreadPoolExecutorSQ(nrProcs / 4, nrProcs, 60000,
+                new LinkedBlockingQueue(1024));
+        testPool(executor);
+    }
+
+
+    @Test
     public void testJdkExec() throws InterruptedException, IOException {
         int nrProcs = org.spf4j.base.Runtime.NR_PROCESSORS;
         ThreadPoolExecutor executor = new ThreadPoolExecutor(nrProcs / 4, nrProcs, 60000, TimeUnit.MILLISECONDS,
@@ -54,8 +56,6 @@ public class LifoThreadPoolExecutorTest {
     public static void testPool(final ExecutorService executor) throws InterruptedException, IOException {
         final LongAdder adder = new LongAdder();
         final int testCount = 1000000;
-        File tmpFile = File.createTempFile("test", ".tmp");
-        final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmpFile)));
         for (int i = 0; i < testCount; i++) {
             try {
                 executor.submit(new Runnable() {
@@ -63,12 +63,6 @@ public class LifoThreadPoolExecutorTest {
                     @Override
                     public void run() {
                         adder.increment();
-                        try {
-                            writer.write(Thread.currentThread().getName());
-                            writer.write('\n');
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
                     }
                 });
             } catch (RejectedExecutionException ex) {

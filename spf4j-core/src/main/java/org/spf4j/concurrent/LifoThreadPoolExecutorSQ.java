@@ -59,9 +59,17 @@ public final class LifoThreadPoolExecutorSQ extends AbstractExecutorService {
 
         private final AtomicInteger threadCount;
 
-        public ExecState(final int thnr) {
+
+        private final int spinlockCount;
+
+        public ExecState(final int thnr, final int spinlockCount) {
             this.shutdown = false;
             this.threadCount = new AtomicInteger(thnr);
+            this.spinlockCount = spinlockCount;
+        }
+
+        public int getSpinlockCount() {
+            return spinlockCount;
         }
 
         public boolean isShutdown() {
@@ -80,10 +88,16 @@ public final class LifoThreadPoolExecutorSQ extends AbstractExecutorService {
 
     public LifoThreadPoolExecutorSQ(final int coreSize, final int maxSize, final int maxIdleTimeMillis,
             final BlockingQueue taskQueue) {
+        this(coreSize, maxSize, maxIdleTimeMillis, taskQueue, 1024);
+    }
+
+
+    public LifoThreadPoolExecutorSQ(final int coreSize, final int maxSize, final int maxIdleTimeMillis,
+            final BlockingQueue taskQueue, final int spinLockCount) {
         this.maxIdleTimeMillis = maxIdleTimeMillis;
         this.taskQueue = taskQueue;
         this.threadQueue = new LinkedBlockingDeque<>(maxSize);
-        state = new ExecState(coreSize);
+        state = new ExecState(coreSize, spinLockCount);
         for (int i = 0; i < coreSize; i++) {
             QueuedThread qt = new QueuedThread(threadQueue, taskQueue, Integer.MAX_VALUE, null, state);
             qt.start();
@@ -237,9 +251,17 @@ public final class LifoThreadPoolExecutorSQ extends AbstractExecutorService {
                             Runnable runnable = null;
                             if (org.spf4j.base.Runtime.NR_PROCESSORS > 1) {
                                 int i = 0;
-                                //CHECKSTYLE:OFF
-                                while ((runnable = toRun.poll()) == null && i < 1000) {
-                                    //CHECKSTYLE:ON
+                                int j = 64;
+                                while (i < state.getSpinlockCount()) {
+                                    if (i % j == 0) {
+                                        runnable = toRun.poll();
+                                        if (runnable != null) {
+                                            break;
+                                        }
+                                        if (j > 4) {
+                                            j = j / 2;
+                                        }
+                                    }
                                     i++;
                                 }
                             }
