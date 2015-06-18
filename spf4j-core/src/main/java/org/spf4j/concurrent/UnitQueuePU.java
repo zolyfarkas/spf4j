@@ -31,14 +31,16 @@ public final class UnitQueuePU<T> {
         }
     }
 
-    private static final Semaphore SPIN_LIMIT = new Semaphore(org.spf4j.base.Runtime.NR_PROCESSORS - 1);
+    private static final int SPIN_LIMITER = Integer.getInteger("lifoTp.spinLimiter", 1);
+
+    private static final Semaphore SPIN_LIMIT = new Semaphore(org.spf4j.base.Runtime.NR_PROCESSORS - SPIN_LIMITER);
 
     public T poll(final long timeoutNanos, final long spinCount) throws InterruptedException {
         T result = poll();
         if (result != null) {
             return result;
         }
-        if (org.spf4j.base.Runtime.NR_PROCESSORS > 1 && spinCount > 0) {
+        if (spinCount > 0 && org.spf4j.base.Runtime.NR_PROCESSORS > 1) {
             boolean tryAcquire = SPIN_LIMIT.tryAcquire();
             if (tryAcquire) {
                 try {
@@ -75,6 +77,11 @@ public final class UnitQueuePU<T> {
             LockSupport.unpark(readerThread);
         }
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "UnitQueuePU{" + "value=" + value + '}';
     }
 
 }

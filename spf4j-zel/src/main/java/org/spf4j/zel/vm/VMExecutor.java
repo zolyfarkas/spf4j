@@ -28,7 +28,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.Nullable;
 import org.spf4j.base.Pair;
 import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
@@ -44,7 +43,7 @@ public final class VMExecutor {
 
          private static final ExecutorService DEF_EXEC =
                  new LifoThreadPoolExecutorSQP(0, org.spf4j.base.Runtime.NR_PROCESSORS,
-                 60000, new LinkedBlockingQueue());
+                 60000, Integer.MAX_VALUE);
          static {
              org.spf4j.base.Runtime.queueHook(0, new Runnable() {
                  @Override
