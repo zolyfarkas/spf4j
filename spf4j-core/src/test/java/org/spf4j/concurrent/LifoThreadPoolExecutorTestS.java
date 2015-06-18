@@ -13,9 +13,9 @@ import org.junit.Test;
  *
  * @author zoly
  */
-public class LifoThreadPoolExecutorTest {
+public class LifoThreadPoolExecutorTestS {
 
-    public LifoThreadPoolExecutorTest() {
+    public LifoThreadPoolExecutorTestS() {
     }
 
     @Test
@@ -36,12 +36,17 @@ public class LifoThreadPoolExecutorTest {
     public static void testPool(final ExecutorService executor)
             throws InterruptedException, IOException {
         final LongAdder adder = new LongAdder();
-        final int testCount = 20000000;
+        final int testCount = 20000;
         long rejected = 0;
         final Runnable runnable = new Runnable() {
             @Override
             public void run() {
                 adder.increment();
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
             }
         };
         long start = System.currentTimeMillis();
