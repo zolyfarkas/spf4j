@@ -6,6 +6,7 @@ import java.util.concurrent.locks.LockSupport;
 
 /**
  * Special purpose queue for a single value
+ * Custom designed for the LifoThreadPool
  *
  * @author zoly
  */
@@ -42,15 +43,11 @@ public final class UnitQueuePU<T> {
             if (tryAcquire) {
                 try {
                     int i = 0;
-                    int j = 64;
                     while (i < spinCount) {
-                        if (i % j == 0) {
+                        if (i % 4 == 0) {
                             result = poll();
                             if (result != null) {
                                 return result;
-                            }
-                            if (j > 4) {
-                                j = j / 2;
                             }
                         }
                         i++;
@@ -61,14 +58,14 @@ public final class UnitQueuePU<T> {
             }
         }
 
-        long deadlineNanos = System.nanoTime() + timeoutNanos;
-            while ((result = value.getAndSet(null)) == null) {
-                final long to = deadlineNanos - System.nanoTime();
-                if (to <= 0) {
-                    return null;
+            long deadlineNanos = System.nanoTime() + timeoutNanos;
+                while ((result = value.getAndSet(null)) == null) {
+                    final long to = deadlineNanos - System.nanoTime();
+                    if (to <= 0) {
+                        return null;
+                    }
+                    LockSupport.parkNanos(to);
                 }
-                LockSupport.parkNanos(to);
-            }
         return result;
     }
 

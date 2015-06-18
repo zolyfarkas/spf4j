@@ -292,7 +292,12 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
             try {
                 runnable.run();
             } catch (RuntimeException e) {
-                this.getUncaughtExceptionHandler().uncaughtException(this, e);
+                try {
+                    this.getUncaughtExceptionHandler().uncaughtException(this, e);
+                } catch (RuntimeException ex) {
+                    ex.addSuppressed(e);
+                    ex.printStackTrace();
+                }
             } catch (Error e) {
                 org.spf4j.base.Runtime.goDownWithError(e, 666);
             } finally {
