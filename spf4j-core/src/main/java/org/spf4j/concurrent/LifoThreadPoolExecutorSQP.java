@@ -1,9 +1,6 @@
 package org.spf4j.concurrent;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.lang.reflect.Field;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
@@ -14,9 +11,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.CheckReturnValue;
-//CHECKSTYLE:OFF
-import sun.misc.Unsafe;
-//CHECKSTYLE:ON
 
 /**
  *
@@ -25,7 +19,7 @@ import sun.misc.Unsafe;
  *
  * @author zoly
  */
-public final class LifoThreadPoolExecutorUS extends AbstractExecutorService {
+public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
     private final BlockingQueue<Runnable> taskQueue;
 
@@ -36,25 +30,6 @@ public final class LifoThreadPoolExecutorUS extends AbstractExecutorService {
     private final int maxThreadCount;
 
     private final ExecState state;
-
-    private static final Unsafe USF;
-
-    static {
-
-        USF = AccessController.doPrivileged(new PrivilegedAction<Unsafe>() {
-            @Override
-            public Unsafe run() {
-                try {
-                    Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
-                    theUnsafe.setAccessible(true);
-                    return (Unsafe) theUnsafe.get(null);
-                } catch (IllegalArgumentException | IllegalAccessException
-                        | NoSuchFieldException | SecurityException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-        });
-    }
 
     /**
      * todo: need to interrupt running things...
@@ -83,9 +58,16 @@ public final class LifoThreadPoolExecutorUS extends AbstractExecutorService {
 
         private final AtomicInteger threadCount;
 
-        public ExecState(final int thnr) {
+        private final int spinlockCount;
+
+        public ExecState(final int thnr, final int spinlockCount) {
             this.shutdown = false;
             this.threadCount = new AtomicInteger(thnr);
+            this.spinlockCount = spinlockCount;
+        }
+
+        public int getSpinlockCount() {
+            return spinlockCount;
         }
 
         public boolean isShutdown() {
@@ -102,12 +84,17 @@ public final class LifoThreadPoolExecutorUS extends AbstractExecutorService {
 
     }
 
-    public LifoThreadPoolExecutorUS(final int coreSize, final int maxSize, final int maxIdleTimeMillis,
+    public LifoThreadPoolExecutorSQP(final int coreSize, final int maxSize, final int maxIdleTimeMillis,
             final BlockingQueue taskQueue) {
+        this(coreSize, maxSize, maxIdleTimeMillis, taskQueue, 1024);
+    }
+
+    public LifoThreadPoolExecutorSQP(final int coreSize, final int maxSize, final int maxIdleTimeMillis,
+            final BlockingQueue taskQueue, final int spinLockCount) {
         this.maxIdleTimeMillis = maxIdleTimeMillis;
         this.taskQueue = taskQueue;
         this.threadQueue = new LinkedBlockingDeque<>(maxSize);
-        state = new ExecState(coreSize);
+        state = new ExecState(coreSize, spinLockCount);
         for (int i = 0; i < coreSize; i++) {
             QueuedThread qt = new QueuedThread(threadQueue, taskQueue, Integer.MAX_VALUE, null, state);
             qt.start();
@@ -120,14 +107,18 @@ public final class LifoThreadPoolExecutorUS extends AbstractExecutorService {
         if (state.isShutdown()) {
             throw new UnsupportedOperationException("Executor is shutting down, rejecting" + command);
         }
-        QueuedThread nqt = threadQueue.pollLast();
-        if (nqt != null && nqt.isRunning()) {
-            if (!nqt.runNext(command)) {
-                newThreadOrQueue(command);
+        do {
+            QueuedThread nqt = threadQueue.pollLast();
+            if (nqt != null) {
+                if (nqt.runNext(command)) {
+                    return;
+                }
+            } else {
+                break;
             }
-        } else {
-            newThreadOrQueue(command);
-        }
+        } while (true);
+        newThreadOrQueue(command);
+
     }
 
     public void newThreadOrQueue(final Runnable command) {
@@ -143,7 +134,7 @@ public final class LifoThreadPoolExecutorUS extends AbstractExecutorService {
             }
         }
         if (!taskQueue.offer(command)) {
-            throw new RejectedExecutionException("cannot queue runnable " + command);
+            throw new RejectedExecutionException();
         }
 
     }
@@ -174,8 +165,15 @@ public final class LifoThreadPoolExecutorUS extends AbstractExecutorService {
         return threadCount.get() == 0;
     }
 
+    private static final Runnable VOID = new Runnable() {
 
-    @SuppressFBWarnings("FCBL_FIELD_COULD_BE_LOCAL")
+        @Override
+        public void run() {
+        }
+
+    };
+
+    @SuppressFBWarnings("NO_NOTIFY_NOT_NOTIFYALL")
     private static class QueuedThread extends Thread {
 
         private static final AtomicInteger COUNT = new AtomicInteger();
@@ -188,13 +186,15 @@ public final class LifoThreadPoolExecutorUS extends AbstractExecutorService {
 
         private final Runnable runFirst;
 
-        private Runnable toRun;
+        private final UnitQueuePU<Runnable> toRun;
 
         private final ExecState state;
 
         private volatile boolean running;
 
         private long lastRunNanos;
+
+        private final Object sync;
 
         public QueuedThread(final BlockingDeque<QueuedThread> threadQueue,
                 final BlockingQueue<Runnable> taskQueue, final int maxIdleTimeMillis,
@@ -204,26 +204,27 @@ public final class LifoThreadPoolExecutorUS extends AbstractExecutorService {
             this.taskQueue = taskQueue;
             this.maxIdleTimeMillis = maxIdleTimeMillis;
             this.runFirst = runFirst;
-            this.toRun = null;
             this.state = state;
             this.running = false;
-            this.lastRunNanos =  System.nanoTime();
+            this.sync = new Object();
+            this.lastRunNanos = System.nanoTime();
+            this.toRun = new UnitQueuePU<>(this);
         }
 
         @CheckReturnValue
         public boolean runNext(final Runnable runnable) {
-            if (toRun != null) {
-                USF.unpark(this);
-                return false;
-            } else {
-                toRun = runnable;
-                USF.unpark(this);
-                return true;
+            synchronized (sync) {
+                if (!running) {
+                    return false;
+                } else {
+                    return toRun.offer(runnable);
+                }
             }
         }
 
+        @SuppressFBWarnings
         public void signal() {
-            USF.unpark(this);
+            toRun.offer(VOID);
         }
 
         public boolean isRunning() {
@@ -233,8 +234,8 @@ public final class LifoThreadPoolExecutorUS extends AbstractExecutorService {
         @Override
         public void run() {
             long maxIdleNanos = TimeUnit.NANOSECONDS.convert(maxIdleTimeMillis, TimeUnit.MILLISECONDS);
-            lastRunNanos = System.nanoTime();
             running = true;
+            boolean onQueue = false;
             try {
                 if (runFirst != null) {
                     run(runFirst);
@@ -244,33 +245,41 @@ public final class LifoThreadPoolExecutorUS extends AbstractExecutorService {
                 while (!state.isShutdown() || (poll = taskQueue.poll()) != null) {
                     //CHECKSTYLE:ON
                     if (poll == null) {
-                        threadQueue.addLast(this);
-                        long nsSinceLastRun;
-                        //CHECKSTYLE:OFF
-                        while (!state.isShutdown()
-                                && (nsSinceLastRun = System.nanoTime() - lastRunNanos) < maxIdleNanos) {
-                            //CHECKSTYLE:ON
-                            USF.park(false, maxIdleNanos - nsSinceLastRun);
-                            if (toRun != null) {
-                                try {
-                                    run(toRun);
-                                } finally {
-                                    toRun = null;
-                                    break;
-                                }
+                        if (!onQueue) {
+                            threadQueue.addLast(this);
+                            onQueue = true;
+                        }
+                        Runnable runnable;
+                        try {
+                            runnable = toRun.poll(maxIdleNanos - (System.nanoTime() - lastRunNanos),
+                                    state.spinlockCount);
+                        } catch (InterruptedException ex) {
+                            break;
+                        }
+                        if (runnable != null) {
+                            try {
+                                run(runnable);
+                            } finally {
+                                onQueue = false;
+                            }
+                        } else {
+                            if (System.nanoTime() - lastRunNanos >= maxIdleNanos) {
+                                break;
                             }
                         }
-                        if (System.nanoTime() - lastRunNanos >= maxIdleNanos) {
-                                break;
-                        }
-
                     } else {
                         run(poll);
                     }
                 }
 
             } finally {
-                running = false;
+                synchronized (sync) {
+                    running = false;
+                }
+                Runnable runnable = toRun.poll();
+                if (runnable != null) {
+                    run(runnable);
+                }
                 state.getThreadCount().decrementAndGet();
                 synchronized (state) {
                     state.notifyAll();
@@ -279,7 +288,6 @@ public final class LifoThreadPoolExecutorUS extends AbstractExecutorService {
 
         }
 
-        @CheckReturnValue
         public void run(final Runnable runnable) {
             try {
                 runnable.run();

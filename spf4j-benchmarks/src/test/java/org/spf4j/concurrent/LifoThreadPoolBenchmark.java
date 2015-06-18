@@ -20,7 +20,7 @@ public class LifoThreadPoolBenchmark {
     @Benchmark
     public void testLifoExec() throws InterruptedException {
         int nrProcs = org.spf4j.base.Runtime.NR_PROCESSORS;
-        LifoThreadPoolExecutor executor = new LifoThreadPoolExecutor(nrProcs / 4, nrProcs, 60000,
+        LifoThreadPoolExecutorSQP executor = new LifoThreadPoolExecutorSQP(nrProcs / 4, nrProcs, 60000,
                 new LinkedBlockingDeque(1024));
         testPool(executor);
     }

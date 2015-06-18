@@ -25,11 +25,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.Nullable;
 import org.spf4j.base.Pair;
-import org.spf4j.concurrent.SimpleExecutor;
+import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
 
 /**
  *
@@ -40,18 +42,13 @@ public final class VMExecutor {
 
     public static class Lazy {
 
-         private static final SimpleExecutor DEF_EXEC = new SimpleExecutor();
+         private static final ExecutorService DEF_EXEC = new LifoThreadPoolExecutorSQP(0, org.spf4j.base.Runtime.NR_PROCESSORS,
+                 60000, new LinkedBlockingQueue());
          static {
-             DEF_EXEC.startThreads(org.spf4j.base.Runtime.NR_PROCESSORS);
-             org.spf4j.base.Runtime.queueHookAtEnd(new Runnable() {
-
+             org.spf4j.base.Runtime.queueHook(0, new Runnable() {
                  @Override
                  public void run() {
-                     try {
-                         DEF_EXEC.shutdownAndWait(120000);
-                     } catch (InterruptedException ex) {
-                        throw new RuntimeException(ex);
-                     }
+                      DEF_EXEC.shutdown();
                  }
              });
          }
