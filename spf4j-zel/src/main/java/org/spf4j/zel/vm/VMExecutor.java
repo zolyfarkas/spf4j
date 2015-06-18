@@ -42,7 +42,8 @@ public final class VMExecutor {
 
     public static class Lazy {
 
-         private static final ExecutorService DEF_EXEC = new LifoThreadPoolExecutorSQP(0, org.spf4j.base.Runtime.NR_PROCESSORS,
+         private static final ExecutorService DEF_EXEC =
+                 new LifoThreadPoolExecutorSQP(0, org.spf4j.base.Runtime.NR_PROCESSORS,
                  60000, new LinkedBlockingQueue());
          static {
              org.spf4j.base.Runtime.queueHook(0, new Runnable() {
