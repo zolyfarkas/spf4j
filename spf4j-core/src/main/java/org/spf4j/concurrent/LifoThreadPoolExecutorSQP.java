@@ -115,7 +115,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         this.submitMonitor = new ReentrantLock(false);
         for (int i = 0; i < coreSize; i++) {
             QueuedThread qt = new QueuedThread(poolName, threadQueue,
-                    taskQueue, Integer.MAX_VALUE, null, state, submitMonitor);
+                    taskQueue, maxIdleTimeMillis, null, state, submitMonitor);
             qt.start();
         }
         maxThreadCount = maxSize;
@@ -133,15 +133,19 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         }
         submitMonitor.lock();
         try {
-            QueuedThread nqt = threadQueue.pollLast();
-            if (nqt != null) {
-                submitMonitor.unlock();
-                if (nqt.runNext(command)) {
-                    return;
+            do {
+                QueuedThread nqt = threadQueue.pollLast();
+                if (nqt != null) {
+                    submitMonitor.unlock();
+                    if (nqt.runNext(command)) {
+                        return;
+                    } else {
+                        submitMonitor.lock();
+                    }
                 } else {
-                    throw new IllegalStateException("Invalid state " + nqt);
+                    break;
                 }
-            }
+            } while (true);
             AtomicInteger threadCount = state.getThreadCount();
             int tc;
             //CHECKSTYLE:OFF
@@ -176,11 +180,19 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     }
 
     @Override
+    @SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
     public void shutdown() {
-        state.setShutdown(true);
-        QueuedThread th;
-        while ((th = threadQueue.poll()) != null) {
-            th.signal();
+        submitMonitor.lock();
+        try {
+            if (!state.isShutdown()) {
+                state.setShutdown(true);
+                QueuedThread th;
+                while ((th = threadQueue.poll()) != null) {
+                    th.signal();
+                }
+            }
+        } finally {
+            submitMonitor.unlock();
         }
         Registry.unregister(LifoThreadPoolExecutorSQP.class.getName(), poolName);
     }
@@ -236,6 +248,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
         private final ReentrantLock submitMonitor;
 
+
         public QueuedThread(final String nameBase, final Deque<QueuedThread> threadQueue,
                 final Queue<Runnable> taskQueue, final int maxIdleTimeMillis,
                 final Runnable runFirst, final ExecState state, final ReentrantLock submitMonitor) {
@@ -252,6 +265,12 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
             this.toRun = new UnitQueuePU<>(this);
         }
 
+
+        /**
+         * will return false when this thread is not running anymore...
+         * @param runnable
+         * @return
+         */
         @CheckReturnValue
         public boolean runNext(final Runnable runnable) {
             synchronized (sync) {
@@ -273,10 +292,45 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         }
 
         @Override
-        @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "IMSE_DONT_CATCH_IMSE" })
         public void run() {
-            long maxIdleNanos = TimeUnit.NANOSECONDS.convert(maxIdleTimeMillis, TimeUnit.MILLISECONDS);
+            boolean shouldRun = true;
+            do {
+                try {
+                    doRun();
+                } catch (RuntimeException e) {
+                    try {
+                        this.getUncaughtExceptionHandler().uncaughtException(this, e);
+                    } catch (RuntimeException ex) {
+                        ex.addSuppressed(e);
+                        ex.printStackTrace();
+                    }
+                } catch (Error e) {
+                    org.spf4j.base.Runtime.goDownWithError(e, 666);
+                }
+
+                final AtomicInteger tc = state.getThreadCount();
+                int count = tc.decrementAndGet();
+                while (!state.isShutdown()) {
+                    if (count >= state.getCoreThreads()) {
+                        shouldRun = false;
+                        break;
+                    } else if (tc.compareAndSet(count, count + 1)) {
+                        break;
+                    } else {
+                        count = tc.get();
+                    }
+                }
+            } while (shouldRun && !state.isShutdown());
+
+            synchronized (state) {
+                state.notifyAll();
+            }
+        }
+
+        @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "IMSE_DONT_CATCH_IMSE" })
+        public void doRun() {
             running = true;
+            long maxIdleNanos = TimeUnit.NANOSECONDS.convert(maxIdleTimeMillis, TimeUnit.MILLISECONDS);
             try {
                 if (runFirst != null) {
                     try {
@@ -291,6 +345,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                     if (poll == null) {
                         if (state.isShutdown()) {
                             submitMonitor.unlock();
+                            running = false;
                             break;
                         }
                         threadQueue.addLast(this);
@@ -302,19 +357,17 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                                         state.spinlockCount);
                             } catch (InterruptedException ex) {
                                 interrupt();
-                                synchronized (sync) {
-                                    running = false;
-                                }
+                                running = false;
                                 break;
                             }
                             if (runnable != null) {
                                 run(runnable);
                                 break;
                             } else {
-                                synchronized (sync) {
+                                if ((System.nanoTime() - lastRunNanos) > maxIdleNanos) {
                                     running = false;
+                                    break;
                                 }
-                                break;
                             }
                         }
                     } else {
@@ -324,6 +377,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                 }
 
             } catch (Throwable t) {
+                running = false;
                 try {
                     submitMonitor.unlock();
                 } catch (IllegalMonitorStateException ex) {
@@ -333,15 +387,12 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                 throw t;
             } finally {
                 if (!interrupted()) {
-                    Runnable runnable = toRun.poll();
-                    if (runnable != null) {
-                        run(runnable);
+                    synchronized (sync) {
+                        Runnable runnable = toRun.poll();
+                        if (runnable != null) {
+                            run(runnable);
+                        }
                     }
-                }
-
-                state.getThreadCount().decrementAndGet();
-                synchronized (state) {
-                    state.notifyAll();
                 }
             }
 
@@ -350,41 +401,39 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         public void run(final Runnable runnable) {
             try {
                 runnable.run();
-            } catch (RuntimeException e) {
-                try {
-                    this.getUncaughtExceptionHandler().uncaughtException(this, e);
-                } catch (RuntimeException ex) {
-                    ex.addSuppressed(e);
-                    ex.printStackTrace();
-                }
-            } catch (Error e) {
-                org.spf4j.base.Runtime.goDownWithError(e, 666);
-            } finally {
+            }  finally {
                 lastRunNanos = System.nanoTime();
             }
         }
 
         @Override
         public String toString() {
-            return "QueuedThread{" + "state=" + state + ", running=" + running + ", lastRunNanos="
+            return "QueuedThread{running=" + running + ", lastRunNanos="
                     + lastRunNanos + ", stack =" + Arrays.toString(this.getStackTrace())
                     + ", toRun = " + toRun + '}';
         }
 
     }
 
-    private static class ExecState {
+    private static final class ExecState {
 
-        private volatile boolean shutdown;
+        private boolean shutdown;
 
         private final AtomicInteger threadCount;
 
         private final int spinlockCount;
 
+        private final int coreThreads;
+
         public ExecState(final int thnr, final int spinlockCount) {
             this.shutdown = false;
+            this.coreThreads = thnr;
             this.threadCount = new AtomicInteger(thnr);
             this.spinlockCount = spinlockCount;
+        }
+
+        public int getCoreThreads() {
+            return coreThreads;
         }
 
         public int getSpinlockCount() {
@@ -403,6 +452,25 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
             return threadCount;
         }
 
+        @Override
+        public String toString() {
+            return "ExecState{" + "shutdown=" + shutdown + ", threadCount="
+                    + threadCount + ", spinlockCount=" + spinlockCount + '}';
+        }
+
+
+
     }
+
+    @Override
+    public String toString() {
+        return "LifoThreadPoolExecutorSQP{" + "threadQueue=" + threadQueue + ", maxIdleTimeMillis="
+                + maxIdleTimeMillis + ", maxThreadCount=" + maxThreadCount + ", state=" + state
+                + ", submitMonitor=" + submitMonitor + ", queueCapacity=" + queueCapacity
+                + ", poolName=" + poolName + '}';
+    }
+
+
+
 
 }
