@@ -30,6 +30,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import junit.framework.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.spf4j.stackmonitor.FastStackCollector;
 
@@ -50,6 +51,7 @@ public class LifoThreadPoolExecutorTest2 {
     }
 
     @Test
+    @Ignore
     public void testJdkExec() throws InterruptedException, IOException, ExecutionException {
         final LinkedBlockingQueue linkedBlockingQueue = new LinkedBlockingQueue(1024);
         ThreadPoolExecutor executor = new ThreadPoolExecutor(4, 8, 1000, TimeUnit.MILLISECONDS,

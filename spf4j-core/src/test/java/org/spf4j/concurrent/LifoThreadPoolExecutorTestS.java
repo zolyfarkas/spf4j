@@ -26,6 +26,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import junit.framework.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -45,6 +46,7 @@ public class LifoThreadPoolExecutorTestS {
     }
 
     @Test
+    @Ignore
     public void testJdkExec() throws InterruptedException, IOException {
         final LinkedBlockingQueue linkedBlockingQueue = new LinkedBlockingQueue(1024);
         ThreadPoolExecutor executor = new ThreadPoolExecutor(8, 8, 60000, TimeUnit.MILLISECONDS,

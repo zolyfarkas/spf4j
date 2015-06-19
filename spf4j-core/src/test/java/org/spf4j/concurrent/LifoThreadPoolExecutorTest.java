@@ -25,6 +25,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import junit.framework.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -44,6 +45,43 @@ public class LifoThreadPoolExecutorTest {
     }
 
     @Test
+    public void testLifoExecSQShutdownNow() throws InterruptedException, IOException {
+        LifoThreadPoolExecutorSQP executor =
+                new LifoThreadPoolExecutorSQP("test", 2, 8, 60000, 1024, 1024);
+        executor.execute(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(Long.MAX_VALUE);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        executor.execute(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(Long.MAX_VALUE);
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
+
+        executor.shutdown();
+        Assert.assertFalse(executor.awaitTermination(10, TimeUnit.MILLISECONDS));
+        executor.shutdownNow();
+        Assert.assertTrue(executor.awaitTermination(1000, TimeUnit.MILLISECONDS));
+
+    }
+
+
+    @Test
+    @Ignore
     public void testJdkExec() throws InterruptedException, IOException {
         final LinkedBlockingQueue linkedBlockingQueue = new LinkedBlockingQueue(1024);
         ThreadPoolExecutor executor = new ThreadPoolExecutor(8, 8, 60000, TimeUnit.MILLISECONDS,
