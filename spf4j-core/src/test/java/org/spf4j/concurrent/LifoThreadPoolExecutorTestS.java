@@ -1,3 +1,22 @@
+
+/*
+ * Copyright (c) 2015, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
 package org.spf4j.concurrent;
 
 import java.io.IOException;
@@ -28,7 +47,7 @@ public class LifoThreadPoolExecutorTestS {
     @Test
     public void testJdkExec() throws InterruptedException, IOException {
         final LinkedBlockingQueue linkedBlockingQueue = new LinkedBlockingQueue(1024);
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(2, 8, 60000, TimeUnit.MILLISECONDS,
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(8, 8, 60000, TimeUnit.MILLISECONDS,
                 linkedBlockingQueue);
         testPool(executor);
     }

@@ -1,3 +1,22 @@
+
+/*
+ * Copyright (c) 2015, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
 package org.spf4j.concurrent;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -126,7 +145,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     }
 
     @Override
-    @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "IMSE_DONT_CATCH_IMSE" })
+    @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "MDM_LOCK_ISLOCKED", "UL_UNRELEASED_LOCK_EXCEPTION_PATH" })
     public void execute(final Runnable command) {
         if (state.isShutdown()) {
             throw new UnsupportedOperationException("Executor is shutting down, rejecting" + command);
@@ -168,11 +187,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
             }
             submitMonitor.unlock();
         } catch (Throwable t) {
-            try {
+            if (submitMonitor.isHeldByCurrentThread()) {
                 submitMonitor.unlock();
-            } catch (IllegalMonitorStateException ex) {
-                t.addSuppressed(ex);
-                throw t;
             }
             throw t;
         }
@@ -327,7 +343,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
             }
         }
 
-        @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "IMSE_DONT_CATCH_IMSE" })
+        @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "MDM_LOCK_ISLOCKED", "UL_UNRELEASED_LOCK_EXCEPTION_PATH" })
         public void doRun() {
             running = true;
             long maxIdleNanos = TimeUnit.NANOSECONDS.convert(maxIdleTimeMillis, TimeUnit.MILLISECONDS);
@@ -378,11 +394,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
             } catch (Throwable t) {
                 running = false;
-                try {
+                if (submitMonitor.isHeldByCurrentThread()) {
                     submitMonitor.unlock();
-                } catch (IllegalMonitorStateException ex) {
-                    t.addSuppressed(ex);
-                    throw t;
                 }
                 throw t;
             } finally {
