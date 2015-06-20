@@ -41,6 +41,8 @@ import org.spf4j.jmx.Registry;
  * Lifo scheduled java thread pool, based on talk: http://applicative.acm.org/speaker-BenMaurer.html Also it behaved
  * differently compared with a java Thread pool in that it prefers to add threads instead of queueing tasks.
  *
+ * This pool allows changing most parameters on the fly. This comes at the cost of using some volatile vars.
+ *
  * There are 3 data structures involved in the transfer of tasks to Threads.
  *
  * 1) Task Queue - a classic FIFO queue. RW controlled by a reentrant lock.
@@ -50,28 +52,28 @@ import org.spf4j.jmx.Registry;
  *
  * @author zoly
  */
-public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
+public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
     private final Queue<Runnable> taskQueue;
 
     private final Deque<QueuedThread> threadQueue;
 
-    private final int maxIdleTimeMillis;
+    private volatile int maxIdleTimeMillis;
 
-    private final int maxThreadCount;
+    private volatile int maxThreadCount;
 
     private final PoolState state;
 
     private final ReentrantLock stateLock;
 
-    private final int queueSizeLimit;
+    private volatile int queueSizeLimit;
 
     private final String poolName;
 
     private final RejectedExecutionHandler rejectionHandler;
 
 
-    public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
+    public MutableLifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
             final int maxSize, final int maxIdleTimeMillis,
             final int queueSize) {
         this(poolName, coreSize, maxSize, maxIdleTimeMillis, queueSize, 1024);
@@ -79,7 +81,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
     private static final int LL_THRESHOLD = Integer.getInteger("lifoTp.llQueueSizeThreshold", 64000);
 
-    public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
+    public MutableLifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
             final int maxSize, final int maxIdleTimeMillis,
             final int queueSizeLimit, final int spinLockCount) {
         this(poolName, coreSize, maxSize, maxIdleTimeMillis,
@@ -87,7 +89,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                 queueSizeLimit, spinLockCount, REJECT_EXCEPTION_EXEC_HANDLER);
     }
 
-    public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
+    public MutableLifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
             final int maxSize, final int maxIdleTimeMillis, final Queue<Runnable> taskQueue,
             final int queueSizeLimit, final int spinLockCount, final RejectedExecutionHandler rejectionHandler) {
         this.rejectionHandler = rejectionHandler;
@@ -108,7 +110,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     }
 
     public void exportJmx() {
-        Registry.export(LifoThreadPoolExecutorSQP.class.getName(), poolName, this);
+        Registry.export(MutableLifoThreadPoolExecutorSQP.class.getName(), poolName, this);
     }
 
     @Override
@@ -167,6 +169,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
     @Override
     @SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
+    @JmxExport
     public void shutdown() {
         stateLock.lock();
         try {
@@ -176,11 +179,25 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                 while ((th = threadQueue.poll()) != null) {
                     th.signal();
                 }
-                Registry.unregister(LifoThreadPoolExecutorSQP.class.getName(), poolName);
             }
         } finally {
             stateLock.unlock();
         }
+    }
+
+    @JmxExport
+    @SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
+    public void start() {
+        stateLock.lock();
+        try {
+            state.setShutdown(false);
+        } finally {
+            stateLock.unlock();
+        }
+    }
+
+    public void unregisterJmx() {
+        Registry.unregister(MutableLifoThreadPoolExecutorSQP.class.getName(), poolName);
     }
 
     @Override
@@ -201,7 +218,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         return threadCount.get() == 0;
     }
 
-  @Override
+    @Override
+    @JmxExport
     public List<Runnable> shutdownNow() {
         shutdown();
         state.interruptAll();
@@ -231,6 +249,11 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     }
 
     @JmxExport
+    public void setMaxThreadCount(final int maxThreadCount) {
+        this.maxThreadCount = maxThreadCount;
+    }
+
+    @JmxExport
     @SuppressFBWarnings(value = "MDM_WAIT_WITHOUT_TIMEOUT",
             justification = "Holders of this lock will not block")
     public int getNrQueuedTasks() {
@@ -246,6 +269,13 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     public int getQueueSizeLimit() {
         return queueSizeLimit;
     }
+
+    @JmxExport
+    public void setQueueSizeLimit(final int queueSizeLimit) {
+        this.queueSizeLimit = queueSizeLimit;
+    }
+
+
 
     private static final Runnable VOID = new Runnable() {
 
@@ -533,18 +563,24 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         return maxIdleTimeMillis;
     }
 
+
+    @JmxExport
+    public void setMaxIdleTimeMillis(final int maxIdleTimeMillis) {
+        this.maxIdleTimeMillis = maxIdleTimeMillis;
+    }
+
     public String getPoolName() {
         return poolName;
     }
 
     public interface RejectedExecutionHandler {
-        void rejectedExecution(Runnable r, LifoThreadPoolExecutorSQP executor);
+        void rejectedExecution(Runnable r, MutableLifoThreadPoolExecutorSQP executor);
     }
 
     public static final RejectedExecutionHandler REJECT_EXCEPTION_EXEC_HANDLER = new RejectedExecutionHandler() {
 
         @Override
-        public void rejectedExecution(final Runnable r, final LifoThreadPoolExecutorSQP executor) {
+        public void rejectedExecution(final Runnable r, final MutableLifoThreadPoolExecutorSQP executor) {
             throw new RejectedExecutionException();
         }
     };
