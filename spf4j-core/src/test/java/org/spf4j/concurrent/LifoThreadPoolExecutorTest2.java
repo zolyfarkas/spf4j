@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import junit.framework.Assert;
@@ -50,6 +51,13 @@ public class LifoThreadPoolExecutorTest2 {
         testPoolThreadDynamics(executor);
     }
 
+
+    /**
+     * this is to confirm JDK behavior.
+     * @throws InterruptedException
+     * @throws IOException
+     * @throws ExecutionException
+     */
     @Test
     @Ignore
     public void testJdkExec() throws InterruptedException, IOException, ExecutionException {
@@ -59,6 +67,13 @@ public class LifoThreadPoolExecutorTest2 {
         testPoolThreadDynamics(executor);
     }
 
+
+    private static final Runnable NOP = new Runnable() {
+
+        @Override
+        public void run() {
+        }
+    };
 
     public static void testPoolThreadDynamics(final ExecutorService executor)
             throws InterruptedException, IOException, ExecutionException {
@@ -71,8 +86,16 @@ public class LifoThreadPoolExecutorTest2 {
         } else {
             ThreadPoolExecutor tpe = (ThreadPoolExecutor) executor;
             Assert.assertEquals(4, tpe.getPoolSize());
+            try {
+                while (true) {
+                    executor.execute(NOP);
+                }
+            } catch (RejectedExecutionException ex) {
+               //do nothing
+            }
+            Assert.assertEquals(8, tpe.getPoolSize()); // JDK thread pool is at max
             testMaxParallel(executor, 2);
-            Assert.assertEquals(4, tpe.getPoolSize()); // JDK thread pool sucks.
+            Assert.assertEquals(8, tpe.getPoolSize()); // JDK thread pool sucks.
         }
         executor.shutdown();
         boolean awaitTermination = executor.awaitTermination(10000, TimeUnit.MILLISECONDS);
