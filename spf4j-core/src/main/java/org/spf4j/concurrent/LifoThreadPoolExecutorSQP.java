@@ -62,11 +62,6 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
     private final String poolName;
 
-    /**
-     * todo: need to interrupt running things...
-     *
-     * @return
-     */
     @Override
     public List<Runnable> shutdownNow() {
         shutdown();
