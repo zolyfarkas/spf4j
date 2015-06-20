@@ -16,7 +16,6 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.concurrent;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -54,15 +53,148 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
     private final int maxThreadCount;
 
-    private final ExecState state;
+    private final PoolState state;
 
-    private final ReentrantLock submitMonitor;
+    private final ReentrantLock stateLock;
 
-    private final int queueCapacity;
+    private final int queueSizeLimit;
 
     private final String poolName;
 
+    private final RejectedExecutionHandler rejectionHandler;
+
+
+    public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
+            final int maxSize, final int maxIdleTimeMillis,
+            final int queueSize) {
+        this(poolName, coreSize, maxSize, maxIdleTimeMillis, queueSize, 1024);
+    }
+
+    private static final int LL_THRESHOLD = Integer.getInteger("lifoTp.llQueueSizeThreshold", 64000);
+
+    public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
+            final int maxSize, final int maxIdleTimeMillis,
+            final int queueSizeLimit, final int spinLockCount) {
+        this(poolName, coreSize, maxSize, maxIdleTimeMillis,
+                new ArrayDeque<Runnable>(Math.min(queueSizeLimit, LL_THRESHOLD)),
+                queueSizeLimit, spinLockCount, REJECT_EXCEPTION_EXEC_HANDLER);
+    }
+
+    public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
+            final int maxSize, final int maxIdleTimeMillis, final Queue<Runnable> taskQueue,
+            final int queueSizeLimit, final int spinLockCount, final RejectedExecutionHandler rejectionHandler) {
+        this.rejectionHandler = rejectionHandler;
+        this.poolName = poolName;
+        this.maxIdleTimeMillis = maxIdleTimeMillis;
+        this.taskQueue = taskQueue;
+        this.queueSizeLimit = queueSizeLimit;
+        this.threadQueue = new ArrayDeque<>(maxSize);
+        state = new PoolState(coreSize, spinLockCount, new HashSet<QueuedThread>(Math.min(maxSize, 2048)));
+        this.stateLock = new ReentrantLock(false);
+        for (int i = 0; i < coreSize; i++) {
+            QueuedThread qt = new QueuedThread(poolName, threadQueue,
+                    taskQueue, maxIdleTimeMillis, null, state, stateLock);
+            state.addThread(qt);
+            qt.start();
+        }
+        maxThreadCount = maxSize;
+    }
+
+    public void exportJmx() {
+        Registry.export(LifoThreadPoolExecutorSQP.class.getName(), poolName, this);
+    }
+
     @Override
+    @SuppressFBWarnings(value = {"MDM_WAIT_WITHOUT_TIMEOUT", "MDM_LOCK_ISLOCKED", "UL_UNRELEASED_LOCK_EXCEPTION_PATH" },
+            justification = "no blocking is done while holding the lock,"
+                    + " lock is released on all paths, findbugs just cannot figure it out...")
+    public void execute(final Runnable command) {
+        if (state.isShutdown()) {
+            throw new UnsupportedOperationException("Executor is shutting down, rejecting" + command);
+        }
+        stateLock.lock();
+        try {
+            do {
+                QueuedThread nqt = threadQueue.pollLast();
+                if (nqt != null) {
+                    stateLock.unlock();
+                    if (nqt.runNext(command)) {
+                        return;
+                    } else {
+                        stateLock.lock();
+                    }
+                } else {
+                    break;
+                }
+            } while (true);
+            AtomicInteger threadCount = state.getThreadCount();
+            int tc;
+            //CHECKSTYLE:OFF
+            while ((tc = threadCount.get()) < maxThreadCount) {
+                //CHECKSTYLE:ON
+                if (threadCount.compareAndSet(tc, tc + 1)) {
+                    stateLock.unlock();
+                    QueuedThread qt = new QueuedThread(poolName, threadQueue, taskQueue, maxIdleTimeMillis, command,
+                            state, stateLock);
+                    state.addThread(qt);
+                    qt.start();
+                    return;
+                }
+            }
+            if (taskQueue.size() >= queueSizeLimit) {
+                rejectionHandler.rejectedExecution(command, this);
+            } else {
+                if (!taskQueue.offer(command)) {
+                    rejectionHandler.rejectedExecution(command, this);
+                }
+            }
+            stateLock.unlock();
+        } catch (Throwable t) {
+            if (stateLock.isHeldByCurrentThread()) {
+                stateLock.unlock();
+            }
+            throw t;
+        }
+
+    }
+
+    @Override
+    @SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
+    public void shutdown() {
+        stateLock.lock();
+        try {
+            if (!state.isShutdown()) {
+                state.setShutdown(true);
+                QueuedThread th;
+                while ((th = threadQueue.poll()) != null) {
+                    th.signal();
+                }
+            }
+        } finally {
+            stateLock.unlock();
+        }
+        Registry.unregister(LifoThreadPoolExecutorSQP.class.getName(), poolName);
+    }
+
+    @Override
+    public boolean awaitTermination(final long millis, final TimeUnit unit) throws InterruptedException {
+        long deadlinenanos = System.nanoTime() + TimeUnit.NANOSECONDS.convert(millis, unit);
+        AtomicInteger threadCount = state.getThreadCount();
+        synchronized (state) {
+            while (threadCount.get() > 0) {
+                final long timeoutNs = deadlinenanos - System.nanoTime();
+                final long timeoutMs = TimeUnit.MILLISECONDS.convert(timeoutNs, TimeUnit.NANOSECONDS);
+                if (timeoutMs > 0) {
+                    state.wait(timeoutMs);
+                } else {
+                    break;
+                }
+            }
+        }
+        return threadCount.get() == 0;
+    }
+
+  @Override
     public List<Runnable> shutdownNow() {
         shutdown();
         state.interruptAll();
@@ -92,138 +224,20 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     }
 
     @JmxExport
-    @SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
+    @SuppressFBWarnings(value = "MDM_WAIT_WITHOUT_TIMEOUT",
+            justification = "Holders of this lock will not block")
     public int getNrQueuedTasks() {
-        submitMonitor.lock();
+        stateLock.lock();
         try {
             return taskQueue.size();
         } finally {
-            submitMonitor.unlock();
+            stateLock.unlock();
         }
     }
 
     @JmxExport
-    public int getQueueCapacity() {
-        return queueCapacity;
-    }
-
-    public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
-            final int maxSize, final int maxIdleTimeMillis,
-            final int queueSize) {
-        this(poolName, coreSize, maxSize, maxIdleTimeMillis, queueSize, 1024);
-    }
-
-    private static final int LL_THRESHOLD = Integer.getInteger("lifoTp.llQueueSizeThreshold", 64000);
-
-    public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
-            final int maxSize, final int maxIdleTimeMillis,
-            final int queueSize, final int spinLockCount) {
-        this.poolName = poolName;
-        this.maxIdleTimeMillis = maxIdleTimeMillis;
-        this.taskQueue = new ArrayDeque<>(Math.min(queueSize, LL_THRESHOLD));
-        this.queueCapacity = queueSize;
-        this.threadQueue = new ArrayDeque<>(maxSize);
-        state = new ExecState(coreSize, spinLockCount, new HashSet<QueuedThread>(Math.min(maxSize, 2048)));
-        this.submitMonitor = new ReentrantLock(false);
-        for (int i = 0; i < coreSize; i++) {
-            QueuedThread qt = new QueuedThread(poolName, threadQueue,
-                    taskQueue, maxIdleTimeMillis, null, state, submitMonitor);
-            state.addThread(qt);
-            qt.start();
-        }
-        maxThreadCount = maxSize;
-    }
-
-    public void exportJmx() {
-        Registry.export(LifoThreadPoolExecutorSQP.class.getName(), poolName, this);
-    }
-
-    @Override
-    @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "MDM_LOCK_ISLOCKED", "UL_UNRELEASED_LOCK_EXCEPTION_PATH" })
-    public void execute(final Runnable command) {
-        if (state.isShutdown()) {
-            throw new UnsupportedOperationException("Executor is shutting down, rejecting" + command);
-        }
-        submitMonitor.lock();
-        try {
-            do {
-                QueuedThread nqt = threadQueue.pollLast();
-                if (nqt != null) {
-                    submitMonitor.unlock();
-                    if (nqt.runNext(command)) {
-                        return;
-                    } else {
-                        submitMonitor.lock();
-                    }
-                } else {
-                    break;
-                }
-            } while (true);
-            AtomicInteger threadCount = state.getThreadCount();
-            int tc;
-            //CHECKSTYLE:OFF
-            while ((tc = threadCount.get()) < maxThreadCount) {
-                //CHECKSTYLE:ON
-                if (threadCount.compareAndSet(tc, tc + 1)) {
-                    submitMonitor.unlock();
-                    QueuedThread qt = new QueuedThread(poolName, threadQueue, taskQueue, maxIdleTimeMillis, command,
-                            state, submitMonitor);
-                    state.addThread(qt);
-                    qt.start();
-                    return;
-                }
-            }
-            if (taskQueue.size() >= queueCapacity) {
-                throw new RejectedExecutionException();
-            } else {
-                if (!taskQueue.offer(command)) {
-                    throw new RejectedExecutionException();
-                }
-            }
-            submitMonitor.unlock();
-        } catch (Throwable t) {
-            if (submitMonitor.isHeldByCurrentThread()) {
-                submitMonitor.unlock();
-            }
-            throw t;
-        }
-
-    }
-
-    @Override
-    @SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
-    public void shutdown() {
-        submitMonitor.lock();
-        try {
-            if (!state.isShutdown()) {
-                state.setShutdown(true);
-                QueuedThread th;
-                while ((th = threadQueue.poll()) != null) {
-                    th.signal();
-                }
-            }
-        } finally {
-            submitMonitor.unlock();
-        }
-        Registry.unregister(LifoThreadPoolExecutorSQP.class.getName(), poolName);
-    }
-
-    @Override
-    public boolean awaitTermination(final long millis, final TimeUnit unit) throws InterruptedException {
-        long deadlinenanos = System.nanoTime() + TimeUnit.NANOSECONDS.convert(millis, unit);
-        AtomicInteger threadCount = state.getThreadCount();
-        synchronized (state) {
-            while (threadCount.get() > 0) {
-                final long timeoutNs = deadlinenanos - System.nanoTime();
-                final long timeoutMs = TimeUnit.MILLISECONDS.convert(timeoutNs, TimeUnit.NANOSECONDS);
-                if (timeoutMs > 0) {
-                    state.wait(timeoutMs);
-                } else {
-                    break;
-                }
-            }
-        }
-        return threadCount.get() == 0;
+    public int getQueueSizeLimit() {
+        return queueSizeLimit;
     }
 
     private static final Runnable VOID = new Runnable() {
@@ -249,7 +263,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
         private final UnitQueuePU<Runnable> toRun;
 
-        private final ExecState state;
+        private final PoolState state;
 
         private volatile boolean running;
 
@@ -259,10 +273,9 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
         private final ReentrantLock submitMonitor;
 
-
         public QueuedThread(final String nameBase, final Deque<QueuedThread> threadQueue,
                 final Queue<Runnable> taskQueue, final int maxIdleTimeMillis,
-                final Runnable runFirst, final ExecState state, final ReentrantLock submitMonitor) {
+                final Runnable runFirst, final PoolState state, final ReentrantLock submitMonitor) {
             super(nameBase + COUNT.getAndIncrement());
             this.threadQueue = threadQueue;
             this.taskQueue = taskQueue;
@@ -276,9 +289,9 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
             this.toRun = new UnitQueuePU<>(this);
         }
 
-
         /**
          * will return false when this thread is not running anymore...
+         *
          * @param runnable
          * @return
          */
@@ -410,7 +423,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         public void run(final Runnable runnable) {
             try {
                 runnable.run();
-            }  finally {
+            } finally {
                 lastRunNanos = System.nanoTime();
             }
         }
@@ -424,7 +437,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
     }
 
-    private static final class ExecState {
+    private static final class PoolState {
 
         private boolean shutdown;
 
@@ -436,7 +449,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
         private final Set<QueuedThread> allThreads;
 
-        public ExecState(final int thnr, final int spinlockCount, final Set<QueuedThread> allThreads) {
+        public PoolState(final int thnr, final int spinlockCount, final Set<QueuedThread> allThreads) {
             this.shutdown = false;
             this.coreThreads = thnr;
             this.threadCount = new AtomicInteger(thnr);
@@ -494,19 +507,40 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                     + threadCount + ", spinlockCount=" + spinlockCount + '}';
         }
 
-
-
     }
 
     @Override
     public String toString() {
         return "LifoThreadPoolExecutorSQP{" + "threadQueue=" + threadQueue + ", maxIdleTimeMillis="
                 + maxIdleTimeMillis + ", maxThreadCount=" + maxThreadCount + ", state=" + state
-                + ", submitMonitor=" + submitMonitor + ", queueCapacity=" + queueCapacity
+                + ", submitMonitor=" + stateLock + ", queueCapacity=" + queueSizeLimit
                 + ", poolName=" + poolName + '}';
     }
 
+    public Queue<Runnable> getTaskQueue() {
+        return taskQueue;
+    }
 
+    @JmxExport
+    public int getMaxIdleTimeMillis() {
+        return maxIdleTimeMillis;
+    }
+
+    public String getPoolName() {
+        return poolName;
+    }
+
+    public interface RejectedExecutionHandler {
+        void rejectedExecution(Runnable r, LifoThreadPoolExecutorSQP executor);
+    }
+
+    public static final RejectedExecutionHandler REJECT_EXCEPTION_EXEC_HANDLER = new RejectedExecutionHandler() {
+
+        @Override
+        public void rejectedExecution(final Runnable r, final LifoThreadPoolExecutorSQP executor) {
+            throw new RejectedExecutionException();
+        }
+    };
 
 
 }
