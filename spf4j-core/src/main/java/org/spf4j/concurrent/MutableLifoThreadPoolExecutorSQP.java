@@ -22,7 +22,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.List;
@@ -33,6 +32,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.CheckReturnValue;
+import org.spf4j.ds.LinkedHashSetEx;
+import org.spf4j.ds.LinkedSet;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 
@@ -56,9 +57,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
     private final Queue<Runnable> taskQueue;
 
-    private final Deque<QueuedThread> threadQueue;
-
-    private volatile int maxIdleTimeMillis;
+    private final LinkedSet<QueuedThread> threadQueue;
 
     private volatile int maxThreadCount;
 
@@ -94,15 +93,15 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
             final int queueSizeLimit, final int spinLockCount, final RejectedExecutionHandler rejectionHandler) {
         this.rejectionHandler = rejectionHandler;
         this.poolName = poolName;
-        this.maxIdleTimeMillis = maxIdleTimeMillis;
         this.taskQueue = taskQueue;
         this.queueSizeLimit = queueSizeLimit;
-        this.threadQueue = new ArrayDeque<>(maxSize);
-        state = new PoolState(coreSize, spinLockCount, new HashSet<QueuedThread>(Math.min(maxSize, 2048)));
+        this.threadQueue = new LinkedHashSetEx<>(maxSize);
+        state = new PoolState(coreSize, spinLockCount, new HashSet<QueuedThread>(Math.min(maxSize, 2048)),
+                                maxIdleTimeMillis);
         this.stateLock = new ReentrantLock(false);
         for (int i = 0; i < coreSize; i++) {
             QueuedThread qt = new QueuedThread(poolName, threadQueue,
-                    taskQueue, maxIdleTimeMillis, null, state, stateLock);
+                    taskQueue, null, state, stateLock);
             state.addThread(qt);
             qt.start();
         }
@@ -124,7 +123,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
         stateLock.lock();
         try {
             do {
-                QueuedThread nqt = threadQueue.pollLast();
+                QueuedThread nqt = threadQueue.pollLastValue();
                 if (nqt != null) {
                     stateLock.unlock();
                     if (nqt.runNext(command)) {
@@ -143,7 +142,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
                 //CHECKSTYLE:ON
                 if (threadCount.compareAndSet(tc, tc + 1)) {
                     stateLock.unlock();
-                    QueuedThread qt = new QueuedThread(poolName, threadQueue, taskQueue, maxIdleTimeMillis, command,
+                    QueuedThread qt = new QueuedThread(poolName, threadQueue, taskQueue, command,
                             state, stateLock);
                     state.addThread(qt);
                     qt.start();
@@ -176,7 +175,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
             if (!state.isShutdown()) {
                 state.setShutdown(true);
                 QueuedThread th;
-                while ((th = threadQueue.poll()) != null) {
+                while ((th = threadQueue.pollLastValue()) != null) {
                     th.signal();
                 }
             }
@@ -290,11 +289,9 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
         private static final AtomicInteger COUNT = new AtomicInteger();
 
-        private final Deque<QueuedThread> threadQueue;
+        private final LinkedSet<QueuedThread> threadQueue;
 
         private final Queue<Runnable> taskQueue;
-
-        private final int maxIdleTimeMillis;
 
         private Runnable runFirst;
 
@@ -310,13 +307,12 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
         private final ReentrantLock submitMonitor;
 
-        public QueuedThread(final String nameBase, final Deque<QueuedThread> threadQueue,
-                final Queue<Runnable> taskQueue, final int maxIdleTimeMillis,
+        public QueuedThread(final String nameBase, final LinkedSet<QueuedThread> threadQueue,
+                final Queue<Runnable> taskQueue,
                 final Runnable runFirst, final PoolState state, final ReentrantLock submitMonitor) {
             super(nameBase + COUNT.getAndIncrement());
             this.threadQueue = threadQueue;
             this.taskQueue = taskQueue;
-            this.maxIdleTimeMillis = maxIdleTimeMillis;
             this.runFirst = runFirst;
             this.state = state;
             this.running = false;
@@ -392,7 +388,6 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
         @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "MDM_LOCK_ISLOCKED", "UL_UNRELEASED_LOCK_EXCEPTION_PATH" })
         public void doRun() {
             running = true;
-            long maxIdleNanos = TimeUnit.NANOSECONDS.convert(maxIdleTimeMillis, TimeUnit.MILLISECONDS);
             try {
                 if (runFirst != null) {
                     try {
@@ -410,26 +405,28 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
                             running = false;
                             break;
                         }
-                        threadQueue.addLast(this);
+                        threadQueue.add(this);
                         submitMonitor.unlock();
                         while (true) {
                             Runnable runnable;
                             try {
-                                runnable = toRun.poll(maxIdleNanos - (System.nanoTime() - lastRunNanos),
-                                        state.spinlockCount);
+                                final long wTime = state.getMaxIdleTimeNanos() - (System.nanoTime() - lastRunNanos);
+                                if (wTime > 0) {
+                                    runnable = toRun.poll(wTime, state.spinlockCount);
+                                } else {
+                                    running = false;
+                                    removeThreadFromQueue();
+                                    break;
+                                }
                             } catch (InterruptedException ex) {
                                 interrupt();
                                 running = false;
+                                removeThreadFromQueue();
                                 break;
                             }
                             if (runnable != null) {
                                 run(runnable);
                                 break;
-                            } else {
-                                if ((System.nanoTime() - lastRunNanos) > maxIdleNanos) {
-                                    running = false;
-                                    break;
-                                }
                             }
                         }
                     } else {
@@ -457,6 +454,16 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
         }
 
+        @SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
+        public void removeThreadFromQueue() {
+            submitMonitor.lock();
+            try {
+                threadQueue.remove(this);
+            } finally {
+                submitMonitor.unlock();
+            }
+        }
+
         public void run(final Runnable runnable) {
             try {
                 runnable.run();
@@ -476,6 +483,10 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
     private static final class PoolState {
 
+        private volatile int maxIdleTimeMillis;
+
+        private volatile long maxIdleTimeNanos;
+
         private boolean shutdown;
 
         private final AtomicInteger threadCount;
@@ -486,13 +497,31 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
         private final Set<QueuedThread> allThreads;
 
-        public PoolState(final int thnr, final int spinlockCount, final Set<QueuedThread> allThreads) {
+        public PoolState(final int thnr, final int spinlockCount,
+                final Set<QueuedThread> allThreads, final int maxIdleTimeMillis) {
             this.shutdown = false;
             this.coreThreads = thnr;
             this.threadCount = new AtomicInteger(thnr);
             this.spinlockCount = spinlockCount;
             this.allThreads = allThreads;
+            this.maxIdleTimeMillis = maxIdleTimeMillis;
+            this.maxIdleTimeNanos = TimeUnit.NANOSECONDS.convert(maxIdleTimeMillis, TimeUnit.MILLISECONDS);
         }
+
+        public int getMaxIdleTimeMillis() {
+            return maxIdleTimeMillis;
+        }
+
+        public long getMaxIdleTimeNanos() {
+            return maxIdleTimeNanos;
+        }
+
+        public void setMaxIdleTimeMillis(final int maxIdleTimeMillis) {
+            this.maxIdleTimeMillis = maxIdleTimeMillis;
+            this.maxIdleTimeNanos = TimeUnit.NANOSECONDS.convert(maxIdleTimeMillis, TimeUnit.MILLISECONDS);
+        }
+
+
 
         public void addThread(final QueuedThread thread) {
             synchronized (allThreads) {
@@ -548,8 +577,8 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
     @Override
     public String toString() {
-        return "LifoThreadPoolExecutorSQP{" + "threadQueue=" + threadQueue + ", maxIdleTimeMillis="
-                + maxIdleTimeMillis + ", maxThreadCount=" + maxThreadCount + ", state=" + state
+        return "LifoThreadPoolExecutorSQP{" + "threadQueue=" + threadQueue
+                + ", maxThreadCount=" + maxThreadCount + ", state=" + state
                 + ", submitMonitor=" + stateLock + ", queueCapacity=" + queueSizeLimit
                 + ", poolName=" + poolName + '}';
     }
@@ -560,13 +589,13 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
     @JmxExport
     public int getMaxIdleTimeMillis() {
-        return maxIdleTimeMillis;
+        return state.getMaxIdleTimeMillis();
     }
 
 
     @JmxExport
     public void setMaxIdleTimeMillis(final int maxIdleTimeMillis) {
-        this.maxIdleTimeMillis = maxIdleTimeMillis;
+        this.state.setMaxIdleTimeMillis(maxIdleTimeMillis);
     }
 
     public String getPoolName() {

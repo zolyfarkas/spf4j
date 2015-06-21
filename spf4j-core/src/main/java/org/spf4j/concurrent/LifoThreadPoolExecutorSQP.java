@@ -22,7 +22,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.List;
@@ -33,6 +32,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.CheckReturnValue;
+import org.spf4j.ds.LinkedHashSetEx;
+import org.spf4j.ds.LinkedSet;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 
@@ -54,7 +55,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
     private final Queue<Runnable> taskQueue;
 
-    private final Deque<QueuedThread> threadQueue;
+    private final LinkedSet<QueuedThread> threadQueue;
 
     private final int maxIdleTimeMillis;
 
@@ -95,7 +96,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         this.maxIdleTimeMillis = maxIdleTimeMillis;
         this.taskQueue = taskQueue;
         this.queueSizeLimit = queueSizeLimit;
-        this.threadQueue = new ArrayDeque<>(maxSize);
+        this.threadQueue = new LinkedHashSetEx<>(maxSize);
         state = new PoolState(coreSize, spinLockCount, new HashSet<QueuedThread>(Math.min(maxSize, 2048)));
         this.stateLock = new ReentrantLock(false);
         for (int i = 0; i < coreSize; i++) {
@@ -122,7 +123,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         stateLock.lock();
         try {
             do {
-                QueuedThread nqt = threadQueue.pollLast();
+                QueuedThread nqt = threadQueue.pollLastValue();
                 if (nqt != null) {
                     stateLock.unlock();
                     if (nqt.runNext(command)) {
@@ -173,7 +174,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
             if (!state.isShutdown()) {
                 state.setShutdown(true);
                 QueuedThread th;
-                while ((th = threadQueue.poll()) != null) {
+                while ((th = threadQueue.pollLastValue()) != null) {
                     th.signal();
                 }
                 Registry.unregister(LifoThreadPoolExecutorSQP.class.getName(), poolName);
@@ -260,7 +261,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
         private static final AtomicInteger COUNT = new AtomicInteger();
 
-        private final Deque<QueuedThread> threadQueue;
+        private final LinkedSet<QueuedThread> threadQueue;
 
         private final Queue<Runnable> taskQueue;
 
@@ -280,7 +281,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
         private final ReentrantLock submitMonitor;
 
-        public QueuedThread(final String nameBase, final Deque<QueuedThread> threadQueue,
+        public QueuedThread(final String nameBase, final LinkedSet<QueuedThread> threadQueue,
                 final Queue<Runnable> taskQueue, final int maxIdleTimeMillis,
                 final Runnable runFirst, final PoolState state, final ReentrantLock submitMonitor) {
             super(nameBase + COUNT.getAndIncrement());
@@ -380,26 +381,28 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                             running = false;
                             break;
                         }
-                        threadQueue.addLast(this);
+                        threadQueue.add(this);
                         submitMonitor.unlock();
                         while (true) {
                             Runnable runnable;
                             try {
-                                runnable = toRun.poll(maxIdleNanos - (System.nanoTime() - lastRunNanos),
-                                        state.spinlockCount);
+                                final long wTime = maxIdleNanos - (System.nanoTime() - lastRunNanos);
+                                if (wTime > 0) {
+                                    runnable = toRun.poll(wTime, state.spinlockCount);
+                                }  else {
+                                    running = false;
+                                    removeThreadFromQueue();
+                                    break;
+                                }
                             } catch (InterruptedException ex) {
                                 interrupt();
                                 running = false;
+                                removeThreadFromQueue();
                                 break;
                             }
                             if (runnable != null) {
                                 run(runnable);
                                 break;
-                            } else {
-                                if ((System.nanoTime() - lastRunNanos) > maxIdleNanos) {
-                                    running = false;
-                                    break;
-                                }
                             }
                         }
                     } else {
@@ -425,6 +428,16 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                 }
             }
 
+        }
+
+        @SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
+        public void removeThreadFromQueue() {
+            submitMonitor.lock();
+            try {
+                threadQueue.remove(this);
+            } finally {
+                submitMonitor.unlock();
+            }
         }
 
         public void run(final Runnable runnable) {
