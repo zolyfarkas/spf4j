@@ -149,13 +149,16 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
                 }
             }
             if (taskQueue.size() >= queueSizeLimit) {
+                stateLock.unlock();
                 rejectionHandler.rejectedExecution(command, this);
             } else {
                 if (!taskQueue.offer(command)) {
+                    stateLock.unlock();
                     rejectionHandler.rejectedExecution(command, this);
+                } else {
+                    stateLock.unlock();
                 }
             }
-            stateLock.unlock();
         } catch (Throwable t) {
             if (stateLock.isHeldByCurrentThread()) {
                 stateLock.unlock();
@@ -220,7 +223,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
     @JmxExport
     public List<Runnable> shutdownNow() {
         shutdown();
-        state.interruptAll();
+        state.interruptAll(true);
         return new ArrayList<>(taskQueue);
     }
 
@@ -249,6 +252,10 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
     @JmxExport
     public void setMaxThreadCount(final int maxThreadCount) {
         this.maxThreadCount = maxThreadCount;
+    }
+
+    public ReentrantLock getStateLock() {
+        return stateLock;
     }
 
     @JmxExport
@@ -538,10 +545,11 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
             }
         }
 
-        public void interruptAll() {
+        public void interruptAll(final boolean setIsDaemon) {
             synchronized (allThreads) {
                 for (Thread thread : allThreads) {
                     thread.interrupt();
+                    thread.setDaemon(setIsDaemon);
                 }
             }
         }

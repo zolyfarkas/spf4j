@@ -149,13 +149,16 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                 }
             }
             if (taskQueue.size() >= queueSizeLimit) {
+                stateLock.unlock();
                 rejectionHandler.rejectedExecution(command, this);
             } else {
                 if (!taskQueue.offer(command)) {
+                    stateLock.unlock();
                     rejectionHandler.rejectedExecution(command, this);
+                } else {
+                    stateLock.unlock();
                 }
             }
-            stateLock.unlock();
         } catch (Throwable t) {
             if (stateLock.isHeldByCurrentThread()) {
                 stateLock.unlock();
@@ -204,7 +207,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
   @Override
     public List<Runnable> shutdownNow() {
         shutdown();
-        state.interruptAll();
+        state.interruptAll(true);
         return new ArrayList<>(taskQueue);
     }
 
@@ -228,6 +231,10 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     @JmxExport
     public int getMaxThreadCount() {
         return maxThreadCount;
+    }
+
+    public ReentrantLock getStateLock() {
+        return stateLock;
     }
 
     @JmxExport
@@ -492,10 +499,11 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
             }
         }
 
-        public void interruptAll() {
+        public void interruptAll(final boolean setIsDaemon) {
             synchronized (allThreads) {
                 for (Thread thread : allThreads) {
                     thread.interrupt();
+                    thread.setDaemon(setIsDaemon);
                 }
             }
         }
