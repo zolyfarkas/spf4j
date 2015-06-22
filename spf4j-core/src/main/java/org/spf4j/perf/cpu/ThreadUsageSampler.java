@@ -68,6 +68,32 @@ public final class ThreadUsageSampler {
         }
     }
 
+
+    @JmxExport
+    public static String getCurrentAliveThreadInfo() {
+        StringBuilder sb = new StringBuilder(1024);
+        Thread[] threads = FastStackCollector.getThreads();
+        StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(threads);
+        for (int i = 0; i < threads.length; i++) {
+            Thread t = threads[i];
+            if (t.isAlive()) {
+                sb.append(t.getName());
+                sb.append(", daemon =");
+                sb.append(t.isDaemon());
+                sb.append(',');
+                StackTraceElement [] straces = stackTraces[i];
+                if (straces != null && straces.length > 0) {
+                    sb.append(' ');
+                    sb.append(Arrays.toString(straces));
+                }
+                sb.append('\n');
+            }
+        }
+        return sb.toString();
+    }
+
+
+
     static {
         org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
             @Override
