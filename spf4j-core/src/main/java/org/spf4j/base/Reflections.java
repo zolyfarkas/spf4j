@@ -381,7 +381,7 @@ public final class Reflections {
         private final URL url;
         private final String version;
 
-        public PackageInfo(final URL url, final String version) {
+        public PackageInfo(@Nullable final URL url, @Nullable final String version) {
             this.url = url;
             this.version = version;
         }
@@ -432,6 +432,8 @@ public final class Reflections {
 
     }
 
+    private static final PackageInfo NONE = new PackageInfo(null, null);
+
     private static final LoadingCache<String, PackageInfo> CACHE = CacheBuilder.newBuilder()
             .weakKeys().weakValues().build(new CacheLoader<String, PackageInfo>() {
 
@@ -441,7 +443,7 @@ public final class Reflections {
                     try {
                         aClass = Class.forName(key);
                     } catch (ClassNotFoundException ex) {
-                        throw new RuntimeException(ex);
+                        return NONE;
                     }
 
                     URL jarSourceUrl = Reflections.getJarSourceUrl(aClass);
