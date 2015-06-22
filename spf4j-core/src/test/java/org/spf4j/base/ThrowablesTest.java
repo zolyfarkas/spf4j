@@ -29,7 +29,7 @@ import org.junit.Test;
  * @author zoly
  */
 public final class ThrowablesTest {
-    
+
     /**
      * Test of chain method, of class ExceptionChain.
      */
@@ -39,12 +39,12 @@ public final class ThrowablesTest {
         Throwable t = new RuntimeException("", new SocketTimeoutException("Boo timeout"));
         Throwable newRootCause = new TimeoutException("Booo");
         Throwable result = Throwables.chain(t, newRootCause);
-        result.printStackTrace();
+        System.out.println(Throwables.toString(result));
         Assert.assertEquals(newRootCause, com.google.common.base.Throwables.getRootCause(result));
         Assert.assertEquals(3, com.google.common.base.Throwables.getCausalChain(result).size());
-        
+
     }
-    
+
     @Test
     public void testChain2() {
         System.out.println("chain");
@@ -52,13 +52,13 @@ public final class ThrowablesTest {
                 new BatchUpdateException("Sql bla", "ORA-500", 500, new int[] {1, 2}, new RuntimeException("la la")));
         Throwable newRootCause = new TimeoutException("Booo");
         Throwable result = Throwables.chain(t, newRootCause);
-        result.printStackTrace();
+        System.out.println(Throwables.toString(result));
         Assert.assertArrayEquals(new int[] {1, 2}, ((BatchUpdateException) result.getCause()).getUpdateCounts());
         Assert.assertEquals(newRootCause, com.google.common.base.Throwables.getRootCause(result));
         Assert.assertEquals(4, com.google.common.base.Throwables.getCausalChain(result).size());
-        
+
     }
-    
+
     @Test
     public void testChain3() {
         Exception e = new RuntimeException();
@@ -67,7 +67,8 @@ public final class ThrowablesTest {
         }
         Throwable [] suppressed = Throwables.getSuppressed(e);
         Assert.assertEquals(10, suppressed.length);
-    
+        System.out.println(Throwables.toString(e));
+
     }
 
 }

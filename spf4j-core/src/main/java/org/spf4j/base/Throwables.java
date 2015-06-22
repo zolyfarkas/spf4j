@@ -19,18 +19,21 @@ package org.spf4j.base;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.Reflections.PackageInfo;
 
 /**
  * utility class for throwables.
@@ -46,13 +49,9 @@ public final class Throwables {
     private static final Logger LOG = LoggerFactory.getLogger(Throwables.class);
 
     private static final int MAX_THROWABLE_CHAIN
-            = Integer.parseInt(System.getProperty("throwables.max.chain", "200"));
+            = Integer.getInteger("throwables.max.chain", 200);
 
     private static final Field CAUSE_FIELD;
-
-    private static final Method ADD_SUPPRESSED;
-
-    private static final Method GET_SUPPRESSED;
 
     static {
         CAUSE_FIELD = AccessController.doPrivileged(new PrivilegedAction<Field>() {
@@ -68,47 +67,6 @@ public final class Throwables {
                 return causeField;
             }
         });
-
-        ADD_SUPPRESSED = AccessController.doPrivileged(new PrivilegedAction<Method>() {
-            @Override
-            public Method run() {
-                Method m;
-                try {
-                    m = Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class);
-                } catch (NoSuchMethodException ex) {
-                    LOG.info("Throwables do not support suppression", ex);
-                    m = null;
-                } catch (SecurityException ex) {
-                    throw new RuntimeException(ex);
-                }
-                if (m != null) {
-                    m.setAccessible(true);
-                }
-                return m;
-            }
-        });
-        if (ADD_SUPPRESSED != null) {
-            GET_SUPPRESSED = AccessController.doPrivileged(new PrivilegedAction<Method>() {
-                @Override
-                public Method run() {
-                    Method m;
-                    try {
-                        m = Throwable.class.getDeclaredMethod("getSuppressed");
-                    } catch (NoSuchMethodException ex) {
-                        LOG.info("Throwables do not support suppression", ex);
-                        m = null;
-                    } catch (SecurityException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                    if (m != null) {
-                        m.setAccessible(true);
-                    }
-                    return m;
-                }
-            });
-        } else {
-            GET_SUPPRESSED = null;
-        }
 
     }
 
@@ -171,7 +129,6 @@ public final class Throwables {
 
     }
 
-
     /**
      * Functionality equivalent for java 1.7 Throwable.addSuppressed.
      *
@@ -182,20 +139,16 @@ public final class Throwables {
      */
     @CheckReturnValue
     public static <T extends Throwable> T suppress(@Nonnull final T t, @Nonnull final Throwable suppressed) {
-        if (ADD_SUPPRESSED != null) {
+        if (org.spf4j.base.Runtime.JAVA_PLATFORM.ordinal() >= Runtime.Version.V1_7.ordinal()) {
+            T clone;
             try {
-                T clone;
-                try {
-                    clone = Objects.clone(t);
-                } catch (IOException ex) {
-                    clone = t;
-                    LOG.info("Unable to clone exception", t);
-                }
-                ADD_SUPPRESSED.invoke(clone, suppressed);
-                return clone;
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                throw new RuntimeException(ex);
+                clone = Objects.clone(t);
+            } catch (IOException ex) {
+                clone = t;
+                LOG.info("Unable to clone exception", t);
             }
+            clone.addSuppressed(suppressed);
+            return clone;
         } else {
             if (suppressed == null) {
                 throw new IllegalArgumentException("Cannot suppress null exception on " + t);
@@ -207,13 +160,9 @@ public final class Throwables {
         }
     }
 
-    public static Throwable [] getSuppressed(final Throwable t) {
-        if (GET_SUPPRESSED != null) {
-            try {
-                return (Throwable []) GET_SUPPRESSED.invoke(t);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                throw new RuntimeException(ex);
-            }
+    public static Throwable[] getSuppressed(final Throwable t) {
+        if (org.spf4j.base.Runtime.JAVA_PLATFORM.ordinal() >= Runtime.Version.V1_7.ordinal()) {
+            return t.getSuppressed();
         } else {
             List<Throwable> chain;
             try {
@@ -233,9 +182,158 @@ public final class Throwables {
                 }
                 prev = comp;
             }
-            return result.toArray(new Throwable [result.size()]);
+            return result.toArray(new Throwable[result.size()]);
         }
     }
 
+    public static void writeTo(final StackTraceElement element, final Appendable to, final Detail detail)
+            throws IOException {
+        to.append(element.getClassName());
+        to.append('.');
+        to.append(element.getMethodName());
+        final String fileName = element.getFileName();
+        final int lineNumber = element.getLineNumber();
+        if (element.isNativeMethod()) {
+            to.append("(Native Method)");
+        } else if (fileName != null && lineNumber >= 0) {
+            to.append('(').append(fileName).append(':')
+                    .append(Integer.toString(lineNumber)).append(')');
+        } else if (fileName != null) {
+            to.append('(').append(fileName).append(')');
+        } else {
+            to.append("(Unknown Source)");
+        }
+        if (detail == Detail.STANDARD) {
+            return;
+        }
+        PackageInfo pInfo = Reflections.getPackageInfo(element.getClassName());
+        if (pInfo.hasInfo()) {
+            URL jarSourceUrl = pInfo.getUrl();
+            String version = pInfo.getVersion();
+            to.append('[');
+            if (jarSourceUrl != null) {
+                if (detail == Detail.SHORT_PACKAGE) {
+                    String url = jarSourceUrl.toString();
+                    int lastIndexOf = url.lastIndexOf('/');
+                    to.append(url, lastIndexOf + 1, url.length());
+                } else {
+                    to.append(jarSourceUrl.toString());
+                }
+            } else {
+                to.append("na");
+            }
+            if (version != null) {
+                to.append(':');
+                to.append(version);
+            }
+            to.append(']');
+        }
+    }
+
+
+    public enum Detail {
+
+        STANDARD, SHORT_PACKAGE, LONG_PACKAGE
+    }
+
+    private static final Detail DEFAULT_DETAIL =
+            Detail.valueOf(System.getProperty("throwable.detail", "SHORT_PACKAGE"));
+
+    public static String toString(final Throwable t) {
+        return toString(t, DEFAULT_DETAIL);
+    }
+
+    public static String toString(final Throwable t, final Detail detail) {
+        StringBuilder sb = new StringBuilder(1024);
+        try {
+            writeTo(t, sb, detail);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        return sb.toString();
+    }
+
+    public static void writeTo(final Throwable t, final Appendable to, final Detail detail) throws IOException {
+
+        Set<Throwable> dejaVu = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
+        dejaVu.add(t);
+
+        // Print our stack trace
+        to.append(t.toString());
+        to.append('\n');
+        StackTraceElement[] trace = t.getStackTrace();
+
+        for (StackTraceElement traceElement : trace) {
+            to.append("\tat ");
+            writeTo(traceElement, to, detail);
+            to.append('\n');
+        }
+
+        // Print suppressed exceptions, if any
+        for (Throwable se : t.getSuppressed()) {
+            printEnclosedStackTrace(se, to, trace, SUPPRESSED_CAPTION, "\t", dejaVu, detail);
+        }
+
+        // Print cause, if any
+        Throwable ourCause = t.getCause();
+        if (ourCause != null) {
+            printEnclosedStackTrace(ourCause, to, trace, CAUSE_CAPTION, "", dejaVu, detail);
+        }
+
+    }
+
+    private static void printEnclosedStackTrace(final Throwable t, final Appendable s,
+            final StackTraceElement[] enclosingTrace,
+            final String caption,
+            final String prefix,
+            final Set<Throwable> dejaVu,
+            final Detail detail) throws IOException {
+        if (dejaVu.contains(t)) {
+            s.append("\t[CIRCULAR REFERENCE:").append(t.toString()).append(']');
+        } else {
+            dejaVu.add(t);
+            // Compute number of frames in common between this and enclosing trace
+            StackTraceElement[] trace = t.getStackTrace();
+            int m = trace.length - 1;
+            int n = enclosingTrace.length - 1;
+            while (m >= 0 && n >= 0 && trace[m].equals(enclosingTrace[n])) {
+                m--;
+                n--;
+            }
+            int framesInCommon = trace.length - 1 - m;
+
+            // Print our stack trace
+            s.append(prefix + caption + t);
+            for (int i = 0; i <= m; i++) {
+                s.append(prefix).append("\tat ");
+                writeTo(trace[i], s, detail);
+                s.append('\n');
+            }
+            if (framesInCommon != 0) {
+                s.append(prefix).append("\t... ").append(Integer.toString(framesInCommon)).append(" more");
+                s.append('\n');
+            }
+
+            // Print suppressed exceptions, if any
+            for (Throwable se : t.getSuppressed()) {
+                printEnclosedStackTrace(se, s, trace, SUPPRESSED_CAPTION, prefix + '\t', dejaVu, detail);
+            }
+
+            // Print cause, if any
+            Throwable ourCause = t.getCause();
+            if (ourCause != null) {
+                printEnclosedStackTrace(ourCause, s, trace, CAUSE_CAPTION, prefix, dejaVu, detail);
+            }
+        }
+    }
+
+    /**
+     * Caption for labeling suppressed exception stack traces
+     */
+    public static final String SUPPRESSED_CAPTION = "Suppressed: ";
+    /**
+     * Caption for labeling causative exception stack traces
+     */
+    public static final String CAUSE_CAPTION = "Caused by: ";
 
 }

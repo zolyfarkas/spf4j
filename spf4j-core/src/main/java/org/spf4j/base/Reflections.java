@@ -1,5 +1,6 @@
 package org.spf4j.base;
 
+import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -12,6 +13,7 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.security.AccessController;
+import java.security.CodeSource;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -352,7 +354,12 @@ public final class Reflections {
 
     @Nullable
     public static URL getJarSourceUrl(final Class<?> clasz) {
-        return clasz.getProtectionDomain().getCodeSource().getLocation();
+        final CodeSource codeSource = clasz.getProtectionDomain().getCodeSource();
+        if (codeSource == null) {
+            return null;
+        } else {
+            return codeSource.getLocation();
+        }
     }
 
     /**
@@ -368,5 +375,86 @@ public final class Reflections {
             return jis.getManifest();
         }
     }
+
+    public static final class PackageInfo {
+
+        private final URL url;
+        private final String version;
+
+        public PackageInfo(final URL url, final String version) {
+            this.url = url;
+            this.version = version;
+        }
+
+        @Nullable
+        public URL getUrl() {
+            return url;
+        }
+
+        @Nullable
+        public String getVersion() {
+            return version;
+        }
+
+        @Override
+        @SuppressFBWarnings("DMI_BLOCKING_METHODS_ON_URL")
+        public int hashCode() {
+            if (url != null) {
+                return url.hashCode();
+            } else {
+                return 0;
+            }
+        }
+
+        public boolean hasInfo() {
+            return url != null || version != null;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final PackageInfo other = (PackageInfo) obj;
+            if (!java.util.Objects.equals(this.url, other.url)) {
+                return false;
+            }
+            return java.util.Objects.equals(this.version, other.version);
+        }
+
+        @Override
+        public String toString() {
+            return "PackageInfo{" + "url=" + url + ", version=" + version + '}';
+        }
+
+    }
+
+    private static final LoadingCache<String, PackageInfo> CACHE = CacheBuilder.newBuilder()
+            .weakKeys().weakValues().build(new CacheLoader<String, PackageInfo>() {
+
+                @Override
+                public PackageInfo load(final String key) throws Exception {
+                    Class<?> aClass;
+                    try {
+                        aClass = Class.forName(key);
+                    } catch (ClassNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
+
+                    URL jarSourceUrl = Reflections.getJarSourceUrl(aClass);
+                    String version = aClass.getPackage().getImplementationVersion();
+                    return new PackageInfo(jarSourceUrl, version);
+                }
+            });
+
+    public static PackageInfo getPackageInfo(final String className) {
+        return CACHE.getUnchecked(className);
+    }
+
+
+
 
 }
