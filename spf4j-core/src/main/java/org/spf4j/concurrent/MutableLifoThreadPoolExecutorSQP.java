@@ -122,7 +122,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
                     + " lock is released on all paths, findbugs just cannot figure it out...")
     public void execute(final Runnable command) {
         if (state.isShutdown()) {
-            throw new UnsupportedOperationException("Executor is shutting down, rejecting" + command);
+            this.rejectionHandler.rejectedExecution(command, this);
         }
         stateLock.lock();
         try {
