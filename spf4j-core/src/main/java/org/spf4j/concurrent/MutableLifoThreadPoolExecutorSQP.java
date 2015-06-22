@@ -66,6 +66,8 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
     private volatile int queueSizeLimit;
 
+    private volatile boolean daemonThreads;
+
     private final String poolName;
 
     private final RejectedExecutionHandler rejectionHandler;
@@ -84,17 +86,19 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
             final int queueSizeLimit, final int spinLockCount) {
         this(poolName, coreSize, maxSize, maxIdleTimeMillis,
                 new ArrayDeque<Runnable>(Math.min(queueSizeLimit, LL_THRESHOLD)),
-                queueSizeLimit, spinLockCount, REJECT_EXCEPTION_EXEC_HANDLER);
+                queueSizeLimit, false, spinLockCount, REJECT_EXCEPTION_EXEC_HANDLER);
     }
 
     public MutableLifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
             final int maxSize, final int maxIdleTimeMillis, final Queue<Runnable> taskQueue,
-            final int queueSizeLimit, final int spinLockCount, final RejectedExecutionHandler rejectionHandler) {
+            final int queueSizeLimit, final boolean daemonThreads,
+            final int spinLockCount, final RejectedExecutionHandler rejectionHandler) {
         this.rejectionHandler = rejectionHandler;
         this.poolName = poolName;
         this.taskQueue = taskQueue;
         this.queueSizeLimit = queueSizeLimit;
         this.threadQueue = new ZArrayDequeue<>(maxSize);
+        this.daemonThreads = daemonThreads;
         state = new PoolState(coreSize, spinLockCount, new HashSet<QueuedThread>(Math.min(maxSize, 2048)),
                                 maxIdleTimeMillis);
         this.stateLock = new ReentrantLock(false);
@@ -102,6 +106,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
             QueuedThread qt = new QueuedThread(poolName, threadQueue,
                     taskQueue, null, state, stateLock);
             state.addThread(qt);
+            qt.setDaemon(daemonThreads);
             qt.start();
         }
         maxThreadCount = maxSize;
@@ -144,6 +149,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
                     QueuedThread qt = new QueuedThread(poolName, threadQueue, taskQueue, command,
                             state, stateLock);
                     state.addThread(qt);
+                    qt.setDaemon(daemonThreads);
                     qt.start();
                     return;
                 }
@@ -223,7 +229,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
     @JmxExport
     public List<Runnable> shutdownNow() {
         shutdown();
-        state.interruptAll(true);
+        state.interruptAll();
         return new ArrayList<>(taskQueue);
     }
 
@@ -253,6 +259,17 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
     public void setMaxThreadCount(final int maxThreadCount) {
         this.maxThreadCount = maxThreadCount;
     }
+
+    @JmxExport
+    public boolean isDaemonThreads() {
+        return daemonThreads;
+    }
+
+    @JmxExport
+    public void setDaemonThreads(final boolean daemonThreads) {
+        this.daemonThreads = daemonThreads;
+    }
+
 
     public ReentrantLock getStateLock() {
         return stateLock;
@@ -545,11 +562,10 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
             }
         }
 
-        public void interruptAll(final boolean setIsDaemon) {
+        public void interruptAll() {
             synchronized (allThreads) {
                 for (Thread thread : allThreads) {
                     thread.interrupt();
-                    thread.setDaemon(setIsDaemon);
                 }
             }
         }

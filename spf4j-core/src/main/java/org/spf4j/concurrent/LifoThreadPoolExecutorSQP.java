@@ -70,6 +70,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
     private final RejectedExecutionHandler rejectionHandler;
 
+    private final boolean daemonThreads;
+
 
     public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
             final int maxSize, final int maxIdleTimeMillis,
@@ -84,12 +86,13 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
             final int queueSizeLimit, final int spinLockCount) {
         this(poolName, coreSize, maxSize, maxIdleTimeMillis,
                 new ArrayDeque<Runnable>(Math.min(queueSizeLimit, LL_THRESHOLD)),
-                queueSizeLimit, spinLockCount, REJECT_EXCEPTION_EXEC_HANDLER);
+                queueSizeLimit, false, spinLockCount, REJECT_EXCEPTION_EXEC_HANDLER);
     }
 
     public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
             final int maxSize, final int maxIdleTimeMillis, final Queue<Runnable> taskQueue,
-            final int queueSizeLimit, final int spinLockCount, final RejectedExecutionHandler rejectionHandler) {
+            final int queueSizeLimit, final boolean daemonThreads,
+            final int spinLockCount, final RejectedExecutionHandler rejectionHandler) {
         this.rejectionHandler = rejectionHandler;
         this.poolName = poolName;
         this.maxIdleTimeMillis = maxIdleTimeMillis;
@@ -98,9 +101,11 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         this.threadQueue = new ZArrayDequeue<>(maxSize);
         state = new PoolState(coreSize, spinLockCount, new HashSet<QueuedThread>(Math.min(maxSize, 2048)));
         this.stateLock = new ReentrantLock(false);
+        this.daemonThreads = daemonThreads;
         for (int i = 0; i < coreSize; i++) {
             QueuedThread qt = new QueuedThread(poolName, threadQueue,
                     taskQueue, maxIdleTimeMillis, null, state, stateLock);
+            qt.setDaemon(daemonThreads);
             state.addThread(qt);
             qt.start();
         }
@@ -144,6 +149,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                     QueuedThread qt = new QueuedThread(poolName, threadQueue, taskQueue, maxIdleTimeMillis, command,
                             state, stateLock);
                     state.addThread(qt);
+                    qt.setDaemon(daemonThreads);
                     qt.start();
                     return;
                 }
@@ -207,7 +213,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
   @Override
     public List<Runnable> shutdownNow() {
         shutdown();
-        state.interruptAll(true);
+        state.interruptAll();
         return new ArrayList<>(taskQueue);
     }
 
@@ -215,6 +221,11 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     @JmxExport
     public boolean isShutdown() {
         return state.isShutdown();
+    }
+
+    @JmxExport
+    public boolean isDaemonThreads() {
+        return daemonThreads;
     }
 
     @Override
@@ -289,7 +300,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
         public QueuedThread(final String nameBase, final ZArrayDequeue<QueuedThread> threadQueue,
                 final Queue<Runnable> taskQueue, final int maxIdleTimeMillis,
-                final Runnable runFirst, final PoolState state, final ReentrantLock submitMonitor) {
+                final Runnable runFirst, final PoolState state,
+                final ReentrantLock submitMonitor) {
             super(nameBase + COUNT.getAndIncrement());
             this.threadQueue = threadQueue;
             this.taskQueue = taskQueue;
@@ -499,11 +511,10 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
             }
         }
 
-        public void interruptAll(final boolean setIsDaemon) {
+        public void interruptAll() {
             synchronized (allThreads) {
                 for (Thread thread : allThreads) {
                     thread.interrupt();
-                    thread.setDaemon(setIsDaemon);
                 }
             }
         }
