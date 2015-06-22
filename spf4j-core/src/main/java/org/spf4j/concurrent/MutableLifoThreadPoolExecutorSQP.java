@@ -32,8 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.CheckReturnValue;
-import org.spf4j.ds.LinkedHashSetEx;
-import org.spf4j.ds.LinkedSet;
+import org.spf4j.ds.ZArrayDequeue;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 
@@ -57,7 +56,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
     private final Queue<Runnable> taskQueue;
 
-    private final LinkedSet<QueuedThread> threadQueue;
+    private final ZArrayDequeue<QueuedThread> threadQueue;
 
     private volatile int maxThreadCount;
 
@@ -95,7 +94,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
         this.poolName = poolName;
         this.taskQueue = taskQueue;
         this.queueSizeLimit = queueSizeLimit;
-        this.threadQueue = new LinkedHashSetEx<>(maxSize);
+        this.threadQueue = new ZArrayDequeue<>(maxSize);
         state = new PoolState(coreSize, spinLockCount, new HashSet<QueuedThread>(Math.min(maxSize, 2048)),
                                 maxIdleTimeMillis);
         this.stateLock = new ReentrantLock(false);
@@ -123,7 +122,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
         stateLock.lock();
         try {
             do {
-                QueuedThread nqt = threadQueue.pollLastValue();
+                QueuedThread nqt = threadQueue.pollLast();
                 if (nqt != null) {
                     stateLock.unlock();
                     if (nqt.runNext(command)) {
@@ -175,7 +174,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
             if (!state.isShutdown()) {
                 state.setShutdown(true);
                 QueuedThread th;
-                while ((th = threadQueue.pollLastValue()) != null) {
+                while ((th = threadQueue.pollLast()) != null) {
                     th.signal();
                 }
             }
@@ -289,7 +288,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
         private static final AtomicInteger COUNT = new AtomicInteger();
 
-        private final LinkedSet<QueuedThread> threadQueue;
+        private final ZArrayDequeue<QueuedThread> threadQueue;
 
         private final Queue<Runnable> taskQueue;
 
@@ -307,7 +306,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
         private final ReentrantLock submitMonitor;
 
-        public QueuedThread(final String nameBase, final LinkedSet<QueuedThread> threadQueue,
+        public QueuedThread(final String nameBase, final ZArrayDequeue<QueuedThread> threadQueue,
                 final Queue<Runnable> taskQueue,
                 final Runnable runFirst, final PoolState state, final ReentrantLock submitMonitor) {
             super(nameBase + COUNT.getAndIncrement());
@@ -405,7 +404,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
                             running = false;
                             break;
                         }
-                        threadQueue.add(this);
+                        int ptr = threadQueue.addLastAndGetPtr(this);
                         submitMonitor.unlock();
                         while (true) {
                             Runnable runnable;
@@ -415,13 +414,13 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
                                     runnable = toRun.poll(wTime, state.spinlockCount);
                                 } else {
                                     running = false;
-                                    removeThreadFromQueue();
+                                    removeThreadFromQueue(ptr);
                                     break;
                                 }
                             } catch (InterruptedException ex) {
                                 interrupt();
                                 running = false;
-                                removeThreadFromQueue();
+                                removeThreadFromQueue(ptr);
                                 break;
                             }
                             if (runnable != null) {
@@ -455,10 +454,10 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
         }
 
         @SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
-        public void removeThreadFromQueue() {
+        public void removeThreadFromQueue(final int ptr) {
             submitMonitor.lock();
             try {
-                threadQueue.remove(this);
+                threadQueue.delete(ptr, this);
             } finally {
                 submitMonitor.unlock();
             }

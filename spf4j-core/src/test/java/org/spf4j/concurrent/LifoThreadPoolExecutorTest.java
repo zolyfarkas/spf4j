@@ -40,7 +40,7 @@ public class LifoThreadPoolExecutorTest {
     @Test
     public void testLifoExecSQ() throws InterruptedException, IOException {
         LifoThreadPoolExecutorSQP executor =
-                new LifoThreadPoolExecutorSQP("test", 2, 8, 60000, 1024, 1024);
+                new LifoThreadPoolExecutorSQP("test", 8, 8, 60000, 1024, 1024);
         testPool(executor);
     }
 
