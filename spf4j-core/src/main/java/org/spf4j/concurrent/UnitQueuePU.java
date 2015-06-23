@@ -18,6 +18,7 @@
  */
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
@@ -53,6 +54,7 @@ public final class UnitQueuePU<T> {
 
     private static final Semaphore SPIN_LIMIT = new Semaphore(org.spf4j.base.Runtime.NR_PROCESSORS - SPIN_LIMITER);
 
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public T poll(final long timeoutNanos, final long spinCount) throws InterruptedException {
         T result = poll();
         if (result != null) {
@@ -64,11 +66,12 @@ public final class UnitQueuePU<T> {
                 try {
                     int i = 0;
                     while (i < spinCount) {
-                        if (i % 4 == 0) {
-                            result = poll();
-                            if (result != null) {
-                                return result;
-                            }
+                        result = poll();
+                        if (result != null) {
+                            return result;
+                        }
+                        if (Thread.interrupted()) {
+                            throw new InterruptedException();
                         }
                         i++;
                     }
@@ -85,6 +88,9 @@ public final class UnitQueuePU<T> {
                         return null;
                     }
                     LockSupport.parkNanos(to);
+                    if (Thread.interrupted()) {
+                        throw new InterruptedException();
+                    }
                 }
         return result;
     }

@@ -54,16 +54,13 @@ public final class UnitQueueP<T> {
             if (tryAcquire) {
                 try {
                     int i = 0;
-                    int j = 64;
                     while (i < spinCount) {
-                        if (i % j == 0) {
-                            result = poll();
-                            if (result != null) {
-                                return result;
-                            }
-                            if (j > 4) {
-                                j = j / 2;
-                            }
+                        result = poll();
+                        if (result != null) {
+                            return result;
+                        }
+                        if (Thread.interrupted()) {
+                            throw new InterruptedException();
                         }
                         i++;
                     }
