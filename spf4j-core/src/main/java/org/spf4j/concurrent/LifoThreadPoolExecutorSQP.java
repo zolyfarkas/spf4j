@@ -76,6 +76,11 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     private final boolean daemonThreads;
 
 
+    public LifoThreadPoolExecutorSQP(final int maxNrThreads, final String name) {
+        this(name, 0, maxNrThreads, 5000, 0);
+    }
+
+
     public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
             final int maxSize, final int maxIdleTimeMillis,
             final int queueSize) {
