@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.concurrent.GuardedBy;
 import org.spf4j.ds.ZArrayDequeue;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
@@ -52,8 +53,10 @@ import org.spf4j.jmx.Registry;
  */
 public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
+    @GuardedBy("stateLock")
     private final Queue<Runnable> taskQueue;
 
+    @GuardedBy("stateLock")
     private final ZArrayDequeue<QueuedThread> threadQueue;
 
     private final int maxIdleTimeMillis;
@@ -122,16 +125,17 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                     + " lock is released on all paths, findbugs just cannot figure it out...")
     public void execute(final Runnable command) {
         if (state.isShutdown()) {
+            // if shutting down, reject
             this.rejectionHandler.rejectedExecution(command, this);
         }
         stateLock.lock();
         try {
-            do {
+            do { // See if we have Threads available to run the task and do so if any
                 QueuedThread nqt = threadQueue.pollLast();
                 if (nqt != null) {
                     stateLock.unlock();
                     if (nqt.runNext(command)) {
-                        return;
+                        return; // job successfully submitted
                     } else {
                         stateLock.lock();
                     }
@@ -139,6 +143,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                     break;
                 }
             } while (true);
+            // was not able to submit to an existing available thread, will attempt to create a new thread.
             AtomicInteger threadCount = state.getThreadCount();
             int tc;
             //CHECKSTYLE:OFF
@@ -154,6 +159,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                     return;
                 }
             }
+            // was not able to submit to an existing available thread, reached the maxThread limit.
+            // will attempt to queue the task, and reject if unable to
             if (taskQueue.size() >= queueSizeLimit) {
                 stateLock.unlock();
                 rejectionHandler.rejectedExecution(command, this);
@@ -180,11 +187,12 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         stateLock.lock();
         try {
             if (!state.isShutdown()) {
-                state.setShutdown(true);
+                state.setShutdown(true); // set the shutdown flag, to reject new submissions.
                 QueuedThread th;
                 while ((th = threadQueue.pollLast()) != null) {
-                    th.signal();
+                    th.signal(); // signal all waiting threads, so thay can start going down.
                 }
+                // disable JMX monitoring.
                 Registry.unregister(LifoThreadPoolExecutorSQP.class.getName(), poolName);
             }
         } finally {
@@ -196,7 +204,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     public boolean awaitTermination(final long millis, final TimeUnit unit) throws InterruptedException {
         long deadlinenanos = System.nanoTime() + TimeUnit.NANOSECONDS.convert(millis, unit);
         AtomicInteger threadCount = state.getThreadCount();
-        synchronized (state) {
+        synchronized (state) { // wait until all threads are down or timeout expires.
             while (threadCount.get() > 0) {
                 final long timeoutNs = deadlinenanos - System.nanoTime();
                 final long timeoutMs = TimeUnit.MILLISECONDS.convert(timeoutNs, TimeUnit.NANOSECONDS);
@@ -212,8 +220,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
   @Override
     public List<Runnable> shutdownNow() {
-        shutdown();
-        state.interruptAll();
+        shutdown(); // shutdown
+        state.interruptAll(); // interrupt all running threads.
         return new ArrayList<>(taskQueue);
     }
 

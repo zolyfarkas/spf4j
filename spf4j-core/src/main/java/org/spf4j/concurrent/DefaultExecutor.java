@@ -49,11 +49,19 @@ public final class DefaultExecutor {
         });
     }
 
-    public static final ExecutorService INSTANCE =
-            new ThreadPoolExecutor(Integer.getInteger("default.executor.coreThreads", 0), Integer.MAX_VALUE,
-            60L, TimeUnit.SECONDS,
-            new SynchronousQueue<Runnable>(),
-            new CustomThreadFactory("DefaultExecutor", false));
+    public static final ExecutorService INSTANCE;
+    static {
+        if ("spf4j".equalsIgnoreCase(System.getProperty("defaultExecutor.implementation", "jdk"))) {
+            INSTANCE = new LifoThreadPoolExecutorSQP("defaultExecutor",
+                    Integer.getInteger("defaultExecutor.coreThreads", 0), Integer.MAX_VALUE,
+                    Integer.getInteger("defaultExecutor.maxIdleMIllis", 60000), 0);
+        } else {
+            INSTANCE = new ThreadPoolExecutor(Integer.getInteger("defaultExecutor.coreThreads", 0), Integer.MAX_VALUE,
+                Integer.getInteger("defaultExecutor.maxIdleMIllis", 60000), TimeUnit.MILLISECONDS,
+                new SynchronousQueue<Runnable>(),
+                new CustomThreadFactory("DefaultExecutor", false));
+        }
+    }
 
     public static void shutdown() {
         INSTANCE.shutdown();
