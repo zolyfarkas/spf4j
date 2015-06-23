@@ -310,14 +310,26 @@ public final class Strings {
         if (len == 0) {
             return Arrays.EMPTY_BYTE_ARRAY;
         }
-        int en = (int) (len * (double) ce.maxBytesPerChar());
-        byte[] ba = Arrays.getBytesTmp(en);
+        byte[] ba = Arrays.getBytesTmp(getmaxNrBytes(ce, len));
+        int nrBytes = encode(ce, ca, off, len, ba);
+        return java.util.Arrays.copyOf(ba, nrBytes);
+    }
+
+    public static int getmaxNrBytes(final CharsetEncoder ce, final int nrChars) {
+        return (int) (nrChars * (double) ce.maxBytesPerChar());
+    }
+
+
+    public static int encode(final CharsetEncoder ce, final char[] ca, final int off, final int len,
+            final byte [] targetArray) {
+        if (len == 0) {
+            return 0;
+        }
         if (ce instanceof ArrayEncoder) {
-            int blen = ((ArrayEncoder) ce).encode(ca, off, len, ba);
-            return java.util.Arrays.copyOf(ba, blen);
+            return ((ArrayEncoder) ce).encode(ca, off, len, targetArray);
         } else {
             ce.reset();
-            ByteBuffer bb = ByteBuffer.wrap(ba);
+            ByteBuffer bb = ByteBuffer.wrap(targetArray);
             CharBuffer cb = CharBuffer.wrap(ca, off, len);
             try {
                 CoderResult cr = ce.encode(cb, bb, true);
@@ -331,7 +343,7 @@ public final class Strings {
             } catch (CharacterCodingException x) {
                 throw new Error(x);
             }
-            return java.util.Arrays.copyOf(ba, bb.position());
+            return bb.position();
         }
     }
 
