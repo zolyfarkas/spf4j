@@ -97,7 +97,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
         this.poolName = poolName;
         this.taskQueue = taskQueue;
         this.queueSizeLimit = queueSizeLimit;
-        this.threadQueue = new ZArrayDequeue<>(maxSize);
+        this.threadQueue = new ZArrayDequeue<>(Math.min(1024, maxSize));
         this.daemonThreads = daemonThreads;
         state = new PoolState(coreSize, spinLockCount, new HashSet<QueuedThread>(Math.min(maxSize, 2048)),
                                 maxIdleTimeMillis);

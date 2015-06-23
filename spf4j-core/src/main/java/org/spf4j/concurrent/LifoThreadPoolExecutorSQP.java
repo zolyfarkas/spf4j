@@ -124,7 +124,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         this.maxIdleTimeMillis = maxIdleTimeMillis;
         this.taskQueue = taskQueue;
         this.queueSizeLimit = queueSizeLimit;
-        this.threadQueue = new ZArrayDequeue<>(maxSize);
+        this.threadQueue = new ZArrayDequeue<>(Math.min(1024, maxSize));
         state = new PoolState(coreSize, spinLockCount, new HashSet<QueuedThread>(Math.min(maxSize, 2048)));
         this.stateLock = new ReentrantLock(false);
         this.daemonThreads = daemonThreads;
