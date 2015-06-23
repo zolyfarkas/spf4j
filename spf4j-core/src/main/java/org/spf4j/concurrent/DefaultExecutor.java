@@ -56,7 +56,8 @@ public final class DefaultExecutor {
         final boolean isDaemon = Boolean.getBoolean("defaultExecutor.daemon");
         if ("spf4j".equalsIgnoreCase(System.getProperty("defaultExecutor.implementation", "jdk"))) {
             INSTANCE = new LifoThreadPoolExecutorSQP("defaultExecutor", coreThreads,
-                    Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon);
+                    Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon, Integer.getInteger("defaultExecutor.spinlockCount",
+                            1024));
         } else {
             INSTANCE = new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,
                 new SynchronousQueue<Runnable>(), new CustomThreadFactory("DefaultExecutor", isDaemon));
