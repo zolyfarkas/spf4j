@@ -51,8 +51,8 @@ public final class DefaultScheduler {
     }
 
     public static final ScheduledExecutorService INSTANCE =
-            new ScheduledThreadPoolExecutor(Integer.getInteger("default.scheduler.coreThreads", 2),
-            new CustomThreadFactory("DefaultScheduler", false));
+            new ScheduledThreadPoolExecutor(Integer.getInteger("defaultScheduler.coreThreads", 2),
+            new CustomThreadFactory("DefaultScheduler", Boolean.getBoolean("defaultScheduler.daemon")));
 
 
     private static final long HOUR_MILLIS = 3600000;

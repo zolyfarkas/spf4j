@@ -82,6 +82,24 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         this(poolName, coreSize, maxSize, maxIdleTimeMillis, queueSize, 1024);
     }
 
+    public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
+            final int maxSize, final int maxIdleTimeMillis,
+            final int queueSize, final boolean daemonThreads, final int spinLockCount) {
+        this(poolName, coreSize, maxSize, maxIdleTimeMillis,
+                new ArrayDeque<Runnable>(Math.min(queueSize, LL_THRESHOLD)),
+                queueSize, daemonThreads, spinLockCount, REJECT_EXCEPTION_EXEC_HANDLER);
+    }
+
+
+    public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
+            final int maxSize, final int maxIdleTimeMillis,
+            final int queueSize, final boolean daemonThreads) {
+        this(poolName, coreSize, maxSize, maxIdleTimeMillis,
+                new ArrayDeque<Runnable>(Math.min(queueSize, LL_THRESHOLD)),
+                queueSize, daemonThreads, 1024, REJECT_EXCEPTION_EXEC_HANDLER);
+    }
+
+
     private static final int LL_THRESHOLD = Integer.getInteger("lifoTp.llQueueSizeThreshold", 64000);
 
     public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
