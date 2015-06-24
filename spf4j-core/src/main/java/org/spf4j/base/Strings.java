@@ -305,6 +305,14 @@ public final class Strings {
     };
 
 
+    public static CharsetEncoder getUTF8CharsetEncoder() {
+        return UTF8_ENCODER.get();
+    }
+
+    public static CharsetDecoder getUTF8CharsetDecoder() {
+        return UTF8_DECODER.get();
+    }
+
     @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
     public static byte[] encode(final CharsetEncoder ce, final char[] ca, final int off, final int len) {
         if (len == 0) {
