@@ -50,9 +50,10 @@ public final class UnitQueuePU<T> {
         }
     }
 
-    private static final int SPIN_LIMITER = Integer.getInteger("lifoTp.spinLimiter", 1);
+    private static final int SPIN_LIMITER = Integer.getInteger("lifoTp.maxSpinning",
+            org.spf4j.base.Runtime.NR_PROCESSORS / 2);
 
-    private static final Semaphore SPIN_LIMIT = new Semaphore(org.spf4j.base.Runtime.NR_PROCESSORS - SPIN_LIMITER);
+    private static final Semaphore SPIN_LIMIT = new Semaphore(SPIN_LIMITER);
 
     @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public T poll(final long timeoutNanos, final long spinCount) throws InterruptedException {
