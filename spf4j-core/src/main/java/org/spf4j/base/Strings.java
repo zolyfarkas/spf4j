@@ -497,6 +497,4 @@ public final class Strings {
             return false;
         }
     }
-
-
 }

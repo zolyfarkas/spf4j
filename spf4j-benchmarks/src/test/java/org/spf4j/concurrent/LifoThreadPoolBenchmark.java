@@ -6,7 +6,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import junit.framework.Assert;
-import org.openjdk.jmh.annotations.Benchmark;
+//import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
@@ -17,7 +17,7 @@ import org.openjdk.jmh.annotations.Threads;
 @Threads(value = 1)
 public class LifoThreadPoolBenchmark {
 
-    @Benchmark
+//    @Benchmark
     public void testLifoExec() throws InterruptedException {
         int nrProcs = org.spf4j.base.Runtime.NR_PROCESSORS;
         LifoThreadPoolExecutorSQP executor = new LifoThreadPoolExecutorSQP("benchmark", nrProcs / 4, nrProcs, 60000,
@@ -26,7 +26,7 @@ public class LifoThreadPoolBenchmark {
     }
 
 
-    @Benchmark
+//    @Benchmark
     public void testJdkExec() throws InterruptedException {
         int nrProcs = org.spf4j.base.Runtime.NR_PROCESSORS;
         ThreadPoolExecutor executor = new ThreadPoolExecutor(nrProcs / 4, nrProcs, 60000, TimeUnit.MILLISECONDS,

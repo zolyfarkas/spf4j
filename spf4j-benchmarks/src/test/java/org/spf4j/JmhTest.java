@@ -24,7 +24,7 @@ public final class JmhTest {
         final String destinationFolder = System.getProperty("jmh.stack.profiles",
                 org.spf4j.base.Runtime.USER_DIR);
         Options opt = new OptionsBuilder()
-                .include(".*")
+                .include(".*Base64.*")
                 .addProfiler(JmhProfiler.class)
                 .addProfiler(JmhFlightRecorderProfiler.class)
                 .jvmArgs("-XX:+UnlockCommercialFeatures", "-Djmh.stack.profiles=" + destinationFolder)
