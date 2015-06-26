@@ -2,7 +2,6 @@
 package org.spf4j.base;
 
 import javax.xml.bind.DatatypeConverter;
-import org.junit.Assert;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Scope;
@@ -19,32 +18,77 @@ import org.openjdk.jmh.annotations.Threads;
 public class Base64Benchmark {
 
 
-    public static byte [] generateTestArray(final int nrBytes) {
-        final IntMath.XorShift32 random = new IntMath.XorShift32();
-        byte [] result = new byte[nrBytes];
-        StringBuilder sb = new StringBuilder(nrBytes);
-        for (int i = 0; i < nrBytes; i++) {
-            result[i] = ((byte) Math.abs(random.nextInt() % 256));
+
+
+    private static final byte [] TEST_ARRAY = Strings.toUtf8("ajkfhskhfkdsjhfkshdkfgj"
+            + "$%^&IOJHBVCDSERT%TYUIO)(*&^%$#@!@#$%^&*()(*&^%$#WSDVBNJKIUYFEWERTYUI)(*"
+            + " XCVBNM<>LKJHG   POIY TRYYT OUPOJ^%$#WSedtfgh itrcsdxcsvko1poisuwcytr542"
+            + "gfdgykio9876redfghjkiugfrtghjkjhgtrghjiduygfghjk167890-vokcnsacghd&^%$h"
+            + "$%^&IOJHBVCDSERT%TYUIO)(*&^%$#@!@#$%^&*()(*&^%$#WSDVBNJKIUYFEWERTYUI)(*"
+            + " XCVBNM<>LKJHG   POIY TRYYT OUPOJ^%$#WSedtfgh itrcsdxcsvko1poisuwcytr542"
+            + "gfdgykio9876redfghjkiugfrtghjkjhgtrghjiduygfghjk167890-vokcnsacghd&^%$h"
+            + "$%^&IOJHBVCDSERT%TYUIO)(*&^%$#@!@#$%^&*()(*&^%$#WSDVBNJKIUYFEWERTYUI)(*"
+            + " XCVBNM<>LKJHG   POIY TRYYT OUPOJ^%$#WSedtfgh itrcsdxcsvko1poisuwcytr542"
+            + "gfdgykio9876redfghjkiugfrtghjkjhgtrghjiduygfghjk167890-vokcnsacghd&^%$h"
+            + "$%^&IOJHBVCDSERT%TYUIO)(*&^%$#@!@#$%^&*()(*&^%$#WSDVBNJKIUYFEWERTYUI)(*"
+            + " XCVBNM<>LKJHG   POIY TRYYT OUPOJ^%$#WSedtfgh itrcsdxcsvko1poisuwcytr542"
+            + "gfdgykio9876redfghjkiugfrtghjkjhgtrghjiduygfghjk167890-vokcnsacghd&^%$h"
+            + "$%^&IOJHBVCDSERT%TYUIO)(*&^%$#@!@#$%^&*()(*&^%$#WSDVBNJKIUYFEWERTYUI)(*"
+            + " XCVBNM<>LKJHG   POIY TRYYT OUPOJ^%$#WSedtfgh itrcsdxcsvko1poisuwcytr542"
+            + "gfdgykio9876redfghjkiugfrtghjkjhgtrghjiduygfghjk167890-vokcnsacghd&^%$h"
+            + "$%^&IOJHBVCDSERT%TYUIO)(*&^%$#@!@#$%^&*()(*&^%$#WSDVBNJKIUYFEWERTYUI)(*"
+            + " XCVBNM<>LKJHG   POIY TRYYT OUPOJ^%$#WSedtfgh itrcsdxcsvko1poisuwcytr542"
+            + "gfdgykio9876redfghjkiugfrtghjkjhgtrghjiduygfghjk167890-vokcnsacghd&^%$h"
+            + "$%^&IOJHBVCDSERT%TYUIO)(*&^%$#@!@#$%^&*()(*&^%$#WSDVBNJKIUYFEWERTYUI)(*"
+            + " XCVBNM<>LKJHG   POIY TRYYT OUPOJ^%$#WSedtfgh itrcsdxcsvko1poisuwcytr542"
+            + "gfdgykio9876redfghjkiugfrtghjkjhgtrghjiduygfghjk167890-vokcnsacghd&^%$h"
+            + "$%^&IOJHBVCDSERT%TYUIO)(*&^%$#@!@#$%^&*()(*&^%$#WSDVBNJKIUYFEWERTYUI)(*"
+            + " XCVBNM<>LKJHG   POIY TRYYT OUPOJ^%$#WSedtfgh itrcsdxcsvko1poisuwcytr542"
+            + "gfdgykio9876redfghjkiugfrtghjkjhgtrghjiduygfghjk167890-vokcnsacghd&^%$h"
+            + "$%^&IOJHBVCDSERT%TYUIO)(*&^%$#@!@#$%^&*()(*&^%$#WSDVBNJKIUYFEWERTYUI)(*"
+            + " XCVBNM<>LKJHG   POIY TRYYT OUPOJ^%$#WSedtfgh itrcsdxcsvko1poisuwcytr542"
+            + "gfdgykio9876redfghjkiugfrtghjkjhgtrghjiduygfghjk167890-vokcnsacghd&^%$h");
+
+
+    private static final byte [] TEST_ARRAY_LARGE;
+
+    static {
+        TEST_ARRAY_LARGE = new byte[TEST_ARRAY.length * 10];
+        int k = 0;
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < TEST_ARRAY.length; j++) {
+                TEST_ARRAY_LARGE[k++] = TEST_ARRAY[j];
+            }
         }
-        return result;
     }
 
-    private static final byte [] TEST_ARRAY = generateTestArray(2048);
-
     @Benchmark
-    public void testSpf4jBase64() {
+    public byte [] testSpf4jBase64() {
         String encodeBase64 = Base64.encodeBase64(TEST_ARRAY);
-        byte[] parseBase64 = Base64.decodeBase64(encodeBase64);
-        Assert.assertArrayEquals(TEST_ARRAY, parseBase64);
+        return Base64.decodeBase64(encodeBase64);
     }
 
 
     @Benchmark
-    public void testJdkBase64() {
+    public byte [] testJdkBase64() {
         String encodeBase64 = DatatypeConverter.printBase64Binary(TEST_ARRAY);
-        byte[] parseBase64 = DatatypeConverter.parseBase64Binary(encodeBase64);
-        Assert.assertArrayEquals(TEST_ARRAY, parseBase64);
+        return DatatypeConverter.parseBase64Binary(encodeBase64);
     }
+
+    @Benchmark
+    public byte [] testSpf4jBase64Large() {
+        String encodeBase64 = Base64.encodeBase64(TEST_ARRAY_LARGE);
+        return Base64.decodeBase64(encodeBase64);
+    }
+
+
+    @Benchmark
+    public byte [] testJdkBase64Large() {
+        String encodeBase64 = DatatypeConverter.printBase64Binary(TEST_ARRAY_LARGE);
+        return DatatypeConverter.parseBase64Binary(encodeBase64);
+    }
+
+
 
 
 }

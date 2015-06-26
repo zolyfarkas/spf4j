@@ -3,8 +3,8 @@ package org.spf4j.base;
 import java.io.IOException;
 
 /**
- * improved implementation based on DataTypeConverterImpl
- * should be about 6-7% faster than the JDK equivalent.
+ * "improved" implementation based on DataTypeConverterImpl
+ * performance should be same/slightly faster than the JDK equivalent
  * But most importantly you can encode/decode parts of a String, which should reduce the need
  * of copying objects and reduce the amount of garbage created.
  *
@@ -128,7 +128,11 @@ public final class Base64 {
         return Base64.decodeBase64(text, 0, text.length());
     }
 
-   public static byte[] decodeBase64(final String text, final int from, final int length) {
+    public static byte[] decodeBase64(final String text, final int from, final int length) {
+        return decodeBase64((CharSequence) text, from, length);
+    }
+
+    public static byte[] decodeBase64V2(final String text, final int from, final int length) {
         char[] steal = Strings.steal(text);
         return decodeBase64(steal, from, length);
     }
@@ -263,6 +267,19 @@ public final class Base64 {
     }
 
     public static String encodeBase64(final byte[] input, final int offset, final int len) {
+        char[] buf = Arrays.getCharsTmp((((len + 2) / 3) * 4));
+        int ptr = Base64.encodeBase64(input, offset, len, buf, 0);
+        return new String(buf, 0, ptr);
+    }
+
+    /**
+     * Alternate implementation, should be better for large data.
+     * @param input
+     * @param offset
+     * @param len
+     * @return
+     */
+    public static String encodeBase64V2(final byte[] input, final int offset, final int len) {
         char[] buf = new char [(((len + 2) / 3) * 4)];
         int ptr = Base64.encodeBase64(input, offset, len, buf, 0);
         assert ptr == buf.length;
