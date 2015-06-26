@@ -215,31 +215,51 @@ public final class Runtime {
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     public static final class Ulimit {
 
+        private static final File BASH = new File("/usr/bin/bash");
+
         private static final File ULIMIT = new File("/usr/bin/ulimit");
 
-        private static final String [] MFILES_CMD = new String [] {ULIMIT.getPath(), "-Sn" };
+
+        private static final String [] ULIMIT_CMD;
 
         public static final int MAX_NR_OPENFILES;
 
         static {
             int mfiles;
             if (ULIMIT.exists() && ULIMIT.canExecute()) {
-                try {
-                    String result = Runtime.run(MFILES_CMD, 10000);
-                    if (result.contains("unlimited")) {
-                        mfiles = Integer.MAX_VALUE;
-                    } else {
-                        mfiles = Integer.parseInt(result.trim());
-                    }
-                } catch (IOException | InterruptedException | ExecutionException ex) {
-                    Lazy.LOGGER.error("Error while running ulimit, assuming no limit", ex);
-                    mfiles = Integer.MAX_VALUE;
-                }
+                ULIMIT_CMD = new String[]{ULIMIT.getPath()};
+            } else if (BASH.exists() && BASH.canExecute()) {
+                ULIMIT_CMD = new String[]{BASH.getPath(), "-c", "ulimit"};
             } else {
-                Lazy.LOGGER.warn("No ulimit, assuming no limit");
+                ULIMIT_CMD = null;
+            }
+            if (ULIMIT_CMD == null) {
+                Lazy.LOGGER.warn("No ulimit available on {}, assuming no limit for nr open files",
+                        Runtime.OS_NAME);
                 mfiles = Integer.MAX_VALUE;
+            } else {
+                mfiles = runUlimit("-Sn");
             }
             MAX_NR_OPENFILES = mfiles;
+        }
+
+        public static int runUlimit(final String ... options) {
+            if (ULIMIT_CMD == null) {
+                throw new RuntimeException("Ulimit not available on " + Runtime.OS_NAME);
+            }
+            int mfiles;
+            try {
+                String result = Runtime.run(Arrays.concat(ULIMIT_CMD, options), 10000);
+                if (result.contains("unlimited")) {
+                    mfiles = Integer.MAX_VALUE;
+                } else {
+                    mfiles = Integer.parseInt(result.trim());
+                }
+            } catch (IOException | InterruptedException | ExecutionException ex) {
+                Lazy.LOGGER.error("Error while running ulimit, assuming no limit", ex);
+                mfiles = Integer.MAX_VALUE;
+            }
+            return mfiles;
         }
 
     }
