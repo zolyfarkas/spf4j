@@ -27,15 +27,6 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
             "defaultrecording=true,settings=profile");
 
 
-    /**
-     * Holds whether recording is supported (checking the existence of the needed unlocking flag)
-     */
-    private static final boolean IS_SUPPORTED;
-
-    static {
-        IS_SUPPORTED = ManagementFactory.getRuntimeMXBean().getInputArguments()
-                .contains("-XX:+UnlockCommercialFeatures");
-    }
 
     @Override
     public Collection<String> addJVMInvokeOptions(final BenchmarkParams params) {
@@ -73,6 +64,12 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
 
     @Override
     public void beforeTrial(final BenchmarkParams benchmarkParams) {
+        final List<String> inputArguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
+        if (!inputArguments
+                .contains("-XX:+UnlockCommercialFeatures")) {
+            throw new RuntimeException("-XX:+UnlockCommercialFeatures must pre present in the JVM options,"
+                    + " current options are: " + inputArguments);
+        }
     }
 
 
@@ -86,16 +83,6 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
         return false;
     }
 
-    @Override
-    public boolean checkSupport(final List<String> msgs) {
-        msgs.add("Commercial features of the JVM need to be enabled for this profiler.");
-        return IS_SUPPORTED;
-    }
-
-    @Override
-    public String label() {
-        return "jfr";
-    }
 
     @Override
     public String getDescription() {

@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import org.openjdk.jmh.infra.BenchmarkParams;
@@ -86,16 +85,6 @@ public final class JmhProfiler implements InternalProfiler {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
-    }
-
-    @Override
-    public boolean checkSupport(final List<String> msgs) {
-        return true;
-    }
-
-    @Override
-    public String label() {
-        return "spf4j";
     }
 
     @Override
