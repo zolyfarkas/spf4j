@@ -27,6 +27,7 @@ import java.util.Arrays;
 import javax.annotation.WillClose;
 
 import javax.annotation.concurrent.ThreadSafe;
+import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
@@ -89,7 +90,8 @@ public final class PipedOutputStream extends OutputStream {
                 while (!writerClosed &&  nrReadStreams > 0 && (availableToWrite = availableToWrite()) < 1) {
                     long timeToWait = deadline - System.currentTimeMillis();
                     if (timeToWait <= 0) {
-                        throw new IOException("Write timed out, deadline was: " + deadline);
+                        throw new IOException("Write timed out, deadline was: "
+                                + ISODateTimeFormat.basicDateTime().print(deadline));
                     }
                     try {
                         sync.wait(timeToWait);
@@ -130,7 +132,8 @@ public final class PipedOutputStream extends OutputStream {
                 try {
                     long timeToWait = deadline - System.currentTimeMillis();
                     if (timeToWait <= 0) {
-                        throw new IOException("Read timed out, deadline was: " + deadline);
+                        throw new IOException("Write timed out, deadline was: "
+                                + ISODateTimeFormat.basicDateTime().print(deadline));
                     }
                     sync.wait(timeToWait);
                 } catch (InterruptedException ex) {
@@ -225,7 +228,8 @@ public final class PipedOutputStream extends OutputStream {
                         while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
                             long timeToWait = deadline - System.currentTimeMillis();
                             if (timeToWait <= 0) {
-                                throw new IOException("Read timed out, deadline was: " + deadline);
+                                throw new IOException("Read timed out, deadline was: "
+                                        + ISODateTimeFormat.basicDateTime().print(deadline));
                             }
                             try {
                                 sync.wait(timeToWait);
@@ -262,7 +266,8 @@ public final class PipedOutputStream extends OutputStream {
                         while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
                             long timeToWait = deadline - System.currentTimeMillis();
                             if (timeToWait <= 0) {
-                                throw new IOException("Write timed out, deadline was: " + deadline);
+                                throw new IOException("Read timed out, deadline was: "
+                                        + ISODateTimeFormat.basicDateTime().print(deadline));
                             }
                             try {
                                 sync.wait(timeToWait);
