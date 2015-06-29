@@ -19,6 +19,7 @@ package org.spf4j.stackmonitor;
 
 import com.google.common.escape.Escaper;
 import com.google.common.html.HtmlEscapers;
+import gnu.trove.map.hash.THashMap;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.Writer;
@@ -133,7 +134,7 @@ public final class Method implements Serializable {
     }
 
 
-    private static final Map<String, Map<String, Method>> INSTANCE_REPO = new HashMap<>(1024);
+    private static final Map<String, Map<String, Method>> INSTANCE_REPO = new THashMap<>(1024);
 
 
     public static Method getMethod(final StackTraceElement elem) {
