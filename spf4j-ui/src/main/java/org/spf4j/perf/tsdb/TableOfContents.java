@@ -21,9 +21,10 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 /**
- *
+ * @deprecated please use org.spf4j.tsdb2
  * @author zoly
  */
+@Deprecated
 final class TableOfContents {
 
     private final long location;
@@ -39,14 +40,14 @@ final class TableOfContents {
     public TableOfContents(final RandomAccessFile raf) throws IOException {
         this(raf, raf.getFilePointer());
     }
-    
+
     public TableOfContents(final RandomAccessFile raf, final long location) throws IOException {
         this.location = location;
         raf.seek(location);
         this.firstTableInfo = raf.readLong();
         this.lastTableInfo = raf.readLong();
     }
-    
+
 
     public void writeTo(final RandomAccessFile raf) throws IOException {
         raf.seek(location);
@@ -78,7 +79,7 @@ final class TableOfContents {
     public long getLocation() {
         return location;
     }
-    
+
     @Override
     public String toString() {
         return "TableOfContents{" + "location=" + location + ", lastColumnInfo=" + lastTableInfo

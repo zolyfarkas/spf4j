@@ -28,9 +28,10 @@ import java.util.Map;
 import org.spf4j.io.ByteArrayBuilder;
 
 /**
- *
+ * @deprecated please use org.spf4j.tsdb2
  * @author zoly
  */
+@Deprecated
 public final class TSTable {
 
     private final long location;

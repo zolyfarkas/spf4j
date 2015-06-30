@@ -79,9 +79,11 @@ import static org.spf4j.perf.impl.chart.Charts.fillGaps;
  * TableInfo:
  * DataFragment:
  * EOF
- *
+ * 
+ * @deprecated please use org.spf4j.tsdb2
  * @author zoly
  */
+@Deprecated
 public final class TimeSeriesDatabase implements Closeable {
 
     public static final int VERSION = 1;

@@ -20,12 +20,19 @@ package org.spf4j.perf.tsdb;
 
 import org.spf4j.tsdb2.TimeSeries;
 
+/**
+ * @deprecated please use org.spf4j.tsdb2
+ * @author zoly
+ * @deprecated
+ */
+
+@Deprecated
 public interface TSDataHandler {
 
     void newTable(String tableName, String[] columnNames);
 
     void newData(String tableName, TimeSeries data);
-    
+
     boolean finish();
 
 }

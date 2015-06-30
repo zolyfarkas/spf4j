@@ -30,9 +30,10 @@ import java.util.List;
 import org.spf4j.io.ByteArrayBuilder;
 
 /**
- *
+ * @deprecated please use org.spf4j.tsdb2
  * @author zoly
  */
+@Deprecated
 final class DataFragment {
 
     private long location;

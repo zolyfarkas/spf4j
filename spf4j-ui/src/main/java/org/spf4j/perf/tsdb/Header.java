@@ -24,8 +24,10 @@ import java.io.RandomAccessFile;
 /**
  * TSDB header detail
  *
+ * @deprecated please use org.spf4j.tsdb2
  * @author zoly
  */
+@Deprecated
 final class Header {
 
     public static final String TYPE = "TSDB";
