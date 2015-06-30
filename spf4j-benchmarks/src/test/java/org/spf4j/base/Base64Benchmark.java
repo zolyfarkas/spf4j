@@ -1,6 +1,7 @@
 
 package org.spf4j.base;
 
+import com.google.common.io.BaseEncoding;
 import javax.xml.bind.DatatypeConverter;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
@@ -75,6 +76,15 @@ public class Base64Benchmark {
         return DatatypeConverter.parseBase64Binary(encodeBase64);
     }
 
+    private static final BaseEncoding G_BASE64 = BaseEncoding.base64();
+
+
+    @Benchmark
+    public byte [] testGuavaBase64() {
+        String encodeBase64 = G_BASE64.encode(TEST_ARRAY);
+        return G_BASE64.decode(encodeBase64);
+    }
+
     @Benchmark
     public byte [] testSpf4jBase64Large() {
         String encodeBase64 = Base64.encodeBase64(TEST_ARRAY_LARGE);
@@ -88,7 +98,11 @@ public class Base64Benchmark {
         return DatatypeConverter.parseBase64Binary(encodeBase64);
     }
 
-
+    @Benchmark
+    public byte [] testGuavaBase64Large() {
+       String encodeBase64 = G_BASE64.encode(TEST_ARRAY_LARGE);
+       return G_BASE64.decode(encodeBase64);
+    }
 
 
 }
