@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import junit.framework.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.spf4j.base.MutableHolder;
 import org.spf4j.concurrent.DefaultExecutor;
@@ -33,6 +34,7 @@ import org.spf4j.tsdb2.TimeSeries;
  *
  * @author zoly
  */
+@Ignore
 public final class TSDBTailerTest {
 
     private static final String FILE_NAME = System.getProperty("java.io.tmpdir") + "/testdb.tsdb";
