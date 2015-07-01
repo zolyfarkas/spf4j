@@ -9,7 +9,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.security.AccessController;
@@ -37,9 +36,6 @@ public final class Reflections {
 
     private static final Map<Class<?>, Class<?>> PRIMITIVE_MAP = new HashMap<>(8);
 
-    private static final Method GET_METHOD0;
-    private static final Method GET_CONSTRUCTOR0;
-
     static {
         PRIMITIVE_MAP.put(boolean.class, Boolean.class);
         PRIMITIVE_MAP.put(byte.class, Byte.class);
@@ -49,45 +45,6 @@ public final class Reflections {
         PRIMITIVE_MAP.put(long.class, Long.class);
         PRIMITIVE_MAP.put(float.class, Float.class);
         PRIMITIVE_MAP.put(double.class, Double.class);
-        GET_METHOD0 = AccessController.doPrivileged(new PrivilegedAction<Method>() {
-                @Override
-                public Method run() {
-                    Method method;
-                    try {
-                        //getMethod0(String name, Class<?>[] parameterTypes)
-                        method = Class.class.getDeclaredMethod("getMethod0", String.class, Class[].class);
-                    } catch (SecurityException ex) {
-                        throw new RuntimeException(ex);
-                    } catch (NoSuchMethodException ex) {
-                        LOG.warn("Class.getMethod0 optimization not available");
-                        method = null;
-                    }
-                    if (method != null) {
-                        method.setAccessible(true);
-                    }
-                    return method;
-                }
-            });
-        GET_CONSTRUCTOR0 = AccessController.doPrivileged(new PrivilegedAction<Method>() {
-                @Override
-                public Method run() {
-                    Method method;
-                    try {
-                        //getConstructor0(Class<?>[] parameterTypes, int which)
-                        method = Class.class.getDeclaredMethod("getConstructor0", Class[].class, int.class);
-                    } catch (SecurityException ex) {
-                        throw new RuntimeException(ex);
-                    } catch (NoSuchMethodException ex) {
-                        LOG.warn("Class.getConstructor0 optimization not available");
-                        method = null;
-                    }
-                    if (method != null) {
-                        method.setAccessible(true);
-                    }
-                    return method;
-                }
-            });
-
     }
 
 
@@ -122,22 +79,19 @@ public final class Reflections {
      * @return
      */
     @Nullable
+    @SuppressFBWarnings(value = "ES_COMPARING_STRINGS_WITH_EQ", justification = "comparing interned strings")
     public static Method getMethod(final Class<?> c,
             final String methodName,
             final Class<?>... paramTypes) {
-        if (GET_METHOD0 == null) {
-            try {
-                return c.getMethod(methodName, paramTypes);
-            } catch (NoSuchMethodException ex) {
-                return null;
-            }
-        } else {
-            try {
-                return (Method) GET_METHOD0.invoke(c, methodName, paramTypes);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                throw new RuntimeException(ex);
+
+        String internedName = methodName.intern();
+        for (Method m : c.getDeclaredMethods()) {
+            if (m.getName() == internedName
+                && Arrays.equals(paramTypes, m.getParameterTypes())) {
+                return m;
             }
         }
+        return null;
     }
 
     /**
@@ -146,19 +100,12 @@ public final class Reflections {
 
     @Nullable
     public static Constructor<?> getConstructor(final Class<?> c, final Class<?>... paramTypes) {
-        if (GET_CONSTRUCTOR0 == null) {
-            try {
-                return c.getConstructor(paramTypes);
-            } catch (NoSuchMethodException ex) {
-                return null;
-            }
-        } else {
-            try {
-                return (Constructor) GET_METHOD0.invoke(c, paramTypes, Member.PUBLIC);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                throw new RuntimeException(ex);
+        for (Constructor cons : c.getDeclaredConstructors()) {
+            if (Arrays.equals(cons.getParameterTypes(), paramTypes)) {
+                return cons;
             }
         }
+        return null;
     }
 
 

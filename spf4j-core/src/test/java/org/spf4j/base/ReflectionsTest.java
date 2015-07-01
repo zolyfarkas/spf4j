@@ -17,6 +17,7 @@
  */
 package org.spf4j.base;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import junit.framework.Assert;
 import org.junit.Test;
@@ -33,6 +34,17 @@ public final class ReflectionsTest {
         Method reflect = Reflections.getCompatibleMethod(String.class, "indexOf", params);
         Method fastM = Reflections.getCompatibleMethodCached(String.class, "indexOf", params);
         Assert.assertEquals(reflect, fastM);
+
+        Method method = Reflections.getMethod(String.class, "indexOf", int.class);
+        Assert.assertEquals("indexOf", method.getName());
+        method = Reflections.getMethod(String.class, "bla", char.class);
+        Assert.assertNull(method);
+
+        Constructor cons = Reflections.getConstructor(String.class, byte[].class);
+        Assert.assertNotNull(cons);
+        cons = Reflections.getConstructor(String.class, Pair.class);
+        Assert.assertNull(cons);
+
     }
 
 }
