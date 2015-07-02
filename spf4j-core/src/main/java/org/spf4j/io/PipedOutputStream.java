@@ -60,6 +60,7 @@ public final class PipedOutputStream extends OutputStream {
     private boolean writerClosed;
     private int nrReadStreams;
     private final SizedRecyclingSupplier<byte[]> bufferProvider;
+    private final Long globalDeadline;
 
     public PipedOutputStream() {
         this(8192);
@@ -69,8 +70,17 @@ public final class PipedOutputStream extends OutputStream {
         this(bufferSize, ArraySuppliers.Bytes.JAVA_NEW);
     }
 
+    public PipedOutputStream(final int bufferSize, final long globalDeadline) {
+        this(bufferSize, ArraySuppliers.Bytes.JAVA_NEW, globalDeadline);
+    }
+
     public PipedOutputStream(final int bufferSize,
             final SizedRecyclingSupplier<byte[]> bufferProvider) {
+        this(bufferSize, bufferProvider, null);
+    }
+
+    public PipedOutputStream(final int bufferSize,
+            final SizedRecyclingSupplier<byte[]> bufferProvider, final Long globalDeadline) {
         this.bufferProvider = bufferProvider;
         buffer = bufferProvider.get(bufferSize);
         startIdx = 0;
@@ -78,11 +88,24 @@ public final class PipedOutputStream extends OutputStream {
         readerPerceivedEndIdx = 0;
         writerClosed = false;
         nrReadStreams = 0;
+        this.globalDeadline = globalDeadline;
     }
 
     @Override
     public void write(final byte[] b, final int off, final int len) throws IOException {
-        long deadline = org.spf4j.base.Runtime.DEADLINE.get();
+        long deadline = getDeadline();
+        writeUntil(b, off, len, deadline);
+    }
+
+    public long getDeadline() {
+        if (globalDeadline == null) {
+            return org.spf4j.base.Runtime.DEADLINE.get();
+        } else {
+            return globalDeadline;
+        }
+    }
+
+    public void writeUntil(final byte[] b, final int off, final int len, final long deadline) throws IOException {
         int bytesWritten = 0;
         while (bytesWritten < len) {
             synchronized (sync) {
@@ -126,7 +149,11 @@ public final class PipedOutputStream extends OutputStream {
 
     @Override
     public void write(final int b) throws IOException {
-        long deadline = org.spf4j.base.Runtime.DEADLINE.get();
+        long deadline = getDeadline();
+        writeUntil(b, deadline);
+    }
+
+    public void writeUntil(final int b, final long deadline) throws IOException {
         synchronized (sync) {
             while (!writerClosed && nrReadStreams > 0 && availableToWrite() < 1) {
                 try {
@@ -222,7 +249,11 @@ public final class PipedOutputStream extends OutputStream {
 
                 @Override
                 public int read() throws IOException {
-                    long deadline = org.spf4j.base.Runtime.DEADLINE.get();
+                    long deadline = getDeadline();
+                    return readUntil(deadline);
+                }
+
+                public int readUntil(final long deadline) throws IOException {
                     synchronized (sync) {
                         int availableToRead = 0;
                         while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
@@ -243,7 +274,7 @@ public final class PipedOutputStream extends OutputStream {
                         }
                         if (availableToRead == 0) {
                             if (!writerClosed) {
-                                throw new IllegalStateException("Stream must be closed");
+                                throw new IllegalStateException("Stream must be closed " + PipedOutputStream.this);
                             }
                             return -1;
                         }
@@ -259,7 +290,12 @@ public final class PipedOutputStream extends OutputStream {
 
                 @Override
                 public int read(final byte[] b, final int off, final int len) throws IOException {
-                    long deadline = org.spf4j.base.Runtime.DEADLINE.get();
+                    long deadline = getDeadline();
+                    return readUntil(len, b, off, deadline);
+                }
+
+                public int readUntil(final int len, final byte[] b, final int off, final long deadline)
+                        throws IOException {
                     int bytesWritten = 0;
                     synchronized (sync) {
                         int availableToRead = 0;
@@ -280,7 +316,7 @@ public final class PipedOutputStream extends OutputStream {
                         }
                         if (availableToRead == 0) {
                             if (!writerClosed) {
-                                throw new IllegalStateException("Stream should  be closed, " + PipedOutputStream.this);
+                                throw new IllegalStateException("Stream should be closed, " + PipedOutputStream.this);
                             }
                             return -1;
                         }
