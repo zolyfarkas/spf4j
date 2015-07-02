@@ -109,8 +109,8 @@ public final class PipedOutputStream extends OutputStream {
         int bytesWritten = 0;
         while (bytesWritten < len) {
             synchronized (sync) {
-                int availableToWrite = 0;
-                while (!writerClosed &&  nrReadStreams > 0 && (availableToWrite = availableToWrite()) < 1) {
+                int a2w = 0;
+                while (!writerClosed &&  nrReadStreams > 0 && (a2w = availableToWrite()) < 1) {
                     long timeToWait = deadline - System.currentTimeMillis();
                     if (timeToWait <= 0) {
                         throw new IOException("Write timed out, deadline was: "
@@ -127,12 +127,12 @@ public final class PipedOutputStream extends OutputStream {
                 } else if (nrReadStreams <= 0) {
                     throw new IOException("Broken pipe " + this);
                 }
-                availableToWrite = Math.min(availableToWrite, len - bytesWritten);
-                int wrToEnd = Math.min(availableToWrite, buffer.length - endIdx);
+                a2w = Math.min(a2w, len - bytesWritten);
+                int wrToEnd = Math.min(a2w, buffer.length - endIdx);
                 System.arraycopy(b, off + bytesWritten, buffer, endIdx, wrToEnd);
                 endIdx += wrToEnd;
                 bytesWritten += wrToEnd;
-                int wrapArround = availableToWrite - wrToEnd;
+                int wrapArround = a2w - wrToEnd;
                 if (wrapArround > 0) {
                     System.arraycopy(b, off + bytesWritten, buffer, 0, wrapArround);
                     endIdx = wrapArround;
@@ -155,7 +155,8 @@ public final class PipedOutputStream extends OutputStream {
 
     public void writeUntil(final int b, final long deadline) throws IOException {
         synchronized (sync) {
-            while (!writerClosed && nrReadStreams > 0 && availableToWrite() < 1) {
+            int a2w = 0;
+            while (!writerClosed && nrReadStreams > 0 && (a2w = availableToWrite()) < 1) {
                 try {
                     long timeToWait = deadline - System.currentTimeMillis();
                     if (timeToWait <= 0) {
@@ -176,7 +177,7 @@ public final class PipedOutputStream extends OutputStream {
             if (endIdx >= buffer.length) {
                 endIdx = 0;
             }
-            if (availableToWrite() < 1) {
+            if (a2w < 2) {
                 flush();
             }
         }
