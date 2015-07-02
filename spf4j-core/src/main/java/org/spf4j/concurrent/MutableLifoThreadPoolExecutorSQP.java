@@ -19,10 +19,10 @@
 package org.spf4j.concurrent;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.set.hash.THashSet;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Queue;
 import java.util.List;
 import java.util.Set;
@@ -99,7 +99,8 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
         this.queueSizeLimit = queueSizeLimit;
         this.threadQueue = new ZArrayDequeue<>(Math.min(1024, maxSize));
         this.daemonThreads = daemonThreads;
-        state = new PoolState(coreSize, spinLockCount, new HashSet<QueuedThread>(Math.min(maxSize, 2048)),
+        state = new PoolState(coreSize, spinLockCount,
+                new THashSet<QueuedThread>(Math.min(maxSize, 2048)),
                                 maxIdleTimeMillis);
         this.stateLock = new ReentrantLock(false);
         for (int i = 0; i < coreSize; i++) {
