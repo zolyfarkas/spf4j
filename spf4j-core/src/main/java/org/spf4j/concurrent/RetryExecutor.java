@@ -15,13 +15,13 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.concurrent;
 
 import com.google.common.base.Predicate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,33 +32,31 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
+import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.Throwables;
 import org.spf4j.base.Pair;
 
 /**
- * Executor that will execute Callables with retry.
- * This executor cannot be used inside a Completion service.
- * as such it allow
+ * Executor that will execute Callables with retry. This executor cannot be used inside a Completion service.
+ * 
  *
  * @author zoly
  */
-public class RetryExecutor<T> implements ExecutorService {
+public class RetryExecutor<T> extends AbstractExecutorService {
 
     private final ExecutorService executionService;
     /**
-     * can contain: DelayedCallables for execution. (delayed retries) or
-     * FailedExecutionResults for results.
+     * can contain: DelayedCallables for execution. (delayed retries) or FailedExecutionResults for results.
      *
      */
-    private final DelayQueue<FailedExecutionResult> executionEvents = new DelayQueue<FailedExecutionResult>();
+    private final DelayQueue<FailedExecutionResult> executionEvents = new DelayQueue<>();
     private final ConcurrentMap<Callable<? extends Object>, Pair<Integer, ExecutionException>> executionAttempts;
-    private final ExecutorService exec;
     private final int nrImmediateRetries;
     private final int nrTotalRetries;
     private final long delayMillis;
     private volatile RetryManager retryManager;
+    private Future<?> retryManagerFuture;
     private final Predicate<Exception> retryException;
     private final BlockingQueue<Future<T>> completionQueue;
     private final Object sync = new Object();
@@ -67,30 +65,24 @@ public class RetryExecutor<T> implements ExecutorService {
         if (this.retryManager == null) {
             synchronized (sync) {
                 if (this.retryManager == null) {
-                    RetryManager rm = new RetryManager();
-                    rm.start();
-                    this.retryManager = rm;
+                    this.retryManager = new RetryManager();
+                    this.retryManagerFuture = DefaultExecutor.INSTANCE.submit(retryManager);
                 }
             }
         }
     }
 
-    private void shutdownRetryManager()  {
+    private void shutdownRetryManager() {
         synchronized (sync) {
             if (this.retryManager != null) {
-                this.retryManager.interrupt();
-                try {
-                    this.retryManager.join();
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
-                }
+                retryManager.shutdown();
+                retryManager = null;
             }
         }
     }
 
     /**
-     * this class represents either a execution failure notification or a retry
-     * command.
+     * this class represents either a execution failure notification or a retry command.
      */
     private static class FailedExecutionResult implements Delayed {
 
@@ -146,8 +138,6 @@ public class RetryExecutor<T> implements ExecutorService {
             return 53 * hash + (this.callable != null ? this.callable.hashCode() : 0);
         }
 
-
-
         public ExecutionException getException() {
             return exception;
         }
@@ -163,8 +153,6 @@ public class RetryExecutor<T> implements ExecutorService {
         public boolean isIsExecution() {
             return isExecution;
         }
-
-
 
     }
 
@@ -190,7 +178,6 @@ public class RetryExecutor<T> implements ExecutorService {
             this.future = future;
         }
 
-
         @Override
         public T call() {
             try {
@@ -213,34 +200,31 @@ public class RetryExecutor<T> implements ExecutorService {
 
         @Override
         public void run() {
-           call();
+            call();
         }
     }
 
-    private class RetryManager extends Thread {
+    private class RetryManager extends AbstractRunnable {
 
         public RetryManager() {
             super("RetryManager");
+            isRunning = true;
         }
 
         public void shutdown() {
-            this.interrupt();
-            try {
-                this.join();
-            } catch (InterruptedException ex) {
-                throw new RuntimeException(ex);
-            }
+            isRunning = false;
         }
 
+        private volatile boolean isRunning;
+
         @Override
-        public void run() {
-            Thread managerThread = Thread.currentThread();
-            while (!managerThread.isInterrupted()) {
+        public void doRun() {
+            while (isRunning) {
                 try {
                     FailedExecutionResult event = executionEvents.take();
                     final Callable<Object> callable = event.getCallable();
                     if (event.isIsExecution()) {
-                        executionService.execute(new RetryableCallable<Object>(callable, event.getFuture()));
+                        executionService.execute(new RetryableCallable<>(callable, event.getFuture()));
                     } else {
                         Pair<Integer, ExecutionException> attemptsInfo = executionAttempts.get(callable);
                         if (attemptsInfo == null) {
@@ -250,7 +234,7 @@ public class RetryExecutor<T> implements ExecutorService {
                                 attemptsInfo = Pair.of(attemptsInfo.getFirst() + 1, event.getException());
                             } else {
                                 attemptsInfo = Pair.of(attemptsInfo.getFirst() + 1,
-                                    Throwables.suppress(event.getException(), attemptsInfo.getSecond()));
+                                        Throwables.suppress(event.getException(), attemptsInfo.getSecond()));
                             }
                         }
                         int nrAttempts = attemptsInfo.getFirst();
@@ -264,28 +248,26 @@ public class RetryExecutor<T> implements ExecutorService {
                         } else {
                             executionAttempts.put(callable, attemptsInfo);
                             executionService.execute(
-                                    new RetryableCallable<Object>(callable, event.getFuture()));
+                                    new RetryableCallable<>(callable, event.getFuture()));
                         }
                     }
-
-
                 } catch (InterruptedException ex) {
-                    managerThread.interrupt();
+                    isRunning = false;
                     break;
                 }
             }
         }
+
     }
 
     public RetryExecutor(final ExecutorService exec, final int nrImmediateRetries,
-            final int nrTotalRetries, final long delayMillis,  final Predicate<Exception> retryException,
+            final int nrTotalRetries, final long delayMillis, final Predicate<Exception> retryException,
             @Nullable final BlockingQueue<Future<T>> completionQueue) {
         executionService = exec;
-        executionAttempts = new ConcurrentHashMap<Callable<? extends Object>, Pair<Integer, ExecutionException>>();
+        executionAttempts = new ConcurrentHashMap<>();
         this.nrImmediateRetries = nrImmediateRetries;
         this.nrTotalRetries = nrTotalRetries;
         this.delayMillis = delayMillis;
-        this.exec = exec;
         this.retryException = retryException;
         this.completionQueue = completionQueue;
     }
@@ -293,33 +275,38 @@ public class RetryExecutor<T> implements ExecutorService {
     @Override
     public final void shutdown() {
         shutdownRetryManager();
-        exec.shutdown();
+        executionService.shutdown();
     }
 
     @Override
     public final List<Runnable> shutdownNow() {
         shutdownRetryManager();
-        return exec.shutdownNow();
+        return executionService.shutdownNow();
     }
 
     @Override
     public final boolean isShutdown() {
-        return exec.isShutdown();
+        return executionService.isShutdown();
     }
 
     @Override
     public final boolean isTerminated() {
-        return exec.isTerminated();
+        return executionService.isTerminated();
     }
 
     @Override
     public final boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
-        return exec.awaitTermination(timeout, unit);
+        try {
+            this.retryManagerFuture.get();
+        } catch (ExecutionException ex) {
+            throw new RuntimeException(ex);
+        }
+        return executionService.awaitTermination(timeout, unit);
     }
 
-    private  FutureBean<T> createFutureBean() {
+    private FutureBean<T> createFutureBean() {
         if (completionQueue == null) {
-            return new FutureBean<T>();
+            return new FutureBean<>();
         } else {
             return new FutureBean<T>() {
                 @Override
@@ -330,7 +317,6 @@ public class RetryExecutor<T> implements ExecutorService {
         }
     }
 
-
     @Override
     public final <A> Future<A> submit(final Callable<A> task) {
         FutureBean<T> result = createFutureBean();
@@ -338,11 +324,10 @@ public class RetryExecutor<T> implements ExecutorService {
         return (Future<A>) result;
     }
 
-
     @Override
     public final <A> Future<A> submit(final Runnable task, final A result) {
         FutureBean<T> resultFuture = createFutureBean();
-        executionService.execute(new RetryableCallable<T>(task, result, resultFuture));
+        executionService.execute(new RetryableCallable<>(task, result, resultFuture));
         return (Future<A>) resultFuture;
     }
 
@@ -356,16 +341,16 @@ public class RetryExecutor<T> implements ExecutorService {
     @Override
     public final <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> tasks)
             throws InterruptedException {
-        List<Future<T>> result = new ArrayList<Future<T>>();
+        List<Future<T>> result = new ArrayList<>();
         for (Callable task : tasks) {
             result.add(this.submit(task));
         }
         for (Future fut : result) {
             try {
                 fut.get();
-            // CHECKSTYLE:OFF
+                // CHECKSTYLE:OFF
             } catch (ExecutionException ex) {
-                //CHECKSTYLE:ON
+                    //CHECKSTYLE:ON
                 // Swallow exception for now, this sexception will be thoriwn when the client will call get again..
             }
         }
@@ -373,8 +358,8 @@ public class RetryExecutor<T> implements ExecutorService {
     }
 
     @Override
-    public final  <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> tasks,
-                final long timeout, final TimeUnit unit) throws InterruptedException {
+    public final <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> tasks,
+            final long timeout, final TimeUnit unit) throws InterruptedException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -385,8 +370,8 @@ public class RetryExecutor<T> implements ExecutorService {
     }
 
     @Override
-    public final <T> T invokeAny(final Collection<? extends Callable<T>> tasks, final long timeout, final TimeUnit unit)
-            throws InterruptedException, ExecutionException, TimeoutException {
+    public final <T> T invokeAny(final Collection<? extends Callable<T>> tasks,
+            final long timeout, final TimeUnit unit) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
