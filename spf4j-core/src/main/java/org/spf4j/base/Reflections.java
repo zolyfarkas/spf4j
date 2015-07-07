@@ -394,7 +394,11 @@ public final class Reflections {
                     }
 
                     URL jarSourceUrl = Reflections.getJarSourceUrl(aClass);
-                    String version = aClass.getPackage().getImplementationVersion();
+                    final Package aPackage = aClass.getPackage();
+                    if (aPackage == null) {
+                        return NONE;
+                    }
+                    String version = aPackage.getImplementationVersion();
                     return new PackageInfo(jarSourceUrl, version);
                 }
             });
