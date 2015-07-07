@@ -46,14 +46,7 @@ public final class Callables {
 
     private static final Logger LOG = LoggerFactory.getLogger(Callables.class);
 
-    public static final TimeoutRetryPredicate<Object> NORETRY_FOR_RESULT = new TimeoutRetryPredicate<Object>() {
 
-        @Override
-        public Action apply(final Object value, final long deadline) {
-            return Action.ABORT;
-        }
-
-    };
 
     public static final RetryPredicate<?> RETRY_FOR_NULL_RESULT = new RetryPredicate<Object>() {
         @Override
@@ -99,7 +92,7 @@ public final class Callables {
             final int maxRetryWaitMillis)
             throws InterruptedException, EX {
         return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,
-                NORETRY_FOR_RESULT, DEFAULT_EXCEPTION_RETRY);
+                TimeoutRetryPredicate.NORETRY_FOR_RESULT, DEFAULT_EXCEPTION_RETRY);
     }
 
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
@@ -108,7 +101,7 @@ public final class Callables {
             final AdvancedRetryPredicate<Exception> retryOnException)
             throws InterruptedException, EX {
         return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,
-                NORETRY_FOR_RESULT, retryOnException);
+                TimeoutRetryPredicate.NORETRY_FOR_RESULT, retryOnException);
     }
 
     /**
@@ -214,7 +207,7 @@ public final class Callables {
             if (retryRegistry == null) {
                 retryRegistry = new HashMap<>();
             }
-            AdvancedAction action = arp.apply(value);
+            AdvancedAction action = arp.apply(value, deadline);
             switch (action) {
                 case ABORT:
                     return Action.ABORT;
@@ -292,20 +285,106 @@ public final class Callables {
     }
 
     public enum AdvancedAction {
-        RETRY, RETRY_IMMEDIATE, RETRY_DELAYED, ABORT
+        RETRY, // Retry based on default policy. (can be immediate or delayed)
+        RETRY_IMMEDIATE, // Do immediate retry
+        RETRY_DELAYED, // Do delayed retry
+        ABORT // Abort, no retry, return last value/exception
     }
 
 
-    public interface AdvancedRetryPredicate<T> {
+    public abstract static class AdvancedRetryPredicate<T> {
 
-        AdvancedAction apply(T value);
+        //CHECKSTYLE:OFF designed for extension does not like this, but I need this for backwards compat.
+        public AdvancedAction apply(final T value, final long deadline) {
+            //CHECKSTYLE:ON
+            return apply(value);
+        }
+
+        public abstract AdvancedAction apply(T value);
     }
 
+
+    public interface SmartRetryPredicate<T> {
+        /**
+         *
+         * @param value
+         * @param deadline
+         * @return the number or millis of delay untile the next retry, or -1 for abort.
+         * @throws InterruptedException
+         * @throws TimeoutException
+         */
+         int apply(T value, long deadline)
+                throws InterruptedException, TimeoutException;
+
+
+         SmartRetryPredicate<Object> NORETRY_FOR_RESULT = new SmartRetryPredicate<Object>() {
+
+            @Override
+            public int apply(final Object value, final long deadline) {
+                return -1;
+            }
+
+        };
+
+
+    }
+
+    public static final class SmartRetryPredicate2TimeoutRetryPredicate<T>
+    implements TimeoutRetryPredicate<T> {
+
+        private final SmartRetryPredicate predicate;
+
+        public SmartRetryPredicate2TimeoutRetryPredicate(final SmartRetryPredicate<T> predicate) {
+            this.predicate = predicate;
+        }
+
+
+
+        @Override
+        @SuppressFBWarnings("MDM_THREAD_YIELD")
+        public Action apply(final T value, final long deadline) throws InterruptedException, TimeoutException {
+            int apply = predicate.apply(value, deadline);
+            if (apply < 0) {
+                return Action.ABORT;
+            } else if (apply == 0) {
+                return Action.RETRY;
+            } else {
+                Thread.sleep(apply);
+                return Action.RETRY;
+            }
+        }
+
+    }
+
+
+    public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
+            final SmartRetryPredicate<? super T> retryOnReturnVal,
+            final SmartRetryPredicate<Exception> retryOnException)
+            throws InterruptedException, EX {
+        return executeWithRetry(what, new SmartRetryPredicate2TimeoutRetryPredicate<>(retryOnReturnVal),
+                new SmartRetryPredicate2TimeoutRetryPredicate<>(retryOnException));
+    }
+
+   public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
+            final SmartRetryPredicate<Exception> retryOnException)
+            throws InterruptedException, EX {
+        return executeWithRetry(what, SmartRetryPredicate.NORETRY_FOR_RESULT, retryOnException);
+    }
 
     public interface TimeoutRetryPredicate<T> {
 
         Action apply(T value, long deadline)
                 throws InterruptedException, TimeoutException;
+
+        TimeoutRetryPredicate<Object> NORETRY_FOR_RESULT = new TimeoutRetryPredicate<Object>() {
+
+            @Override
+            public Action apply(final Object value, final long deadline) {
+                return Action.ABORT;
+            }
+
+        };
+
     }
 
     public static final class TimeoutRetryPredicate2RetryPredicate<T> implements RetryPredicate<T> {
