@@ -19,7 +19,6 @@ package org.spf4j.concurrent;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -39,21 +38,13 @@ public final class FileBasedLockTest {
     @Test(timeout = 60000)
     public void test() throws IOException, InterruptedException, ExecutionException {
 
-        final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
-        final String jvmPath =
-                System.getProperty("java.home")
-                + File.separatorChar + "bin" + File.separatorChar + "java";
-
-
         FileBasedLock lock = new FileBasedLock(new File(LOCK_FILE));
         lock.lock();
         Future<Void> future = DefaultExecutor.INSTANCE.submit(new Callable<Void>() {
 
             @Override
             public Void call() throws Exception {
-                String[] command = new String[]{jvmPath, "-cp", classPath, FileBasedLockTest.class.getName(),
-                                                LOCK_FILE };
-                org.spf4j.base.Runtime.run(command, 60000);
+                org.spf4j.base.Runtime.jrun(FileBasedLockTest.class, 60000, LOCK_FILE);
                 isOtherRunning = false;
                 return null;
             }

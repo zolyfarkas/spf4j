@@ -98,6 +98,7 @@ public final class Runtime {
     public static final String JAVA_VERSION = System.getProperty("java.version");
     public static final String USER_NAME = System.getProperty("user.name");
     public static final String USER_DIR = System.getProperty("user.dir");
+    public static final String JAVA_HOME = System.getProperty("java.home");
 
     private static final SortedMap<Integer, Set<Runnable>> SHUTDOWN_HOOKS = new TreeMap<>();
 
@@ -319,7 +320,7 @@ public final class Runtime {
         int result = run(command, handler, timeoutMillis);
         if (result != 0) {
             throw new ExecutionException("Error While Executing: " + java.util.Arrays.toString(command)
-                                           + "; returned " + result + "; stdErr = " + handler.getStdErr(), null);
+                                           + ";\n returned " + result + ";\n stdErr = " + handler.getStdErr(), null);
         } else {
             return handler.getStdOut();
         }
@@ -538,6 +539,15 @@ public final class Runtime {
             System.gc();
         } while (ref.get() != null && System.currentTimeMillis() < deadline);
         return ref.get() == null;
+    }
+
+    public static String jrun(final Class<?> classWithMain, final long timeoutMillis, final String ... arguments)
+            throws IOException, InterruptedException, ExecutionException {
+        final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
+        final String jvmPath = JAVA_HOME + File.separatorChar + "bin" + File.separatorChar + "java";
+        String[] command = Arrays.concat(new String[] {jvmPath, "-cp", classPath, classWithMain.getName() },
+                                            arguments);
+        return run(command, timeoutMillis);
     }
 
 }

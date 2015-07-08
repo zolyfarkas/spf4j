@@ -21,6 +21,7 @@ package org.spf4j.base;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import org.junit.Test;
+import org.spf4j.concurrent.DefaultExecutor;
 
 /**
  *
@@ -35,11 +36,45 @@ public final class RuntimeTest {
      * Test of goDownWithError method, of class Runtime.
      */
     @Test
-    public void testGoDownWithError() throws IOException, InterruptedException, ExecutionException {
+    public void testSomeParams() throws IOException, InterruptedException, ExecutionException {
         System.out.println("PID=" + Runtime.PID);
         System.out.println("OSNAME=" + Runtime.OS_NAME);
         System.out.println("NR_OPEN_FILES=" + Runtime.getNrOpenFiles());
         System.out.println("LSOF_OUT=" + Runtime.getLsofOutput());
         System.out.println("MAX_OPEN_FILES=" + Runtime.Ulimit.MAX_NR_OPENFILES);
     }
+
+    @Test(expected = ExecutionException.class)
+    public void testExitCode() throws IOException, InterruptedException, ExecutionException {
+        Runtime.jrun(RuntimeTest.TestError.class, 60000);
+    }
+
+    @Test(expected = ExecutionException.class)
+    public void testExitCode2() throws IOException, InterruptedException, ExecutionException {
+        Runtime.jrun(RuntimeTest.TestError2.class, 60000);
+    }
+
+    public static final class TestError {
+
+        public static void main(final String [] args) {
+            throw new RuntimeException();
+        }
+    }
+
+    public static final class TestError2 {
+
+        public static void main(final String [] args) {
+            Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+
+                @Override
+                public void uncaughtException(Thread t, Throwable e) {
+                    e.printStackTrace();
+                }
+            });
+            throw new RuntimeException();
+        }
+    }
+
+
+
 }
