@@ -20,8 +20,10 @@ package org.spf4j.base;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.Test;
-import org.spf4j.concurrent.DefaultExecutor;
+import org.spf4j.concurrent.DefaultScheduler;
 
 /**
  *
@@ -36,7 +38,7 @@ public final class RuntimeTest {
      * Test of goDownWithError method, of class Runtime.
      */
     @Test
-    public void testSomeParams() throws IOException, InterruptedException, ExecutionException {
+    public void testSomeParams() throws IOException, InterruptedException, ExecutionException, TimeoutException {
         System.out.println("PID=" + Runtime.PID);
         System.out.println("OSNAME=" + Runtime.OS_NAME);
         System.out.println("NR_OPEN_FILES=" + Runtime.getNrOpenFiles());
@@ -45,14 +47,20 @@ public final class RuntimeTest {
     }
 
     @Test(expected = ExecutionException.class)
-    public void testExitCode() throws IOException, InterruptedException, ExecutionException {
+    public void testExitCode() throws IOException, InterruptedException, ExecutionException, TimeoutException {
         Runtime.jrun(RuntimeTest.TestError.class, 60000);
     }
 
     @Test(expected = ExecutionException.class)
-    public void testExitCode2() throws IOException, InterruptedException, ExecutionException {
+    public void testExitCode2() throws IOException, InterruptedException, ExecutionException, TimeoutException {
         Runtime.jrun(RuntimeTest.TestError2.class, 60000);
     }
+
+    @Test(expected = TimeoutException.class)
+    public void testExitCode3() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        Runtime.jrun(RuntimeTest.TestError3.class, 10000);
+    }
+
 
     public static final class TestError {
 
@@ -67,13 +75,35 @@ public final class RuntimeTest {
             Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 
                 @Override
-                public void uncaughtException(Thread t, Throwable e) {
+                public void uncaughtException(final Thread t, final Throwable e) {
                     e.printStackTrace();
                 }
             });
             throw new RuntimeException();
         }
     }
+
+    public static final class TestError3 {
+
+        public static void main(final String [] args) {
+            Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+
+                @Override
+                public void uncaughtException(final Thread t, final Throwable e) {
+                    e.printStackTrace();
+                }
+            });
+            DefaultScheduler.INSTANCE.scheduleAtFixedRate(new Runnable() {
+
+                @Override
+                public void run() {
+                }
+            }, 10, 10, TimeUnit.MILLISECONDS);
+
+            throw new RuntimeException();
+        }
+    }
+
 
 
 

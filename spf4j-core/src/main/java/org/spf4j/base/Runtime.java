@@ -39,6 +39,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -256,7 +258,7 @@ public final class Runtime {
                 } else {
                     mfiles = Integer.parseInt(result.trim());
                 }
-            } catch (IOException | InterruptedException | ExecutionException ex) {
+            } catch (TimeoutException | IOException | InterruptedException | ExecutionException ex) {
                 Lazy.LOGGER.error("Error while running ulimit, assuming no limit", ex);
                 mfiles = Integer.MAX_VALUE;
             }
@@ -274,7 +276,7 @@ public final class Runtime {
      * @throws ExecutionException
      */
 
-    public static int getNrOpenFiles() throws IOException, InterruptedException, ExecutionException {
+    public static int getNrOpenFiles() throws IOException, InterruptedException, ExecutionException, TimeoutException {
         if (isMacOsx()) {
             if (Lsof.LSOF == null) {
                 return -1;
@@ -296,7 +298,8 @@ public final class Runtime {
     }
 
     @Nullable
-    public static String getLsofOutput() throws IOException, InterruptedException, ExecutionException {
+    public static String getLsofOutput()
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
         if (LSOF == null) {
             return null;
         }
@@ -315,7 +318,7 @@ public final class Runtime {
     }
 
     public static String run(final String [] command,
-            final long timeoutMillis) throws IOException, InterruptedException, ExecutionException {
+            final long timeoutMillis) throws IOException, InterruptedException, ExecutionException, TimeoutException {
         StringBuilderCharHandler handler = new StringBuilderCharHandler();
         int result = run(command, handler, timeoutMillis);
         if (result != 0) {
@@ -329,12 +332,14 @@ public final class Runtime {
 
     public static int run(final String [] command, final ProcOutputHandler handler,
             final long timeoutMillis)
-            throws IOException, InterruptedException, ExecutionException {
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
         final Process proc = java.lang.Runtime.getRuntime().exec(command);
+        final AtomicBoolean timedOut = new AtomicBoolean(false);
         ScheduledFuture<?> schedule = DefaultScheduler.INSTANCE.schedule(new AbstractRunnable(false) {
 
             @Override
             public void doRun() throws Exception {
+                timedOut.set(true);
                 if (JAVA_PLATFORM.ordinal() >= Version.V1_8.ordinal()) {
                     final Class<? extends Process> aClass = proc.getClass();
                     if ((Boolean) aClass.getMethod("isAlive").invoke(proc)) {
@@ -374,7 +379,13 @@ public final class Runtime {
                 handler.stdOutDone();
             }
             esh.get();
-            return proc.waitFor();
+            int result = proc.waitFor();
+            if (timedOut.get()) {
+                throw new TimeoutException("Timed out while executing: " + java.util.Arrays.toString(command)
+                 + ";\n process returned " + result + ";\n output handler: " + handler);
+            } else {
+                return result;
+            }
         } finally {
             schedule.cancel(false);
         }
@@ -542,7 +553,7 @@ public final class Runtime {
     }
 
     public static String jrun(final Class<?> classWithMain, final long timeoutMillis, final String ... arguments)
-            throws IOException, InterruptedException, ExecutionException {
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
         final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
         final String jvmPath = JAVA_HOME + File.separatorChar + "bin" + File.separatorChar + "java";
         String[] command = Arrays.concat(new String[] {jvmPath, "-cp", classPath, classWithMain.getName() },
