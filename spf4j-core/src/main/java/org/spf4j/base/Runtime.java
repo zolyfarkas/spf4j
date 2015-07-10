@@ -49,6 +49,7 @@ import static org.spf4j.base.Runtime.Lsof.LSOF_CMD;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.recyclable.impl.ArraySuppliers;
+import org.spf4j.stackmonitor.FastStackCollector;
 
 /**
  *
@@ -174,7 +175,14 @@ public final class Runtime {
                         }
                     }
                 }
-
+                // print out info on all remaining non daemon threads.
+                Thread[] threads = FastStackCollector.getThreads();
+                for (Thread thread : threads) {
+                    if (thread.isAlive() && !thread.isDaemon()) {
+                        System.err.println("Non daemon thread " + thread + ", stackTrace = "
+                                + java.util.Arrays.toString(thread.getStackTrace()));
+                    }
+                }
             }
         }, "spf4j queued shutdown"));
         //JAVA_PLATFORM = Version.fromSpecVersion(runtimeMxBean.getSpecVersion());
