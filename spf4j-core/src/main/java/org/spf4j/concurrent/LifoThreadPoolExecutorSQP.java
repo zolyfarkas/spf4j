@@ -39,8 +39,10 @@ import org.spf4j.jmx.Registry;
 
 /**
  *
- * Lifo scheduled java thread pool, based on talk: http://applicative.acm.org/speaker-BenMaurer.html Also it behaved
- * differently compared with a java Thread pool in that it prefers to add threads instead of queueing tasks.
+ * Lifo scheduled java thread pool, based on talk: http://applicative.acm.org/speaker-BenMaurer.html
+ * This implementation behaves
+ * differently compared with a java Thread pool in that it prefers to spawn a thread if possible
+ * instead of queueing tasks.
  *
  * There are 3 data structures involved in the transfer of tasks to Threads.
  *
