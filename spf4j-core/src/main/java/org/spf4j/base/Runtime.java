@@ -28,8 +28,13 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -189,7 +194,7 @@ public final class Runtime {
         JAVA_PLATFORM = Version.fromSpecVersion(JAVA_VERSION);
     }
     public static final String MAC_OS_X_OS_NAME = "Mac OS X";
-    private static final File FD_FOLDER = new File("/proc/" + PID + "/fd");
+    private static final Path FD_FOLDER = Paths.get("/proc/" + PID + "/fd");
 
     public static boolean isMacOsx() {
         return MAC_OS_X_OS_NAME.equals(OS_NAME);
@@ -293,12 +298,16 @@ public final class Runtime {
             run(LSOF_CMD, handler, 60000);
             return handler.getLineCount() - 1;
         } else {
-            if (FD_FOLDER.exists()) {
-                final String[] list = FD_FOLDER.list();
-                if (list == null) {
-                    return -1;
+            if (Files.isDirectory(FD_FOLDER)) {
+                int result = 0;
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(FD_FOLDER)) {
+                    Iterator<Path> iterator = stream.iterator();
+                    while (iterator.hasNext()) {
+                        iterator.next();
+                        result++;
+                    }
                 }
-                return list.length;
+                return result;
             } else {
                 return -1;
             }
