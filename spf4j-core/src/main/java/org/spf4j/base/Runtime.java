@@ -347,6 +347,7 @@ public final class Runtime {
     }
 
 
+    @SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE") // not really lost, suppressed exceptions are used.
     public static int run(final String [] command, final ProcOutputHandler handler,
             final long timeoutMillis)
             throws IOException, InterruptedException, ExecutionException, TimeoutException {
@@ -402,6 +403,16 @@ public final class Runtime {
                  + ";\n process returned " + result + ";\n output handler: " + handler);
             } else {
                 return result;
+            }
+        } catch (ExecutionException | IOException | RuntimeException ex) {
+            if (timedOut.get()) {
+               TimeoutException te = new TimeoutException("Timed out while executing: "
+                       + java.util.Arrays.toString(command)
+                + ";\n output handler: " + handler);
+               te.addSuppressed(ex);
+               throw te;
+            } else {
+                throw ex;
             }
         } finally {
             schedule.cancel(false);
