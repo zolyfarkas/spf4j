@@ -35,8 +35,6 @@ import org.junit.Test;
  */
 public class LifoThreadPoolExecutorTestS {
 
-    public LifoThreadPoolExecutorTestS() {
-    }
 
     @Test
     public void testLifoExecSQ() throws InterruptedException, IOException {

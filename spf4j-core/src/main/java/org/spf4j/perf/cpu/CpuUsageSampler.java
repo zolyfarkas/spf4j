@@ -35,6 +35,12 @@ public final class CpuUsageSampler {
     }
 
 
+    @JmxExport
+    public static long getProcessCpuTimeNanos() {
+        return OS_MBEAN.getProcessCpuTime();
+    }
+
+
     private static ScheduledFuture<?> samplingFuture;
 
     static {

@@ -376,10 +376,12 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
         @Override
         public void run() {
+            final long origNanosWait = TimeUnit.NANOSECONDS.convert(maxIdleTimeMillis, TimeUnit.MILLISECONDS);
+            long maxIdleNanos = origNanosWait;
             boolean shouldRun = true;
             do {
                 try {
-                    doRun();
+                    doRun(maxIdleNanos);
                 } catch (RuntimeException e) {
                     try {
                         this.getUncaughtExceptionHandler().uncaughtException(this, e);
@@ -392,14 +394,17 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                 }
 
                 final AtomicInteger tc = state.getThreadCount();
-                int count = tc.decrementAndGet();
+                int count = tc.decrementAndGet(); // decrement thread count.
                 while (!state.isShutdown()) {
-                    if (count >= state.getCoreThreads()) {
+                    if (count >= state.getCoreThreads()) { // plenty of core threads left, retire
                         shouldRun = false;
                         break;
-                    } else if (tc.compareAndSet(count, count + 1)) {
+                    } else if (tc.compareAndSet(count, count + 1)) { // keep this as core thread.
+                        this.lastRunNanos = System.nanoTime(); // update last Run time to avoid core thread spinning.
+                        // there must be a minimal wait time for a core thread to avoid spinning.
+                        maxIdleNanos = Math.max(origNanosWait, 10000000);
                         break;
-                    } else {
+                    } else { // count changes happened refresh, and retry.
                         count = tc.get();
                     }
                 }
@@ -412,9 +417,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         }
 
         @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "MDM_LOCK_ISLOCKED", "UL_UNRELEASED_LOCK_EXCEPTION_PATH" })
-        public void doRun() {
+        public void doRun(final long maxIdleNanos) {
             running = true;
-            long maxIdleNanos = TimeUnit.NANOSECONDS.convert(maxIdleTimeMillis, TimeUnit.MILLISECONDS);
             try {
                 if (runFirst != null) {
                     try {

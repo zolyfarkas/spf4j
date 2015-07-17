@@ -378,9 +378,10 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
         @Override
         public void run() {
             boolean shouldRun = true;
+            long minWaitNanos = 0;
             do {
                 try {
-                    doRun();
+                    doRun(minWaitNanos);
                 } catch (RuntimeException e) {
                     try {
                         this.getUncaughtExceptionHandler().uncaughtException(this, e);
@@ -399,6 +400,8 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
                         shouldRun = false;
                         break;
                     } else if (tc.compareAndSet(count, count + 1)) {
+                        this.lastRunNanos = System.nanoTime(); // update last Run time to avoid core thread spinning.
+                        minWaitNanos = Math.max(10000000, state.getMaxIdleTimeNanos());
                         break;
                     } else {
                         count = tc.get();
@@ -413,7 +416,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
         }
 
         @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "MDM_LOCK_ISLOCKED", "UL_UNRELEASED_LOCK_EXCEPTION_PATH" })
-        public void doRun() {
+        public void doRun(final long minWaitNanos) {
             running = true;
             try {
                 if (runFirst != null) {
@@ -437,7 +440,8 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
                         while (true) {
                             Runnable runnable;
                             try {
-                                final long wTime = state.getMaxIdleTimeNanos() - (System.nanoTime() - lastRunNanos);
+                                final long wTime = Math.max(minWaitNanos, state.getMaxIdleTimeNanos())
+                                        - (System.nanoTime() - lastRunNanos);
                                 if (wTime > 0) {
                                     runnable = toRun.poll(wTime, state.spinlockCount);
                                 } else {

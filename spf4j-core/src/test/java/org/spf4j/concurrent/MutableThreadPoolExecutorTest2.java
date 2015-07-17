@@ -20,7 +20,6 @@ package org.spf4j.concurrent;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import junit.framework.Assert;
 import org.junit.Test;
@@ -31,8 +30,6 @@ import org.junit.Test;
  */
 public class MutableThreadPoolExecutorTest2 {
 
-    public MutableThreadPoolExecutorTest2() {
-    }
 
     @Test
     public void testLifoExecSQ() throws InterruptedException, IOException, ExecutionException {

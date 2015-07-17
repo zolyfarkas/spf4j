@@ -41,8 +41,6 @@ import org.spf4j.stackmonitor.FastStackCollector;
  */
 public class LifoThreadPoolExecutorTest2 {
 
-    public LifoThreadPoolExecutorTest2() {
-    }
 
     @Test
     public void testLifoExecSQ() throws InterruptedException, IOException, ExecutionException {
