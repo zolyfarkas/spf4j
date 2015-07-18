@@ -32,6 +32,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import static org.spf4j.concurrent.LifoThreadPoolExecutorSQP.CORE_MINWAIT_NANOS;
 import org.spf4j.ds.ZArrayDequeue;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
@@ -55,6 +58,7 @@ import org.spf4j.jmx.Registry;
  *
  * @author zoly
  */
+@ParametersAreNonnullByDefault
 public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
     private final Queue<Runnable> taskQueue;
@@ -96,6 +100,15 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
             final int maxSize, final int maxIdleTimeMillis, final Queue<Runnable> taskQueue,
             final int queueSizeLimit, final boolean daemonThreads,
             final int spinLockCount, final RejectedExecutionHandler rejectionHandler) {
+        if (coreSize > maxSize) {
+            throw new IllegalArgumentException("Core size must be smaller than max size " + coreSize
+                    + " < " + maxSize);
+        }
+        if (coreSize < 0 || maxSize < 0 || spinLockCount < 0 || maxIdleTimeMillis < 0 || queueSizeLimit < 0) {
+            throw new IllegalArgumentException("All numberic TP configs must be positive values: "
+                        + coreSize + ", " + maxSize + ", " + maxIdleTimeMillis + ", " + spinLockCount
+                        + ", " + queueSizeLimit);
+        }
         this.rejectionHandler = rejectionHandler;
         this.poolName = poolName;
         this.taskQueue = taskQueue;
@@ -336,7 +349,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
         public QueuedThread(final String nameBase, final ZArrayDequeue<QueuedThread> threadQueue,
                 final Queue<Runnable> taskQueue,
-                final Runnable runFirst, final PoolState state, final ReentrantLock submitMonitor) {
+                @Nullable final Runnable runFirst, final PoolState state, final ReentrantLock submitMonitor) {
             super(nameBase + COUNT.getAndIncrement());
             this.threadQueue = threadQueue;
             this.taskQueue = taskQueue;
@@ -401,7 +414,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
                         break;
                     } else if (tc.compareAndSet(count, count + 1)) {
                         this.lastRunNanos = System.nanoTime(); // update last Run time to avoid core thread spinning.
-                        minWaitNanos = Math.max(10000000, state.getMaxIdleTimeNanos());
+                        minWaitNanos = Math.max(CORE_MINWAIT_NANOS, state.getMaxIdleTimeNanos());
                         break;
                     } else {
                         count = tc.get();

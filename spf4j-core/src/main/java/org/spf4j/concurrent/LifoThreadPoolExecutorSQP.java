@@ -32,6 +32,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.GuardedBy;
 import org.spf4j.ds.ZArrayDequeue;
 import org.spf4j.jmx.JmxExport;
@@ -53,7 +55,20 @@ import org.spf4j.jmx.Registry;
  *
  * @author zoly
  */
+@ParametersAreNonnullByDefault
 public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
+
+    /**
+     * when a thread survives due core size, this the minimum wait time that core threads will wait for.
+     * worker threads have a maximum time they are idle, after which they are retired...
+     * in case a user configures a thread pool with idle times < min wait, the core threads will
+     * have to have a minimum wait time to avoid spinning and hogging the CPU.
+     * this value is used only when the max idle time of the pool is smaller, and
+     * it interferes with thread retirement in that case...
+     * I do not see that case as a useful pooling case to be worth trying to optimise it...
+     */
+
+    static final long CORE_MINWAIT_NANOS = Long.getLong("lifotp.coreMaxWaitNanos", 1000000000);
 
     @GuardedBy("stateLock")
     private final Queue<Runnable> taskQueue;
@@ -121,6 +136,15 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
             final int maxSize, final int maxIdleTimeMillis, final Queue<Runnable> taskQueue,
             final int queueSizeLimit, final boolean daemonThreads,
             final int spinLockCount, final RejectedExecutionHandler rejectionHandler) {
+        if (coreSize > maxSize) {
+            throw new IllegalArgumentException("Core size must be smaller than max size " + coreSize
+                    + " < " + maxSize);
+        }
+        if (coreSize < 0 || maxSize < 0 || spinLockCount < 0 || maxIdleTimeMillis < 0 || queueSizeLimit < 0) {
+            throw new IllegalArgumentException("All numberic TP configs must be positive values: "
+                        + coreSize + ", " + maxSize + ", " + maxIdleTimeMillis + ", " + spinLockCount
+                        + ", " + queueSizeLimit);
+        }
         this.rejectionHandler = rejectionHandler;
         this.poolName = poolName;
         this.maxIdleTimeMillis = maxIdleTimeMillis;
@@ -333,7 +357,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
         public QueuedThread(final String nameBase, final ZArrayDequeue<QueuedThread> threadQueue,
                 final Queue<Runnable> taskQueue, final int maxIdleTimeMillis,
-                final Runnable runFirst, final PoolState state,
+                @Nullable final Runnable runFirst, final PoolState state,
                 final ReentrantLock submitMonitor) {
             super(nameBase + COUNT.getAndIncrement());
             this.threadQueue = threadQueue;
@@ -402,7 +426,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                     } else if (tc.compareAndSet(count, count + 1)) { // keep this as core thread.
                         this.lastRunNanos = System.nanoTime(); // update last Run time to avoid core thread spinning.
                         // there must be a minimal wait time for a core thread to avoid spinning.
-                        maxIdleNanos = Math.max(origNanosWait, 10000000);
+                        maxIdleNanos = Math.max(origNanosWait, CORE_MINWAIT_NANOS);
                         break;
                     } else { // count changes happened refresh, and retry.
                         count = tc.get();
