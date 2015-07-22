@@ -86,7 +86,7 @@ public final class Throwables {
         });
     }
 
-    public static int getNrSuppressedException(final Throwable t) {
+    public static int getNrSuppressedExceptions(final Throwable t) {
         try {
             final List<Throwable> suppressedExceptions = (List<Throwable>) SUPPRESSED_FIELD.get(t);
             if (suppressedExceptions != null) {
@@ -122,7 +122,7 @@ public final class Throwables {
             final List<Throwable> suppressedExceptions = (List<Throwable>) SUPPRESSED_FIELD.get(t);
             if (suppressedExceptions != null && !suppressedExceptions.isEmpty()) {
                 Throwable ex = suppressedExceptions.get(0);
-                if (getNrSuppressedException(ex) > 0) {
+                if (getNrSuppressedExceptions(ex) > 0) {
                     return removeOldestSuppressedRecursive(ex);
                 } else {
                     return suppressedExceptions.remove(0);
@@ -240,12 +240,12 @@ public final class Throwables {
                 clone = t;
                 LOG.info("Unable to clone exception", t);
             }
-            while (getNrRecursiveSuppressedExceptions(clone) >= MAX_THROWABLE_CHAIN) {
+            clone.addSuppressed(suppressed);
+            while (getNrRecursiveSuppressedExceptions(clone) > MAX_THROWABLE_CHAIN) {
                 if (removeOldestSuppressedRecursive(clone) == null) {
                    throw new IllegalArgumentException("Impossible state for " + clone);
                 }
             }
-            clone.addSuppressed(suppressed);
             return clone;
         } else {
             if (suppressed == null) {

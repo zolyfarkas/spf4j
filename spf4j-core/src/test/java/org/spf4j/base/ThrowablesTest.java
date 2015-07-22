@@ -71,4 +71,26 @@ public final class ThrowablesTest {
 
     }
 
+    @Test
+    public void testSuppressedManipulation() {
+        Exception ex = new Exception("test");
+        Assert.assertEquals(0, Throwables.getNrSuppressedExceptions(ex));
+        final Exception sex = new Exception("tests");
+        ex.addSuppressed(sex);
+        Assert.assertEquals(1, Throwables.getNrSuppressedExceptions(ex));
+        sex.addSuppressed(new Exception("tests2"));
+        Assert.assertEquals(1, Throwables.getNrSuppressedExceptions(ex));
+        Assert.assertEquals(2, Throwables.getNrRecursiveSuppressedExceptions(ex));
+        Throwables.removeOldestSuppressedRecursive(ex);
+        Assert.assertEquals(1, Throwables.getNrRecursiveSuppressedExceptions(ex));
+
+        Exception exs = new Exception(ex);
+        for (int i = 0; i < 500; i++) {
+            exs = Throwables.suppress(new Exception("test"  + i), exs);
+        }
+        Assert.assertEquals(200, Throwables.getNrRecursiveSuppressedExceptions(exs));
+
+    }
+
+
 }
