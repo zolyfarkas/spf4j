@@ -17,15 +17,10 @@
  */
 package org.spf4j.concurrent;
 
-import com.google.common.base.Predicate;
-import java.util.ArrayList;
-import java.util.Collection;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
-import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
@@ -34,16 +29,18 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.Callables;
+import org.spf4j.base.ParameterizedSupplier;
 import org.spf4j.base.Throwables;
-import org.spf4j.base.Pair;
+import org.spf4j.base.TimeoutRunnable;
 
 /**
  * Executor that will execute Callables with retry. This executor cannot be used inside a Completion service.
- * 
+ *
  *
  * @author zoly
  */
-public class RetryExecutor<T> extends AbstractExecutorService {
+public class RetryExecutor {
 
     private final ExecutorService executionService;
     /**
@@ -51,14 +48,13 @@ public class RetryExecutor<T> extends AbstractExecutorService {
      *
      */
     private final DelayQueue<FailedExecutionResult> executionEvents = new DelayQueue<>();
-    private final ConcurrentMap<Callable<? extends Object>, Pair<Integer, ExecutionException>> executionAttempts;
-    private final int nrImmediateRetries;
-    private final int nrTotalRetries;
-    private final long delayMillis;
+    private final ParameterizedSupplier<Callables.DelayPredicate<Object>, Callable<?>>
+            resultRetryPredicateSupplier;
+    private final ParameterizedSupplier<Callables.DelayPredicate<Exception>, Callable<?>>
+            exceptionRetryPredicateSupplier;
     private volatile RetryManager retryManager;
     private Future<?> retryManagerFuture;
-    private final Predicate<Exception> retryException;
-    private final BlockingQueue<Future<T>> completionQueue;
+    private final BlockingQueue<Future<?>> completionQueue;
     private final Object sync = new Object();
 
     private void startRetryManager() {
@@ -87,18 +83,14 @@ public class RetryExecutor<T> extends AbstractExecutorService {
     private static class FailedExecutionResult implements Delayed {
 
         private final ExecutionException exception;
-        private final FutureBean<Object> future;
-        private final Callable<Object> callable;
+        private final RetryableCallable<Object> callable;
         private final long delay;
-        private final boolean isExecution;
 
-        public FailedExecutionResult(final ExecutionException exception, final FutureBean future,
-                final Callable callable, final long delay, final boolean isExecution) {
+        public FailedExecutionResult(@Nullable final ExecutionException exception,
+                final RetryableCallable callable, final long delay) {
             this.exception = exception;
-            this.future = future;
             this.callable = callable;
             this.delay = delay + System.currentTimeMillis();
-            this.isExecution = isExecution;
         }
 
         @Override
@@ -138,21 +130,16 @@ public class RetryExecutor<T> extends AbstractExecutorService {
             return 53 * hash + (this.callable != null ? this.callable.hashCode() : 0);
         }
 
+        @Nullable
         public ExecutionException getException() {
             return exception;
         }
 
-        public FutureBean<Object> getFuture() {
-            return future;
-        }
 
-        public Callable<Object> getCallable() {
+        public RetryableCallable<Object> getCallable() {
             return callable;
         }
 
-        public boolean isIsExecution() {
-            return isExecution;
-        }
 
     }
 
@@ -160,37 +147,60 @@ public class RetryExecutor<T> extends AbstractExecutorService {
 
         private final Callable<T> callable;
         private final FutureBean<T> future;
+        private volatile FailedExecutionResult previousResult;
+        private final Callables.DelayPredicate<Object> resultRetryPredicate;
+        private final Callables.DelayPredicate<Exception> exceptionRetryPredicate;
 
-        public RetryableCallable(final Callable<T> callable, final FutureBean<T> future) {
+
+        public RetryableCallable(final Callable<T> callable, final FutureBean<T> future,
+                final FailedExecutionResult previousResult,
+                final Callables.DelayPredicate<?> resultRetryPredicate,
+                final Callables.DelayPredicate<Exception> exceptionRetryPredicate) {
             this.callable = callable;
             this.future = future;
+            this.previousResult = previousResult;
+            this.resultRetryPredicate = (Callables.DelayPredicate<Object>) resultRetryPredicate;
+            this.exceptionRetryPredicate = exceptionRetryPredicate;
         }
 
-        public RetryableCallable(final Runnable task, final Object result, final FutureBean<T> future) {
-            this.callable = new Callable() {
+        public RetryableCallable(final Runnable task, final Object result, final FutureBean<T> future,
+                @Nullable final FailedExecutionResult previousResult,
+                final Callables.DelayPredicate<?> resultRetryPredicate,
+                final Callables.DelayPredicate<Exception> exceptionRetryPredicate) {
+            this(new Callable() {
 
                 @Override
                 public Object call() throws Exception {
                     task.run();
                     return result;
                 }
-            };
-            this.future = future;
+            }, future, previousResult, resultRetryPredicate, exceptionRetryPredicate);
         }
 
         @Override
+        @SuppressFBWarnings("REC_CATCH_EXCEPTION")
         public T call() {
             try {
                 T result = callable.call();
-                if (future != null) {
-                    future.setResult(result);
+                if (this.resultRetryPredicate.apply((Object) result) >= 0) {
+                    startRetryManager();
+                    executionEvents.add(new FailedExecutionResult(null, this, 0));
+                } else {
+                    if (future != null) {
+                        future.setResult(result);
+                    }
                 }
                 return null;
             } catch (Exception e) {
-                if (retryException.apply(e)) {
+                if (this.exceptionRetryPredicate.apply(e) >= 0) {
                     startRetryManager();
-                    executionEvents.add(
-                            new FailedExecutionResult(new ExecutionException(e), future, callable, 0, false));
+                    if (previousResult != null) {
+                        final ExecutionException exception = previousResult.getException();
+                        if (exception != null) {
+                            e = Throwables.suppress(e, exception);
+                        }
+                    }
+                    executionEvents.add(new FailedExecutionResult(new ExecutionException(e), this, 0));
                 } else {
                     future.setExceptionResult(new ExecutionException(e));
                 }
@@ -202,6 +212,15 @@ public class RetryExecutor<T> extends AbstractExecutorService {
         public void run() {
             call();
         }
+
+        public FailedExecutionResult getPreviousResult() {
+            return previousResult;
+        }
+
+        public void setPreviousResult(final FailedExecutionResult previousResult) {
+            this.previousResult = previousResult;
+        }
+
     }
 
     private class RetryManager extends AbstractRunnable {
@@ -221,35 +240,11 @@ public class RetryExecutor<T> extends AbstractExecutorService {
         public void doRun() {
             while (isRunning) {
                 try {
-                    FailedExecutionResult event = executionEvents.take();
-                    final Callable<Object> callable = event.getCallable();
-                    if (event.isIsExecution()) {
-                        executionService.execute(new RetryableCallable<>(callable, event.getFuture()));
-                    } else {
-                        Pair<Integer, ExecutionException> attemptsInfo = executionAttempts.get(callable);
-                        if (attemptsInfo == null) {
-                            attemptsInfo = Pair.of(1, event.getException());
-                        } else {
-                            if (attemptsInfo.getSecond() == null) {
-                                attemptsInfo = Pair.of(attemptsInfo.getFirst() + 1, event.getException());
-                            } else {
-                                attemptsInfo = Pair.of(attemptsInfo.getFirst() + 1,
-                                        Throwables.suppress(event.getException(), attemptsInfo.getSecond()));
-                            }
-                        }
-                        int nrAttempts = attemptsInfo.getFirst();
-                        if (nrAttempts > nrTotalRetries) {
-                            executionAttempts.remove(callable);
-                            event.getFuture().setExceptionResult(attemptsInfo.getSecond());
-                        } else if (nrAttempts > nrImmediateRetries) {
-                            executionAttempts.put(callable, attemptsInfo);
-                            executionEvents.put(new FailedExecutionResult(attemptsInfo.getSecond(),
-                                    event.getFuture(), callable, delayMillis, true));
-                        } else {
-                            executionAttempts.put(callable, attemptsInfo);
-                            executionService.execute(
-                                    new RetryableCallable<>(callable, event.getFuture()));
-                        }
+                    FailedExecutionResult event = executionEvents.poll(1000, TimeUnit.SECONDS);
+                    if (event != null) {
+                        final RetryableCallable<Object> callable = event.getCallable();
+                        callable.setPreviousResult(event);
+                        executionService.execute(callable);
                     }
                 } catch (InterruptedException ex) {
                     isRunning = false;
@@ -260,41 +255,56 @@ public class RetryExecutor<T> extends AbstractExecutorService {
 
     }
 
-    public RetryExecutor(final ExecutorService exec, final int nrImmediateRetries,
-            final int nrTotalRetries, final long delayMillis, final Predicate<Exception> retryException,
-            @Nullable final BlockingQueue<Future<T>> completionQueue) {
+
+
+    public static final ParameterizedSupplier<Callables.DelayPredicate<Object>, Callable<Object>> NO_RETRY_SUPPLIER =
+            new ParameterizedSupplier<Callables.DelayPredicate<Object>, Callable<Object>>() {
+
+                    @Override
+                    public Callables.DelayPredicate<Object> get(final Callable<Object> parameter) {
+                        return Callables.DelayPredicate.NORETRY_DELAY_PREDICATE;
+                    }
+                };
+
+    public RetryExecutor(final ExecutorService exec,
+            final ParameterizedSupplier<Callables.DelayPredicate<Exception>, Callable<Object>>
+                exceptionRetryPredicateSupplier,
+            @Nullable final BlockingQueue<Future<?>> completionQueue) {
+        this(exec, (ParameterizedSupplier) NO_RETRY_SUPPLIER,
+                (ParameterizedSupplier) exceptionRetryPredicateSupplier, completionQueue);
+    }
+
+
+    public RetryExecutor(final ExecutorService exec,
+            final ParameterizedSupplier<Callables.DelayPredicate<Object>, Callable<?>>
+                    resultRetryPredicateSupplier,
+            final ParameterizedSupplier<Callables.DelayPredicate<Exception>, Callable<?>>
+                exceptionRetryPredicateSupplier,
+            @Nullable final BlockingQueue<Future<?>> completionQueue) {
         executionService = exec;
-        executionAttempts = new ConcurrentHashMap<>();
-        this.nrImmediateRetries = nrImmediateRetries;
-        this.nrTotalRetries = nrTotalRetries;
-        this.delayMillis = delayMillis;
-        this.retryException = retryException;
+        this.resultRetryPredicateSupplier = resultRetryPredicateSupplier;
+        this.exceptionRetryPredicateSupplier = exceptionRetryPredicateSupplier;
         this.completionQueue = completionQueue;
     }
 
-    @Override
     public final void shutdown() {
         shutdownRetryManager();
         executionService.shutdown();
     }
 
-    @Override
     public final List<Runnable> shutdownNow() {
         shutdownRetryManager();
         return executionService.shutdownNow();
     }
 
-    @Override
     public final boolean isShutdown() {
         return executionService.isShutdown();
     }
 
-    @Override
     public final boolean isTerminated() {
         return executionService.isTerminated();
     }
 
-    @Override
     public final boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
         try {
             this.retryManagerFuture.get();
@@ -304,11 +314,11 @@ public class RetryExecutor<T> extends AbstractExecutorService {
         return executionService.awaitTermination(timeout, unit);
     }
 
-    private FutureBean<T> createFutureBean() {
+    private FutureBean<?> createFutureBean() {
         if (completionQueue == null) {
             return new FutureBean<>();
         } else {
-            return new FutureBean<T>() {
+            return new FutureBean<Object>() {
                 @Override
                 public void done() {
                     completionQueue.add(this);
@@ -317,66 +327,44 @@ public class RetryExecutor<T> extends AbstractExecutorService {
         }
     }
 
-    @Override
-    public final <A> Future<A> submit(final Callable<A> task) {
-        FutureBean<T> result = createFutureBean();
-        executionService.execute(new RetryableCallable(task, result));
+    public final <A, E extends Exception> Future<A> submit(final Callables.TimeoutCallable<A, E> task) {
+        FutureBean<?> result = createFutureBean();
+        executionService.execute(new RetryableCallable(task, result, null,
+                resultRetryPredicateSupplier.get((Callable<Object>) task),
+                exceptionRetryPredicateSupplier.get((Callable<Object>) task)));
         return (Future<A>) result;
     }
 
-    @Override
-    public final <A> Future<A> submit(final Runnable task, final A result) {
-        FutureBean<T> resultFuture = createFutureBean();
-        executionService.execute(new RetryableCallable<>(task, result, resultFuture));
+    public final <A> Future<A> submit(final Callable<A> task) {
+        FutureBean<?> result = createFutureBean();
+        executionService.execute(new RetryableCallable(task, result, null,
+                resultRetryPredicateSupplier.get((Callable<Object>) task),
+                exceptionRetryPredicateSupplier.get((Callable<Object>) task)));
+        return (Future<A>) result;
+    }
+
+
+
+    public final <A, E extends Exception> Future<A> submit(final TimeoutRunnable<E> task, final A result) {
+        FutureBean<?> resultFuture = createFutureBean();
+        executionService.execute(new RetryableCallable<>(task, result, resultFuture, null,
+                resultRetryPredicateSupplier.get((Callable<?>) task),
+                exceptionRetryPredicateSupplier.get((Callable<?>) task)));
         return (Future<A>) resultFuture;
     }
 
-    @Override
-    public final Future<?> submit(final Runnable task) {
+    public final <E extends Exception> Future<?> submit(final TimeoutRunnable<E> task) {
         FutureBean<?> resultFuture = createFutureBean();
-        executionService.execute(new RetryableCallable(task, null, resultFuture));
+        executionService.execute(new RetryableCallable(task, null, resultFuture, null,
+         resultRetryPredicateSupplier.get((Callable<?>) task),
+                exceptionRetryPredicateSupplier.get((Callable<?>) task)));
         return resultFuture;
     }
 
-    @Override
-    public final <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> tasks)
-            throws InterruptedException {
-        List<Future<T>> result = new ArrayList<>();
-        for (Callable task : tasks) {
-            result.add(this.submit(task));
-        }
-        for (Future fut : result) {
-            try {
-                fut.get();
-                // CHECKSTYLE:OFF
-            } catch (ExecutionException ex) {
-                    //CHECKSTYLE:ON
-                // Swallow exception for now, this sexception will be thoriwn when the client will call get again..
-            }
-        }
-        return result;
+    public final <E extends Exception> void execute(final TimeoutRunnable<E> command) {
+        executionService.execute(new RetryableCallable(command, null, null, null,
+         resultRetryPredicateSupplier.get((Callable<?>) command),
+                exceptionRetryPredicateSupplier.get((Callable<?>) command)));
     }
 
-    @Override
-    public final <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> tasks,
-            final long timeout, final TimeUnit unit) throws InterruptedException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public final <T> T invokeAny(final Collection<? extends Callable<T>> tasks)
-            throws InterruptedException, ExecutionException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public final <T> T invokeAny(final Collection<? extends Callable<T>> tasks,
-            final long timeout, final TimeUnit unit) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public final void execute(final Runnable command) {
-        executionService.execute(new RetryableCallable(command, null, null));
-    }
 }

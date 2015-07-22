@@ -272,11 +272,11 @@ public final class Callables {
         }
 
         @Override
-        public final T call() throws EX, InterruptedException {
+        public final T call() throws EX, InterruptedException, TimeoutException {
             return call(mdeadline);
         }
 
-        public abstract T call(final long deadline) throws EX, InterruptedException;
+        public abstract T call(final long deadline) throws EX, InterruptedException, TimeoutException;
 
         public final long getDeadline() {
             return mdeadline;
@@ -304,20 +304,41 @@ public final class Callables {
     }
 
 
-    public interface SmartRetryPredicate<T> {
+
+
+    public interface DelayPredicate<T> {
+        /**
+         * the number or millis of delay until the next retry, or -1 for abort.
+         * @param value
+         * @return
+         */
+        int apply(T value);
+
+        DelayPredicate<Object> NORETRY_DELAY_PREDICATE = new DelayPredicate<Object>() {
+
+            @Override
+            public int apply(final Object value) {
+                return -1;
+            }
+
+        };
+    }
+
+
+    public interface TimeoutDelayPredicate<T>  {
+
         /**
          *
          * @param value
          * @param deadline
-         * @return the number or millis of delay untile the next retry, or -1 for abort.
+         * @return the number or millis of delay until the next retry, or -1 for abort.
          * @throws InterruptedException
          * @throws TimeoutException
          */
-         int apply(T value, long deadline)
-                throws InterruptedException, TimeoutException;
+         int apply(T value, long deadline);
 
 
-         SmartRetryPredicate<Object> NORETRY_FOR_RESULT = new SmartRetryPredicate<Object>() {
+         TimeoutDelayPredicate<Object> NORETRY_FOR_RESULT = new TimeoutDelayPredicate<Object>() {
 
             @Override
             public int apply(final Object value, final long deadline) {
@@ -332,9 +353,9 @@ public final class Callables {
     public static final class SmartRetryPredicate2TimeoutRetryPredicate<T>
     implements TimeoutRetryPredicate<T> {
 
-        private final SmartRetryPredicate predicate;
+        private final TimeoutDelayPredicate predicate;
 
-        public SmartRetryPredicate2TimeoutRetryPredicate(final SmartRetryPredicate<T> predicate) {
+        public SmartRetryPredicate2TimeoutRetryPredicate(final TimeoutDelayPredicate<T> predicate) {
             this.predicate = predicate;
         }
 
@@ -358,17 +379,18 @@ public final class Callables {
 
 
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
-            final SmartRetryPredicate<? super T> retryOnReturnVal,
-            final SmartRetryPredicate<Exception> retryOnException)
+            final TimeoutDelayPredicate<T> retryOnReturnVal,
+            final TimeoutDelayPredicate<Exception> retryOnException)
             throws InterruptedException, EX {
         return executeWithRetry(what, new SmartRetryPredicate2TimeoutRetryPredicate<>(retryOnReturnVal),
                 new SmartRetryPredicate2TimeoutRetryPredicate<>(retryOnException));
     }
 
    public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
-            final SmartRetryPredicate<Exception> retryOnException)
+            final TimeoutDelayPredicate<Exception> retryOnException)
             throws InterruptedException, EX {
-        return executeWithRetry(what, SmartRetryPredicate.NORETRY_FOR_RESULT, retryOnException);
+        return (T) executeWithRetry(what, (TimeoutDelayPredicate<T>) TimeoutDelayPredicate.NORETRY_FOR_RESULT,
+                retryOnException);
     }
 
     public interface TimeoutRetryPredicate<T> {
@@ -443,7 +465,13 @@ public final class Callables {
         }
         //CHECKSTYLE:ON
 
+
+        @Override
+        public abstract T call() throws EX, InterruptedException, TimeoutException;
+
     }
+
+
 
     /**
      * A callable that will be retried.
@@ -459,7 +487,7 @@ public final class Callables {
          * @throws InterruptedException
          */
         @Override
-        T call() throws EX, InterruptedException;
+        T call() throws EX, InterruptedException, TimeoutException;
 
         /**
          * method to process result (after all retries exhausted).

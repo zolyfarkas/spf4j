@@ -53,6 +53,8 @@ public final class Throwables {
 
     private static final Field CAUSE_FIELD;
 
+    private static final Field SUPPRESSED_FIELD;
+
     static {
         CAUSE_FIELD = AccessController.doPrivileged(new PrivilegedAction<Field>() {
             @Override
@@ -68,7 +70,87 @@ public final class Throwables {
             }
         });
 
+        SUPPRESSED_FIELD = AccessController.doPrivileged(new PrivilegedAction<Field>() {
+            @Override
+            public Field run() {
+                Field suppressedField;
+                try {
+                    suppressedField = Throwable.class.getDeclaredField("suppressedExceptions");
+                } catch (NoSuchFieldException | SecurityException ex) {
+                    LOG.info("No access to suppressed Exceptions", ex);
+                    return null;
+                }
+                suppressedField.setAccessible(true);
+                return suppressedField;
+            }
+        });
     }
+
+    public static int getNrSuppressedException(final Throwable t) {
+        try {
+            final List<Throwable> suppressedExceptions = (List<Throwable>) SUPPRESSED_FIELD.get(t);
+            if (suppressedExceptions != null) {
+                return suppressedExceptions.size();
+            } else {
+                return 0;
+            }
+        } catch (IllegalArgumentException | IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public static int getNrRecursiveSuppressedExceptions(final Throwable t) {
+        try {
+            final List<Throwable> suppressedExceptions = (List<Throwable>) SUPPRESSED_FIELD.get(t);
+            if (suppressedExceptions != null) {
+                int count = 0;
+                for (Throwable se : suppressedExceptions) {
+                    count += 1 + getNrRecursiveSuppressedExceptions(se);
+                }
+                return count;
+            } else {
+                return 0;
+            }
+        } catch (IllegalArgumentException | IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+
+    public static Throwable removeOldestSuppressedRecursive(final Throwable t) {
+        try {
+            final List<Throwable> suppressedExceptions = (List<Throwable>) SUPPRESSED_FIELD.get(t);
+            if (suppressedExceptions != null && !suppressedExceptions.isEmpty()) {
+                Throwable ex = suppressedExceptions.get(0);
+                if (getNrSuppressedException(ex) > 0) {
+                    return removeOldestSuppressedRecursive(ex);
+                } else {
+                    return suppressedExceptions.remove(0);
+                }
+            } else {
+                return null;
+            }
+        } catch (IllegalArgumentException | IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+
+    public static Throwable removeOldestSuppressed(final Throwable t) {
+        try {
+            final List<Throwable> suppressedExceptions = (List<Throwable>) SUPPRESSED_FIELD.get(t);
+            if (suppressedExceptions != null && !suppressedExceptions.isEmpty()) {
+                return suppressedExceptions.remove(0);
+            } else {
+                return null;
+            }
+        } catch (IllegalArgumentException | IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+
+
 
     private static void chain0(final Throwable t, final Throwable cause) {
         final Throwable rc = com.google.common.base.Throwables.getRootCause(t);
@@ -82,9 +164,7 @@ public final class Throwables {
                 public Object run() {
                     try {
                         CAUSE_FIELD.set(rc, cause);
-                    } catch (IllegalArgumentException ex) {
-                        throw new RuntimeException(ex);
-                    } catch (IllegalAccessException ex) {
+                    } catch (IllegalArgumentException | IllegalAccessException ex) {
                         throw new RuntimeException(ex);
                     }
                     return null; // nothing to return
@@ -122,15 +202,28 @@ public final class Throwables {
             result = Objects.clone(t);
         } catch (IOException ex) {
             result = t;
-            LOG.info("Unable to clone exception", t);
+            LOG.info("Unable to clone exception {}", t, ex);
         }
         chain0(result, newRootCauseChain.get(newChainIdx));
         return result;
 
     }
 
+    public static void trimCausalChain(final Throwable t, final int maxSize) {
+        List<Throwable> causalChain = com.google.common.base.Throwables.getCausalChain(t);
+        if (causalChain.size() <= maxSize)  {
+            return;
+        }
+        setCause(causalChain.get(maxSize - 1), null);
+    }
+
+
     /**
-     * Functionality equivalent for java 1.7 Throwable.addSuppressed.
+     * Functionality similar for java 1.7 Throwable.addSuppressed.
+     * 2 extra things happen:
+     *
+     * 1) limit to nr of exceptions suppressed.
+     * 2) Suppression does not mutate Exception, it clones it.
      *
      * @param <T>
      * @param t
@@ -146,6 +239,11 @@ public final class Throwables {
             } catch (IOException ex) {
                 clone = t;
                 LOG.info("Unable to clone exception", t);
+            }
+            while (getNrRecursiveSuppressedExceptions(clone) >= MAX_THROWABLE_CHAIN) {
+                if (removeOldestSuppressedRecursive(clone) == null) {
+                   throw new IllegalArgumentException("Impossible state for " + clone);
+                }
             }
             clone.addSuppressed(suppressed);
             return clone;

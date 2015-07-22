@@ -37,7 +37,9 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeoutException;
 import junit.framework.Assert;
 import org.junit.Test;
+import org.spf4j.base.ParameterizedSupplier;
 import org.spf4j.concurrent.DefaultExecutor;
+import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
 
 /**
  *
@@ -189,11 +191,23 @@ public final class ObjectPoolBuilderTest {
    private void runTest(final RecyclingSupplier<ExpensiveTestObject> pool,
             final long sleepBetweenSubmit, final long deadlockTimeout) throws InterruptedException, ExecutionException {
         Thread monitor = startDeadlockMonitor(pool, deadlockTimeout);
-        ExecutorService execService = Executors.newFixedThreadPool(10);
-        BlockingQueue<Future<Integer>> completionQueue = new LinkedBlockingDeque<>();
-        RetryExecutor<Integer> exec
-                = new RetryExecutor<>(execService, 8, 16, 100, Callables.DEFAULT_EXCEPTION_RETRY_PREDICATE,
-                 completionQueue);
+        ExecutorService execService = new LifoThreadPoolExecutorSQP(10, "test");
+        BlockingQueue<Future<?>> completionQueue = new LinkedBlockingDeque<>();
+        RetryExecutor exec
+                = new RetryExecutor(execService,
+                        new ParameterizedSupplier<Callables.DelayPredicate<Exception>, Callable<Object>>() {
+
+                    @Override
+                    public Callables.DelayPredicate<Exception> get(final Callable<Object> parameter) {
+                        return new Callables.DelayPredicate<Exception>() {
+
+                            @Override
+                            public int apply(final Exception value) {
+                                return 0;
+                            }
+                        };
+                    }
+                }, completionQueue);
         int nrTests = 1000;
         for (int i = 0; i < nrTests; i++) {
             exec.submit(new TestCallable(pool, i));

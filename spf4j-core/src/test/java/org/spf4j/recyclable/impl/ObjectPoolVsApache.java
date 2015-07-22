@@ -25,6 +25,7 @@ import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.recyclable.ObjectReturnException;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,6 +35,7 @@ import java.util.concurrent.TimeoutException;
 import junit.framework.Assert;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.junit.Test;
+import org.spf4j.base.ParameterizedSupplier;
 
 /**
  *
@@ -53,18 +55,30 @@ public final class ObjectPoolVsApache {
         final org.apache.commons.pool.impl.GenericObjectPool apool
                 = new GenericObjectPool(new ExpensiveTestObjectFactoryApache(1000, 10, 0, 1), 10);
         ExecutorService execService = Executors.newFixedThreadPool(10);
-        BlockingQueue<Future<Integer>> completionQueue = new LinkedBlockingDeque<Future<Integer>>();
-        RetryExecutor<Integer> exec
-                = new RetryExecutor<>(execService, 8, 16, 5000, Callables.DEFAULT_EXCEPTION_RETRY_PREDICATE,
-                 completionQueue);
+        BlockingQueue<Future<?>> completionQueue = new LinkedBlockingDeque<>();
+        RetryExecutor exec
+                = new RetryExecutor(execService,
+                        new ParameterizedSupplier<Callables.DelayPredicate<Exception>, Callable<Object>>() {
+
+                    @Override
+                    public Callables.DelayPredicate<Exception> get(final Callable<Object> parameter) {
+                        return new Callables.DelayPredicate<Exception>() {
+
+                            @Override
+                            public int apply(final Exception value) {
+                                return 0;
+                            }
+                        };
+                    }
+                }, completionQueue);
         long zpooltime = testPool(exec, pool, completionQueue);
         long apooltime = testPoolApache(exec, apool, completionQueue);
         Assert.assertTrue("apache pool must be slower", apooltime > zpooltime);
 
     }
 
-    private long testPool(final RetryExecutor<Integer> exec, final RecyclingSupplier<ExpensiveTestObject> pool,
-            final BlockingQueue<Future<Integer>> completionQueue) throws InterruptedException, ExecutionException {
+    private long testPool(final RetryExecutor exec, final RecyclingSupplier<ExpensiveTestObject> pool,
+            final BlockingQueue<Future<?>> completionQueue) throws InterruptedException, ExecutionException {
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < TEST_TASKS; i++) {
             exec.submit(new TestCallable(pool, i));
@@ -78,9 +92,9 @@ public final class ObjectPoolVsApache {
     }
 
 
-    private long testPoolApache(final RetryExecutor<Integer> exec,
+    private long testPoolApache(final RetryExecutor exec,
             final org.apache.commons.pool.impl.GenericObjectPool pool,
-            final BlockingQueue<Future<Integer>> completionQueue) throws InterruptedException, ExecutionException {
+            final BlockingQueue<Future<?>> completionQueue) throws InterruptedException, ExecutionException {
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < TEST_TASKS; i++) {
             exec.submit(new TestCallableApache(pool, i));

@@ -15,16 +15,15 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.base;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import junit.framework.Assert;
 import org.junit.Test;
+import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
 import org.spf4j.concurrent.RetryExecutor;
 
 /**
@@ -39,11 +38,25 @@ public final class RetryExecutorTest {
     @Test
     public void testSubmitCallable() throws InterruptedException, ExecutionException {
         System.out.println("submit");
-        RetryExecutor instance = new RetryExecutor(Executors.newFixedThreadPool(10), 3,
-                10, 100, Callables.DEFAULT_EXCEPTION_RETRY_PREDICATE, null);
+        final LifoThreadPoolExecutorSQP lifoThreadPoolExecutorSQP = new LifoThreadPoolExecutorSQP(10, "test");
+        RetryExecutor instance = new RetryExecutor(lifoThreadPoolExecutorSQP,
+                 new ParameterizedSupplier<Callables.DelayPredicate<Exception>, Callable<Object>>() {
+
+                    @Override
+                    public Callables.DelayPredicate<Exception> get(final Callable<Object> parameter) {
+                        return new Callables.DelayPredicate<Exception>() {
+
+                            @Override
+                            public int apply(final Exception value) {
+                                return 0;
+                            }
+                        };
+                    }
+                }, null);
         Future result = instance.submit(new Callable<Integer>() {
 
             private int count;
+
             @Override
             public Integer call() throws Exception {
                 System.out.println("exec " + count + " st " + System.currentTimeMillis());
@@ -56,5 +69,6 @@ public final class RetryExecutorTest {
             }
         });
         Assert.assertEquals(1, result.get());
+        instance.shutdown();
     }
 }

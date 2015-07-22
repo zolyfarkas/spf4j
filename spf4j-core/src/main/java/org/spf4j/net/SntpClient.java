@@ -75,7 +75,8 @@ public final class SntpClient {
             private int i = 0;
 
             @Override
-            public Timing call(final long deadline) throws IOException, InterruptedException {
+            @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION")// findbugs is wrong
+            public Timing call(final long deadline) throws IOException {
                 int hostIdx = Math.abs(i++) % hosts.length;
                 return requestTime(hosts[hostIdx],
                         Math.min((int) (deadline - System.currentTimeMillis()), ntpResponseTimeout));
