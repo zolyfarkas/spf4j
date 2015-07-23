@@ -196,12 +196,16 @@ public final class Runtime {
     public static final String MAC_OS_X_OS_NAME = "Mac OS X";
     private static final Path FD_FOLDER = Paths.get("/proc/" + PID + "/fd");
 
+    private static final boolean IS_MAC_OSX = MAC_OS_X_OS_NAME.equals(OS_NAME);
+
     public static boolean isMacOsx() {
-        return MAC_OS_X_OS_NAME.equals(OS_NAME);
+        return IS_MAC_OSX;
     }
 
+    private static final boolean IS_WINDOWS = OS_NAME.startsWith("Windows");
+
     public static boolean isWindows() {
-        return OS_NAME.startsWith("Windows");
+        return IS_WINDOWS;
     }
 
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
