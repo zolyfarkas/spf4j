@@ -56,6 +56,7 @@ import org.spf4j.jmx.Registry;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
+@SuppressFBWarnings("MDM_THREAD_PRIORITIES")
 public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
     /**
@@ -91,6 +92,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     private final RejectedExecutionHandler rejectionHandler;
 
     private final boolean daemonThreads;
+
+    private final int threadPriority;
 
 
     public LifoThreadPoolExecutorSQP(final int maxNrThreads, final String name) {
@@ -136,6 +139,16 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
             final int maxSize, final int maxIdleTimeMillis, final Queue<Runnable> taskQueue,
             final int queueSizeLimit, final boolean daemonThreads,
             final int spinLockCount, final RejectedExecutionHandler rejectionHandler) {
+        this(poolName, coreSize, maxSize, maxIdleTimeMillis, taskQueue, queueSizeLimit, daemonThreads,
+                spinLockCount, rejectionHandler, Thread.NORM_PRIORITY);
+    }
+
+
+    public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
+            final int maxSize, final int maxIdleTimeMillis, final Queue<Runnable> taskQueue,
+            final int queueSizeLimit, final boolean daemonThreads,
+            final int spinLockCount, final RejectedExecutionHandler rejectionHandler,
+            final int threadPriority) {
         if (coreSize > maxSize) {
             throw new IllegalArgumentException("Core size must be smaller than max size " + coreSize
                     + " < " + maxSize);
@@ -151,6 +164,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         this.taskQueue = taskQueue;
         this.queueSizeLimit = queueSizeLimit;
         this.threadQueue = new ZArrayDequeue<>(Math.min(1024, maxSize));
+        this.threadPriority = threadPriority;
         state = new PoolState(coreSize, spinLockCount, new THashSet<QueuedThread>(Math.min(maxSize, 2048)));
         this.stateLock = new ReentrantLock(false);
         this.daemonThreads = daemonThreads;
@@ -158,6 +172,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
             QueuedThread qt = new QueuedThread(poolName, threadQueue,
                     taskQueue, maxIdleTimeMillis, null, state, stateLock);
             qt.setDaemon(daemonThreads);
+            qt.setPriority(threadPriority);
             state.addThread(qt);
             qt.start();
         }
@@ -204,6 +219,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                             state, stateLock);
                     state.addThread(qt);
                     qt.setDaemon(daemonThreads);
+                    qt.setPriority(threadPriority);
                     qt.start();
                     return;
                 }
@@ -625,9 +641,16 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         return maxIdleTimeMillis;
     }
 
+    @JmxExport
     public String getPoolName() {
         return poolName;
     }
+
+    @JmxExport
+    public int getThreadPriority() {
+        return threadPriority;
+    }
+
 
     public interface RejectedExecutionHandler {
         void rejectedExecution(Runnable r, LifoThreadPoolExecutorSQP executor);

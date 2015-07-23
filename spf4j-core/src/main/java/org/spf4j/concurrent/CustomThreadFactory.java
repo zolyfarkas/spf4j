@@ -17,6 +17,7 @@
  */
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,20 +30,29 @@ public final class CustomThreadFactory implements ThreadFactory {
     private final AtomicInteger threadNumber = new AtomicInteger(1);
     private final String namePrefix;
     private final boolean daemon;
-    
+    private final int priority;
+
 
     public CustomThreadFactory(final String name, final boolean daemon) {
+        this(name, daemon, Thread.NORM_PRIORITY);
+    }
+
+    public CustomThreadFactory(final String name, final boolean daemon, final int priority) {
         SecurityManager s = System.getSecurityManager();
         group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
         namePrefix = name + POOL_NUMBER.getAndIncrement() + "-thread-";
         this.daemon = daemon;
+        this.priority = priority;
     }
 
+
     @Override
+    @SuppressFBWarnings("MDM_THREAD_PRIORITIES")
     public Thread newThread(final Runnable r) {
         Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
         t.setDaemon(daemon);
+        t.setPriority(priority);
         return t;
     }
-    
+
 }

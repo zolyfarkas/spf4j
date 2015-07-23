@@ -59,6 +59,7 @@ import org.spf4j.jmx.Registry;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
+@SuppressFBWarnings("MDM_THREAD_PRIORITIES")
 public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorService {
 
     private final Queue<Runnable> taskQueue;
@@ -74,6 +75,8 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
     private volatile int queueSizeLimit;
 
     private volatile boolean daemonThreads;
+
+    private volatile int threadPriority;
 
     private final String poolName;
 
@@ -100,6 +103,15 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
             final int maxSize, final int maxIdleTimeMillis, final Queue<Runnable> taskQueue,
             final int queueSizeLimit, final boolean daemonThreads,
             final int spinLockCount, final RejectedExecutionHandler rejectionHandler) {
+        this(poolName, coreSize, maxSize, maxIdleTimeMillis, taskQueue, queueSizeLimit, daemonThreads, spinLockCount,
+                rejectionHandler, Thread.NORM_PRIORITY);
+    }
+
+    public MutableLifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
+            final int maxSize, final int maxIdleTimeMillis, final Queue<Runnable> taskQueue,
+            final int queueSizeLimit, final boolean daemonThreads,
+            final int spinLockCount, final RejectedExecutionHandler rejectionHandler,
+            final int threadPriority) {
         if (coreSize > maxSize) {
             throw new IllegalArgumentException("Core size must be smaller than max size " + coreSize
                     + " < " + maxSize);
@@ -119,11 +131,13 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
                 new THashSet<QueuedThread>(Math.min(maxSize, 2048)),
                                 maxIdleTimeMillis);
         this.stateLock = new ReentrantLock(false);
+        this.threadPriority = threadPriority;
         for (int i = 0; i < coreSize; i++) {
             QueuedThread qt = new QueuedThread(poolName, threadQueue,
                     taskQueue, null, state, stateLock);
             state.addThread(qt);
             qt.setDaemon(daemonThreads);
+            qt.setPriority(threadPriority);
             qt.start();
         }
         maxThreadCount = maxSize;
@@ -167,6 +181,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
                             state, stateLock);
                     state.addThread(qt);
                     qt.setDaemon(daemonThreads);
+                    qt.setPriority(threadPriority);
                     qt.start();
                     return;
                 }
@@ -314,7 +329,15 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
         this.queueSizeLimit = queueSizeLimit;
     }
 
+    @JmxExport
+    public int getThreadPriority() {
+        return threadPriority;
+    }
 
+    @JmxExport
+    public void setThreadPriority(final int threadPriority) {
+        this.threadPriority = threadPriority;
+    }
 
     private static final Runnable VOID = new Runnable() {
 
