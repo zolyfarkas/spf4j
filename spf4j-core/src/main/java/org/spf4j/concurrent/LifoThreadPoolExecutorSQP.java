@@ -27,7 +27,6 @@ import java.util.Queue;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.AbstractExecutorService;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -35,6 +34,7 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.GuardedBy;
+import static org.spf4j.concurrent.RejectedExecutionHandler.REJECT_EXCEPTION_EXEC_HANDLER;
 import org.spf4j.ds.ZArrayDequeue;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
@@ -57,7 +57,7 @@ import org.spf4j.jmx.Registry;
  */
 @ParametersAreNonnullByDefault
 @SuppressFBWarnings("MDM_THREAD_PRIORITIES")
-public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
+public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService implements LifoThreadPool {
 
     /**
      * when a thread survives due core size, this the minimum wait time that core threads will wait for.
@@ -179,6 +179,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
         maxThreadCount = maxSize;
     }
 
+    @Override
     public void exportJmx() {
         Registry.export(LifoThreadPoolExecutorSQP.class.getName(), poolName, this);
     }
@@ -297,6 +298,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     }
 
     @JmxExport
+    @Override
     public boolean isDaemonThreads() {
         return daemonThreads;
     }
@@ -308,15 +310,18 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     }
 
     @JmxExport
+    @Override
     public int getThreadCount() {
         return state.getThreadCount().get();
     }
 
     @JmxExport
+    @Override
     public int getMaxThreadCount() {
         return maxThreadCount;
     }
 
+    @Override
     public ReentrantLock getStateLock() {
         return stateLock;
     }
@@ -324,6 +329,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     @JmxExport
     @SuppressFBWarnings(value = "MDM_WAIT_WITHOUT_TIMEOUT",
             justification = "Holders of this lock will not block")
+    @Override
     public int getNrQueuedTasks() {
         stateLock.lock();
         try {
@@ -334,6 +340,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
     }
 
     @JmxExport
+    @Override
     public int getQueueSizeLimit() {
         return queueSizeLimit;
     }
@@ -632,37 +639,32 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService {
                 + ", poolName=" + poolName + '}';
     }
 
+    @Override
     public Queue<Runnable> getTaskQueue() {
         return taskQueue;
     }
 
     @JmxExport
+    @Override
     public int getMaxIdleTimeMillis() {
         return maxIdleTimeMillis;
     }
 
     @JmxExport
+    @Override
     public String getPoolName() {
         return poolName;
     }
 
     @JmxExport
+    @Override
     public int getThreadPriority() {
         return threadPriority;
     }
 
 
-    public interface RejectedExecutionHandler {
-        void rejectedExecution(Runnable r, LifoThreadPoolExecutorSQP executor);
-    }
 
-    public static final RejectedExecutionHandler REJECT_EXCEPTION_EXEC_HANDLER = new RejectedExecutionHandler() {
 
-        @Override
-        public void rejectedExecution(final Runnable r, final LifoThreadPoolExecutorSQP executor) {
-            throw new RejectedExecutionException();
-        }
-    };
 
 
 }

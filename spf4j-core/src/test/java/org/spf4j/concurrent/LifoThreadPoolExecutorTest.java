@@ -50,8 +50,8 @@ public class LifoThreadPoolExecutorTest {
 
     @Test
     public void testLifoExecSQShutdownNow() throws InterruptedException, IOException {
-        LifoThreadPoolExecutorSQP executor =
-                new LifoThreadPoolExecutorSQP("test", 2, 8, 60000, 1024, 1024);
+        LifoThreadPool executor =
+                LifoThreadPoolBuilder.newBuilder().withCoreSize(2).withMaxSize(8).withQueueSizeLimit(1024).build();
         executor.execute(new Runnable() {
 
             @Override
