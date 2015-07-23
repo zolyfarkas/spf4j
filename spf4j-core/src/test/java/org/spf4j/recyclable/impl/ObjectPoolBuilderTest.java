@@ -191,7 +191,8 @@ public final class ObjectPoolBuilderTest {
    private void runTest(final RecyclingSupplier<ExpensiveTestObject> pool,
             final long sleepBetweenSubmit, final long deadlockTimeout) throws InterruptedException, ExecutionException {
         Thread monitor = startDeadlockMonitor(pool, deadlockTimeout);
-        ExecutorService execService = new LifoThreadPoolExecutorSQP(10, "test");
+        ExecutorService execService = new LifoThreadPoolExecutorSQP("test", 10, 10,
+                5000, 1024, true);
         BlockingQueue<Future<?>> completionQueue = new LinkedBlockingDeque<>();
         RetryExecutor exec
                 = new RetryExecutor(execService,
