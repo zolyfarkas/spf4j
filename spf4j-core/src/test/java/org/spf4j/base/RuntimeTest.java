@@ -62,6 +62,20 @@ public final class RuntimeTest {
     }
 
 
+    @Test(expected = InterruptedException.class)
+    public void testExitCode4() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        final Thread t = Thread.currentThread();
+        DefaultScheduler.INSTANCE.schedule(new Runnable() {
+
+            @Override
+            public void run() {
+                t.interrupt();
+            }
+        }, 1, TimeUnit.SECONDS);
+        Runtime.jrun(RuntimeTest.TestError3.class, 10000);
+    }
+
+
     public static final class TestError {
 
         public static void main(final String [] args) {

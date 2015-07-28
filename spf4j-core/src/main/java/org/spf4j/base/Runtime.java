@@ -401,18 +401,24 @@ public final class Runtime {
                     }
                 }
             });
-            int cos;
-            byte [] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
-            try {
-                while ((cos = pos.read(buffer)) >= 0) {
-                    handler.handleStdOut(buffer, cos);
+            Future<?> osh = DefaultExecutor.INSTANCE.submit(new AbstractRunnable() {
+                @Override
+                public void doRun() throws Exception {
+                    int cos;
+                    byte [] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
+                    try {
+                        while ((cos = pos.read(buffer)) >= 0) {
+                            handler.handleStdOut(buffer, cos);
+                        }
+                    } finally {
+                        ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
+                        handler.stdOutDone();
+                    }
                 }
-            } finally {
-                ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
-                handler.stdOutDone();
-            }
-            esh.get();
+            });
             int result = proc.waitFor();
+            esh.get();
+            osh.get();
             if (timedOut.get()) {
                 throw new TimeoutException("Timed out while executing: " + java.util.Arrays.toString(command)
                  + ";\n process returned " + result + ";\n output handler: " + handler);
