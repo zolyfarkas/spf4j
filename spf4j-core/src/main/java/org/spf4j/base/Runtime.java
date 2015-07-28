@@ -27,6 +27,7 @@ import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -350,6 +351,22 @@ public final class Runtime {
         }
     }
 
+    public static void killProcess(final Process proc) {
+        if (JAVA_PLATFORM.ordinal() >= Version.V1_8.ordinal()) {
+            final Class<? extends Process> aClass = proc.getClass();
+            try {
+                if ((Boolean) aClass.getMethod("isAlive").invoke(proc)) {
+                    aClass.getMethod("destroyForcibly").invoke(proc);
+                }
+            } catch (NoSuchMethodException | SecurityException |
+                    IllegalAccessException | InvocationTargetException ex) {
+                throw new RuntimeException(ex);
+            }
+        } else {
+            proc.destroy();
+        }
+    }
+
 
     @SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE") // not really lost, suppressed exceptions are used.
     public static int run(final String [] command, final ProcOutputHandler handler,
@@ -362,15 +379,9 @@ public final class Runtime {
             @Override
             public void doRun() throws Exception {
                 timedOut.set(true);
-                if (JAVA_PLATFORM.ordinal() >= Version.V1_8.ordinal()) {
-                    final Class<? extends Process> aClass = proc.getClass();
-                    if ((Boolean) aClass.getMethod("isAlive").invoke(proc)) {
-                        aClass.getMethod("destroyForcibly").invoke(proc);
-                    }
-                } else {
-                    proc.destroy();
-                }
+                killProcess(proc);
             }
+
         }, timeoutMillis, TimeUnit.MILLISECONDS);
         try (InputStream pos = proc.getInputStream();
                 InputStream pes = proc.getErrorStream();
@@ -408,7 +419,8 @@ public final class Runtime {
             } else {
                 return result;
             }
-        } catch (ExecutionException | IOException | RuntimeException ex) {
+        } catch (ExecutionException | IOException | InterruptedException | RuntimeException ex) {
+            killProcess(proc);
             if (timedOut.get()) {
                TimeoutException te = new TimeoutException("Timed out while executing: "
                        + java.util.Arrays.toString(command)
@@ -584,12 +596,17 @@ public final class Runtime {
         return ref.get() == null;
     }
 
-    public static String jrun(final Class<?> classWithMain, final long timeoutMillis, final String ... arguments)
+    public static String jrun(final Class<?> classWithMain,
+            final long timeoutMillis, final String ... arguments)
             throws IOException, InterruptedException, ExecutionException, TimeoutException {
         final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
+        return jrun(classWithMain, classPath, timeoutMillis,  arguments);
+    }
+
+    public static String jrun(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
+            final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
         final String jvmPath = JAVA_HOME + File.separatorChar + "bin" + File.separatorChar + "java";
-        String[] command = Arrays.concat(new String[] {jvmPath, "-cp", classPath, classWithMain.getName() },
-                                            arguments);
+        String[] command = Arrays.concat(new String[] {jvmPath, "-cp", classPath, classWithMain.getName() }, arguments);
         return run(command, timeoutMillis);
     }
 
