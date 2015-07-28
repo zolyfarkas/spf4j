@@ -19,10 +19,15 @@
 package org.spf4j.base;
 
 import java.io.IOException;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import junit.framework.Assert;
 import org.junit.Test;
+import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
 
 /**
@@ -74,6 +79,31 @@ public final class RuntimeTest {
         }, 1, TimeUnit.SECONDS);
         Runtime.jrun(RuntimeTest.TestError3.class, 10000);
     }
+
+    @Test(expected = CancellationException.class)
+    public void testExitCode5() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        final CountDownLatch latch  = new CountDownLatch(1);
+        Future<?> submit = DefaultExecutor.INSTANCE.submit(new AbstractRunnable() {
+
+            @Override
+            public void doRun() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+                try {
+                    Runtime.jrun(RuntimeTest.TestError3.class, 10000);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                    latch.countDown();
+                }
+            }
+        });
+        Thread.sleep(1000);
+        submit.cancel(true);
+        if (!latch.await(10, TimeUnit.SECONDS)) {
+            Assert.fail("exec should be cancelled");
+        }
+        submit.get();
+
+    }
+
 
 
     public static final class TestError {
