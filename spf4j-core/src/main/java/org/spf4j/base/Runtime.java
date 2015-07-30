@@ -404,22 +404,6 @@ public final class Runtime {
             }
 
         }, timeoutMillis, TimeUnit.MILLISECONDS);
-        ScheduledFuture<?> windowsSchedule;
-        if (Runtime.isWindows()) { // on windows waitFor cannot be interrupted
-            final Thread currentThread = Thread.currentThread();
-            windowsSchedule = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
-
-                @Override
-                public void doRun() throws Exception {
-                    if (isAlive(proc) && currentThread.isInterrupted()) {
-                        currentThread.interrupt();
-                        killProcess(proc);
-                    }
-                }
-            }, 1000, 1000, TimeUnit.MILLISECONDS);
-        } else {
-            windowsSchedule = null;
-        }
         try (InputStream pos = proc.getInputStream();
                 InputStream pes = proc.getErrorStream();
                 OutputStream pis = proc.getOutputStream()) {
@@ -453,20 +437,23 @@ public final class Runtime {
                     }
                 }
             });
-            int result = proc.waitFor();
-            esh.get();
-            osh.get();
-            if (Thread.interrupted()) {
-                throw new InterruptedException();
+            try {
+                int result = proc.waitFor();
+                esh.get();
+                osh.get();
+                if (timedOut.get()) {
+                    killProcess(proc);
+                    throw new TimeoutException("Timed out while executing: " + java.util.Arrays.toString(command)
+                     + ";\n process returned " + result + ";\n output handler: " + handler);
+                } else {
+                    return result;
+                }
+            } catch (ExecutionException | InterruptedException | RuntimeException ex) {
+                 killProcess(proc);
+                 throw ex;
             }
-            if (timedOut.get()) {
-                throw new TimeoutException("Timed out while executing: " + java.util.Arrays.toString(command)
-                 + ";\n process returned " + result + ";\n output handler: " + handler);
-            } else {
-                return result;
-            }
+
         } catch (ExecutionException | IOException | InterruptedException | RuntimeException ex) {
-            killProcess(proc);
             if (timedOut.get()) {
                TimeoutException te = new TimeoutException("Timed out while executing: "
                        + java.util.Arrays.toString(command)
@@ -478,9 +465,6 @@ public final class Runtime {
             }
         } finally {
             schedule.cancel(false);
-            if (windowsSchedule != null) {
-                windowsSchedule.cancel(false);
-            }
         }
     }
 
