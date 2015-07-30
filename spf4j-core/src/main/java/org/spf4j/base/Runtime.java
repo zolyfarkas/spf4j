@@ -151,7 +151,7 @@ public final class Runtime {
                                 ex.printStackTrace();
                             }
                         }
-                    } else if (runnables.getKey() == Integer.MAX_VALUE) {
+                    } else if (((int) runnables.getKey()) >= Integer.MAX_VALUE) {
                         Thread[] threads = new Thread[values.size()];
                         int i = 0;
                         for (Runnable runnable : values) {

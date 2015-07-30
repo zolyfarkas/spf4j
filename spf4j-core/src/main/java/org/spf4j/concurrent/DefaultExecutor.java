@@ -64,7 +64,7 @@ public final class DefaultExecutor {
         }
     }
 
-    public static void shutdown() {
+    private static void shutdown() {
         INSTANCE.shutdown();
     }
 }
