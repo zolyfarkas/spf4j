@@ -456,6 +456,9 @@ public final class Runtime {
             int result = proc.waitFor();
             esh.get();
             osh.get();
+            if (Thread.interrupted()) {
+                throw new InterruptedException();
+            }
             if (timedOut.get()) {
                 throw new TimeoutException("Timed out while executing: " + java.util.Arrays.toString(command)
                  + ";\n process returned " + result + ";\n output handler: " + handler);
