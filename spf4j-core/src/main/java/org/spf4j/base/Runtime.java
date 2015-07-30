@@ -351,11 +351,12 @@ public final class Runtime {
         }
     }
 
+
     public static void killProcess(final Process proc) {
         if (JAVA_PLATFORM.ordinal() >= Version.V1_8.ordinal()) {
             final Class<? extends Process> aClass = proc.getClass();
             try {
-                if ((Boolean) aClass.getMethod("isAlive").invoke(proc)) {
+                if (isAlive(proc)) {
                     aClass.getMethod("destroyForcibly").invoke(proc);
                 }
             } catch (NoSuchMethodException | SecurityException |
@@ -364,6 +365,26 @@ public final class Runtime {
             }
         } else {
             proc.destroy();
+        }
+    }
+
+
+    @SuppressFBWarnings("NPMC_NON_PRODUCTIVE_METHOD_CALL")
+    public static boolean isAlive(final Process proc) {
+        if (JAVA_PLATFORM.ordinal() >= Version.V1_8.ordinal()) {
+            try {
+                return (Boolean) Process.class.getMethod("isAlive").invoke(proc);
+            } catch (NoSuchMethodException | SecurityException | IllegalAccessException
+                    | InvocationTargetException ex) {
+                throw new RuntimeException(ex);
+            }
+        } else {
+            try {
+                proc.exitValue();
+                return false;
+            } catch (IllegalThreadStateException ex) {
+                return true;
+            }
         }
     }
 
@@ -383,6 +404,22 @@ public final class Runtime {
             }
 
         }, timeoutMillis, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> windowsSchedule;
+        if (Runtime.isWindows()) { // on windows waitFor cannot be interrupted
+            final Thread currentThread = Thread.currentThread();
+            windowsSchedule = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
+
+                @Override
+                public void doRun() throws Exception {
+                    if (isAlive(proc) && currentThread.isInterrupted()) {
+                        currentThread.interrupt();
+                        killProcess(proc);
+                    }
+                }
+            }, 1000, 1000, TimeUnit.MILLISECONDS);
+        } else {
+            windowsSchedule = null;
+        }
         try (InputStream pos = proc.getInputStream();
                 InputStream pes = proc.getErrorStream();
                 OutputStream pis = proc.getOutputStream()) {
@@ -438,6 +475,9 @@ public final class Runtime {
             }
         } finally {
             schedule.cancel(false);
+            if (windowsSchedule != null) {
+                windowsSchedule.cancel(false);
+            }
         }
     }
 
