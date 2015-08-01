@@ -46,6 +46,8 @@ import org.spf4j.jmx.Registry;
  * differently compared with a java Thread pool in that it prefers to spawn a thread if possible
  * instead of queueing tasks.
  *
+ * See LifoThreadPoolBuilder for conveniently constructing pools
+ *
  * There are 3 data structures involved in the transfer of tasks to Threads.
  *
  * 1) Task Queue - a classic FIFO queue. RW controlled by a reentrant lock.
@@ -354,7 +356,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
     };
 
     @SuppressFBWarnings("NO_NOTIFY_NOT_NOTIFYALL")
-    private static class QueuedThread extends Thread {
+    private static final class QueuedThread extends Thread {
 
         private static final AtomicInteger COUNT = new AtomicInteger();
 

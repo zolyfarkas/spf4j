@@ -46,6 +46,8 @@ import org.spf4j.jmx.Registry;
  * differently compared with a java Thread pool in that it prefers to spawn a thread if possible
  * instead of queueing tasks.
  *
+ * See LifoThreadPoolBuilder for conveniently constructing pools
+ *
  *
  * This pool allows changing most parameters on the fly. This comes at the cost of using some volatile vars.
  *
@@ -356,7 +358,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
     };
 
     @SuppressFBWarnings("NO_NOTIFY_NOT_NOTIFYALL")
-    private static class QueuedThread extends Thread {
+    private static final class QueuedThread extends Thread {
 
         private static final AtomicInteger COUNT = new AtomicInteger();
 
