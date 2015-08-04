@@ -75,7 +75,7 @@ public final class SntpClient {
             private int i = 0;
 
             @Override
-            @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION")// findbugs is wrong
+            @SuppressFBWarnings// findbugs is wrong ("BED_BOGUS_EXCEPTION_DECLARATION")
             public Timing call(final long deadline) throws IOException {
                 int hostIdx = Math.abs(i++) % hosts.length;
                 return requestTime(hosts[hostIdx],
