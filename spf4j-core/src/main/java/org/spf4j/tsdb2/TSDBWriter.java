@@ -87,6 +87,10 @@ public final class TSDBWriter implements Closeable, Flushable {
         encoder = EncoderFactory.get().directBinaryEncoder(bab, null);
         channel = raf.getChannel();
         channel.lock();
+        if (!append) {
+            raf.setLength(0);
+            raf.getChannel().force(true);
+        }
         if (raf.length() <= 0) {
             // new file or overwite, will write header;
             bab.write(MAGIC);

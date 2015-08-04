@@ -4,7 +4,6 @@ import com.google.common.collect.ListMultimap;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +35,10 @@ public class TSDBReaderTest {
     public void testTsdb() throws IOException {
         File TEST_FILE = File.createTempFile("test", ".tsdb2");
         long tableId;
-          try (TSDBWriter writer = new TSDBWriter(TEST_FILE, 4, "test", true)) {
+            try (TSDBWriter writer = new TSDBWriter(TEST_FILE, 4, "test", false)) {
+
+            }
+          try (TSDBWriter writer = new TSDBWriter(TEST_FILE, 4, "test", false)) {
               tableId = writer.writeTableDef(tableDef);
               final long time = System.currentTimeMillis();
               writer.writeDataRow(tableId, time, 0, 1, 2);
