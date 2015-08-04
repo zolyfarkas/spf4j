@@ -230,9 +230,17 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
 
     @Override
     protected void finalize() throws Throwable {
-        try (FileBasedLock lock = this) {
+        try {
             super.finalize();
+        } catch (Throwable t) {
+            try {
+                forceClose();
+            } catch (IOException ex) {
+                ex.addSuppressed(t);
+                throw ex;
+            }
         }
+        forceClose();
     }
 
     @Override
