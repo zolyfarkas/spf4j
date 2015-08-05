@@ -160,7 +160,7 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
         map.put(key, new Callable<V>() {
 
             @Override
-            public V call() throws Exception {
+            public V call() {
                 return value;
             }
         });

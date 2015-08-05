@@ -49,10 +49,9 @@ public final class OpenTypeConverter {
                 final Class<?> openConverterClass = Class.forName("com.sun.jmx.mbeanserver.OpenConverter");
                 GET_OPEN_TYPE = openConverterClass.getDeclaredMethod("getOpenType");
                 TO_CONVERTER = openConverterClass.getMethod("toConverter", java.lang.reflect.Type.class);
-                FROM_OPEN_VALUE = openConverterClass.getMethod("fromOpenValue",
-                                Class.forName("com.sun.jmx.mbeanserver.MXBeanLookup"), Object.class);
-                TO_OPEN_VALUE = openConverterClass.getDeclaredMethod("toOpenValue",
-                                Class.forName("com.sun.jmx.mbeanserver.MXBeanLookup"), Object.class);
+                final Class<?> mxbeanLookup = Class.forName("com.sun.jmx.mbeanserver.MXBeanLookup");
+                FROM_OPEN_VALUE = openConverterClass.getMethod("fromOpenValue", mxbeanLookup, Object.class);
+                TO_OPEN_VALUE = openConverterClass.getDeclaredMethod("toOpenValue", mxbeanLookup, Object.class);
                 AccessController.doPrivileged(new PrivilegedAction<Void>() {
 
                     @Override
@@ -64,13 +63,8 @@ public final class OpenTypeConverter {
                         return null;
                     }
                 });
-            } catch (ClassNotFoundException ex) {
-                throw new RuntimeException(ex);
-            } catch (NoSuchMethodException ex) {
-                throw new RuntimeException(ex);
-            } catch (SecurityException ex) {
-                throw new RuntimeException(ex);
-            } catch (IllegalArgumentException ex) {
+            } catch (ClassNotFoundException | NoSuchMethodException
+                    | SecurityException | IllegalArgumentException ex) {
                 throw new RuntimeException(ex);
             }
         }

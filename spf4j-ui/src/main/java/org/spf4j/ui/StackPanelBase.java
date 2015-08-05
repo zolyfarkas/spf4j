@@ -30,14 +30,12 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -58,12 +56,12 @@ public abstract class StackPanelBase extends JPanel
     protected SampleNode samples;
     protected RTree<Pair<Method, Integer>> tooltipDetail = new RTree<Pair<Method, Integer>>();
     protected int xx;
-    protected int yy;    
+    protected int yy;
     //CHECKSTYLE:ON
     private final JPopupMenu menu;
 
     public static final Color LINK_COLOR = new Color(128, 128, 128, 128);
-    
+
     public StackPanelBase(final SampleNode samples) {
         this.samples = samples;
         setPreferredSize(new Dimension(400, 20 * samples.height() + 10));
@@ -73,8 +71,8 @@ public abstract class StackPanelBase extends JPanel
         menu = buildPopupMenu(this);
         addMouseListener(this);
     }
-    
-    
+
+
         // disable finbugs since I don't care about internationalization for now.
     @edu.umd.cs.findbugs.annotations.SuppressWarnings
     private static JPopupMenu buildPopupMenu(final ActionListener listener) {
@@ -90,7 +88,7 @@ public abstract class StackPanelBase extends JPanel
         return result;
     }
 
-   
+
     @Override
     public final String getToolTipText(final MouseEvent event) {
         Point location = event.getPoint();
@@ -123,7 +121,7 @@ public abstract class StackPanelBase extends JPanel
             final Dimension dimension = new Dimension((int) size.getWidth(), height + 10);
             setPreferredSize(dimension);
             setSize(dimension);
-            
+
         } finally {
             g2.dispose();
         }
@@ -131,7 +129,7 @@ public abstract class StackPanelBase extends JPanel
 
 
     public abstract int paint(Graphics2D gr, double width, double rowHeight);
-    
+
     @Override
     public final void actionPerformed(final ActionEvent e) {
         final String actionCommand = e.getActionCommand();
@@ -152,7 +150,7 @@ public abstract class StackPanelBase extends JPanel
                 }
 
                 @Override
-                public Object getTransferData(final DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+                public Object getTransferData(final DataFlavor flavor) {
                     return detail;
                 }
             }, new ClipboardOwner() {
@@ -182,7 +180,7 @@ public abstract class StackPanelBase extends JPanel
             menu.show(this, e.getX(), e.getY());
         }
     }
-    
+
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings
     public  void mouseClicked(final MouseEvent e) {

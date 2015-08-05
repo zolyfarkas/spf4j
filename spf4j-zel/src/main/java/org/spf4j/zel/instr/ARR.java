@@ -17,11 +17,13 @@
  */
 package org.spf4j.zel.instr;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
 
+@SuppressFBWarnings("CD_CIRCULAR_DEPENDENCY")
 public final class ARR extends Instruction {
 
     private static final long serialVersionUID = 1257172216541960034L;
@@ -43,7 +45,7 @@ public final class ARR extends Instruction {
 
     @Override
     public Object[] getParameters() {
-        return new Object [] {nr};
+        return new Object[] {nr};
     }
 
 }

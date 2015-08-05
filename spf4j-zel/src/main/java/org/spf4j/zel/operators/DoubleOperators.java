@@ -17,135 +17,169 @@
  */
 package org.spf4j.zel.operators;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+@SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class DoubleOperators {
-    
+
     private DoubleOperators() {
     }
 
-    public static final class Add implements Operator<Double, Number, Number> {
+    public static final class Add extends AbstractOps<Double> {
 
-        @Override
-        public Number op(final Double a, final Number b) {
-            Class<? extends Number> claszB = b.getClass();
-            if (claszB.equals(Integer.class) || claszB.equals(Short.class)
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-                return  a + b.intValue();
-            } else if (claszB.equals(Long.class)) {
-                return a + b.longValue();
-            } else if (claszB.equals(Double.class)) {
-                return a + b.doubleValue();
-            }  else if (claszB.equals(BigInteger.class)) {
-                return a + b.doubleValue();
-            } else if (claszB.equals(BigDecimal.class)) {
-                return a + b.doubleValue();
-            } else if (claszB.equals(Float.class)) {
-                return a + b.floatValue();
-            } else {
-                throw new IllegalArgumentException(b.toString());
-            }
+        public Add() {
+            super();
+            Operator<Double, Number, Number> isbc = new Operator<Double, Number, Number>() {
+
+                @Override
+                public Number op(final Double a, final Number b) {
+                    return  a + b.intValue();
+                }
+            };
+            operations.put(Integer.class, isbc);
+            operations.put(Byte.class, isbc);
+            operations.put(Character.class, isbc);
+            operations.put(Short.class, isbc);
+            operations.put(Long.class, new Operator<Double, Number, Number>() {
+
+                @Override
+                public Number op(final Double a, final Number b) {
+                    return a + b.longValue();
+                }
+            });
+            final Operator<Double, Number, Number> dfOp = new Operator<Double, Number, Number>() {
+
+                @Override
+                public Number op(final Double a, final Number b) {
+                    return a + b.doubleValue();
+                }
+            };
+            operations.put(Double.class, dfOp);
+            operations.put(Float.class, dfOp);
+            operations.put(BigInteger.class, dfOp);
+            operations.put(BigDecimal.class, dfOp);
+
+        }
+
+    }
+
+    public static final class Sub extends AbstractOps<Double> {
+
+        public Sub() {
+            super();
+           Operator<Double, Number, Number> isbc = new Operator<Double, Number, Number>() {
+
+                @Override
+                public Number op(final Double a, final Number b) {
+                    return  a - b.intValue();
+                }
+            };
+            operations.put(Integer.class, isbc);
+            operations.put(Byte.class, isbc);
+            operations.put(Character.class, isbc);
+            operations.put(Short.class, isbc);
+            operations.put(Long.class, new Operator<Double, Number, Number>() {
+
+                @Override
+                public Number op(final Double a, final Number b) {
+                    return a - b.longValue();
+                }
+            });
+            final Operator<Double, Number, Number> dfOp = new Operator<Double, Number, Number>() {
+
+                @Override
+                public Number op(final Double a, final Number b) {
+                    return a - b.doubleValue();
+                }
+            };
+            operations.put(Double.class, dfOp);
+            operations.put(Float.class, dfOp);
+            operations.put(BigInteger.class, dfOp);
+            operations.put(BigDecimal.class, dfOp);
         }
     }
 
-    public static final class Sub implements Operator<Double, Number, Number> {
+    public static final class Mul extends AbstractOps<Double> {
 
-        @Override
-        public Number op(final Double a, final Number b) {
-            Class<? extends Number> claszB = b.getClass();
-            if (claszB.equals(Integer.class) || claszB.equals(Short.class)
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-                return a - b.intValue();
-            } else if (claszB.equals(Long.class)) {
-                return a - b.longValue();
-            } else if (claszB.equals(Double.class)) {
-                return a - b.doubleValue();
-            } else if (claszB.equals(BigInteger.class)) {
-                return a - b.doubleValue();
-            } else if (claszB.equals(BigDecimal.class)) {
-                return a - b.doubleValue();
-            } else if (claszB.equals(Float.class)) {
-                return a - b.floatValue();
-            } else {
-                throw new IllegalArgumentException(b.toString());
-            }
+        public Mul() {
+           super();
+           Operator<Double, Number, Number> isbc = new Operator<Double, Number, Number>() {
+
+                @Override
+                public Number op(final Double a, final Number b) {
+                    return  a * b.intValue();
+                }
+            };
+            operations.put(Integer.class, isbc);
+            operations.put(Byte.class, isbc);
+            operations.put(Character.class, isbc);
+            operations.put(Short.class, isbc);
+            operations.put(Long.class, new Operator<Double, Number, Number>() {
+
+                @Override
+                public Number op(final Double a, final Number b) {
+                    return a * b.longValue();
+                }
+            });
+            final Operator<Double, Number, Number> dfOp = new Operator<Double, Number, Number>() {
+
+                @Override
+                public Number op(final Double a, final Number b) {
+                    return a * b.doubleValue();
+                }
+            };
+            operations.put(Double.class, dfOp);
+            operations.put(Float.class, dfOp);
+            operations.put(BigInteger.class, dfOp);
+            operations.put(BigDecimal.class, dfOp);
+        }
+
+    }
+
+    public static final class Div extends AbstractOps<Double> {
+
+        public Div() {
+            super();
+           Operator<Double, Number, Number> isbc = new Operator<Double, Number, Number>() {
+
+                @Override
+                public Number op(final Double a, final Number b) {
+                    return  a / b.intValue();
+                }
+            };
+            operations.put(Integer.class, isbc);
+            operations.put(Byte.class, isbc);
+            operations.put(Character.class, isbc);
+            operations.put(Short.class, isbc);
+            operations.put(Long.class, new Operator<Double, Number, Number>() {
+
+                @Override
+                public Number op(final Double a, final Number b) {
+                    return a / b.longValue();
+                }
+            });
+            final Operator<Double, Number, Number> dfOp = new Operator<Double, Number, Number>() {
+
+                @Override
+                public Number op(final Double a, final Number b) {
+                    return a / b.doubleValue();
+                }
+            };
+            operations.put(Double.class, dfOp);
+            operations.put(Float.class, dfOp);
+            operations.put(BigInteger.class, dfOp);
+            operations.put(BigDecimal.class, dfOp);
         }
     }
 
-    public static final class Mul implements Operator<Double, Number, Number> {
+    public static final class Mod extends AbstractOps<Double> {
 
-        @Override
-        public Number op(final Double a, final Number b) {
-            Class<? extends Number> claszB = b.getClass();
-            if (claszB.equals(Integer.class) || claszB.equals(Short.class)
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-                return a * b.intValue();
-            } else if (claszB.equals(Long.class)) {
-                return a * b.longValue();
-            } else if (claszB.equals(Double.class)) {
-                return a * ((Double) b);
-            } else if (claszB.equals(BigInteger.class)) {
-                return a * b.doubleValue();
-            } else if (claszB.equals(BigDecimal.class)) {
-                return a * b.doubleValue();
-            } else if (claszB.equals(Double.class)) {
-                return a * b.floatValue();
-            } else {
-                throw new IllegalArgumentException(b.toString());
-            }
-        }
+
     }
 
-    public static final class Div implements Operator<Double, Number, Number> {
-
-        @Override
-        public Number op(final Double a, final Number b) {
-            Class<? extends Number> claszB = b.getClass();
-            if (claszB.equals(Integer.class) || claszB.equals(Short.class)
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-                return a / b.intValue();
-            } else if (claszB.equals(Long.class)) {
-                return a / b.longValue();
-            } else if (claszB.equals(Double.class)) {
-                return a / ((Double) b);
-            } else if (claszB.equals(BigInteger.class)) {
-                return a / b.doubleValue();
-            } else if (claszB.equals(BigDecimal.class)) {
-                return a / b.doubleValue();
-            } else if (claszB.equals(Float.class)) {
-                return a / b.floatValue();
-            } else {
-                throw new IllegalArgumentException(b.toString());
-            }
-        }
-    }
-
-    public static final class Mod implements Operator<Double, Number, Number> {
-
-        @Override
-        public Number op(final Double a, final Number b) {
-            Class<? extends Number> claszB = b.getClass();
-            if (claszB.equals(Integer.class) || claszB.equals(Short.class)
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-                return a.longValue() % b.intValue();
-            } else if (claszB.equals(Long.class)) {
-                return a.longValue() % b.longValue();
-            } else if (claszB.equals(Double.class)) {
-                return  a % b.longValue();
-            } else if (claszB.equals(BigInteger.class)) {
-                return BigInteger.valueOf(a.longValue()).mod((BigInteger) b).intValue();
-            } else if (claszB.equals(BigDecimal.class)) {
-                return BigInteger.valueOf(a.longValue()).mod(((BigDecimal) b).toBigInteger()).intValue();
-            } else if (claszB.equals(Float.class)) {
-                return  a % b.longValue();
-            } else {
-                throw new IllegalArgumentException(b.toString());
-            }
-        }
-    }
-
-    public static final class Pow implements Operator<Double, Number, Number> {
+    public static final class Pow extends AbstractOps<Double> {
 
         @Override
         public Number op(final Double a, final Number b) {
