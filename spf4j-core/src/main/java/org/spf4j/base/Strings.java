@@ -240,7 +240,11 @@ public final class Strings {
                 }
             });
         }
-        PROTECTED_STR_CONSTR_PARAM_TYPES = PROTECTED_STR_CONSTR.getParameterTypes();
+        if (PROTECTED_STR_CONSTR == null) {
+            PROTECTED_STR_CONSTR_PARAM_TYPES = null;
+        } else {
+            PROTECTED_STR_CONSTR_PARAM_TYPES = PROTECTED_STR_CONSTR.getParameterTypes();
+        }
 
     }
 
@@ -268,9 +272,7 @@ public final class Strings {
      * @return
      */
     public static String wrap(final char [] chars) {
-        if (PROTECTED_STR_CONSTR == null) {
-            return new String(chars);
-        } else {
+        if (PROTECTED_STR_CONSTR_PARAM_TYPES != null) {
             try {
                 if (PROTECTED_STR_CONSTR_PARAM_TYPES.length == 3) {
                     return PROTECTED_STR_CONSTR.newInstance(0, chars.length, chars);
@@ -281,6 +283,8 @@ public final class Strings {
                     | IllegalArgumentException | InvocationTargetException ex) {
                 throw new RuntimeException(ex);
             }
+        } else {
+            return new String(chars);
         }
     }
 
