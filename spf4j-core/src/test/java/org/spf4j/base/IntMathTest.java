@@ -11,14 +11,20 @@ public final class IntMathTest {
     @Test
     public void testRandom() {
         IntMath.XorShift32 random = new IntMath.XorShift32();
+        int sum = 0;
         for (int i = 1; i < 100; i++) {
-            System.out.println("rand " + i + " = " + random.nextInt() % 100);
+            sum += Math.abs(random.nextInt()) % 100;
         }
+        sum /= 100;
+        Assert.assertTrue(sum > 15);
 
         IntMath.XorShift128 random2 = new IntMath.XorShift128();
+        sum = 0;
         for (int i = 1; i < 100; i++) {
-            System.out.println("rand " + i + " = " + random2.nextInt() % 100);
+            sum += Math.abs(random2.nextInt()) % 100;
         }
+        sum /= 100;
+        Assert.assertTrue(sum > 15);
     }
 
 
