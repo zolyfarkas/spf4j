@@ -140,7 +140,10 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
         try {
             Csv.writeCsvRow(sw, (Object[]) info.getMeasurementNames());
             Csv.writeCsvRow(sw, (Object[]) info.getMeasurementUnits());
-            Csv.writeCsvRow(sw, get());
+            final long[] values = get();
+            if (values != null) {
+                Csv.writeCsvRow(sw, values);
+            }
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
