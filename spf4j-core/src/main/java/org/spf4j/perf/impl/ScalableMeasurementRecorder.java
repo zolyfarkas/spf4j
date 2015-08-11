@@ -17,6 +17,7 @@
  */
 package org.spf4j.perf.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.perf.MeasurementAccumulator;
@@ -50,7 +51,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     private final ThreadLocal<MeasurementAccumulator> threadLocalRecorder;
     private final ScheduledFuture<?> samplingFuture;
     private final MeasurementAccumulator processorTemplate;
-    private final AbstractRunnable persister;
+    private final Persister persister;
     private final Runnable shutdownHook;
 
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
@@ -78,24 +79,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
-        persister = new AbstractRunnable(true) {
-            private volatile long lastRun = 0;
-
-            @Override
-            public void doRun() throws IOException {
-                long currentTime = System.currentTimeMillis();
-                if (currentTime > lastRun) {
-                    lastRun = currentTime;
-                    final long[] measurements = ScalableMeasurementRecorder.this.getThenReset();
-                    if (measurements != null) {
-                        measurementStore.saveMeasurements(tableId, currentTime, measurements);
-                    }
-                } else {
-                    LOG.warn("Last measurement recording for {} was at {} current run is {}, something is wrong",
-                            processor.getInfo(), lastRun, currentTime);
-                }
-            }
-        };
+        persister = new Persister(measurementStore, tableId, processor);
         samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);
         shutdownHook = closeOnShutdown();
     }
@@ -173,12 +157,17 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     }
 
     @Override
+    @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
     public void close() {
         synchronized (processorTemplate) {
             if (!samplingFuture.isCancelled()) {
                 org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);
                 samplingFuture.cancel(false);
-                persister.run();
+                try {
+                    persister.persist(false);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
                 Registry.unregister("org.spf4j.perf.recorders",
                         processorTemplate.getInfo().getMeasuredEntity().toString());
             }
@@ -228,6 +217,41 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
             }
         }
         return (result == null) ? null : result.get();
+    }
+
+    private class Persister extends AbstractRunnable {
+
+        private final MeasurementStore measurementStore;
+        private final long tableId;
+        private final MeasurementAccumulator processor;
+
+        public Persister(final MeasurementStore measurementStore,
+                final long tableId, final MeasurementAccumulator processor) {
+            super(true);
+            this.measurementStore = measurementStore;
+            this.tableId = tableId;
+            this.processor = processor;
+        }
+        private volatile long lastRun = 0;
+
+        @Override
+        public void doRun() throws IOException {
+            persist(true);
+        }
+
+        public void persist(final boolean warn) throws IOException {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime > lastRun) {
+                lastRun = currentTime;
+                final long[] measurements = ScalableMeasurementRecorder.this.getThenReset();
+                if (measurements != null) {
+                    measurementStore.saveMeasurements(tableId, currentTime, measurements);
+                }
+            } else if (warn) {
+                LOG.warn("Last measurement recording for {} was at {} current run is {}, something is wrong",
+                        processor.getInfo(), lastRun, currentTime);
+            }
+        }
     }
 
 }

@@ -17,6 +17,7 @@
  */
 package org.spf4j.perf.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.TObjectLongMap;
 import gnu.trove.map.hash.TObjectLongHashMap;
 import java.io.Closeable;
@@ -62,7 +63,7 @@ public final class ScalableMeasurementRecorderSource implements
 
     private final TObjectLongMap<MeasurementsInfo> tableIds;
 
-    private final AbstractRunnable persister;
+    private final Persister persister;
     private final Runnable shutdownHook;
 
     ScalableMeasurementRecorderSource(final MeasurementAccumulator processor,
@@ -85,33 +86,7 @@ public final class ScalableMeasurementRecorderSource implements
 
         };
         tableIds = new TObjectLongHashMap<>();
-        persister = new AbstractRunnable(true) {
-            private volatile long lastRun = 0;
-
-            @Override
-            public void doRun() throws IOException {
-                long currentTime = System.currentTimeMillis();
-                if (currentTime > lastRun) {
-                    lastRun = currentTime;
-                    for (MeasurementAccumulator m
-                            : ScalableMeasurementRecorderSource.this.getEntitiesMeasurementsAndReset().values()) {
-                        final MeasurementsInfo info = m.getInfo();
-                        long tableId;
-                        synchronized (tableIds) {
-                            tableId = tableIds.get(info);
-                            if (tableId == 0) {
-                                tableId = database.alocateMeasurements(info, sampleTimeMillis);
-                                tableIds.put(info, tableId);
-                            }
-                        }
-                        database.saveMeasurements(tableId, currentTime, m.getThenReset());
-                    }
-                } else {
-                    LOG.warn("Last measurement recording for {} was at {} current run is {}, something is wrong",
-                            processor.getInfo(), lastRun, currentTime);
-                }
-            }
-        };
+        persister = new Persister(database, sampleTimeMillis, processor);
         samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);
         shutdownHook = closeOnShutdown();
     }
@@ -220,12 +195,17 @@ public final class ScalableMeasurementRecorderSource implements
     }
 
     @Override
+    @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
     public void close() {
         synchronized (processorTemplate) {
             if (!samplingFuture.isCancelled()) {
                 org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);
                 samplingFuture.cancel(false);
-                persister.run();
+                try {
+                    persister.persist(false);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
                 Registry.unregister("org.spf4j.perf.recorders",
                         this.processorTemplate.getInfo().getMeasuredEntity().toString());
             }
@@ -258,6 +238,50 @@ public final class ScalableMeasurementRecorderSource implements
     @JmxExport
     public void clear() {
         getEntitiesMeasurementsAndReset();
+    }
+
+    private class Persister extends AbstractRunnable {
+
+        private final MeasurementStore database;
+        private final int sampleTimeMillis;
+        private final MeasurementAccumulator processor;
+
+        public Persister(final MeasurementStore database, final int sampleTimeMillis,
+                final MeasurementAccumulator processor) {
+            super(true);
+            this.database = database;
+            this.sampleTimeMillis = sampleTimeMillis;
+            this.processor = processor;
+        }
+        private volatile long lastRun = 0;
+
+        @Override
+        public void doRun() throws IOException {
+            persist(true);
+        }
+
+        public void persist(final boolean warn) throws IOException {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime > lastRun) {
+                lastRun = currentTime;
+                for (MeasurementAccumulator m
+                        : ScalableMeasurementRecorderSource.this.getEntitiesMeasurementsAndReset().values()) {
+                    final MeasurementsInfo info = m.getInfo();
+                    long tableId;
+                    synchronized (tableIds) {
+                        tableId = tableIds.get(info);
+                        if (tableId == 0) {
+                            tableId = database.alocateMeasurements(info, sampleTimeMillis);
+                            tableIds.put(info, tableId);
+                        }
+                    }
+                    database.saveMeasurements(tableId, currentTime, m.getThenReset());
+                }
+            } else if (warn) {
+                LOG.warn("Last measurement recording for {} was at {} current run is {}, something is wrong",
+                        processor.getInfo(), lastRun, currentTime);
+            }
+        }
     }
 
 
