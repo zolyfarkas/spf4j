@@ -33,7 +33,7 @@ import org.spf4j.annotations.RecorderSourceInstance;
 /**
  * Aspect that measures execution time and does performance logging
  * for all methods annotated with: PerformanceMonitor annotation.
- * 
+ *
  * @author zoly
  */
 @Aspect
@@ -41,8 +41,8 @@ public final class PerformanceMonitorAspect {
 
     private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitorAspect.class);
     private static final LoadingCache<Class<? extends RecorderSourceInstance>, MeasurementRecorderSource> REC_SOURCES =
-            new UnboundedLoadingCache<Class<? extends RecorderSourceInstance>, MeasurementRecorderSource>(
-                    32, new CacheLoader<Class<? extends RecorderSourceInstance>, MeasurementRecorderSource>() {
+            new UnboundedLoadingCache<>(32,
+                    new CacheLoader<Class<? extends RecorderSourceInstance>, MeasurementRecorderSource>() {
         @Override
         public MeasurementRecorderSource load(final Class<? extends RecorderSourceInstance> key) throws Exception {
             return (MeasurementRecorderSource) key.getField("INSTANCE").get(null);
