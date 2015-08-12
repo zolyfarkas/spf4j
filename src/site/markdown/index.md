@@ -102,7 +102,7 @@ Callable<?> monitoredCallable =
 @PerformanceMonitor(warnThresholdMillis=1, errorThresholdMillis=100, recorderSource = RecorderSourceInstance.Rs5m.class)
 ```
 
- Start your jvm with Aspectj load time weaver:
+ Start your jvm with Aspectj(1.7.x if you use java 1.7 or 1.8.x if you use java 1.8) load time weaver:
 
 ```
 -javaagent:${project.build.directory}/lib/aspectjweaver-${aspectj.version}.jar
@@ -116,7 +116,9 @@ Callable<?> monitoredCallable =
 <aspect name="org.spf4j.perf.aspects.PerformanceMonitorAspect"/>
 </aspects>
 <weaver options="-verbose">
-<include within="com.*..*"/>
+    <!-- make sure the classes you want to apply aspects to are included -->
+    <include within="com..*"/>
+    <include within="org.spf4j.perf.aspects.PerformanceMonitorAspect"/>
 </weaver>
 </aspectj>
 ```
@@ -216,7 +218,9 @@ Callable<?> monitoredCallable =
         
     }
 ...
+        // Create object
         JmxTest testObj = new JmxTest();
+        // Expose object via JMX (JmxExport annotated methods)
         Registry.export("test", "Test", testObj);
 
  
@@ -463,6 +467,8 @@ Template.doOnSupplied(new Handler<PooledObject, SomeException>() {
  This is alleviated by the maintenance process which can bring back unused local object to the global pool.
 
 ## 7. Other utilities
+
+ Lifo Threadpool: org.spf4j.concurrent.LifoThreadPoolBuilder
 
  Retry utility implementation: see org.spf4j.base.Callables and org.spf4j.concurrent.RetryExecutor
 
