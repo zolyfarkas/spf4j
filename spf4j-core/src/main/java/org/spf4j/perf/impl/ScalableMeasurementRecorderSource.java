@@ -275,7 +275,10 @@ public final class ScalableMeasurementRecorderSource implements
                             tableIds.put(info, tableId);
                         }
                     }
-                    database.saveMeasurements(tableId, currentTime, m.getThenReset());
+                    final long[] data = m.getThenReset();
+                    if (data != null) {
+                        database.saveMeasurements(tableId, currentTime, data);
+                    }
                 }
             } else if (warn) {
                 LOG.warn("Last measurement recording for {} was at {} current run is {}, something is wrong",
