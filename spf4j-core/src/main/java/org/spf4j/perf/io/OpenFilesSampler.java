@@ -20,12 +20,14 @@ package org.spf4j.perf.io;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.impl.RecorderFactory;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.Runtime;
@@ -115,6 +117,12 @@ import org.spf4j.jmx.Registry;
     @JmxExport
     public static synchronized boolean isStarted() {
         return samplingFuture != null;
+    }
+
+
+    @JmxExport
+    public static String getLsof() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        return Runtime.getLsofOutput();
     }
 
     private static class AccumulatorRunnable extends AbstractRunnable implements Closeable {
