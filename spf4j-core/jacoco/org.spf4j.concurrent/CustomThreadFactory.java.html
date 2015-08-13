@@ -17,6 +17,7 @@
  */
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -24,26 +25,35 @@ import java.util.concurrent.atomic.AtomicInteger;
  * The default thread factory
  */
 public final class CustomThreadFactory implements ThreadFactory {
-<span class="fc" id="L27">    private static final AtomicInteger POOL_NUMBER = new AtomicInteger(1);</span>
+<span class="fc" id="L28">    private static final AtomicInteger POOL_NUMBER = new AtomicInteger(1);</span>
     private final ThreadGroup group;
-<span class="fc" id="L29">    private final AtomicInteger threadNumber = new AtomicInteger(1);</span>
+<span class="fc" id="L30">    private final AtomicInteger threadNumber = new AtomicInteger(1);</span>
     private final String namePrefix;
     private final boolean daemon;
-    
+    private final int priority;
 
-<span class="fc" id="L34">    public CustomThreadFactory(final String name, final boolean daemon) {</span>
-<span class="fc" id="L35">        SecurityManager s = System.getSecurityManager();</span>
-<span class="pc bpc" id="L36" title="1 of 2 branches missed.">        group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();</span>
-<span class="fc" id="L37">        namePrefix = name + POOL_NUMBER.getAndIncrement() + &quot;-thread-&quot;;</span>
-<span class="fc" id="L38">        this.daemon = daemon;</span>
-<span class="fc" id="L39">    }</span>
+
+    public CustomThreadFactory(final String name, final boolean daemon) {
+<span class="nc" id="L37">        this(name, daemon, Thread.NORM_PRIORITY);</span>
+<span class="nc" id="L38">    }</span>
+
+<span class="fc" id="L40">    public CustomThreadFactory(final String name, final boolean daemon, final int priority) {</span>
+<span class="fc" id="L41">        SecurityManager s = System.getSecurityManager();</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">        group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();</span>
+<span class="fc" id="L43">        namePrefix = name + POOL_NUMBER.getAndIncrement() + &quot;-thread-&quot;;</span>
+<span class="fc" id="L44">        this.daemon = daemon;</span>
+<span class="fc" id="L45">        this.priority = priority;</span>
+<span class="fc" id="L46">    }</span>
+
 
     @Override
+    @SuppressFBWarnings(&quot;MDM_THREAD_PRIORITIES&quot;)
     public Thread newThread(final Runnable r) {
-<span class="fc" id="L43">        Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);</span>
-<span class="fc" id="L44">        t.setDaemon(daemon);</span>
-<span class="fc" id="L45">        return t;</span>
+<span class="fc" id="L52">        Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);</span>
+<span class="fc" id="L53">        t.setDaemon(daemon);</span>
+<span class="fc" id="L54">        t.setPriority(priority);</span>
+<span class="fc" id="L55">        return t;</span>
     }
-    
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

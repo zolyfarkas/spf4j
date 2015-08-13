@@ -12,8 +12,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import javax.net.SocketFactory;
 import org.spf4j.base.Handler;
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
+import org.spf4j.perf.impl.ms.Id2Info;
 import static org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore.writeMetric;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
@@ -33,45 +34,45 @@ public final class GraphiteTcpStore implements MeasurementStore {
         private final int port;
         private final SocketFactory socketFactory;
 
-<span class="nc" id="L36">        public WriterSupplierFactory(final SocketFactory socketFactory, final String hostName, final int port) {</span>
-<span class="nc" id="L37">            this.hostName = hostName;</span>
-<span class="nc" id="L38">            this.port = port;</span>
-<span class="nc" id="L39">            this.socketFactory = socketFactory;</span>
-<span class="nc" id="L40">        }</span>
+<span class="nc" id="L37">        public WriterSupplierFactory(final SocketFactory socketFactory, final String hostName, final int port) {</span>
+<span class="nc" id="L38">            this.hostName = hostName;</span>
+<span class="nc" id="L39">            this.port = port;</span>
+<span class="nc" id="L40">            this.socketFactory = socketFactory;</span>
+<span class="nc" id="L41">        }</span>
 
         @Override
         public Writer create() throws ObjectCreationException {
             Socket socket;
             try {
-<span class="nc" id="L46">                socket = socketFactory.createSocket(hostName, port);</span>
-<span class="nc" id="L47">            } catch (IOException ex) {</span>
-<span class="nc" id="L48">                throw new ObjectCreationException(ex);</span>
-<span class="nc" id="L49">            }</span>
+<span class="nc" id="L47">                socket = socketFactory.createSocket(hostName, port);</span>
+<span class="nc" id="L48">            } catch (IOException ex) {</span>
+<span class="nc" id="L49">                throw new ObjectCreationException(ex);</span>
+<span class="nc" id="L50">            }</span>
             try {
-<span class="nc" id="L51">                return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), Charsets.UTF_8));</span>
-<span class="nc" id="L52">            } catch (IOException ex) {</span>
+<span class="nc" id="L52">                return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), Charsets.UTF_8));</span>
+<span class="nc" id="L53">            } catch (IOException ex) {</span>
                 try {
-<span class="nc" id="L54">                    socket.close();</span>
-<span class="nc" id="L55">                } catch (IOException ex1) {</span>
-<span class="nc" id="L56">                    ex1.addSuppressed(ex);</span>
-<span class="nc" id="L57">                    throw new ObjectCreationException(ex1);</span>
-<span class="nc" id="L58">                }</span>
-<span class="nc" id="L59">                throw new ObjectCreationException(ex);</span>
+<span class="nc" id="L55">                    socket.close();</span>
+<span class="nc" id="L56">                } catch (IOException ex1) {</span>
+<span class="nc" id="L57">                    ex1.addSuppressed(ex);</span>
+<span class="nc" id="L58">                    throw new ObjectCreationException(ex1);</span>
+<span class="nc" id="L59">                }</span>
+<span class="nc" id="L60">                throw new ObjectCreationException(ex);</span>
             }
         }
 
         @Override
         public void dispose(final Writer object) throws ObjectDisposeException {
             try {
-<span class="nc" id="L66">                object.close();</span>
-<span class="nc" id="L67">            } catch (IOException ex) {</span>
-<span class="nc" id="L68">                throw new ObjectDisposeException(ex);</span>
-<span class="nc" id="L69">            }</span>
-<span class="nc" id="L70">        }</span>
+<span class="nc" id="L67">                object.close();</span>
+<span class="nc" id="L68">            } catch (IOException ex) {</span>
+<span class="nc" id="L69">                throw new ObjectDisposeException(ex);</span>
+<span class="nc" id="L70">            }</span>
+<span class="nc" id="L71">        }</span>
 
         @Override
         public boolean validate(final Writer object, final Exception e) {
-<span class="nc bnc" id="L74" title="All 4 branches missed.">            return e == null || !(Throwables.getRootCause(e) instanceof IOException);</span>
+<span class="nc bnc" id="L75" title="All 4 branches missed.">            return e == null || !(Throwables.getRootCause(e) instanceof IOException);</span>
         }
 
     }
@@ -81,35 +82,34 @@ public final class GraphiteTcpStore implements MeasurementStore {
     private final InetSocketAddress address;
 
     public GraphiteTcpStore(final String hostPort) throws ObjectCreationException, URISyntaxException {
-<span class="nc" id="L84">        this(new URI(&quot;graphiteTcp://&quot; + hostPort));</span>
-<span class="nc" id="L85">    }</span>
-    
+<span class="nc" id="L85">        this(new URI(&quot;graphiteTcp://&quot; + hostPort));</span>
+<span class="nc" id="L86">    }</span>
+
     public GraphiteTcpStore(final URI uri) throws ObjectCreationException {
-<span class="nc" id="L88">        this(uri.getHost(), uri.getPort());</span>
-<span class="nc" id="L89">    }</span>
-    
+<span class="nc" id="L89">        this(uri.getHost(), uri.getPort());</span>
+<span class="nc" id="L90">    }</span>
+
     public GraphiteTcpStore(final String hostName, final int port) throws ObjectCreationException {
-<span class="nc" id="L92">        this(hostName, port, SocketFactory.getDefault());</span>
-<span class="nc" id="L93">    }</span>
+<span class="nc" id="L93">        this(hostName, port, SocketFactory.getDefault());</span>
+<span class="nc" id="L94">    }</span>
 
     public GraphiteTcpStore(final String hostName, final int port, final SocketFactory socketFactory)
-<span class="nc" id="L96">            throws ObjectCreationException {</span>
-<span class="nc" id="L97">        address = new InetSocketAddress(hostName, port);</span>
-<span class="nc" id="L98">        socketWriterSupplier = new RecyclingSupplierBuilder&lt;Writer&gt;(1,</span>
+<span class="nc" id="L97">            throws ObjectCreationException {</span>
+<span class="nc" id="L98">        address = new InetSocketAddress(hostName, port);</span>
+<span class="nc" id="L99">        socketWriterSupplier = new RecyclingSupplierBuilder&lt;Writer&gt;(1,</span>
                 new WriterSupplierFactory(socketFactory, hostName, port)).build();
-<span class="nc" id="L100">    }</span>
+<span class="nc" id="L101">    }</span>
 
     @Override
-    public void alocateMeasurements(final EntityMeasurementsInfo measurement, final int sampleTimeMillis) {
-        // DO NOTHING.
-<span class="nc" id="L105">    }</span>
+    public long alocateMeasurements(final MeasurementsInfo measurement, final int sampleTimeMillis) {
+<span class="nc" id="L105">        return Id2Info.getId(measurement);</span>
+    }
 
     @Override
-    public void saveMeasurements(final EntityMeasurementsInfo measurementInfo,
-            final long timeStampMillis, final int sampleTimeMillis, final long... measurements) throws IOException {
-
+    public void saveMeasurements(final long tableId,
+            final long timeStampMillis, final long... measurements) throws IOException {
         try {
-<span class="nc" id="L112">            Template.doOnSupplied(new HandlerImpl(measurements, measurementInfo, timeStampMillis),</span>
+<span class="nc" id="L112">            Template.doOnSupplied(new HandlerImpl(measurements, Id2Info.getInfo(tableId), timeStampMillis),</span>
                     socketWriterSupplier, 3, 1000, 60000);
 <span class="nc" id="L114">        } catch (InterruptedException ex) {</span>
 <span class="nc" id="L115">            throw new RuntimeException(ex);</span>
@@ -136,10 +136,10 @@ public final class GraphiteTcpStore implements MeasurementStore {
     private static class HandlerImpl implements Handler&lt;Writer, IOException&gt; {
 
         private final long[] measurements;
-        private final EntityMeasurementsInfo measurementInfo;
+        private final MeasurementsInfo measurementInfo;
         private final long timeStampMillis;
 
-        public HandlerImpl(final long[] measurements, final EntityMeasurementsInfo measurementInfo,
+        public HandlerImpl(final long[] measurements, final MeasurementsInfo measurementInfo,
 <span class="nc" id="L143">                final long timeStampMillis) {</span>
 <span class="nc" id="L144">            this.measurements = measurements;</span>
 <span class="nc" id="L145">            this.measurementInfo = measurementInfo;</span>
@@ -160,6 +160,6 @@ public final class GraphiteTcpStore implements MeasurementStore {
     public void flush() {
         // No buffering yet
 <span class="nc" id="L162">    }</span>
-    
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

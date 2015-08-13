@@ -17,11 +17,13 @@
  */
 package org.spf4j.concurrent;
 
-import com.google.common.util.concurrent.MoreExecutors;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.spf4j.base.AbstractRunnable;
+import static org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_MILLIS;
 
 /**
  *
@@ -29,17 +31,41 @@ import java.util.concurrent.TimeUnit;
  */
 public final class DefaultExecutor {
 
-<span class="nc" id="L32">    private DefaultExecutor() {</span>
-<span class="nc" id="L33">    }</span>
-    
-<span class="fc" id="L35">    public static final ExecutorService INSTANCE = MoreExecutors.getExitingExecutorService(</span>
-            new ThreadPoolExecutor(Integer.getInteger(&quot;default.executor.coreThreads&quot;, 0), Integer.MAX_VALUE,
-            60L, TimeUnit.SECONDS,
-            new SynchronousQueue&lt;Runnable&gt;(),
-            new CustomThreadFactory(&quot;DefaultExecutor&quot;, false)));
-    
-    public static void shutdown() {
-<span class="nc" id="L42">        INSTANCE.shutdown();</span>
-<span class="nc" id="L43">    }</span>
+<span class="nc" id="L34">    private DefaultExecutor() {</span>
+<span class="nc" id="L35">    }</span>
+
+    static {
+<span class="fc" id="L38">        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {</span>
+
+            @Override
+            public void doRun() throws InterruptedException {
+<span class="fc" id="L42">                shutdown();</span>
+<span class="fc" id="L43">                INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L44">                List&lt;Runnable&gt; remaining = INSTANCE.shutdownNow();</span>
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">                if (remaining.size() &gt; 0) {</span>
+<span class="nc" id="L46">                    System.err.println(&quot;Remaining tasks: &quot; + remaining);</span>
+                }
+<span class="fc" id="L48">            }</span>
+        });
+    }
+
+    public static final ExecutorService INSTANCE;
+    static {
+<span class="fc" id="L54">        final int coreThreads = Integer.getInteger(&quot;defaultExecutor.coreThreads&quot;, 0);</span>
+<span class="fc" id="L55">        final int maxIdleMillis = Integer.getInteger(&quot;defaultExecutor.maxIdleMillis&quot;, 60000);</span>
+<span class="fc" id="L56">        final boolean isDaemon = Boolean.getBoolean(&quot;defaultExecutor.daemon&quot;);</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">        if (&quot;spf4j&quot;.equalsIgnoreCase(System.getProperty(&quot;defaultExecutor.implementation&quot;, &quot;spf4j&quot;))) {</span>
+<span class="fc" id="L58">            INSTANCE = new LifoThreadPoolExecutorSQP(&quot;defaultExecutor&quot;, coreThreads,</span>
+                    Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon, Integer.getInteger(&quot;defaultExecutor.spinlockCount&quot;,
+                            1024));
+        } else {
+<span class="nc" id="L62">            INSTANCE = new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,</span>
+                new SynchronousQueue&lt;Runnable&gt;(), new CustomThreadFactory(&quot;DefaultExecutor&quot;, isDaemon));
+        }
+<span class="fc" id="L65">    }</span>
+
+    private static void shutdown() {
+<span class="fc" id="L68">        INSTANCE.shutdown();</span>
+<span class="fc" id="L69">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

@@ -173,29 +173,29 @@ public final class Strings {
 
     //String(char[] value, boolean share) {
     private static final Constructor&lt;String&gt; PROTECTED_STR_CONSTR;
+    private static final Class&lt;?&gt; [] PROTECTED_STR_CONSTR_PARAM_TYPES;
 
     static {
-<span class="fc" id="L178">        CHARS_FIELD = AccessController.doPrivileged(new PrivilegedAction&lt;Field&gt;() {</span>
+<span class="fc" id="L179">        CHARS_FIELD = AccessController.doPrivileged(new PrivilegedAction&lt;Field&gt;() {</span>
                 @Override
                 public Field run() {
                     Field charsField;
                     try {
-<span class="fc" id="L183">                        charsField = String.class.getDeclaredField(&quot;value&quot;);</span>
-<span class="nc" id="L184">                    } catch (NoSuchFieldException ex) {</span>
-<span class="nc" id="L185">                        LOG.info(&quot;char array stealing from String not supported&quot;, ex);</span>
-<span class="nc" id="L186">                        charsField = null;</span>
-<span class="nc" id="L187">                    } catch (SecurityException ex) {</span>
-<span class="nc" id="L188">                        throw new RuntimeException(ex);</span>
-<span class="pc" id="L189">                    }</span>
-<span class="pc bpc" id="L190" title="1 of 2 branches missed.">                    if (charsField != null) {</span>
-<span class="fc" id="L191">                        charsField.setAccessible(true);</span>
-                    }
-<span class="fc" id="L193">                    return charsField;</span>
+<span class="fc" id="L184">                        charsField = String.class.getDeclaredField(&quot;value&quot;);</span>
+<span class="fc" id="L185">                        charsField.setAccessible(true);</span>
+<span class="nc" id="L186">                    } catch (NoSuchFieldException ex) {</span>
+<span class="nc" id="L187">                        LOG.info(&quot;char array stealing from String not supported&quot;, ex);</span>
+<span class="nc" id="L188">                        charsField = null;</span>
+<span class="nc" id="L189">                    } catch (SecurityException ex) {</span>
+<span class="nc" id="L190">                        throw new RuntimeException(ex);</span>
+<span class="pc" id="L191">                    }</span>
+<span class="fc" id="L192">                    return charsField;</span>
                 }
             });
 
-<span class="pc bpc" id="L197" title="1 of 2 branches missed.">        if (Runtime.JAVA_PLATFORM.ordinal() &gt;= Runtime.Version.V1_8.ordinal()) {</span>
-            //String(int offset, int count, char value[]) {
+<span class="pc bpc" id="L196" title="1 of 2 branches missed.">        if (Runtime.JAVA_PLATFORM.ordinal() &gt;= Runtime.Version.V1_8.ordinal()) {</span>
+            // up until u45 String(int offset, int count, char value[]) {
+            // u45 reverted to: String(char[] value, boolean share) {
 <span class="nc" id="L199">        PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction&lt;Constructor&lt;String&gt;&gt;() {</span>
                 @Override
                 public Constructor&lt;String&gt; run() {
@@ -204,32 +204,46 @@ public final class Strings {
 <span class="nc" id="L204">                        constr = String.class.getDeclaredConstructor(int.class, int.class, char[].class);</span>
 <span class="nc" id="L205">                        constr.setAccessible(true);</span>
 <span class="nc" id="L206">                    } catch (NoSuchMethodException ex) {</span>
-<span class="nc" id="L207">                        LOG.info(&quot;building String from char[] fast not supported&quot;, ex);</span>
-<span class="nc" id="L208">                        constr = null;</span>
-<span class="nc" id="L209">                    } catch (SecurityException ex) {</span>
-<span class="nc" id="L210">                        throw new RuntimeException(ex);</span>
-<span class="nc" id="L211">                    }</span>
-<span class="nc" id="L212">                    return constr;</span>
+                        try {
+<span class="nc" id="L208">                            constr = String.class.getDeclaredConstructor(char[].class, boolean.class);</span>
+<span class="nc" id="L209">                            constr.setAccessible(true);</span>
+<span class="nc" id="L210">                        } catch (NoSuchMethodException ex2) {</span>
+<span class="nc" id="L211">                            ex2.addSuppressed(ex);</span>
+<span class="nc" id="L212">                            LOG.info(&quot;building String from char[] fast not supported&quot;, ex2);</span>
+<span class="nc" id="L213">                            constr = null;</span>
+<span class="nc" id="L214">                        } catch (SecurityException ex2) {</span>
+<span class="nc" id="L215">                            ex2.addSuppressed(ex);</span>
+<span class="nc" id="L216">                            throw new RuntimeException(ex2);</span>
+<span class="nc" id="L217">                        }</span>
+<span class="nc" id="L218">                    } catch (SecurityException ex) {</span>
+<span class="nc" id="L219">                        throw new RuntimeException(ex);</span>
+<span class="nc" id="L220">                    }</span>
+<span class="nc" id="L221">                    return constr;</span>
                 }
             });
 
         } else {
-<span class="fc" id="L217">        PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction&lt;Constructor&lt;String&gt;&gt;() {</span>
+<span class="fc" id="L226">        PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction&lt;Constructor&lt;String&gt;&gt;() {</span>
                 @Override
                 public Constructor&lt;String&gt; run() {
                     Constructor&lt;String&gt; constr;
                     try {
-<span class="fc" id="L222">                        constr = String.class.getDeclaredConstructor(char[].class, boolean.class);</span>
-<span class="fc" id="L223">                        constr.setAccessible(true);</span>
-<span class="nc" id="L224">                    } catch (NoSuchMethodException ex) {</span>
-<span class="nc" id="L225">                        LOG.info(&quot;building String from char[] fast not supported&quot;, ex);</span>
-<span class="nc" id="L226">                        constr = null;</span>
-<span class="nc" id="L227">                    } catch (SecurityException ex) {</span>
-<span class="nc" id="L228">                        throw new RuntimeException(ex);</span>
-<span class="pc" id="L229">                    }</span>
-<span class="fc" id="L230">                    return constr;</span>
+<span class="fc" id="L231">                        constr = String.class.getDeclaredConstructor(char[].class, boolean.class);</span>
+<span class="fc" id="L232">                        constr.setAccessible(true);</span>
+<span class="nc" id="L233">                    } catch (NoSuchMethodException ex) {</span>
+<span class="nc" id="L234">                        LOG.info(&quot;building String from char[] fast not supported&quot;, ex);</span>
+<span class="nc" id="L235">                        constr = null;</span>
+<span class="nc" id="L236">                    } catch (SecurityException ex) {</span>
+<span class="nc" id="L237">                        throw new RuntimeException(ex);</span>
+<span class="pc" id="L238">                    }</span>
+<span class="fc" id="L239">                    return constr;</span>
                 }
             });
+        }
+<span class="pc bpc" id="L243" title="1 of 2 branches missed.">        if (PROTECTED_STR_CONSTR == null) {</span>
+<span class="nc" id="L244">            PROTECTED_STR_CONSTR_PARAM_TYPES = null;</span>
+        } else {
+<span class="fc" id="L246">            PROTECTED_STR_CONSTR_PARAM_TYPES = PROTECTED_STR_CONSTR.getParameterTypes();</span>
         }
 
     }
@@ -240,13 +254,13 @@ public final class Strings {
      * @return
      */
     public static char [] steal(final String str) {
-<span class="pc bpc" id="L243" title="1 of 2 branches missed.">        if (CHARS_FIELD == null) {</span>
-<span class="nc" id="L244">            return str.toCharArray();</span>
+<span class="pc bpc" id="L257" title="1 of 2 branches missed.">        if (CHARS_FIELD == null) {</span>
+<span class="nc" id="L258">            return str.toCharArray();</span>
         } else {
             try {
-<span class="fc" id="L247">                return (char []) CHARS_FIELD.get(str);</span>
-<span class="nc" id="L248">            } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
-<span class="nc" id="L249">                throw new RuntimeException(ex);</span>
+<span class="fc" id="L261">                return (char []) CHARS_FIELD.get(str);</span>
+<span class="nc" id="L262">            } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
+<span class="nc" id="L263">                throw new RuntimeException(ex);</span>
             }
         }
     }
@@ -258,159 +272,179 @@ public final class Strings {
      * @return
      */
     public static String wrap(final char [] chars) {
-<span class="pc bpc" id="L261" title="1 of 2 branches missed.">        if (PROTECTED_STR_CONSTR == null) {</span>
-<span class="nc" id="L262">            return new String(chars);</span>
-        } else {
+<span class="pc bpc" id="L275" title="1 of 2 branches missed.">        if (PROTECTED_STR_CONSTR_PARAM_TYPES != null) {</span>
             try {
-<span class="pc bpc" id="L265" title="1 of 2 branches missed.">                if (Runtime.JAVA_PLATFORM.ordinal() &gt;= Runtime.Version.V1_8.ordinal()) {</span>
-<span class="nc" id="L266">                    return PROTECTED_STR_CONSTR.newInstance(0, chars.length, chars);</span>
+<span class="pc bpc" id="L277" title="1 of 2 branches missed.">                if (PROTECTED_STR_CONSTR_PARAM_TYPES.length == 3) {</span>
+<span class="nc" id="L278">                    return PROTECTED_STR_CONSTR.newInstance(0, chars.length, chars);</span>
                 } else {
-<span class="fc" id="L268">                    return PROTECTED_STR_CONSTR.newInstance(chars, Boolean.TRUE);</span>
+<span class="fc" id="L280">                    return PROTECTED_STR_CONSTR.newInstance(chars, Boolean.TRUE);</span>
                 }
-<span class="nc" id="L270">            } catch (InstantiationException | IllegalAccessException</span>
+<span class="nc" id="L282">            } catch (InstantiationException | IllegalAccessException</span>
                     | IllegalArgumentException | InvocationTargetException ex) {
-<span class="nc" id="L272">                throw new RuntimeException(ex);</span>
+<span class="nc" id="L284">                throw new RuntimeException(ex);</span>
             }
+        } else {
+<span class="nc" id="L287">            return new String(chars);</span>
         }
     }
 
-<span class="fc" id="L277">    private static final ThreadLocal&lt;CharsetEncoder&gt; UTF8_ENCODER = new ThreadLocal&lt;CharsetEncoder&gt;() {</span>
+<span class="fc" id="L291">    private static final ThreadLocal&lt;CharsetEncoder&gt; UTF8_ENCODER = new ThreadLocal&lt;CharsetEncoder&gt;() {</span>
 
         @Override
         protected CharsetEncoder initialValue() {
-<span class="fc" id="L281">            return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)</span>
+<span class="fc" id="L295">            return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)</span>
                     .onUnmappableCharacter(CodingErrorAction.REPLACE);
         }
 
     };
 
-<span class="fc" id="L287">    private static final ThreadLocal&lt;CharsetDecoder&gt; UTF8_DECODER = new ThreadLocal&lt;CharsetDecoder&gt;() {</span>
+<span class="fc" id="L301">    private static final ThreadLocal&lt;CharsetDecoder&gt; UTF8_DECODER = new ThreadLocal&lt;CharsetDecoder&gt;() {</span>
 
         @Override
         protected CharsetDecoder initialValue() {
-<span class="fc" id="L291">            return Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)</span>
+<span class="fc" id="L305">            return Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)</span>
                     .onUnmappableCharacter(CodingErrorAction.REPLACE);
         }
 
     };
 
 
+    public static CharsetEncoder getUTF8CharsetEncoder() {
+<span class="nc" id="L313">        return UTF8_ENCODER.get();</span>
+    }
+
+    public static CharsetDecoder getUTF8CharsetDecoder() {
+<span class="nc" id="L317">        return UTF8_DECODER.get();</span>
+    }
+
     @SuppressFBWarnings(&quot;SUA_SUSPICIOUS_UNINITIALIZED_ARRAY&quot;)
     public static byte[] encode(final CharsetEncoder ce, final char[] ca, final int off, final int len) {
-<span class="pc bpc" id="L300" title="1 of 2 branches missed.">        if (len == 0) {</span>
-<span class="nc" id="L301">            return Arrays.EMPTY_BYTE_ARRAY;</span>
+<span class="pc bpc" id="L322" title="1 of 2 branches missed.">        if (len == 0) {</span>
+<span class="nc" id="L323">            return Arrays.EMPTY_BYTE_ARRAY;</span>
         }
-<span class="fc" id="L303">        int en = (int) (len * (double) ce.maxBytesPerChar());</span>
-<span class="fc" id="L304">        byte[] ba = Arrays.getBytesTmp(en);</span>
-<span class="pc bpc" id="L305" title="1 of 2 branches missed.">        if (ce instanceof ArrayEncoder) {</span>
-<span class="fc" id="L306">            int blen = ((ArrayEncoder) ce).encode(ca, off, len, ba);</span>
-<span class="fc" id="L307">            return java.util.Arrays.copyOf(ba, blen);</span>
+<span class="fc" id="L325">        byte[] ba = Arrays.getBytesTmp(getmaxNrBytes(ce, len));</span>
+<span class="fc" id="L326">        int nrBytes = encode(ce, ca, off, len, ba);</span>
+<span class="fc" id="L327">        return java.util.Arrays.copyOf(ba, nrBytes);</span>
+    }
+
+    public static int getmaxNrBytes(final CharsetEncoder ce, final int nrChars) {
+<span class="fc" id="L331">        return (int) (nrChars * (double) ce.maxBytesPerChar());</span>
+    }
+
+
+    public static int encode(final CharsetEncoder ce, final char[] ca, final int off, final int len,
+            final byte [] targetArray) {
+<span class="pc bpc" id="L337" title="1 of 2 branches missed.">        if (len == 0) {</span>
+<span class="nc" id="L338">            return 0;</span>
+        }
+<span class="pc bpc" id="L340" title="1 of 2 branches missed.">        if (ce instanceof ArrayEncoder) {</span>
+<span class="fc" id="L341">            return ((ArrayEncoder) ce).encode(ca, off, len, targetArray);</span>
         } else {
-<span class="nc" id="L309">            ce.reset();</span>
-<span class="nc" id="L310">            ByteBuffer bb = ByteBuffer.wrap(ba);</span>
-<span class="nc" id="L311">            CharBuffer cb = CharBuffer.wrap(ca, off, len);</span>
+<span class="nc" id="L343">            ce.reset();</span>
+<span class="nc" id="L344">            ByteBuffer bb = ByteBuffer.wrap(targetArray);</span>
+<span class="nc" id="L345">            CharBuffer cb = CharBuffer.wrap(ca, off, len);</span>
             try {
-<span class="nc" id="L313">                CoderResult cr = ce.encode(cb, bb, true);</span>
-<span class="nc bnc" id="L314" title="All 2 branches missed.">                if (!cr.isUnderflow()) {</span>
-<span class="nc" id="L315">                    cr.throwException();</span>
+<span class="nc" id="L347">                CoderResult cr = ce.encode(cb, bb, true);</span>
+<span class="nc bnc" id="L348" title="All 2 branches missed.">                if (!cr.isUnderflow()) {</span>
+<span class="nc" id="L349">                    cr.throwException();</span>
                 }
-<span class="nc" id="L317">                cr = ce.flush(bb);</span>
-<span class="nc bnc" id="L318" title="All 2 branches missed.">                if (!cr.isUnderflow()) {</span>
-<span class="nc" id="L319">                    cr.throwException();</span>
+<span class="nc" id="L351">                cr = ce.flush(bb);</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">                if (!cr.isUnderflow()) {</span>
+<span class="nc" id="L353">                    cr.throwException();</span>
                 }
-<span class="nc" id="L321">            } catch (CharacterCodingException x) {</span>
-<span class="nc" id="L322">                throw new Error(x);</span>
-<span class="nc" id="L323">            }</span>
-<span class="nc" id="L324">            return java.util.Arrays.copyOf(ba, bb.position());</span>
+<span class="nc" id="L355">            } catch (CharacterCodingException x) {</span>
+<span class="nc" id="L356">                throw new Error(x);</span>
+<span class="nc" id="L357">            }</span>
+<span class="nc" id="L358">            return bb.position();</span>
         }
     }
 
 
     @SuppressFBWarnings(&quot;SUA_SUSPICIOUS_UNINITIALIZED_ARRAY&quot;)
     public static String decode(final CharsetDecoder cd, final byte[] ba, final int off, final int len) {
-<span class="pc bpc" id="L331" title="1 of 2 branches missed.">        if (len == 0) {</span>
-<span class="nc" id="L332">            return &quot;&quot;;</span>
+<span class="pc bpc" id="L365" title="1 of 2 branches missed.">        if (len == 0) {</span>
+<span class="nc" id="L366">            return &quot;&quot;;</span>
         }
-<span class="fc" id="L334">        int en = (int) (len * (double) cd.maxCharsPerByte());</span>
-<span class="fc" id="L335">        char[] ca = Arrays.getCharsTmp(en);</span>
-<span class="pc bpc" id="L336" title="1 of 2 branches missed.">        if (cd instanceof ArrayDecoder) {</span>
-<span class="fc" id="L337">            int clen = ((ArrayDecoder) cd).decode(ba, off, len, ca);</span>
-<span class="fc" id="L338">            return new String(ca, 0, clen);</span>
+<span class="fc" id="L368">        int en = (int) (len * (double) cd.maxCharsPerByte());</span>
+<span class="fc" id="L369">        char[] ca = Arrays.getCharsTmp(en);</span>
+<span class="pc bpc" id="L370" title="1 of 2 branches missed.">        if (cd instanceof ArrayDecoder) {</span>
+<span class="fc" id="L371">            int clen = ((ArrayDecoder) cd).decode(ba, off, len, ca);</span>
+<span class="fc" id="L372">            return new String(ca, 0, clen);</span>
         }
-<span class="nc" id="L340">        cd.reset();</span>
-<span class="nc" id="L341">        ByteBuffer bb = ByteBuffer.wrap(ba, off, len);</span>
-<span class="nc" id="L342">        CharBuffer cb = CharBuffer.wrap(ca);</span>
+<span class="nc" id="L374">        cd.reset();</span>
+<span class="nc" id="L375">        ByteBuffer bb = ByteBuffer.wrap(ba, off, len);</span>
+<span class="nc" id="L376">        CharBuffer cb = CharBuffer.wrap(ca);</span>
         try {
-<span class="nc" id="L344">            CoderResult cr = cd.decode(bb, cb, true);</span>
-<span class="nc bnc" id="L345" title="All 2 branches missed.">            if (!cr.isUnderflow()) {</span>
-<span class="nc" id="L346">                cr.throwException();</span>
+<span class="nc" id="L378">            CoderResult cr = cd.decode(bb, cb, true);</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">            if (!cr.isUnderflow()) {</span>
+<span class="nc" id="L380">                cr.throwException();</span>
             }
-<span class="nc" id="L348">            cr = cd.flush(cb);</span>
-<span class="nc bnc" id="L349" title="All 2 branches missed.">            if (!cr.isUnderflow()) {</span>
-<span class="nc" id="L350">                cr.throwException();</span>
+<span class="nc" id="L382">            cr = cd.flush(cb);</span>
+<span class="nc bnc" id="L383" title="All 2 branches missed.">            if (!cr.isUnderflow()) {</span>
+<span class="nc" id="L384">                cr.throwException();</span>
             }
-<span class="nc" id="L352">        } catch (CharacterCodingException x) {</span>
-<span class="nc" id="L353">            throw new Error(x);</span>
-<span class="nc" id="L354">        }</span>
-<span class="nc" id="L355">        return new String(ca, 0, cb.position());</span>
+<span class="nc" id="L386">        } catch (CharacterCodingException x) {</span>
+<span class="nc" id="L387">            throw new Error(x);</span>
+<span class="nc" id="L388">        }</span>
+<span class="nc" id="L389">        return new String(ca, 0, cb.position());</span>
     }
 
 
     public static String fromUtf8(final byte [] bytes) {
-<span class="fc" id="L360">        return decode(UTF8_DECODER.get(), bytes, 0, bytes.length);</span>
+<span class="fc" id="L394">        return decode(UTF8_DECODER.get(), bytes, 0, bytes.length);</span>
     }
 
     public static String fromUtf8(final byte [] bytes, final int startIdx, final int length) {
-<span class="fc" id="L364">        return decode(UTF8_DECODER.get(), bytes, startIdx, length);</span>
+<span class="fc" id="L398">        return decode(UTF8_DECODER.get(), bytes, startIdx, length);</span>
     }
 
 
     public static byte [] toUtf8(final String str) {
-<span class="fc" id="L369">        final char[] chars = steal(str);</span>
-<span class="fc" id="L370">        return encode(UTF8_ENCODER.get(), chars, 0, chars.length);</span>
+<span class="fc" id="L403">        final char[] chars = steal(str);</span>
+<span class="fc" id="L404">        return encode(UTF8_ENCODER.get(), chars, 0, chars.length);</span>
     }
 
 
     public static int compareTo(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
-<span class="fc" id="L375">        int i = 0;</span>
-<span class="fc" id="L376">        final int sl = s.length();</span>
-<span class="fc" id="L377">        final int tl = t.length();</span>
-<span class="pc bpc" id="L378" title="1 of 4 branches missed.">        while (i &lt; sl &amp;&amp; i &lt; tl) {</span>
-<span class="fc" id="L379">            char a = s.charAt(i);</span>
-<span class="fc" id="L380">            char b = t.charAt(i);</span>
-<span class="fc" id="L381">            int diff = a - b;</span>
-<span class="pc bpc" id="L382" title="1 of 2 branches missed.">            if (diff != 0) {</span>
-<span class="nc" id="L383">                return diff;</span>
+<span class="fc" id="L409">        int i = 0;</span>
+<span class="fc" id="L410">        final int sl = s.length();</span>
+<span class="fc" id="L411">        final int tl = t.length();</span>
+<span class="pc bpc" id="L412" title="1 of 4 branches missed.">        while (i &lt; sl &amp;&amp; i &lt; tl) {</span>
+<span class="fc" id="L413">            char a = s.charAt(i);</span>
+<span class="fc" id="L414">            char b = t.charAt(i);</span>
+<span class="fc" id="L415">            int diff = a - b;</span>
+<span class="pc bpc" id="L416" title="1 of 2 branches missed.">            if (diff != 0) {</span>
+<span class="nc" id="L417">                return diff;</span>
             }
-<span class="fc" id="L385">            i++;</span>
-<span class="fc" id="L386">        }</span>
-<span class="fc" id="L387">        return sl - tl;</span>
+<span class="fc" id="L419">            i++;</span>
+<span class="fc" id="L420">        }</span>
+<span class="fc" id="L421">        return sl - tl;</span>
     }
 
     public static boolean equals(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
-<span class="fc" id="L391">        final int sl = s.length();</span>
-<span class="fc" id="L392">        final int tl = t.length();</span>
-<span class="pc bpc" id="L393" title="1 of 2 branches missed.">        if (sl != tl) {</span>
-<span class="nc" id="L394">            return false;</span>
+<span class="fc" id="L425">        final int sl = s.length();</span>
+<span class="fc" id="L426">        final int tl = t.length();</span>
+<span class="fc bfc" id="L427" title="All 2 branches covered.">        if (sl != tl) {</span>
+<span class="fc" id="L428">            return false;</span>
         } else {
-<span class="fc bfc" id="L396" title="All 2 branches covered.">            for (int i = 0; i &lt; sl; i++) {</span>
-<span class="pc bpc" id="L397" title="1 of 2 branches missed.">                if (s.charAt(i) != t.charAt(i)) {</span>
-<span class="nc" id="L398">                    return false;</span>
+<span class="fc bfc" id="L430" title="All 2 branches covered.">            for (int i = 0; i &lt; sl; i++) {</span>
+<span class="fc bfc" id="L431" title="All 2 branches covered.">                if (s.charAt(i) != t.charAt(i)) {</span>
+<span class="fc" id="L432">                    return false;</span>
                 }
             }
-<span class="fc" id="L401">            return true;</span>
+<span class="fc" id="L435">            return true;</span>
         }
     }
 
 
 
     public static CharSequence subSequence(final CharSequence seq, final int startIdx, final int endIdx) {
-<span class="pc bpc" id="L408" title="1 of 4 branches missed.">        if (startIdx == 0  &amp;&amp; endIdx == seq.length()) {</span>
-<span class="fc" id="L409">            return seq;</span>
-<span class="fc bfc" id="L410" title="All 2 branches covered.">        } else if (startIdx &gt;= endIdx) {</span>
-<span class="fc" id="L411">            return &quot;&quot;;</span>
+<span class="pc bpc" id="L442" title="1 of 4 branches missed.">        if (startIdx == 0  &amp;&amp; endIdx == seq.length()) {</span>
+<span class="fc" id="L443">            return seq;</span>
+<span class="fc bfc" id="L444" title="All 2 branches covered.">        } else if (startIdx &gt;= endIdx) {</span>
+<span class="fc" id="L445">            return &quot;&quot;;</span>
         } else {
-<span class="fc" id="L413">            return new SubSequence(seq, endIdx - startIdx, startIdx);</span>
+<span class="fc" id="L447">            return new SubSequence(seq, endIdx - startIdx, startIdx);</span>
         }
     }
 
@@ -420,54 +454,52 @@ public final class Strings {
         private final int length;
         private final int startIdx;
 
-<span class="fc" id="L423">        public SubSequence(final CharSequence underlyingSequence, final int length, final int startIdx) {</span>
-<span class="fc" id="L424">            this.underlyingSequence = underlyingSequence;</span>
-<span class="fc" id="L425">            this.length = length;</span>
-<span class="fc" id="L426">            this.startIdx = startIdx;</span>
-<span class="fc" id="L427">        }</span>
+<span class="fc" id="L457">        public SubSequence(final CharSequence underlyingSequence, final int length, final int startIdx) {</span>
+<span class="fc" id="L458">            this.underlyingSequence = underlyingSequence;</span>
+<span class="fc" id="L459">            this.length = length;</span>
+<span class="fc" id="L460">            this.startIdx = startIdx;</span>
+<span class="fc" id="L461">        }</span>
 
         @Override
         public int length() {
-<span class="fc" id="L431">            return length;</span>
+<span class="fc" id="L465">            return length;</span>
         }
 
         @Override
         public char charAt(final int index) {
-<span class="fc" id="L436">            return underlyingSequence.charAt(startIdx + index);</span>
+<span class="fc" id="L470">            return underlyingSequence.charAt(startIdx + index);</span>
         }
 
         @Override
         public CharSequence subSequence(final int start, final int end) {
-<span class="nc" id="L441">           return Strings.subSequence(underlyingSequence, startIdx + start, startIdx + end);</span>
+<span class="nc" id="L475">           return Strings.subSequence(underlyingSequence, startIdx + start, startIdx + end);</span>
         }
 
         @Override
         public String toString() {
-<span class="fc" id="L446">            char [] chars = new char[length];</span>
-<span class="fc" id="L447">            int idx = startIdx;</span>
-<span class="fc bfc" id="L448" title="All 2 branches covered.">            for (int i = 0; i &lt; length; i++, idx++) {</span>
-<span class="fc" id="L449">                chars[i] = underlyingSequence.charAt(idx);</span>
+<span class="fc" id="L480">            char [] chars = new char[length];</span>
+<span class="fc" id="L481">            int idx = startIdx;</span>
+<span class="fc bfc" id="L482" title="All 2 branches covered.">            for (int i = 0; i &lt; length; i++, idx++) {</span>
+<span class="fc" id="L483">                chars[i] = underlyingSequence.charAt(idx);</span>
             }
-<span class="fc" id="L451">            return Strings.wrap(chars);</span>
+<span class="fc" id="L485">            return Strings.wrap(chars);</span>
         }
 
     }
 
     public static boolean endsWith(final CharSequence qc, final CharSequence with) {
-<span class="nc" id="L457">        int l = qc.length();</span>
-<span class="nc" id="L458">        int start = l - with.length();</span>
-<span class="nc bnc" id="L459" title="All 2 branches missed.">        if (start &gt;= 0) {</span>
-<span class="nc bnc" id="L460" title="All 2 branches missed.">            for (int i = start, j = 0; i &lt; l; i++, j++) {</span>
-<span class="nc bnc" id="L461" title="All 2 branches missed.">                if (qc.charAt(i) != qc.charAt(j)) {</span>
-<span class="nc" id="L462">                    return false;</span>
+<span class="nc" id="L491">        int l = qc.length();</span>
+<span class="nc" id="L492">        int start = l - with.length();</span>
+<span class="nc bnc" id="L493" title="All 2 branches missed.">        if (start &gt;= 0) {</span>
+<span class="nc bnc" id="L494" title="All 2 branches missed.">            for (int i = start, j = 0; i &lt; l; i++, j++) {</span>
+<span class="nc bnc" id="L495" title="All 2 branches missed.">                if (qc.charAt(i) != qc.charAt(j)) {</span>
+<span class="nc" id="L496">                    return false;</span>
                 }
             }
-<span class="nc" id="L465">            return true;</span>
+<span class="nc" id="L499">            return true;</span>
         } else {
-<span class="nc" id="L467">            return false;</span>
+<span class="nc" id="L501">            return false;</span>
         }
     }
-
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

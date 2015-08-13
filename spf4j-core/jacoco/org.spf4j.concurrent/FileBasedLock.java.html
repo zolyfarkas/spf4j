@@ -230,38 +230,47 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
 
     @Override
     protected void finalize() throws Throwable {
-<span class="nc" id="L233">        try (FileBasedLock lock = this) {</span>
+        try {
 <span class="nc" id="L234">            super.finalize();</span>
-<span class="nc bnc" id="L235" title="All 8 branches missed.">        }</span>
-<span class="nc" id="L236">    }</span>
+<span class="nc" id="L235">        } catch (Throwable t) {</span>
+            try {
+<span class="nc" id="L237">                forceClose();</span>
+<span class="nc" id="L238">            } catch (IOException ex) {</span>
+<span class="nc" id="L239">                ex.addSuppressed(t);</span>
+<span class="nc" id="L240">                throw ex;</span>
+<span class="nc" id="L241">            }</span>
+<span class="nc" id="L242">        }</span>
+<span class="nc" id="L243">        forceClose();</span>
+<span class="nc" id="L244">    }</span>
 
     @Override
     @WillClose
     public void close() throws IOException {
-<span class="fc" id="L241">        Thread o = owner;</span>
-<span class="pc bpc" id="L242" title="1 of 2 branches missed.">        if (o == null) {</span>
-<span class="fc" id="L243">            file.close();</span>
-<span class="nc bnc" id="L244" title="All 2 branches missed.">        } else if (Thread.currentThread().equals(o)) {</span>
+<span class="fc" id="L249">        Thread o = owner;</span>
+<span class="pc bpc" id="L250" title="1 of 2 branches missed.">        if (o == null) {</span>
+<span class="fc" id="L251">            file.close();</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">        } else if (Thread.currentThread().equals(o)) {</span>
             try {
-<span class="nc" id="L246">                file.close();</span>
+<span class="nc" id="L254">                file.close();</span>
             } finally {
-<span class="nc" id="L248">                unlockInternal();</span>
-<span class="nc" id="L249">            }</span>
+<span class="nc" id="L256">                unlockInternal();</span>
+<span class="nc" id="L257">            }</span>
         } else {
-<span class="nc" id="L251">            throw new IllegalStateException(&quot;Lock &quot; + this + &quot; not owned by current thread &quot; + Thread.currentThread());</span>
+<span class="nc" id="L259">            throw new IllegalStateException(&quot;Lock &quot; + this + &quot; not owned by current thread &quot; + Thread.currentThread());</span>
         }
-<span class="fc" id="L253">    }</span>
+<span class="fc" id="L261">    }</span>
 
     @WillClose
     public void forceClose() throws IOException {
-<span class="nc" id="L257">        file.close();</span>
-<span class="nc" id="L258">    }</span>
+<span class="nc" id="L265">        file.close();</span>
+<span class="nc" id="L266">    }</span>
 
     private void writeHolderInfo() throws IOException {
-<span class="fc" id="L261">        file.seek(0);</span>
-<span class="fc" id="L262">        byte [] data = org.spf4j.base.Runtime.PROCESS_NAME.getBytes(Charsets.UTF_8);</span>
-<span class="fc" id="L263">        file.write(data);</span>
-<span class="fc" id="L264">        file.setLength(data.length);</span>
-<span class="fc" id="L265">    }</span>
+<span class="fc" id="L269">        file.seek(0);</span>
+<span class="fc" id="L270">        byte [] data = org.spf4j.base.Runtime.PROCESS_NAME.getBytes(Charsets.UTF_8);</span>
+<span class="fc" id="L271">        file.write(data);</span>
+<span class="fc" id="L272">        file.setLength(data.length);</span>
+<span class="fc" id="L273">        file.getChannel().force(true);</span>
+<span class="fc" id="L274">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

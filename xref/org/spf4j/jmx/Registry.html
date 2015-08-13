@@ -27,217 +27,254 @@
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  
 <a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">package</strong> org.spf4j.jmx;
 <a class="jxr_linenumber" name="L21" href="#L21">21</a>  
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> java.lang.annotation.Annotation;
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> java.lang.management.ManagementFactory;
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.Method;
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.Modifier;
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> java.util.HashMap;
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nullable;
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> javax.management.InstanceAlreadyExistsException;
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> javax.management.InstanceNotFoundException;
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> javax.management.MBeanRegistrationException;
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> javax.management.MBeanServer;
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> javax.management.NotCompliantMBeanException;
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> javax.management.ObjectName;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Reflections;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Strings;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/jmx/Registry.html">Registry</a> {
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>      
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>      <strong class="jxr_keyword">private</strong> <a href="../../../org/spf4j/jmx/Registry.html">Registry</a>() { }
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> java.lang.annotation.Annotation;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> java.lang.management.ManagementFactory;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.Method;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.Modifier;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> java.util.HashMap;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> java.util.Properties;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nullable;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> javax.management.InstanceAlreadyExistsException;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> javax.management.InstanceNotFoundException;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> javax.management.MBeanRegistrationException;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> javax.management.MBeanServer;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> javax.management.NotCompliantMBeanException;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> javax.management.ObjectName;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Reflections;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Strings;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/jmx/Registry.html">Registry</a> {
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>  
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> MBeanServer MBEAN_SERVER = ManagementFactory.getPlatformMBeanServer();
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <strong class="jxr_keyword">private</strong> <a href="../../../org/spf4j/jmx/Registry.html">Registry</a>() { }
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>  
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> register(<strong class="jxr_keyword">final</strong> ObjectName objectName, <strong class="jxr_keyword">final</strong> Object mbean) {
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>          <strong class="jxr_keyword">if</strong> (MBEAN_SERVER.isRegistered(objectName)) {
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>              <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>                  MBEAN_SERVER.unregisterMBean(objectName);
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>              } <strong class="jxr_keyword">catch</strong> (InstanceNotFoundException ex) {
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>                  <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>              } <strong class="jxr_keyword">catch</strong> (MBeanRegistrationException ex) {
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>                  <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>              }
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>          }
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>          <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>              MBEAN_SERVER.registerMBean(mbean, objectName);
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>          } <strong class="jxr_keyword">catch</strong> (InstanceAlreadyExistsException ex) {
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>          } <strong class="jxr_keyword">catch</strong> (MBeanRegistrationException ex) {
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>          } <strong class="jxr_keyword">catch</strong> (NotCompliantMBeanException ex) {
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> MBeanServer MBEAN_SERVER = ManagementFactory.getPlatformMBeanServer();
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Map&lt;ObjectName, Object&gt; REGISTERED = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">synchronized</strong> Object registerMBean(<strong class="jxr_keyword">final</strong> ObjectName objectName, <strong class="jxr_keyword">final</strong> Object mbean) {
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>          Object replaced = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>          <strong class="jxr_keyword">if</strong> (MBEAN_SERVER.isRegistered(objectName)) {
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>              <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>                  replaced = REGISTERED.remove(objectName);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>                  MBEAN_SERVER.unregisterMBean(objectName);
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>              } <strong class="jxr_keyword">catch</strong> (InstanceNotFoundException | MBeanRegistrationException ex) {
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>                  <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>              }
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          }
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>              MBEAN_SERVER.registerMBean(mbean, objectName);
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          } <strong class="jxr_keyword">catch</strong> (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException ex) {
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>          }
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>      }
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>  
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> register(<strong class="jxr_keyword">final</strong> String domain, <strong class="jxr_keyword">final</strong> String name, <strong class="jxr_keyword">final</strong> Object object) {
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>          register(ExportedValuesMBean.createObjectName(domain, name), object);
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>      }
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>      
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> unregister(<strong class="jxr_keyword">final</strong> Object object) {
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>          <strong class="jxr_keyword">final</strong> Class&lt;? <strong class="jxr_keyword">extends</strong> Object&gt; aClass = object.getClass();
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>          unregister(aClass.getPackage().getName(), aClass.getSimpleName());
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>      }
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>  
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> unregister(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; object) {
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>          unregister(object.getPackage().getName(), object.getSimpleName());
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>      }
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>  
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> unregister(<strong class="jxr_keyword">final</strong> String packageName, <strong class="jxr_keyword">final</strong> String mbeanName) {
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>          ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>          <strong class="jxr_keyword">if</strong> (MBEAN_SERVER.isRegistered(objectName)) {
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>              <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>                  MBEAN_SERVER.unregisterMBean(objectName);
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>              } <strong class="jxr_keyword">catch</strong> (InstanceNotFoundException ex) {
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>                  <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>              } <strong class="jxr_keyword">catch</strong> (MBeanRegistrationException ex) {
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>                  <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>              }
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>          }
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>          <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>              MBEAN_SERVER.unregisterMBean(objectName);
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>          } <strong class="jxr_keyword">catch</strong> (InstanceNotFoundException ex) {
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>          } <strong class="jxr_keyword">catch</strong> (MBeanRegistrationException ex) {
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>          }
-<a class="jxr_linenumber" name="L96" href="#L96">96</a>      }
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>  
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> export(<strong class="jxr_keyword">final</strong> Object object) {
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>          <strong class="jxr_keyword">final</strong> Class&lt;? <strong class="jxr_keyword">extends</strong> Object&gt; aClass = object.getClass();
-<a class="jxr_linenumber" name="L100" href="#L100">100</a>         export(aClass.getPackage().getName(), aClass.getSimpleName(), object);
-<a class="jxr_linenumber" name="L101" href="#L101">101</a>     }
-<a class="jxr_linenumber" name="L102" href="#L102">102</a>     
-<a class="jxr_linenumber" name="L103" href="#L103">103</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> export(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; object) {
-<a class="jxr_linenumber" name="L104" href="#L104">104</a>         export(object.getPackage().getName(), object.getSimpleName(), object);
-<a class="jxr_linenumber" name="L105" href="#L105">105</a>     }
-<a class="jxr_linenumber" name="L106" href="#L106">106</a>     
-<a class="jxr_linenumber" name="L107" href="#L107">107</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> export(<strong class="jxr_keyword">final</strong> String packageName, <strong class="jxr_keyword">final</strong> String mbeanName, <strong class="jxr_keyword">final</strong> Object ... objects) {
-<a class="jxr_linenumber" name="L108" href="#L108">108</a>         
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>         Map&lt;String, ExportedValueImpl&gt; exportedAttributes = <strong class="jxr_keyword">new</strong> HashMap&lt;String, ExportedValueImpl&gt;();
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>         Map&lt;String, ExportedOperationImpl&gt; exportedOps = <strong class="jxr_keyword">new</strong> HashMap&lt;String, ExportedOperationImpl&gt;();
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>         <strong class="jxr_keyword">boolean</strong> haveToPrependClass = objects.length &gt; 1;
-<a class="jxr_linenumber" name="L112" href="#L112">112</a>         <strong class="jxr_keyword">for</strong> (Object object : objects) {
-<a class="jxr_linenumber" name="L113" href="#L113">113</a>  
-<a class="jxr_linenumber" name="L114" href="#L114">114</a>             <strong class="jxr_keyword">if</strong> (object instanceof Class) {
-<a class="jxr_linenumber" name="L115" href="#L115">115</a>                 <strong class="jxr_keyword">for</strong> (Method method : ((Class&lt;?&gt;) object).getMethods()) {
-<a class="jxr_linenumber" name="L116" href="#L116">116</a>                     <strong class="jxr_keyword">if</strong> (Modifier.isStatic(method.getModifiers())) {
-<a class="jxr_linenumber" name="L117" href="#L117">117</a>                         Annotation [] annotations = method.getAnnotations();
-<a class="jxr_linenumber" name="L118" href="#L118">118</a>                         <strong class="jxr_keyword">for</strong> (Annotation annot : annotations) {
-<a class="jxr_linenumber" name="L119" href="#L119">119</a>                             <strong class="jxr_keyword">if</strong> (annot.annotationType() == JmxExport.<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L120" href="#L120">120</a>                                 exportMethod(method, haveToPrependClass ? ((Class) object).getSimpleName() : <strong class="jxr_keyword">null</strong>,
-<a class="jxr_linenumber" name="L121" href="#L121">121</a>                                         <strong class="jxr_keyword">null</strong>, exportedAttributes, exportedOps, annot);
-<a class="jxr_linenumber" name="L122" href="#L122">122</a>                             }
-<a class="jxr_linenumber" name="L123" href="#L123">123</a>                         }
-<a class="jxr_linenumber" name="L124" href="#L124">124</a>                     }
-<a class="jxr_linenumber" name="L125" href="#L125">125</a>                 }
-<a class="jxr_linenumber" name="L126" href="#L126">126</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L127" href="#L127">127</a>                 <strong class="jxr_keyword">final</strong> Class&lt;? <strong class="jxr_keyword">extends</strong> Object&gt; oClass = object.getClass();
-<a class="jxr_linenumber" name="L128" href="#L128">128</a>                 String oClassName = oClass.getSimpleName();
-<a class="jxr_linenumber" name="L129" href="#L129">129</a>                 <strong class="jxr_keyword">for</strong> (Method method : oClass.getMethods()) {
-<a class="jxr_linenumber" name="L130" href="#L130">130</a>                     Annotation [] annotations = method.getAnnotations();
-<a class="jxr_linenumber" name="L131" href="#L131">131</a>                     <strong class="jxr_keyword">for</strong> (Annotation annot : annotations) {
-<a class="jxr_linenumber" name="L132" href="#L132">132</a>                         <strong class="jxr_keyword">if</strong> (annot.annotationType() == JmxExport.<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L133" href="#L133">133</a>                             exportMethod(method, haveToPrependClass ? oClassName : <strong class="jxr_keyword">null</strong>,
-<a class="jxr_linenumber" name="L134" href="#L134">134</a>                                     object, exportedAttributes, exportedOps, annot);
-<a class="jxr_linenumber" name="L135" href="#L135">135</a>                         }
-<a class="jxr_linenumber" name="L136" href="#L136">136</a>                     }
-<a class="jxr_linenumber" name="L137" href="#L137">137</a>                 }
-<a class="jxr_linenumber" name="L138" href="#L138">138</a>             }
-<a class="jxr_linenumber" name="L139" href="#L139">139</a>             
-<a class="jxr_linenumber" name="L140" href="#L140">140</a>         }
-<a class="jxr_linenumber" name="L141" href="#L141">141</a>         <strong class="jxr_keyword">if</strong> (exportedAttributes.isEmpty() &amp;&amp; exportedOps.isEmpty()) {
-<a class="jxr_linenumber" name="L142" href="#L142">142</a>             <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L143" href="#L143">143</a>         }
-<a class="jxr_linenumber" name="L144" href="#L144">144</a>         ExportedValue&lt;?&gt; [] values = <strong class="jxr_keyword">new</strong> ExportedValue[exportedAttributes.size()];
-<a class="jxr_linenumber" name="L145" href="#L145">145</a>         <strong class="jxr_keyword">int</strong> i = 0;
-<a class="jxr_linenumber" name="L146" href="#L146">146</a>         <strong class="jxr_keyword">for</strong> (ExportedValueImpl expVal : exportedAttributes.values()) {
-<a class="jxr_linenumber" name="L147" href="#L147">147</a>             <strong class="jxr_keyword">if</strong> (expVal.isValid()) {
-<a class="jxr_linenumber" name="L148" href="#L148">148</a>                 values[i++] = expVal;
-<a class="jxr_linenumber" name="L149" href="#L149">149</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L150" href="#L150">150</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"If setter is exported, getter must be exported as well "</span> + expVal);
-<a class="jxr_linenumber" name="L151" href="#L151">151</a>             }
-<a class="jxr_linenumber" name="L152" href="#L152">152</a>         }
-<a class="jxr_linenumber" name="L153" href="#L153">153</a>         
-<a class="jxr_linenumber" name="L154" href="#L154">154</a>         <a href="../../../org/spf4j/jmx/ExportedValuesMBean.html">ExportedValuesMBean</a> mbean = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/ExportedValuesMBean.html">ExportedValuesMBean</a>(packageName, mbeanName, values,
-<a class="jxr_linenumber" name="L155" href="#L155">155</a>                         exportedOps.values().toArray(<strong class="jxr_keyword">new</strong> ExportedOperation [exportedOps.size()]));
-<a class="jxr_linenumber" name="L156" href="#L156">156</a>         register(mbean.getObjectName(), mbean);
-<a class="jxr_linenumber" name="L157" href="#L157">157</a>     }
-<a class="jxr_linenumber" name="L158" href="#L158">158</a> 
-<a class="jxr_linenumber" name="L159" href="#L159">159</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> exportMethod(<strong class="jxr_keyword">final</strong> Method method, @Nullable <strong class="jxr_keyword">final</strong> String prependClass,
-<a class="jxr_linenumber" name="L160" href="#L160">160</a>             @Nullable <strong class="jxr_keyword">final</strong> Object object, <strong class="jxr_keyword">final</strong> Map&lt;String, ExportedValueImpl&gt; exportedAttributes,
-<a class="jxr_linenumber" name="L161" href="#L161">161</a>             <strong class="jxr_keyword">final</strong> Map&lt;String, ExportedOperationImpl&gt; exportedOps, <strong class="jxr_keyword">final</strong> Annotation annot) {
-<a class="jxr_linenumber" name="L162" href="#L162">162</a>         method.setAccessible(<strong class="jxr_keyword">true</strong>); <em class="jxr_comment">// this is to speed up invocation</em>
-<a class="jxr_linenumber" name="L163" href="#L163">163</a>         String methodName = method.getName();
-<a class="jxr_linenumber" name="L164" href="#L164">164</a>         <strong class="jxr_keyword">int</strong> nrParams = method.getParameterTypes().length;
-<a class="jxr_linenumber" name="L165" href="#L165">165</a>         <strong class="jxr_keyword">if</strong> (methodName.startsWith(<span class="jxr_string">"get"</span>) &amp;&amp; nrParams == 0) {
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>             String valueName = methodName.substring(<span class="jxr_string">"get"</span>.length());
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>             valueName = Strings.withFirstCharLower(valueName);
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>             <strong class="jxr_keyword">if</strong> (prependClass != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L169" href="#L169">169</a>                 valueName = prependClass + <span class="jxr_string">"."</span> + valueName;
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>             }
-<a class="jxr_linenumber" name="L171" href="#L171">171</a>             addGetter(valueName, exportedAttributes, annot, method, object);
-<a class="jxr_linenumber" name="L172" href="#L172">172</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (methodName.startsWith(<span class="jxr_string">"is"</span>) &amp;&amp; nrParams == 0) {
-<a class="jxr_linenumber" name="L173" href="#L173">173</a>             String valueName = methodName.substring(<span class="jxr_string">"is"</span>.length());
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>             valueName = Strings.withFirstCharLower(valueName);
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>             <strong class="jxr_keyword">if</strong> (prependClass != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>                 valueName = prependClass + <span class="jxr_string">"."</span> + valueName;
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>             }
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>             addGetter(valueName, exportedAttributes, annot, method, object);
-<a class="jxr_linenumber" name="L179" href="#L179">179</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (methodName.startsWith(<span class="jxr_string">"set"</span>) &amp;&amp; nrParams == 1) {
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>             String valueName = methodName.substring(<span class="jxr_string">"set"</span>.length());
-<a class="jxr_linenumber" name="L181" href="#L181">181</a>             valueName = Strings.withFirstCharLower(valueName);
-<a class="jxr_linenumber" name="L182" href="#L182">182</a>             <strong class="jxr_keyword">if</strong> (prependClass != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L183" href="#L183">183</a>                 valueName = prependClass + <span class="jxr_string">"."</span> + valueName;
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>             }
-<a class="jxr_linenumber" name="L185" href="#L185">185</a>             <a href="../../../org/spf4j/jmx/ExportedValueImpl.html">ExportedValueImpl</a> existing = exportedAttributes.get(valueName);
-<a class="jxr_linenumber" name="L186" href="#L186">186</a>             <strong class="jxr_keyword">if</strong> (existing == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>                 existing = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/ExportedValueImpl.html">ExportedValueImpl</a>(valueName, <strong class="jxr_keyword">null</strong>,
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>                         <strong class="jxr_keyword">null</strong>, method, object, method.getParameterTypes()[0]);
-<a class="jxr_linenumber" name="L189" href="#L189">189</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L190" href="#L190">190</a>                 <strong class="jxr_keyword">if</strong> (existing.getValueClass() != method.getParameterTypes()[0]) {
-<a class="jxr_linenumber" name="L191" href="#L191">191</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(
-<a class="jxr_linenumber" name="L192" href="#L192">192</a>                             <span class="jxr_string">"Getter and setter icorrectly defined "</span> + existing + <span class="jxr_string">" "</span> + method);
-<a class="jxr_linenumber" name="L193" href="#L193">193</a>                 }
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>                 existing = existing.withSetter(method);
-<a class="jxr_linenumber" name="L195" href="#L195">195</a>             }
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>             exportedAttributes.put(valueName, existing);
-<a class="jxr_linenumber" name="L197" href="#L197">197</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L198" href="#L198">198</a>             String opName = methodName;
-<a class="jxr_linenumber" name="L199" href="#L199">199</a>             String nameOverwrite = (String) Reflections.getAnnotationAttribute(annot, <span class="jxr_string">"name"</span>);
-<a class="jxr_linenumber" name="L200" href="#L200">200</a>             <strong class="jxr_keyword">if</strong> (!<span class="jxr_string">""</span>.equals(nameOverwrite)) {
-<a class="jxr_linenumber" name="L201" href="#L201">201</a>                 opName = nameOverwrite;
-<a class="jxr_linenumber" name="L202" href="#L202">202</a>             }
-<a class="jxr_linenumber" name="L203" href="#L203">203</a>             <strong class="jxr_keyword">if</strong> (prependClass != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>                 opName = prependClass + <span class="jxr_string">"."</span> + opName;
-<a class="jxr_linenumber" name="L205" href="#L205">205</a>             }
-<a class="jxr_linenumber" name="L206" href="#L206">206</a>             <a href="../../../org/spf4j/jmx/ExportedOperationImpl.html">ExportedOperationImpl</a> existing = exportedOps.put(opName, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/ExportedOperationImpl.html">ExportedOperationImpl</a>(opName,
-<a class="jxr_linenumber" name="L207" href="#L207">207</a>                     (String) Reflections.getAnnotationAttribute(annot, <span class="jxr_string">"description"</span>), method, object));
-<a class="jxr_linenumber" name="L208" href="#L208">208</a>             <strong class="jxr_keyword">if</strong> (existing != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"exporting operations with same name not supported: "</span> + opName);
-<a class="jxr_linenumber" name="L210" href="#L210">210</a>             }
-<a class="jxr_linenumber" name="L211" href="#L211">211</a>         }
-<a class="jxr_linenumber" name="L212" href="#L212">212</a>     }
-<a class="jxr_linenumber" name="L213" href="#L213">213</a> 
-<a class="jxr_linenumber" name="L214" href="#L214">214</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> addGetter(<strong class="jxr_keyword">final</strong> String valueName,
-<a class="jxr_linenumber" name="L215" href="#L215">215</a>             <strong class="jxr_keyword">final</strong> Map&lt;String, ExportedValueImpl&gt; exported,
-<a class="jxr_linenumber" name="L216" href="#L216">216</a>             <strong class="jxr_keyword">final</strong> Annotation annot, <strong class="jxr_keyword">final</strong> Method method, <strong class="jxr_keyword">final</strong> Object object) {
-<a class="jxr_linenumber" name="L217" href="#L217">217</a>         <a href="../../../org/spf4j/jmx/ExportedValueImpl.html">ExportedValueImpl</a> existing = exported.get(valueName);
-<a class="jxr_linenumber" name="L218" href="#L218">218</a>         <strong class="jxr_keyword">if</strong> (existing == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L219" href="#L219">219</a>             existing = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/ExportedValueImpl.html">ExportedValueImpl</a>(
-<a class="jxr_linenumber" name="L220" href="#L220">220</a>                     valueName, (String) Reflections.getAnnotationAttribute(annot, <span class="jxr_string">"description"</span>),
-<a class="jxr_linenumber" name="L221" href="#L221">221</a>                     method, <strong class="jxr_keyword">null</strong>, object, method.getReturnType());
-<a class="jxr_linenumber" name="L222" href="#L222">222</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L223" href="#L223">223</a>             <strong class="jxr_keyword">if</strong> (existing.getValueClass() != method.getReturnType()) {
-<a class="jxr_linenumber" name="L224" href="#L224">224</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(
-<a class="jxr_linenumber" name="L225" href="#L225">225</a>                         <span class="jxr_string">"Getter and setter icorrectly defined "</span> + existing + <span class="jxr_string">" "</span> + method);
-<a class="jxr_linenumber" name="L226" href="#L226">226</a>             }
-<a class="jxr_linenumber" name="L227" href="#L227">227</a>             existing = existing.withGetter(method,
-<a class="jxr_linenumber" name="L228" href="#L228">228</a>                     (String) Reflections.getAnnotationAttribute(annot, <span class="jxr_string">"description"</span>));
-<a class="jxr_linenumber" name="L229" href="#L229">229</a>         }
-<a class="jxr_linenumber" name="L230" href="#L230">230</a>         exported.put(valueName, existing);
-<a class="jxr_linenumber" name="L231" href="#L231">231</a>     }
-<a class="jxr_linenumber" name="L232" href="#L232">232</a> }
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          REGISTERED.put(objectName, mbean);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          <strong class="jxr_keyword">return</strong> replaced;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      }
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">synchronized</strong>  Object getRegistered(<strong class="jxr_keyword">final</strong> ObjectName objectName) {
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          <strong class="jxr_keyword">return</strong> REGISTERED.get(objectName);
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      }
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">synchronized</strong>  Object getRegistered(<strong class="jxr_keyword">final</strong> String domain, <strong class="jxr_keyword">final</strong> String name) {
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>          <strong class="jxr_keyword">return</strong> getRegistered(ExportedValuesMBean.createObjectName(domain, name));
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      }
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Object registerMBean(<strong class="jxr_keyword">final</strong> String domain, <strong class="jxr_keyword">final</strong> String name, <strong class="jxr_keyword">final</strong> Object object) {
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>          <strong class="jxr_keyword">return</strong> Registry.registerMBean(ExportedValuesMBean.createObjectName(domain, name), object);
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>      }
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Object unregister(<strong class="jxr_keyword">final</strong> Object object) {
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>          <strong class="jxr_keyword">final</strong> Class&lt;? <strong class="jxr_keyword">extends</strong> Object&gt; aClass = object.getClass();
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>          <strong class="jxr_keyword">return</strong> unregister(aClass.getPackage().getName(), aClass.getSimpleName());
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      }
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Object unregister(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; object) {
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>          <strong class="jxr_keyword">return</strong> unregister(object.getPackage().getName(), object.getSimpleName());
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>      }
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Object unregister(<strong class="jxr_keyword">final</strong> String packageName, <strong class="jxr_keyword">final</strong> String mbeanName) {
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>          <strong class="jxr_keyword">return</strong> unregister(objectName);
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>      }
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">synchronized</strong> Object unregister(<strong class="jxr_keyword">final</strong> ObjectName objectName) {
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>          Object result = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>          <strong class="jxr_keyword">if</strong> (MBEAN_SERVER.isRegistered(objectName)) {
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>              <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>                  result = REGISTERED.remove(objectName);
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>                  MBEAN_SERVER.unregisterMBean(objectName);
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>              } <strong class="jxr_keyword">catch</strong> (InstanceNotFoundException | MBeanRegistrationException ex) {
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>             }
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>         }
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>         <strong class="jxr_keyword">return</strong> result;
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>     }
+<a class="jxr_linenumber" name="L105" href="#L105">105</a> 
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../org/spf4j/jmx/ExportedValuesMBean.html">ExportedValuesMBean</a> export(<strong class="jxr_keyword">final</strong> Object object) {
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>         <strong class="jxr_keyword">final</strong> Class&lt;? <strong class="jxr_keyword">extends</strong> Object&gt; aClass = object.getClass();
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>         <strong class="jxr_keyword">return</strong> export(aClass.getPackage().getName(), aClass.getSimpleName(), object);
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>     }
+<a class="jxr_linenumber" name="L110" href="#L110">110</a> 
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../org/spf4j/jmx/ExportedValuesMBean.html">ExportedValuesMBean</a> export(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; object) {
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>         <strong class="jxr_keyword">return</strong> export(object.getPackage().getName(), object.getSimpleName(), object);
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>     }
+<a class="jxr_linenumber" name="L114" href="#L114">114</a> 
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">synchronized</strong> <a href="../../../org/spf4j/jmx/ExportedValuesMBean.html">ExportedValuesMBean</a> export(<strong class="jxr_keyword">final</strong> String packageName, <strong class="jxr_keyword">final</strong> String mbeanName,
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>             <strong class="jxr_keyword">final</strong> Object ... objects) {
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>         <strong class="jxr_keyword">return</strong> export(packageName, mbeanName, (Map) <strong class="jxr_keyword">null</strong>, objects);
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>     }
+<a class="jxr_linenumber" name="L119" href="#L119">119</a> 
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>     @SuppressFBWarnings(<span class="jxr_string">"OCP_OVERLY_CONCRETE_PARAMETER"</span>)
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">synchronized</strong> <a href="../../../org/spf4j/jmx/ExportedValuesMBean.html">ExportedValuesMBean</a> export(<strong class="jxr_keyword">final</strong> String packageName, <strong class="jxr_keyword">final</strong> String mbeanName,
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>             <strong class="jxr_keyword">final</strong> Properties attributes, <strong class="jxr_keyword">final</strong> Object ... objects) {
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>         <strong class="jxr_keyword">return</strong> export(packageName, mbeanName, (Map) attributes, objects);
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>     }
+<a class="jxr_linenumber" name="L125" href="#L125">125</a> 
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">synchronized</strong> <a href="../../../org/spf4j/jmx/ExportedValuesMBean.html">ExportedValuesMBean</a> export(<strong class="jxr_keyword">final</strong> String packageName, <strong class="jxr_keyword">final</strong> String mbeanName,
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>             <strong class="jxr_keyword">final</strong> Map&lt;String, Object&gt; attributes, <strong class="jxr_keyword">final</strong> Object ... objects) {
+<a class="jxr_linenumber" name="L128" href="#L128">128</a> 
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>         ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>         <a href="../../../org/spf4j/jmx/ExportedValuesMBean.html">ExportedValuesMBean</a> existing = (ExportedValuesMBean) unregister(objectName);
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>         Map&lt;String, ExportedValue&gt; exportedAttributes = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>         <strong class="jxr_keyword">if</strong> (attributes != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>             <strong class="jxr_keyword">for</strong> (String attrName : attributes.keySet()) {
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>                 exportedAttributes.put(attrName, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/MapExportedValue.html">MapExportedValue</a>(attributes, <strong class="jxr_keyword">null</strong>, attrName));
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>             }
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>         }
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>         Map&lt;String, ExportedOperationImpl&gt; exportedOps = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>         <strong class="jxr_keyword">for</strong> (Object object : objects) {
+<a class="jxr_linenumber" name="L139" href="#L139">139</a> 
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>             <strong class="jxr_keyword">if</strong> (object instanceof Class) {
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>                 <strong class="jxr_keyword">for</strong> (Method method : ((Class&lt;?&gt;) object).getMethods()) {
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>                     <strong class="jxr_keyword">if</strong> (method.isSynthetic()) {
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>                         <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>                     }
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>                     <strong class="jxr_keyword">if</strong> (Modifier.isStatic(method.getModifiers())) {
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>                         Annotation [] annotations = method.getAnnotations();
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>                         <strong class="jxr_keyword">for</strong> (Annotation annot : annotations) {
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>                             <strong class="jxr_keyword">if</strong> (annot.annotationType() == JmxExport.<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>                                 exportMethod(method, <strong class="jxr_keyword">null</strong>, exportedAttributes, exportedOps, annot);
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>                             }
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>                         }
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>                     }
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>                 }
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>                 <strong class="jxr_keyword">final</strong> Class&lt;? <strong class="jxr_keyword">extends</strong> Object&gt; oClass = object.getClass();
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>                 <strong class="jxr_keyword">for</strong> (Method method : oClass.getMethods()) {
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>                     <strong class="jxr_keyword">if</strong> (method.isSynthetic()) {
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>                         <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>                     }
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>                     Annotation [] annotations = method.getAnnotations();
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>                     <strong class="jxr_keyword">for</strong> (Annotation annot : annotations) {
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>                         <strong class="jxr_keyword">if</strong> (annot.annotationType() == JmxExport.<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>                             exportMethod(method, object, exportedAttributes, exportedOps, annot);
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>                         }
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>                     }
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>                 }
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>             }
+<a class="jxr_linenumber" name="L168" href="#L168">168</a> 
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>         }
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>         <strong class="jxr_keyword">if</strong> (exportedAttributes.isEmpty() &amp;&amp; exportedOps.isEmpty()) {
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>         }
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>         ExportedValue&lt;?&gt; [] values = <strong class="jxr_keyword">new</strong> ExportedValue[exportedAttributes.size()];
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>         <strong class="jxr_keyword">int</strong> i = 0;
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>         <strong class="jxr_keyword">for</strong> (ExportedValue expVal : exportedAttributes.values()) {
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>             <strong class="jxr_keyword">if</strong> (expVal instanceof ExportedValueImpl &amp;&amp; !((ExportedValueImpl) expVal).isValid()) {
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>                <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"If setter is exported, getter must be exported as well "</span> + expVal);
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>                values[i++] = expVal;
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>             }
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>         }
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>         <a href="../../../org/spf4j/jmx/ExportedValuesMBean.html">ExportedValuesMBean</a> mbean;
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>         <strong class="jxr_keyword">if</strong> (existing == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>             mbean = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/ExportedValuesMBean.html">ExportedValuesMBean</a>(objectName, values,
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>                         exportedOps.values().toArray(<strong class="jxr_keyword">new</strong> ExportedOperation [exportedOps.size()]));
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>             mbean = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/ExportedValuesMBean.html">ExportedValuesMBean</a>(existing, values,
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>                         exportedOps.values().toArray(<strong class="jxr_keyword">new</strong> ExportedOperation [exportedOps.size()]));
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>         }
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>         Registry.registerMBean(mbean.getObjectName(), mbean);
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>         <strong class="jxr_keyword">return</strong> mbean;
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>     }
+<a class="jxr_linenumber" name="L193" href="#L193">193</a> 
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> exportMethod(<strong class="jxr_keyword">final</strong> Method method,
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>             @Nullable <strong class="jxr_keyword">final</strong> Object object, <strong class="jxr_keyword">final</strong> Map&lt;String, ExportedValue&gt; exportedAttributes,
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>             <strong class="jxr_keyword">final</strong> Map&lt;String, ExportedOperationImpl&gt; exportedOps, <strong class="jxr_keyword">final</strong> Annotation annot) {
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>         method.setAccessible(<strong class="jxr_keyword">true</strong>); <em class="jxr_comment">// this is to speed up invocation</em>
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>         String methodName = method.getName();
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>         <strong class="jxr_keyword">int</strong> nrParams = method.getParameterTypes().length;
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>         <strong class="jxr_keyword">if</strong> (methodName.startsWith(<span class="jxr_string">"get"</span>) &amp;&amp; nrParams == 0) {
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>             String valueName = methodName.substring(<span class="jxr_string">"get"</span>.length());
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>             valueName = Strings.withFirstCharLower(valueName);
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>             addGetter(valueName, exportedAttributes, annot, method, object);
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (methodName.startsWith(<span class="jxr_string">"is"</span>) &amp;&amp; nrParams == 0) {
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>             String valueName = methodName.substring(<span class="jxr_string">"is"</span>.length());
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>             valueName = Strings.withFirstCharLower(valueName);
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>             addGetter(valueName, exportedAttributes, annot, method, object);
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (methodName.startsWith(<span class="jxr_string">"set"</span>) &amp;&amp; nrParams == 1) {
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>             addSetter(methodName, exportedAttributes, method, object, annot);
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>             String opName = methodName;
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>             String nameOverwrite = (String) Reflections.getAnnotationAttribute(annot, <span class="jxr_string">"value"</span>);
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>             <strong class="jxr_keyword">if</strong> (!<span class="jxr_string">""</span>.equals(nameOverwrite)) {
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>                 opName = nameOverwrite;
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>             }
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>             <a href="../../../org/spf4j/jmx/ExportedOperationImpl.html">ExportedOperationImpl</a> existing = exportedOps.put(opName, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/ExportedOperationImpl.html">ExportedOperationImpl</a>(opName,
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>                     (String) Reflections.getAnnotationAttribute(annot, <span class="jxr_string">"description"</span>), method, object));
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>             <strong class="jxr_keyword">if</strong> (existing != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"exporting operations with same name not supported: "</span> + opName);
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>             }
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>         }
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>     }
+<a class="jxr_linenumber" name="L223" href="#L223">223</a> 
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> addSetter(<strong class="jxr_keyword">final</strong> String methodName, <strong class="jxr_keyword">final</strong> Map&lt;String, ExportedValue&gt; exportedAttributes,
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>             <strong class="jxr_keyword">final</strong> Method method, <strong class="jxr_keyword">final</strong> Object object, <strong class="jxr_keyword">final</strong> Annotation annot) {
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>         String customName = (String) Reflections.getAnnotationAttribute(annot, <span class="jxr_string">"value"</span>);
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>         String valueName;
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>         <strong class="jxr_keyword">if</strong> (<span class="jxr_string">""</span>.equals(customName)) {
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>             valueName = methodName.substring(<span class="jxr_string">"set"</span>.length());
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>             valueName = Strings.withFirstCharLower(valueName);
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>             valueName = customName;
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>         }
+<a class="jxr_linenumber" name="L234" href="#L234">234</a> 
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>         <a href="../../../org/spf4j/jmx/ExportedValueImpl.html">ExportedValueImpl</a> existing = (ExportedValueImpl) exportedAttributes.get(valueName);
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>         <strong class="jxr_keyword">if</strong> (existing == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>             existing = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/ExportedValueImpl.html">ExportedValueImpl</a>(valueName, <strong class="jxr_keyword">null</strong>,
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>                     <strong class="jxr_keyword">null</strong>, method, object, method.getParameterTypes()[0]);
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>             <strong class="jxr_keyword">if</strong> (existing.getValueClass() != method.getParameterTypes()[0]) {
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>                         <span class="jxr_string">"Getter and setter icorrectly defined "</span> + existing + ' ' + method);
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>             }
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>             existing = existing.withSetter(method);
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>         }
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>         exportedAttributes.put(valueName, existing);
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>     }
+<a class="jxr_linenumber" name="L248" href="#L248">248</a> 
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> addGetter(<strong class="jxr_keyword">final</strong> String pvalueName,
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>             <strong class="jxr_keyword">final</strong> Map&lt;String, ExportedValue&gt; exported,
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>             <strong class="jxr_keyword">final</strong> Annotation annot, <strong class="jxr_keyword">final</strong> Method method, <strong class="jxr_keyword">final</strong> Object object) {
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>         String customName = (String) Reflections.getAnnotationAttribute(annot, <span class="jxr_string">"value"</span>);
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>         String valueName = <span class="jxr_string">""</span>.equals(customName) ? pvalueName : customName;
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>         <a href="../../../org/spf4j/jmx/ExportedValueImpl.html">ExportedValueImpl</a> existing = (ExportedValueImpl) exported.get(valueName);
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>         <strong class="jxr_keyword">if</strong> (existing == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>             existing = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/ExportedValueImpl.html">ExportedValueImpl</a>(
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>                     valueName, (String) Reflections.getAnnotationAttribute(annot, <span class="jxr_string">"description"</span>),
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>                     method, <strong class="jxr_keyword">null</strong>, object, method.getReturnType());
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>             <strong class="jxr_keyword">if</strong> (existing.getValueClass() != method.getReturnType()) {
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>                         <span class="jxr_string">"Getter and setter icorrectly defined "</span> + existing + ' ' + method);
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>             }
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>             existing = existing.withGetter(method,
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>                     (String) Reflections.getAnnotationAttribute(annot, <span class="jxr_string">"description"</span>));
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>         }
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>         exported.put(valueName, existing);
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>     }
+<a class="jxr_linenumber" name="L269" href="#L269">269</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2015. All rights reserved.</div>

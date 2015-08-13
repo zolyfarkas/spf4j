@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>DirectStoreAccumulator.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">DirectStoreAccumulator.java</span></div><h1>DirectStoreAccumulator.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+package org.spf4j.perf.impl;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.beans.ConstructorProperties;
+import java.io.Closeable;
+import java.io.IOException;
+import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
+import org.spf4j.perf.MeasurementsInfo;
+import org.spf4j.perf.MeasurementStore;
+import org.spf4j.perf.MeasurementRecorder;
+
+/**
+ *
+ * @author zoly
+ */
+public final class DirectStoreAccumulator implements MeasurementRecorder, Closeable {
+
+    private final MeasurementsInfo info;
+<span class="fc" id="L38">    private static final String[] MEASUREMENTS = {&quot;value&quot;};</span>
+    private final MeasurementStore measurementStore;
+    private final long tableId;
+
+    private volatile long lastRecordedTS;
+
+    private volatile long lastRecordedValue;
+
+    public DirectStoreAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
+<span class="fc" id="L47">            final int sampleTimeMillis, final MeasurementStore measurementStore) {</span>
+<span class="fc" id="L48">        this.info = new MeasurementsInfoImpl(measuredEntity, description,</span>
+                MEASUREMENTS, new String[]{unitOfMeasurement});
+<span class="fc" id="L50">        this.measurementStore = measurementStore;</span>
+        try {
+<span class="fc" id="L52">            tableId = measurementStore.alocateMeasurements(info, sampleTimeMillis);</span>
+<span class="nc" id="L53">        } catch (IOException ex) {</span>
+<span class="nc" id="L54">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L55">        }</span>
+<span class="fc" id="L56">    }</span>
+
+    @JmxExport
+    public String getUnitOfMeasurement() {
+<span class="nc" id="L60">        return info.getMeasurementUnit(0);</span>
+    }
+
+
+    @Override
+    public void record(final long measurement) {
+<span class="fc" id="L66">        recordAt(System.currentTimeMillis(), measurement);</span>
+<span class="fc" id="L67">    }</span>
+
+    @Override
+    @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
+    public synchronized void recordAt(final long timestampMillis, final long measurement) {
+<span class="fc" id="L72">        lastRecordedValue = measurement;</span>
+<span class="fc" id="L73">        lastRecordedTS = timestampMillis;</span>
+        try {
+<span class="fc" id="L75">            measurementStore.saveMeasurements(tableId, timestampMillis, measurement);</span>
+<span class="nc" id="L76">        } catch (IOException ex) {</span>
+<span class="nc" id="L77">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L78">        }</span>
+<span class="fc" id="L79">    }</span>
+
+    public void registerJmx() {
+<span class="fc" id="L82">        Registry.export(&quot;org.spf4j.perf.recorders&quot;, info.getMeasuredEntity().toString(), this);</span>
+<span class="fc" id="L83">    }</span>
+
+    @Override
+    public void close() throws IOException {
+<span class="nc" id="L87">        Registry.unregister(&quot;org.spf4j.perf.recorders&quot;, info.getMeasuredEntity().toString());</span>
+<span class="nc" id="L88">    }</span>
+
+    public static final class RecordedValue {
+        private final long ts;
+        private final long value;
+
+        @ConstructorProperties({&quot;ts&quot;, &quot;value&quot; })
+<span class="nc" id="L95">        public RecordedValue(final long ts, final long value) {</span>
+<span class="nc" id="L96">            this.ts = ts;</span>
+<span class="nc" id="L97">            this.value = value;</span>
+<span class="nc" id="L98">        }</span>
+
+        public long getTs() {
+<span class="nc" id="L101">            return ts;</span>
+        }
+
+        public long getValue() {
+<span class="nc" id="L105">            return value;</span>
+        }
+    }
+
+    @JmxExport(description = &quot;Last recorded value&quot;)
+    public RecordedValue getLastRecorded() {
+<span class="nc" id="L111">        return new RecordedValue(lastRecordedTS, lastRecordedValue);</span>
+    }
+
+    @JmxExport
+    @SuppressFBWarnings(&quot;SPP_NON_USEFUL_TOSTRING&quot;)
+    public String getInfo() {
+<span class="nc" id="L117">        return info.toString();</span>
+    }
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

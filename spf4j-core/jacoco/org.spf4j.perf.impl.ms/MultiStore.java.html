@@ -17,10 +17,16 @@
  */
 package org.spf4j.perf.impl.ms;
 
+import gnu.trove.map.TLongObjectMap;
+import gnu.trove.map.TObjectLongMap;
+import gnu.trove.map.hash.TLongObjectHashMap;
+import gnu.trove.map.hash.TObjectLongHashMap;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.spf4j.base.Throwables;
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 
 /**
@@ -30,92 +36,121 @@ import org.spf4j.perf.MeasurementStore;
 public final class MultiStore implements MeasurementStore {
 
     private final MeasurementStore [] stores;
-    
-<span class="fc" id="L34">    public MultiStore(final MeasurementStore ... stores) {</span>
-<span class="pc bpc" id="L35" title="1 of 2 branches missed.">        if (stores.length &lt;= 1) {</span>
-<span class="nc" id="L36">            throw new IllegalArgumentException(&quot;You need to supply more than 1 store, not &quot; + Arrays.toString(stores));</span>
+    private final TLongObjectMap&lt;long []&gt; idToIds;
+    private final TObjectLongMap&lt;MeasurementsInfo&gt; infoToId;
+    private long idSeq;
+
+<span class="fc" id="L43">    public MultiStore(final MeasurementStore ... stores) {</span>
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">        if (stores.length &lt;= 1) {</span>
+<span class="nc" id="L45">            throw new IllegalArgumentException(&quot;You need to supply more than 1 store, not &quot; + Arrays.toString(stores));</span>
         }
-<span class="fc" id="L38">        this.stores = stores;</span>
-<span class="fc" id="L39">    }</span>
-    
-    
-    @Override
-    public void alocateMeasurements(final EntityMeasurementsInfo measurement,
-            final int sampleTimeMillis) throws IOException {
-<span class="fc" id="L45">        IOException ex = null;</span>
-<span class="fc bfc" id="L46" title="All 2 branches covered.">        for (MeasurementStore store : stores) {</span>
-            try {
-<span class="fc" id="L48">                store.alocateMeasurements(measurement, sampleTimeMillis);</span>
-<span class="nc" id="L49">            } catch (IOException e) {</span>
-<span class="nc bnc" id="L50" title="All 2 branches missed.">                if (ex == null) {</span>
-<span class="nc" id="L51">                    ex = e;</span>
-                } else {
-<span class="nc" id="L53">                    ex = Throwables.suppress(e, ex);</span>
-                }
-<span class="fc" id="L55">            }</span>
-        }
-<span class="pc bpc" id="L57" title="1 of 2 branches missed.">        if (ex != null) {</span>
-<span class="nc" id="L58">            throw ex;</span>
-        }
-<span class="fc" id="L60">    }</span>
+<span class="fc" id="L47">        this.stores = stores;</span>
+<span class="fc" id="L48">        this.idToIds = new TLongObjectHashMap&lt;&gt;();</span>
+<span class="fc" id="L49">        this.infoToId = new TObjectLongHashMap&lt;&gt;();</span>
+<span class="fc" id="L50">        this.idSeq = 1L;</span>
+<span class="fc" id="L51">    }</span>
+
 
     @Override
-    public void saveMeasurements(final EntityMeasurementsInfo measurementInfo,
-            final long timeStampMillis, final int sampleTimeMillis, final long... measurements) throws IOException {
-<span class="fc" id="L65">                IOException ex = null;</span>
-<span class="fc bfc" id="L66" title="All 2 branches covered.">        for (MeasurementStore store : stores) {</span>
-            try {
-<span class="fc" id="L68">                store.saveMeasurements(measurementInfo, timeStampMillis, sampleTimeMillis, measurements);</span>
-<span class="nc" id="L69">            } catch (IOException e) {</span>
-<span class="nc bnc" id="L70" title="All 2 branches missed.">                if (ex == null) {</span>
-<span class="nc" id="L71">                    ex = e;</span>
-                } else {
-<span class="nc" id="L73">                    ex = Throwables.suppress(e, ex);</span>
+    public long alocateMeasurements(final MeasurementsInfo measurement,
+            final int sampleTimeMillis) throws IOException {
+<span class="fc" id="L57">        IOException ex = null;</span>
+<span class="fc" id="L58">        synchronized (idToIds) {</span>
+<span class="fc" id="L59">            long id = infoToId.get(measurement);</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">            if (id &lt;= 0) {</span>
+<span class="fc" id="L61">                long [] ids = new long [stores.length];</span>
+<span class="fc" id="L62">                int i = 0;</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">                for (MeasurementStore store : stores) {</span>
+                    try {
+<span class="fc" id="L65">                        ids[i++] = store.alocateMeasurements(measurement, sampleTimeMillis);</span>
+<span class="nc" id="L66">                    } catch (IOException e) {</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">                        if (ex == null) {</span>
+<span class="nc" id="L68">                            ex = e;</span>
+                        } else {
+<span class="nc" id="L70">                            ex = Throwables.suppress(e, ex);</span>
+                        }
+<span class="fc" id="L72">                    }</span>
                 }
-<span class="fc" id="L75">            }</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">                if (ex != null) {</span>
+<span class="nc" id="L75">                    throw ex;</span>
+                }
+<span class="fc" id="L77">                id = idSeq++;</span>
+<span class="fc" id="L78">                infoToId.put(measurement, id);</span>
+<span class="fc" id="L79">                idToIds.put(id, ids);</span>
+            }
+<span class="fc" id="L81">            return id;</span>
+<span class="nc" id="L82">        }</span>
+    }
+
+    @Override
+    public void saveMeasurements(final long tableId,
+            final long timeStampMillis,  final long... measurements) throws IOException {
+<span class="fc" id="L88">                IOException ex = null;</span>
+        long [] ids;
+<span class="fc" id="L90">        synchronized (idToIds) {</span>
+<span class="fc" id="L91">            ids = idToIds.get(tableId);</span>
+<span class="pc" id="L92">        }</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (ids == null) {</span>
+<span class="nc" id="L94">            throw new IOException(&quot;Table id is invalid &quot; + tableId);</span>
         }
-<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        if (ex != null) {</span>
-<span class="nc" id="L78">            throw ex;</span>
+<span class="fc" id="L96">        int i = 0;</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">        for (MeasurementStore store : stores) {</span>
+            try {
+<span class="fc" id="L99">                store.saveMeasurements(ids[i++], timeStampMillis, measurements);</span>
+<span class="nc" id="L100">            } catch (IOException e) {</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">                if (ex == null) {</span>
+<span class="nc" id="L102">                    ex = e;</span>
+                } else {
+<span class="nc" id="L104">                    ex = Throwables.suppress(e, ex);</span>
+                }
+<span class="fc" id="L106">            }</span>
         }
-<span class="fc" id="L80">    }</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        if (ex != null) {</span>
+<span class="nc" id="L109">            throw ex;</span>
+        }
+<span class="fc" id="L111">    }</span>
 
     @Override
     public void flush() throws IOException {
-<span class="nc" id="L84">                IOException ex = null;</span>
-<span class="nc bnc" id="L85" title="All 2 branches missed.">        for (MeasurementStore store : stores) {</span>
+<span class="nc" id="L115">                IOException ex = null;</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        for (MeasurementStore store : stores) {</span>
             try {
-<span class="nc" id="L87">                store.flush();</span>
-<span class="nc" id="L88">            } catch (IOException e) {</span>
-<span class="nc bnc" id="L89" title="All 2 branches missed.">                if (ex == null) {</span>
-<span class="nc" id="L90">                    ex = e;</span>
+<span class="nc" id="L118">                store.flush();</span>
+<span class="nc" id="L119">            } catch (IOException e) {</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                if (ex == null) {</span>
+<span class="nc" id="L121">                    ex = e;</span>
                 } else {
-<span class="nc" id="L92">                    ex = Throwables.suppress(e, ex);</span>
+<span class="nc" id="L123">                    ex = Throwables.suppress(e, ex);</span>
                 }
-<span class="nc" id="L94">            }</span>
+<span class="nc" id="L125">            }</span>
         }
-<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (ex != null) {</span>
-<span class="nc" id="L97">            throw ex;</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (ex != null) {</span>
+<span class="nc" id="L128">            throw ex;</span>
         }
-<span class="nc" id="L99">    }</span>
+<span class="nc" id="L130">    }</span>
 
     @Override
     public void close() throws IOException {
-<span class="nc" id="L103">                IOException ex = null;</span>
-<span class="nc bnc" id="L104" title="All 2 branches missed.">        for (MeasurementStore store : stores) {</span>
+<span class="nc" id="L134">                IOException ex = null;</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        for (MeasurementStore store : stores) {</span>
             try {
-<span class="nc" id="L106">                store.close();</span>
-<span class="nc" id="L107">            } catch (IOException e) {</span>
-<span class="nc bnc" id="L108" title="All 2 branches missed.">                if (ex == null) {</span>
-<span class="nc" id="L109">                    ex = e;</span>
+<span class="nc" id="L137">                store.close();</span>
+<span class="nc" id="L138">            } catch (IOException e) {</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">                if (ex == null) {</span>
+<span class="nc" id="L140">                    ex = e;</span>
                 } else {
-<span class="nc" id="L111">                    ex = Throwables.suppress(e, ex);</span>
+<span class="nc" id="L142">                    ex = Throwables.suppress(e, ex);</span>
                 }
-<span class="nc" id="L113">            }</span>
+<span class="nc" id="L144">            }</span>
         }
-<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (ex != null) {</span>
-<span class="nc" id="L116">            throw ex;</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (ex != null) {</span>
+<span class="nc" id="L147">            throw ex;</span>
         }
-<span class="nc" id="L118">    }</span>
-    
+<span class="nc" id="L149">    }</span>
+
+    public List&lt;MeasurementStore&gt; getStores() {
+<span class="nc" id="L152">        return Collections.unmodifiableList(Arrays.asList(stores));</span>
+    }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

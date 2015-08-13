@@ -46,16 +46,49 @@
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>          assertEquals(3, Strings.distance(<span class="jxr_string">"abc"</span>, <span class="jxr_string">"def"</span>));
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>          assertEquals(1, Strings.distance(<span class="jxr_string">"zoltran"</span>, <span class="jxr_string">"zoltan"</span>));
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>      }
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>      
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>      @Test
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testEscaping() {
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>          String res = Strings.unescape(<span class="jxr_string">"a&#92;&#92;n"</span>);
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>          Assert.assertEquals(<span class="jxr_string">"a\n"</span>, res);
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>      }
 <a class="jxr_linenumber" name="L47" href="#L47">47</a>  
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>  }
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      @Test
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testUnsafeOps() {
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>         String testString = <span class="jxr_string">"dfjgdjshfgsjdhgfskhdfkdshf\ndfs@#$%^&amp;\u63A5\u53D7*($%^&amp;*()(*&amp;^%$#@!&gt;::&gt;&lt;&gt;?{PLKJHGFDEWSDFG"</span>;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>         <strong class="jxr_keyword">char</strong> [] chars = Strings.steal(testString);
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>         String otherString = Strings.wrap(chars);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>         Assert.assertEquals(testString, otherString);
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>         byte [] bytes = Strings.toUtf8(testString);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>         otherString = Strings.fromUtf8(bytes);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>         Assert.assertEquals(testString, otherString);
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      }
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      @Test
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testSubSequence() {
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          String str = <span class="jxr_string">"dsfhjgsdjfgwuergfedhgfjhwheriufwiueruhfguyerugfweuyrygfwueyrghfuwoeruhgfdgwsjhfg"</span>;
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          assertEquals(0, Strings.compareTo(str.subSequence(3, 15), Strings.subSequence(str, 3, 15)));
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          Assert.assertTrue(Strings.equals(str.subSequence(15, 15), Strings.subSequence(str, 15, 15)));
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          Assert.assertTrue(Strings.equals(str.subSequence(0, str.length()), Strings.subSequence(str, 0, str.length())));
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>          Assert.assertTrue(str.subSequence(3, 15).toString().equals(Strings.subSequence(str, 3, 15).toString()));
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      }
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testEndsWith() {
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>          Assert.assertEquals(<strong class="jxr_keyword">true</strong>, Strings.endsWith(<span class="jxr_string">"dfjkshfks"</span>, <span class="jxr_string">""</span>));
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          Assert.assertEquals(<strong class="jxr_keyword">true</strong>, Strings.endsWith(<span class="jxr_string">"dfjkshfks"</span>, <span class="jxr_string">"hfks"</span>));
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>          Assert.assertEquals(false, Strings.endsWith(<span class="jxr_string">"dfjkshfks"</span>, <span class="jxr_string">"hfk"</span>));
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>          Assert.assertEquals(<strong class="jxr_keyword">true</strong>, Strings.endsWith(<span class="jxr_string">"dfjkshfks"</span>, <span class="jxr_string">"dfjkshfks"</span>));
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>          Assert.assertEquals(false, Strings.endsWith(<span class="jxr_string">"dfjkshfks"</span>, <span class="jxr_string">"dfjkshfksu"</span>));
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      }
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2014. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2015. All rights reserved.</div>
 </body>
 </html>

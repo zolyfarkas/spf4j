@@ -17,147 +17,276 @@
  */
 package org.spf4j.zel.operators;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+@SuppressFBWarnings(&quot;SIC_INNER_SHOULD_BE_STATIC_ANON&quot;)
 public final class BigDecimalOperators {
 
-<span class="nc" id="L25">    private BigDecimalOperators() {</span>
-<span class="nc" id="L26">    }</span>
+<span class="nc" id="L27">    private BigDecimalOperators() {</span>
+<span class="nc" id="L28">    }</span>
 
-    
-<span class="fc" id="L29">    public static final class Add implements Operator&lt;BigDecimal, Number, Number&gt; {</span>
 
-        @Override
-        public Number op(final BigDecimal a, final Number b) {
-<span class="fc" id="L33">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="pc bpc" id="L34" title="4 of 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-<span class="nc" id="L36">                return a.add(new BigDecimal(b.intValue()), MATH_CONTEXT.get());</span>
-<span class="pc bpc" id="L37" title="1 of 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
-<span class="nc" id="L38">                return a.add(new BigDecimal(b.longValue()), MATH_CONTEXT.get());</span>
-<span class="pc bpc" id="L39" title="1 of 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
-<span class="nc" id="L40">                return a.add(new BigDecimal(b.doubleValue()), MATH_CONTEXT.get());</span>
-<span class="pc bpc" id="L41" title="1 of 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
-<span class="nc" id="L42">                return a.add(new BigDecimal((BigInteger) b), MATH_CONTEXT.get());</span>
-<span class="pc bpc" id="L43" title="1 of 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
-<span class="fc" id="L44">                return a.add((BigDecimal) b, MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L45" title="All 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
-<span class="nc" id="L46">                return a.add(new BigDecimal(b.floatValue()), MATH_CONTEXT.get());</span>
-            } else {
-<span class="nc" id="L48">                throw new IllegalArgumentException(b.toString());</span>
-            }
-        }
+    public static final class Add extends AbstractOps&lt;BigDecimal&gt; {
+
+        public Add() {
+<span class="fc" id="L34">            super();</span>
+<span class="fc" id="L35">            Operator&lt;BigDecimal, Number, Number&gt; isbc = new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L39">                    return a.add(new BigDecimal(b.intValue()), MATH_CONTEXT.get());</span>
+                }
+            };
+<span class="fc" id="L42">            operations.put(Integer.class, isbc);</span>
+<span class="fc" id="L43">            operations.put(Byte.class, isbc);</span>
+<span class="fc" id="L44">            operations.put(Character.class, isbc);</span>
+<span class="fc" id="L45">            operations.put(Short.class, isbc);</span>
+<span class="fc" id="L46">            operations.put(Long.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L50">                    return a.add(new BigDecimal(b.longValue()), MATH_CONTEXT.get());</span>
+                }
+            });
+<span class="fc" id="L53">            final Operator&lt;BigDecimal, Number, Number&gt; dfOp = new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L57">                    return a.add(new BigDecimal(b.doubleValue()), MATH_CONTEXT.get());</span>
+                }
+            };
+<span class="fc" id="L60">            operations.put(Double.class, dfOp);</span>
+<span class="fc" id="L61">            operations.put(Float.class, dfOp);</span>
+<span class="fc" id="L62">            operations.put(BigInteger.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L66">                    return a.add(new BigDecimal((BigInteger) b), MATH_CONTEXT.get());</span>
+                }
+            });
+<span class="fc" id="L69">            operations.put(BigDecimal.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="fc" id="L73">                    return a.add((BigDecimal) b, MATH_CONTEXT.get());</span>
+                }
+            });
+<span class="fc" id="L76">        }</span>
+
     }
 
-<span class="fc" id="L53">    public static final class Sub implements Operator&lt;BigDecimal, Number, Number&gt; {</span>
+    public static final class Sub extends AbstractOps&lt;BigDecimal&gt; {
 
-        @Override
-        public Number op(final BigDecimal a, final Number b) {
-<span class="nc" id="L57">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="nc bnc" id="L58" title="All 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-<span class="nc" id="L60">                return a.subtract(new BigDecimal(b.intValue()), MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L61" title="All 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
-<span class="nc" id="L62">                return a.subtract(new BigDecimal(b.longValue()), MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
-<span class="nc" id="L64">                return a.subtract(new BigDecimal(b.doubleValue()), MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
-<span class="nc" id="L66">                return a.subtract(new BigDecimal((BigInteger) b), MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L67" title="All 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
-<span class="nc" id="L68">                return a.subtract((BigDecimal) b, MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L69" title="All 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
-<span class="nc" id="L70">                return a.subtract(new BigDecimal(b.floatValue()), MATH_CONTEXT.get());</span>
-            } else {
-<span class="nc" id="L72">                throw new IllegalArgumentException(b.toString());</span>
-            }
-        }
+        public Sub() {
+<span class="fc" id="L83">            super();</span>
+<span class="fc" id="L84">            Operator&lt;BigDecimal, Number, Number&gt; isbc = new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L88">                    return a.subtract(new BigDecimal(b.intValue()), MATH_CONTEXT.get());</span>
+                }
+            };
+<span class="fc" id="L91">            operations.put(Integer.class, isbc);</span>
+<span class="fc" id="L92">            operations.put(Byte.class, isbc);</span>
+<span class="fc" id="L93">            operations.put(Character.class, isbc);</span>
+<span class="fc" id="L94">            operations.put(Short.class, isbc);</span>
+<span class="fc" id="L95">            operations.put(Long.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L99">                    return a.subtract(new BigDecimal(b.longValue()), MATH_CONTEXT.get());</span>
+                }
+            });
+<span class="fc" id="L102">            final Operator&lt;BigDecimal, Number, Number&gt; dfOp = new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L106">                    return a.subtract(new BigDecimal(b.doubleValue()), MATH_CONTEXT.get());</span>
+                }
+            };
+<span class="fc" id="L109">            operations.put(Double.class, dfOp);</span>
+<span class="fc" id="L110">            operations.put(Float.class, dfOp);</span>
+<span class="fc" id="L111">            operations.put(BigInteger.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L115">                    return a.subtract(new BigDecimal((BigInteger) b), MATH_CONTEXT.get());</span>
+                }
+            });
+<span class="fc" id="L118">            operations.put(BigDecimal.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L122">                    return a.subtract((BigDecimal) b, MATH_CONTEXT.get());</span>
+                }
+            });
+<span class="fc" id="L125">        }</span>
     }
 
-<span class="fc" id="L77">    public static final class Mul implements Operator&lt;BigDecimal, Number, Number&gt; {</span>
+    public static final class Mul extends AbstractOps&lt;BigDecimal&gt; {
 
-        @Override
-        public Number op(final BigDecimal a, final Number b) {
-<span class="fc" id="L81">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="pc bpc" id="L82" title="7 of 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-<span class="fc" id="L84">                return a.multiply(new BigDecimal(b.intValue()), MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L85" title="All 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
-<span class="nc" id="L86">                return a.multiply(new BigDecimal(b.longValue()), MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L87" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
-<span class="nc" id="L88">                return a.multiply(new BigDecimal(b.doubleValue()), MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L89" title="All 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
-<span class="nc" id="L90">                return a.multiply(new BigDecimal((BigInteger) b), MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
-<span class="nc" id="L92">                return a.multiply((BigDecimal) b, MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L93" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
-<span class="nc" id="L94">                return a.multiply(new BigDecimal(b.doubleValue()), MATH_CONTEXT.get());</span>
-            } else {
-<span class="nc" id="L96">                throw new IllegalArgumentException(b.toString());</span>
-            }
-        }
+        public Mul() {
+<span class="fc" id="L131">            super();</span>
+<span class="fc" id="L132">            Operator&lt;BigDecimal, Number, Number&gt; isbc = new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="fc" id="L136">                    return a.multiply(new BigDecimal(b.intValue()), MATH_CONTEXT.get());</span>
+                }
+            };
+<span class="fc" id="L139">            operations.put(Integer.class, isbc);</span>
+<span class="fc" id="L140">            operations.put(Byte.class, isbc);</span>
+<span class="fc" id="L141">            operations.put(Character.class, isbc);</span>
+<span class="fc" id="L142">            operations.put(Short.class, isbc);</span>
+<span class="fc" id="L143">            operations.put(Long.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L147">                    return a.multiply(new BigDecimal(b.longValue()), MATH_CONTEXT.get());</span>
+                }
+            });
+<span class="fc" id="L150">            final Operator&lt;BigDecimal, Number, Number&gt; dfOp = new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L154">                    return a.multiply(new BigDecimal(b.doubleValue()), MATH_CONTEXT.get());</span>
+                }
+            };
+<span class="fc" id="L157">            operations.put(Double.class, dfOp);</span>
+<span class="fc" id="L158">            operations.put(Float.class, dfOp);</span>
+<span class="fc" id="L159">            operations.put(BigInteger.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L163">                    return a.multiply(new BigDecimal((BigInteger) b), MATH_CONTEXT.get());</span>
+                }
+            });
+<span class="fc" id="L166">            operations.put(BigDecimal.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L170">                    return a.multiply((BigDecimal) b, MATH_CONTEXT.get());</span>
+                }
+            });
+<span class="fc" id="L173">        }</span>
+
     }
 
-<span class="fc" id="L101">    public static final class Div implements Operator&lt;BigDecimal, Number, Number&gt; {</span>
+    public static final class Div extends AbstractOps&lt;BigDecimal&gt; {
 
-        @Override
-        public Number op(final BigDecimal a, final Number b) {
-<span class="fc" id="L105">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="pc bpc" id="L106" title="7 of 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-<span class="fc" id="L108">                return a.divide(new BigDecimal(b.intValue()), MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L109" title="All 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
-<span class="nc" id="L110">                return a.divide(new BigDecimal(b.longValue()), MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L111" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
-<span class="nc" id="L112">                return a.divide(new BigDecimal(b.doubleValue()), MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L113" title="All 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
-<span class="nc" id="L114">                return a.divide(new BigDecimal((BigInteger) b), MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L115" title="All 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
-<span class="nc" id="L116">                return a.divide((BigDecimal) b, MATH_CONTEXT.get());</span>
-<span class="nc bnc" id="L117" title="All 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
-<span class="nc" id="L118">                return a.divide(new BigDecimal(b.doubleValue()), MATH_CONTEXT.get());</span>
-            } else {
-<span class="nc" id="L120">                throw new IllegalArgumentException(b.toString());</span>
-            }
-        }
+        public Div() {
+<span class="fc" id="L180">            super();</span>
+<span class="fc" id="L181">            Operator&lt;BigDecimal, Number, Number&gt; isbc = new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="fc" id="L185">                    return a.divide(new BigDecimal(b.intValue()), MATH_CONTEXT.get());</span>
+                }
+            };
+<span class="fc" id="L188">            operations.put(Integer.class, isbc);</span>
+<span class="fc" id="L189">            operations.put(Byte.class, isbc);</span>
+<span class="fc" id="L190">            operations.put(Character.class, isbc);</span>
+<span class="fc" id="L191">            operations.put(Short.class, isbc);</span>
+<span class="fc" id="L192">            operations.put(Long.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L196">                     return a.divide(new BigDecimal(b.longValue()), MATH_CONTEXT.get());</span>
+                }
+            });
+<span class="fc" id="L199">            final Operator&lt;BigDecimal, Number, Number&gt; dfOp = new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L203">                    return a.divide(new BigDecimal(b.doubleValue()), MATH_CONTEXT.get());</span>
+                }
+            };
+<span class="fc" id="L206">            operations.put(Double.class, dfOp);</span>
+<span class="fc" id="L207">            operations.put(Float.class, dfOp);</span>
+<span class="fc" id="L208">            operations.put(BigInteger.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L212">                    return a.divide(new BigDecimal((BigInteger) b), MATH_CONTEXT.get());</span>
+                }
+            });
+<span class="fc" id="L215">            operations.put(BigDecimal.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L219">                    return a.divide((BigDecimal) b, MATH_CONTEXT.get());</span>
+                }
+            });
+<span class="fc" id="L222">        }</span>
     }
 
-<span class="fc" id="L125">    public static final class Mod implements Operator&lt;BigDecimal, Number, Number&gt; {</span>
+    public static final class Mod extends AbstractOps&lt;BigDecimal&gt; {
 
-        @Override
-        public Number op(final BigDecimal a, final Number b) {
-<span class="nc" id="L129">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="nc bnc" id="L130" title="All 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-<span class="nc" id="L132">                return a.toBigInteger().mod(BigInteger.valueOf(b.intValue()));</span>
-<span class="nc bnc" id="L133" title="All 2 branches missed.">            } else if (claszB.equals(Long.class)) {</span>
-<span class="nc" id="L134">                return a.toBigInteger().mod(BigInteger.valueOf(b.longValue()));</span>
-<span class="nc bnc" id="L135" title="All 2 branches missed.">            } else if (claszB.equals(Double.class)) {</span>
-<span class="nc" id="L136">                return a.toBigInteger().mod(new BigDecimal(b.doubleValue()).toBigInteger());</span>
-<span class="nc bnc" id="L137" title="All 2 branches missed.">            } else if (claszB.equals(BigInteger.class)) {</span>
-<span class="nc" id="L138">                return a.toBigInteger().mod((BigInteger) b);</span>
-<span class="nc bnc" id="L139" title="All 2 branches missed.">            } else if (claszB.equals(BigDecimal.class)) {</span>
-<span class="nc" id="L140">                return a.toBigInteger().mod(((BigDecimal) b).toBigInteger());</span>
-<span class="nc bnc" id="L141" title="All 2 branches missed.">            } else if (claszB.equals(Float.class)) {</span>
-<span class="nc" id="L142">                return a.toBigInteger().mod(new BigDecimal(b.doubleValue()).toBigInteger());</span>
-            } else {
-<span class="nc" id="L144">                throw new IllegalArgumentException(b.toString());</span>
-            }
-        }
+        public Mod() {
+<span class="fc" id="L228">            super();</span>
+<span class="fc" id="L229">            Operator&lt;BigDecimal, Number, Number&gt; isbc = new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L233">                    return a.toBigInteger().mod(BigInteger.valueOf(b.intValue()));</span>
+                }
+            };
+<span class="fc" id="L236">            operations.put(Integer.class, isbc);</span>
+<span class="fc" id="L237">            operations.put(Byte.class, isbc);</span>
+<span class="fc" id="L238">            operations.put(Character.class, isbc);</span>
+<span class="fc" id="L239">            operations.put(Short.class, isbc);</span>
+<span class="fc" id="L240">            operations.put(Long.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L244">                     return a.toBigInteger().mod(BigInteger.valueOf(b.longValue()));</span>
+                }
+            });
+<span class="fc" id="L247">            final Operator&lt;BigDecimal, Number, Number&gt; dfOp = new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L251">                    return a.toBigInteger().mod(new BigDecimal(b.doubleValue()).toBigInteger());</span>
+                }
+            };
+<span class="fc" id="L254">            operations.put(Double.class, dfOp);</span>
+<span class="fc" id="L255">            operations.put(Float.class, dfOp);</span>
+<span class="fc" id="L256">            operations.put(BigInteger.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L260">                    return a.toBigInteger().mod((BigInteger) b);</span>
+                }
+            });
+<span class="fc" id="L263">            operations.put(BigDecimal.class, new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L267">                    return a.toBigInteger().mod(((BigDecimal) b).toBigInteger());</span>
+                }
+            });
+<span class="fc" id="L270">        }</span>
     }
 
-<span class="fc" id="L149">    public static final class Pow implements Operator&lt;BigDecimal, Number, Number&gt; {</span>
+    public static final class Pow extends AbstractOps&lt;BigDecimal&gt; {
 
-        @Override
-        public Number op(final BigDecimal a, final Number b) {
-<span class="nc" id="L153">            Class&lt;? extends Number&gt; claszB = b.getClass();</span>
-<span class="nc bnc" id="L154" title="All 8 branches missed.">            if (claszB.equals(Integer.class) || claszB.equals(Short.class)</span>
-                    || claszB.equals(Byte.class) || claszB.equals(Character.class)) {
-<span class="nc" id="L156">                return a.pow(b.intValue(), MATH_CONTEXT.get());</span>
-            } else {
-<span class="nc" id="L158">                throw new IllegalArgumentException(b.toString());</span>
-            }
-        }
+        public Pow() {
+<span class="fc" id="L276">            super();</span>
+<span class="fc" id="L277">            Operator&lt;BigDecimal, Number, Number&gt; isbc = new Operator&lt;BigDecimal, Number, Number&gt;() {</span>
+
+                @Override
+                public Number op(final BigDecimal a, final Number b) {
+<span class="nc" id="L281">                    return a.pow(b.intValue(), MATH_CONTEXT.get());</span>
+                }
+            };
+<span class="fc" id="L284">            operations.put(Integer.class, isbc);</span>
+<span class="fc" id="L285">            operations.put(Byte.class, isbc);</span>
+<span class="fc" id="L286">            operations.put(Character.class, isbc);</span>
+<span class="fc" id="L287">            operations.put(Short.class, isbc);</span>
+<span class="fc" id="L288">        }</span>
+
 
     }
 }

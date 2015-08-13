@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>LongAdder.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">LongAdder.java</span></div><h1>LongAdder.java</h1><pre class="source lang-java linenums">
+package org.spf4j.concurrent;
+
+/*
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
+ */
+
+/*
+ * Source:
+ * http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/jsr166e/LongAdder.java?revision=1.8
+ */
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+/**
+ * One or more variables that together maintain an initially zero
+ * {@code long} sum.  When updates (method {@link #add}) are contended
+ * across threads, the set of variables may grow dynamically to reduce
+ * contention. Method {@link #sum} (or, equivalently, {@link
+ * #longValue}) returns the current total combined across the
+ * variables maintaining the sum.
+ *
+ * &lt;p&gt; This class is usually preferable to {@link AtomicLong} when
+ * multiple threads update a common sum that is used for purposes such
+ * as collecting statistics, not for fine-grained synchronization
+ * control.  Under low update contention, the two classes have similar
+ * characteristics. But under high contention, expected throughput of
+ * this class is significantly higher, at the expense of higher space
+ * consumption.
+ *
+ * &lt;p&gt;This class extends {@link Number}, but does &lt;em&gt;not&lt;/em&gt; define
+ * methods such as {@code hashCode} and {@code compareTo} because
+ * instances are expected to be mutated, and so are not useful as
+ * collection keys.
+ *
+ * &lt;p&gt;&lt;em&gt;jsr166e note: This class is targeted to be placed in
+ * java.util.concurrent.atomic&lt;em&gt;
+ *
+ * @since 1.8
+ * @author Doug Lea
+ */
+//CHECKSTYLE:OFF
+@SuppressFBWarnings
+public final class LongAdder extends Striped64 {
+    private static final long serialVersionUID = 7249069246863182397L;
+
+    /**
+     * Version of plus for use in retryUpdate
+     */
+<span class="fc" id="L55">    final long fn(long v, long x) { return v + x; }</span>
+
+    /**
+     * Creates a new adder with initial sum of zero.
+     */
+<span class="fc" id="L60">    public LongAdder() {</span>
+<span class="fc" id="L61">    }</span>
+
+    /**
+     * Adds the given value.
+     *
+     * @param x the value to add
+     */
+    public void add(long x) {
+        Cell[] as; long b, v; HashCode hc; Cell a; int n;
+<span class="fc bfc" id="L70" title="All 4 branches covered.">        if ((as = cells) != null || !casBase(b = base, b + x)) {</span>
+<span class="fc" id="L71">            boolean uncontended = true;</span>
+<span class="fc" id="L72">            int h = (hc = threadHashCode.get()).code;</span>
+<span class="pc bpc" id="L73" title="1 of 8 branches missed.">            if (as == null || (n = as.length) &lt; 1 ||</span>
+                (a = as[(n - 1) &amp; h]) == null ||
+                !(uncontended = a.cas(v = a.value, v + x)))
+<span class="fc" id="L76">                retryUpdate(x, hc, uncontended);</span>
+        }
+<span class="fc" id="L78">    }</span>
+
+    /**
+     * Equivalent to {@code add(1)}.
+     */
+    public void increment() {
+<span class="fc" id="L84">        add(1L);</span>
+<span class="fc" id="L85">    }</span>
+
+    /**
+     * Equivalent to {@code add(-1)}.
+     */
+    public void decrement() {
+<span class="nc" id="L91">        add(-1L);</span>
+<span class="nc" id="L92">    }</span>
+
+    /**
+     * Returns the current sum.  The returned value is &lt;em&gt;NOT&lt;/em&gt; an
+     * atomic snapshot: Invocation in the absence of concurrent
+     * updates returns an accurate result, but concurrent updates that
+     * occur while the sum is being calculated might not be
+     * incorporated.
+     *
+     * @return the sum
+     */
+    public long sum() {
+<span class="fc" id="L104">        long sum = base;</span>
+<span class="fc" id="L105">        Cell[] as = cells;</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (as != null) {</span>
+<span class="fc" id="L107">            int n = as.length;</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">            for (int i = 0; i &lt; n; ++i) {</span>
+<span class="fc" id="L109">                Cell a = as[i];</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">                if (a != null)</span>
+<span class="fc" id="L111">                    sum += a.value;</span>
+            }
+        }
+<span class="fc" id="L114">        return sum;</span>
+    }
+
+    /**
+     * Resets variables maintaining the sum to zero.  This method may
+     * be a useful alternative to creating a new adder, but is only
+     * effective if there are no concurrent updates.  Because this
+     * method is intrinsically racy, it should only be used when it is
+     * known that no threads are concurrently updating.
+     */
+    public void reset() {
+<span class="nc" id="L125">        internalReset(0L);</span>
+<span class="nc" id="L126">    }</span>
+
+    /**
+     * Equivalent in effect to {@link #sum} followed by {@link
+     * #reset}. This method may apply for example during quiescent
+     * points between multithreaded computations.  If there are
+     * updates concurrent with this method, the returned value is
+     * &lt;em&gt;not&lt;/em&gt; guaranteed to be the final value occurring before
+     * the reset.
+     *
+     * @return the sum
+     */
+    public long sumThenReset() {
+<span class="nc" id="L139">        long sum = base;</span>
+<span class="nc" id="L140">        Cell[] as = cells;</span>
+<span class="nc" id="L141">        base = 0L;</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (as != null) {</span>
+<span class="nc" id="L143">            int n = as.length;</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">            for (int i = 0; i &lt; n; ++i) {</span>
+<span class="nc" id="L145">                Cell a = as[i];</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">                if (a != null) {</span>
+<span class="nc" id="L147">                    sum += a.value;</span>
+<span class="nc" id="L148">                    a.value = 0L;</span>
+                }
+            }
+        }
+<span class="nc" id="L152">        return sum;</span>
+    }
+
+    /**
+     * Returns the String representation of the {@link #sum}.
+     * @return the String representation of the {@link #sum}
+     */
+    public String toString() {
+<span class="nc" id="L160">        return Long.toString(sum());</span>
+    }
+
+    /**
+     * Equivalent to {@link #sum}.
+     *
+     * @return the sum
+     */
+    public long longValue() {
+<span class="nc" id="L169">        return sum();</span>
+    }
+
+    /**
+     * Returns the {@link #sum} as an {@code int} after a narrowing
+     * primitive conversion.
+     */
+    public int intValue() {
+<span class="nc" id="L177">        return (int)sum();</span>
+    }
+
+    /**
+     * Returns the {@link #sum} as a {@code float}
+     * after a widening primitive conversion.
+     */
+    public float floatValue() {
+<span class="nc" id="L185">        return (float)sum();</span>
+    }
+
+    /**
+     * Returns the {@link #sum} as a {@code double} after a widening
+     * primitive conversion.
+     */
+    public double doubleValue() {
+<span class="nc" id="L193">        return (double)sum();</span>
+    }
+
+    private void writeObject(ObjectOutputStream s)
+        throws java.io.IOException {
+<span class="nc" id="L198">        s.defaultWriteObject();</span>
+<span class="nc" id="L199">        s.writeLong(sum());</span>
+<span class="nc" id="L200">    }</span>
+
+    private void readObject(ObjectInputStream s)
+        throws IOException, ClassNotFoundException {
+<span class="nc" id="L204">        s.defaultReadObject();</span>
+<span class="nc" id="L205">        busy = 0;</span>
+<span class="nc" id="L206">        cells = null;</span>
+<span class="nc" id="L207">        base = s.readLong();</span>
+<span class="nc" id="L208">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

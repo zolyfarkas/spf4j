@@ -1,0 +1,875 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ZArrayDequeue.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ds</a> &gt; <span class="el_source">ZArrayDequeue.java</span></div><h1>ZArrayDequeue.java</h1><pre class="source lang-java linenums">
+package org.spf4j.ds;
+//CHECKSTYLE:OFF
+//CLASS modified to allow removal of element by location
+//The whole purpose of this class is to implement custom behavior for the Lifo TP.
+/*
+ * %W% %E%
+ *
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.AbstractCollection;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.ConcurrentModificationException;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
+/**
+ * Resizable-array implementation of the {@link Deque} interface.  Array
+ * deques have no capacity restrictions; they grow as necessary to support
+ * usage.  They are not thread-safe; in the absence of external
+ * synchronization, they do not support concurrent access by multiple threads.
+ * Null elements are prohibited.  This class is likely to be faster than
+ * {@link Stack} when used as a stack, and faster than {@link LinkedList}
+ * when used as a queue.
+ *
+ * &lt;p&gt;Most &lt;tt&gt;ArrayDeque&lt;/tt&gt; operations run in amortized constant time.
+ * Exceptions include {@link #remove(Object) remove}, {@link
+ * #removeFirstOccurrence removeFirstOccurrence}, {@link #removeLastOccurrence
+ * removeLastOccurrence}, {@link #contains contains}, {@link #iterator
+ * iterator.remove()}, and the bulk operations, all of which run in linear
+ * time.
+ *
+ * &lt;p&gt;The iterators returned by this class's &lt;tt&gt;iterator&lt;/tt&gt; method are
+ * &lt;i&gt;fail-fast&lt;/i&gt;: If the deque is modified at any time after the iterator
+ * is created, in any way except through the iterator's own &lt;tt&gt;remove&lt;/tt&gt;
+ * method, the iterator will generally throw a {@link
+ * ConcurrentModificationException}.  Thus, in the face of concurrent
+ * modification, the iterator fails quickly and cleanly, rather than risking
+ * arbitrary, non-deterministic behavior at an undetermined time in the
+ * future.
+ *
+ * &lt;p&gt;Note that the fail-fast behavior of an iterator cannot be guaranteed
+ * as it is, generally speaking, impossible to make any hard guarantees in the
+ * presence of unsynchronized concurrent modification.  Fail-fast iterators
+ * throw &lt;tt&gt;ConcurrentModificationException&lt;/tt&gt; on a best-effort basis.
+ * Therefore, it would be wrong to write a program that depended on this
+ * exception for its correctness: &lt;i&gt;the fail-fast behavior of iterators
+ * should be used only to detect bugs.&lt;/i&gt;
+ *
+ * &lt;p&gt;This class and its iterator implement all of the
+ * &lt;em&gt;optional&lt;/em&gt; methods of the {@link Collection} and {@link
+ * Iterator} interfaces.
+ *
+ * &lt;p&gt;This class is a member of the
+ * &lt;a href=&quot;{@docRoot}/../technotes/guides/collections/index.html&quot;&gt;
+ * Java Collections Framework&lt;/a&gt;.
+ *
+ * @author  Josh Bloch and Doug Lea
+ * @since   1.6
+ * @param &lt;E&gt; the type of elements held in this collection
+ */
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">public class ZArrayDequeue&lt;E&gt; extends AbstractCollection&lt;E&gt;</span>
+                           implements Deque&lt;E&gt;, Cloneable, Serializable
+{
+    /**
+     * The array in which the elements of the deque are stored.
+     * The capacity of the deque is the length of this array, which is
+     * always a power of two. The array is never allowed to become
+     * full, except transiently within an addX method where it is
+     * resized (see doubleCapacity) immediately upon becoming full,
+     * thus avoiding head and tail wrapping around to equal each
+     * other.  We also guarantee that all array cells not holding
+     * deque elements are always null.
+     */
+    private transient E[] elements;
+
+    /**
+     * The index of the element at the head of the deque (which is the
+     * element that would be removed by remove() or pop()); or an
+     * arbitrary number equal to tail if the deque is empty.
+     */
+    private transient int head;
+
+    /**
+     * The index at which the next element would be added to the tail
+     * of the deque (via addLast(E), add(E), or push(E)).
+     */
+    private transient int tail;
+
+    /**
+     * The minimum capacity that we'll use for a newly created deque.
+     * Must be a power of 2.
+     */
+    private static final int MIN_INITIAL_CAPACITY = 8;
+
+    // ******  Array allocation and resizing utilities ******
+
+    /**
+     * Allocate empty array to hold the given number of elements.
+     *
+     * @param numElements  the number of elements to hold
+     */
+    private void allocateElements(int numElements) {
+<span class="fc" id="L112">        int initialCapacity = MIN_INITIAL_CAPACITY;</span>
+        // Find the best power of two to hold elements.
+        // Tests &quot;&lt;=&quot; because arrays aren't kept full.
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">        if (numElements &gt;= initialCapacity) {</span>
+<span class="fc" id="L116">            initialCapacity = numElements;</span>
+<span class="fc" id="L117">            initialCapacity |= (initialCapacity &gt;&gt;&gt;  1);</span>
+<span class="fc" id="L118">            initialCapacity |= (initialCapacity &gt;&gt;&gt;  2);</span>
+<span class="fc" id="L119">            initialCapacity |= (initialCapacity &gt;&gt;&gt;  4);</span>
+<span class="fc" id="L120">            initialCapacity |= (initialCapacity &gt;&gt;&gt;  8);</span>
+<span class="fc" id="L121">            initialCapacity |= (initialCapacity &gt;&gt;&gt; 16);</span>
+<span class="fc" id="L122">            initialCapacity++;</span>
+
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">            if (initialCapacity &lt; 0)   // Too many elements, must back off</span>
+<span class="nc" id="L125">                initialCapacity &gt;&gt;&gt;= 1;// Good luck allocating 2 ^ 30 elements</span>
+        }
+<span class="fc" id="L127">        elements = (E[]) new Object[initialCapacity];</span>
+<span class="fc" id="L128">    }</span>
+
+    /**
+     * Double the capacity of this deque.  Call only when full, i.e.,
+     * when head and tail have wrapped around to become equal.
+     */
+    private void doubleCapacity() {
+<span class="nc bnc" id="L135" title="All 4 branches missed.">        assert head == tail;</span>
+<span class="nc" id="L136">        int p = head;</span>
+<span class="nc" id="L137">        int n = elements.length;</span>
+<span class="nc" id="L138">        int r = n - p; // number of elements to the right of p</span>
+<span class="nc" id="L139">        int newCapacity = n &lt;&lt; 1;</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        if (newCapacity &lt; 0)</span>
+<span class="nc" id="L141">            throw new IllegalStateException(&quot;Sorry, deque too big&quot;);</span>
+<span class="nc" id="L142">        Object[] a = new Object[newCapacity];</span>
+<span class="nc" id="L143">        System.arraycopy(elements, p, a, 0, r);</span>
+<span class="nc" id="L144">        System.arraycopy(elements, 0, a, r, p);</span>
+<span class="nc" id="L145">        elements = (E[])a;</span>
+<span class="nc" id="L146">        head = 0;</span>
+<span class="nc" id="L147">        tail = n;</span>
+<span class="nc" id="L148">    }</span>
+
+    /**
+     * Copies the elements from our element array into the specified array,
+     * in order (from first to last element in the deque).  It is assumed
+     * that the array is large enough to hold all elements in the deque.
+     *
+     * @return its argument
+     */
+    private &lt;T&gt; T[] copyElements(T[] a) {
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        if (head &lt; tail) {</span>
+<span class="nc" id="L159">            System.arraycopy(elements, head, a, 0, size());</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        } else if (head &gt; tail) {</span>
+<span class="nc" id="L161">            int headPortionLen = elements.length - head;</span>
+<span class="nc" id="L162">            System.arraycopy(elements, head, a, 0, headPortionLen);</span>
+<span class="nc" id="L163">            System.arraycopy(elements, 0, a, headPortionLen, tail);</span>
+        }
+<span class="nc" id="L165">        return a;</span>
+    }
+
+    /**
+     * Constructs an empty array deque with an initial capacity
+     * sufficient to hold 16 elements.
+     */
+<span class="nc" id="L172">    public ZArrayDequeue() {</span>
+<span class="nc" id="L173">        elements = (E[]) new Object[16];</span>
+<span class="nc" id="L174">    }</span>
+
+    /**
+     * Constructs an empty array deque with an initial capacity
+     * sufficient to hold the specified number of elements.
+     *
+     * @param numElements  lower bound on initial capacity of the deque
+     */
+<span class="fc" id="L182">    public ZArrayDequeue(int numElements) {</span>
+<span class="fc" id="L183">        allocateElements(numElements);</span>
+<span class="fc" id="L184">    }</span>
+
+    /**
+     * Constructs a deque containing the elements of the specified
+     * collection, in the order they are returned by the collection's
+     * iterator.  (The first element returned by the collection's
+     * iterator becomes the first element, or &lt;i&gt;front&lt;/i&gt; of the
+     * deque.)
+     *
+     * @param c the collection whose elements are to be placed into the deque
+     * @throws NullPointerException if the specified collection is null
+     */
+<span class="nc" id="L196">    public ZArrayDequeue(Collection&lt;? extends E&gt; c) {</span>
+<span class="nc" id="L197">        allocateElements(c.size());</span>
+<span class="nc" id="L198">        addAll(c);</span>
+<span class="nc" id="L199">    }</span>
+
+    // The main insertion and extraction methods are addFirst,
+    // addLast, pollFirst, pollLast. The other methods are defined in
+    // terms of these.
+
+    /**
+     * Inserts the specified element at the front of this deque.
+     *
+     * @param e the element to add
+     * @throws NullPointerException if the specified element is null
+     */
+    public void addFirst(E e) {
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        if (e == null)</span>
+<span class="nc" id="L213">            throw new NullPointerException();</span>
+<span class="nc" id="L214">        elements[head = (head - 1) &amp; (elements.length - 1)] = e;</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">        if (head == tail)</span>
+<span class="nc" id="L216">            doubleCapacity();</span>
+<span class="nc" id="L217">    }</span>
+
+    /**
+     * Inserts the specified element at the end of this deque.
+     *
+     * &lt;p&gt;This method is equivalent to {@link #add}.
+     *
+     * @param e the element to add
+     * @throws NullPointerException if the specified element is null
+     */
+    public void addLast(E e) {
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        if (e == null)</span>
+<span class="nc" id="L229">            throw new NullPointerException();</span>
+<span class="nc" id="L230">        elements[tail] = e;</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        if ( (tail = (tail + 1) &amp; (elements.length - 1)) == head)</span>
+<span class="nc" id="L232">            doubleCapacity();</span>
+<span class="nc" id="L233">    }</span>
+
+
+    public int addLastAndGetPtr(final E e) {
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">        if (e == null)</span>
+<span class="nc" id="L238">            throw new NullPointerException();</span>
+<span class="fc" id="L239">        elements[tail] = e;</span>
+<span class="fc" id="L240">        int result = tail;</span>
+<span class="pc bpc" id="L241" title="1 of 2 branches missed.">        if ( (tail = (tail + 1) &amp; (elements.length - 1)) == head)</span>
+<span class="nc" id="L242">            doubleCapacity();</span>
+<span class="fc" id="L243">        return result;</span>
+    }
+
+
+    /**
+     * Inserts the specified element at the front of this deque.
+     *
+     * @param e the element to add
+     * @return &lt;tt&gt;true&lt;/tt&gt; (as specified by {@link Deque#offerFirst})
+     * @throws NullPointerException if the specified element is null
+     */
+    public boolean offerFirst(E e) {
+<span class="nc" id="L255">        addFirst(e);</span>
+<span class="nc" id="L256">        return true;</span>
+    }
+
+    /**
+     * Inserts the specified element at the end of this deque.
+     *
+     * @param e the element to add
+     * @return &lt;tt&gt;true&lt;/tt&gt; (as specified by {@link Deque#offerLast})
+     * @throws NullPointerException if the specified element is null
+     */
+    public boolean offerLast(E e) {
+<span class="nc" id="L267">        addLast(e);</span>
+<span class="nc" id="L268">        return true;</span>
+    }
+
+    /**
+     * @throws NoSuchElementException {@inheritDoc}
+     */
+    public E removeFirst() {
+<span class="nc" id="L275">        E x = pollFirst();</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">        if (x == null)</span>
+<span class="nc" id="L277">            throw new NoSuchElementException();</span>
+<span class="nc" id="L278">        return x;</span>
+    }
+
+    /**
+     * @throws NoSuchElementException {@inheritDoc}
+     */
+    public E removeLast() {
+<span class="nc" id="L285">        E x = pollLast();</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">        if (x == null)</span>
+<span class="nc" id="L287">            throw new NoSuchElementException();</span>
+<span class="nc" id="L288">        return x;</span>
+    }
+
+    public E pollFirst() {
+<span class="nc" id="L292">        int h = head;</span>
+<span class="nc" id="L293">        E result = elements[h]; // Element is null if deque empty</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">        if (result == null)</span>
+<span class="nc" id="L295">            return null;</span>
+<span class="nc" id="L296">        elements[h] = null;     // Must null out slot</span>
+<span class="nc" id="L297">        head = (h + 1) &amp; (elements.length - 1);</span>
+<span class="nc" id="L298">        return result;</span>
+    }
+
+    public E pollLast() {
+<span class="fc" id="L302">        int t = (tail - 1) &amp; (elements.length - 1);</span>
+<span class="fc" id="L303">        E result = elements[t];</span>
+<span class="fc bfc" id="L304" title="All 2 branches covered.">        if (result == null)</span>
+<span class="fc" id="L305">            return null;</span>
+<span class="fc" id="L306">        elements[t] = null;</span>
+<span class="fc" id="L307">        tail = t;</span>
+<span class="fc" id="L308">        return result;</span>
+    }
+
+    /**
+     * @throws NoSuchElementException {@inheritDoc}
+     */
+    public E getFirst() {
+<span class="nc" id="L315">        E x = elements[head];</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">        if (x == null)</span>
+<span class="nc" id="L317">            throw new NoSuchElementException();</span>
+<span class="nc" id="L318">        return x;</span>
+    }
+
+    /**
+     * @throws NoSuchElementException {@inheritDoc}
+     */
+    public E getLast() {
+<span class="nc" id="L325">        E x = elements[(tail - 1) &amp; (elements.length - 1)];</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">        if (x == null)</span>
+<span class="nc" id="L327">            throw new NoSuchElementException();</span>
+<span class="nc" id="L328">        return x;</span>
+    }
+
+    public E peekFirst() {
+<span class="nc" id="L332">        return elements[head]; // elements[head] is null if deque empty</span>
+    }
+
+    public E peekLast() {
+<span class="nc" id="L336">        return elements[(tail - 1) &amp; (elements.length - 1)];</span>
+    }
+
+    /**
+     * Removes the first occurrence of the specified element in this
+     * deque (when traversing the deque from head to tail).
+     * If the deque does not contain the element, it is unchanged.
+     * More formally, removes the first element &lt;tt&gt;e&lt;/tt&gt; such that
+     * &lt;tt&gt;o.equals(e)&lt;/tt&gt; (if such an element exists).
+     * Returns &lt;tt&gt;true&lt;/tt&gt; if this deque contained the specified element
+     * (or equivalently, if this deque changed as a result of the call).
+     *
+     * @param o element to be removed from this deque, if present
+     * @return &lt;tt&gt;true&lt;/tt&gt; if the deque contained the specified element
+     */
+    public boolean removeFirstOccurrence(Object o) {
+<span class="pc bpc" id="L352" title="1 of 2 branches missed.">        if (o == null)</span>
+<span class="nc" id="L353">            return false;</span>
+<span class="fc" id="L354">        int mask = elements.length - 1;</span>
+<span class="fc" id="L355">        int i = head;</span>
+        E x;
+<span class="pc bpc" id="L357" title="1 of 2 branches missed.">        while ( (x = elements[i]) != null) {</span>
+<span class="pc bpc" id="L358" title="1 of 2 branches missed.">            if (o.equals(x)) {</span>
+<span class="fc" id="L359">                delete(i);</span>
+<span class="fc" id="L360">                return true;</span>
+            }
+<span class="nc" id="L362">            i = (i + 1) &amp; mask;</span>
+        }
+<span class="nc" id="L364">        return false;</span>
+    }
+
+    /**
+     * Removes the last occurrence of the specified element in this
+     * deque (when traversing the deque from head to tail).
+     * If the deque does not contain the element, it is unchanged.
+     * More formally, removes the last element &lt;tt&gt;e&lt;/tt&gt; such that
+     * &lt;tt&gt;o.equals(e)&lt;/tt&gt; (if such an element exists).
+     * Returns &lt;tt&gt;true&lt;/tt&gt; if this deque contained the specified element
+     * (or equivalently, if this deque changed as a result of the call).
+     *
+     * @param o element to be removed from this deque, if present
+     * @return &lt;tt&gt;true&lt;/tt&gt; if the deque contained the specified element
+     */
+    public boolean removeLastOccurrence(Object o) {
+<span class="nc bnc" id="L380" title="All 2 branches missed.">        if (o == null)</span>
+<span class="nc" id="L381">            return false;</span>
+<span class="nc" id="L382">        int mask = elements.length - 1;</span>
+<span class="nc" id="L383">        int i = (tail - 1) &amp; mask;</span>
+        E x;
+<span class="nc bnc" id="L385" title="All 2 branches missed.">        while ( (x = elements[i]) != null) {</span>
+<span class="nc bnc" id="L386" title="All 2 branches missed.">            if (o.equals(x)) {</span>
+<span class="nc" id="L387">                delete(i);</span>
+<span class="nc" id="L388">                return true;</span>
+            }
+<span class="nc" id="L390">            i = (i - 1) &amp; mask;</span>
+        }
+<span class="nc" id="L392">        return false;</span>
+    }
+
+    // *** Queue methods ***
+
+    /**
+     * Inserts the specified element at the end of this deque.
+     *
+     * &lt;p&gt;This method is equivalent to {@link #addLast}.
+     *
+     * @param e the element to add
+     * @return &lt;tt&gt;true&lt;/tt&gt; (as specified by {@link Collection#add})
+     * @throws NullPointerException if the specified element is null
+     */
+    public boolean add(E e) {
+<span class="nc" id="L407">        addLast(e);</span>
+<span class="nc" id="L408">        return true;</span>
+    }
+
+    /**
+     * Inserts the specified element at the end of this deque.
+     *
+     * &lt;p&gt;This method is equivalent to {@link #offerLast}.
+     *
+     * @param e the element to add
+     * @return &lt;tt&gt;true&lt;/tt&gt; (as specified by {@link Queue#offer})
+     * @throws NullPointerException if the specified element is null
+     */
+    public boolean offer(E e) {
+<span class="nc" id="L421">        return offerLast(e);</span>
+    }
+
+    /**
+     * Retrieves and removes the head of the queue represented by this deque.
+     *
+     * This method differs from {@link #poll poll} only in that it throws an
+     * exception if this deque is empty.
+     *
+     * &lt;p&gt;This method is equivalent to {@link #removeFirst}.
+     *
+     * @return the head of the queue represented by this deque
+     * @throws NoSuchElementException {@inheritDoc}
+     */
+    public E remove() {
+<span class="nc" id="L436">        return removeFirst();</span>
+    }
+
+    /**
+     * Retrieves and removes the head of the queue represented by this deque
+     * (in other words, the first element of this deque), or returns
+     * &lt;tt&gt;null&lt;/tt&gt; if this deque is empty.
+     *
+     * &lt;p&gt;This method is equivalent to {@link #pollFirst}.
+     *
+     * @return the head of the queue represented by this deque, or
+     *         &lt;tt&gt;null&lt;/tt&gt; if this deque is empty
+     */
+    public E poll() {
+<span class="nc" id="L450">        return pollFirst();</span>
+    }
+
+    /**
+     * Retrieves, but does not remove, the head of the queue represented by
+     * this deque.  This method differs from {@link #peek peek} only in
+     * that it throws an exception if this deque is empty.
+     *
+     * &lt;p&gt;This method is equivalent to {@link #getFirst}.
+     *
+     * @return the head of the queue represented by this deque
+     * @throws NoSuchElementException {@inheritDoc}
+     */
+    public E element() {
+<span class="nc" id="L464">        return getFirst();</span>
+    }
+
+    /**
+     * Retrieves, but does not remove, the head of the queue represented by
+     * this deque, or returns &lt;tt&gt;null&lt;/tt&gt; if this deque is empty.
+     *
+     * &lt;p&gt;This method is equivalent to {@link #peekFirst}.
+     *
+     * @return the head of the queue represented by this deque, or
+     *         &lt;tt&gt;null&lt;/tt&gt; if this deque is empty
+     */
+    public E peek() {
+<span class="nc" id="L477">        return peekFirst();</span>
+    }
+
+    // *** Stack methods ***
+
+    /**
+     * Pushes an element onto the stack represented by this deque.  In other
+     * words, inserts the element at the front of this deque.
+     *
+     * &lt;p&gt;This method is equivalent to {@link #addFirst}.
+     *
+     * @param e the element to push
+     * @throws NullPointerException if the specified element is null
+     */
+    public void push(E e) {
+<span class="nc" id="L492">        addFirst(e);</span>
+<span class="nc" id="L493">    }</span>
+
+    /**
+     * Pops an element from the stack represented by this deque.  In other
+     * words, removes and returns the first element of this deque.
+     *
+     * &lt;p&gt;This method is equivalent to {@link #removeFirst()}.
+     *
+     * @return the element at the front of this deque (which is the top
+     *         of the stack represented by this deque)
+     * @throws NoSuchElementException {@inheritDoc}
+     */
+    public E pop() {
+<span class="nc" id="L506">        return removeFirst();</span>
+    }
+
+    private void checkInvariants() {
+<span class="pc bpc" id="L510" title="2 of 4 branches missed.">	assert elements[tail] == null;</span>
+<span class="pc bpc" id="L511" title="6 of 10 branches missed.">	assert head == tail ? elements[head] == null :</span>
+	    (elements[head] != null &amp;&amp;
+	     elements[(tail - 1) &amp; (elements.length - 1)] != null);
+<span class="pc bpc" id="L514" title="2 of 4 branches missed.">	assert elements[(head - 1) &amp; (elements.length - 1)] == null;</span>
+<span class="fc" id="L515">    }</span>
+
+
+    public void delete(int i, E elem) {
+<span class="fc bfc" id="L519" title="All 2 branches covered.">        if (elem.equals(elements[i])) {</span>
+<span class="fc" id="L520">            delete(i);</span>
+        } else {
+<span class="fc" id="L522">            remove(elem);</span>
+        }
+<span class="fc" id="L524">    }</span>
+
+    /**
+     * Removes the element at the specified position in the elements array,
+     * adjusting head and tail as necessary.  This can result in motion of
+     * elements backwards or forwards in the array.
+     *
+     * &lt;p&gt;This method is called delete rather than remove to emphasize
+     * that its semantics differ from those of {@link List#remove(int)}.
+     *
+     * @return true if elements moved backwards
+     */
+    private boolean delete(int i) {
+<span class="fc" id="L537"> 	checkInvariants();</span>
+<span class="fc" id="L538">	final E[] elements = this.elements;</span>
+<span class="fc" id="L539">	final int mask = elements.length - 1;</span>
+<span class="fc" id="L540">	final int h = head;</span>
+<span class="fc" id="L541">	final int t = tail;</span>
+<span class="fc" id="L542">	final int front = (i - h) &amp; mask;</span>
+<span class="fc" id="L543">	final int back  = (t - i) &amp; mask;</span>
+
+	// Invariant: head &lt;= i &lt; tail mod circularity
+<span class="pc bpc" id="L546" title="1 of 2 branches missed.">	if (front &gt;= ((t - h) &amp; mask))</span>
+<span class="nc" id="L547">	    throw new ConcurrentModificationException();</span>
+
+	// Optimize for least element motion
+<span class="pc bpc" id="L550" title="1 of 2 branches missed.">	if (front &lt; back) {</span>
+<span class="pc bpc" id="L551" title="1 of 2 branches missed.">	    if (h &lt;= i) {</span>
+<span class="fc" id="L552">		System.arraycopy(elements, h, elements, h + 1, front);</span>
+	    } else { // Wrap around
+<span class="nc" id="L554">		System.arraycopy(elements, 0, elements, 1, i);</span>
+<span class="nc" id="L555">		elements[0] = elements[mask];</span>
+<span class="nc" id="L556">		System.arraycopy(elements, h, elements, h + 1, mask - h);</span>
+	    }
+<span class="fc" id="L558">	    elements[h] = null;</span>
+<span class="fc" id="L559">	    head = (h + 1) &amp; mask;</span>
+<span class="fc" id="L560">	    return false;</span>
+	} else {
+<span class="nc bnc" id="L562" title="All 2 branches missed.">	    if (i &lt; t) { // Copy the null tail as well</span>
+<span class="nc" id="L563">		System.arraycopy(elements, i + 1, elements, i, back);</span>
+<span class="nc" id="L564">		tail = t - 1;</span>
+	    } else { // Wrap around
+<span class="nc" id="L566">		System.arraycopy(elements, i + 1, elements, i, mask - i);</span>
+<span class="nc" id="L567">		elements[mask] = elements[0];</span>
+<span class="nc" id="L568">		System.arraycopy(elements, 1, elements, 0, t);</span>
+<span class="nc" id="L569">		tail = (t - 1) &amp; mask;</span>
+	    }
+<span class="nc" id="L571">	    return true;</span>
+	}
+    }
+
+    // *** Collection Methods ***
+
+    /**
+     * Returns the number of elements in this deque.
+     *
+     * @return the number of elements in this deque
+     */
+    public int size() {
+<span class="nc" id="L583">        return (tail - head) &amp; (elements.length - 1);</span>
+    }
+
+    /**
+     * Returns &lt;tt&gt;true&lt;/tt&gt; if this deque contains no elements.
+     *
+     * @return &lt;tt&gt;true&lt;/tt&gt; if this deque contains no elements
+     */
+    public boolean isEmpty() {
+<span class="nc bnc" id="L592" title="All 2 branches missed.">        return head == tail;</span>
+    }
+
+    /**
+     * Returns an iterator over the elements in this deque.  The elements
+     * will be ordered from first (head) to last (tail).  This is the same
+     * order that elements would be dequeued (via successive calls to
+     * {@link #remove} or popped (via successive calls to {@link #pop}).
+     *
+     * @return an iterator over the elements in this deque
+     */
+    public Iterator&lt;E&gt; iterator() {
+<span class="nc" id="L604">        return new DeqIterator();</span>
+    }
+
+    public Iterator&lt;E&gt; descendingIterator() {
+<span class="nc" id="L608">        return new DescendingIterator();</span>
+    }
+
+<span class="nc" id="L611">    private class DeqIterator implements Iterator&lt;E&gt; {</span>
+        /**
+         * Index of element to be returned by subsequent call to next.
+         */
+<span class="nc" id="L615">        private int cursor = head;</span>
+
+        /**
+         * Tail recorded at construction (also in remove), to stop
+         * iterator and also to check for comodification.
+         */
+<span class="nc" id="L621">        private int fence = tail;</span>
+
+        /**
+         * Index of element returned by most recent call to next.
+         * Reset to -1 if element is deleted by a call to remove.
+         */
+<span class="nc" id="L627">        private int lastRet = -1;</span>
+
+        public boolean hasNext() {
+<span class="nc bnc" id="L630" title="All 2 branches missed.">            return cursor != fence;</span>
+        }
+
+        public E next() {
+<span class="nc bnc" id="L634" title="All 2 branches missed.">            if (cursor == fence)</span>
+<span class="nc" id="L635">                throw new NoSuchElementException();</span>
+<span class="nc" id="L636">            E result = elements[cursor];</span>
+            // This check doesn't catch all possible comodifications,
+            // but does catch the ones that corrupt traversal
+<span class="nc bnc" id="L639" title="All 4 branches missed.">            if (tail != fence || result == null)</span>
+<span class="nc" id="L640">                throw new ConcurrentModificationException();</span>
+<span class="nc" id="L641">            lastRet = cursor;</span>
+<span class="nc" id="L642">            cursor = (cursor + 1) &amp; (elements.length - 1);</span>
+<span class="nc" id="L643">            return result;</span>
+        }
+
+        public void remove() {
+<span class="nc bnc" id="L647" title="All 2 branches missed.">            if (lastRet &lt; 0)</span>
+<span class="nc" id="L648">                throw new IllegalStateException();</span>
+<span class="nc bnc" id="L649" title="All 2 branches missed.">            if (delete(lastRet)) { // if left-shifted, undo increment in next()</span>
+<span class="nc" id="L650">                cursor = (cursor - 1) &amp; (elements.length - 1);</span>
+<span class="nc" id="L651">		fence = tail;</span>
+	    }
+<span class="nc" id="L653">            lastRet = -1;</span>
+<span class="nc" id="L654">        }</span>
+    }
+
+<span class="nc" id="L657">    private class DescendingIterator implements Iterator&lt;E&gt; {</span>
+        /*
+         * This class is nearly a mirror-image of DeqIterator, using
+         * tail instead of head for initial cursor, and head instead of
+         * tail for fence.
+         */
+<span class="nc" id="L663">        private int cursor = tail;</span>
+<span class="nc" id="L664">        private int fence = head;</span>
+<span class="nc" id="L665">        private int lastRet = -1;</span>
+
+        public boolean hasNext() {
+<span class="nc bnc" id="L668" title="All 2 branches missed.">            return cursor != fence;</span>
+        }
+
+        public E next() {
+<span class="nc bnc" id="L672" title="All 2 branches missed.">            if (cursor == fence)</span>
+<span class="nc" id="L673">                throw new NoSuchElementException();</span>
+<span class="nc" id="L674">            cursor = (cursor - 1) &amp; (elements.length - 1);</span>
+<span class="nc" id="L675">	    E result = elements[cursor];</span>
+<span class="nc bnc" id="L676" title="All 4 branches missed.">            if (head != fence || result == null)</span>
+<span class="nc" id="L677">                throw new ConcurrentModificationException();</span>
+<span class="nc" id="L678">            lastRet = cursor;</span>
+<span class="nc" id="L679">            return result;</span>
+        }
+
+        public void remove() {
+<span class="nc bnc" id="L683" title="All 2 branches missed.">            if (lastRet &lt; 0)</span>
+<span class="nc" id="L684">                throw new IllegalStateException();</span>
+<span class="nc bnc" id="L685" title="All 2 branches missed.">            if (!delete(lastRet)) {</span>
+<span class="nc" id="L686">                cursor = (cursor + 1) &amp; (elements.length - 1);</span>
+<span class="nc" id="L687">		fence = head;</span>
+	    }
+<span class="nc" id="L689">            lastRet = -1;</span>
+<span class="nc" id="L690">        }</span>
+    }
+
+    /**
+     * Returns &lt;tt&gt;true&lt;/tt&gt; if this deque contains the specified element.
+     * More formally, returns &lt;tt&gt;true&lt;/tt&gt; if and only if this deque contains
+     * at least one element &lt;tt&gt;e&lt;/tt&gt; such that &lt;tt&gt;o.equals(e)&lt;/tt&gt;.
+     *
+     * @param o object to be checked for containment in this deque
+     * @return &lt;tt&gt;true&lt;/tt&gt; if this deque contains the specified element
+     */
+    public boolean contains(Object o) {
+<span class="nc bnc" id="L702" title="All 2 branches missed.">        if (o == null)</span>
+<span class="nc" id="L703">            return false;</span>
+<span class="nc" id="L704">        int mask = elements.length - 1;</span>
+<span class="nc" id="L705">        int i = head;</span>
+        E x;
+<span class="nc bnc" id="L707" title="All 2 branches missed.">        while ( (x = elements[i]) != null) {</span>
+<span class="nc bnc" id="L708" title="All 2 branches missed.">            if (o.equals(x))</span>
+<span class="nc" id="L709">                return true;</span>
+<span class="nc" id="L710">            i = (i + 1) &amp; mask;</span>
+        }
+<span class="nc" id="L712">        return false;</span>
+    }
+
+    /**
+     * Removes a single instance of the specified element from this deque.
+     * If the deque does not contain the element, it is unchanged.
+     * More formally, removes the first element &lt;tt&gt;e&lt;/tt&gt; such that
+     * &lt;tt&gt;o.equals(e)&lt;/tt&gt; (if such an element exists).
+     * Returns &lt;tt&gt;true&lt;/tt&gt; if this deque contained the specified element
+     * (or equivalently, if this deque changed as a result of the call).
+     *
+     * &lt;p&gt;This method is equivalent to {@link #removeFirstOccurrence}.
+     *
+     * @param o element to be removed from this deque, if present
+     * @return &lt;tt&gt;true&lt;/tt&gt; if this deque contained the specified element
+     */
+    public boolean remove(Object o) {
+<span class="fc" id="L729">        return removeFirstOccurrence(o);</span>
+    }
+
+    /**
+     * Removes all of the elements from this deque.
+     * The deque will be empty after this call returns.
+     */
+    public void clear() {
+<span class="nc" id="L737">        int h = head;</span>
+<span class="nc" id="L738">        int t = tail;</span>
+<span class="nc bnc" id="L739" title="All 2 branches missed.">        if (h != t) { // clear all cells</span>
+<span class="nc" id="L740">            head = tail = 0;</span>
+<span class="nc" id="L741">            int i = h;</span>
+<span class="nc" id="L742">            int mask = elements.length - 1;</span>
+            do {
+<span class="nc" id="L744">                elements[i] = null;</span>
+<span class="nc" id="L745">                i = (i + 1) &amp; mask;</span>
+<span class="nc bnc" id="L746" title="All 2 branches missed.">            } while (i != t);</span>
+        }
+<span class="nc" id="L748">    }</span>
+
+    /**
+     * Returns an array containing all of the elements in this deque
+     * in proper sequence (from first to last element).
+     *
+     * &lt;p&gt;The returned array will be &quot;safe&quot; in that no references to it are
+     * maintained by this deque.  (In other words, this method must allocate
+     * a new array).  The caller is thus free to modify the returned array.
+     *
+     * &lt;p&gt;This method acts as bridge between array-based and collection-based
+     * APIs.
+     *
+     * @return an array containing all of the elements in this deque
+     */
+    public Object[] toArray() {
+<span class="nc" id="L764">	return copyElements(new Object[size()]);</span>
+    }
+
+    /**
+     * Returns an array containing all of the elements in this deque in
+     * proper sequence (from first to last element); the runtime type of the
+     * returned array is that of the specified array.  If the deque fits in
+     * the specified array, it is returned therein.  Otherwise, a new array
+     * is allocated with the runtime type of the specified array and the
+     * size of this deque.
+     *
+     * &lt;p&gt;If this deque fits in the specified array with room to spare
+     * (i.e., the array has more elements than this deque), the element in
+     * the array immediately following the end of the deque is set to
+     * &lt;tt&gt;null&lt;/tt&gt;.
+     *
+     * &lt;p&gt;Like the {@link #toArray()} method, this method acts as bridge between
+     * array-based and collection-based APIs.  Further, this method allows
+     * precise control over the runtime type of the output array, and may,
+     * under certain circumstances, be used to save allocation costs.
+     *
+     * &lt;p&gt;Suppose &lt;tt&gt;x&lt;/tt&gt; is a deque known to contain only strings.
+     * The following code can be used to dump the deque into a newly
+     * allocated array of &lt;tt&gt;String&lt;/tt&gt;:
+     *
+     * &lt;pre&gt;
+     *     String[] y = x.toArray(new String[0]);&lt;/pre&gt;
+     *
+     * Note that &lt;tt&gt;toArray(new Object[0])&lt;/tt&gt; is identical in function to
+     * &lt;tt&gt;toArray()&lt;/tt&gt;.
+     *
+     * @param a the array into which the elements of the deque are to
+     *          be stored, if it is big enough; otherwise, a new array of the
+     *          same runtime type is allocated for this purpose
+     * @return an array containing all of the elements in this deque
+     * @throws ArrayStoreException if the runtime type of the specified array
+     *         is not a supertype of the runtime type of every element in
+     *         this deque
+     * @throws NullPointerException if the specified array is null
+     */
+    public &lt;T&gt; T[] toArray(T[] a) {
+<span class="nc" id="L805">        int size = size();</span>
+<span class="nc bnc" id="L806" title="All 2 branches missed.">        if (a.length &lt; size)</span>
+<span class="nc" id="L807">            a = (T[])java.lang.reflect.Array.newInstance(</span>
+                    a.getClass().getComponentType(), size);
+<span class="nc" id="L809">	copyElements(a);</span>
+<span class="nc bnc" id="L810" title="All 2 branches missed.">        if (a.length &gt; size)</span>
+<span class="nc" id="L811">            a[size] = null;</span>
+<span class="nc" id="L812">        return a;</span>
+    }
+
+    // *** Object methods ***
+
+    /**
+     * Returns a copy of this deque.
+     *
+     * @return a copy of this deque
+     */
+    public ZArrayDequeue&lt;E&gt; clone() {
+        try {
+<span class="nc" id="L824">            ZArrayDequeue&lt;E&gt; result = (ZArrayDequeue&lt;E&gt;) super.clone();</span>
+<span class="nc" id="L825">            result.elements = Arrays.copyOf(elements, elements.length);</span>
+<span class="nc" id="L826">            return result;</span>
+
+<span class="nc" id="L828">        } catch (CloneNotSupportedException e) {</span>
+<span class="nc" id="L829">            throw new AssertionError();</span>
+        }
+    }
+
+    /**
+     * Appease the serialization gods.
+     */
+    private static final long serialVersionUID = 2340985798034038923L;
+
+    /**
+     * Serialize this deque.
+     *
+     * @serialData The current size (&lt;tt&gt;int&lt;/tt&gt;) of the deque,
+     * followed by all of its elements (each an object reference) in
+     * first-to-last order.
+     */
+    private void writeObject(ObjectOutputStream s) throws IOException {
+<span class="nc" id="L846">        s.defaultWriteObject();</span>
+
+        // Write out size
+<span class="nc" id="L849">        s.writeInt(size());</span>
+
+        // Write out elements in order.
+<span class="nc" id="L852">        int mask = elements.length - 1;</span>
+<span class="nc bnc" id="L853" title="All 2 branches missed.">        for (int i = head; i != tail; i = (i + 1) &amp; mask)</span>
+<span class="nc" id="L854">            s.writeObject(elements[i]);</span>
+<span class="nc" id="L855">    }</span>
+
+    /**
+     * Deserialize this deque.
+     */
+    private void readObject(ObjectInputStream s)
+            throws IOException, ClassNotFoundException {
+<span class="nc" id="L862">        s.defaultReadObject();</span>
+
+        // Read in size and allocate array
+<span class="nc" id="L865">        int size = s.readInt();</span>
+<span class="nc" id="L866">        allocateElements(size);</span>
+<span class="nc" id="L867">        head = 0;</span>
+<span class="nc" id="L868">        tail = size;</span>
+
+        // Read in all elements in the proper order.
+<span class="nc bnc" id="L871" title="All 2 branches missed.">        for (int i = 0; i &lt; size; i++)</span>
+<span class="nc" id="L872">            elements[i] = (E)s.readObject();</span>
+<span class="nc" id="L873">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

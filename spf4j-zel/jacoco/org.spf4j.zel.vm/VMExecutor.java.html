@@ -25,11 +25,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import javax.annotation.Nullable;
 import org.spf4j.base.Pair;
-import org.spf4j.concurrent.SimpleExecutor;
+import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
 
 /**
  *
@@ -38,20 +39,19 @@ import org.spf4j.concurrent.SimpleExecutor;
 @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;)
 public final class VMExecutor {
 
-<span class="nc" id="L41">    public static class Lazy {</span>
+<span class="nc" id="L42">    public static class Lazy {</span>
 
-<span class="fc" id="L43">         private static final SimpleExecutor DEF_EXEC = new SimpleExecutor();</span>
+<span class="fc" id="L44">         private static final ExecutorService DEF_EXEC =</span>
+                 new LifoThreadPoolExecutorSQP(&quot;zel-pool&quot;,
+                 Integer.getInteger(&quot;zel.pool.coreThreadNr&quot;, 0),
+                 Integer.getInteger(&quot;zel.pool.maxThreadNr&quot;, org.spf4j.base.Runtime.NR_PROCESSORS),
+                 Integer.getInteger(&quot;zel.pool.maxIdleMillis&quot;, 60000),
+                 Integer.getInteger(&quot;zel.pool.queueLimit&quot;, Integer.MAX_VALUE));
          static {
-<span class="fc" id="L45">             DEF_EXEC.startThreads(org.spf4j.base.Runtime.NR_PROCESSORS);</span>
-<span class="fc" id="L46">             org.spf4j.base.Runtime.addHookAtEnd(new Runnable() {</span>
-
+<span class="fc" id="L51">             org.spf4j.base.Runtime.queueHook(0, new Runnable() {</span>
                  @Override
                  public void run() {
-                     try {
-<span class="nc" id="L51">                         DEF_EXEC.shutdownAndWait(120000);</span>
-<span class="nc" id="L52">                     } catch (InterruptedException ex) {</span>
-<span class="nc" id="L53">                        throw new RuntimeException(ex);</span>
-<span class="nc" id="L54">                     }</span>
+<span class="nc" id="L54">                      DEF_EXEC.shutdown();</span>
 <span class="nc" id="L55">                 }</span>
              });
          }

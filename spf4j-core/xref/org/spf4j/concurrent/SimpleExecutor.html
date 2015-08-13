@@ -42,17 +42,17 @@
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/SimpleExecutor.html">SimpleExecutor</a> <strong class="jxr_keyword">implements</strong> Executor {
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> BlockingQueue&lt;Runnable&gt; queuedTasks;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>      
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ThreadFactory threadFactory;
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>  
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">boolean</strong> terminated;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>      
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> Thread [] threads;
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>  
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(SimpleExecutor.<strong class="jxr_keyword">class</strong>);
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/concurrent/SimpleExecutor.html">SimpleExecutor</a>() {
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>          queuedTasks = <strong class="jxr_keyword">new</strong> LinkedBlockingQueue&lt;Runnable&gt;();
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          queuedTasks = <strong class="jxr_keyword">new</strong> LinkedBlockingQueue&lt;&gt;();
 <a class="jxr_linenumber" name="L48" href="#L48">48</a>          terminated = false;
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>          threads = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>          threadFactory = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/concurrent/CustomThreadFactory.html">CustomThreadFactory</a>(<span class="jxr_string">"SimpleExecutor"</span>, <strong class="jxr_keyword">true</strong>);
@@ -86,11 +86,11 @@
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>          }
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>          threads = newThreads;
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>      }
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>      
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> shutdown() {
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>          terminated = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>      }
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>      
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> shutdownAndWait(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeout) <strong class="jxr_keyword">throws</strong> InterruptedException {
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>          terminated = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>          <strong class="jxr_keyword">long</strong> deadline = timeout + System.currentTimeMillis();
@@ -99,7 +99,7 @@
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>              t.join(deadline - System.currentTimeMillis());
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>          }
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>      }
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>      
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>  
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>  
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>      @Override
 <a class="jxr_linenumber" name="L97" href="#L97">97</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> execute(<strong class="jxr_keyword">final</strong> Runnable command) {
@@ -113,6 +113,6 @@
 <a class="jxr_linenumber" name="L105" href="#L105">105</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2014. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2015. All rights reserved.</div>
 </body>
 </html>

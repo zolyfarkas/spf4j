@@ -30,15 +30,15 @@ import org.spf4j.base.Reflections;
  * @author zoly
  */
 final class ExportedOperationImpl implements ExportedOperation {
-    
+
     private final String name;
-    
+
     private final String description;
-    
+
     private final Method method;
-    
+
     private final Object object;
-    
+
     private final  MBeanParameterInfo[] paramInfos;
 
     public ExportedOperationImpl(final String name, final String description,
@@ -56,7 +56,7 @@ final class ExportedOperationImpl implements ExportedOperation {
 <span class="fc" id="L56">            String pdesc = &quot;&quot;;</span>
 <span class="fc bfc" id="L57" title="All 2 branches covered.">            for (Annotation annot : annotations) {</span>
 <span class="pc bpc" id="L58" title="1 of 2 branches missed.">                if (annot.getClass() == JmxExport.class) {</span>
-<span class="nc" id="L59">                    pname = (String) Reflections.getAnnotationAttribute(annot, &quot;name&quot;);</span>
+<span class="nc" id="L59">                    pname = (String) Reflections.getAnnotationAttribute(annot, &quot;value&quot;);</span>
 <span class="nc" id="L60">                    pdesc = (String) Reflections.getAnnotationAttribute(annot, &quot;description&quot;);</span>
                 }
             }
@@ -66,10 +66,10 @@ final class ExportedOperationImpl implements ExportedOperation {
 <span class="fc" id="L66">            paramInfos[i] = new MBeanParameterInfo(pname, parameterTypes[i].getName(), pdesc);</span>
         }
 <span class="fc" id="L68">    }</span>
-    
-    
-    
-    
+
+
+
+
 
     @Override
     public String getName() {
@@ -86,24 +86,20 @@ final class ExportedOperationImpl implements ExportedOperation {
     public Object invoke(final Object[] parameters) {
         try {
 <span class="fc" id="L88">            return method.invoke(object, parameters);</span>
-<span class="nc" id="L89">        } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L89">        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
 <span class="nc" id="L90">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L91">        } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L92">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L93">        } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L94">            throw new RuntimeException(ex);</span>
         }
     }
 
     @Override
     public MBeanParameterInfo[] getParameterInfos() {
-<span class="fc" id="L100">        return paramInfos;</span>
+<span class="fc" id="L96">        return paramInfos;</span>
     }
 
     @Override
     public Class&lt;?&gt; getReturnType() {
-<span class="fc" id="L105">        return method.getReturnType();</span>
+<span class="fc" id="L101">        return method.getReturnType();</span>
     }
-    
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

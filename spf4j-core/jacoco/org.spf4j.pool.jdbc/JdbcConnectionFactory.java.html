@@ -47,13 +47,13 @@ public final class JdbcConnectionFactory  implements RecyclingSupplier.Factory&l
 <span class="nc" id="L47">        this.password = password;</span>
 <span class="nc" id="L48">        this.user = user;</span>
 <span class="nc" id="L49">    }</span>
-    
+
     private final String url;
     private final String user;
     private final String password;
     private RecyclingSupplier&lt;Connection&gt; pool;
-    
-    
+
+
     @Override
     public Connection create() throws ObjectCreationException {
         final Connection conn;
@@ -62,13 +62,13 @@ public final class JdbcConnectionFactory  implements RecyclingSupplier.Factory&l
 <span class="nc" id="L62">        } catch (SQLException ex) {</span>
 <span class="nc" id="L63">            throw new ObjectCreationException(ex);</span>
 <span class="nc" id="L64">        }</span>
-        
+
 <span class="nc" id="L66">        return (Connection) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),</span>
 <span class="nc" id="L67">                new Class&lt;?&gt; [] {Connection.class}, new InvocationHandler() {</span>
 
             private Exception ex;
 
-            
+
             @Override
             public Object invoke(final Object proxy, final Method method, final Object[] args) throws Exception {
 <span class="nc bnc" id="L74" title="All 2 branches missed.">                if (&quot;close&quot;.equals(method.getName())) {</span>
@@ -78,43 +78,34 @@ public final class JdbcConnectionFactory  implements RecyclingSupplier.Factory&l
                 } else {
                     try {
 <span class="nc" id="L80">                        return method.invoke(conn, args);</span>
-<span class="nc" id="L81">                    } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L81">                    } catch (IllegalAccessException | InvocationTargetException | RuntimeException e) {</span>
 <span class="nc" id="L82">                        ex = e;</span>
 <span class="nc" id="L83">                        throw e;</span>
-<span class="nc" id="L84">                    } catch (IllegalArgumentException e) {</span>
-<span class="nc" id="L85">                        ex = e;</span>
-<span class="nc" id="L86">                        throw e;</span>
-<span class="nc" id="L87">                    } catch (InvocationTargetException e) {</span>
-<span class="nc" id="L88">                        ex = e;</span>
-<span class="nc" id="L89">                        throw e;</span>
-<span class="nc" id="L90">                    } catch (RuntimeException e) {</span>
-<span class="nc" id="L91">                        ex = e;</span>
-<span class="nc" id="L92">                        throw e;</span>
                     }
                 }
             }
         });
-        
+
     }
 
     @Override
     public void dispose(final Connection object) throws ObjectDisposeException {
         try {
-<span class="nc" id="L103">            object.unwrap(Connection.class).close();</span>
-<span class="nc" id="L104">        } catch (SQLException ex) {</span>
-<span class="nc" id="L105">            throw new ObjectDisposeException(ex);</span>
-<span class="nc" id="L106">        }</span>
-<span class="nc" id="L107">    }</span>
+<span class="nc" id="L94">            object.unwrap(Connection.class).close();</span>
+<span class="nc" id="L95">        } catch (SQLException ex) {</span>
+<span class="nc" id="L96">            throw new ObjectDisposeException(ex);</span>
+<span class="nc" id="L97">        }</span>
+<span class="nc" id="L98">    }</span>
 
-    
+
     @Override
     public boolean validate(final Connection object, final Exception e) throws SQLException {
-<span class="nc" id="L112">        return object.isValid(60);</span>
+<span class="nc" id="L103">        return object.isValid(60);</span>
     }
 
     void setPool(final RecyclingSupplier&lt;Connection&gt; pool) {
-<span class="nc" id="L116">        this.pool = pool;</span>
-<span class="nc" id="L117">    }</span>
-    
+<span class="nc" id="L107">        this.pool = pool;</span>
+<span class="nc" id="L108">    }</span>
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

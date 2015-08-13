@@ -65,21 +65,29 @@ class ExportedValueImpl implements ExportedValue&lt;Object&gt; {
 <span class="fc" id="L65">    }</span>
 
     public ExportedValueImpl withSetter(@Nonnull final Method psetMethod) {
-<span class="fc" id="L68">        return new ExportedValueImpl(name, description, getMethod, psetMethod, object, valueClass);</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        if (setMethod != null) {</span>
+<span class="nc" id="L69">            throw new IllegalArgumentException(&quot;duplicate value registration attemted &quot; + setMethod</span>
+                    + &quot;, &quot; + psetMethod);
+        }
+<span class="fc" id="L72">        return new ExportedValueImpl(name, description, getMethod, psetMethod, object, valueClass);</span>
     }
 
     public ExportedValueImpl withGetter(@Nonnull final Method pgetMethod, @Nonnull final String pdescription) {
-<span class="nc" id="L72">        return new ExportedValueImpl(name, pdescription, pgetMethod, setMethod, object, valueClass);</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">        if (getMethod != null) {</span>
+<span class="nc" id="L77">            throw new IllegalArgumentException(&quot;duplicate value registration attemted &quot; + getMethod</span>
+                    + &quot;, &quot; + pgetMethod);
+        }
+<span class="fc" id="L80">        return new ExportedValueImpl(name, pdescription, pgetMethod, setMethod, object, valueClass);</span>
     }
 
     @Override
     public String getName() {
-<span class="fc" id="L77">        return name;</span>
+<span class="fc" id="L85">        return name;</span>
     }
 
     @Override
     public String getDescription() {
-<span class="fc" id="L82">        return description;</span>
+<span class="fc" id="L90">        return description;</span>
     }
 
     @Override
@@ -87,37 +95,29 @@ class ExportedValueImpl implements ExportedValue&lt;Object&gt; {
     public Object get() {
 
         try {
-<span class="pc bpc" id="L90" title="1 of 2 branches missed.">            if (converter != null) {</span>
-<span class="nc" id="L91">                return converter.reverse().convert(getMethod.invoke(object));</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">            if (converter != null) {</span>
+<span class="nc" id="L99">                return converter.reverse().convert(getMethod.invoke(object));</span>
             } else {
-<span class="fc" id="L93">                return getMethod.invoke(object);</span>
+<span class="fc" id="L101">                return getMethod.invoke(object);</span>
             }
-<span class="nc" id="L95">        } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L96">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L97">        } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L98">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L99">        } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L100">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L103">        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
+<span class="nc" id="L104">            throw new RuntimeException(ex);</span>
         }
     }
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = &quot;EXS_EXCEPTION_SOFTENING_HAS_CHECKED&quot;)
     public void set(final Object value) throws InvalidAttributeValueException {
-<span class="fc bfc" id="L107" title="All 2 branches covered.">        if (setMethod == null) {</span>
-<span class="fc" id="L108">            throw new InvalidAttributeValueException(name + &quot; is a read only attribute &quot;);</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (setMethod == null) {</span>
+<span class="fc" id="L112">            throw new InvalidAttributeValueException(name + &quot; is a read only attribute &quot;);</span>
         }
         try {
-<span class="pc bpc" id="L111" title="1 of 2 branches missed.">            if (converter != null) {</span>
-<span class="nc" id="L112">                setMethod.invoke(object, converter.convert(value));</span>
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">            if (converter != null) {</span>
+<span class="nc" id="L116">                setMethod.invoke(object, converter.convert(value));</span>
             } else {
-<span class="fc" id="L114">                setMethod.invoke(object, value);</span>
+<span class="fc" id="L118">                setMethod.invoke(object, value);</span>
             }
-<span class="nc" id="L116">        } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L117">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L118">        } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L119">            throw new RuntimeException(name + &quot; has an invalid type &quot;, ex);</span>
-<span class="nc" id="L120">        } catch (InvocationTargetException ex) {</span>
+<span class="nc" id="L120">        } catch (IllegalAccessException | InvocationTargetException ex) {</span>
 <span class="nc" id="L121">            throw new RuntimeException(ex);</span>
 <span class="fc" id="L122">        }</span>
 <span class="fc" id="L123">    }</span>

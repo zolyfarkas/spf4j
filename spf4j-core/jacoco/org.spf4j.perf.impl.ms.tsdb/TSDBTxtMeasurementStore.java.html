@@ -20,7 +20,7 @@ package org.spf4j.perf.impl.ms.tsdb;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
-import org.spf4j.perf.EntityMeasurementsInfo;
+import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,10 +29,9 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.ThreadSafe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.JmxExport;
+import org.spf4j.perf.impl.ms.Id2Info;
 
 /**
  * File based store implementation.
@@ -42,63 +41,62 @@ import org.spf4j.jmx.JmxExport;
 public final class TSDBTxtMeasurementStore
     implements MeasurementStore {
 
-<span class="fc" id="L45">    private static final Logger LOG = LoggerFactory.getLogger(TSDBTxtMeasurementStore.class);</span>
-    
     private final BufferedWriter writer;
-    
+
     private final String fileName;
-    
-<span class="fc" id="L51">    private static final Interner&lt;String&gt; INTERNER = Interners.newStrongInterner();</span>
 
-<span class="fc" id="L53">    public TSDBTxtMeasurementStore(final String fileName) throws IOException {</span>
-<span class="fc" id="L54">        this.writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName, true), Charsets.UTF_8));</span>
-<span class="fc" id="L55">        this.fileName = INTERNER.intern(new File(fileName).getPath());</span>
-<span class="fc" id="L56">    }</span>
+<span class="fc" id="L48">    private static final Interner&lt;String&gt; INTERNER = Interners.newStrongInterner();</span>
+
+<span class="fc" id="L50">    public TSDBTxtMeasurementStore(final String fileName) throws IOException {</span>
+<span class="fc" id="L51">        this.writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName, true), Charsets.UTF_8));</span>
+<span class="fc" id="L52">        this.fileName = INTERNER.intern(new File(fileName).getPath());</span>
+<span class="fc" id="L53">    }</span>
 
     @Override
-    public void alocateMeasurements(final EntityMeasurementsInfo measurement,
+    public long alocateMeasurements(final MeasurementsInfo measurement,
                                     final int sampleTimeMillis) {
-        //nothing to allocate
-<span class="fc" id="L62">    }</span>
+<span class="fc" id="L58">        return Id2Info.getId(measurement);</span>
+    }
 
     @Override
-    public void saveMeasurements(final EntityMeasurementsInfo measurementInfo,
-            final long timeStampMillis, final int sampleTimeMillis, final long ... measurements)
+    public void saveMeasurements(final long tableId,
+            final long timeStampMillis, final long ... measurements)
             throws IOException {
-<span class="fc" id="L68">        String groupName = measurementInfo.getMeasuredEntity().toString();</span>
-<span class="fc" id="L69">        synchronized (fileName) {</span>
-<span class="fc" id="L70">            Csv.writeCsvElement(groupName, writer);</span>
-<span class="fc" id="L71">            writer.write(',');</span>
-<span class="fc" id="L72">            writer.write(Long.toString(timeStampMillis));</span>
-<span class="fc" id="L73">            writer.write(',');</span>
-<span class="fc" id="L74">            writer.write(Integer.toString(sampleTimeMillis));</span>
-<span class="fc bfc" id="L75" title="All 2 branches covered.">            for (int i = 0; i &lt; measurements.length; i++) {</span>
-<span class="fc" id="L76">                String measurementName = measurementInfo.getMeasurementName(i);</span>
+<span class="fc" id="L65">        MeasurementsInfo measurementInfo = Id2Info.getInfo(tableId);</span>
+<span class="fc" id="L66">        String groupName = measurementInfo.getMeasuredEntity().toString();</span>
+<span class="fc" id="L67">        synchronized (fileName) {</span>
+<span class="fc" id="L68">            Csv.writeCsvElement(groupName, writer);</span>
+<span class="fc" id="L69">            writer.write(',');</span>
+<span class="fc" id="L70">            writer.write(Long.toString(timeStampMillis));</span>
+//            writer.write(',');
+//            writer.write(Integer.toString(sampleTimeMillis));
+<span class="fc bfc" id="L73" title="All 2 branches covered.">            for (int i = 0; i &lt; measurements.length; i++) {</span>
+<span class="fc" id="L74">                String measurementName = measurementInfo.getMeasurementName(i);</span>
+<span class="fc" id="L75">                writer.write(',');</span>
+<span class="fc" id="L76">                Csv.writeCsvElement(measurementName, writer);</span>
 <span class="fc" id="L77">                writer.write(',');</span>
-<span class="fc" id="L78">                Csv.writeCsvElement(measurementName, writer);</span>
-<span class="fc" id="L79">                writer.write(',');</span>
-<span class="fc" id="L80">                writer.write(Long.toString(measurements[i]));</span>
+<span class="fc" id="L78">                writer.write(Long.toString(measurements[i]));</span>
             }
-<span class="fc" id="L82">            writer.write('\n');</span>
-<span class="pc" id="L83">        }</span>
-<span class="fc" id="L84">    }</span>
+<span class="fc" id="L80">            writer.write('\n');</span>
+<span class="pc" id="L81">        }</span>
+<span class="fc" id="L82">    }</span>
 
     @PreDestroy
     @Override
     public void close() throws IOException {
-<span class="nc" id="L89">        writer.close();</span>
-<span class="nc" id="L90">    }</span>
+<span class="nc" id="L87">        writer.close();</span>
+<span class="nc" id="L88">    }</span>
 
     @JmxExport(description = &quot;flush out buffers&quot;)
     @Override
     public void flush() throws IOException {
-<span class="nc" id="L95">        writer.flush();</span>
-<span class="nc" id="L96">    }</span>
+<span class="nc" id="L93">        writer.flush();</span>
+<span class="nc" id="L94">    }</span>
 
     @Override
     public String toString() {
-<span class="fc" id="L100">        return &quot;TSDBTxtMeasurementStore{&quot; + &quot;fileName=&quot; + fileName + '}';</span>
+<span class="fc" id="L98">        return &quot;TSDBTxtMeasurementStore{&quot; + &quot;fileName=&quot; + fileName + '}';</span>
     }
-    
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

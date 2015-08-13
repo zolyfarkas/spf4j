@@ -30,22 +30,22 @@ import java.util.Set;
  * @author zoly
  */
 public final class Operators {
-   
+
 <span class="nc" id="L34">    private Operators() { }</span>
-    
+
 <span class="fc" id="L36">    private static final Class&lt;?&gt; [] IMPLS =</span>
     {IntegerOperators.class, DoubleOperators.class, LongOperators.class,
         BigIntegerOperators.class, BigDecimalOperators.class};
-    
+
     private static final Map&lt;Class&lt;?&gt;, Operator&lt;Object, Object, Object&gt;&gt; [] OPS;
-   
+
     static {
 <span class="fc" id="L43">        final Operator.Enum[] operators = Operator.Enum.values();</span>
 <span class="fc" id="L44">        OPS = new Map[operators.length];</span>
 <span class="fc bfc" id="L45" title="All 2 branches covered.">        for (int i = 0; i &lt; OPS.length; i++) {</span>
-<span class="fc" id="L46">            OPS[i] = new HashMap&lt;Class&lt;?&gt;, Operator&lt;Object, Object, Object&gt;&gt;();</span>
+<span class="fc" id="L46">            OPS[i] = new HashMap&lt;&gt;();</span>
         }
-<span class="fc" id="L48">        Set&lt;String&gt; ops = new HashSet&lt;String&gt;(operators.length);</span>
+<span class="fc" id="L48">        Set&lt;String&gt; ops = new HashSet&lt;&gt;(operators.length);</span>
 <span class="fc bfc" id="L49" title="All 2 branches covered.">        for (Operator.Enum en : operators) {</span>
 <span class="fc" id="L50">            ops.add(en.toString());</span>
         }
@@ -55,29 +55,27 @@ public final class Operators {
 <span class="fc" id="L55">              String claszName = subClasz.getSimpleName();</span>
 <span class="pc bpc" id="L56" title="1 of 2 branches missed.">              if (ops.contains(claszName)) {</span>
                   try {
-<span class="fc" id="L58">                      Type type =  subClasz.getGenericInterfaces()[0];</span>
-                      Class&lt;?&gt; leftOClasz;
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">                      if (type instanceof ParameterizedType) {</span>
-<span class="fc" id="L61">                        leftOClasz = (Class&lt;?&gt;) ((ParameterizedType) type).getActualTypeArguments()[0];</span>
-                      } else {
-<span class="nc" id="L63">                          throw new RuntimeException(&quot;Operators class improperly implemented&quot;);</span>
-                      }
-<span class="fc" id="L65">                      Operator&lt;?, ?, ?&gt; op = (Operator&lt;?, ?, ?&gt;) subClasz.newInstance();</span>
-<span class="fc" id="L66">                      Operator.Enum ope = Operator.Enum.valueOf(claszName);</span>
-<span class="fc" id="L67">                      OPS[ope.ordinal()].put(leftOClasz, (Operator&lt;Object, Object, Object&gt;) op);</span>
-<span class="nc" id="L68">                  } catch (InstantiationException ex) {</span>
+<span class="fc" id="L58">                        Type type =  subClasz.getGenericSuperclass();</span>
+                        Class&lt;?&gt; leftOClasz;
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">                        if (type instanceof ParameterizedType) {</span>
+<span class="fc" id="L61">                          leftOClasz = (Class&lt;?&gt;) ((ParameterizedType) type).getActualTypeArguments()[0];</span>
+                        } else {
+<span class="nc" id="L63">                            throw new RuntimeException(&quot;Operators class improperly implemented &quot; + subClasz);</span>
+                        }
+<span class="fc" id="L65">                        Operator&lt;?, ?, ?&gt; op = (Operator&lt;?, ?, ?&gt;) subClasz.newInstance();</span>
+<span class="fc" id="L66">                        Operator.Enum ope = Operator.Enum.valueOf(claszName);</span>
+<span class="fc" id="L67">                        OPS[ope.ordinal()].put(leftOClasz, (Operator&lt;Object, Object, Object&gt;) op);</span>
+<span class="nc" id="L68">                  } catch (InstantiationException | IllegalAccessException ex) {</span>
 <span class="nc" id="L69">                      throw new RuntimeException(ex);</span>
-<span class="nc" id="L70">                  } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L71">                      throw new RuntimeException(ex);</span>
-<span class="fc" id="L72">                  }</span>
+<span class="fc" id="L70">                  }</span>
               }
             }
         }
-<span class="fc" id="L76">    }</span>
-    
+<span class="fc" id="L74">    }</span>
+
     public static Object apply(final Operator.Enum op, final Object a, final Object b) {
-<span class="fc" id="L79">        return OPS[op.ordinal()].get(a.getClass()).op(a, b);</span>
+<span class="fc" id="L77">        return OPS[op.ordinal()].get(a.getClass()).op(a, b);</span>
     }
-    
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

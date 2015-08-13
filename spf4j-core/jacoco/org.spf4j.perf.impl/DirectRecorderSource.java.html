@@ -28,15 +28,15 @@ import org.spf4j.perf.MeasurementStore;
 
 public final class DirectRecorderSource implements MeasurementRecorderSource {
 
-    
+
     private final LoadingCache&lt;Object, MeasurementRecorder&gt; recorders;
-    
+
     public DirectRecorderSource(final Object forWhat, final String description,
 <span class="fc" id="L35">            final String uom, final int sampleTimeMillis, final MeasurementStore store) {</span>
 <span class="fc" id="L36">        recorders = new UnboundedLoadingCache(16,</span>
                 new CreateDirectRecorder(forWhat, description, uom, sampleTimeMillis, store));
 <span class="fc" id="L38">    }</span>
-    
+
     @Override
     public MeasurementRecorder getRecorder(final Object forWhat) {
 <span class="fc" id="L42">        return recorders.getUnchecked(forWhat);</span>
@@ -65,10 +65,10 @@ public final class DirectRecorderSource implements MeasurementRecorderSource {
 
         @Override
         public MeasurementRecorder load(final Object key) throws Exception {
-<span class="fc" id="L68">            return new DirectRecorder(Pair.of(forWhat, key), description,</span>
+<span class="fc" id="L68">            return new DirectStoreAccumulator(Pair.of(forWhat, key), description,</span>
                     uom, sampleTimeMillis, store);
         }
     }
-    
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>

@@ -49,34 +49,28 @@ public final class OpenTypeConverter {
 <span class="nc" id="L49">                final Class&lt;?&gt; openConverterClass = Class.forName(&quot;com.sun.jmx.mbeanserver.OpenConverter&quot;);</span>
 <span class="nc" id="L50">                GET_OPEN_TYPE = openConverterClass.getDeclaredMethod(&quot;getOpenType&quot;);</span>
 <span class="nc" id="L51">                TO_CONVERTER = openConverterClass.getMethod(&quot;toConverter&quot;, java.lang.reflect.Type.class);</span>
-<span class="nc" id="L52">                FROM_OPEN_VALUE = openConverterClass.getMethod(&quot;fromOpenValue&quot;,</span>
-                                Class.forName(&quot;com.sun.jmx.mbeanserver.MXBeanLookup&quot;), Object.class);
-<span class="nc" id="L54">                TO_OPEN_VALUE = openConverterClass.getDeclaredMethod(&quot;toOpenValue&quot;,</span>
-                                Class.forName(&quot;com.sun.jmx.mbeanserver.MXBeanLookup&quot;), Object.class);
-<span class="nc" id="L56">                AccessController.doPrivileged(new PrivilegedAction&lt;Void&gt;() {</span>
+<span class="nc" id="L52">                final Class&lt;?&gt; mxbeanLookup = Class.forName(&quot;com.sun.jmx.mbeanserver.MXBeanLookup&quot;);</span>
+<span class="nc" id="L53">                FROM_OPEN_VALUE = openConverterClass.getMethod(&quot;fromOpenValue&quot;, mxbeanLookup, Object.class);</span>
+<span class="nc" id="L54">                TO_OPEN_VALUE = openConverterClass.getDeclaredMethod(&quot;toOpenValue&quot;, mxbeanLookup, Object.class);</span>
+<span class="nc" id="L55">                AccessController.doPrivileged(new PrivilegedAction&lt;Void&gt;() {</span>
 
                     @Override
                     public Void run() {
-<span class="nc" id="L60">                        TO_OPEN_VALUE.setAccessible(true);</span>
-<span class="nc" id="L61">                        FROM_OPEN_VALUE.setAccessible(true);</span>
-<span class="nc" id="L62">                        TO_CONVERTER.setAccessible(true);</span>
-<span class="nc" id="L63">                        GET_OPEN_TYPE.setAccessible(true);</span>
-<span class="nc" id="L64">                        return null;</span>
+<span class="nc" id="L59">                        TO_OPEN_VALUE.setAccessible(true);</span>
+<span class="nc" id="L60">                        FROM_OPEN_VALUE.setAccessible(true);</span>
+<span class="nc" id="L61">                        TO_CONVERTER.setAccessible(true);</span>
+<span class="nc" id="L62">                        GET_OPEN_TYPE.setAccessible(true);</span>
+<span class="nc" id="L63">                        return null;</span>
                     }
                 });
-<span class="nc" id="L67">            } catch (ClassNotFoundException ex) {</span>
+<span class="nc" id="L66">            } catch (ClassNotFoundException | NoSuchMethodException</span>
+                    | SecurityException | IllegalArgumentException ex) {
 <span class="nc" id="L68">                throw new RuntimeException(ex);</span>
-<span class="nc" id="L69">            } catch (NoSuchMethodException ex) {</span>
-<span class="nc" id="L70">                throw new RuntimeException(ex);</span>
-<span class="nc" id="L71">            } catch (SecurityException ex) {</span>
-<span class="nc" id="L72">                throw new RuntimeException(ex);</span>
-<span class="nc" id="L73">            } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L74">                throw new RuntimeException(ex);</span>
-<span class="nc" id="L75">            }</span>
-<span class="nc" id="L76">        }</span>
+<span class="nc" id="L69">            }</span>
+<span class="nc" id="L70">        }</span>
     }
 
-<span class="nc" id="L79">    private static class JMX17P {</span>
+<span class="nc" id="L73">    private static class JMX17P {</span>
 
         private static final Object DEFAULT_MAPPING_FACTORY;
         private static final Method MAPPING_FOR_TYPE;
@@ -86,94 +80,94 @@ public final class OpenTypeConverter {
 
         static {
             try {
-<span class="fc" id="L89">                Class&lt;?&gt; mxBeanMappingFactoryClass = Class.forName(&quot;com.sun.jmx.mbeanserver.MXBeanMappingFactory&quot;);</span>
-<span class="fc" id="L90">                DEFAULT_MAPPING_FACTORY = mxBeanMappingFactoryClass.getField(&quot;DEFAULT&quot;).get(null);</span>
-<span class="fc" id="L91">                MAPPING_FOR_TYPE = mxBeanMappingFactoryClass.getMethod(&quot;mappingForType&quot;,</span>
+<span class="fc" id="L83">                Class&lt;?&gt; mxBeanMappingFactoryClass = Class.forName(&quot;com.sun.jmx.mbeanserver.MXBeanMappingFactory&quot;);</span>
+<span class="fc" id="L84">                DEFAULT_MAPPING_FACTORY = mxBeanMappingFactoryClass.getField(&quot;DEFAULT&quot;).get(null);</span>
+<span class="fc" id="L85">                MAPPING_FOR_TYPE = mxBeanMappingFactoryClass.getMethod(&quot;mappingForType&quot;,</span>
                                 java.lang.reflect.Type.class, mxBeanMappingFactoryClass);
-<span class="fc" id="L93">                Class&lt;?&gt; mxBeanMappingClass = Class.forName(&quot;com.sun.jmx.mbeanserver.MXBeanMapping&quot;);</span>
-<span class="fc" id="L94">                MAPPING_GET_OPEN_TYPE = mxBeanMappingClass.getMethod(&quot;getOpenType&quot;);</span>
-<span class="fc" id="L95">                MAPPING_FROM_OPEN_VALUE = mxBeanMappingClass.getDeclaredMethod(&quot;fromOpenValue&quot;, Object.class);</span>
-<span class="fc" id="L96">                MAPPING_TO_OPEN_VALUE = mxBeanMappingClass.getDeclaredMethod(&quot;toOpenValue&quot;, Object.class);</span>
-<span class="fc" id="L97">                AccessController.doPrivileged(new PrivilegedAction&lt;Void&gt;() {</span>
+<span class="fc" id="L87">                Class&lt;?&gt; mxBeanMappingClass = Class.forName(&quot;com.sun.jmx.mbeanserver.MXBeanMapping&quot;);</span>
+<span class="fc" id="L88">                MAPPING_GET_OPEN_TYPE = mxBeanMappingClass.getMethod(&quot;getOpenType&quot;);</span>
+<span class="fc" id="L89">                MAPPING_FROM_OPEN_VALUE = mxBeanMappingClass.getDeclaredMethod(&quot;fromOpenValue&quot;, Object.class);</span>
+<span class="fc" id="L90">                MAPPING_TO_OPEN_VALUE = mxBeanMappingClass.getDeclaredMethod(&quot;toOpenValue&quot;, Object.class);</span>
+<span class="fc" id="L91">                AccessController.doPrivileged(new PrivilegedAction&lt;Void&gt;() {</span>
 
                     @Override
                     public Void run() {
-<span class="fc" id="L101">                        MAPPING_FOR_TYPE.setAccessible(true);</span>
-<span class="fc" id="L102">                        MAPPING_GET_OPEN_TYPE.setAccessible(true);</span>
-<span class="fc" id="L103">                        MAPPING_FROM_OPEN_VALUE.setAccessible(true);</span>
-<span class="fc" id="L104">                        MAPPING_TO_OPEN_VALUE.setAccessible(true);</span>
-<span class="fc" id="L105">                        return null;</span>
+<span class="fc" id="L95">                        MAPPING_FOR_TYPE.setAccessible(true);</span>
+<span class="fc" id="L96">                        MAPPING_GET_OPEN_TYPE.setAccessible(true);</span>
+<span class="fc" id="L97">                        MAPPING_FROM_OPEN_VALUE.setAccessible(true);</span>
+<span class="fc" id="L98">                        MAPPING_TO_OPEN_VALUE.setAccessible(true);</span>
+<span class="fc" id="L99">                        return null;</span>
                     }
                 });
-<span class="nc" id="L108">            } catch (ClassNotFoundException ex) {</span>
+<span class="nc" id="L102">            } catch (ClassNotFoundException ex) {</span>
+<span class="nc" id="L103">                throw new RuntimeException(ex);</span>
+<span class="nc" id="L104">            } catch (NoSuchMethodException ex) {</span>
+<span class="nc" id="L105">                throw new RuntimeException(ex);</span>
+<span class="nc" id="L106">            } catch (SecurityException ex) {</span>
+<span class="nc" id="L107">                throw new RuntimeException(ex);</span>
+<span class="nc" id="L108">            } catch (IllegalArgumentException ex) {</span>
 <span class="nc" id="L109">                throw new RuntimeException(ex);</span>
-<span class="nc" id="L110">            } catch (NoSuchMethodException ex) {</span>
+<span class="nc" id="L110">            } catch (NoSuchFieldException ex) {</span>
 <span class="nc" id="L111">                throw new RuntimeException(ex);</span>
-<span class="nc" id="L112">            } catch (SecurityException ex) {</span>
+<span class="nc" id="L112">            } catch (IllegalAccessException ex) {</span>
 <span class="nc" id="L113">                throw new RuntimeException(ex);</span>
-<span class="nc" id="L114">            } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L115">                throw new RuntimeException(ex);</span>
-<span class="nc" id="L116">            } catch (NoSuchFieldException ex) {</span>
-<span class="nc" id="L117">                throw new RuntimeException(ex);</span>
-<span class="nc" id="L118">            } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L119">                throw new RuntimeException(ex);</span>
-<span class="fc" id="L120">            }</span>
-<span class="fc" id="L121">        }</span>
+<span class="fc" id="L114">            }</span>
+<span class="fc" id="L115">        }</span>
     }
 
     private static Object getOpenConverter(final Class&lt;?&gt; type) {
         try {
-<span class="nc" id="L126">            return JMX16.TO_CONVERTER.invoke(null, type);</span>
-<span class="nc" id="L127">        } catch (SecurityException ex) {</span>
+<span class="nc" id="L120">            return JMX16.TO_CONVERTER.invoke(null, type);</span>
+<span class="nc" id="L121">        } catch (SecurityException ex) {</span>
+<span class="nc" id="L122">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L123">        } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L124">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L125">        } catch (IllegalArgumentException ex) {</span>
+<span class="nc" id="L126">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L127">        } catch (InvocationTargetException ex) {</span>
 <span class="nc" id="L128">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L129">        } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L130">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L131">        } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L132">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L133">        } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L134">            throw new RuntimeException(ex);</span>
         }
     }
 
     private static Object openConverterFromOpenValue(final Object converter, final Object openTypeVal) {
         try {
-<span class="nc" id="L140">            return JMX16.FROM_OPEN_VALUE.invoke(converter, null, openTypeVal);</span>
-<span class="nc" id="L141">        } catch (SecurityException ex) {</span>
+<span class="nc" id="L134">            return JMX16.FROM_OPEN_VALUE.invoke(converter, null, openTypeVal);</span>
+<span class="nc" id="L135">        } catch (SecurityException ex) {</span>
+<span class="nc" id="L136">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L137">        } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L138">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L139">        } catch (IllegalArgumentException ex) {</span>
+<span class="nc" id="L140">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L141">        } catch (InvocationTargetException ex) {</span>
 <span class="nc" id="L142">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L143">        } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L144">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L145">        } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L146">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L147">        } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L148">            throw new RuntimeException(ex);</span>
         }
     }
 
     private static Object openConverterToOpenValue(final Object converter, final Object val) {
         try {
-<span class="nc" id="L154">            return JMX16.TO_OPEN_VALUE.invoke(converter, null, val);</span>
-<span class="nc" id="L155">        } catch (SecurityException ex) {</span>
+<span class="nc" id="L148">            return JMX16.TO_OPEN_VALUE.invoke(converter, null, val);</span>
+<span class="nc" id="L149">        } catch (SecurityException ex) {</span>
+<span class="nc" id="L150">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L151">        } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L152">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L153">        } catch (IllegalArgumentException ex) {</span>
+<span class="nc" id="L154">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L155">        } catch (InvocationTargetException ex) {</span>
 <span class="nc" id="L156">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L157">        } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L158">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L159">        } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L160">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L161">        } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L162">            throw new RuntimeException(ex);</span>
         }
     }
 
     private static OpenType getOpenType(final Object converter) {
         try {
-<span class="nc" id="L168">            return (OpenType) JMX16.GET_OPEN_TYPE.invoke(converter);</span>
-<span class="nc" id="L169">        } catch (SecurityException ex) {</span>
+<span class="nc" id="L162">            return (OpenType) JMX16.GET_OPEN_TYPE.invoke(converter);</span>
+<span class="nc" id="L163">        } catch (SecurityException ex) {</span>
+<span class="nc" id="L164">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L165">        } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L166">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L167">        } catch (IllegalArgumentException ex) {</span>
+<span class="nc" id="L168">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L169">        } catch (InvocationTargetException ex) {</span>
 <span class="nc" id="L170">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L171">        } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L172">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L173">        } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L174">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L175">        } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L176">            throw new RuntimeException(ex);</span>
         }
     }
 
@@ -182,32 +176,32 @@ public final class OpenTypeConverter {
      */
     private static Object getMXBeanMapping(final Class&lt;?&gt; type) {
         try {
-<span class="fc" id="L185">            return JMX17P.MAPPING_FOR_TYPE.invoke(JMX17P.DEFAULT_MAPPING_FACTORY, type, JMX17P.DEFAULT_MAPPING_FACTORY);</span>
-<span class="nc" id="L186">        } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L187">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L188">        } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L189">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L190">        } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L191">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L179">            return JMX17P.MAPPING_FOR_TYPE.invoke(JMX17P.DEFAULT_MAPPING_FACTORY, type, JMX17P.DEFAULT_MAPPING_FACTORY);</span>
+<span class="nc" id="L180">        } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L181">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L182">        } catch (IllegalArgumentException ex) {</span>
+<span class="nc" id="L183">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L184">        } catch (InvocationTargetException ex) {</span>
+<span class="nc" id="L185">            throw new RuntimeException(ex);</span>
         }
     }
 
     public static OpenType getOpenType(final Class&lt;?&gt; type) {
-<span class="pc bpc" id="L196" title="1 of 2 branches missed.">        if (org.spf4j.base.Runtime.JAVA_PLATFORM == Version.V1_6) {</span>
-<span class="nc" id="L197">            Object converter = getOpenConverter(type);</span>
-<span class="nc" id="L198">            return getOpenType(converter);</span>
-<span class="pc bpc" id="L199" title="1 of 2 branches missed.">        } else if (org.spf4j.base.Runtime.JAVA_PLATFORM.ordinal() &gt;= Version.V1_7.ordinal()) {</span>
+<span class="pc bpc" id="L190" title="1 of 2 branches missed.">        if (org.spf4j.base.Runtime.JAVA_PLATFORM == Version.V1_6) {</span>
+<span class="nc" id="L191">            Object converter = getOpenConverter(type);</span>
+<span class="nc" id="L192">            return getOpenType(converter);</span>
+<span class="pc bpc" id="L193" title="1 of 2 branches missed.">        } else if (org.spf4j.base.Runtime.JAVA_PLATFORM.ordinal() &gt;= Version.V1_7.ordinal()) {</span>
             try {
-<span class="fc" id="L201">                return (OpenType) JMX17P.MAPPING_GET_OPEN_TYPE.invoke(getMXBeanMapping(type));</span>
-<span class="nc" id="L202">            } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L203">                throw new RuntimeException(ex);</span>
-<span class="nc" id="L204">            } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L205">                throw new RuntimeException(ex);</span>
-<span class="nc" id="L206">            } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L207">                throw new RuntimeException(ex);</span>
+<span class="fc" id="L195">                return (OpenType) JMX17P.MAPPING_GET_OPEN_TYPE.invoke(getMXBeanMapping(type));</span>
+<span class="nc" id="L196">            } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L197">                throw new RuntimeException(ex);</span>
+<span class="nc" id="L198">            } catch (IllegalArgumentException ex) {</span>
+<span class="nc" id="L199">                throw new RuntimeException(ex);</span>
+<span class="nc" id="L200">            } catch (InvocationTargetException ex) {</span>
+<span class="nc" id="L201">                throw new RuntimeException(ex);</span>
             }
         } else {
-<span class="nc" id="L210">            throw new RuntimeException(&quot;Unsupported JVM runtime&quot; + org.spf4j.base.Runtime.JAVA_PLATFORM);</span>
+<span class="nc" id="L204">            throw new RuntimeException(&quot;Unsupported JVM runtime&quot; + org.spf4j.base.Runtime.JAVA_PLATFORM);</span>
         }
     }
 
@@ -219,69 +213,69 @@ public final class OpenTypeConverter {
      */
     public static Converter&lt;Object, Object&gt; getConverter(final Class&lt;?&gt; type) throws OpenDataException {
 
-<span class="pc bpc" id="L222" title="1 of 2 branches missed.">        if (org.spf4j.base.Runtime.JAVA_PLATFORM == Version.V1_6) {</span>
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">        if (org.spf4j.base.Runtime.JAVA_PLATFORM == Version.V1_6) {</span>
 
-<span class="nc bnc" id="L224" title="All 2 branches missed.">            if (Enum.class.isAssignableFrom(type)) {</span>
-<span class="nc" id="L225">                return new Converter&lt;Object, Object&gt;() {</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">            if (Enum.class.isAssignableFrom(type)) {</span>
+<span class="nc" id="L219">                return new Converter&lt;Object, Object&gt;() {</span>
 
                     @Override
                     protected Object doForward(final Object a) {
-<span class="nc" id="L229">                        return Enum.valueOf((Class) type, (String) a);</span>
+<span class="nc" id="L223">                        return Enum.valueOf((Class) type, (String) a);</span>
                     }
 
                     @Override
                     protected Object doBackward(final Object b) {
-<span class="nc" id="L234">                        return b.toString();</span>
+<span class="nc" id="L228">                        return b.toString();</span>
                     }
                 };
             } else {
-<span class="nc" id="L238">                final Object conv = getOpenConverter(type);</span>
+<span class="nc" id="L232">                final Object conv = getOpenConverter(type);</span>
 
-<span class="nc" id="L240">                return new Converter&lt;Object, Object&gt;() {</span>
+<span class="nc" id="L234">                return new Converter&lt;Object, Object&gt;() {</span>
 
                     @Override
                     protected Object doForward(final Object a) {
-<span class="nc" id="L244">                        return openConverterFromOpenValue(conv, a);</span>
+<span class="nc" id="L238">                        return openConverterFromOpenValue(conv, a);</span>
                     }
 
                     @Override
                     protected Object doBackward(final Object b) {
-<span class="nc" id="L249">                        return openConverterToOpenValue(conv, b);</span>
+<span class="nc" id="L243">                        return openConverterToOpenValue(conv, b);</span>
                     }
                 };
             }
-<span class="pc bpc" id="L253" title="1 of 2 branches missed.">        } else if (org.spf4j.base.Runtime.JAVA_PLATFORM.ordinal() &gt;= Version.V1_7.ordinal()) {</span>
-<span class="fc" id="L254">            final Object mapping = getMXBeanMapping(type);</span>
-<span class="fc" id="L255">            return new Converter&lt;Object, Object&gt;() {</span>
+<span class="pc bpc" id="L247" title="1 of 2 branches missed.">        } else if (org.spf4j.base.Runtime.JAVA_PLATFORM.ordinal() &gt;= Version.V1_7.ordinal()) {</span>
+<span class="fc" id="L248">            final Object mapping = getMXBeanMapping(type);</span>
+<span class="fc" id="L249">            return new Converter&lt;Object, Object&gt;() {</span>
 
                 @Override
                 protected Object doForward(final Object a) {
                     try {
-<span class="nc" id="L260">                        return JMX17P.MAPPING_FROM_OPEN_VALUE.invoke(mapping, a);</span>
-<span class="nc" id="L261">                    } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L262">                        throw new RuntimeException(ex);</span>
-<span class="nc" id="L263">                    } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L264">                        throw new RuntimeException(ex);</span>
-<span class="nc" id="L265">                    } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L266">                        throw new RuntimeException(ex);</span>
+<span class="nc" id="L254">                        return JMX17P.MAPPING_FROM_OPEN_VALUE.invoke(mapping, a);</span>
+<span class="nc" id="L255">                    } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L256">                        throw new RuntimeException(ex);</span>
+<span class="nc" id="L257">                    } catch (IllegalArgumentException ex) {</span>
+<span class="nc" id="L258">                        throw new RuntimeException(ex);</span>
+<span class="nc" id="L259">                    } catch (InvocationTargetException ex) {</span>
+<span class="nc" id="L260">                        throw new RuntimeException(ex);</span>
                     }
                 }
 
                 @Override
                 protected Object doBackward(final Object b) {
                     try {
-<span class="nc" id="L273">                        return JMX17P.MAPPING_TO_OPEN_VALUE.invoke(mapping, b);</span>
-<span class="nc" id="L274">                    } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L275">                        throw new RuntimeException(ex);</span>
-<span class="nc" id="L276">                    } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L277">                        throw new RuntimeException(ex);</span>
-<span class="nc" id="L278">                    } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L279">                        throw new RuntimeException(ex);</span>
+<span class="nc" id="L267">                        return JMX17P.MAPPING_TO_OPEN_VALUE.invoke(mapping, b);</span>
+<span class="nc" id="L268">                    } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L269">                        throw new RuntimeException(ex);</span>
+<span class="nc" id="L270">                    } catch (IllegalArgumentException ex) {</span>
+<span class="nc" id="L271">                        throw new RuntimeException(ex);</span>
+<span class="nc" id="L272">                    } catch (InvocationTargetException ex) {</span>
+<span class="nc" id="L273">                        throw new RuntimeException(ex);</span>
                     }
                 }
             };
         } else {
-<span class="nc" id="L284">            throw new RuntimeException(&quot;Unsupported JVM runtime&quot; + org.spf4j.base.Runtime.JAVA_PLATFORM);</span>
+<span class="nc" id="L278">            throw new RuntimeException(&quot;Unsupported JVM runtime&quot; + org.spf4j.base.Runtime.JAVA_PLATFORM);</span>
         }
 
     }
