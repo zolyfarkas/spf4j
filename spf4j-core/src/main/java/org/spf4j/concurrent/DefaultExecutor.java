@@ -55,9 +55,11 @@ public final class DefaultExecutor {
         final int maxIdleMillis = Integer.getInteger("defaultExecutor.maxIdleMillis", 60000);
         final boolean isDaemon = Boolean.getBoolean("defaultExecutor.daemon");
         if ("spf4j".equalsIgnoreCase(System.getProperty("defaultExecutor.implementation", "spf4j"))) {
-            INSTANCE = new LifoThreadPoolExecutorSQP("defaultExecutor", coreThreads,
+            LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP("defaultExecutor", coreThreads,
                     Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon, Integer.getInteger("defaultExecutor.spinlockCount",
                             1024));
+            lifoExec.exportJmx();
+            INSTANCE = lifoExec;
         } else {
             INSTANCE = new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,
                 new SynchronousQueue<Runnable>(), new CustomThreadFactory("DefaultExecutor", isDaemon));
