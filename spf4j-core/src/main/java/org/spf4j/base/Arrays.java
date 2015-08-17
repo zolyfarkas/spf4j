@@ -164,9 +164,13 @@ public final class Arrays {
 
     public static final Object [] EMPTY_OBJ_ARRAY = new Object [] {};
 
+    public static final String [] EMPTY_STRING_ARRAY = new String [] {};
+
     public static final byte [] EMPTY_BYTE_ARRAY = new byte [] {};
 
     public static final long [] EMPTY_LONG_ARRAY = new long [] {};
+
+    public static final int [] EMPTY_INT_ARRAY = new int [] {};
 
     private static final ThreadLocal<SoftReference<byte[]>> BYTES_TMP = new ThreadLocal<>();
 
