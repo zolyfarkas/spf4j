@@ -48,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
+import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.spf4j.base.Runtime.Lsof.LSOF;
@@ -606,6 +607,16 @@ public final class Runtime {
 
     public static long getDeadline() {
         return DEADLINE.get();
+    }
+
+    public static long millisToDeadline() throws TimeoutException {
+        final long deadline = DEADLINE.get();
+        long result = deadline - System.currentTimeMillis();
+        if (result < 0) {
+            throw new TimeoutException("Deadline passed " + ISODateTimeFormat.basicDateTime().print(deadline));
+        } else {
+            return result;
+        }
     }
 
     public static void setDeadline(final long deadline) {

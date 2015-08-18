@@ -72,7 +72,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
     public T get(final ObjectBorower borower) throws InterruptedException,
             TimeoutException, ObjectCreationException {
-        long deadline = org.spf4j.base.Runtime.DEADLINE.get();
+        long deadline = org.spf4j.base.Runtime.getDeadline();
         lock.lock();
         try {
             // trying to be fair here, if others are already waiting, we will not get one.
@@ -203,7 +203,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
 
     @Override
     public void dispose() throws ObjectDisposeException, InterruptedException {
-        long deadline = org.spf4j.base.Runtime.DEADLINE.get();
+        long deadline = org.spf4j.base.Runtime.getDeadline();
         lock.lock();
         try {
             maxSize = 0;

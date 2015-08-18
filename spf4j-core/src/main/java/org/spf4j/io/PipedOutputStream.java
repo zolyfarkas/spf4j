@@ -99,7 +99,7 @@ public final class PipedOutputStream extends OutputStream {
 
     public long getDeadline() {
         if (globalDeadline == null) {
-            return org.spf4j.base.Runtime.DEADLINE.get();
+            return org.spf4j.base.Runtime.getDeadline();
         } else {
             return globalDeadline;
         }
