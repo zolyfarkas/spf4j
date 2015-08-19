@@ -15,7 +15,7 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.base;
+package org.spf4j.concurrent;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
@@ -23,6 +23,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import junit.framework.Assert;
 import org.junit.Test;
+import org.spf4j.base.Callables;
+import org.spf4j.base.ParameterizedSupplier;
 import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
 import org.spf4j.concurrent.RetryExecutor;
 

@@ -84,18 +84,18 @@ public class RetryExecutor {
 
         private final ExecutionException exception;
         private final RetryableCallable<Object> callable;
-        private final long delay;
+        private final long deadline;
 
         public FailedExecutionResult(@Nullable final ExecutionException exception,
                 final RetryableCallable callable, final long delay) {
             this.exception = exception;
             this.callable = callable;
-            this.delay = delay + System.currentTimeMillis();
+            this.deadline = delay + System.currentTimeMillis();
         }
 
         @Override
         public long getDelay(final TimeUnit unit) {
-            return unit.convert(delay - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+            return unit.convert(deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
         }
 
         @Override
@@ -182,9 +182,10 @@ public class RetryExecutor {
         public T call() {
             try {
                 T result = callable.call();
-                if (this.resultRetryPredicate.apply((Object) result) >= 0) {
+                final int delay = this.resultRetryPredicate.apply((Object) result);
+                if (delay >= 0) {
                     startRetryManager();
-                    executionEvents.add(new FailedExecutionResult(null, this, 0));
+                    executionEvents.add(new FailedExecutionResult(null, this, delay));
                 } else {
                     if (future != null) {
                         future.setResult(result);
@@ -192,7 +193,8 @@ public class RetryExecutor {
                 }
                 return null;
             } catch (Exception e) {
-                if (this.exceptionRetryPredicate.apply(e) >= 0) {
+                final int delay = this.exceptionRetryPredicate.apply(e);
+                if (delay >= 0) {
                     startRetryManager();
                     if (previousResult != null) {
                         final ExecutionException exception = previousResult.getException();
@@ -200,7 +202,7 @@ public class RetryExecutor {
                             e = Throwables.suppress(e, exception);
                         }
                     }
-                    executionEvents.add(new FailedExecutionResult(new ExecutionException(e), this, 0));
+                    executionEvents.add(new FailedExecutionResult(new ExecutionException(e), this, delay));
                 } else {
                     future.setExceptionResult(new ExecutionException(e));
                 }
