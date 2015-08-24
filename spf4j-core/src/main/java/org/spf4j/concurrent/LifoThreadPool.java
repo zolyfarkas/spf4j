@@ -19,6 +19,8 @@ public interface LifoThreadPool extends ExecutorService {
 
     void exportJmx();
 
+    void unregisterJmx();
+
     @JmxExport
     int getMaxIdleTimeMillis();
 

@@ -238,6 +238,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
         }
     }
 
+    @Override
     public void unregisterJmx() {
         Registry.unregister(MutableLifoThreadPoolExecutorSQP.class.getName(), poolName);
     }

@@ -260,8 +260,6 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
                 while ((th = threadQueue.pollLast()) != null) {
                     th.signal(); // signal all waiting threads, so thay can start going down.
                 }
-                // disable JMX monitoring.
-                Registry.unregister(LifoThreadPoolExecutorSQP.class.getName(), poolName);
             }
         } finally {
             stateLock.unlock();
@@ -354,6 +352,11 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
         }
 
     };
+
+    @Override
+    public void unregisterJmx() {
+        Registry.unregister(LifoThreadPoolExecutorSQP.class.getName(), poolName);
+    }
 
     @SuppressFBWarnings("NO_NOTIFY_NOT_NOTIFYALL")
     private static final class QueuedThread extends Thread {
