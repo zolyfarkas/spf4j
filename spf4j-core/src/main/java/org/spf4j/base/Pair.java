@@ -20,6 +20,7 @@ package org.spf4j.base;
 
 import org.spf4j.io.Csv;
 import com.google.common.base.Objects;
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.LinkedHashMap;
@@ -33,6 +34,7 @@ import javax.annotation.Nullable;
  */
 public class Pair<A, B> implements Map.Entry<A, B> {
 
+    @ConstructorProperties({"first", "second" })
     public Pair(final A first, final B second) {
         this.first = first;
         this.second = second;
