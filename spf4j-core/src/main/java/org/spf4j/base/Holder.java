@@ -23,7 +23,7 @@ package org.spf4j.base;
  * @author zoly
  */
 public final  class Holder<T> {
-    
+
     private final T value;
 
     public Holder(final T value) {
@@ -42,5 +42,9 @@ public final  class Holder<T> {
     public String toString() {
         return "Holder{" + "value=" + value + '}';
     }
-    
+
+    public static <T> Holder<T> of(final T value) {
+        return new Holder<>(value);
+    }
+
 }
