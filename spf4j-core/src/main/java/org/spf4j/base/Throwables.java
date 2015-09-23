@@ -361,11 +361,7 @@ public final class Throwables {
         to.append('\n');
         StackTraceElement[] trace = t.getStackTrace();
 
-        for (StackTraceElement traceElement : trace) {
-            to.append("\tat ");
-            writeTo(traceElement, to, detail);
-            to.append('\n');
-        }
+        writeTo(trace, to, detail);
 
         // Print suppressed exceptions, if any
         for (Throwable se : t.getSuppressed()) {
@@ -378,6 +374,15 @@ public final class Throwables {
             printEnclosedStackTrace(ourCause, to, trace, CAUSE_CAPTION, "", dejaVu, detail);
         }
 
+    }
+
+    public static void writeTo(final StackTraceElement[] trace, final Appendable to, final Detail detail)
+            throws IOException {
+        for (StackTraceElement traceElement : trace) {
+            to.append("\tat ");
+            writeTo(traceElement, to, detail);
+            to.append('\n');
+        }
     }
 
     private static void printEnclosedStackTrace(final Throwable t, final Appendable s,
