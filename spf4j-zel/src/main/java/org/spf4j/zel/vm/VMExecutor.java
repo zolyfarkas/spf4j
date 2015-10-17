@@ -26,11 +26,11 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import javax.annotation.Nullable;
 import org.spf4j.base.Pair;
-import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
 
 /**
  *
@@ -42,11 +42,13 @@ public final class VMExecutor {
     public static class Lazy {
 
          private static final ExecutorService DEF_EXEC =
-                 new LifoThreadPoolExecutorSQP("zel-pool",
-                 Integer.getInteger("zel.pool.coreThreadNr", 0),
-                 Integer.getInteger("zel.pool.maxThreadNr", org.spf4j.base.Runtime.NR_PROCESSORS),
-                 Integer.getInteger("zel.pool.maxIdleMillis", 60000),
-                 Integer.getInteger("zel.pool.queueLimit", Integer.MAX_VALUE));
+                 new ForkJoinPool(Integer.getInteger("zel.pool.maxThreadNr", org.spf4j.base.Runtime.NR_PROCESSORS));
+//                 new LifoThreadPoolExecutorSQP("zel-pool",
+//                 Integer.getInteger("zel.pool.coreThreadNr", 0),
+//                 Integer.getInteger("zel.pool.maxThreadNr", org.spf4j.base.Runtime.NR_PROCESSORS),
+//                 Integer.getInteger("zel.pool.maxIdleMillis", 60000),
+//                 Integer.getInteger("zel.pool.queueLimit", Integer.MAX_VALUE));
+
          static {
              org.spf4j.base.Runtime.queueHook(0, new Runnable() {
                  @Override

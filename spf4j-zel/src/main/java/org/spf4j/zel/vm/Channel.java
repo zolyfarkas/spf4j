@@ -13,18 +13,18 @@ import java.util.Queue;
 public final class Channel {
 
     public static final Object EOF = new Object();
-    
+
     private final Queue<Object> queue;
 
     private final Queue<VMFuture<Object>> readers;
 
     private final VMExecutor exec;
-    
+
     private boolean closed;
 
     public Channel(final VMExecutor exec) {
-        this.queue = new LinkedList<Object>();
-        this.readers = new LinkedList<VMFuture<Object>>();
+        this.queue = new LinkedList<>();
+        this.readers = new LinkedList<>();
         this.exec = exec;
         this.closed = false;
     }
@@ -60,7 +60,7 @@ public final class Channel {
             }
         }
     }
-    
+
     public void close() {
         synchronized (this) {
             VMFuture<Object> reader;
@@ -76,12 +76,12 @@ public final class Channel {
     public static final class Factory implements Method {
 
         private Factory() { }
-        
+
         @Override
         public Object invoke(final ExecutionContext context, final Object[] parameters) {
             return new Channel(context.execService);
         }
-        
+
         public static final Factory INSTANCE = new Factory();
 
     }

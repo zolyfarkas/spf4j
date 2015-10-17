@@ -242,6 +242,17 @@ public final class Program implements Serializable {
     }
 
     @CheckReturnValue
+    public Instruction[] getCode() {
+        return Arrays.copyOf(instructions, instructions.length - 1);
+    }
+
+    @CheckReturnValue
+    public Location[] getDebugInfo() {
+        return Arrays.copyOf(debug, debug.length - 1);
+    }
+
+
+    @CheckReturnValue
     public int size() {
         return instructions.length;
     }

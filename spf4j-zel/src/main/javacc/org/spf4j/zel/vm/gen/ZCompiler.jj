@@ -244,7 +244,7 @@ void mainprogram(ParsingContext context) :
 {
 }
 { 
- (program(context)) ?
+ program(context)
  {context.generateCode(new Location(token.beginLine, token.beginColumn), org.spf4j.zel.instr.HALT.INSTANCE);}
  <EOF>
 }
@@ -253,9 +253,9 @@ void mainprogram(ParsingContext context) :
 void program(ParsingContext context) :
 {
 }
-{ 
-    statement(context)
-    (<SCL> statement(context))* 
+{   (((programBlockStatic(context)) | (statement(context)))
+    ((<SCL> (programBlockStatic(context) | statement(context)))
+     | programBlockStatic(context))*)?
 }
 
 void statement(ParsingContext context) :
@@ -264,7 +264,8 @@ void statement(ParsingContext context) :
 {
     LOOKAHEAD(assignement(context)) assignement(context)
   | LOOKAHEAD(swap(context)) swap(context)
-  | expression(context) {
+  | expression(context) 
+   {
     if (context.getLast() != org.spf4j.zel.instr.CALLA.INSTANCE) {
         context.generateCode(new Location(token.beginLine, token.beginColumn), org.spf4j.zel.instr.SYNC.INSTANCE);
     }
@@ -301,7 +302,7 @@ void forStmt(ParsingContext context) :
     (<SCL> (assignement(postAssign) 
     (<COMMA> assignement(postAssign))*))?
 
-    programBlock(loopBlock)
+    programBlockStatic(loopBlock)
     
     {
       context.generateCode(loc,
@@ -327,10 +328,10 @@ void ifStmt(ParsingContext context) :
 {
     (<IF> {loc = new Location(token.beginLine, token.beginColumn);}
     logical(context)
-    (programBlock(left) | statement(left)))
+    (programBlockStatic(left) | statement(left)))
 
     (<ELSE> {isElse = true; loc2 = new Location(token.beginLine, token.beginColumn);}
-    (programBlock(right) | statement(right)))?
+    (programBlockStatic(right) | statement(right)))?
         {context.generateCode(loc, new org.spf4j.zel.instr.FJMP(left.getAddress() + 1 + ((isElse) ? 1 : 0)));
          context.generateCodeAll(left);
          if (isElse) {
@@ -339,11 +340,43 @@ void ifStmt(ParsingContext context) :
          }}
 }
 
-void programBlock(ParsingContext context) :
+void programBlockStatic(ParsingContext context) :
 {
+  ParsingContext subCtx;
+  boolean asyncForce = false;
+  Location sloc = null;
+  Location eloc = null;
 }
 {
-  <LBRACE> program(context) <RBRACE>
+  {sloc = new Location(token.beginLine, token.beginColumn);}
+
+   subCtx = programBlock(context) (<SAND> {asyncForce = true;})?
+    {
+     try {
+       eloc = new Location(token.beginLine, token.beginColumn);
+       Program program = subCtx.getProgramBuilder().toProgram("block", source, org.spf4j.base.Arrays.EMPTY_STRING_ARRAY);
+       context.generateCode(program.getDebugInfo(), program.getCode());
+     } catch (CompileException ex) {
+       throw new ParseException(ex.getMessage());
+     }
+    }
+}
+
+
+ParsingContext programBlock(ParsingContext context) :
+{
+  ParsingContext subCtx = context.createSubContext();
+  Location sloc = null;
+  Location eloc = null;
+}
+{
+  {sloc = new Location(token.beginLine, token.beginColumn);}
+  <LBRACE> program(subCtx) <RBRACE> 
+ {
+    eloc = new Location(token.beginLine, token.beginColumn);
+    subCtx.generateCode(eloc, org.spf4j.zel.instr.HALT.INSTANCE);
+    return subCtx;
+ }
 }
 
 void zreturn(ParsingContext context) :
@@ -707,6 +740,7 @@ void sysFunction(ParsingContext context) :
     String staticName = null;
     String functionName = "";
     Token x;
+    ParsingContext pc;
 }
 {
 
@@ -719,9 +753,7 @@ void sysFunction(ParsingContext context) :
  (<ID> {parameterNames.add(token.image);}
  (<COMMA> <ID> {parameterNames.add(token.image);} )*)
  <RPAREN>)?)
-   {ParsingContext pc = (ParsingContext) context.createSubContext();}
-   programBlock(pc)
-   {pc.generateCode(new Location(token.beginLine, token.beginColumn), org.spf4j.zel.instr.HALT.INSTANCE);}
+   pc = programBlock(context)
    {ProgramBuilder p= pc.getProgramBuilder();
     p.setType(pType);
     p.setExecType(eType);
@@ -730,7 +762,7 @@ void sysFunction(ParsingContext context) :
           context.staticSymbol(staticName, null);
           functionName = staticName;
       } else {
-          functionName = "anon@" + (x.beginLine - 1);
+          functionName = "anonFunc@" + (x.beginLine - 1);
       }
       Program prog = p.toProgram(functionName, source, parameterNames);
       if (staticName != null) {
