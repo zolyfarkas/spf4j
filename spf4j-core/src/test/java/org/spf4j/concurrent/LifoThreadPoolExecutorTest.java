@@ -20,6 +20,7 @@ package org.spf4j.concurrent;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -92,6 +93,14 @@ public class LifoThreadPoolExecutorTest {
                 linkedBlockingQueue);
         testPool(executor);
     }
+
+    @Test
+    @Ignore
+    public void testJdkFJPExec() throws InterruptedException, IOException {
+        ExecutorService executor = new ForkJoinPool(8);
+        testPool(executor);
+    }
+
 
     public static void testPool(final ExecutorService executor)
             throws InterruptedException, IOException {

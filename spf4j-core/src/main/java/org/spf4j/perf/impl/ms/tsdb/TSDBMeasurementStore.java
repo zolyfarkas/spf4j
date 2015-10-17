@@ -23,8 +23,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.jmx.JmxExport;
+import org.spf4j.tsdb2.TSDBQuery;
 import org.spf4j.tsdb2.TSDBWriter;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.TableDef;
@@ -92,6 +94,30 @@ public final class TSDBMeasurementStore
     @Override
     public void flush() throws IOException {
         database.flush();
+    }
+
+    @JmxExport(description = "list all tables")
+    public String [] getTables() throws IOException {
+        final Set<String> metrics = TSDBQuery.getAllTables(database.getFile()).keySet();
+        return metrics.toArray(new String [metrics.size()]);
+    }
+
+    @JmxExport(description = "getTable As Csv")
+    public String getTableAsCsv(final String tableName) throws IOException {
+        StringBuilder result = new StringBuilder(1024);
+        TSDBQuery.writeAsCsv(result, database.getFile(), tableName);
+        return result.toString();
+    }
+
+    @JmxExport(description = "export As Csv to file")
+    public void writeTableAsCsv(@JmxExport("tableName") final String tableName,
+            @JmxExport("csvFileName") final String csvFileName) throws IOException {
+        File csv = new File(csvFileName);
+        File parent = csv.getParentFile();
+        if (parent == null || !parent.exists()) {
+            csv = new File(database.getFile().getParentFile().getAbsolutePath() + File.separator + csv.getName());
+        }
+        TSDBQuery.writeCsvTable(database.getFile(), tableName, csv);
     }
 
     @Override

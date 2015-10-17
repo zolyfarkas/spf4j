@@ -212,28 +212,34 @@ public final class TSDBQuery {
 
     public static void writeCsvTable(final File tsDB, final String tableName, final File output)
             throws IOException {
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8))) {
+            writeAsCsv(writer, tsDB, tableName);
+        }
+    }
+
+    private static final  DateTimeFormatter DATE_FMT = ISODateTimeFormat.dateTime();
+
+    public static void writeAsCsv(final Appendable writer, final File tsDB, final String tableName)
+            throws IOException {
 
         List<TableDef> tableDefs = getTableDef(tsDB, tableName);
-
         TimeSeries data = getTimeSeries(tsDB, getIds(tableDefs), 0, Long.MAX_VALUE);
-        DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8))) {
-            Csv.writeCsvElement("timestamp", writer);
-            for (ColumnDef col : tableDefs.get(0).getColumns()) {
+
+        Csv.writeCsvElement("timestamp", writer);
+        for (ColumnDef col : tableDefs.get(0).getColumns()) {
+            writer.append(',');
+            Csv.writeCsvElement(col.getName(), writer);
+        }
+        writer.append('\n');
+        long[] timestamps = data.getTimeStamps();
+        long[][] values = data.getValues();
+        for (int i = 0; i < timestamps.length; i++) {
+            Csv.writeCsvElement(DATE_FMT.print(timestamps[i]), writer);
+            for (long val : values[i]) {
                 writer.append(',');
-                Csv.writeCsvElement(col.getName(), writer);
+                Csv.writeCsvElement(Long.toString(val), writer);
             }
-            writer.write('\n');
-            long[] timestamps = data.getTimeStamps();
-            long[][] values = data.getValues();
-            for (int i = 0; i < timestamps.length; i++) {
-                Csv.writeCsvElement(formatter.print(timestamps[i]), writer);
-                for (long val : values[i]) {
-                    writer.append(',');
-                    Csv.writeCsvElement(Long.toString(val), writer);
-                }
-                writer.write('\n');
-            }
+            writer.append('\n');
         }
     }
 
