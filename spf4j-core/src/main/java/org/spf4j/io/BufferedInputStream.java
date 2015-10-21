@@ -215,7 +215,7 @@ public final class BufferedInputStream extends FilterInputStream {
     public synchronized void reset() throws IOException {
         getBufIfOpen(); // Cause exception if closed
         if (markpos < 0) {
-            throw new IOException("Resetting to invalid mark");
+            throw new IOException("Resetting to invalid mark" + markpos);
         }
         pos = markpos;
     }

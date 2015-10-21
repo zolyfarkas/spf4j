@@ -75,7 +75,7 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
     };
 
     private final UpdateablePriorityQueue<SharedObject<T>> pooledObjects;
-    private final Map<T, UpdateablePriorityQueue<SharedObject<T>>.ElementRef> o2Queue;
+    private final Map<T, UpdateablePriorityQueue<SharedObject<T>>.ElementRef> o2QueueRefMap;
 
     private int nrObjects;
     private final int maxSize;
@@ -94,7 +94,7 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
         this.pooledObjects = new UpdateablePriorityQueue<>(maxSize, SH_COMP);
         this.nrObjects = 0;
         this.closed = false;
-        o2Queue = new IdentityHashMap<>(maxSize);
+        o2QueueRefMap = new IdentityHashMap<>(maxSize);
         for (int i = 0; i < coreSize; i++) {
             createObject(0);
         }
@@ -126,7 +126,7 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
 
     private synchronized T createObject(final int nrTimesShared) throws ObjectCreationException {
         T obj = factory.create();
-        o2Queue.put(obj, pooledObjects.add(new SharedObject<>(obj, nrTimesShared)));
+        o2QueueRefMap.put(obj, pooledObjects.add(new SharedObject<>(obj, nrTimesShared)));
         nrObjects++;
         return obj;
     }
@@ -148,7 +148,7 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
 
     @SuppressFBWarnings("REC_CATCH_EXCEPTION")
     private synchronized void validate(final T object, final Exception e) {
-        if (o2Queue.containsKey(object)) {
+        if (o2QueueRefMap.containsKey(object)) {
             // element still in queue
             boolean isValid;
             try {
@@ -159,7 +159,7 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
                 isValid = false;
             }
             if (!isValid) { // remove from pool
-                UpdateablePriorityQueue.ElementRef qref = o2Queue.remove(object);
+                UpdateablePriorityQueue.ElementRef qref = o2QueueRefMap.remove(object);
                 nrObjects--;
                 qref.remove();
             } else {
@@ -170,7 +170,7 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
 
     private synchronized void returnToQueue(final T object) {
         // object is valid
-        UpdateablePriorityQueue<SharedObject<T>>.ElementRef ref = o2Queue.get(object);
+        UpdateablePriorityQueue<SharedObject<T>>.ElementRef ref = o2QueueRefMap.get(object);
         final SharedObject<T> elem = ref.getElem();
         elem.dec();
         this.notifyAll();
@@ -195,7 +195,7 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
                         this.wait(5000);
                     }
                     T o = so.getObject();
-                    o2Queue.remove(o);
+                    o2QueueRefMap.remove(o);
                     iterator.remove();
                     nrObjects--;
                     factory.dispose(o);

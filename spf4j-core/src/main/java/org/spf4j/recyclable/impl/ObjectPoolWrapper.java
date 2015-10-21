@@ -38,11 +38,11 @@ import org.spf4j.base.Handler;
 final class ObjectPoolWrapper<T> implements RecyclingSupplier<T> , Scanable<ObjectHolder<T>> {
 
     private final RecyclingSupplier<T> pool;
-    
+
     private final Handler<T, ? extends Exception> borrowHook;
-    
+
     private final Handler<T, ? extends Exception> returnHook;
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ObjectPoolWrapper.class);
 
     public ObjectPoolWrapper(final RecyclingSupplier<T> pool,
@@ -55,9 +55,9 @@ final class ObjectPoolWrapper<T> implements RecyclingSupplier<T> , Scanable<Obje
             throw new IllegalArgumentException("Both hooks can't be null for " + pool);
         }
     }
-    
-    
-    
+
+
+
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
     @Override
     public T get()
@@ -74,7 +74,7 @@ final class ObjectPoolWrapper<T> implements RecyclingSupplier<T> , Scanable<Obje
             } catch (RuntimeException ex) {
                 throw Throwables.suppress(new RuntimeException(ex), e);
             }
-            throw new ObjectBorrowException("Exception while executing borrow hook", e);
+            throw new ObjectBorrowException("Exception while executing borrow hook " + borrowHook, e);
         }
     }
 
@@ -110,6 +110,6 @@ final class ObjectPoolWrapper<T> implements RecyclingSupplier<T> , Scanable<Obje
         pool.recycle(object);
     }
 
-  
-    
+
+
 }
