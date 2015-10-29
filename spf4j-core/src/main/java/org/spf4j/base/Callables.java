@@ -577,4 +577,28 @@ public final class Callables {
         };
     }
 
+    public static <T> Callable<T> withName(final Callable<T> callable, final String name) {
+        return new Callable<T>() {
+
+            @Override
+            public T call() throws Exception {
+                Thread currentThread = Thread.currentThread();
+                String origName = currentThread.getName();
+                try {
+                    currentThread.setName(origName + '[' + name + ']');
+                    return callable.call();
+                } finally {
+                    currentThread.setName(origName);
+                }
+            }
+
+            @Override
+            public String toString() {
+                return name;
+            }
+
+        };
+    }
+
+
 }
