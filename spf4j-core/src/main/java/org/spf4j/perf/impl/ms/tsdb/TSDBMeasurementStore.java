@@ -103,7 +103,7 @@ public final class TSDBMeasurementStore
     }
 
     @JmxExport(description = "getTable As Csv")
-    public String getTableAsCsv(final String tableName) throws IOException {
+    public String getTableAsCsv(@JmxExport("tableName") final String tableName) throws IOException {
         StringBuilder result = new StringBuilder(1024);
         TSDBQuery.writeAsCsv(result, database.getFile(), tableName);
         return result.toString();
