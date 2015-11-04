@@ -108,6 +108,7 @@ public final class Runtime {
     public static final String JAVA_VERSION = System.getProperty("java.version");
     public static final String USER_NAME = System.getProperty("user.name");
     public static final String USER_DIR = System.getProperty("user.dir");
+    public static final String USER_HOME = System.getProperty("user.home");
     public static final String JAVA_HOME = System.getProperty("java.home");
 
     private static final SortedMap<Integer, Set<Runnable>> SHUTDOWN_HOOKS = new TreeMap<>();
