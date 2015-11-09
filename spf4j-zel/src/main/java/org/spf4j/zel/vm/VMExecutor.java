@@ -27,10 +27,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import javax.annotation.Nullable;
 import org.spf4j.base.Pair;
+import org.spf4j.base.Throwables;
 
 /**
  *
@@ -41,23 +43,46 @@ public final class VMExecutor {
 
     public static class Lazy {
 
-         private static final ExecutorService DEF_EXEC =
-                 new ForkJoinPool(Integer.getInteger("zel.pool.maxThreadNr", org.spf4j.base.Runtime.NR_PROCESSORS));
+        static class ZelWorker extends ForkJoinWorkerThread {
+
+            public ZelWorker(final ForkJoinPool pool) {
+                super(pool);
+            }
+
+        }
+
+        static class DefaultForkJoinWorkerThreadFactory
+                implements ForkJoinPool.ForkJoinWorkerThreadFactory {
+
+            public ForkJoinWorkerThread newThread(final ForkJoinPool pool) {
+                return new ZelWorker(pool);
+            }
+        }
+
+        private static final ExecutorService DEF_EXEC
+                = new ForkJoinPool(Integer.getInteger("zel.pool.maxThreadNr", org.spf4j.base.Runtime.NR_PROCESSORS),
+                        new DefaultForkJoinWorkerThreadFactory(), new Thread.UncaughtExceptionHandler() {
+
+            @Override
+            public void uncaughtException(final Thread t, final Throwable e) {
+                System.err.println(Throwables.toString(e, Throwables.Detail.STANDARD));
+            }
+        }, true);
 //                 new LifoThreadPoolExecutorSQP("zel-pool",
 //                 Integer.getInteger("zel.pool.coreThreadNr", 0),
 //                 Integer.getInteger("zel.pool.maxThreadNr", org.spf4j.base.Runtime.NR_PROCESSORS),
 //                 Integer.getInteger("zel.pool.maxIdleMillis", 60000),
 //                 Integer.getInteger("zel.pool.queueLimit", Integer.MAX_VALUE));
 
-         static {
-             org.spf4j.base.Runtime.queueHook(0, new Runnable() {
-                 @Override
-                 public void run() {
-                      DEF_EXEC.shutdown();
-                 }
-             });
-         }
-         public static final VMExecutor DEFAULT = new VMExecutor(DEF_EXEC);
+        static {
+            org.spf4j.base.Runtime.queueHook(0, new Runnable() {
+                @Override
+                public void run() {
+                    DEF_EXEC.shutdown();
+                }
+            });
+        }
+        public static final VMExecutor DEFAULT = new VMExecutor(DEF_EXEC);
     }
 
     public interface Suspendable<T> extends Callable<T> {
@@ -68,8 +93,6 @@ public final class VMExecutor {
         List<VMFuture<Object>> getSuspendedAt();
 
     }
-
-
 
     public static <T> Suspendable<T> synchronize(final Suspendable<T> what) {
         return new Suspendable<T>() {
@@ -114,7 +137,7 @@ public final class VMExecutor {
     }
 
     public <T> Future<T> submit(final Suspendable<T> callable) {
-        final VMFuture<T> resultFuture = new VMSyncFuture<T>();
+        final VMFuture<T> resultFuture = new VMSyncFuture<>();
         submit(callable, resultFuture);
         return resultFuture;
     }
@@ -126,9 +149,8 @@ public final class VMExecutor {
      * @param callable
      * @return
      */
-
     public <T> Future<T> submitInternal(final Suspendable<T> callable) {
-        final VMFuture<T> resultFuture = new VMASyncFuture<T>();
+        final VMFuture<T> resultFuture = new VMASyncFuture<>();
         submit(callable, resultFuture);
         return resultFuture;
     }
@@ -136,9 +158,8 @@ public final class VMExecutor {
     /**
      * Map from Future -> Suspendables suspended at this futures and their futures.
      */
-
     private final ConcurrentMap<VMFuture<Object>, List<Pair<Suspendable<Object>, VMFuture<Object>>>> futToSuspMap
-            = new ConcurrentHashMap<VMFuture<Object>, List<Pair<Suspendable<Object>, VMFuture<Object>>>>();
+            = new ConcurrentHashMap<>();
 
     @Nullable
     public List<Pair<Suspendable<Object>, VMFuture<Object>>> resumeSuspendables(final VMFuture<Object> future) {
@@ -157,7 +178,7 @@ public final class VMExecutor {
         List<Pair<Suspendable<Object>, VMFuture<Object>>> suspended
                 = futToSuspMap.get(futureSuspendedFor);
         if (suspended == null) {
-            suspended = new LinkedList<Pair<Suspendable<Object>, VMFuture<Object>>>();
+            suspended = new LinkedList<>();
             List<Pair<Suspendable<Object>, VMFuture<Object>>> old
                     = futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);
             if (old != null) {
@@ -166,14 +187,14 @@ public final class VMExecutor {
         }
         do {
             List<Pair<Suspendable<Object>, VMFuture<Object>>> newList
-                    = new LinkedList<Pair<Suspendable<Object>, VMFuture<Object>>>(suspended);
+                    = new LinkedList<>(suspended);
             newList.add(Pair.of(suspendedCallable, suspendedCallableFuture));
             if (futToSuspMap.replace(futureSuspendedFor, suspended, newList)) {
                 break;
             } else {
                 suspended = futToSuspMap.get(futureSuspendedFor);
                 if (suspended == null) {
-                    suspended = new LinkedList<Pair<Suspendable<Object>, VMFuture<Object>>>();
+                    suspended = new LinkedList<>();
                     List<Pair<Suspendable<Object>, VMFuture<Object>>> old
                             = futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);
                     if (old != null) {
@@ -199,21 +220,17 @@ public final class VMExecutor {
                 } catch (SuspendedException ex) {
                     for (VMFuture<Object> fut : callable.getSuspendedAt()) {
                         addSuspendable(fut,
-                            (Suspendable<Object>) callable, (VMFuture<Object>) future);
+                                (Suspendable<Object>) callable, (VMFuture<Object>) future);
                     }
                 } catch (ExecutionException e) {
                     future.setExceptionResult(e);
                     resumeSuspendables((VMFuture<Object>) future);
-                }  catch (RuntimeException | InterruptedException e) {
+                } catch (RuntimeException | InterruptedException e) {
                     future.setExceptionResult(new ExecutionException(e));
                     resumeSuspendables((VMFuture<Object>) future);
                 }
             }
         });
     }
-
-
-
-
 
 }

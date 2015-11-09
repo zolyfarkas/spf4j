@@ -38,6 +38,7 @@ public final class SleepSortTest {
        String sort = Resources.toString(Resources.getResource(SleepSortTest.class, "sleepSort.zel"),
                 Charsets.US_ASCII);
         Program p = Program.compile(sort, "x");
+        System.out.println(Arrays.toString(p.getCode()));
         Integer [] testArray = new Integer [100];
         Random random = new Random();
         for (int i = 0; i < testArray.length; i++) {
@@ -45,8 +46,12 @@ public final class SleepSortTest {
         }
 
         Integer [] resutlSt = testArray.clone();
+        Integer [] original = testArray.clone();
         p.execute(new Object [] {resutlSt});
         Arrays.sort(testArray);
+        System.out.println(Arrays.toString(original));
+        System.out.println(Arrays.toString(testArray));
+        System.out.println(Arrays.toString(resutlSt));
         Assert.assertArrayEquals(testArray, (Object []) resutlSt);
     }
 
