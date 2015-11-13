@@ -25,6 +25,7 @@ import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.CheckReturnValue;
@@ -258,9 +259,40 @@ public final class Throwables {
         }
     }
 
+    /**
+     * Utility to get suppressed exceptions.
+     *
+     * In java 1.7 it will return t.getSuppressed()
+     * + in case it is  Iterable<Throwable> any other linked exceptions (see SQLException)
+     *
+     * java 1.6 behavior is deprecated.
+     *
+     * @param t
+     * @return
+     */
+
     public static Throwable[] getSuppressed(final Throwable t) {
         if (org.spf4j.base.Runtime.JAVA_PLATFORM.ordinal() >= Runtime.Version.V1_7.ordinal()) {
-            return t.getSuppressed();
+            if (t instanceof Iterable) {
+                // see SQLException
+                List<Throwable> suppressed = java.util.Arrays.asList(t.getSuppressed());
+                Throwable ourCause = t.getCause();
+                Iterator it = ((Iterable) t).iterator();
+                while (it.hasNext()) {
+                    Object next = it.next();
+                    if (next instanceof Throwable) {
+                        if (next == t || next == ourCause) {
+                            continue;
+                        }
+                        suppressed.add((Throwable) next);
+                    } else {
+                        break;
+                    }
+                }
+                return suppressed.toArray(new Throwable[suppressed.size()]);
+            } else {
+                return t.getSuppressed();
+            }
         } else {
             List<Throwable> chain;
             try {
@@ -368,11 +400,30 @@ public final class Throwables {
             printEnclosedStackTrace(se, to, trace, SUPPRESSED_CAPTION, "\t", dejaVu, detail);
         }
 
-        // Print cause, if any
         Throwable ourCause = t.getCause();
+
+        if (t instanceof Iterable) {
+            // see SQLException
+            Iterator it = ((Iterable) t).iterator();
+            while (it.hasNext()) {
+                Object next = it.next();
+                if (next instanceof Throwable) {
+                    if (next == t || next == ourCause) {
+                        continue;
+                    }
+                    Throwable mt = (Throwable) next;
+                    printEnclosedStackTrace(mt, to, trace, SUPPRESSED_CAPTION, "", dejaVu, detail);
+                } else {
+                    break;
+                }
+            }
+
+        }
+        // Print cause, if any
         if (ourCause != null) {
             printEnclosedStackTrace(ourCause, to, trace, CAUSE_CAPTION, "", dejaVu, detail);
         }
+
 
     }
 

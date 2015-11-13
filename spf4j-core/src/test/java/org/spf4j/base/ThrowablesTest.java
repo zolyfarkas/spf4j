@@ -19,9 +19,9 @@ package org.spf4j.base;
 
 import java.net.SocketTimeoutException;
 import java.sql.BatchUpdateException;
+import java.sql.SQLException;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -67,7 +67,9 @@ public final class ThrowablesTest {
         }
         Throwable [] suppressed = Throwables.getSuppressed(e);
         Assert.assertEquals(10, suppressed.length);
-        System.out.println(Throwables.toString(e));
+        final SQLException sqlException = new SQLException(e);
+        sqlException.setNextException(new SQLException("bla"));
+        System.out.println(Throwables.toString(sqlException));
 
     }
 
