@@ -275,7 +275,7 @@ public final class Throwables {
         if (org.spf4j.base.Runtime.JAVA_PLATFORM.ordinal() >= Runtime.Version.V1_7.ordinal()) {
             if (t instanceof Iterable) {
                 // see SQLException
-                List<Throwable> suppressed = java.util.Arrays.asList(t.getSuppressed());
+                List<Throwable> suppressed = new ArrayList<>(java.util.Arrays.asList(t.getSuppressed()));
                 Throwable ourCause = t.getCause();
                 Iterator it = ((Iterable) t).iterator();
                 while (it.hasNext()) {

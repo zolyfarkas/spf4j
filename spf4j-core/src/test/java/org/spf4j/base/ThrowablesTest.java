@@ -69,7 +69,9 @@ public final class ThrowablesTest {
         Assert.assertEquals(10, suppressed.length);
         final SQLException sqlException = new SQLException(e);
         sqlException.setNextException(new SQLException("bla"));
+        sqlException.setNextException(new SQLException("bla"));
         System.out.println(Throwables.toString(sqlException));
+        Assert.assertEquals(2, Throwables.getSuppressed(sqlException).length);
 
     }
 
