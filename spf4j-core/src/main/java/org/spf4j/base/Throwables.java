@@ -24,6 +24,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -276,15 +277,17 @@ public final class Throwables {
             if (t instanceof Iterable) {
                 // see SQLException
                 List<Throwable> suppressed = new ArrayList<>(java.util.Arrays.asList(t.getSuppressed()));
-                Throwable ourCause = t.getCause();
+                Set<Throwable> ignore = new HashSet<>();
+                ignore.addAll(com.google.common.base.Throwables.getCausalChain(t));
                 Iterator it = ((Iterable) t).iterator();
                 while (it.hasNext()) {
                     Object next = it.next();
                     if (next instanceof Throwable) {
-                        if (next == t || next == ourCause) {
+                        if (ignore.contains((Throwable) next)) {
                             continue;
                         }
                         suppressed.add((Throwable) next);
+                        ignore.addAll(com.google.common.base.Throwables.getCausalChain((Throwable) next));
                     } else {
                         break;
                     }
@@ -404,15 +407,18 @@ public final class Throwables {
 
         if (t instanceof Iterable) {
             // see SQLException
+            Set<Throwable> ignore = new HashSet<>();
+            ignore.addAll(com.google.common.base.Throwables.getCausalChain(t));
             Iterator it = ((Iterable) t).iterator();
             while (it.hasNext()) {
                 Object next = it.next();
                 if (next instanceof Throwable) {
-                    if (next == t || next == ourCause) {
+                    Throwable mt = (Throwable) next;
+                    if (ignore.contains(mt)) {
                         continue;
                     }
-                    Throwable mt = (Throwable) next;
                     printEnclosedStackTrace(mt, to, trace, SUPPRESSED_CAPTION, "", dejaVu, detail);
+                    ignore.addAll(com.google.common.base.Throwables.getCausalChain(mt));
                 } else {
                     break;
                 }

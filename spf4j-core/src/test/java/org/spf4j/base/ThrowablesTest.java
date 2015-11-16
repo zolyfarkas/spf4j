@@ -61,14 +61,14 @@ public final class ThrowablesTest {
 
     @Test
     public void testChain3() {
-        Exception e = new RuntimeException();
+        Exception e = new RuntimeException(new RuntimeException(new RuntimeException()));
         for (int i = 0; i < 10; i++) {
             e = Throwables.suppress(e, new RuntimeException());
         }
         Throwable [] suppressed = Throwables.getSuppressed(e);
         Assert.assertEquals(10, suppressed.length);
         final SQLException sqlException = new SQLException(e);
-        sqlException.setNextException(new SQLException("bla"));
+        sqlException.setNextException(new SQLException("bla", new RuntimeException(new RuntimeException())));
         sqlException.setNextException(new SQLException("bla"));
         System.out.println(Throwables.toString(sqlException));
         Assert.assertEquals(2, Throwables.getSuppressed(sqlException).length);
