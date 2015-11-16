@@ -84,11 +84,15 @@ public final class MinMaxAvgAccumulator
         if (mSource instanceof MinMaxAvgAccumulator) {
             MinMaxAvgAccumulator other = (MinMaxAvgAccumulator) mSource;
             long [] measurements = other.get();
-            synchronized (this) {
+            if (measurements != null) {
+                synchronized (this) {
                 return new MinMaxAvgAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),
                     getUnitOfMeasurement(),
                     counter + measurements[0], total + measurements[1],
                     Math.min(min, measurements[2]), Math.max(max, measurements[3]));
+                }
+            } else {
+                return this.createClone();
             }
         } else {
            throw new IllegalArgumentException("Cannot aggregate " + this + " with " + mSource);
