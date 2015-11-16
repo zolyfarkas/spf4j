@@ -443,7 +443,8 @@ public final class Throwables {
             int framesInCommon = trace.length - 1 - m;
 
             // Print our stack trace
-            s.append(prefix + caption + t);
+            s.append(prefix).append(caption).append(t.toString());
+            s.append('\n');
             for (int i = 0; i <= m; i++) {
                 s.append(prefix).append("\tat ");
                 writeTo(trace[i], s, detail);
