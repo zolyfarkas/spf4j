@@ -399,32 +399,12 @@ public final class Throwables {
         writeTo(trace, to, detail);
 
         // Print suppressed exceptions, if any
-        for (Throwable se : t.getSuppressed()) {
+        for (Throwable se : getSuppressed(t)) {
             printEnclosedStackTrace(se, to, trace, SUPPRESSED_CAPTION, "\t", dejaVu, detail);
         }
 
         Throwable ourCause = t.getCause();
 
-        if (t instanceof Iterable) {
-            // see SQLException
-            Set<Throwable> ignore = new HashSet<>();
-            ignore.addAll(com.google.common.base.Throwables.getCausalChain(t));
-            Iterator it = ((Iterable) t).iterator();
-            while (it.hasNext()) {
-                Object next = it.next();
-                if (next instanceof Throwable) {
-                    Throwable mt = (Throwable) next;
-                    if (ignore.contains(mt)) {
-                        continue;
-                    }
-                    printEnclosedStackTrace(mt, to, trace, SUPPRESSED_CAPTION, "", dejaVu, detail);
-                    ignore.addAll(com.google.common.base.Throwables.getCausalChain(mt));
-                } else {
-                    break;
-                }
-            }
-
-        }
         // Print cause, if any
         if (ourCause != null) {
             printEnclosedStackTrace(ourCause, to, trace, CAUSE_CAPTION, "", dejaVu, detail);
@@ -475,7 +455,7 @@ public final class Throwables {
             }
 
             // Print suppressed exceptions, if any
-            for (Throwable se : t.getSuppressed()) {
+            for (Throwable se : getSuppressed(t)) {
                 printEnclosedStackTrace(se, s, trace, SUPPRESSED_CAPTION, prefix + '\t', dejaVu, detail);
             }
 
