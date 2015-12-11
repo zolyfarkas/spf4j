@@ -39,7 +39,7 @@ public final class DefaultExecutor {
 
             @Override
             public void doRun() throws InterruptedException {
-                shutdown();
+                INSTANCE.shutdown();
                 INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
                 List<Runnable> remaining = INSTANCE.shutdownNow();
                 if (remaining.size() > 0) {
@@ -66,7 +66,4 @@ public final class DefaultExecutor {
         }
     }
 
-    private static void shutdown() {
-        INSTANCE.shutdown();
-    }
 }
