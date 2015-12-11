@@ -186,8 +186,13 @@ public final class Runtime {
                 // print out info on all remaining non daemon threads.
                 Thread[] threads = FastStackCollector.getThreads();
                 Thread current = Thread.currentThread();
+                boolean first = true;
                 for (Thread thread : threads) {
                     if (thread.isAlive() && !thread.isDaemon() && !thread.equals(current)) {
+                        if (first) {
+                            System.err.println("Non daemon threads still running:");
+                            first = false;
+                        }
                         System.err.println("Non daemon thread " + thread + ", stackTrace = "
                                 + java.util.Arrays.toString(thread.getStackTrace()));
                     }
