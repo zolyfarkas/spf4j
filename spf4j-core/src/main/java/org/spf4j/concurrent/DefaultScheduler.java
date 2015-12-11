@@ -35,6 +35,13 @@ public final class DefaultScheduler {
 
     private DefaultScheduler() { }
 
+
+    public static final ScheduledExecutorService INSTANCE =
+            new ScheduledThreadPoolExecutor(Integer.getInteger("defaultScheduler.coreThreads", 2),
+            new CustomThreadFactory("DefaultScheduler", Boolean.getBoolean("defaultScheduler.daemon"),
+            Integer.getInteger("defaultScheduler.priority", Thread.NORM_PRIORITY)));
+
+
     static {
         org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {
 
@@ -49,12 +56,6 @@ public final class DefaultScheduler {
                 }
         });
     }
-
-    public static final ScheduledExecutorService INSTANCE =
-            new ScheduledThreadPoolExecutor(Integer.getInteger("defaultScheduler.coreThreads", 2),
-            new CustomThreadFactory("DefaultScheduler", Boolean.getBoolean("defaultScheduler.daemon"),
-            Integer.getInteger("defaultScheduler.priority", Thread.NORM_PRIORITY)));
-
 
     private static final long HOUR_MILLIS = 3600000;
 

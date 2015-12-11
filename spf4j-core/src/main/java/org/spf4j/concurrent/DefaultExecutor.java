@@ -17,6 +17,7 @@
  */
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
@@ -29,27 +30,14 @@ import static org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_MILLIS;
  *
  * @author zoly
  */
+@SuppressFBWarnings("HES_EXECUTOR_NEVER_SHUTDOWN") // THere is a shutdownhook being registered which FB does not see
 public final class DefaultExecutor {
 
     private DefaultExecutor() {
     }
-
-    static {
-        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {
-
-            @Override
-            public void doRun() throws InterruptedException {
-                INSTANCE.shutdown();
-                INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
-                List<Runnable> remaining = INSTANCE.shutdownNow();
-                if (remaining.size() > 0) {
-                    System.err.println("Remaining tasks: " + remaining);
-                }
-            }
-        });
-    }
-
+    
     public static final ExecutorService INSTANCE;
+
     static {
         final int coreThreads = Integer.getInteger("defaultExecutor.coreThreads", 0);
         final int maxIdleMillis = Integer.getInteger("defaultExecutor.maxIdleMillis", 60000);
@@ -64,6 +52,18 @@ public final class DefaultExecutor {
             INSTANCE = new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,
                 new SynchronousQueue<Runnable>(), new CustomThreadFactory("DefaultExecutor", isDaemon));
         }
+        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {
+
+            @Override
+            public void doRun() throws InterruptedException {
+                INSTANCE.shutdown();
+                INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
+                List<Runnable> remaining = INSTANCE.shutdownNow();
+                if (remaining.size() > 0) {
+                    System.err.println("Remaining tasks: " + remaining);
+                }
+            }
+        });
     }
 
 }
