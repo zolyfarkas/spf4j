@@ -301,6 +301,14 @@ public final class Callables {
         }
 
         public abstract AdvancedAction apply(T value);
+
+        public static final AdvancedRetryPredicate<?> NO_RETRY = new AdvancedRetryPredicate<Object> () {
+            @Override
+            public AdvancedAction apply(final Object value) {
+                return AdvancedAction.ABORT;
+            }
+        };
+
     }
 
 
