@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -137,6 +138,12 @@ public final class CsvTest {
         }
         System.out.println("test file written");
         return testFile;
+    }
+
+    @Test
+    public void testReadRow() throws IOException {
+        List<CharSequence> row = Csv.readRow(new StringReader("a,b,\",c\",d"));
+        Assert.assertEquals("a", row.get(0).toString());
     }
 
 

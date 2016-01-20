@@ -221,11 +221,11 @@ public final class Csv {
     public static List<CharSequence> readRow(final Reader reader) throws IOException {
         return readRow(reader, new CsvRowHandler<List<CharSequence>>() {
 
-            private List<CharSequence> result = new ArrayList<>();
+            private final List<CharSequence> result = new ArrayList<>();
 
             @Override
             public void element(final CharSequence elem) {
-                result.add(elem);
+                result.add(elem.toString());
             }
 
             @Override
