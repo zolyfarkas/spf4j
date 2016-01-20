@@ -1,6 +1,7 @@
 
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Field;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -12,6 +13,7 @@ import sun.misc.Unsafe;
  * Expose
  * @author zoly
  */
+@SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
 public final class AlmostSafe {
 
     private AlmostSafe() { }
@@ -29,7 +31,7 @@ public final class AlmostSafe {
                     return (Unsafe) theUnsafe.get(null);
                 } catch (IllegalArgumentException | IllegalAccessException
                         | NoSuchFieldException | SecurityException ex) {
-                    throw new RuntimeException(ex);
+                    throw new ExceptionInInitializerError(ex);
                 }
             }
         });

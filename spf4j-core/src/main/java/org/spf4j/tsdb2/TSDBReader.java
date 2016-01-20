@@ -223,5 +223,9 @@ public final  class TSDBReader implements Closeable {
         }
     }
 
+    @Override
+    public String toString() {
+        return "TSDBReader{" + "size=" + size + ", raf=" + raf + ", file=" + file + '}';
+    }
 
 }

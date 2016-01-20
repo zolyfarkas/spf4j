@@ -477,4 +477,43 @@ public final class Throwables {
      */
     public static final String CAUSE_CAPTION = "Caused by: ";
 
+//    public static final class RepeatingStack {
+//        private final int count;
+//        private final List<Either<StackTraceElement, RepeatingStack>> stack;
+//
+//        public RepeatingStack(final int count, final List<Either<StackTraceElement, RepeatingStack>> stack) {
+//            this.count = count;
+//            this.stack = stack;
+//        }
+//    }
+//
+//
+//    public static List<Either<StackTraceElement, RepeatingStack>> compress(final StackTraceElement [] trace) {
+//        Map<StackTraceElement, Integer> elementLocation = new HashMap<>(trace.length);
+//        for (int i = 0; i < trace.length; i++) {
+//            StackTraceElement elem = trace[i];
+//            if (elementLocation.containsKey(elem)) {
+//                // potentially repeating stack trace
+//                int j = elementLocation.get(elem);
+//                boolean repeating = true;
+//                for (int k = j + 1; k < i; k++) {
+//                    if (!trace[k].equals(trace[i + k])) {
+//                        repeating = false;
+//                        break;
+//                    }
+//                }
+//                if (repeating) {
+//                    for (int k = j; k < i; k++) {
+//
+//                    }
+//                }
+//
+//            } else {
+//                elementLocation.put(elem, i);
+//            }
+//        }
+//    }
+
+
+
 }

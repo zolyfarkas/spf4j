@@ -54,5 +54,12 @@ public final class MutableInteger {
         final MutableInteger other = (MutableInteger) obj;
         return this.value == other.value;
     }
-  
+
+    @Override
+    public String toString() {
+        return Integer.toString(value);
+    }
+
+
+
 }

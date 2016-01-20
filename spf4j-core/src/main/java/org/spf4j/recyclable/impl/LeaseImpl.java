@@ -53,5 +53,10 @@ public final class LeaseImpl<T> implements Lease<T> {
     public void close() throws Exception {
         rs.recycle(leased);
     }
+
+    @Override
+    public String toString() {
+        return "LeaseImpl{" + "leased=" + leased + '}';
+    }
     
 }

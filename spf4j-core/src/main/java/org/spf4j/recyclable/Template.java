@@ -85,4 +85,13 @@ public final class Template<T, E extends Exception> {
         }
         pool.recycle(object, null);
     }
+
+    @Override
+    public String toString() {
+        return "Template{" + "pool=" + pool + ", nrImmediateRetries=" + nrImmediateRetries
+                + ", retryWaitMillis=" + retryWaitMillis + ", timeout=" + timeout + '}';
+    }
+
+
+
 }

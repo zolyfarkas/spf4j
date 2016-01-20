@@ -55,4 +55,12 @@ public final class CustomThreadFactory implements ThreadFactory {
         return t;
     }
 
+    @Override
+    public String toString() {
+        return "CustomThreadFactory{" + "group=" + group + ", threadNumber=" + threadNumber
+                + ", namePrefix=" + namePrefix + ", daemon=" + daemon + ", priority=" + priority + '}';
+    }
+
+
+
 }

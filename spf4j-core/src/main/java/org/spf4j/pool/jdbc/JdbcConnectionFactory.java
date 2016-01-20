@@ -107,4 +107,9 @@ public final class JdbcConnectionFactory  implements RecyclingSupplier.Factory<C
         this.pool = pool;
     }
 
+    @Override
+    public String toString() {
+        return "JdbcConnectionFactory{" + "url=" + url + ", user=" + user + '}';
+    }
+
 }

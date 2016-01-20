@@ -110,6 +110,8 @@ public final class Runtime {
     public static final String USER_DIR = System.getProperty("user.dir");
     public static final String USER_HOME = System.getProperty("user.home");
     public static final String JAVA_HOME = System.getProperty("java.home");
+    private static final boolean IS_MAC_OSX;
+    private static final boolean IS_WINDOWS;
 
     private static final SortedMap<Integer, Set<Runnable>> SHUTDOWN_HOOKS = new TreeMap<>();
 
@@ -124,15 +126,18 @@ public final class Runtime {
         } else {
             NR_PROCESSORS = availableProcessors;
         }
-        PROCESS_NAME = runtimeMxBean.getName();
-        int atIdx = PROCESS_NAME.indexOf('@');
+        String mxBeanName = runtimeMxBean.getName();
+        PROCESS_NAME = mxBeanName;
+        int atIdx = mxBeanName.indexOf('@');
         if (atIdx < 0) {
             PID = -1;
         } else {
-            PID = Integer.parseInt(PROCESS_NAME.substring(0, atIdx));
+            PID = Integer.parseInt(mxBeanName.substring(0, atIdx));
         }
-        OS_NAME = System.getProperty("os.name");
-
+        final String osName = System.getProperty("os.name");
+        OS_NAME = osName;
+        IS_MAC_OSX =  "Mac OS X".equals(osName);
+        IS_WINDOWS = osName.startsWith("Windows");
         runtime.addShutdownHook(new Thread(new AbstractRunnable(false) {
             @Override
             public void doRun() {
@@ -202,16 +207,13 @@ public final class Runtime {
         //JAVA_PLATFORM = Version.fromSpecVersion(runtimeMxBean.getSpecVersion());
         JAVA_PLATFORM = Version.fromSpecVersion(JAVA_VERSION);
     }
-    public static final String MAC_OS_X_OS_NAME = "Mac OS X";
     private static final Path FD_FOLDER = Paths.get("/proc/" + PID + "/fd");
 
-    private static final boolean IS_MAC_OSX = MAC_OS_X_OS_NAME.equals(OS_NAME);
 
     public static boolean isMacOsx() {
         return IS_MAC_OSX;
     }
 
-    private static final boolean IS_WINDOWS = OS_NAME.startsWith("Windows");
 
     public static boolean isWindows() {
         return IS_WINDOWS;

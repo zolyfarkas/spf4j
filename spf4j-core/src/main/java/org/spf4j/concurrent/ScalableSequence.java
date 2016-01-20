@@ -83,4 +83,9 @@ public final class ScalableSequence implements Sequence {
         }
     }
 
+    @Override
+    public String toString() {
+        return "ScalableSequence{" + "counter=" + counter + ", bucketSize=" + bucketSize + '}';
+    }
+
 }

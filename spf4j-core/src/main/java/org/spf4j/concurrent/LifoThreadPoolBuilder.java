@@ -139,6 +139,15 @@ public final class LifoThreadPoolBuilder {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "LifoThreadPoolBuilder{" + "poolName=" + poolName + ", coreSize=" + coreSize + ", maxSize="
+                + maxSize + ", maxIdleTimeMillis=" + maxIdleTimeMillis + ", queueSizeLimit=" + queueSizeLimit
+                + ", daemonThreads=" + daemonThreads + ", spinLockCount=" + spinLockCount + ", rejectionHandler="
+                + rejectionHandler + ", threadPriority=" + threadPriority + ", mutable=" + mutable + ", jmxEnabled="
+                + jmxEnabled + '}';
+    }
+
 
 
 }

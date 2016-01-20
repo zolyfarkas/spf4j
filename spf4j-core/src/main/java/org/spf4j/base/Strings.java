@@ -46,6 +46,7 @@ import sun.nio.cs.ArrayEncoder;
  *
  * @author zoly
  */
+@SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
 public final class Strings {
 
     private Strings() {

@@ -110,6 +110,10 @@ public class FutureBean<T> implements Future<T> {
     
     public void done() {
     }
-    
-    
+
+    @Override
+    public final String toString() {
+        return "FutureBean{" + "resultStore=" + resultStore + '}';
+    }
+
 }

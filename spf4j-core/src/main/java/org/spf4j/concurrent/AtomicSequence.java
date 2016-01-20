@@ -36,5 +36,10 @@ public final class AtomicSequence implements Sequence {
     public long next() {
         return counter.getAndIncrement();
     }
+
+    @Override
+    public String toString() {
+        return counter.toString();
+    }
     
 }

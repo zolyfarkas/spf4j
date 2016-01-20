@@ -138,4 +138,11 @@ public final class UIDGenerator {
         sb.append(buf, charPos, (64 - charPos));
     }
 
+    @Override
+    public String toString() {
+        return "UIDGenerator{" + "sequence=" + sequence + ", base=" + base + ", maxSize=" + maxSize + '}';
+    }
+
+
+
 }

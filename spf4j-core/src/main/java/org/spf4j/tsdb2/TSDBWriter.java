@@ -210,6 +210,11 @@ public final class TSDBWriter implements Closeable, Flushable {
         return header;
     }
 
+    @Override
+    public String toString() {
+        return "TSDBWriter{" + "file=" + file + ", raf=" + raf + '}';
+    }
+
 
 
 }

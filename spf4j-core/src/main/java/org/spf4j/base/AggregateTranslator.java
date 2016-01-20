@@ -20,6 +20,7 @@ package org.spf4j.base;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 
 
 public final class AggregateTranslator extends CharSequenceTranslator {
@@ -42,4 +43,9 @@ public final class AggregateTranslator extends CharSequenceTranslator {
         return 0;
     }
 
+    @Override
+    public String toString() {
+        return "AggregateTranslator{" + "translators=" + Arrays.toString(translators) + '}';
+    }
+    
 }

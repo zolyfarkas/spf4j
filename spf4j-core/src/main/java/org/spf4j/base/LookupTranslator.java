@@ -20,6 +20,7 @@ package org.spf4j.base;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * Translates a value using a lookup table.
@@ -36,7 +37,7 @@ public final class LookupTranslator extends CharSequenceTranslator {
 
 
     public LookupTranslator(final CharSequence[]... lookup) {
-        lookupMap = new HashMap<String, CharSequence>();
+        lookupMap = new HashMap<>();
         int ashortest = Integer.MAX_VALUE;
         int alongest = 0;
         if (lookup != null) {
@@ -76,5 +77,45 @@ public final class LookupTranslator extends CharSequenceTranslator {
         }
         return 0;
     }
+
+    @Override
+    public String toString() {
+        return "LookupTranslator{" + "lookupMap=" + lookupMap
+                + ", shortest=" + shortest + ", longest=" + longest + '}';
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 73 * hash + Objects.hashCode(this.lookupMap);
+        hash = 73 * hash + this.shortest;
+        return 73 * hash + this.longest;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final LookupTranslator other = (LookupTranslator) obj;
+        if (this.shortest != other.shortest) {
+            return false;
+        }
+        if (this.longest != other.longest) {
+            return false;
+        }
+        return Objects.equals(this.lookupMap, other.lookupMap);
+    }
+
+
+
+
+
 }
 

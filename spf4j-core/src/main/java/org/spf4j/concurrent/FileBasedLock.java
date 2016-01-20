@@ -272,4 +272,11 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
         file.setLength(data.length);
         file.getChannel().force(true);
     }
+
+    @Override
+    public String toString() {
+        return "FileBasedLock{" + "file=" + file + ", owner=" + owner + ", reentranceCount=" + reentranceCount + '}';
+    }
+    
+
 }

@@ -30,19 +30,21 @@ public final class MemorizedCallable<V> implements Callable<V> {
     private volatile V value;
     
     private final Callable<V> callable;
+
+    private static final Object NOTHING = new Object();
     
     public MemorizedCallable(final Callable<V> callable) {
         this.callable = callable;
-        value = null;
+        value = (V) NOTHING;
     }
        
     @Override
     public V call() throws Exception {
         V result = value;
-        if (result == null) {
+        if (result == NOTHING) {
             synchronized (this) {
                 result = value;
-                if (result == null) {
+                if (result == NOTHING) {
                     result = callable.call();
                     value = result;
                 }
@@ -50,6 +52,10 @@ public final class MemorizedCallable<V> implements Callable<V> {
         }
         return result;
     }
-    
-    
+
+    @Override
+    public String toString() {
+        return "MemorizedCallable{" + "value=" + value + '}';
+    }
+   
 }
