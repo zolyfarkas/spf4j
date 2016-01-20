@@ -95,4 +95,12 @@ class MethodInvocationClassVisitor extends EmptyVisitor {
         };
     }
 
+    @Override
+    public String toString() {
+        return "MethodInvocationClassVisitor{" + "addCaleesTo=" + addCaleesTo + ", methodStrings=" + methodStrings
+                + ", className=" + className + ", source=" + source + '}';
+    }
+
+
+
 }

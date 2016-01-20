@@ -2,6 +2,7 @@ package org.spf4j.base.asm;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  *
@@ -64,6 +65,46 @@ public final class Invocation {
                 + caleeMethodName + ", caleeMethodDesc=" + caleeMethodDesc + ", caleeSource="
                 + caleeSource + ", caleeLine=" + caleeLine + ", parameters=" + Arrays.toString(parameters)
                 + ", invokedMethod=" + invokedMethod + '}';
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 97 * hash + Objects.hashCode(this.caleeClassName);
+        return 97 * hash + Objects.hashCode(this.caleeMethodName);
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Invocation other = (Invocation) obj;
+        if (this.caleeLine != other.caleeLine) {
+            return false;
+        }
+        if (!Objects.equals(this.caleeClassName, other.caleeClassName)) {
+            return false;
+        }
+        if (!Objects.equals(this.caleeMethodName, other.caleeMethodName)) {
+            return false;
+        }
+        if (!Objects.equals(this.caleeMethodDesc, other.caleeMethodDesc)) {
+            return false;
+        }
+        if (!Objects.equals(this.caleeSource, other.caleeSource)) {
+            return false;
+        }
+        if (!Arrays.deepEquals(this.parameters, other.parameters)) {
+            return false;
+        }
+        return Objects.equals(this.invokedMethod, other.invokedMethod);
     }
 
 
