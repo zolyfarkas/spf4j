@@ -25,8 +25,10 @@ import java.io.Serializable;
  * @author zoly
  */
 public final class ComparablePair<A extends Comparable & Serializable, B extends Comparable & Serializable>
-    extends Pair<A, B>
+    extends SerializablePair<A, B>
     implements Comparable<ComparablePair<A, B>>, Serializable  {
+
+    private static final long serialVersionUID = 1L;
 
     public ComparablePair(final A first, final B second) {
         super(first, second);
@@ -35,7 +37,7 @@ public final class ComparablePair<A extends Comparable & Serializable, B extends
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("UMTP_UNBOUND_METHOD_TEMPLATE_PARAMETER")
     public static <A extends Comparable & Serializable, B extends Comparable & Serializable>
                     ComparablePair<A, B> of(final A first, final B second) {
-        return new ComparablePair<A, B>(first, second);
+        return new ComparablePair<>(first, second);
     }
 
     @Override
