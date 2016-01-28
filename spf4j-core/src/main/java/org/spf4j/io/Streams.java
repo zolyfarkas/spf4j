@@ -56,6 +56,15 @@ public final class Streams {
      * @throws IOException
      */
     public static long copy(final InputStream is, final OutputStream os, final int buffSize) throws IOException {
+        if (buffSize < 2) {
+            int val;
+            long count = 0;
+            while ((val = is.read()) >= 0) {
+                os.write(val);
+                count++;
+            }
+            return count;
+        }
         long total = 0;
         byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(buffSize);
         try {
