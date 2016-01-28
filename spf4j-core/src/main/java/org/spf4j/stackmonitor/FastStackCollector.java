@@ -17,6 +17,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import gnu.trove.set.hash.THashSet;
 import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -57,7 +58,7 @@ public final class FastStackCollector extends AbstractStackCollector {
             ignoredThreadNames.add("main");
         }
         ignoredThreadNames.addAll(Arrays.asList(xtraIgnoredThreads));
-        ignoredThreads = new HashSet<>(ignoredThreadNames.size());
+        ignoredThreads = new THashSet<>(ignoredThreadNames.size());
         try {
             Thread[] threads = (Thread[]) GET_THREADS.invoke(null);
             for (Thread th : threads) {
@@ -109,24 +110,35 @@ public final class FastStackCollector extends AbstractStackCollector {
         return stackDump;
     }
 
+    private Thread [] requestFor = new Thread[] {};
+
+    private static final StackTraceElement[] NO_STACK = new StackTraceElement[] {
+        new StackTraceElement("System", "NO_STACK", "", 0)
+    };
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
     public void sample(final Thread ignore) {
             Thread[] threads = getThreads();
             final int nrThreads = threads.length;
+            if (requestFor.length < nrThreads) {
+                requestFor = new Thread[nrThreads];
+            }
+            int j = 0;
             for (int i = 0; i < nrThreads; i++) {
                 Thread th = threads[i];
-                if (ignore == th) { // not interested in the sampler's stack trace
-                    threads[i] = null;
-                } else if (ignoredThreads.contains(th)) {
-                    threads[i] = null;
+                if (ignore != th && !ignoredThreads.contains(th)) { // not interested in these traces
+                    requestFor[j++] = th;
                 }
             }
-            StackTraceElement[][] stackDump = getStackTraces(threads);
-            for (StackTraceElement[] stackTrace : stackDump) {
+            Arrays.fill(requestFor, j, requestFor.length, null);
+            StackTraceElement[][] stackDump = getStackTraces(requestFor);
+            for (int i = 0; i < j; i++) {
+                StackTraceElement[] stackTrace = stackDump[i];
                 if (stackTrace != null && stackTrace.length > 0) {
-                        addSample(stackTrace);
+                    addSample(stackTrace);
+                } else {
+                    addSample(NO_STACK);
                 }
             }
     }
