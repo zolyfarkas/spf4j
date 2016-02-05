@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.Closeables;
 import org.spf4j.ds.UpdateablePriorityQueue;
 import org.spf4j.io.tcp.ClientHandler;
 import org.spf4j.io.tcp.DeadlineAction;
@@ -41,17 +42,21 @@ public final class ProxyClientHandler implements ClientHandler {
         final InetSocketAddress socketAddress = new InetSocketAddress(
                 fwdDestination.getHostText(), fwdDestination.getPort());
         final SocketChannel proxyChannel = SocketChannel.open();
-        proxyChannel.configureBlocking(false);
-        proxyChannel.connect(socketAddress);
-        TransferBuffer c2s = new TransferBuffer(proxyBufferSize);
-        TransferBuffer s2c = new TransferBuffer(proxyBufferSize);
-        final long connectDeadline = System.currentTimeMillis() + connectTimeoutMillis;
-        UpdateablePriorityQueue.ElementRef daction = deadlineActions.add(new DeadlineAction(connectDeadline,
-                new CloseChannelsOnTimeout(proxyChannel, clientChannel)));
-        new ProxyBufferTransferHandler(c2s, s2c, clientChannel,
-                serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();
-        new ProxyBufferTransferHandler(s2c, c2s, proxyChannel,
-                serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();
+        try {
+            proxyChannel.configureBlocking(false);
+            proxyChannel.connect(socketAddress);
+            TransferBuffer c2s = new TransferBuffer(proxyBufferSize);
+            TransferBuffer s2c = new TransferBuffer(proxyBufferSize);
+            final long connectDeadline = System.currentTimeMillis() + connectTimeoutMillis;
+            UpdateablePriorityQueue.ElementRef daction = deadlineActions.add(new DeadlineAction(connectDeadline,
+                    new CloseChannelsOnTimeout(proxyChannel, clientChannel)));
+            new ProxyBufferTransferHandler(c2s, s2c, clientChannel,
+                    serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();
+            new ProxyBufferTransferHandler(s2c, c2s, proxyChannel,
+                    serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();
+        } catch (IOException ex) {
+            Closeables.closeAll(ex, proxyChannel, clientChannel);
+        }
 
     }
 
