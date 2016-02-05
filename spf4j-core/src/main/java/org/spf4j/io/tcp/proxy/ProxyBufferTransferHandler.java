@@ -9,6 +9,8 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.ds.UpdateablePriorityQueue;
 import org.spf4j.io.tcp.SelectorEventHandler;
@@ -35,6 +37,8 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
 
     private final Runnable readRun;
     private final Runnable writeRun;
+
+    private static final Logger LOG = LoggerFactory.getLogger(ProxyBufferTransferHandler.class);
 
 
     @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
@@ -83,7 +87,7 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
             public void doRun() throws IOException, InterruptedException {
                 try {
                     int read = in.read(channel);
-                    System.err.println("Read " + read  + " from " + channel);
+                    LOG.debug("Read {} bytes from {}", read, channel);
                 } catch (IOException ex) {
                     try {
                         channel.close();
@@ -101,7 +105,7 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
             public void doRun() throws IOException, InterruptedException {
                 try {
                     int written = out.write(channel);
-                    System.err.println("Written " + written  + " to " + channel);
+                    LOG.debug("Written {} bytes to {}", written, channel);
                 } catch (IOException ex) {
                     try {
                         channel.close();
