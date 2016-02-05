@@ -20,17 +20,17 @@ public final class TransferBuffer {
 
     private boolean isEof;
     
-    private Runnable newDataInBufferHook;
+    private Runnable isDataInBufferHook;
 
-//    private Runnable bufferFilledHook;
-//
-//    private Runnable bufferHasRoomHook;
+    private Runnable isRoomInBufferHook;
+
 
     public TransferBuffer(final int bufferSize) {
         buffer = ByteBuffer.allocateDirect(bufferSize);
         lastOperation = Operation.READ;
         isEof = false;
-        this.newDataInBufferHook = null;
+        this.isDataInBufferHook = null;
+        this.isRoomInBufferHook = null;
     }
 
     public synchronized int read(final SocketChannel channel) throws IOException {
@@ -42,14 +42,12 @@ public final class TransferBuffer {
         if (nrRead < 0) {
             isEof = true;
             channel.socket().shutdownInput(); // ? is this really necessary?
-        } else if (nrRead > 0) {
-            if (newDataInBufferHook != null) {
-                newDataInBufferHook.run();
-            }
+        } else if (buffer.hasRemaining()) {
+            isRoomInBufferHook.run();
         }
-//        if (!buffer.hasRemaining() && newDataInBufferHook != null) {
-//            bufferFilledHook.run();
-//        }
+        if (buffer.position() > 0 || isEof) {
+            isDataInBufferHook.run();
+        }
         return nrRead;
     }
 
@@ -59,10 +57,16 @@ public final class TransferBuffer {
             lastOperation = Operation.WRITE;
         }
         int nrWritten = channel.write(buffer);
-        if (!buffer.hasRemaining()) {
-            if (isEof) {
-                channel.socket().shutdownOutput();
-            }
+        final boolean hasRemaining = buffer.hasRemaining();
+        if (!hasRemaining && isEof) {
+            channel.socket().shutdownOutput();
+            return nrWritten;
+        }
+        if (buffer.position() > 0 && !isEof) {
+           isRoomInBufferHook.run();
+        }
+        if (hasRemaining) {
+           isDataInBufferHook.run();
         }
         return nrWritten;
     }
@@ -87,18 +91,22 @@ public final class TransferBuffer {
         return read;
     }
 
-    public synchronized Runnable getNewDataInBufferHook() {
-        return newDataInBufferHook;
+
+    public synchronized void setIsDataInBufferHook(final Runnable isDataInBufferHook) {
+        this.isDataInBufferHook = isDataInBufferHook;
     }
 
-    public synchronized void setNewDataInBufferHook(final Runnable newDataInBufferHook) {
-        this.newDataInBufferHook = newDataInBufferHook;
+    public synchronized void setIsRoomInBufferHook(final Runnable isRoomInBufferHook) {
+        this.isRoomInBufferHook = isRoomInBufferHook;
     }
 
     @Override
     public String toString() {
         return "TransferBuffer{" + "buffer=" + buffer + ", lastOperation=" + lastOperation
-                + ", isEof=" + isEof + ", newDataInBufferHook=" + newDataInBufferHook + '}';
+                + ", isEof=" + isEof + ", isDataInBufferHook=" + isDataInBufferHook
+                + ", isRoomInBufferHook=" + isRoomInBufferHook + '}';
     }
+    
+
 
 }

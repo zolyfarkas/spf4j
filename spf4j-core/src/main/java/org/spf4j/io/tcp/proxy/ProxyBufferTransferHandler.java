@@ -51,7 +51,7 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
         final Runnable readInterest = new Runnable() {
             @Override
             public void run() {
-                final SelectionKey tKey = key;
+               final SelectionKey tKey = key;
                tKey.interestOps(tKey.interestOps() | SelectionKey.OP_READ);
             }
         };
@@ -62,29 +62,36 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
                tKey.interestOps(tKey.interestOps() | SelectionKey.OP_WRITE);
             }
         };
-        out.setNewDataInBufferHook(new AbstractRunnable(false) {
+        out.setIsDataInBufferHook(new AbstractRunnable(false) {
             @Override
             public void doRun() throws Exception {
                 tasksToRunBySelector.put(writeInterest);
                 selector.wakeup();
             }
         });
+        
+        in.setIsRoomInBufferHook(new AbstractRunnable(false) {
+            @Override
+            public void doRun() throws Exception {
+                tasksToRunBySelector.put(readInterest);
+                selector.wakeup();
+            }
+        });
+
         readRun = new AbstractRunnable(true) {
             @Override
             public void doRun() throws IOException, InterruptedException {
                 try {
-                    in.read(channel);
-//                    System.err.println("Read " + read  + " from " + channel);
-                    tasksToRunBySelector.put(readInterest);
-                    selector.wakeup();
-                } catch (IOException | InterruptedException ex) {
+                    int read = in.read(channel);
+                    System.err.println("Read " + read  + " from " + channel);
+                } catch (IOException ex) {
                     try {
                         channel.close();
-                        throw ex;
                     } catch (IOException ex1) {
                         ex1.addSuppressed(ex);
                         throw ex1;
                     }
+                    throw ex;
                 }
             }
         };
@@ -93,16 +100,16 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
             @Override
             public void doRun() throws IOException, InterruptedException {
                 try {
-                    out.write(channel);
-//                    System.err.println("Written " + written  + " to " + channel);
+                    int written = out.write(channel);
+                    System.err.println("Written " + written  + " to " + channel);
                 } catch (IOException ex) {
                     try {
                         channel.close();
-                        throw ex;
                     } catch (IOException ex1) {
                         ex1.addSuppressed(ex);
                         throw ex1;
                     }
+                    throw ex;
                 }
             }
         };

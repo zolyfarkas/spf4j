@@ -1,5 +1,6 @@
 package org.spf4j.io.tcp;
 
+import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.IOException;
@@ -27,6 +28,7 @@ import org.spf4j.ds.UpdateablePriorityQueue;
  * @author zoly
  */
 @SuppressFBWarnings("HES_EXECUTOR_NEVER_SHUTDOWN")
+@Beta
 public final class TcpServer implements Closeable {
 
     private final ExecutorService executor;
