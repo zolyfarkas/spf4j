@@ -32,7 +32,7 @@ public final class SequenceTest {
 
     @Test
     public void testSequence() throws InterruptedException, ExecutionException {
-        if (org.spf4j.base.Runtime.NR_PROCESSORS <= 1) {
+        if (org.spf4j.base.Runtime.NR_PROCESSORS <= 4) {
             return;
         }
         // warmup JVM
