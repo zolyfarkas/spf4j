@@ -7,6 +7,8 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
@@ -19,6 +21,7 @@ import org.spf4j.io.tcp.DeadlineAction;
  *
  * @author zoly
  */
+@ParametersAreNonnullByDefault
 public final class ProxyClientHandler implements ClientHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProxyClientHandler.class);
@@ -26,13 +29,17 @@ public final class ProxyClientHandler implements ClientHandler {
     private final HostAndPort fwdDestination;
     private final int proxyBufferSize;
     private final int connectTimeoutMillis;
+    private final SnifferFactory c2sSnifferFact;
+    private final SnifferFactory s2cSnifferFact;
 
-
-    public ProxyClientHandler(final HostAndPort fwdDestination, final int proxyBufferSize,
-            final int connectTimeoutMillis) {
+    public ProxyClientHandler(final HostAndPort fwdDestination,
+        @Nullable final SnifferFactory c2sSnifferFact, @Nullable final SnifferFactory s2cSnifferFact,
+        final int proxyBufferSize, final int connectTimeoutMillis) {
         this.fwdDestination = fwdDestination;
         this.proxyBufferSize = proxyBufferSize;
         this.connectTimeoutMillis = connectTimeoutMillis;
+        this.c2sSnifferFact = c2sSnifferFact;
+        this.s2cSnifferFact = s2cSnifferFact;
     }
 
     @Override
@@ -46,13 +53,16 @@ public final class ProxyClientHandler implements ClientHandler {
             proxyChannel.configureBlocking(false);
             proxyChannel.connect(socketAddress);
             TransferBuffer c2s = new TransferBuffer(proxyBufferSize);
+            if (c2sSnifferFact != null) {
+                c2s.setIncomingSniffer(c2sSnifferFact.get(clientChannel));
+            }
             TransferBuffer s2c = new TransferBuffer(proxyBufferSize);
             final long connectDeadline = System.currentTimeMillis() + connectTimeoutMillis;
             UpdateablePriorityQueue.ElementRef daction = deadlineActions.add(new DeadlineAction(connectDeadline,
                     new CloseChannelsOnTimeout(proxyChannel, clientChannel)));
-            new ProxyBufferTransferHandler(c2s, s2c, clientChannel,
+            new ProxyBufferTransferHandler(c2s, s2c, null, clientChannel,
                     serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();
-            new ProxyBufferTransferHandler(s2c, c2s, proxyChannel,
+            new ProxyBufferTransferHandler(s2c, c2s, s2cSnifferFact, proxyChannel,
                     serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();
         } catch (IOException ex) {
             Closeables.closeAll(ex, proxyChannel, clientChannel);

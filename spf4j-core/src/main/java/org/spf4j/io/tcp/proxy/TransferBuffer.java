@@ -24,6 +24,8 @@ public final class TransferBuffer {
 
     private Runnable isRoomInBufferHook;
 
+    private Sniffer incomingSniffer;
+
 
     public TransferBuffer(final int bufferSize) {
         buffer = ByteBuffer.allocateDirect(bufferSize);
@@ -39,6 +41,11 @@ public final class TransferBuffer {
             lastOperation = Operation.READ;
         }
         int nrRead = channel.read(buffer);
+        if (nrRead > 1) {
+            if (incomingSniffer != null) {
+                incomingSniffer.received(buffer);
+            }
+        }
         if (nrRead < 0) {
             isEof = true;
             channel.socket().shutdownInput(); // ? is this really necessary?
@@ -98,6 +105,10 @@ public final class TransferBuffer {
 
     public synchronized void setIsRoomInBufferHook(final Runnable isRoomInBufferHook) {
         this.isRoomInBufferHook = isRoomInBufferHook;
+    }
+
+    public synchronized void setIncomingSniffer(final Sniffer incomingSniffer) {
+        this.incomingSniffer = incomingSniffer;
     }
 
     @Override

@@ -1,6 +1,6 @@
-
 package org.spf4j.io.proxy;
 
+import com.google.common.base.Charsets;
 import org.spf4j.io.tcp.proxy.ProxyClientHandler;
 import org.spf4j.io.tcp.TcpServer;
 import com.google.common.io.ByteStreams;
@@ -9,6 +9,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.channels.SocketChannel;
+import java.nio.charset.CharsetDecoder;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
@@ -16,6 +20,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.io.tcp.proxy.Sniffer;
+import org.spf4j.io.tcp.proxy.SnifferFactory;
 
 /**
  *
@@ -24,21 +30,20 @@ import org.spf4j.concurrent.DefaultScheduler;
 @Ignore
 public class TcpServerTest {
 
-
     @Test(timeout = 1000000)
     public void testProxy() throws IOException, InterruptedException {
         String testSite = "www.zoltran.com";//"www.google.com"; //charizard.homeunix.net
         ForkJoinPool pool = new ForkJoinPool(1024);
         try (TcpServer server = new TcpServer(pool,
-                new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), 10000, 5000),
+                new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), null, null, 10000, 5000),
                 1976, 10)) {
             server.runInBackground();
             server.waitForStared();
             //byte [] originalContent = readfromSite("http://" + testSite);
             long start = System.currentTimeMillis();
-            byte [] originalContent = readfromSite("http://" + testSite);
+            byte[] originalContent = readfromSite("http://" + testSite);
             long time1 = System.currentTimeMillis();
-            byte [] proxiedContent = readfromSite("http://localhost:1976");
+            byte[] proxiedContent = readfromSite("http://localhost:1976");
             long time2 = System.currentTimeMillis();
             System.out.println("Direct = " + (time1 - start) + " ms, proxied = " + (time2 - time1));
             Assert.assertArrayEquals(originalContent, proxiedContent);
@@ -47,26 +52,47 @@ public class TcpServerTest {
 
     @Test
     public void testProxySimple() throws IOException, InterruptedException {
-        String testSite = "www.news.com";//"www.google.com"; //charizard.homeunix.net
+        String testSite = "www.zoltran.com";//"www.google.com"; //charizard.homeunix.net
         ForkJoinPool pool = new ForkJoinPool(1024);
+
+        SnifferFactory fact = new SnifferFactory() {
+            @Override
+            public Sniffer get(SocketChannel channel) {
+                return new Sniffer() {
+
+                    CharsetDecoder asciiDecoder = Charsets.US_ASCII.newDecoder();
+
+                    @Override
+                    public void received(ByteBuffer data) {
+                        // Naive printout using ASCII
+                        ByteBuffer duplicate = data.duplicate();
+                        duplicate.flip();
+                        CharBuffer cb = CharBuffer.allocate((int) (asciiDecoder.maxCharsPerByte() * duplicate.limit()));
+                        asciiDecoder.decode(duplicate, cb, true);
+                        cb.flip();
+                        System.err.print(cb.toString());
+                    }
+                };
+            }
+        };
+
         try (TcpServer server = new TcpServer(pool,
-                new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), 10000, 5000),
+                new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), fact, fact, 10000, 5000),
                 1976, 10)) {
             server.runInBackground();
             server.waitForStared();
-  
-            byte [] proxiedContent = readfromSite("http://localhost:1976");
-            System.out.println(new String(proxiedContent, "UTF-8"));
+
+            byte[] proxiedContent = readfromSite("http://localhost:1976");
+//            System.out.println(new String(proxiedContent, "UTF-8"));
         }
     }
-
 
     @Test(expected = java.net.SocketException.class, timeout = 60000)
     public void testTimeout() throws IOException, InterruptedException {
         String testSite = "10.10.10.10";
         ForkJoinPool pool = new ForkJoinPool(1024);
         try (TcpServer server = new TcpServer(pool,
-                new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), 10000, 5000),
+                new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), null, null, 10000, 5000),
                 1977, 10)) {
             server.runInBackground();
             server.waitForStared();
@@ -80,7 +106,7 @@ public class TcpServerTest {
         String testSite = "10.10.10.10";
         ForkJoinPool pool = new ForkJoinPool(1024);
         try (TcpServer server = new TcpServer(pool,
-                new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), 10000, 10000),
+                new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), null, null, 10000, 10000),
                 1977, 10)) {
             server.runInBackground();
             server.waitForStared();
@@ -95,8 +121,7 @@ public class TcpServerTest {
         }
     }
 
-
-    private static byte [] readfromSite(String siteUrl) throws IOException {
+    private static byte[] readfromSite(String siteUrl) throws IOException {
         URL url = new URL(siteUrl);
         InputStream stream = url.openStream();
         ByteArrayOutputStream bos = new ByteArrayOutputStream();

@@ -9,6 +9,8 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
@@ -20,6 +22,7 @@ import org.spf4j.io.tcp.SelectorEventHandler;
  * @author zoly
  */
 @SuppressFBWarnings("HES_EXECUTOR_NEVER_SHUTDOWN")
+@ParametersAreNonnullByDefault
 public final class ProxyBufferTransferHandler extends SelectorEventHandler {
 
     private final SocketChannel channel;
@@ -34,24 +37,30 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
 
     private final ExecutorService exec;
 
-
     private final Runnable readRun;
     private final Runnable writeRun;
+
+    private final SnifferFactory snifferFactory;
+
+    private final TransferBuffer in;
 
     private static final Logger LOG = LoggerFactory.getLogger(ProxyBufferTransferHandler.class);
 
 
     @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
     public ProxyBufferTransferHandler(final TransferBuffer in, final TransferBuffer out,
+            @Nullable final SnifferFactory snifferFactory,
             final SocketChannel channel, final Selector selector, final ExecutorService exec,
             final BlockingQueue<Runnable> tasksToRunBySelector,
             final UpdateablePriorityQueue.ElementRef deadlineActionRef) {
+        this.in = in;
         this.key = null;
         this.exec = exec;
         this.channel = channel;
         this.selector = selector;
         this.deadlineActionRef = deadlineActionRef;
         this.connected = channel.isConnected();
+        this.snifferFactory = snifferFactory;
         final Runnable readInterest = new Runnable() {
             @Override
             public void run() {
@@ -140,8 +149,11 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
             sKey.interestOps(sKey.interestOps() & (~SelectionKey.OP_CONNECT));
             connected = channel.finishConnect();
             if (connected) {
-                System.err.println("Connected " + connected + " to  " + channel);
+                LOG.debug("Connected to {}", channel);
                 deadlineActionRef.remove();
+                if (snifferFactory != null) {
+                    in.setIncomingSniffer(snifferFactory.get(channel));
+                }
             }
         }
         if (connected) {
