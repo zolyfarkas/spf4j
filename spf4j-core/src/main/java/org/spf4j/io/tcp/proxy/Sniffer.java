@@ -9,6 +9,12 @@ import java.nio.ByteBuffer;
  */
 public interface Sniffer {
 
-    void received(ByteBuffer data);
+    /**
+     * Invoked on data receive/transmission.
+     * @param data - the byte buffer containing the data.
+     * @param nrBytes - nr bytes in the buffer. The data in the buffer is from position-nrBytes -> position.
+     * nrBytes will be -1 on EOF.
+     */
+    void received(ByteBuffer data, int nrBytes);
 
 }

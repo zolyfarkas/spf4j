@@ -12,13 +12,19 @@ import java.nio.channels.SelectionKey;
  */
 public abstract class SelectorEventHandler {
 
+    /**
+     * Method must be invoked in selector thread.
+     * THis will register this handler to Selector + channel.
+     * @return
+     * @throws ClosedChannelException
+     */
     public abstract SelectionKey initialInterestRegistration() throws ClosedChannelException;
 
     public abstract boolean canRunAsync();
 
-    public abstract void runAsync()
+    public abstract void runAsync(SelectionKey key)
             throws IOException;
 
-    public abstract void run() throws IOException;
+    public abstract void run(SelectionKey key) throws IOException;
 
 }

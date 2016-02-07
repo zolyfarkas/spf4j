@@ -32,6 +32,15 @@ public final class ProxyClientHandler implements ClientHandler {
     private final SnifferFactory c2sSnifferFact;
     private final SnifferFactory s2cSnifferFact;
 
+    /**
+     * TCP proxy client handler.
+     * @param fwdDestination - the destination all connections will be forwarded to.
+     * @param c2sSnifferFact - create sniffer to be invoked when data is received from client.
+     * @param s2cSnifferFact - create sniffer to be invoked when data is received from server.
+     * @param proxyBufferSize - the transmission buffer sizes.
+     * @param connectTimeoutMillis - The connection timeout.
+     */
+
     public ProxyClientHandler(final HostAndPort fwdDestination,
         @Nullable final SnifferFactory c2sSnifferFact, @Nullable final SnifferFactory s2cSnifferFact,
         final int proxyBufferSize, final int connectTimeoutMillis) {

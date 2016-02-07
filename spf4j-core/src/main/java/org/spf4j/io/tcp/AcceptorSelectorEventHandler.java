@@ -43,7 +43,10 @@ public final class AcceptorSelectorEventHandler extends SelectorEventHandler {
     }
 
     @Override
-    public void run() throws IOException {
+    public void run(final SelectionKey key) throws IOException {
+            if (!key.isAcceptable()) {
+                throw new IllegalStateException("selection key must be acceptable " + key);
+            }
             SocketChannel clientChannel;
             while ((clientChannel = serverChannel.accept()) != null) {
                 try {
@@ -64,7 +67,7 @@ public final class AcceptorSelectorEventHandler extends SelectorEventHandler {
     }
 
     @Override
-    public void runAsync() {
+    public void runAsync(final SelectionKey key) {
         throw new UnsupportedOperationException();
     }
 

@@ -86,9 +86,9 @@ public final class TcpServer implements Closeable {
                         if (attachment instanceof SelectorEventHandler) {
                             SelectorEventHandler seh = (SelectorEventHandler) attachment;
                             if (seh.canRunAsync()) {
-                                seh.runAsync();
+                                seh.runAsync(skey);
                             } else {
-                                seh.run();
+                                seh.run(skey);
                             }
                         }
                         keyIterator.remove();

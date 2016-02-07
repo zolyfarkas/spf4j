@@ -41,10 +41,8 @@ public final class TransferBuffer {
             lastOperation = Operation.READ;
         }
         int nrRead = channel.read(buffer);
-        if (nrRead > 1) {
-            if (incomingSniffer != null) {
-                incomingSniffer.received(buffer);
-            }
+        if (incomingSniffer != null && (nrRead != 0)) {
+            incomingSniffer.received(buffer, nrRead);
         }
         if (nrRead < 0) {
             isEof = true;
