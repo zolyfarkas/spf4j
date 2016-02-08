@@ -124,6 +124,7 @@ public final class TcpServer implements Closeable {
     }
 
     public synchronized void runInBackground() {
+
         if (server == null) {
             terminated = false;
             started = new CountDownLatch(1);
@@ -150,10 +151,13 @@ public final class TcpServer implements Closeable {
             try {
                 terminated = true;
                 selector.wakeup();
+                Future<?> svr = server;
                 try {
-                    server.get(1000, TimeUnit.MILLISECONDS);
+                    svr.get(1000, TimeUnit.MILLISECONDS);
                 } catch (TimeoutException ex) {
-                   server.cancel(true);
+                   svr.cancel(true);
+                } finally {
+                    server = null;
                 }
             } catch (InterruptedException | ExecutionException ex) {
                 throw new IOException(ex);
