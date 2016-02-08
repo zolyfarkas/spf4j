@@ -100,7 +100,7 @@ public final class FastStackCollector extends AbstractStackCollector {
     }
 
 
-    public static  StackTraceElement[][] getStackTraces(final Thread[] threads) {
+    public static  StackTraceElement[][] getStackTraces(final Thread... threads) {
         StackTraceElement[][] stackDump;
         try {
             stackDump = (StackTraceElement[][]) DUMP_THREADS.invoke(null, (Object) threads);
