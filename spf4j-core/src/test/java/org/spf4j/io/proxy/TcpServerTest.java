@@ -63,9 +63,16 @@ public class TcpServerTest {
                     CharsetDecoder asciiDecoder = Charsets.US_ASCII.newDecoder();
 
                     @Override
-                    public void received(ByteBuffer data) {
+                    public void received(ByteBuffer data, int nrBytes) {
                         // Naive printout using ASCII
+                        if (nrBytes < 0) {
+                            System.err.println("EOF");
+                            return;
+                        }
                         ByteBuffer duplicate = data.duplicate();
+                        duplicate.position(data.position() - nrBytes);
+                        duplicate = duplicate.slice();
+                        duplicate.position(nrBytes);
                         duplicate.flip();
                         CharBuffer cb = CharBuffer.allocate((int) (asciiDecoder.maxCharsPerByte() * duplicate.limit()));
                         asciiDecoder.decode(duplicate, cb, true);
