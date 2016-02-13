@@ -1,6 +1,7 @@
 
 package org.spf4j.ds;
 
+import java.util.Iterator;
 import java.util.PriorityQueue;
 import org.junit.Assert;
 import org.junit.Test;
@@ -108,8 +109,29 @@ public final class UpdateablePriorityQueueTest {
         Assert.assertEquals(Integer.valueOf(0), queue.peek().getValue());
         add1.remove();
         Assert.assertEquals(Integer.valueOf(2), queue.peek().getValue());
-
     }
 
+    @Test
+    public void testRemove() {
+        UpdateablePriorityQueue<MutableHolder<Integer>> queue = new UpdateablePriorityQueue<>(0);
+        final MutableHolder<Integer> value = new MutableHolder<>(3);
+        UpdateablePriorityQueue.ElementRef ref = queue.add(value);
+        final MutableHolder<Integer> four = new MutableHolder<>(4);
+        queue.add(four);
+        final MutableHolder<Integer> five = new MutableHolder<>(5);
+        queue.add(five);
+        final MutableHolder<Integer> six = new MutableHolder<>(6);
+        queue.add(six);
+        MutableHolder<Integer> poll = queue.poll();
+        Assert.assertEquals(value, poll);
+        Assert.assertFalse(ref.remove());
+        Iterator<MutableHolder<Integer>> iterator = queue.iterator();
+        MutableHolder<Integer> next = iterator.next();
+        next = iterator.next();
+        iterator.remove();
+        next = iterator.next();
+        Assert.assertFalse(iterator.hasNext());
+        Assert.assertEquals(2, queue.size());
+    }
 
 }
