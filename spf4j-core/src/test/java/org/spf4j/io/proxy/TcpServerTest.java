@@ -34,11 +34,9 @@ public class TcpServerTest {
     public void testProxy() throws IOException, InterruptedException {
         String testSite = "www.zoltran.com";//"www.google.com"; //charizard.homeunix.net
         ForkJoinPool pool = new ForkJoinPool(1024);
-        try (TcpServer server = new TcpServer(pool,
-                new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), null, null, 10000, 5000),
+        try (TcpServer server = new TcpServer(pool, new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), null, null, 10000, 5000),
                 1976, 10)) {
-            server.runInBackground();
-            server.waitForStared();
+            server.startAsync().awaitRunning();
             //byte [] originalContent = readfromSite("http://" + testSite);
             long start = System.currentTimeMillis();
             byte[] originalContent = readfromSite("http://" + testSite);
@@ -86,8 +84,7 @@ public class TcpServerTest {
         try (TcpServer server = new TcpServer(pool,
                 new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), fact, fact, 10000, 5000),
                 1976, 10)) {
-            server.runInBackground();
-            server.waitForStared();
+            server.startAsync().awaitRunning();
 
             byte[] proxiedContent = readfromSite("http://localhost:1976");
 //            System.out.println(new String(proxiedContent, "UTF-8"));
@@ -101,8 +98,7 @@ public class TcpServerTest {
         try (TcpServer server = new TcpServer(pool,
                 new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), null, null, 10000, 5000),
                 1977, 10)) {
-            server.runInBackground();
-            server.waitForStared();
+            server.startAsync().awaitRunning();
             readfromSite("http://localhost:1977"); // results in a socket exception after 5 seconds
             Assert.fail("Should timeout");
         }
@@ -115,8 +111,7 @@ public class TcpServerTest {
         try (TcpServer server = new TcpServer(pool,
                 new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), null, null, 10000, 10000),
                 1977, 10)) {
-            server.runInBackground();
-            server.waitForStared();
+            server.startAsync().awaitRunning();
             DefaultScheduler.INSTANCE.schedule(new AbstractRunnable(true) {
                 @Override
                 public void doRun() throws IOException {

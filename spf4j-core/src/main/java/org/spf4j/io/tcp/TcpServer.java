@@ -1,6 +1,7 @@
 package org.spf4j.io.tcp;
 
 import com.google.common.annotations.Beta;
+import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.IOException;
@@ -13,13 +14,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.Throwables;
 import org.spf4j.ds.UpdateablePriorityQueue;
 
@@ -29,7 +25,8 @@ import org.spf4j.ds.UpdateablePriorityQueue;
  */
 @SuppressFBWarnings("HES_EXECUTOR_NEVER_SHUTDOWN")
 @Beta
-public final class TcpServer implements Closeable {
+public final class TcpServer extends AbstractExecutionThreadService
+        implements Closeable {
 
     private final ExecutorService executor;
 
@@ -43,9 +40,7 @@ public final class TcpServer implements Closeable {
 
     private volatile Selector selector;
 
-    private volatile Future<?> server;
-
-    private volatile CountDownLatch started;
+    private volatile ServerSocketChannel serverCh;
 
     public TcpServer(final ExecutorService executor, final ClientHandler handlerFactory,
             final int serverPort,
@@ -56,26 +51,31 @@ public final class TcpServer implements Closeable {
         this.serverPort = serverPort;
         this.terminated = false;
         this.selector = null;
-        this.started = null;
-        this.server = null;
     }
 
-    @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
-    public void run() throws IOException {
-        Selector sel = Selector.open();
-        selector = sel;
-        try (ServerSocketChannel serverCh = ServerSocketChannel.open()) {
+    @Override
+    protected void startUp() throws Exception {
+        selector = Selector.open();
+        ServerSocketChannel sc = ServerSocketChannel.open();
+        sc.bind(new InetSocketAddress(serverPort), acceptBacklog);
+        sc.configureBlocking(false);
+        serverCh = sc;
+    }
 
-            serverCh.bind(new InetSocketAddress(serverPort), acceptBacklog);
-            serverCh.configureBlocking(false);
+
+
+    @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
+    @Override
+    public void run() throws IOException {
+        Selector sel = selector;
+        try  {
             BlockingQueue<Runnable> tasksToRunBySelector = new ArrayBlockingQueue<>(64);
             UpdateablePriorityQueue<DeadlineAction> deadlineActions =
                     new UpdateablePriorityQueue<>(64, DeadlineAction.COMPARATOR);
             new AcceptorSelectorEventHandler(serverCh, handlerFactory, sel, executor,
                     tasksToRunBySelector, deadlineActions)
                     .initialInterestRegistration();
-            started.countDown();
-            while (!terminated) {
+            while (isRunning()) {
                 int nrSelectors = sel.select(100);
                 if (nrSelectors > 0) {
                     Set<SelectionKey> selectedKeys = sel.selectedKeys();
@@ -123,48 +123,25 @@ public final class TcpServer implements Closeable {
         }
     }
 
-    public synchronized void runInBackground() {
-
-        if (server == null) {
-            terminated = false;
-            started = new CountDownLatch(1);
-            server = executor.submit(new AbstractRunnable(false) {
-                @Override
-                public void doRun() throws IOException {
-                    TcpServer.this.run();
-                }
-            });
-        } else {
-            throw new IllegalStateException("There is already a running server " + server);
-        }
+    @Override
+    protected Executor executor() {
+        return this.executor;
     }
 
-
-    public void waitForStared() throws InterruptedException {
-        started.await();
+    @Override
+    protected String serviceName() {
+        return "TCP:LISTEN:" + serverPort;
     }
 
+    @Override
+    protected void triggerShutdown() {
+        selector.wakeup();
+    }
 
     @Override
     public synchronized void close() throws IOException {
-        if (!terminated) {
-            try {
-                terminated = true;
-                selector.wakeup();
-                Future<?> svr = server;
-                try {
-                    svr.get(1000, TimeUnit.MILLISECONDS);
-                } catch (TimeoutException ex) {
-                   svr.cancel(true);
-                } finally {
-                    server = null;
-                }
-            } catch (InterruptedException | ExecutionException ex) {
-                throw new IOException(ex);
-            }
-        }
+        this.stopAsync().awaitTerminated();
     }
-
 
     public static void closeSelectorChannels(final Selector selector) throws IOException {
         IOException ex = null;
@@ -189,10 +166,7 @@ public final class TcpServer implements Closeable {
     public String toString() {
         return "TcpServer{" + "executor=" + executor + ", handlerFactory=" + handlerFactory
                 + ", serverPort=" + serverPort + ", acceptBacklog=" + acceptBacklog
-                + ", terminated=" + terminated + ", selector=" + selector + ", server=" + server + '}';
+                + ", terminated=" + terminated + ", selector=" + selector + '}';
     }
-
-
-
 
 }
