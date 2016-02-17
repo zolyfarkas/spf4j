@@ -20,14 +20,13 @@ package org.spf4j.zel.vm;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.spf4j.base.Pair;
 
 
 public final  class MemoryBuilder {
 
-    private final List<Object> memory;
+    private final ArrayList<Object> memory;
 
     private final Map<String, Integer> symbolTable;
 
@@ -38,7 +37,7 @@ public final  class MemoryBuilder {
         symbolTable = new HashMap<>();
     }
 
-    MemoryBuilder(final List<Object> memory, final Map<String, Integer> symbolTable) {
+    MemoryBuilder(final ArrayList<Object> memory, final Map<String, Integer> symbolTable) {
         this.memory = memory;
         this.symbolTable = symbolTable;
         this.idx = memory.size();
@@ -56,7 +55,9 @@ public final  class MemoryBuilder {
             memory.add(value);
             symbolTable.put(symbol, idx++);
         } else {
-            memory.set(symbolTable.get(symbol).intValue(), value);
+            final int position = symbolTable.get(symbol).intValue();
+            memory.ensureCapacity(position + 1);
+            memory.set(position, value);
         }
     }
 
