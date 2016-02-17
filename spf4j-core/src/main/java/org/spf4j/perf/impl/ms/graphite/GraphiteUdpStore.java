@@ -95,7 +95,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
 
     public GraphiteUdpStore(final String hostName, final int port) throws ObjectCreationException {
         address = new InetSocketAddress(hostName, port);
-        datagramChannelSupplier = new RecyclingSupplierBuilder<DatagramChannel>(1,
+        datagramChannelSupplier = new RecyclingSupplierBuilder<>(1,
                 new DatagramChannelSupplierFactory(address)).build();
     }
 
