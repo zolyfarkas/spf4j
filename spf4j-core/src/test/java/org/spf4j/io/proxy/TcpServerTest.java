@@ -11,8 +11,11 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.CharsetDecoder;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
@@ -20,6 +23,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.ds.UpdateablePriorityQueue;
+import org.spf4j.io.tcp.ClientHandler;
+import org.spf4j.io.tcp.DeadlineAction;
 import org.spf4j.io.tcp.proxy.Sniffer;
 import org.spf4j.io.tcp.proxy.SnifferFactory;
 
@@ -34,7 +40,8 @@ public class TcpServerTest {
     public void testProxy() throws IOException, InterruptedException {
         String testSite = "www.zoltran.com";//"www.google.com"; //charizard.homeunix.net
         ForkJoinPool pool = new ForkJoinPool(1024);
-        try (TcpServer server = new TcpServer(pool, new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), null, null, 10000, 5000),
+        try (TcpServer server = new TcpServer(pool,
+                new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), null, null, 10000, 5000),
                 1976, 10)) {
             server.startAsync().awaitRunning();
             //byte [] originalContent = readfromSite("http://" + testSite);
@@ -103,6 +110,56 @@ public class TcpServerTest {
             Assert.fail("Should timeout");
         }
     }
+
+    @Test
+    public void testRestart() throws IOException, InterruptedException {
+        ForkJoinPool pool = new ForkJoinPool(1024);
+        try (TcpServer server = new TcpServer(pool,
+                new ProxyClientHandler(HostAndPort.fromParts("bla", 80), null, null, 10000, 5000),
+                1977, 10)) {
+            server.startAsync().awaitRunning();
+            server.stopAsync().awaitTerminated();
+            server.startAsync().awaitRunning();
+        }
+    }
+
+
+    @Test(expected=IOException.class)
+    public void testRejectingServer() throws IOException, InterruptedException {
+        String testSite = "localhost";
+        ForkJoinPool pool = new ForkJoinPool(1024);
+        try (TcpServer rejServer = new TcpServer(pool,
+                new ClientHandler() {
+            @Override
+            public void handle(Selector serverSelector, SocketChannel clientChannel,
+                    ExecutorService exec, BlockingQueue<Runnable> tasksToRunBySelector,
+                    UpdateablePriorityQueue<DeadlineAction> deadlineActions) throws IOException {
+                clientChannel.configureBlocking(true);
+                ByteBuffer allocate = ByteBuffer.allocate(1024);
+                clientChannel.read(allocate); // read something
+               try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ex) {
+                   throw new RuntimeException(ex);
+                }
+                allocate.flip();
+                clientChannel.write(allocate);
+                clientChannel.close();
+            }
+        }, 1976, 10)) {
+            rejServer.startAsync().awaitRunning();
+
+            try (TcpServer server = new TcpServer(pool,
+                    new ProxyClientHandler(HostAndPort.fromParts(testSite, 1976), null, null, 10000, 5000),
+                    1977, 10)) {
+                server.startAsync().awaitRunning();
+                byte[] readfromSite = readfromSite("http://localhost:1977");
+                System.out.println("Response: " + new String(readfromSite, "UTF-8"));
+            }
+        }
+    }
+
+
 
     @Test(expected = java.net.SocketException.class, timeout = 10000)
     public void testKill() throws IOException, InterruptedException {

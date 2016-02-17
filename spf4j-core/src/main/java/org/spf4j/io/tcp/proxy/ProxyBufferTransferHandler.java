@@ -199,13 +199,14 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
                 int read = in.read(channel);
                 LOG.debug("Read {} bytes from {}", read, channel);
             } catch (IOException ex) {
+//                connected = false;
                 try {
                     channel.close();
                 } catch (IOException ex1) {
                     ex1.addSuppressed(ex);
                     throw ex1;
                 }
-                throw ex;
+                throw new IOException("Error while reading from " + channel, ex);
             }
         }
     }
@@ -227,13 +228,14 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
                 int written = out.write(channel);
                 LOG.debug("Written {} bytes to {}", written, channel);
             } catch (IOException ex) {
+//                connected = false;
                 try {
                     channel.close();
                 } catch (IOException ex1) {
                     ex1.addSuppressed(ex);
                     throw ex1;
                 }
-                throw ex;
+                throw new IOException("Error while writing to " + channel, ex);
             }
         }
     }
