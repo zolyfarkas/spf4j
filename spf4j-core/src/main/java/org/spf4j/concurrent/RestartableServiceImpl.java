@@ -30,11 +30,9 @@ public abstract class RestartableServiceImpl implements RestartableService {
         this.guavaService = supplier.get();
     }
 
-
     public final void registerToJmx() {
         Registry.export(RestartableService.class.getName(), getServiceName(), this);
     }
-
 
     @Override
     @SuppressFBWarnings("SF_SWITCH_FALLTHROUGH") // this is on purpose.
@@ -48,15 +46,21 @@ public abstract class RestartableServiceImpl implements RestartableService {
                 break;
             case FAILED:
                 LOG.warn("Restarting a failed service", svc.failureCause());
+                restart();
+                break;
             case TERMINATED:
-                Service newSvc = supplier.get();
-                guavaService = newSvc;
-                newSvc.startAsync();
+                restart();
                 break;
             default:
                 throw new IllegalStateException("Service is in invalid state " + state);
         }
         return this;
+    }
+
+    private void restart() {
+        Service newSvc = supplier.get();
+        guavaService = newSvc;
+        newSvc.startAsync();
     }
 
     @Override

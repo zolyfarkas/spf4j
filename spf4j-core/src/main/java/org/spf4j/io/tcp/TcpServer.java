@@ -80,10 +80,20 @@ public final class TcpServer extends RestartableServiceImpl {
         @Override
         protected void startUp() throws Exception {
             selector = Selector.open();
-            ServerSocketChannel sc = ServerSocketChannel.open();
-            sc.bind(new InetSocketAddress(serverPort), acceptBacklog);
-            sc.configureBlocking(false);
-            serverCh = sc;
+            try {
+                ServerSocketChannel sc = ServerSocketChannel.open();
+                try {
+                    sc.bind(new InetSocketAddress(serverPort), acceptBacklog);
+                    sc.configureBlocking(false);
+                    serverCh = sc;
+                } catch (IOException | RuntimeException e) {
+                    sc.close();
+                    throw e;
+                }
+            } catch (IOException | RuntimeException e) {
+                selector.close();
+                throw e;
+            }
         }
 
         @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
