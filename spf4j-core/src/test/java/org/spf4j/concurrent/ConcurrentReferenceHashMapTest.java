@@ -14,7 +14,8 @@ public class ConcurrentReferenceHashMapTest {
 
     @Test
     public void testSomeMethod() {
-        ConcurrentReferenceHashMap<String, String> map = new ConcurrentReferenceHashMap();
+        ConcurrentReferenceHashMap<String, String> map = new ConcurrentReferenceHashMap(
+                ConcurrentReferenceHashMap.ReferenceType.STRONG, ConcurrentReferenceHashMap.ReferenceType.STRONG);
         for (int i = 0; i < 10000; i++) {
             String key = "k" + i;
             String value = "v" + i;
