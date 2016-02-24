@@ -28,7 +28,7 @@ class MethodInvocationClassVisitor extends EmptyVisitor {
     private String className;
     private String source;
 
-    public MethodInvocationClassVisitor(final Collection addCaleesTo,
+    MethodInvocationClassVisitor(final Collection addCaleesTo,
             final Set<Method> methods) {
         this.addCaleesTo = addCaleesTo;
         this.methodStrings = new HashMap<>(methods.size());

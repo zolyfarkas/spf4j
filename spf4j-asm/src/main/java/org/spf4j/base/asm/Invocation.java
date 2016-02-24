@@ -15,11 +15,11 @@ public final class Invocation {
     private final String caleeMethodDesc;
     private final String caleeSource;
     private final int caleeLine;
-    private final Object [] parameters;
+    private final Object[] parameters;
     private final Method invokedMethod;
 
     public Invocation(final String cName, final String mName, final String mDesc,
-            final Object [] parameters, final String src, final int ln, final Method invokedMethod) {
+            final Object[] parameters, final String src, final int ln, final Method invokedMethod) {
         caleeClassName = cName;
         caleeMethodName = mName;
         caleeMethodDesc = mDesc;
@@ -52,8 +52,6 @@ public final class Invocation {
     public Method getInvokedMethod() {
         return invokedMethod;
     }
-
-
 
     public Object[] getParameters() {
         return parameters.clone();
@@ -106,8 +104,5 @@ public final class Invocation {
         }
         return Objects.equals(this.invokedMethod, other.invokedMethod);
     }
-
-
-
 
 }
