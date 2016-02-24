@@ -30,7 +30,7 @@ public final class OUT implements Method {
     public static final Method INSTANCE = new OUT();
 
     @Override
-    public Object invoke(final ExecutionContext context, final Object [] parameters) {
+    public Object invoke(final ExecutionContext context, final Object[] parameters) {
         synchronized (context.out) {
             for (Object obj : parameters) {
                     context.out.print(obj);

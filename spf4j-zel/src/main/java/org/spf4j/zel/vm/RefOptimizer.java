@@ -41,7 +41,7 @@ public final class RefOptimizer implements Function<Program, Program> {
         if (input == null) {
             throw new IllegalArgumentException("Input cannot be null for " + this);
         }
-        Instruction [] instructions = input.getInstructions().clone();
+        Instruction[] instructions = input.getInstructions().clone();
         Map<String, Integer> lsym = input.getLocalSymbolTable();
         Map<String, Integer> gsym = input.getGlobalSymbolTable();
 

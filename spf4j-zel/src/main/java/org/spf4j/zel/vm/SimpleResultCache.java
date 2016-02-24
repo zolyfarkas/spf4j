@@ -49,7 +49,7 @@ public final class SimpleResultCache implements ResultCache {
 
         private final int maxSize;
 
-        public CacheLoaderImpl(final int maxSize) {
+        CacheLoaderImpl(final int maxSize) {
             this.maxSize = maxSize;
         }
 
@@ -120,7 +120,7 @@ public final class SimpleResultCache implements ResultCache {
 
         private final Callable<Object> compute;
 
-        public CallableNullWrapper(final Callable<Object> compute) {
+        CallableNullWrapper(final Callable<Object> compute) {
             this.compute = compute;
         }
 

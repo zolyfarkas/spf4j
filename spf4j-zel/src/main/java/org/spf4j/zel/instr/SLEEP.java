@@ -70,7 +70,7 @@ public final class SLEEP extends Instruction {
         private final ExecutionContext context;
         private final VMASyncFuture<Object> future;
 
-        public RunnableImpl(final ExecutionContext context, final VMASyncFuture<Object> future) {
+        RunnableImpl(final ExecutionContext context, final VMASyncFuture<Object> future) {
             this.context = context;
             this.future = future;
         }

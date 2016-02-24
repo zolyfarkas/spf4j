@@ -74,7 +74,7 @@ public final class LODAX extends Instruction implements LValRef {
 
     @Override
     public Object[] getParameters() {
-        return new Object [] {symbol};
+        return new Object[] {symbol};
     }
 
 }

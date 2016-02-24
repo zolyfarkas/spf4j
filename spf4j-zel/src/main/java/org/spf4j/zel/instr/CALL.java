@@ -75,7 +75,7 @@ public final class CALL extends Instruction {
 
     static Object[] getParamsSync(final ExecutionContext context, final Integer nrParams)
             throws SuspendedException, ExecutionException {
-        Object [] parameters;
+        Object[] parameters;
         try {
             parameters = context.popSyncStackVals(nrParams);
         } catch (SuspendedException e) {
@@ -88,7 +88,7 @@ public final class CALL extends Instruction {
 
     static Object[] getParams(final ExecutionContext context, final Integer nrParams)
             throws SuspendedException {
-        Object [] parameters = context.popStackVals(nrParams);
+        Object[] parameters = context.popStackVals(nrParams);
         context.pop();
         return parameters;
     }

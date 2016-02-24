@@ -14,7 +14,7 @@ abstract class AbstractOps<LT> implements Operator<LT, Number, Number> {
         final Map<Class, Operator<LT, Number, Number>> operations;
         //CHECKSTYLE:ON
 
-        public AbstractOps() {
+        AbstractOps() {
             operations = new HashMap<>();
         }
 

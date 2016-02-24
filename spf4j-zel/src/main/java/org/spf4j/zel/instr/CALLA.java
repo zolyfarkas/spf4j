@@ -87,7 +87,7 @@ public final class CALLA extends Instruction {
         private final ExecutionContext context;
         private final Object[] parameters;
 
-        public MethodVMExecutor(final Object function, final ExecutionContext context, final Object[] parameters) {
+        MethodVMExecutor(final Object function, final ExecutionContext context, final Object[] parameters) {
             this.function = function;
             this.context = context;
             this.parameters = parameters;

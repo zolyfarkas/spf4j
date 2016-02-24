@@ -33,6 +33,8 @@ import org.spf4j.zel.vm.SuspendedException;
  */
 public abstract class Instruction implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     /**
      * Instruction execution
      *
@@ -44,7 +46,7 @@ public abstract class Instruction implements Serializable {
     public abstract int execute(ExecutionContext context)
             throws ExecutionException, InterruptedException, SuspendedException;
 
-    public abstract Object [] getParameters();
+    public abstract Object[] getParameters();
 
 
     /**

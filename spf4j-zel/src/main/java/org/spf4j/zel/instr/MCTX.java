@@ -34,7 +34,7 @@ public final class MCTX extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context) {
-        switch(precission) {
+        switch (precission) {
             case 32:
                 context.mathContext = MathContext.DECIMAL32;
                 break;
@@ -53,7 +53,7 @@ public final class MCTX extends Instruction {
 
     @Override
     public Object[] getParameters() {
-        return new Object [] {precission};
+        return new Object[] {precission};
     }
 
 }

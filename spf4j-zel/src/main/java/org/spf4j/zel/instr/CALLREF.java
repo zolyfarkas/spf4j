@@ -65,7 +65,7 @@ public final class CALLREF extends Instruction {
         private final Object function;
         private final Object[] parameters;
 
-        public FunctionDeref(final ExecutionContext context, final Object function, final Object[] parameters) {
+        FunctionDeref(final ExecutionContext context, final Object function, final Object[] parameters) {
             this.context = context;
             this.function = function;
             this.parameters = parameters;

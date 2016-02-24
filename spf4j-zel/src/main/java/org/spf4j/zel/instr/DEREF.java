@@ -47,20 +47,20 @@ public final class DEREF extends Instruction {
             context.push(((Map) relativeTo).get(ref));
         } else if (relativeTo instanceof Object[]) {
             if (ref instanceof String && ref.equals("length")) {
-                context.push(((Object []) relativeTo).length);
+                context.push(((Object[]) relativeTo).length);
             } else {
-                context.push(((Object []) relativeTo)[((Number) ref).intValue()]);
+                context.push(((Object[]) relativeTo)[((Number) ref).intValue()]);
             }
         } else if (relativeTo instanceof int[]) {
-            context.push(((int []) relativeTo)[((Number) ref).intValue()]);
+            context.push(((int[]) relativeTo)[((Number) ref).intValue()]);
         } else if (relativeTo instanceof byte[]) {
-            context.push(((byte []) relativeTo)[((Number) ref).intValue()]);
+            context.push(((byte[]) relativeTo)[((Number) ref).intValue()]);
         } else if (relativeTo instanceof char[]) {
-            context.push(((char []) relativeTo)[((Number) ref).intValue()]);
+            context.push(((char[]) relativeTo)[((Number) ref).intValue()]);
         } else if (relativeTo instanceof long[]) {
-            context.push(((long []) relativeTo)[((Number) ref).intValue()]);
+            context.push(((long[]) relativeTo)[((Number) ref).intValue()]);
         } else if (relativeTo instanceof short[]) {
-            context.push(((short []) relativeTo)[((Number) ref).intValue()]);
+            context.push(((short[]) relativeTo)[((Number) ref).intValue()]);
         } else if (relativeTo instanceof List) {
             context.push(((List) relativeTo).get(((Number) ref).intValue()));
         } else {

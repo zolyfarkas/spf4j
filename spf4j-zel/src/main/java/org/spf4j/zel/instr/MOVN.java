@@ -36,8 +36,8 @@ public final class MOVN extends Instruction {
     @Override
     public int execute(final ExecutionContext context)
             throws SuspendedException, ExecutionException, InterruptedException {
-        Object [] what = (Object []) context.popSyncStackVal();
-        Object [] tos = context.popStackVals(what.length);
+        Object[] what = (Object[]) context.popSyncStackVal();
+        Object[] tos = context.popStackVals(what.length);
         int i = 0;
         for (Object to : tos) {
             if (to instanceof AssignableValue) {
@@ -53,6 +53,6 @@ public final class MOVN extends Instruction {
 
     @Override
     public Object[] getParameters() {
-        return new Object [] {nr};
+        return new Object[] {nr};
     }
 }

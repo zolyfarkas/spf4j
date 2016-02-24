@@ -45,7 +45,7 @@ public final class FJMP extends Instruction {
 
     @Override
     public Object[] getParameters() {
-        return new Object [] {relAddr};
+        return new Object[] {relAddr};
     }
 
 }

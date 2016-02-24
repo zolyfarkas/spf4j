@@ -144,12 +144,12 @@ public final class SimpleStack<T>
     }
 
 
-    public T [] popUntil(final T until) {
+    public T[] popUntil(final T until) {
         int i = top - 1;
         while (elems[i] != until) {
             i--;
         }
-        T [] result = java.util.Arrays.copyOfRange(elems, i + 1, top);
+        T[] result = java.util.Arrays.copyOfRange(elems, i + 1, top);
         java.util.Arrays.fill(elems, i, top, null);
         top = i;
         return result;
@@ -179,7 +179,7 @@ public final class SimpleStack<T>
         return java.util.Arrays.copyOfRange(elems, top - n, top);
     }
 
-    public T [] peekUntil(final T until) {
+    public T[] peekUntil(final T until) {
         int i = top - 1;
         while (elems[i] != until) {
             i--;

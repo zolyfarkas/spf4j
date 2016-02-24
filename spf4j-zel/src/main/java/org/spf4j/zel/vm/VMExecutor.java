@@ -45,7 +45,7 @@ public final class VMExecutor {
 
         static class ZelWorker extends ForkJoinWorkerThread {
 
-            public ZelWorker(final ForkJoinPool pool) {
+            ZelWorker(final ForkJoinPool pool) {
                 super(pool);
             }
 

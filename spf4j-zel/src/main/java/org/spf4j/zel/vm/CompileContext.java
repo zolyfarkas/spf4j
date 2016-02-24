@@ -37,7 +37,7 @@ public final class CompileContext implements ParsingContext {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void generateCode(final Location [] locs, final Instruction... args) {
+    public void generateCode(final Location[] locs, final Instruction... args) {
         prog.addAll(args, Arrays.asList(locs));
         last = args[args.length - 1];
     }

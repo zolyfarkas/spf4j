@@ -48,6 +48,6 @@ public final class LODXF extends Instruction {
 
     @Override
     public Object[] getParameters() {
-        return new Object [] {fromAddr};
+        return new Object[] {fromAddr};
     }
 }

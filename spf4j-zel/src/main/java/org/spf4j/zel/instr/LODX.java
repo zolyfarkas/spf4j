@@ -52,13 +52,14 @@ public final class LODX extends Instruction implements RValRef {
         return 1;
     }
  
+    @Override
     public String getSymbol() {
         return symbol;
     }
 
     @Override
     public Object[] getParameters() {
-        return new Object [] {symbol};
+        return new Object[] {symbol};
     }
     
 }

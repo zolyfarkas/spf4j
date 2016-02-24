@@ -36,6 +36,6 @@ public final class ARRAY implements Method {
 
     @Override
     public Object invoke(final ExecutionContext context, final Object[] parameters) {
-        return new Object [((Number) parameters[0]).intValue()];
+        return new Object[((Number) parameters[0]).intValue()];
     }
 }

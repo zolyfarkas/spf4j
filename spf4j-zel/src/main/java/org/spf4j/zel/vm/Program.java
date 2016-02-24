@@ -153,7 +153,7 @@ public final class Program implements Serializable {
     }
 
 
-    private static Map<String, Integer> buildLocalSymTable(final Instruction [] instructions,
+    private static Map<String, Integer> buildLocalSymTable(final Instruction[] instructions,
             final String[] parameterNames1,
             final int length, final Map<String, Integer> globalTable,
             final Map<String, Integer> addTo) throws CompileException {
@@ -278,7 +278,7 @@ public final class Program implements Serializable {
 
     static Program compile(@Nonnull final String zExpr,
             final Map<String, Integer> localTable,
-            final Object [] globalMem,
+            final Object[] globalMem,
             final Map<String, Integer> globalTable,
             @Nonnull final String... varNames)
             throws CompileException {
@@ -509,8 +509,8 @@ public final class Program implements Serializable {
         Map<String, Integer> localSymTable = Collections.EMPTY_MAP;
         Pair<Object[], Map<String, Integer>> gmemPair = ZEL_GLOBAL_FUNC.build();
         Map<String, Integer> globalSymTable = gmemPair.getSecond();
-        Object [] mem = new Object [] {};
-        Object [] gmem = gmemPair.getFirst();
+        Object[] mem = new Object[] {};
+        Object[] gmem = gmemPair.getFirst();
         ResultCache resCache = new SimpleResultCache();
         InputStreamReader inp = new InputStreamReader(System.in, Charsets.UTF_8);
         BufferedReader br = new BufferedReader(inp);

@@ -20,7 +20,7 @@ package org.spf4j.zel.instr;
 
 import org.spf4j.zel.vm.ExecutionContext;
 
-public final  class PUSH extends Instruction {
+public final class PUSH extends Instruction {
 
     private static final long serialVersionUID = 1L;
 
@@ -39,7 +39,7 @@ public final  class PUSH extends Instruction {
 
     @Override
     public Object[] getParameters() {
-        return new Object [] {param};
+        return new Object[] {param};
     }
     
 }

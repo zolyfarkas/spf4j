@@ -80,7 +80,7 @@ public final class REF extends Instruction {
         private final Object relativeTo;
         private final Object ref;
 
-        public MapDeref(final Object relativeTo, final Object ref) {
+        MapDeref(final Object relativeTo, final Object ref) {
             this.relativeTo = relativeTo;
             this.ref = ref;
         }
@@ -101,7 +101,7 @@ public final class REF extends Instruction {
         private final Object relativeTo;
         private final Object ref;
 
-        public ArrayDeref(final Object relativeTo, final Object ref) {
+        ArrayDeref(final Object relativeTo, final Object ref) {
             this.relativeTo = relativeTo;
             this.ref = ref;
         }
@@ -122,7 +122,7 @@ public final class REF extends Instruction {
         private final Object relativeTo;
         private final Object ref;
 
-        public JavaMethodDeref(final Object relativeTo, final Object ref) {
+        JavaMethodDeref(final Object relativeTo, final Object ref) {
             this.relativeTo = relativeTo;
             this.ref = ref;
         }

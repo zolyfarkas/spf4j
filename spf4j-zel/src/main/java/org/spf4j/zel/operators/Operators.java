@@ -37,7 +37,7 @@ public final class Operators {
     {IntegerOperators.class, DoubleOperators.class, LongOperators.class,
         BigIntegerOperators.class, BigDecimalOperators.class};
 
-    private static final Map<Class<?>, Operator<Object, Object, Object>> [] OPS;
+    private static final Map<Class<?>, Operator<Object, Object, Object>>[] OPS;
 
     static {
         final Operator.Enum[] operators = Operator.Enum.values();
