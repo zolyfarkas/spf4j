@@ -102,7 +102,7 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
 
         private final String output;
 
-        public NoResult(final String output) {
+        NoResult(final String output) {
             super(ResultRole.SECONDARY, "JFR", of(Double.NaN), "N/A", AggregationPolicy.SUM);
             this.output = output;
         }
