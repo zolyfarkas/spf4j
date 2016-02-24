@@ -35,7 +35,7 @@ public final class ArraySuppliers {
        private Objects() { }
 
        private static final SizedRecyclingSupplier.Factory FACTORY =
-               new SizedRecyclingSupplier.Factory<Object []>() {
+               new SizedRecyclingSupplier.Factory<Object[]>() {
 
             @Override
             @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
@@ -49,7 +49,7 @@ public final class ArraySuppliers {
             }
         };
 
-      public static final SizedRecyclingSupplier<Object []> TL_SUPPLIER
+      public static final SizedRecyclingSupplier<Object[]> TL_SUPPLIER
               = new Powerof2ThreadLocalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
     }
 

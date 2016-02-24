@@ -55,7 +55,7 @@ public final class ByteArrayBuilder extends OutputStream {
     /**
      * The buffer where data is stored.
      */
-    private byte [] buf;
+    private byte[] buf;
 
     /**
      * The number of valid bytes in the buffer.
@@ -133,7 +133,7 @@ public final class ByteArrayBuilder extends OutputStream {
         if (arraySupplier == null) {
             buf = Arrays.copyOf(buf, newCapacity);
         } else {
-            byte [] old = buf;
+            byte[] old = buf;
             buf = arraySupplier.get(newCapacity);
             System.arraycopy(old, 0, buf, 0, old.length);
             arraySupplier.recycle(old);
@@ -148,7 +148,7 @@ public final class ByteArrayBuilder extends OutputStream {
     }
 
     @Override
-    public void write(final byte [] b) {
+    public void write(final byte[] b) {
         write(b, 0, b.length);
     }
 
@@ -173,7 +173,7 @@ public final class ByteArrayBuilder extends OutputStream {
      * @param   len   the number of bytes to write.
      */
     @Override
-    public synchronized void write(final byte [] b, final int off, final int len) {
+    public synchronized void write(final byte[] b, final int off, final int len) {
         if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) - b.length > 0)) {
             throw new IndexOutOfBoundsException();
         }

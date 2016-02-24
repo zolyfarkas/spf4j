@@ -86,7 +86,7 @@ public class RetryExecutor {
         private final RetryableCallable<Object> callable;
         private final long deadline;
 
-        public FailedExecutionResult(@Nullable final ExecutionException exception,
+        FailedExecutionResult(@Nullable final ExecutionException exception,
                 final RetryableCallable callable, final long delay) {
             this.exception = exception;
             this.callable = callable;
@@ -152,7 +152,7 @@ public class RetryExecutor {
         private final Callables.DelayPredicate<Exception> exceptionRetryPredicate;
 
 
-        public RetryableCallable(final Callable<T> callable, final FutureBean<T> future,
+        RetryableCallable(final Callable<T> callable, final FutureBean<T> future,
                 final FailedExecutionResult previousResult,
                 final Callables.DelayPredicate<?> resultRetryPredicate,
                 final Callables.DelayPredicate<Exception> exceptionRetryPredicate) {
@@ -163,7 +163,7 @@ public class RetryExecutor {
             this.exceptionRetryPredicate = exceptionRetryPredicate;
         }
 
-        public RetryableCallable(final Runnable task, final Object result, final FutureBean<T> future,
+        RetryableCallable(final Runnable task, final Object result, final FutureBean<T> future,
                 @Nullable final FailedExecutionResult previousResult,
                 final Callables.DelayPredicate<?> resultRetryPredicate,
                 final Callables.DelayPredicate<Exception> exceptionRetryPredicate) {
@@ -227,7 +227,7 @@ public class RetryExecutor {
 
     private class RetryManager extends AbstractRunnable {
 
-        public RetryManager() {
+        RetryManager() {
             super("RetryManager");
             isRunning = true;
         }

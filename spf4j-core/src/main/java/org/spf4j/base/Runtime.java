@@ -238,8 +238,8 @@ public final class Runtime {
             LSOF = lsofFile;
         }
 
-        public static final String [] LSOF_CMD = (LSOF == null) ? null
-                : new String [] {LSOF.getAbsolutePath(), "-p", Integer.toString(PID) };
+        public static final String[] LSOF_CMD = (LSOF == null) ? null
+                : new String[] {LSOF.getAbsolutePath(), "-p", Integer.toString(PID) };
 
     }
 
@@ -251,7 +251,7 @@ public final class Runtime {
         private static final File ULIMIT = new File("/usr/bin/ulimit");
 
 
-        private static final String [] ULIMIT_CMD;
+        private static final String[] ULIMIT_CMD;
 
         public static final int MAX_NR_OPENFILES;
 
@@ -349,7 +349,7 @@ public final class Runtime {
         void stdErrDone();
     }
 
-    public static String run(final String [] command,
+    public static String run(final String[] command,
             final long timeoutMillis) throws IOException, InterruptedException, ExecutionException, TimeoutException {
         StringBuilderCharHandler handler = new StringBuilderCharHandler();
         int result = run(command, handler, timeoutMillis);
@@ -369,8 +369,8 @@ public final class Runtime {
                 if (isAlive(proc)) {
                     aClass.getMethod("destroyForcibly").invoke(proc);
                 }
-            } catch (NoSuchMethodException | SecurityException |
-                    IllegalAccessException | InvocationTargetException ex) {
+            } catch (NoSuchMethodException | SecurityException
+                    | IllegalAccessException | InvocationTargetException ex) {
                 throw new RuntimeException(ex);
             }
         } else {
@@ -400,7 +400,7 @@ public final class Runtime {
 
 
     @SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE") // not really lost, suppressed exceptions are used.
-    public static int run(final String [] command, final ProcOutputHandler handler,
+    public static int run(final String[] command, final ProcOutputHandler handler,
             final long timeoutMillis)
             throws IOException, InterruptedException, ExecutionException, TimeoutException {
         final Process proc = java.lang.Runtime.getRuntime().exec(command);
@@ -421,7 +421,7 @@ public final class Runtime {
                 @Override
                 public void doRun() throws Exception {
                     int eos;
-                    byte [] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
+                    byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
                     try {
                         while ((eos = pes.read(buffer)) >= 0) {
                             handler.handleStdErr(buffer, eos);
@@ -436,7 +436,7 @@ public final class Runtime {
                 @Override
                 public void doRun() throws Exception {
                     int cos;
-                    byte [] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
+                    byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
                     try {
                         while ((cos = pos.read(buffer)) >= 0) {
                             handler.handleStdOut(buffer, cos);
@@ -489,7 +489,7 @@ public final class Runtime {
         private int lineCount;
 
         @Override
-        public void handleStdOut(final byte [] buffer, final int length) {
+        public void handleStdOut(final byte[] buffer, final int length) {
             for (int i = 0; i < length; i++) {
                 byte c = buffer[i];
                 if (c ==  (byte) '\n') {
@@ -503,7 +503,7 @@ public final class Runtime {
         }
 
         @Override
-        public void handleStdErr(final byte [] buffer, final int length) {
+        public void handleStdErr(final byte[] buffer, final int length) {
             handleStdOut(buffer, length);
         }
 
@@ -536,7 +536,7 @@ public final class Runtime {
         }
 
         @Override
-        public void handleStdOut(final byte [] buffer, final int length) {
+        public void handleStdOut(final byte[] buffer, final int length) {
             stdout.write(buffer, 0, length);
         }
 
@@ -554,7 +554,7 @@ public final class Runtime {
         }
 
         @Override
-        public void handleStdErr(final byte [] buffer, final int length) {
+        public void handleStdErr(final byte[] buffer, final int length) {
             stderr.write(buffer, 0, length);
         }
 

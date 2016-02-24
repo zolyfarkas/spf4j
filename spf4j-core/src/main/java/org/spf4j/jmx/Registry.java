@@ -143,7 +143,7 @@ public final class Registry {
                         continue;
                     }
                     if (Modifier.isStatic(method.getModifiers())) {
-                        Annotation [] annotations = method.getAnnotations();
+                        Annotation[] annotations = method.getAnnotations();
                         for (Annotation annot : annotations) {
                             if (annot.annotationType() == JmxExport.class) {
                                 exportMethod(method, null, exportedAttributes, exportedOps, annot);
@@ -157,7 +157,7 @@ public final class Registry {
                     if (method.isSynthetic()) {
                         continue;
                     }
-                    Annotation [] annotations = method.getAnnotations();
+                    Annotation[] annotations = method.getAnnotations();
                     for (Annotation annot : annotations) {
                         if (annot.annotationType() == JmxExport.class) {
                             exportMethod(method, object, exportedAttributes, exportedOps, annot);
@@ -182,10 +182,10 @@ public final class Registry {
         ExportedValuesMBean mbean;
         if (existing == null) {
             mbean = new ExportedValuesMBean(objectName, values,
-                        exportedOps.values().toArray(new ExportedOperation [exportedOps.size()]));
+                        exportedOps.values().toArray(new ExportedOperation[exportedOps.size()]));
         } else {
             mbean = new ExportedValuesMBean(existing, values,
-                        exportedOps.values().toArray(new ExportedOperation [exportedOps.size()]));
+                        exportedOps.values().toArray(new ExportedOperation[exportedOps.size()]));
         }
         Registry.registerMBean(mbean.getObjectName(), mbean);
         return mbean;

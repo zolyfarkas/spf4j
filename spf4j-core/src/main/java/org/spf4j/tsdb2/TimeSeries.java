@@ -11,7 +11,7 @@ import java.util.Arrays;
 @SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
 public final class TimeSeries {
 
-    private final long [] timeStamps;
+    private final long[] timeStamps;
 
     private final long[][] values;
 

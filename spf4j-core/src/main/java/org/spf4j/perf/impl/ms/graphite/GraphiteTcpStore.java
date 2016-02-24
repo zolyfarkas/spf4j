@@ -34,7 +34,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
         private final int port;
         private final SocketFactory socketFactory;
 
-        public WriterSupplierFactory(final SocketFactory socketFactory, final String hostName, final int port) {
+        WriterSupplierFactory(final SocketFactory socketFactory, final String hostName, final int port) {
             this.hostName = hostName;
             this.port = port;
             this.socketFactory = socketFactory;
@@ -139,7 +139,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
         private final MeasurementsInfo measurementInfo;
         private final long timeStampMillis;
 
-        public HandlerImpl(final long[] measurements, final MeasurementsInfo measurementInfo,
+        HandlerImpl(final long[] measurements, final MeasurementsInfo measurementInfo,
                 final long timeStampMillis) {
             this.measurements = measurements;
             this.measurementInfo = measurementInfo;

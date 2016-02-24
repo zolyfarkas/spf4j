@@ -113,7 +113,7 @@ public final class Callables {
             final TimeoutRetryPredicate<? super T> retryOnReturnVal,
             final AdvancedRetryPredicate<Exception> retryOnException)
             throws InterruptedException, EX {
-        return executeWithRetry(what, retryOnReturnVal ,
+        return executeWithRetry(what, retryOnReturnVal,
                 new FibonacciBackoffRetryPredicate<>(retryOnException, nrImmediateRetries,
                         maxWaitMillis / 100, maxWaitMillis, EX_TYPE_CLASS_MAPPER));
     }
@@ -129,7 +129,7 @@ public final class Callables {
 
         private final int maxDelay;
 
-        public RetryData(final int immediateLeft, final int p1, final int maxDelay) {
+        RetryData(final int immediateLeft, final int p1, final int maxDelay) {
             this.immediateLeft = immediateLeft;
             if (p1 < 1) {
                 this.p1 = 0;

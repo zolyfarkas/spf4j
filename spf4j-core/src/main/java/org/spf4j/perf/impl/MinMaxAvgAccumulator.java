@@ -34,12 +34,12 @@ public final class MinMaxAvgAccumulator
     private long max;
     private final MeasurementsInfo info;
 
-    private static final String [] MEASUREMENTS = {"count", "total", "min", "max"};
+    private static final String[] MEASUREMENTS = {"count", "total", "min", "max"};
 
     private MinMaxAvgAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
             final long counter, final long total, final long min, final long max) {
         this.info = new MeasurementsInfoImpl(measuredEntity, description,
-                MEASUREMENTS, new String [] {"count", unitOfMeasurement, unitOfMeasurement, unitOfMeasurement});
+                MEASUREMENTS, new String[] {"count", unitOfMeasurement, unitOfMeasurement, unitOfMeasurement});
         this.counter = counter;
         this.total = total;
         this.min = min;
@@ -83,7 +83,7 @@ public final class MinMaxAvgAccumulator
     public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
         if (mSource instanceof MinMaxAvgAccumulator) {
             MinMaxAvgAccumulator other = (MinMaxAvgAccumulator) mSource;
-            long [] measurements = other.get();
+            long[] measurements = other.get();
             if (measurements != null) {
                 synchronized (this) {
                 return new MinMaxAvgAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),
@@ -102,7 +102,7 @@ public final class MinMaxAvgAccumulator
     @Override
     public synchronized MinMaxAvgAccumulator createClone() {
         return new MinMaxAvgAccumulator(this.info.getMeasuredEntity(),
-                this.info.getDescription(), getUnitOfMeasurement(), counter, total , min, max);
+                this.info.getDescription(), getUnitOfMeasurement(), counter, total, min, max);
     }
 
     @Override

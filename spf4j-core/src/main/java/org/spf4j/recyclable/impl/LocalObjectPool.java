@@ -48,7 +48,7 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
     private final Thread thread;
     private final ReentrantLock lock;
 
-    public LocalObjectPool(final SmartRecyclingSupplier<ObjectHolder<T>> globalPool) {
+    LocalObjectPool(final SmartRecyclingSupplier<ObjectHolder<T>> globalPool) {
         localObjects = new LinkedList<>();
         borrowedObjects = new HashMap<>();
         this.globalPool = globalPool;

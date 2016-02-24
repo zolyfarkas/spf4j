@@ -33,9 +33,9 @@ public interface MeasurementsInfo {
     @Nonnull
     String getDescription();
 
-    String [] getMeasurementNames();
+    String[] getMeasurementNames();
 
-    String [] getMeasurementUnits();
+    String[] getMeasurementUnits();
 
     String getMeasurementName(int measurementNr);
 

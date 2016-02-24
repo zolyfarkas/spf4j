@@ -35,14 +35,14 @@ public final class Powerof2SizedGlobalRecyclingSupplier<T> implements SizedRecyc
 
     private final ReferenceType refType;
 
-    private final BlockingQueue<Reference<T>> [] objects;
+    private final BlockingQueue<Reference<T>>[] objects;
 
     public Powerof2SizedGlobalRecyclingSupplier(final Factory<T> factory, final ReferenceType refType) {
         this.factory = factory;
         this.refType = refType;
         objects = new BlockingQueue[28];
         for (int i = 0; i < objects.length; i++) {
-            objects [i] = new LinkedBlockingQueue<>();
+            objects[i] = new LinkedBlockingQueue<>();
         }
     }
 

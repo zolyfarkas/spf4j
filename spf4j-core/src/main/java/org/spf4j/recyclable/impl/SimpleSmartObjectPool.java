@@ -53,7 +53,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
     private final Condition available;
     private final RecyclingSupplier.Factory<T> factory;
 
-    public SimpleSmartObjectPool(final int initialSize, final int maxSize,
+    SimpleSmartObjectPool(final int initialSize, final int maxSize,
         final  RecyclingSupplier.Factory<T> factory, final boolean fair)
             throws ObjectCreationException {
         this.maxSize = maxSize;

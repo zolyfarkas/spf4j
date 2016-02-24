@@ -104,7 +104,7 @@ public final class Sampler {
         Registry.export(this);
     }
 
-    private static final StackTraceElement [] GC_FAKE_STACK = new StackTraceElement[] {
+    private static final StackTraceElement[] GC_FAKE_STACK = new StackTraceElement[] {
         new StackTraceElement("java.lang.System", "gc", "System.java", -1)
     };
 

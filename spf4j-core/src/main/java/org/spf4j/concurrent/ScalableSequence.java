@@ -34,7 +34,7 @@ public final class ScalableSequence implements Sequence {
         private long current;
         private long max;
 
-        public Bucket(final long start, final long end) {
+        Bucket(final long start, final long end) {
             this.current = start;
             this.max = end;
         }

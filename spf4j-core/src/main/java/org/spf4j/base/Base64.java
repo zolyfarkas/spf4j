@@ -69,8 +69,7 @@ public final class Base64 {
             if (code == PADDING) {
                 continue;
             }
-            if (code == -1) // most likely this base64 text is indented. go with the upper bound
-            {
+            if (code == -1) { // most likely this base64 text is indented. go with the upper bound
                 return len / 4 * 3;
             }
             break;
@@ -78,8 +77,7 @@ public final class Base64 {
 
         j++;    // text.charAt(j) is now at some base64 char, so +1 to make it the size
         int padSize = to - j;
-        if (padSize > 2) // something is wrong with base64. be safe and go with the upper bound
-        {
+        if (padSize > 2) { // something is wrong with base64. be safe and go with the upper bound
             return len / 4 * 3;
         }
 
@@ -89,7 +87,7 @@ public final class Base64 {
     }
 
 
-    private static int guessLength(final char [] text, final int from, final int len) {
+    private static int guessLength(final char[] text, final int from, final int len) {
         final int to = from + len;
 
         // compute the tail '=' chars
@@ -99,8 +97,7 @@ public final class Base64 {
             if (code == PADDING) {
                 continue;
             }
-            if (code == -1) // most likely this base64 text is indented. go with the upper bound
-            {
+            if (code == -1) { // most likely this base64 text is indented. go with the upper bound
                 return len / 4 * 3;
             }
             break;
@@ -108,8 +105,7 @@ public final class Base64 {
 
         j++;    // text.charAt(j) is now at some base64 char, so +1 to make it the size
         int padSize = to - j;
-        if (padSize > 2) // something is wrong with base64. be safe and go with the upper bound
-        {
+        if (padSize > 2) { // something is wrong with base64. be safe and go with the upper bound
             return len / 4 * 3;
         }
 
@@ -280,7 +276,7 @@ public final class Base64 {
      * @return
      */
     public static String encodeBase64V2(final byte[] input, final int offset, final int len) {
-        char[] buf = new char [(((len + 2) / 3) * 4)];
+        char[] buf = new char[(((len + 2) / 3) * 4)];
         int ptr = Base64.encodeBase64(input, offset, len, buf, 0);
         assert ptr == buf.length;
         return Strings.wrap(buf);

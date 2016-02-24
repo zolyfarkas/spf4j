@@ -383,7 +383,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
         private final ReentrantLock submitMonitor;
 
-        public QueuedThread(final String nameBase, final ZArrayDequeue<QueuedThread> threadQueue,
+        QueuedThread(final String nameBase, final ZArrayDequeue<QueuedThread> threadQueue,
                 final Queue<Runnable> taskQueue, final int maxIdleTimeMillis,
                 @Nullable final Runnable runFirst, final PoolState state,
                 final ReentrantLock submitMonitor) {
@@ -576,7 +576,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
         private final Set<QueuedThread> allThreads;
 
-        public PoolState(final int thnr, final int spinlockCount, final Set<QueuedThread> allThreads) {
+        PoolState(final int thnr, final int spinlockCount, final Set<QueuedThread> allThreads) {
             this.shutdown = false;
             this.coreThreads = thnr;
             this.threadCount = new AtomicInteger(thnr);

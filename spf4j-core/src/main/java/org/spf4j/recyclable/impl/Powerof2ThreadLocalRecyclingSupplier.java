@@ -43,8 +43,8 @@ public final class Powerof2ThreadLocalRecyclingSupplier<T> implements SizedRecyc
         localObjects = new ThreadLocal<Deque<Reference<T>> []>() {
 
             @Override
-            protected  Deque<Reference<T>> [] initialValue() {
-                Deque<Reference<T>> [] result =  new Deque[28];
+            protected  Deque<Reference<T>>[] initialValue() {
+                Deque<Reference<T>>[] result =  new Deque[28];
                 for (int i = 0; i < result.length; i++) {
                     result[i] = new ArrayDeque<>();
                 }
@@ -55,7 +55,7 @@ public final class Powerof2ThreadLocalRecyclingSupplier<T> implements SizedRecyc
 
     @Override
     public T get(final int size) {
-        Deque<Reference<T>> [] available = localObjects.get();
+        Deque<Reference<T>>[] available = localObjects.get();
         int idx = IntMath.closestPowerOf2(size);
         Deque<Reference<T>> refs = available[idx];
         if (refs.isEmpty()) {
@@ -80,7 +80,7 @@ public final class Powerof2ThreadLocalRecyclingSupplier<T> implements SizedRecyc
     public void recycle(final T object) {
         int size = factory.size(object);
         int idx = IntMath.closestPowerOf2(size);
-        Deque<Reference<T>> [] available = localObjects.get();
+        Deque<Reference<T>>[] available = localObjects.get();
         Deque<Reference<T>> refs = available[idx];
         refs.addLast(refType.create(object));
     }

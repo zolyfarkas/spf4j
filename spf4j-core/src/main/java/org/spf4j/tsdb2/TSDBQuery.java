@@ -174,7 +174,7 @@ public final class TSDBQuery {
         return result;
     }
 
-    public static TimeSeries getTimeSeries(final File tsdbFile, final long [] tableIds,
+    public static TimeSeries getTimeSeries(final File tsdbFile, final long[] tableIds,
             final long startTimeMillis, final long endTimeMillis) throws IOException {
         TLongList timestamps = new TLongArrayList();
         List<long[]> metrics = new ArrayList<>();
@@ -201,8 +201,8 @@ public final class TSDBQuery {
         return new TimeSeries(timestamps.toArray(), metrics.toArray(new long[metrics.size()][]));
     }
 
-    public static long [] getIds(final Collection<TableDef> tableDefs) {
-        long [] result = new long[tableDefs.size()];
+    public static long[] getIds(final Collection<TableDef> tableDefs) {
+        long[] result = new long[tableDefs.size()];
         int i = 0;
         for (TableDef tdef : tableDefs) {
             result[i++] = tdef.id;
@@ -312,9 +312,9 @@ public final class TSDBQuery {
         return -1;
     }
 
-    public static String [] getColumnNames(final TableDef td) {
+    public static String[] getColumnNames(final TableDef td) {
         List<ColumnDef> columns = td.getColumns();
-        String [] result = new String [columns.size()];
+        String[] result = new String[columns.size()];
         int i = 0;
         for (ColumnDef cd : columns) {
             result[i++] = cd.getName();
@@ -322,9 +322,9 @@ public final class TSDBQuery {
         return result;
     }
 
-    public static String [] getColumnUnitsOfMeasurement(final TableDef td) {
+    public static String[] getColumnUnitsOfMeasurement(final TableDef td) {
         List<ColumnDef> columns = td.getColumns();
-        String [] result = new String [columns.size()];
+        String[] result = new String[columns.size()];
         int i = 0;
         for (ColumnDef cd : columns) {
             result[i++] = cd.getUnitOfMeasurement();

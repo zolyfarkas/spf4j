@@ -35,7 +35,7 @@ public final class ThreadUsageSampler {
     private static ScheduledFuture<?> samplingFuture;
 
     private static final List<String> PEAK_THREAD_NAMES = new ArrayList<>();
-    private static final List<StackTraceElement []> PEAK_THREAD_TRACES = new ArrayList<>();
+    private static final List<StackTraceElement[]> PEAK_THREAD_TRACES = new ArrayList<>();
     private static final BitSet PEAK_THREAD_DAEMON = new BitSet();
 
     public static void writePeakThreadInfo(final PrintStream out) throws IOException {
@@ -81,7 +81,7 @@ public final class ThreadUsageSampler {
                 sb.append(", daemon =");
                 sb.append(t.isDaemon());
                 sb.append(',');
-                StackTraceElement [] straces = stackTraces[i];
+                StackTraceElement[] straces = stackTraces[i];
                 if (straces != null && straces.length > 0) {
                     sb.append(' ');
                     sb.append(Arrays.toString(straces));

@@ -116,7 +116,7 @@ public final class Arrays {
         return true;
     }
 
-    public static int search(final char [] array, final char c) {
+    public static int search(final char[] array, final char c) {
         for (int i = 0; i < array.length; i++) {
             if (array[i] == c) {
                 return i;
@@ -162,15 +162,15 @@ public final class Arrays {
         return result;
     }
 
-    public static final Object [] EMPTY_OBJ_ARRAY = new Object [] {};
+    public static final Object[] EMPTY_OBJ_ARRAY = new Object[] {};
 
-    public static final String [] EMPTY_STRING_ARRAY = new String [] {};
+    public static final String[] EMPTY_STRING_ARRAY = new String[] {};
 
-    public static final byte [] EMPTY_BYTE_ARRAY = new byte [] {};
+    public static final byte[] EMPTY_BYTE_ARRAY = new byte[] {};
 
-    public static final long [] EMPTY_LONG_ARRAY = new long [] {};
+    public static final long[] EMPTY_LONG_ARRAY = new long[] {};
 
-    public static final int [] EMPTY_INT_ARRAY = new int [] {};
+    public static final int[] EMPTY_INT_ARRAY = new int[] {};
 
     private static final ThreadLocal<SoftReference<byte[]>> BYTES_TMP = new ThreadLocal<>();
 
@@ -183,16 +183,16 @@ public final class Arrays {
      * @param size
      * @return
      */
-    public static byte [] getBytesTmp(final int size) {
+    public static byte[] getBytesTmp(final int size) {
         SoftReference<byte[]> sr = BYTES_TMP.get();
-        byte [] result;
+        byte[] result;
         if (sr == null) {
-            result = new byte [size];
+            result = new byte[size];
             BYTES_TMP.set(new SoftReference<>(result));
         } else {
             result = sr.get();
             if (result == null || result.length < size) {
-                result = new byte [size];
+                result = new byte[size];
                 BYTES_TMP.set(new SoftReference<>(result));
             }
         }
@@ -206,16 +206,16 @@ public final class Arrays {
      * @return
      */
 
-    public static char [] getCharsTmp(final int size) {
+    public static char[] getCharsTmp(final int size) {
         SoftReference<char[]> sr = CHARS_TMP.get();
-        char [] result;
+        char[] result;
         if (sr == null) {
-            result = new char [size];
+            result = new char[size];
             CHARS_TMP.set(new SoftReference<>(result));
         } else {
             result = sr.get();
             if (result == null || result.length < size) {
-                result = new char [size];
+                result = new char[size];
                 CHARS_TMP.set(new SoftReference<>(result));
             }
         }

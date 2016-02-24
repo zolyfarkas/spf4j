@@ -89,7 +89,7 @@ public final class RecorderFactory {
         if (size == 1) {
             return fromString(stores.get(0));
         } else {
-            MeasurementStore [] mstores = new MeasurementStore[size];
+            MeasurementStore[] mstores = new MeasurementStore[size];
             int i = 0;
             for (String config : stores) {
                 mstores[i] = fromString(config);
@@ -181,7 +181,7 @@ public final class RecorderFactory {
     }
 
     public static MultiMeasurementRecorder createDirectRecorder(final Object measuredEntity, final String description,
-            final String [] measurementNames, final String[] measurementUnits) {
+            final String[] measurementNames, final String[] measurementUnits) {
         DirectStoreMultiAccumulator mr = new DirectStoreMultiAccumulator(
                 new MeasurementsInfoImpl(measuredEntity, description,
                 measurementNames, measurementUnits), MEASUREMENT_STORE);

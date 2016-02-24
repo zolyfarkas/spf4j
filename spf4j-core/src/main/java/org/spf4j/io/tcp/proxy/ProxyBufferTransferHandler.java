@@ -116,7 +116,7 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
 
         private final SelectionKey tKey;
 
-        public ReadInterest(final SelectionKey key) {
+        ReadInterest(final SelectionKey key) {
             tKey = key;
         }
 
@@ -130,7 +130,7 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
 
         private final SelectionKey tKey;
 
-        public WriteInterest(final SelectionKey key) {
+        WriteInterest(final SelectionKey key) {
             this.tKey = key;
         }
 
@@ -146,7 +146,7 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
         private final WriteInterest writeInterest;
         private final Selector selector;
 
-        public DataAvailableToWriteHook(final BlockingQueue<Runnable> tasksToRunBySelector,
+        DataAvailableToWriteHook(final BlockingQueue<Runnable> tasksToRunBySelector,
                 final WriteInterest writeInterest, final Selector selector) {
             super(false);
             this.tasksToRunBySelector = tasksToRunBySelector;
@@ -167,7 +167,7 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
         private final ReadInterest readInterest;
         private final Selector selector;
 
-        public RoomToReadHook(final BlockingQueue<Runnable> tasksToRunBySelector,
+        RoomToReadHook(final BlockingQueue<Runnable> tasksToRunBySelector,
                 final ReadInterest readInterest, final Selector selector) {
             super(false);
             this.tasksToRunBySelector = tasksToRunBySelector;
@@ -187,7 +187,7 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
         private final TransferBuffer in;
         private final SocketChannel channel;
 
-        public ReadFromChannel(final TransferBuffer in, final SocketChannel channel) {
+        ReadFromChannel(final TransferBuffer in, final SocketChannel channel) {
             super(true);
             this.in = in;
             this.channel = channel;
@@ -216,7 +216,7 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
         private final TransferBuffer out;
         private final SocketChannel channel;
 
-        public WriteToChannel(final TransferBuffer out, final SocketChannel channel) {
+        WriteToChannel(final TransferBuffer out, final SocketChannel channel) {
             super(true);
             this.out = out;
             this.channel = channel;

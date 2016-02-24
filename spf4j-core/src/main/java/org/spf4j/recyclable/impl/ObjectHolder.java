@@ -40,19 +40,19 @@ final class ObjectHolder<T> {
     private boolean borrowed;
     private final RecyclingSupplier.Factory<T> factory;
 
-    public ObjectHolder(final RecyclingSupplier.Factory<T> factory) {
+    ObjectHolder(final RecyclingSupplier.Factory<T> factory) {
         this.factory = factory;
         borrowed = false;
     }
 
-    public ObjectHolder(final RecyclingSupplier.Factory<T> factory, final boolean lazy) throws ObjectCreationException {
+    ObjectHolder(final RecyclingSupplier.Factory<T> factory, final boolean lazy) throws ObjectCreationException {
         this(factory);
         if (!lazy) {
             obj = factory.create();
         }
     }
 
-    public ObjectHolder(final T object) {
+    ObjectHolder(final T object) {
         this.factory = null;
         borrowed = false;
         this.obj = object;

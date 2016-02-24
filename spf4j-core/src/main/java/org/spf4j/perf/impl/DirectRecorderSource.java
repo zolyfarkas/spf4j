@@ -54,7 +54,7 @@ public final class DirectRecorderSource implements MeasurementRecorderSource {
         private final int sampleTimeMillis;
         private final MeasurementStore store;
 
-        public CreateDirectRecorder(final Object forWhat, final String description,
+        CreateDirectRecorder(final Object forWhat, final String description,
                 final String uom, final int sampleTimeMillis, final MeasurementStore store) {
             this.forWhat = forWhat;
             this.description = description;

@@ -246,7 +246,7 @@ public final class ScalableMeasurementRecorderSource implements
         private final int sampleTimeMillis;
         private final MeasurementAccumulator processor;
 
-        public Persister(final MeasurementStore database, final int sampleTimeMillis,
+        Persister(final MeasurementStore database, final int sampleTimeMillis,
                 final MeasurementAccumulator processor) {
             super(true);
             this.database = database;

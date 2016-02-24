@@ -29,7 +29,7 @@ import org.spf4j.base.Either;
 public interface ObjectBorower<T> extends Scanable<T> {
 
 
-    public enum Action { REQUEST_MADE, NONE }
+    enum Action { REQUEST_MADE, NONE }
 
     /**
      * Non Blocking method.

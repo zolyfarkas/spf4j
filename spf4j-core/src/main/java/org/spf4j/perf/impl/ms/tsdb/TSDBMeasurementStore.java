@@ -97,9 +97,9 @@ public final class TSDBMeasurementStore
     }
 
     @JmxExport(description = "list all tables")
-    public String [] getTables() throws IOException {
+    public String[] getTables() throws IOException {
         final Set<String> metrics = TSDBQuery.getAllTables(database.getFile()).keySet();
-        return metrics.toArray(new String [metrics.size()]);
+        return metrics.toArray(new String[metrics.size()]);
     }
 
     @JmxExport(description = "getTable As Csv")

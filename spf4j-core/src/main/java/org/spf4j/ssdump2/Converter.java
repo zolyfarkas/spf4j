@@ -142,7 +142,7 @@ public final class Converter {
         private final Handler<ASample, E> handler;
         private int nid;
 
-        public TObjectObjectProcedureImpl(final int id, final Handler<ASample, E> handler) {
+        TObjectObjectProcedureImpl(final int id, final Handler<ASample, E> handler) {
             this.id = id;
             this.handler = handler;
             nid = id + 1;

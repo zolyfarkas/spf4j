@@ -123,7 +123,7 @@ public final class TSDBWriter implements Closeable, Flushable {
     }
 
     static void validateType(final InputStream dis) throws IOException {
-        byte [] readMagic = new byte[MAGIC.length];
+        byte[] readMagic = new byte[MAGIC.length];
         ByteStreams.readFully(dis, readMagic);
         if (!Arrays.equals(MAGIC, readMagic)) {
             throw new IOException("wrong file type, magic is " + Arrays.toString(readMagic));
@@ -168,7 +168,7 @@ public final class TSDBWriter implements Closeable, Flushable {
         return file;
     }
 
-  public static void toByteArray(final long pvalue, final byte [] bytes, final int idx) {
+  public static void toByteArray(final long pvalue, final byte[] bytes, final int idx) {
     long value = pvalue;
     for (int i = idx + 7; i >= idx; i--) {
       bytes[i] = (byte) (value & 0xffL);

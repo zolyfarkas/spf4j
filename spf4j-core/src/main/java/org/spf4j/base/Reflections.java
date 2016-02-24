@@ -167,7 +167,7 @@ public final class Reflections {
     }
 
 
-    public static Object invoke(final Method m, final Object object, final Object [] parameters)
+    public static Object invoke(final Method m, final Object object, final Object[] parameters)
             throws IllegalAccessException, InvocationTargetException {
         int np = parameters.length;
         if (np > 0) {
@@ -182,7 +182,7 @@ public final class Reflections {
                 for (int k = 0; k < l; k++) {
                     Array.set(array, k, parameters[lidx + k]);
                 }
-                Object [] newParams  = new Object [actTypes.length];
+                Object[] newParams  = new Object[actTypes.length];
                 System.arraycopy(parameters, 0, newParams, 0, lidx);
                 newParams[lidx] = array;
                 return m.invoke(object, newParams);
@@ -220,7 +220,7 @@ public final class Reflections {
         @Nonnull
         private final Class<?>[] paramTypes;
 
-        public MethodDesc(final Class<?> clasz, final String name, final Class<?>[] paramTypes) {
+        MethodDesc(final Class<?> clasz, final String name, final Class<?>[] paramTypes) {
             this.clasz = clasz;
             this.name = name;
             this.paramTypes = paramTypes;

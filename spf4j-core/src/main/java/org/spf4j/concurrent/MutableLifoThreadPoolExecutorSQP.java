@@ -381,7 +381,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
         private final ReentrantLock submitMonitor;
 
-        public QueuedThread(final String nameBase, final ZArrayDequeue<QueuedThread> threadQueue,
+        QueuedThread(final String nameBase, final ZArrayDequeue<QueuedThread> threadQueue,
                 final Queue<Runnable> taskQueue,
                 @Nullable final Runnable runFirst, final PoolState state, final ReentrantLock submitMonitor) {
             super(nameBase + COUNT.getAndIncrement());
@@ -575,7 +575,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
         private final Set<QueuedThread> allThreads;
 
-        public PoolState(final int thnr, final int spinlockCount,
+        PoolState(final int thnr, final int spinlockCount,
                 final Set<QueuedThread> allThreads, final int maxIdleTimeMillis) {
             this.shutdown = false;
             this.coreThreads = thnr;

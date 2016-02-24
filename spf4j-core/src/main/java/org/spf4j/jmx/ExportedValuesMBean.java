@@ -56,7 +56,7 @@ public final class ExportedValuesMBean implements DynamicMBean {
 
 
     ExportedValuesMBean(final ObjectName objectName,
-            final ExportedValue<?> [] exported, final ExportedOperation [] operations) {
+            final ExportedValue<?>[] exported, final ExportedOperation[] operations) {
         this.exportedValues = new HashMap<>(exported.length);
         for (ExportedValue<?> val : exported) {
             this.exportedValues.put(val.getName(), val);
@@ -70,7 +70,7 @@ public final class ExportedValuesMBean implements DynamicMBean {
     }
 
     ExportedValuesMBean(final ExportedValuesMBean extend,
-            final ExportedValue<?> [] exported, final ExportedOperation [] operations) {
+            final ExportedValue<?>[] exported, final ExportedOperation[] operations) {
         this.exportedValues = new HashMap<>(exported.length + extend.exportedValues.size());
         this.exportedValues.putAll(extend.exportedValues);
         for (ExportedValue<?> val : exported) {
@@ -179,7 +179,7 @@ public final class ExportedValuesMBean implements DynamicMBean {
         MBeanOperationInfo[] operations = new MBeanOperationInfo[exportedOperations.size()];
         i = 0;
         for (ExportedOperation op : exportedOperations.values()) {
-            MBeanParameterInfo [] paramInfos = op.getParameterInfos();
+            MBeanParameterInfo[] paramInfos = op.getParameterInfos();
             operations[i++] = new MBeanOperationInfo(op.getName(), op.getDescription(),
                     paramInfos, op.getReturnType().getName(), MBeanOperationInfo.UNKNOWN);
         }

@@ -111,7 +111,7 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         if (availableInMemory == 0) {
             return Arrays.EMPTY_BYTE_ARRAY;
         }
-        byte [] result = new byte[availableInMemory];
+        byte[] result = new byte[availableInMemory];
         if (memIdx < startIdx) {
             System.arraycopy(memory, memIdx, result, 0, result.length);
         } else {
@@ -127,7 +127,7 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         if (availableToRead == 0) {
             return Arrays.EMPTY_BYTE_ARRAY;
         }
-        byte [] result = new byte[availableToRead];
+        byte[] result = new byte[availableToRead];
         if (startIdx < endIdx) {
             System.arraycopy(memory, startIdx, result, 0, result.length);
         } else {

@@ -76,10 +76,10 @@ public final class UIDGenerator {
                         intfMac = networkInterfaces.nextElement().getHardwareAddress();
                     } while ((intfMac == null || intfMac.length == 0) && networkInterfaces.hasMoreElements());
                     if (intfMac == null) {
-                        intfMac = new byte [] {0};
+                        intfMac = new byte[] {0};
                     }
                 } else {
-                    intfMac = new byte [] {0};
+                    intfMac = new byte[] {0};
                 }
             } catch (SocketException ex) {
                 throw new RuntimeException(ex);

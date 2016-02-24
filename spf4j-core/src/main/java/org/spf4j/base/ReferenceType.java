@@ -29,7 +29,7 @@ public enum ReferenceType {
 
     private final ReferenceFactory factory;
 
-    private ReferenceType(final ReferenceFactory factory) {
+    ReferenceType(final ReferenceFactory factory) {
         this.factory = factory;
     }
 

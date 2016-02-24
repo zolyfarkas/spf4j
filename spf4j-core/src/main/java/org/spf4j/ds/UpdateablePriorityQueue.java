@@ -262,8 +262,7 @@ public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializab
 
     @SuppressWarnings("unchecked")
     public <T> T[] toArray(final T[] a) {
-        if (a.length < size) // Make a new array of a's runtime type, but my contents:
-        {
+        if (a.length < size) { // Make a new array of a's runtime type, but my contents:
             return (T[]) Arrays.copyOf(queue, size, a.getClass());
         }
         System.arraycopy(queue, 0, a, 0, size);

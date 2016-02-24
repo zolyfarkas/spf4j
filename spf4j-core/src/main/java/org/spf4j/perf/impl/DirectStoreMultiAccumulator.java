@@ -21,7 +21,7 @@ public final class DirectStoreMultiAccumulator implements MultiMeasurementRecord
     private final MeasurementStore measurementStore;
     private final long tableId;
 
-    private volatile long [] lastRecorded;
+    private volatile long[] lastRecorded;
 
 
 

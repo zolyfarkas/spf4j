@@ -81,7 +81,7 @@ public enum StoreType {
     });
     private final StoreFactory factory;
 
-    private StoreType(final StoreFactory factory) {
+    StoreType(final StoreFactory factory) {
         this.factory = factory;
     }
 

@@ -110,7 +110,7 @@ public final class FastStackCollector extends AbstractStackCollector {
         return stackDump;
     }
 
-    private Thread [] requestFor = new Thread[] {};
+    private Thread[] requestFor = new Thread[] {};
 
     private static final StackTraceElement[] NO_STACK = new StackTraceElement[] {
         new StackTraceElement("System", "NO_STACK", "", 0)

@@ -41,7 +41,7 @@ final class ExportedOperationImpl implements ExportedOperation {
 
     private final  MBeanParameterInfo[] paramInfos;
 
-    public ExportedOperationImpl(final String name, final String description,
+    ExportedOperationImpl(final String name, final String description,
             final Method method, final Object object) {
         this.name = name;
         this.description = description;
@@ -51,7 +51,7 @@ final class ExportedOperationImpl implements ExportedOperation {
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         paramInfos = new MBeanParameterInfo[parameterTypes.length];
         for (int i = 0; i < paramInfos.length; i++) {
-            Annotation [] annotations = parameterAnnotations[i];
+            Annotation[] annotations = parameterAnnotations[i];
             String pname = "";
             String pdesc = "";
             for (Annotation annot : annotations) {

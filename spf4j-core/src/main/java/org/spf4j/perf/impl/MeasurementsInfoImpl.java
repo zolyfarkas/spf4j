@@ -35,7 +35,7 @@ public final class MeasurementsInfoImpl implements MeasurementsInfo {
 
 
     public MeasurementsInfoImpl(final Object measuredEntity, final String description,
-            final String [] measurementNames, final String[] measurementUnits) {
+            final String[] measurementNames, final String[] measurementUnits) {
         this.measuredEntity = measuredEntity;
         this.description = description;
         this.measurementNames = measurementNames.clone();
@@ -53,7 +53,7 @@ public final class MeasurementsInfoImpl implements MeasurementsInfo {
     }
 
     @Override
-    public String [] getMeasurementNames() {
+    public String[] getMeasurementNames() {
         return measurementNames.clone();
     }
 

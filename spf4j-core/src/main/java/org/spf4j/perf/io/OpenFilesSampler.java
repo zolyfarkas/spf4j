@@ -132,7 +132,7 @@ import org.spf4j.jmx.Registry;
         private final int warnThreshold;
         private final MeasurementRecorder nrOpenFiles;
 
-        public AccumulatorRunnable(final int errorThreshold, final boolean shutdownOnError,
+        AccumulatorRunnable(final int errorThreshold, final boolean shutdownOnError,
                 final int warnThreshold, final int aggMillis) {
             this.errorThreshold = errorThreshold;
             this.shutdownOnError = shutdownOnError;

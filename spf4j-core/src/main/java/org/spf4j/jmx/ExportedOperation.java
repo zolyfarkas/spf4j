@@ -30,9 +30,9 @@ public interface ExportedOperation {
     
     String getDescription();
     
-    Object invoke(Object [] parameters);
+    Object invoke(Object[] parameters);
     
-    MBeanParameterInfo [] getParameterInfos();
+    MBeanParameterInfo[] getParameterInfos();
     
     Class<?> getReturnType();
 }

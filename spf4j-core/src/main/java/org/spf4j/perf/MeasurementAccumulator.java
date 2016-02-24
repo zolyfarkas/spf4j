@@ -31,14 +31,14 @@ import javax.annotation.Nullable;
 public interface MeasurementAccumulator extends MeasurementRecorder {
 
     @Nullable
-    long [] get();
+    long[] get();
 
     /**
      * @return null when no measurements have been made.
      */
 
     @Nullable
-    long [] getThenReset();
+    long[] getThenReset();
 
     @Nonnull
     MeasurementAccumulator  aggregate(@Nonnull MeasurementAccumulator mSource);

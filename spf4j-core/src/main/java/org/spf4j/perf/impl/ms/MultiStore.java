@@ -35,8 +35,8 @@ import org.spf4j.perf.MeasurementStore;
  */
 public final class MultiStore implements MeasurementStore {
 
-    private final MeasurementStore [] stores;
-    private final TLongObjectMap<long []> idToIds;
+    private final MeasurementStore[] stores;
+    private final TLongObjectMap<long[]> idToIds;
     private final TObjectLongMap<MeasurementsInfo> infoToId;
     private long idSeq;
 
@@ -58,7 +58,7 @@ public final class MultiStore implements MeasurementStore {
         synchronized (idToIds) {
             long id = infoToId.get(measurement);
             if (id <= 0) {
-                long [] ids = new long [stores.length];
+                long[] ids = new long[stores.length];
                 int i = 0;
                 for (MeasurementStore store : stores) {
                     try {
@@ -86,7 +86,7 @@ public final class MultiStore implements MeasurementStore {
     public void saveMeasurements(final long tableId,
             final long timeStampMillis,  final long... measurements) throws IOException {
                 IOException ex = null;
-        long [] ids;
+        long[] ids;
         synchronized (idToIds) {
             ids = idToIds.get(tableId);
         }

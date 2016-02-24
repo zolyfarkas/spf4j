@@ -39,7 +39,7 @@ public final class SimpleExecutor implements Executor {
 
     private volatile boolean terminated;
 
-    private volatile Thread [] threads;
+    private volatile Thread[] threads;
 
     private static final Logger LOG = LoggerFactory.getLogger(SimpleExecutor.class);
 
@@ -51,7 +51,7 @@ public final class SimpleExecutor implements Executor {
     }
 
     public void startThreads(final int nrThreads) {
-        Thread [] newThreads = new Thread[nrThreads];
+        Thread[] newThreads = new Thread[nrThreads];
         for (int i = 0; i < nrThreads; i++) {
             Thread t = threadFactory.newThread(new Runnable() {
 
@@ -86,7 +86,7 @@ public final class SimpleExecutor implements Executor {
     public void shutdownAndWait(final long timeout) throws InterruptedException {
         terminated = true;
         long deadline = timeout + System.currentTimeMillis();
-        Thread [] theThreads = threads;
+        Thread[] theThreads = threads;
         for (Thread t : theThreads) {
             t.join(deadline - System.currentTimeMillis());
         }

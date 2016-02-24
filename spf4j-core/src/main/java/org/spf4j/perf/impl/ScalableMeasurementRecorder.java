@@ -102,7 +102,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     }
 
     @Override
-    public long [] get() {
+    public long[] get() {
         MeasurementAccumulator result  = null;
         synchronized (threadLocalRecorders) {
             for (Map.Entry<Thread, MeasurementAccumulator> entry : threadLocalRecorders.entrySet()) {
@@ -225,7 +225,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
         private final long tableId;
         private final MeasurementAccumulator processor;
 
-        public Persister(final MeasurementStore measurementStore,
+        Persister(final MeasurementStore measurementStore,
                 final long tableId, final MeasurementAccumulator processor) {
             super(true);
             this.measurementStore = measurementStore;

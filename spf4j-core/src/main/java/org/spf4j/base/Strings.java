@@ -254,12 +254,12 @@ public final class Strings {
      * @param str
      * @return
      */
-    public static char [] steal(final String str) {
+    public static char[] steal(final String str) {
         if (CHARS_FIELD == null) {
             return str.toCharArray();
         } else {
             try {
-                return (char []) CHARS_FIELD.get(str);
+                return (char[]) CHARS_FIELD.get(str);
             } catch (IllegalArgumentException | IllegalAccessException ex) {
                 throw new RuntimeException(ex);
             }
@@ -272,7 +272,7 @@ public final class Strings {
      * @param chars
      * @return
      */
-    public static String wrap(final char [] chars) {
+    public static String wrap(final char[] chars) {
         if (PROTECTED_STR_CONSTR_PARAM_TYPES != null) {
             try {
                 if (PROTECTED_STR_CONSTR_PARAM_TYPES.length == 3) {
@@ -334,7 +334,7 @@ public final class Strings {
 
 
     public static int encode(final CharsetEncoder ce, final char[] ca, final int off, final int len,
-            final byte [] targetArray) {
+            final byte[] targetArray) {
         if (len == 0) {
             return 0;
         }
@@ -391,16 +391,16 @@ public final class Strings {
     }
 
 
-    public static String fromUtf8(final byte [] bytes) {
+    public static String fromUtf8(final byte[] bytes) {
         return decode(UTF8_DECODER.get(), bytes, 0, bytes.length);
     }
 
-    public static String fromUtf8(final byte [] bytes, final int startIdx, final int length) {
+    public static String fromUtf8(final byte[] bytes, final int startIdx, final int length) {
         return decode(UTF8_DECODER.get(), bytes, startIdx, length);
     }
 
 
-    public static byte [] toUtf8(final String str) {
+    public static byte[] toUtf8(final String str) {
         final char[] chars = steal(str);
         return encode(UTF8_ENCODER.get(), chars, 0, chars.length);
     }
@@ -455,7 +455,7 @@ public final class Strings {
         private final int length;
         private final int startIdx;
 
-        public SubSequence(final CharSequence underlyingSequence, final int length, final int startIdx) {
+        SubSequence(final CharSequence underlyingSequence, final int length, final int startIdx) {
             this.underlyingSequence = underlyingSequence;
             this.length = length;
             this.startIdx = startIdx;
@@ -478,7 +478,7 @@ public final class Strings {
 
         @Override
         public String toString() {
-            char [] chars = new char[length];
+            char[] chars = new char[length];
             int idx = startIdx;
             for (int i = 0; i < length; i++, idx++) {
                 chars[i] = underlyingSequence.charAt(idx);

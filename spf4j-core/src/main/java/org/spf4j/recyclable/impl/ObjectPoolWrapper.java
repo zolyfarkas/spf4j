@@ -35,7 +35,7 @@ import org.spf4j.base.Handler;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-final class ObjectPoolWrapper<T> implements RecyclingSupplier<T> , Scanable<ObjectHolder<T>> {
+final class ObjectPoolWrapper<T> implements RecyclingSupplier<T>, Scanable<ObjectHolder<T>> {
 
     private final RecyclingSupplier<T> pool;
 
@@ -45,7 +45,7 @@ final class ObjectPoolWrapper<T> implements RecyclingSupplier<T> , Scanable<Obje
 
     private static final Logger LOG = LoggerFactory.getLogger(ObjectPoolWrapper.class);
 
-    public ObjectPoolWrapper(final RecyclingSupplier<T> pool,
+    ObjectPoolWrapper(final RecyclingSupplier<T> pool,
             @Nullable final Handler<T, ? extends Exception> borrowHook,
             @Nullable final Handler<T, ? extends Exception> returnHook) {
         this.pool = pool;

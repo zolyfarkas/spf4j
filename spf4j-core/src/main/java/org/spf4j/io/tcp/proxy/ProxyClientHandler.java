@@ -84,7 +84,7 @@ public final class ProxyClientHandler implements ClientHandler {
         private final SocketChannel proxyChannel;
         private final SocketChannel clientChannel;
 
-        public CloseChannelsOnTimeout(final SocketChannel proxyChannel, final SocketChannel clientChannel) {
+        CloseChannelsOnTimeout(final SocketChannel proxyChannel, final SocketChannel clientChannel) {
             super(true);
             this.proxyChannel = proxyChannel;
             this.clientChannel = clientChannel;

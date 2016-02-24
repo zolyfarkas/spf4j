@@ -364,7 +364,7 @@ public final class PipedOutputStream extends OutputStream {
         if (size == 0) {
             return org.spf4j.base.Arrays.EMPTY_BYTE_ARRAY;
         }
-        byte [] result = new byte[size];
+        byte[] result = new byte[size];
         if (startIdx < endIdx) {
             System.arraycopy(buffer, startIdx, result, 0, result.length);
         } else {
