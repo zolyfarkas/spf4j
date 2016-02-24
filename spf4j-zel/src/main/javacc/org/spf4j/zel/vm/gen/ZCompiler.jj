@@ -68,7 +68,29 @@ SKIP :
   | "\t"
   | "\n"
   | <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
-  | <MULTILINE_COMMENT: "/*" (~["*"])* "*" ("*" | ~["*","/"] (~["*"])* "*")* "/">
+}
+
+TOKEN: {
+  < COMMENT_END : "*/" >
+}
+SPECIAL_TOKEN: {
+ < COMMENT_START : "/*" >  {         
+         int level = 0;
+        Token nextToken;
+        /*currently commented contents are dropped, but they can be attached to the special token*/
+        do {
+            nextToken = this.getNextToken();
+                if ("/*".equals(nextToken.image)) {
+                    level++;
+                } if ("*/".equals(nextToken.image)) {
+                    if (level > 0) {
+                        level--;
+                    } else {
+                        break;
+                    }
+                }
+        } while (true);
+ }
 }
 
 TOKEN : /* OPERATORS & KEYWORDS*/
