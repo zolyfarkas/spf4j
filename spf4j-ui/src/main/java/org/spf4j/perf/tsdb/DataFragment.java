@@ -42,7 +42,7 @@ final class DataFragment {
     private List<long[]> data;
     private TIntArrayList timestamps;
 
-    public DataFragment(final long startTimeMillis) {
+    DataFragment(final long startTimeMillis) {
         this.location = 0;
         this.nextDataFragment = 0;
         this.startTimeMillis = startTimeMillis;
@@ -50,7 +50,7 @@ final class DataFragment {
         timestamps = new TIntArrayList();
     }
 
-    public DataFragment(final RandomAccessFile raf) throws IOException {
+    DataFragment(final RandomAccessFile raf) throws IOException {
         location = raf.getFilePointer();
         this.nextDataFragment = raf.readLong();
         this.startTimeMillis = raf.readLong();

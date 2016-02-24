@@ -35,7 +35,7 @@ class TimestampTickUnitImpl extends NumberTickUnit {
     private final long stepMillis;
     private final transient DateTimeFormatter formatter;
 
-    public TimestampTickUnitImpl(final double size,
+    TimestampTickUnitImpl(final double size,
             final long[] timestamps, final long stepMillis, final DateTimeFormatter formatter) {
         super(size);
         this.timestamps = timestamps;

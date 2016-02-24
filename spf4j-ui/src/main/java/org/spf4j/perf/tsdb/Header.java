@@ -36,13 +36,13 @@ final class Header {
     private final int version;
     private final byte[] metaData;
 
-    public Header(final int version, final byte[] metaData) {
+    Header(final int version, final byte[] metaData) {
         this.type = TYPE;
         this.version = version;
         this.metaData = metaData;
     }
 
-    public Header(final RandomAccessFile raf) throws IOException {
+    Header(final RandomAccessFile raf) throws IOException {
         byte[] bType = new byte[4];
         raf.readFully(bType);
         this.type = new String(bType, Charsets.US_ASCII);

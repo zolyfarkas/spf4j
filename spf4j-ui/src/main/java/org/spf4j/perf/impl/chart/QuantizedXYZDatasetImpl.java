@@ -42,16 +42,16 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
     private final double minValue;
     private final double maxValue;
     private final ArrayList<ComparablePair<Quanta, Integer>> quantas;
-    private final double [][] data;
+    private final double[][] data;
     private final long startTimeMillis;
     private final long stepMillis;
 
-    public QuantizedXYZDatasetImpl(final String[] dataSources, final double [][] pdata,
+    public QuantizedXYZDatasetImpl(final String[] dataSources, final double[][] pdata,
                         final long startTimeMillis, final long step) {
         this.data = pdata.clone();
         this.startTimeMillis = startTimeMillis;
         this.stepMillis = step;
-        quantas = new ArrayList<ComparablePair<Quanta, Integer>>(dataSources.length);
+        quantas = new ArrayList<>(dataSources.length);
         for (int i = 0; i < dataSources.length; i++) {
             String ds = dataSources[i];
             if (ds.startsWith("Q")) {

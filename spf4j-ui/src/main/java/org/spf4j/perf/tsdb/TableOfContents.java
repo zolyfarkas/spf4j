@@ -31,17 +31,17 @@ final class TableOfContents {
     private long lastTableInfo;
     private long firstTableInfo;
 
-    public TableOfContents(final long location) {
+    TableOfContents(final long location) {
         this.location = location;
         firstTableInfo = 0;
         lastTableInfo = 0;
     }
 
-    public TableOfContents(final RandomAccessFile raf) throws IOException {
+    TableOfContents(final RandomAccessFile raf) throws IOException {
         this(raf, raf.getFilePointer());
     }
 
-    public TableOfContents(final RandomAccessFile raf, final long location) throws IOException {
+    TableOfContents(final RandomAccessFile raf, final long location) throws IOException {
         this.location = location;
         raf.seek(location);
         this.firstTableInfo = raf.readLong();
