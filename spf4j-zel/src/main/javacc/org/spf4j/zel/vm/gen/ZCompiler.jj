@@ -75,19 +75,11 @@ TOKEN: {
 }
 SPECIAL_TOKEN: {
  < COMMENT_START : "/*" >  {         
-         int level = 0;
-        Token nextToken;
         /*currently commented contents are dropped, but they can be attached to the special token*/
         do {
-            nextToken = this.getNextToken();
-                if ("/*".equals(nextToken.image)) {
-                    level++;
-                } if ("*/".equals(nextToken.image)) {
-                    if (level > 0) {
-                        level--;
-                    } else {
+            Token nextToken = this.getNextToken();
+                if ("*/".equals(nextToken.image)) {
                         break;
-                    }
                 }
         } while (true);
  }
@@ -200,6 +192,44 @@ TOKEN : /* string constants */
       )*
       ("\"" | "'")
   >
+/** experimental 
+|  < STRING_START:
+      ("\"")
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      ("\\{")
+  >
+|  < STRING_MID:
+      ("}")
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      ("\\{")
+  >
+|  < STRING_END:
+      ("}")
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      ("\"")
+  >
+*/
 |
   < MATCHEXP:
       "`"
@@ -652,6 +682,7 @@ void element(ParsingContext context, boolean left) :
 }
 {
 (    constant(context)
+//    |       (<STRING_START> (<STRING_MID>)* <STRING_END>)
     | 
         (  <ID> {
             name = token.image; 
