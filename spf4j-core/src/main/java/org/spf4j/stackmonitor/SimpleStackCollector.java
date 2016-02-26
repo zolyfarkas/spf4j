@@ -29,9 +29,14 @@ public final class SimpleStackCollector extends AbstractStackCollector {
     public void sample(final Thread ignore) {
         Map<Thread, StackTraceElement[]> stackDump = Thread.getAllStackTraces();
         stackDump.remove(ignore);
-        for (StackTraceElement[] stackTrace : stackDump.values()) {
+        for (Map.Entry<Thread, StackTraceElement[]> element : stackDump.entrySet()) {
+            StackTraceElement[] stackTrace = element.getValue();
             if (stackTrace.length > 0) {
                 addSample(stackTrace);
+            } else {
+                addSample(new StackTraceElement[] {
+                  new StackTraceElement("Thread", element.getKey().getName(), "", 0)
+                   });
             }
         }
     }

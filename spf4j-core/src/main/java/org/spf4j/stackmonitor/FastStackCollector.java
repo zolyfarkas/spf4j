@@ -47,7 +47,8 @@ public final class FastStackCollector extends AbstractStackCollector {
             "Finalizer",
             "Signal Dispatcher",
             "Reference Handler",
-            "Attach Listener"
+            "Attach Listener",
+            "VM JFR Buffer Thread"
     };
 
     private final Set<Thread> ignoredThreads;
@@ -112,9 +113,9 @@ public final class FastStackCollector extends AbstractStackCollector {
 
     private Thread[] requestFor = new Thread[] {};
 
-    private static final StackTraceElement[] NO_STACK = new StackTraceElement[] {
-        new StackTraceElement("System", "NO_STACK", "", 0)
-    };
+//    private static final StackTraceElement[] NO_STACK = new StackTraceElement[] {
+//        new StackTraceElement("System", "NO_STACK", "", 0)
+//    };
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
@@ -138,7 +139,9 @@ public final class FastStackCollector extends AbstractStackCollector {
                 if (stackTrace != null && stackTrace.length > 0) {
                     addSample(stackTrace);
                 } else {
-                    addSample(NO_STACK);
+                    addSample(new StackTraceElement[] {
+                            new StackTraceElement("Thread", requestFor[i].getName(), "", 0)
+                        });
                 }
             }
     }
