@@ -22,7 +22,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -51,26 +50,14 @@ public final class FastStackCollector extends AbstractStackCollector {
             "VM JFR Buffer Thread"
     };
 
-    private final Set<Thread> ignoredThreads;
+    private final Set<String> ignoredThreads;
 
     public FastStackCollector(final boolean collectForMain, final String ... xtraIgnoredThreads) {
-        Set<String> ignoredThreadNames = new HashSet<>(Arrays.asList(IGNORED_THREADS));
+        ignoredThreads = new THashSet<>(Arrays.asList(IGNORED_THREADS));
         if (!collectForMain) {
-            ignoredThreadNames.add("main");
+            ignoredThreads.add("main");
         }
-        ignoredThreadNames.addAll(Arrays.asList(xtraIgnoredThreads));
-        ignoredThreads = new THashSet<>(ignoredThreadNames.size());
-        try {
-            Thread[] threads = (Thread[]) GET_THREADS.invoke(null);
-            for (Thread th : threads) {
-                if (ignoredThreadNames.contains(th.getName())) {
-                    ignoredThreads.add(th);
-                }
-            }
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            throw new RuntimeException(ex);
-        }
-
+        ignoredThreads.addAll(Arrays.asList(xtraIgnoredThreads));
     }
 
 
@@ -113,9 +100,6 @@ public final class FastStackCollector extends AbstractStackCollector {
 
     private Thread[] requestFor = new Thread[] {};
 
-//    private static final StackTraceElement[] NO_STACK = new StackTraceElement[] {
-//        new StackTraceElement("System", "NO_STACK", "", 0)
-//    };
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
@@ -128,7 +112,7 @@ public final class FastStackCollector extends AbstractStackCollector {
             int j = 0;
             for (int i = 0; i < nrThreads; i++) {
                 Thread th = threads[i];
-                if (ignore != th && !ignoredThreads.contains(th)) { // not interested in these traces
+                if (ignore != th && !ignoredThreads.contains(th.getName())) { // not interested in these traces
                     requestFor[j++] = th;
                 }
             }
