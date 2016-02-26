@@ -30,15 +30,17 @@ public final class CALL extends Instruction {
 
     private static final long serialVersionUID = 759722625722456554L;
 
-    private CALL() {
+    private final int nrParameters;
+
+    public CALL(final int nrParameters) {
+        this.nrParameters = nrParameters;
     }
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public int execute(final ExecutionContext context)
             throws ExecutionException, InterruptedException, SuspendedException {
-        Integer nrParams = (Integer) context.pop();
-        Object function = context.peekFromTop(nrParams);
+        Object function = context.peekFromTop(nrParameters);
         if (function instanceof Program) {
             final Program p = (Program) function;
             final ExecutionContext nctx;
@@ -46,13 +48,13 @@ public final class CALL extends Instruction {
             Object[] parameters;
             switch (p.getType()) {
                 case DETERMINISTIC:
-                    parameters = getParamsSync(context, nrParams);
+                    parameters = getParamsSync(context, nrParameters);
                     nctx = context.getSubProgramContext(p, parameters);
                     obj = context.resultCache.getResult(p,  Arrays.asList(parameters), new SyncAsyncCallable(nctx));
 
                     break;
                 case NONDETERMINISTIC:
-                        parameters = getParams(context, nrParams);
+                        parameters = getParams(context, nrParameters);
                         nctx = context.getSubProgramContext(p, parameters);
                         obj = Program.executeSyncOrAsync(nctx);
                     break;
@@ -61,7 +63,7 @@ public final class CALL extends Instruction {
             }
             context.push(obj);
         } else if (function instanceof Method) {
-            Object[] parameters = getParamsSync(context, nrParams);
+            Object[] parameters = getParamsSync(context, nrParameters);
             try {
                 context.push(((Method) function).invoke(context, parameters));
             } catch (RuntimeException ex) {
@@ -79,7 +81,6 @@ public final class CALL extends Instruction {
         try {
             parameters = context.popSyncStackVals(nrParams);
         } catch (SuspendedException e) {
-            context.push(nrParams); // put back param count so tat stack is identical.
             throw e;
         }
         context.pop(); // extract function
@@ -89,15 +90,13 @@ public final class CALL extends Instruction {
     static Object[] getParams(final ExecutionContext context, final Integer nrParams)
             throws SuspendedException {
         Object[] parameters = context.popStackVals(nrParams);
-        context.pop();
+        context.pop(); // pop the called method out.
         return parameters;
     }
 
-    public static final Instruction INSTANCE = new CALL();
-
     @Override
     public Object[] getParameters() {
-        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+        return new Object[] {nrParameters};
     }
 
 }

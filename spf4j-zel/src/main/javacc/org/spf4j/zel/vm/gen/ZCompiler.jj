@@ -318,7 +318,7 @@ void statement(ParsingContext context) :
   | LOOKAHEAD(swap(context)) swap(context)
   | expression(context) 
    {
-    if (context.getLast() != org.spf4j.zel.instr.CALLA.INSTANCE) {
+    if (!(context.getLast() instanceof org.spf4j.zel.instr.CALLA)) {
         context.generateCode(new Location(token.beginLine, token.beginColumn), org.spf4j.zel.instr.SYNC.INSTANCE);
     }
    }
@@ -481,6 +481,7 @@ Location loc = null;
 void assignableExpression(ParsingContext context) :
 {
 String name;
+int nrParams;
 }
 {
     (<ID> {name = token.image; 
@@ -488,8 +489,12 @@ String name;
                                  new org.spf4j.zel.instr.LODAX(name));
        })
     ( LOOKAHEAD( 2 )
-        ( params(context) {context.generateCode(new Location(token.beginLine, token.beginColumn), org.spf4j.zel.instr.CALLREF.INSTANCE);} )
-	| (((<DOT> <ID> {name = token.image; context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(name));} ) 
+        ( nrParams = params(context) 
+               {context.generateCode(new Location(token.beginLine, token.beginColumn),
+                           new org.spf4j.zel.instr.CALLREF(nrParams));} )
+	| (((<DOT> <ID>
+               {name = token.image;
+                context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(name));} ) 
            | (<LBRACKET> expression(context) <RBRACKET>))
             {context.generateCode(new Location(token.beginLine, token.beginColumn),
                    org.spf4j.zel.instr.REF.INSTANCE);})
@@ -637,15 +642,16 @@ void unaryPost(ParsingContext context) :
 {
  Location loc = null;
  boolean asyncForce = false;
+ int nrParams = 0;
 }
 {
      unary(context, true) {loc = new Location(token.beginLine, token.beginColumn);}
      (LOOKAHEAD(2)
-      ( params(context) (<SAND> {asyncForce = true;})? 
+      ( nrParams = params(context) (<SAND> {asyncForce = true;})? 
         {if (asyncForce)  {
-            context.generateCode(loc, org.spf4j.zel.instr.CALLA.INSTANCE);
+            context.generateCode(loc, new org.spf4j.zel.instr.CALLA(nrParams));
           } else {
-            context.generateCode(loc, org.spf4j.zel.instr.CALL.INSTANCE);
+            context.generateCode(loc, new org.spf4j.zel.instr.CALL(nrParams));
           }})
       | 
 	(((<DOT> <ID> {context.generateCode(loc, new org.spf4j.zel.instr.DEREFX(token.image));} ) |
@@ -679,6 +685,7 @@ void element(ParsingContext context, boolean left) :
 {
     String name;
     int nre = 0;
+    int nrParams = 0;
 }
 {
 (    constant(context)
@@ -691,8 +698,8 @@ void element(ParsingContext context, boolean left) :
                               new org.spf4j.zel.instr.LODX(name));
             }} )
     | sysFunction(context)
-    | ( <FIRST> params(context) {context.generateCode(new Location(token.beginLine, token.beginColumn),
-                                org.spf4j.zel.instr.FIRST.INSTANCE);})
+    | ( <FIRST> nrParams = params(context) {context.generateCode(new Location(token.beginLine, token.beginColumn),
+                                new org.spf4j.zel.instr.FIRST(nrParams));})
     |  <LPAREN> expression(context) <RPAREN>
     |  (<LBRACE>(expression(context) {nre++;} (<COMMA> expression(context) {nre++;})*)?<RBRACE> 
        {
@@ -707,15 +714,15 @@ void element(ParsingContext context, boolean left) :
   )
 }
 
-void params(ParsingContext context) :
+int params(ParsingContext context) :
 {
     int i=0;
 }
 {
     <LPAREN>
         (expression(context) {i++;} (<COMMA> expression(context) {i++;} )*)?
-        {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(i));}
     <RPAREN>
+    {return i;}
 }
 
 

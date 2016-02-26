@@ -17,7 +17,6 @@
  */
 package org.spf4j.zel.instr;
 
-import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
@@ -26,30 +25,29 @@ public final class FIRST extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
 
-    private FIRST() {
+    private final int nrParameters;
+
+    public FIRST(final int nrParameters) {
+        this.nrParameters = nrParameters;
     }
     
 
     @Override
     public int execute(final ExecutionContext context)
             throws SuspendedException {
-        Integer nrParams = (Integer) context.pop();
         final Object val;
         try {
-            val = context.popFirstAvail(nrParams);
+            val = context.popFirstAvail(nrParameters);
         } catch (SuspendedException ex) {
-            context.push(nrParams);
             throw ex;
         }
         context.push(val);
         return 1;
     }
 
-    public static final Instruction INSTANCE = new FIRST();
-
     @Override
     public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
+        return new Object[] {nrParameters};
     }
 
 

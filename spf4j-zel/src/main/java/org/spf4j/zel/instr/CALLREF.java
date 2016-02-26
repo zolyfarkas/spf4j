@@ -30,19 +30,20 @@ public final class CALLREF extends Instruction {
 
     private static final long serialVersionUID = 1L;
 
-    private CALLREF() {
+    private final int nrParameters;
+
+    public CALLREF(final int nrParameters) {
+        this.nrParameters = nrParameters;
     }
 
     @Override
 //    @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public int execute(final ExecutionContext context)
             throws ExecutionException, InterruptedException, SuspendedException {
-        final Integer nrParams = (Integer) context.pop();
         final Object[] parameters;
         try {
-            parameters = context.popSyncStackVals(nrParams);
+            parameters = context.popSyncStackVals(nrParameters);
         } catch (SuspendedException e) {
-            context.push(nrParams);
             throw e;
         }
         final Object function = ((AssignableValue) context.pop()).get();
@@ -52,11 +53,9 @@ public final class CALLREF extends Instruction {
         return 1;
     }
 
-    public static final Instruction INSTANCE = new CALLREF();
-
     @Override
     public Object[] getParameters() {
-        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+        return new Object[] {nrParameters};
     }
 
     private static final class FunctionDeref implements AssignableValue {

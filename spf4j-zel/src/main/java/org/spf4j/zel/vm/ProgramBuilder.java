@@ -273,14 +273,14 @@ public final class ProgramBuilder {
     private static final class HasAsyncFunc implements Function<Object, Boolean> {
 
         @Override
-        @SuppressFBWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
+        @SuppressFBWarnings({ "TBP_TRISTATE_BOOLEAN_PATTERN", "ITC_INHERITANCE_TYPE_CHECKING" })
         public Boolean apply(final Object input) {
             if (input instanceof Program) {
                 Program prog = (Program) input;
                 if (prog.getExecType() == Program.ExecutionType.ASYNC) {
                     return Boolean.TRUE;
                 }
-            } else if (input == CALLA.INSTANCE) {
+            } else if (input instanceof CALLA) {
                 return Boolean.TRUE;
             }
             return null;

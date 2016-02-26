@@ -46,6 +46,7 @@ public class VMASyncFuture<T> implements VMFuture<T> {
         return resultStore != null;
     }
     
+    @Override
     public final Either<T, ? extends ExecutionException> getResultStore() {
         return resultStore;
     }

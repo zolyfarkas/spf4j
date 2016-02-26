@@ -33,15 +33,17 @@ public final class CALLA extends Instruction {
 
     private static final long serialVersionUID = 759722625722456554L;
 
-    private CALLA() {
+    private final int nrParameters;
+
+    public CALLA(final int nrParameters) {
+        this.nrParameters = nrParameters;
     }
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public int execute(final ExecutionContext context)
             throws ExecutionException, InterruptedException, SuspendedException {
-        Integer nrParams = (Integer) context.pop();
-        final Object function = context.peekFromTop(nrParams);
+        final Object function = context.peekFromTop(nrParameters);
         if (function instanceof Program) {
             final Program p = (Program) function;
             final ExecutionContext nctx;
@@ -49,13 +51,12 @@ public final class CALLA extends Instruction {
             Object[] parameters;
             switch (p.getType()) {
                 case DETERMINISTIC:
-                    parameters = CALL.getParamsSync(context, nrParams);
+                    parameters = CALL.getParamsSync(context, nrParameters);
                     nctx = context.getSubProgramContext(p, parameters);
                     obj = context.resultCache.getResult(p, Arrays.asList(parameters), new AsyncCallable(nctx));
-
                     break;
                 case NONDETERMINISTIC:
-                    parameters = CALL.getParams(context, nrParams);
+                    parameters = CALL.getParams(context, nrParameters);
                     nctx = context.getSubProgramContext(p, parameters);
                     obj = Program.executeAsync(nctx);
                     break;
@@ -64,21 +65,18 @@ public final class CALLA extends Instruction {
             }
             context.push(obj);
         } else if (function instanceof Method) {
-            final Object[] parameters = CALL.getParamsSync(context, nrParams);
+            final Object[] parameters = CALL.getParamsSync(context, nrParameters);
             Future<Object> obj = context.execService.submit(new MethodVMExecutor(function, context, parameters));
             context.push(obj);
-
         } else {
             throw new ZExecutionException("cannot invoke " + function);
         }
         return 1;
     }
 
-    public static final Instruction INSTANCE = new CALLA();
-
     @Override
     public Object[] getParameters() {
-        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+        return new Object[] {nrParameters};
     }
 
     private static class MethodVMExecutor implements VMExecutor.Suspendable<Object> {
