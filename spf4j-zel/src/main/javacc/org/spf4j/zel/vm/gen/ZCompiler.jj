@@ -43,6 +43,10 @@ import java.io.InputStream;
 public class ZCompiler
 {
 
+    /**
+     * Compile a ZEL expression from String.
+     */
+
     public static void compile(String source, String xpr, ParsingContext context) throws ParseException
     {
         ZCompiler parser = new ZCompiler(new java.io.StringReader(xpr));
@@ -50,6 +54,9 @@ public class ZCompiler
         parser.mainprogram(context);
     }
 
+   /**
+     * Compile a ZEL expression from Stream.
+     */
     public static void compile(String source, InputStream is, Charset charset, ParsingContext context)
          throws ParseException
     {
@@ -63,6 +70,9 @@ public class ZCompiler
 }
 PARSER_END(ZCompiler)
 
+/**
+ * Whitespace
+ */
 SKIP :
 {
     " "
@@ -72,6 +82,9 @@ SKIP :
   | <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
 }
 
+/**
+ * Multiline comment. can contain other multi line comments.
+ */
 TOKEN: {
   < COMMENT_END : "*/" >
 }
@@ -87,7 +100,9 @@ SPECIAL_TOKEN: {
  }
 }
 
-TOKEN : /* OPERATORS & KEYWORDS*/
+/* OPERATORS & KEYWORDS*/
+
+TOKEN :
 {
 	< PLUS: "+" >
   |     < INC: "++" >
@@ -146,7 +161,11 @@ TOKEN : /* OPERATORS & KEYWORDS*/
 
 }
 
-TOKEN : /* string constants */
+/**
+ * Number and String constants 
+ */
+
+TOKEN :
 {
  < INTEGER:
         <DECIMAL_LITERAL> (["l","L"])?
@@ -248,6 +267,9 @@ TOKEN : /* string constants */
 
 }
 
+/**
+ * ZEL identifiers.
+ */
 
 TOKEN : /* Identifier */
 {
@@ -316,8 +338,7 @@ void statement(ParsingContext context) :
 {
 }
 {
-    LOOKAHEAD(assignement(context)) assignement(context)
-  | LOOKAHEAD(swap(context)) swap(context)
+    LOOKAHEAD(operations(context)) operations(context)
   | expression(context) 
    {
     if (!(context.getLast() instanceof org.spf4j.zel.instr.CALLA)) {
@@ -338,6 +359,13 @@ void statement(ParsingContext context) :
                         new org.spf4j.zel.instr.MCTX(parseInteger(token.image).intValue()));})
 }
 
+/**
+ * The ZEL for statement, (similar with for from GO):
+ *   for i = 0, result = 0; i < breakup; i = i + 1 {
+ *    result = result + part[i] 
+ *   };
+ */
+
 void forStmt(ParsingContext context) :
 {
   int condAddr = -1;
@@ -347,14 +375,14 @@ void forStmt(ParsingContext context) :
 }
 {
   <FOR> {loc = new Location(token.beginLine, token.beginColumn);}
-    ((assignement(context) 
-    (<COMMA> assignement(context))* ) <SCL>)?
+    ((operations(context) 
+    (<COMMA> operations(context))* ) <SCL>)?
     
      {condAddr = context.getAddress();}  
      logical(context) 
 
-    (<SCL> (assignement(postAssign) 
-    (<COMMA> assignement(postAssign))*))?
+    (<SCL> (operations(postAssign) 
+    (<COMMA> operations(postAssign))*))?
 
     programBlockStatic(loopBlock)
     
@@ -369,6 +397,14 @@ void forStmt(ParsingContext context) :
   
 }
 
+/**
+ * The IF statment. (Similar as in GO):
+ *     if v > ma {
+ *        ma = v
+ *     } else if v < mi {
+ *        mi = v
+ *     }
+ */
 void ifStmt(ParsingContext context) :
 {
  int jmp1;
@@ -416,7 +452,12 @@ void programBlockStatic(ParsingContext context) :
     }
 }
 
-
+/**
+ * A zel program block:
+ * {
+ *  .....
+ * }
+ */
 ParsingContext programBlock(ParsingContext context) :
 {
   ParsingContext subCtx = context.createSubContext();
@@ -444,16 +485,40 @@ void zreturn(ParsingContext context) :
  }
 }
 
+/**
+ * The ZEL operations:
+ *
+ * Assignements: x, y, z = {1, 2, 3}; f(x) = 4;
+ * Increment: x++
+ * Decrement: x--
+ * Swap: x <-> y
+ *
+ */
+
+void operations(ParsingContext context) :
+{
+Location loc = null;
+}
+{
+  LOOKAHEAD(assignement(context)) assignement(context)
+  | LOOKAHEAD(swap(context)) swap(context) 
+  | (assignableExpression(context) (<INC>
+   {loc = new Location(token.beginLine, token.beginColumn);
+    context.generateCode(loc, org.spf4j.zel.instr.INC.INSTANCE);}
+         | <DEC>
+   {loc = new Location(token.beginLine, token.beginColumn);
+    context.generateCode(loc, org.spf4j.zel.instr.DEC.INSTANCE);}))
+}
+
 void assignement(ParsingContext context) :
 {
- int nr = 0;
- int nre = 0;
- Location loc = null;
+Location loc = null;
+int nr = 0;
 }
 {
    assignableExpression(context) {nr++;loc = new Location(token.beginLine, token.beginColumn);}
    (<COMMA> assignableExpression(context) {nr++;})*
-  ((<EQUAL> expression(context)
+   (<EQUAL> expression(context)
    {
     if (nr > 1) {
       context.generateCode(loc, new org.spf4j.zel.instr.MOVN(nr));
@@ -461,10 +526,6 @@ void assignement(ParsingContext context) :
       context.generateCode(loc, org.spf4j.zel.instr.MOV.INSTANCE);
     }
    })
-  | (<INC>
-   {context.generateCode(loc, org.spf4j.zel.instr.INC.INSTANCE);})
-  | (<DEC>
-   {context.generateCode(loc, org.spf4j.zel.instr.DEC.INSTANCE);}))
 }
 
 void swap(ParsingContext context) :
@@ -510,7 +571,10 @@ void expression(ParsingContext context) :
     ternary(context)
 }
 
-
+/**
+ * The ternary operator:
+ * a < 0 ? 1 : 2
+ */
 void ternary(ParsingContext context) :
 {
  int jmp1;
@@ -534,7 +598,9 @@ void ternary(ParsingContext context) :
 )?
 }
 
-
+/**
+ * Logical operators: AND OR XOR
+ */
 
 void logical(ParsingContext context) :
 {Token x;}
@@ -561,7 +627,9 @@ void logical(ParsingContext context) :
     )*
 }
 
-
+/**
+ * Commparison operatiors: < > <= >= == !=
+ */
 
 void compare(ParsingContext context) :
 {Token x;}
@@ -597,6 +665,9 @@ void compare(ParsingContext context) :
     )*
 }
 
+/**
+ * + - operators.
+ */
 
 void sum(ParsingContext context) :
 {Token x;}
@@ -612,6 +683,10 @@ void sum(ParsingContext context) :
 
     )*
 }
+
+/**
+ * * / % operators
+ */
 
 void term(ParsingContext context) :
 {Token x;}
@@ -629,6 +704,9 @@ void term(ParsingContext context) :
     )*
 }
 
+/**
+ * the exponent operator: ^
+ */
 void exponent(ParsingContext context) :
 { Location loc = null; }
 {
@@ -640,6 +718,9 @@ void exponent(ParsingContext context) :
     )*
 }
 
+/**
+ * Async invocation operator: &
+ */
 void unaryPost(ParsingContext context) :
 {
  Location loc = null;
