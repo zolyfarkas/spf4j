@@ -34,6 +34,7 @@ package org.spf4j.zel.vm.gen;
 
 import java.util.*;
 import java.math.*;
+import java.nio.charset.Charset;
 import org.spf4j.zel.vm.*;
 import org.spf4j.zel.instr.*;
 import org.spf4j.zel.vm.ParsingContext.Location;
@@ -44,14 +45,15 @@ public class ZCompiler
 
     public static void compile(String source, String xpr, ParsingContext context) throws ParseException
     {
-        ZCompiler parser = new ZCompiler(new java.io.ByteArrayInputStream(xpr.getBytes()));
+        ZCompiler parser = new ZCompiler(new java.io.StringReader(xpr));
         parser.source = source;
         parser.mainprogram(context);
     }
 
-    public static void compile(String source, InputStream is, ParsingContext context) throws ParseException
+    public static void compile(String source, InputStream is, Charset charset, ParsingContext context)
+         throws ParseException
     {
-        ZCompiler parser = new ZCompiler(is);
+        ZCompiler parser = new ZCompiler(new java.io.InputStreamReader(is, charset));
         parser.source = source;
         parser.mainprogram(context);
     }
