@@ -33,7 +33,7 @@ public final class Operators {
 
     private Operators() { }
 
-    private static final Class<?> [] IMPLS =
+    private static final Class<?>[] IMPLS =
     {IntegerOperators.class, DoubleOperators.class, LongOperators.class,
         BigIntegerOperators.class, BigDecimalOperators.class};
 
@@ -50,7 +50,7 @@ public final class Operators {
             ops.add(en.toString());
         }
         for (Class<?> impl : IMPLS) {
-            Class<?> [] subClasses = impl.getClasses();
+            Class<?>[] subClasses = impl.getClasses();
             for (Class<?> subClasz : subClasses) {
               String claszName = subClasz.getSimpleName();
               if (ops.contains(claszName)) {
