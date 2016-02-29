@@ -170,7 +170,7 @@ public final class Registry {
         if (exportedAttributes.isEmpty() && exportedOps.isEmpty()) {
             return null;
         }
-        ExportedValue<?> [] values = new ExportedValue[exportedAttributes.size()];
+        ExportedValue<?>[] values = new ExportedValue[exportedAttributes.size()];
         int i = 0;
         for (ExportedValue expVal : exportedAttributes.values()) {
             if (expVal instanceof ExportedValueImpl && !((ExportedValueImpl) expVal).isValid()) {

@@ -64,7 +64,7 @@ public final class JdbcConnectionFactory  implements RecyclingSupplier.Factory<C
         }
 
         return (Connection) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                new Class<?> [] {Connection.class}, new InvocationHandler() {
+                new Class<?>[] {Connection.class}, new InvocationHandler() {
 
             private Exception ex;
 

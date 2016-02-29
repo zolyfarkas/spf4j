@@ -174,7 +174,7 @@ public final class Strings {
 
     //String(char[] value, boolean share) {
     private static final Constructor<String> PROTECTED_STR_CONSTR;
-    private static final Class<?> [] PROTECTED_STR_CONSTR_PARAM_TYPES;
+    private static final Class<?>[] PROTECTED_STR_CONSTR_PARAM_TYPES;
 
     static {
         CHARS_FIELD = AccessController.doPrivileged(new PrivilegedAction<Field>() {
