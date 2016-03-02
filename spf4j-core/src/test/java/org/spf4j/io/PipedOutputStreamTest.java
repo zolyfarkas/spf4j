@@ -24,8 +24,9 @@ public class PipedOutputStreamTest {
         for (int i = 0; i < 100; i++) {
             int nrChars = Math.abs(random.nextInt() % 100000);
             StringBuilder sb = generateTestStr(nrChars);
-            test(sb.toString(), Math.abs(random.nextInt() % 10000), false);
+            test(sb.toString(), Math.abs(random.nextInt() % 10000) + 2, false);
         }
+        test(generateTestStr(133).toString(), 2, false);
     }
 
     public static StringBuilder generateTestStr(int nrChars) {

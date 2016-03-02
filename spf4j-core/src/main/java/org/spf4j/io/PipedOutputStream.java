@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import javax.annotation.Nullable;
 import javax.annotation.WillClose;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -79,7 +80,10 @@ public final class PipedOutputStream extends OutputStream {
     }
 
     public PipedOutputStream(final int bufferSize,
-            final SizedRecyclingSupplier<byte[]> bufferProvider, final Long globalDeadline) {
+            final SizedRecyclingSupplier<byte[]> bufferProvider, @Nullable final Long globalDeadline) {
+        if (bufferSize < 2) {
+            throw new IllegalArgumentException("Illegal buffer size " + bufferSize);
+        }
         this.bufferProvider = bufferProvider;
         buffer = bufferProvider.get(bufferSize);
         startIdx = 0;
