@@ -17,12 +17,14 @@
  */
 package org.spf4j.stackmonitor;
 
+import com.google.common.base.Predicate;
 import gnu.trove.set.hash.THashSet;
 import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Set;
+import javax.annotation.Nonnull;
 
 /**
  * This is a high performance sampling collector.
@@ -50,14 +52,25 @@ public final class FastStackCollector extends AbstractStackCollector {
             "VM JFR Buffer Thread"
     };
 
-    private final Set<String> ignoredThreads;
+    private final Predicate<Thread> threadFilter;
 
     public FastStackCollector(final boolean collectForMain, final String ... xtraIgnoredThreads) {
-        ignoredThreads = new THashSet<>(Arrays.asList(IGNORED_THREADS));
+        this(createNameBasedFilter(collectForMain, xtraIgnoredThreads));
+    }
+
+    public static Predicate<Thread> createNameBasedFilter(final boolean collectForMain,
+            final String[] xtraIgnoredThreads) {
+        final Set<String> ignoredThreads = new THashSet<>(Arrays.asList(IGNORED_THREADS));
         if (!collectForMain) {
             ignoredThreads.add("main");
         }
         ignoredThreads.addAll(Arrays.asList(xtraIgnoredThreads));
+
+       return new PredicateImpl(ignoredThreads);
+    }
+
+    public FastStackCollector(final Predicate<Thread> threadFilter) {
+        this.threadFilter = threadFilter;
     }
 
 
@@ -112,7 +125,7 @@ public final class FastStackCollector extends AbstractStackCollector {
             int j = 0;
             for (int i = 0; i < nrThreads; i++) {
                 Thread th = threads[i];
-                if (ignore != th && !ignoredThreads.contains(th.getName())) { // not interested in these traces
+                if (ignore != th && !threadFilter.apply(th)) { // not interested in these traces
                     requestFor[j++] = th;
                 }
             }
@@ -128,6 +141,20 @@ public final class FastStackCollector extends AbstractStackCollector {
                         });
                 }
             }
+    }
+
+    public static final class PredicateImpl implements Predicate<Thread> {
+
+        private final Set<String> ignoredThreadNames;
+
+        public PredicateImpl(final Set<String> ignoredThreadNames) {
+            this.ignoredThreadNames = ignoredThreadNames;
+        }
+
+        @Override
+        public boolean apply(@Nonnull final Thread input) {
+            return ignoredThreadNames.contains(input.getName());
+        }
     }
 
 }
