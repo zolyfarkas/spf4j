@@ -58,15 +58,11 @@ public final class RefOptimizer implements Function<Program, Program> {
             }
         }
 
-        try {
-            return new Program(input.getName(), input.getGlobalSymbolTable(),
+        return new Program(input.getName(), input.getGlobalSymbolTable(),
                     input.getGlobalMem(), input.getLocalSymbolTable(),
                     instructions, input.getDebug(), input.getSource(),
                     input.getType(), input.getExecType(),
                     input.hasDeterministicFunctions());
-        } catch (CompileException ex) {
-            throw new RuntimeException(ex);
-        }
     }
 
     private static Address getAddress(final Map<String, Integer> lsym,

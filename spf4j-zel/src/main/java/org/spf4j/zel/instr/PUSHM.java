@@ -19,7 +19,6 @@ package org.spf4j.zel.instr;
 
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.SuspendedException;
 
 
 public final class PUSHM extends Instruction {
@@ -30,8 +29,7 @@ public final class PUSHM extends Instruction {
     }
     
     @Override
-    public int execute(final ExecutionContext context)
-            throws SuspendedException {
+    public int execute(final ExecutionContext context) {
         context.push(context.mem);
         return 1;
     }

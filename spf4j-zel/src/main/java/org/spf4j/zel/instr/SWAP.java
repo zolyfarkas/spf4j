@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.AssignableValue;
-import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 public final class SWAP extends Instruction {
@@ -33,7 +32,7 @@ public final class SWAP extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context)
-            throws SuspendedException, ExecutionException, InterruptedException {
+            throws ExecutionException, InterruptedException {
         Object v1 = context.pop();
         Object v2 = context.pop();
         if (v1 instanceof AssignableValue &&  v2 instanceof AssignableValue) {

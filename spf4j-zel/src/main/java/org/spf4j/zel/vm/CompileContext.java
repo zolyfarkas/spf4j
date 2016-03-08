@@ -88,5 +88,9 @@ public final class CompileContext implements ParsingContext {
         last = instr;
     }
 
+    @Override
+    public String toString() {
+        return "CompileContext{" + "prog=" + prog + ", staticMemBuilder=" + staticMemBuilder + ", last=" + last + '}';
+    }
 
 }

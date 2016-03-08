@@ -17,4 +17,10 @@ public final class SyncAsyncCallable implements Callable<Object> {
     public Object call() throws Exception {
         return Program.executeSyncOrAsync(nctx);
     }
+
+    @Override
+    public String toString() {
+        return "SyncAsyncCallable{" + "nctx=" + nctx + '}';
+    }
+
 }

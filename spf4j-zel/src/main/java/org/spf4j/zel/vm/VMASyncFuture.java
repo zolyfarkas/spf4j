@@ -19,7 +19,6 @@ package org.spf4j.zel.vm;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.Either;
 
@@ -33,12 +32,12 @@ public class VMASyncFuture<T> implements VMFuture<T> {
 
     @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public final boolean isCancelled() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -55,13 +54,12 @@ public class VMASyncFuture<T> implements VMFuture<T> {
     // Findbugs complain here is rubbish, InterruptedException is thrown by wait
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("BED_BOGUS_EXCEPTION_DECLARATION")
     public final T get() throws InterruptedException, ExecutionException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public final T get(final long timeout, final TimeUnit unit)
-            throws InterruptedException, ExecutionException, TimeoutException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public final T get(final long timeout, final TimeUnit unit) {
+        throw new UnsupportedOperationException();
     }
 
 
@@ -78,5 +76,9 @@ public class VMASyncFuture<T> implements VMFuture<T> {
         resultStore = Either.right(result);
     }
 
+    @Override
+    public final String toString() {
+        return "VMASyncFuture{" + "resultStore=" + resultStore + '}';
+    }
     
 }

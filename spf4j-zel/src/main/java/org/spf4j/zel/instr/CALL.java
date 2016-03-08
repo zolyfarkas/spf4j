@@ -87,8 +87,7 @@ public final class CALL extends Instruction {
         return parameters;
     }
 
-    static Object[] getParams(final ExecutionContext context, final Integer nrParams)
-            throws SuspendedException {
+    static Object[] getParams(final ExecutionContext context, final Integer nrParams) {
         Object[] parameters = context.popStackVals(nrParams);
         context.pop(); // pop the called method out.
         return parameters;

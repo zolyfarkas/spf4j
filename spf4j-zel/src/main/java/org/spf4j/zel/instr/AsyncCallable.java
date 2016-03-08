@@ -19,4 +19,10 @@ public final class AsyncCallable implements Callable<Object> {
     public Object call() throws Exception {
         return Program.executeAsync(nctx);
     }
+
+    @Override
+    public String toString() {
+        return "AsyncCallable{" + "nctx=" + nctx + '}';
+    }
+
 }

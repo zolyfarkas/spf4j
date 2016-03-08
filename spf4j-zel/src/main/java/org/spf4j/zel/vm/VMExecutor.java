@@ -233,4 +233,9 @@ public final class VMExecutor {
         });
     }
 
+    @Override
+    public String toString() {
+        return "VMExecutor{" + "exec=" + exec + ", futToSuspMap=" + futToSuspMap + '}';
+    }
+
 }

@@ -30,11 +30,11 @@ public final class Channel {
     }
 
     @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
-    public Object read() throws InterruptedException {
+    public Object read() {
         synchronized (this) {
             Object obj = queue.poll();
             if (obj == null) {
-                VMASyncFuture<Object> fut = new VMASyncFuture<Object>();
+                VMASyncFuture<Object> fut = new VMASyncFuture<>();
                 readers.add(fut);
                 return fut;
             } else {
@@ -46,7 +46,7 @@ public final class Channel {
         }
     }
 
-    public void write(final Object obj) throws InterruptedException {
+    public void write(final Object obj) {
         synchronized (this) {
             if (closed) {
                 throw new IllegalStateException("Channel is closed, cannot write " + obj + " into it");
@@ -85,4 +85,12 @@ public final class Channel {
         public static final Factory INSTANCE = new Factory();
 
     }
+
+    @Override
+    public String toString() {
+        return "Channel{" + "queue=" + queue + ", readers=" + readers + ", exec=" + exec + ", closed=" + closed + '}';
+    }
+
+ 
+
 }

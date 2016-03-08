@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.AssignableValue;
-import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
 public final class MOV extends Instruction {
@@ -33,7 +32,7 @@ public final class MOV extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context)
-            throws SuspendedException, ExecutionException, InterruptedException {
+            throws ExecutionException, InterruptedException {
         Object what = context.pop();
         Object to = context.pop();
         if (to instanceof AssignableValue) {

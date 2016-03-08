@@ -55,7 +55,7 @@ public final  class MemoryBuilder {
             memory.add(value);
             symbolTable.put(symbol, idx++);
         } else {
-            final int position = symbolTable.get(symbol).intValue();
+            final int position = symbolTable.get(symbol);
             memory.ensureCapacity(position + 1);
             memory.set(position, value);
         }
@@ -68,7 +68,12 @@ public final  class MemoryBuilder {
 
 
     public MemoryBuilder copy() {
-        return new MemoryBuilder(new ArrayList<>(memory), new HashMap<String, Integer>(symbolTable));
+        return new MemoryBuilder(new ArrayList<>(memory), new HashMap<>(symbolTable));
+    }
+
+    @Override
+    public String toString() {
+        return "MemoryBuilder{" + "memory=" + memory + ", symbolTable=" + symbolTable + ", idx=" + idx + '}';
     }
 
 }

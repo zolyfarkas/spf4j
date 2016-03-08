@@ -124,7 +124,7 @@ public final class Program implements Serializable {
             final Map<String, Integer> localTable,
             @Nonnull final Instruction[] instructions, final Location[] debug, final  String source,
             final Type progType, final ExecutionType execType,
-            final boolean hasDeterministicFunctions) throws CompileException {
+            final boolean hasDeterministicFunctions) {
         //CHECKSTYLE:ON
         this.globalMem = globalMem;
         this.instructions = instructions;
@@ -502,8 +502,7 @@ public final class Program implements Serializable {
      *
      * @param args
      */
-    public static void main(final String[] args)
-            throws IOException, ZExecutionException, InterruptedException {
+    public static void main(final String[] args) throws IOException, InterruptedException {
         System.out.println("ZEL Shell");
         boolean terminated = false;
         Map<String, Integer> localSymTable = Collections.EMPTY_MAP;

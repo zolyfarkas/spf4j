@@ -103,7 +103,10 @@ public class VMSyncFuture<T> implements VMFuture<T> {
         resultStore = Either.right(result);
         this.notifyAll();
     }
-    
 
+    @Override
+    public final String toString() {
+        return "VMSyncFuture{" + "resultStore=" + resultStore + '}';
+    }
     
 }

@@ -44,7 +44,7 @@ public final class ProgramBuilder {
 
     private Instruction[] instructions;
 
-    private List<Location> debugInfo;
+    private final List<Location> debugInfo;
 
     private int instrNumber;
 
@@ -286,5 +286,14 @@ public final class ProgramBuilder {
             return null;
         }
     }
+
+    @Override
+    public String toString() {
+        return "ProgramBuilder{" + "instructions=" + Arrays.toString(instructions) + ", debugInfo=" + debugInfo
+                + ", instrNumber=" + instrNumber + ", type=" + type + ", execType=" + execType
+                + ", stringInterner=" + stringInterner + ", staticMemBuilder=" + staticMemBuilder + '}';
+    }
+
+
 
 }
