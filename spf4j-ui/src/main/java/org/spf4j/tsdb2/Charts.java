@@ -1,6 +1,7 @@
 
 package org.spf4j.tsdb2;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,6 +53,7 @@ public final class Charts {
     }
 
 
+    @SuppressFBWarnings("STT_STRING_PARSING_A_FIELD")
     public static boolean canGenerateHeatChart(final TableDef info) {
         for (ColumnDef colDef : info.getColumns()) {
             if (colDef.name.startsWith("Q") && colDef.name.contains("_")) {

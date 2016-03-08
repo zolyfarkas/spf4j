@@ -239,4 +239,16 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
 
     
     private static final long serialVersionUID = 1L;
+
+    @Override
+    public String toString() {
+        return "QuantizedXYZDatasetImpl{" + "x=" + java.util.Arrays.toString(x)
+                + ", y=" + java.util.Arrays.toString(y) + ", z=" + java.util.Arrays.toString(z)
+                + ", minValue=" + minValue + ", maxValue=" + maxValue + ", quantas=" + quantas
+                + ", data=" + java.util.Arrays.toString(data)
+                + ", startTimeMillis=" + startTimeMillis + ", stepMillis=" + stepMillis + '}';
+    }
+
+    
+
 }

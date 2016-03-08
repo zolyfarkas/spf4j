@@ -268,7 +268,7 @@ public final class TimeSeriesDatabase implements Closeable {
         }
     }
 
-    public void write(final long time, final String tableName, final long[] values) throws IOException {
+    public void write(final long time, final String tableName, final long[] values) {
         if (!hasTSTable(tableName)) {
             throw new IllegalArgumentException("Unknown table name" + tableName);
         }

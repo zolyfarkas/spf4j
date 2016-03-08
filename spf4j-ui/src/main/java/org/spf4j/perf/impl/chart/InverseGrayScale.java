@@ -169,10 +169,7 @@ public final class InverseGrayScale
         if (Double.doubleToLongBits(this.upperBound) != Double.doubleToLongBits(other.upperBound)) {
             return false;
         }
-        if (this.alpha != other.alpha) {
-            return false;
-        }
-        return true;
+        return this.alpha == other.alpha;
     }
 
     @Override
@@ -203,5 +200,11 @@ public final class InverseGrayScale
     }
 
     private static final long serialVersionUID = 1L;
+
+    @Override
+    public String toString() {
+        return "InverseGrayScale{" + "lowerBound=" + lowerBound + ", upperBound=" + upperBound
+                + ", alpha=" + alpha + '}';
+    }
 
 }
