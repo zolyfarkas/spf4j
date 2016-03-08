@@ -2,7 +2,6 @@
 package org.spf4j.jmx;
 
 import java.util.Map;
-import javax.management.InvalidAttributeValueException;
 
 /**
  *
@@ -42,7 +41,7 @@ public final class MapExportedValue implements ExportedValue {
     }
 
     @Override
-    public void set(final Object value) throws InvalidAttributeValueException {
+    public void set(final Object value) {
         map.put(name, value);
     }
 
@@ -59,6 +58,11 @@ public final class MapExportedValue implements ExportedValue {
         } else {
             return obj.getClass();
         }
+    }
+
+    @Override
+    public String toString() {
+        return "MapExportedValue{" + "map=" + map + ", descriptions=" + descriptions + ", name=" + name + '}';
     }
 
 }

@@ -5,7 +5,6 @@ import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.ds.UpdateablePriorityQueue;
@@ -102,8 +101,7 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
     }
 
     @Override
-    public synchronized T get() throws ObjectCreationException, ObjectBorrowException,
-            InterruptedException, TimeoutException {
+    public synchronized T get() throws ObjectBorrowException, ObjectCreationException {
         if (closed) {
             throw new ObjectBorrowException("Reclycler is closed " + this);
         }
@@ -137,7 +135,7 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
             DefaultExecutor.INSTANCE.execute(new AbstractRunnable(true) {
 
                 @Override
-                public void doRun() throws Exception {
+                public void doRun() {
                     validate(object, e);
                 }
             });

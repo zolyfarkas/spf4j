@@ -57,7 +57,7 @@ public final class MemoryUsageSampler {
     static {
         org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
             @Override
-            public void doRun() throws Exception {
+            public void doRun() {
                 stop();
             }
         });

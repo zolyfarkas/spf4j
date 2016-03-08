@@ -245,7 +245,7 @@ public final class RTree<T> {
         }
         if (root.children.size() == 0) {
             root = buildRoot(true);
-        } else if ((root.children.size() == 1) && (!root.leaf)) {
+        } else if ((!root.leaf) && (root.children.size() == 1)) {
             root = root.children.get(0);
             root.parent = null;
         } else {
@@ -636,8 +636,17 @@ public final class RTree<T> {
             System.arraycopy(coords, 0, this.coords, 0, coords.length);
             System.arraycopy(dimensions, 0, this.dimensions, 0, dimensions.length);
             this.leaf = leaf;
-            children = new LinkedList<Node>();
+            children = new LinkedList<>();
         }
+
+        @Override
+        public String toString() {
+            return "Node{" + "coords=" + Arrays.toString(coords) + ", dimensions="
+                    + Arrays.toString(dimensions) + ", children="
+                    + children + ", leaf=" + leaf + ", parent=" + parent + '}';
+        }
+
+
     }
 
     private static class Entry<T> extends Node {
@@ -694,4 +703,14 @@ public final class RTree<T> {
         }
         pw.println("</div>");
     }
+
+    @Override
+    public String toString() {
+        return "RTree{" + "maxEntries=" + maxEntries + ", minEntries=" + minEntries + ", numDims="
+                + numDims + ", pointDims=" + Arrays.toString(pointDims)
+                + ", seedPicker=" + seedPicker + ", root=" + root + ", size=" + size + '}';
+    }
+
+    
+
 }

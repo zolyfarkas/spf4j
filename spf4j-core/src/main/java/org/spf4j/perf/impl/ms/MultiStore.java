@@ -152,4 +152,9 @@ public final class MultiStore implements MeasurementStore {
         return Collections.unmodifiableList(Arrays.asList(stores));
     }
 
+    @Override
+    public String toString() {
+        return "MultiStore{" + "stores=" + Arrays.toString(stores) + '}';
+    }
+
 }

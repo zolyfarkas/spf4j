@@ -18,6 +18,7 @@
 package org.spf4j.recyclable.impl;
 
 import java.lang.ref.Reference;
+import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.spf4j.base.IntMath;
@@ -71,6 +72,12 @@ public final class Powerof2SizedGlobalRecyclingSupplier<T> implements SizedRecyc
         int idx = IntMath.closestPowerOf2(size);
         BlockingQueue<Reference<T>> refs = objects[idx];
         refs.add(refType.create(object));
+    }
+
+    @Override
+    public String toString() {
+        return "Powerof2SizedGlobalRecyclingSupplier{" + "factory=" + factory + ", refType="
+                + refType + ", objects=" + Arrays.toString(objects) + '}';
     }
 
 }

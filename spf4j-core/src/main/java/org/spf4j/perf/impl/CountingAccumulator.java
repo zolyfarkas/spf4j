@@ -119,4 +119,9 @@ public final class CountingAccumulator
         }
     }
 
+    @Override
+    public String toString() {
+        return "CountingAccumulator{" + "counter=" + counter + ", total=" + total + ", info=" + info + '}';
+    }
+
 }

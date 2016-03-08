@@ -110,6 +110,12 @@ final class ObjectPoolWrapper<T> implements RecyclingSupplier<T>, Scanable<Objec
         pool.recycle(object);
     }
 
+    @Override
+    public String toString() {
+        return "ObjectPoolWrapper{" + "pool=" + pool + ", borrowHook="
+                + borrowHook + ", returnHook=" + returnHook + '}';
+    }
+
 
 
 }

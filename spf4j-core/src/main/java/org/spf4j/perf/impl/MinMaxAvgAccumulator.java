@@ -139,4 +139,11 @@ public final class MinMaxAvgAccumulator
             return vals.get();
         }
     }
+
+    @Override
+    public String toString() {
+        return "MinMaxAvgAccumulator{" + "counter=" + counter + ", total=" + total + ", min=" + min
+                + ", max=" + max + ", info=" + info + '}';
+    }
+
 }

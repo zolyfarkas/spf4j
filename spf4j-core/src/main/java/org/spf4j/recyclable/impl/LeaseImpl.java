@@ -50,7 +50,7 @@ public final class LeaseImpl<T> implements Lease<T> {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         rs.recycle(leased);
     }
 

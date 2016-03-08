@@ -24,11 +24,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import javax.annotation.WillClose;
+import org.spf4j.base.Base64;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
 @SuppressFBWarnings("VO_VOLATILE_REFERENCE_TO_ARRAY")
 @CleanupObligation
+/**
+ * Buffered input stream implementation that allows use of recycled byte arrays.
+ */
 public final class BufferedInputStream extends FilterInputStream {
 
     private static int defaultBufferSize = 8192;
@@ -241,4 +245,13 @@ public final class BufferedInputStream extends FilterInputStream {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        return "BufferedInputStream{" + "buf=" + (buf != null ? Base64.encodeBase64(buf) : "null")
+                + ", count=" + count + ", pos=" + pos
+                + ", markpos=" + markpos + ", marklimit=" + marklimit + ", bufferProvider=" + bufferProvider + '}';
+    }
+
+
 }

@@ -30,7 +30,7 @@ import org.spf4j.ds.UpdateablePriorityQueue;
 @Beta
 public final class TcpServer extends RestartableServiceImpl {
 
-    private final String name;
+    private final int serverPort;
 
     public TcpServer(final ExecutorService executor, final ClientHandler handlerFactory,
                 final int serverPort,
@@ -41,12 +41,12 @@ public final class TcpServer extends RestartableServiceImpl {
                 return new TcpServerGuavaService(executor, handlerFactory, serverPort, acceptBacklog);
             }
         });
-        this.name = "TCP:LISTEN:" + serverPort;
+        this.serverPort = serverPort;
     }
 
     @Override
     public String getServiceName() {
-        return name;
+        return "TCP:LISTEN:" + serverPort;
     }
 
     public static final class TcpServerGuavaService extends AbstractExecutionThreadService
@@ -200,6 +200,5 @@ public final class TcpServer extends RestartableServiceImpl {
                     + ", serverPort=" + serverPort + ", acceptBacklog=" + acceptBacklog
                     + ", terminated=" + terminated + ", selector=" + selector + '}';
         }
-
     }
 }

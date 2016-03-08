@@ -83,7 +83,7 @@ public final class DirectStoreAccumulator implements MeasurementRecorder, Closea
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         Registry.unregister("org.spf4j.perf.recorders", info.getMeasuredEntity().toString());
     }
 
@@ -117,6 +117,12 @@ public final class DirectStoreAccumulator implements MeasurementRecorder, Closea
         return info.toString();
     }
 
+    @Override
+    public String toString() {
+        return "DirectStoreAccumulator{" + "info=" + info + ", measurementStore=" + measurementStore
+                + ", tableId=" + tableId + ", lastRecordedTS=" + lastRecordedTS + ", lastRecordedValue="
+                + lastRecordedValue + '}';
+    }
 
 
 }

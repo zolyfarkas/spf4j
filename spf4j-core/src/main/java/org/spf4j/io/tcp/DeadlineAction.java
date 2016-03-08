@@ -38,4 +38,8 @@ public final class DeadlineAction {
         }
     };
 
+    @Override
+    public String toString() {
+        return "DeadlineAction{" + "deadline=" + deadline + ", action=" + action + '}';
+    }
 }

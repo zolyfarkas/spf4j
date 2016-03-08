@@ -68,6 +68,7 @@ public final class SntpClient {
      * @throws IOException
      * @throws InterruptedException
      */
+    @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION") //findbugs nonsense
     public static Timing requestTimeHA(final int timeoutMillis, final int ntpResponseTimeout, final String ... hosts)
             throws IOException, InterruptedException {
         return Callables.executeWithRetry(new Callables.TimeoutCallable<Timing, IOException>(timeoutMillis) {
@@ -75,7 +76,7 @@ public final class SntpClient {
             private int i = 0;
 
             @Override
-            @SuppressFBWarnings// findbugs is wrong ("BED_BOGUS_EXCEPTION_DECLARATION")
+            @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION") //findbugs nonsense
             public Timing call(final long deadline) throws IOException {
                 int hostIdx = Math.abs(i++) % hosts.length;
                 return requestTime(hosts[hostIdx],

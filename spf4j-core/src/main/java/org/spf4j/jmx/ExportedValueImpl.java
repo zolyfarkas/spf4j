@@ -50,10 +50,10 @@ class ExportedValueImpl implements ExportedValue<Object> {
         this.setMethod = setMethod;
         this.object = object;
         this.valueClass = valueClass;
-        if (valueClass.isPrimitive()
-                || Number.class.isAssignableFrom(valueClass)
-                || valueClass == Boolean.class
-                || valueClass == String.class) {
+        if (valueClass == Boolean.class
+                || valueClass == String.class
+                || valueClass.isPrimitive()
+                || Number.class.isAssignableFrom(valueClass)) {
             this.converter = null;
         } else {
             try {

@@ -2,6 +2,7 @@ package org.spf4j.perf.impl.ms.graphite;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -105,6 +106,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
     }
 
     @Override
+    @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION") // fb nonsense
     public void saveMeasurements(final long tableId,
             final long timeStampMillis, final long... measurements) throws IOException {
 
@@ -136,7 +138,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         try {
             datagramChannelSupplier.dispose();
         } catch (ObjectDisposeException | InterruptedException ex) {

@@ -95,7 +95,7 @@ public final class ScalableMeasurementRecorderSource implements
         final AbstractRunnable runnable = new AbstractRunnable(true) {
 
             @Override
-            public void doRun() throws Exception {
+            public void doRun() {
                 close();
             }
         };
@@ -287,5 +287,14 @@ public final class ScalableMeasurementRecorderSource implements
         }
     }
 
+    @Override
+    public String toString() {
+        return "ScalableMeasurementRecorderSource{" + "measurementProcessorMap=" + measurementProcessorMap
+                + ", threadLocalMeasurementProcessorMap=" + threadLocalMeasurementProcessorMap
+                + ", samplingFuture=" + samplingFuture + ", processorTemplate=" + processorTemplate
+                + ", tableIds=" + tableIds + ", persister=" + persister + ", shutdownHook=" + shutdownHook + '}';
+    }
+
+    
 
 }

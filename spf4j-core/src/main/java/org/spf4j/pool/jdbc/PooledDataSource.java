@@ -101,9 +101,13 @@ public final class PooledDataSource implements DataSource {
 
     @Override
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new SQLFeatureNotSupportedException();
     }
 
+    @Override
+    public String toString() {
+        return "PooledDataSource{" + "pool=" + pool + '}';
+    }
 
 
 }

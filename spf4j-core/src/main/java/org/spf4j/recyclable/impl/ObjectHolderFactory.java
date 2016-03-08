@@ -35,22 +35,22 @@ public final class ObjectHolderFactory<T> implements RecyclingSupplier.Factory<O
 
     public ObjectHolderFactory(final int precreateNumber, final RecyclingSupplier.Factory<T> factory)
             throws ObjectCreationException {
-        objects = new LinkedList<ObjectHolder<T>>();
+        objects = new LinkedList<>();
         this.factory = factory;
         for (int i = 0; i < precreateNumber; i++) {
-            objects.add(new ObjectHolder<T>(factory, false));
+            objects.add(new ObjectHolder<>(factory, false));
         }
     }
 
     public ObjectHolderFactory(final RecyclingSupplier.Factory<T> factory) {
-        objects = new LinkedList<ObjectHolder<T>>();
+        objects = new LinkedList<>();
         this.factory = factory;
     }
 
     @Override
     public ObjectHolder<T> create() throws ObjectCreationException {
         if (objects.isEmpty()) {
-            return new ObjectHolder<T>(factory);
+            return new ObjectHolder<>(factory);
         } else {
             return objects.remove();
         }
@@ -67,5 +67,11 @@ public final class ObjectHolderFactory<T> implements RecyclingSupplier.Factory<O
     public boolean validate(final ObjectHolder<T> object, final Exception e) {
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "ObjectHolderFactory{" + "objects=" + objects + ", factory=" + factory + '}';
+    }
+
 
 }

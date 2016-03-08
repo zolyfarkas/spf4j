@@ -274,7 +274,7 @@ public final class Reflections {
             = new UnboundedRacyLoadingCache<>(64,
                     new CacheLoader<MethodDesc, Method>() {
                         @Override
-                        public Method load(final MethodDesc k) throws Exception {
+                        public Method load(final MethodDesc k) {
                             final Method m = getCompatibleMethod(k.getClasz(), k.getName(), k.getParamTypes());
                             AccessController.doPrivileged(new PrivilegedAction() {
                                 @Override

@@ -108,7 +108,7 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
     }
 
     @Override
-    public void run(final SelectionKey skey) throws IOException {
+    public void run(final SelectionKey skey) {
         throw new UnsupportedOperationException();
     }
 
@@ -238,6 +238,12 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
                 throw new IOException("Error while writing to " + channel, ex);
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return "ProxyBufferTransferHandler{" + "channel=" + channel + ", selector=" + selector
+                + ", connected=" + connected + ", in=" + in + ", out=" + out + '}';
     }
 
 }

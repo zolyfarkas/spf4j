@@ -74,4 +74,12 @@ public final class DirectStoreMultiAccumulator implements MultiMeasurementRecord
         Registry.unregister("org.spf4j.perf.recorders", info.getMeasuredEntity().toString());
     }
 
+    @Override
+    public String toString() {
+        return "DirectStoreMultiAccumulator{" + "info=" + info + ", measurementStore=" + measurementStore
+                + ", tableId=" + tableId + ", lastRecorded=" + java.util.Arrays.toString(lastRecorded) + '}';
+    }
+
+
+
 }

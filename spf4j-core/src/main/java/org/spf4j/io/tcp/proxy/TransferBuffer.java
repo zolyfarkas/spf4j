@@ -67,7 +67,7 @@ public final class TransferBuffer {
             channel.socket().shutdownOutput();
             return nrWritten;
         }
-        if (buffer.position() > 0 && !isEof) {
+        if (!isEof && buffer.position() > 0) {
            isRoomInBufferHook.run();
         }
         if (hasRemaining) {

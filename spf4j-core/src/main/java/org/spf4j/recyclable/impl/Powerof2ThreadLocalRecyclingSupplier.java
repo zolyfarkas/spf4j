@@ -85,4 +85,9 @@ public final class Powerof2ThreadLocalRecyclingSupplier<T> implements SizedRecyc
         refs.addLast(refType.create(object));
     }
 
+    @Override
+    public String toString() {
+        return "Powerof2ThreadLocalRecyclingSupplier{" + "factory=" + factory + ", refType=" + refType + '}';
+    }
+
 }

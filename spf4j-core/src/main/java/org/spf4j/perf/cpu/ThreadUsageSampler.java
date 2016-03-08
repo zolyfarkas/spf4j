@@ -1,7 +1,6 @@
 package org.spf4j.perf.cpu;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
@@ -38,7 +37,7 @@ public final class ThreadUsageSampler {
     private static final List<StackTraceElement[]> PEAK_THREAD_TRACES = new ArrayList<>();
     private static final BitSet PEAK_THREAD_DAEMON = new BitSet();
 
-    public static void writePeakThreadInfo(final PrintStream out) throws IOException {
+    public static void writePeakThreadInfo(final PrintStream out) {
         out.println("Peak Threads:");
         int i = 0;
         boolean haveStacktraces = PEAK_THREAD_TRACES.size() > 0;
@@ -57,14 +56,12 @@ public final class ThreadUsageSampler {
     }
 
     @JmxExport
-    @SuppressFBWarnings("DM_DEFAULT_ENCODING")
+    @SuppressFBWarnings({ "DM_DEFAULT_ENCODING", "NP_LOAD_OF_KNOWN_NULL_VALUE" })
     public static String getPeakThreadInfo() {
         try (ByteArrayBuilder bab = new ByteArrayBuilder()) {
             PrintStream ps = new PrintStream(bab);
             writePeakThreadInfo(ps);
             return bab.toString(Charset.defaultCharset());
-        } catch (IOException ex) {
-           throw new RuntimeException(ex);
         }
     }
 
@@ -97,7 +94,7 @@ public final class ThreadUsageSampler {
     static {
         org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
             @Override
-            public void doRun() throws Exception {
+            public void doRun() {
                 stop();
                 writePeakThreadInfo(System.err);
             }
@@ -122,7 +119,7 @@ public final class ThreadUsageSampler {
                 private int maxThreadsNr = 0;
 
                 @Override
-                public void doRun() throws Exception {
+                public void doRun() {
                     final int peakThreadCount = TH_BEAN.getPeakThreadCount();
                     cpuUsage.record(peakThreadCount);
                     if (peakThreadCount > maxThreadsNr) {

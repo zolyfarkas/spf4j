@@ -2,6 +2,7 @@ package org.spf4j.perf.impl.ms.graphite;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -96,7 +97,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
     public GraphiteTcpStore(final String hostName, final int port, final SocketFactory socketFactory)
             throws ObjectCreationException {
         address = new InetSocketAddress(hostName, port);
-        socketWriterSupplier = new RecyclingSupplierBuilder<Writer>(1,
+        socketWriterSupplier = new RecyclingSupplierBuilder<>(1,
                 new WriterSupplierFactory(socketFactory, hostName, port)).build();
     }
 
@@ -106,6 +107,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
     }
 
     @Override
+    @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION") // fb nonsense
     public void saveMeasurements(final long tableId,
             final long timeStampMillis, final long... measurements) throws IOException {
         try {
@@ -123,12 +125,10 @@ public final class GraphiteTcpStore implements MeasurementStore {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         try {
             socketWriterSupplier.dispose();
-        } catch (ObjectDisposeException ex) {
-            throw new RuntimeException(ex);
-        } catch (InterruptedException ex) {
+        } catch (ObjectDisposeException | InterruptedException ex) {
             throw new RuntimeException(ex);
         }
     }

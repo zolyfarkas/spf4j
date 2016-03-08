@@ -380,7 +380,7 @@ public final class SampleNode implements Serializable {
         if (this.subNodes == other.subNodes) {
             return true;
         }
-        if (this.subNodes != null && this.subNodes.isEmpty() && other.subNodes == null) {
+        if (this.subNodes != null && other.subNodes == null && this.subNodes.isEmpty()) {
             return true;
         }
         if (this.subNodes == null && other.subNodes != null && other.subNodes.isEmpty()) {

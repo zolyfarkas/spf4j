@@ -21,6 +21,7 @@ package org.spf4j.jmx;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import javax.management.MBeanParameterInfo;
 import org.spf4j.base.Reflections;
@@ -99,6 +100,12 @@ final class ExportedOperationImpl implements ExportedOperation {
     @Override
     public Class<?> getReturnType() {
         return method.getReturnType();
+    }
+
+    @Override
+    public String toString() {
+        return "ExportedOperationImpl{" + "name=" + name + ", description=" + description
+                + ", method=" + method + ", object=" + object + ", paramInfos=" + Arrays.toString(paramInfos) + '}';
     }
 
 }

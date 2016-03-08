@@ -408,7 +408,7 @@ public final class Runtime {
         ScheduledFuture<?> schedule = DefaultScheduler.INSTANCE.schedule(new AbstractRunnable(false) {
 
             @Override
-            public void doRun() throws Exception {
+            public void doRun() {
                 timedOut.set(true);
                 killProcess(proc);
             }

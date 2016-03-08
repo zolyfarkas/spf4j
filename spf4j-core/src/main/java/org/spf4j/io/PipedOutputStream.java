@@ -340,7 +340,7 @@ public final class PipedOutputStream extends OutputStream {
                 }
 
                 @Override
-                public int available() throws IOException {
+                public int available() {
                     synchronized (sync) {
                         return availableToRead();
                     }

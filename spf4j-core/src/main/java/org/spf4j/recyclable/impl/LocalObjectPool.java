@@ -31,7 +31,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.spf4j.base.Either;
 import org.spf4j.recyclable.ObjectBorower;
 import org.spf4j.recyclable.ObjectCreationException;
-import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.recyclable.SmartRecyclingSupplier;
 
@@ -105,7 +104,7 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
     }
 
     @Override
-    public void dispose() throws ObjectDisposeException {
+    public void dispose() {
         throw new UnsupportedOperationException("LocalPool dispose is not supported");
     }
 

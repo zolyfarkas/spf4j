@@ -51,13 +51,10 @@ public final class TSDBMeasurementStore
     @Override
     public long alocateMeasurements(final MeasurementsInfo measurement,
                                     final int sampleTimeMillis) throws IOException {
-        String tableName = measurement.getMeasuredEntity().toString();
-        TableDef td = new TableDef();
-        td.name = tableName;
-        td.sampleTime = sampleTimeMillis;
-        td.description = "";
-        td.id = -1;
-
+        TableDef td = TableDef.newBuilder()
+                .setName(measurement.getMeasuredEntity().toString())
+                .setSampleTime(sampleTimeMillis)
+                .setId(-1).build();
         int numberOfMeasurements = measurement.getNumberOfMeasurements();
         List<ColumnDef> columns = new ArrayList<>(numberOfMeasurements);
         for (int i = 0; i < numberOfMeasurements; i++) {

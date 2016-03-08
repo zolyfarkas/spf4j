@@ -197,15 +197,15 @@ public final class Registry {
         method.setAccessible(true); // this is to speed up invocation
         String methodName = method.getName();
         int nrParams = method.getParameterTypes().length;
-        if (methodName.startsWith("get") && nrParams == 0) {
+        if (nrParams == 0 && methodName.startsWith("get")) {
             String valueName = methodName.substring("get".length());
             valueName = Strings.withFirstCharLower(valueName);
             addGetter(valueName, exportedAttributes, annot, method, object);
-        } else if (methodName.startsWith("is") && nrParams == 0) {
+        } else if (nrParams == 0 && methodName.startsWith("is")) {
             String valueName = methodName.substring("is".length());
             valueName = Strings.withFirstCharLower(valueName);
             addGetter(valueName, exportedAttributes, annot, method, object);
-        } else if (methodName.startsWith("set") && nrParams == 1) {
+        } else if (nrParams == 1 && methodName.startsWith("set")) {
             addSetter(methodName, exportedAttributes, method, object, annot);
         } else {
             String opName = methodName;

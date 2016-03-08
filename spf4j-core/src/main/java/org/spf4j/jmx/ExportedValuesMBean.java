@@ -30,13 +30,11 @@ import javax.management.DynamicMBean;
 import javax.management.ImmutableDescriptor;
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanException;
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
-import javax.management.ReflectionException;
 import javax.management.openmbean.OpenType;
 import org.spf4j.base.Reflections;
 
@@ -107,7 +105,7 @@ public final class ExportedValuesMBean implements DynamicMBean {
     /** {@inheritDoc} */
     @Override
     public void setAttribute(final Attribute attribute)
-            throws InvalidAttributeValueException, MBeanException, AttributeNotFoundException {
+            throws  AttributeNotFoundException, InvalidAttributeValueException {
         String name = attribute.getName();
         ExportedValue<Object> result = (ExportedValue<Object>) exportedValues.get(name);
         if (result == null) {
@@ -146,8 +144,7 @@ public final class ExportedValuesMBean implements DynamicMBean {
 
     /** {@inheritDoc} */
     @Override
-    public Object invoke(final String name, final Object[] args, final String[] sig)
-            throws MBeanException, ReflectionException {
+    public Object invoke(final String name, final Object[] args, final String[] sig) {
         return exportedOperations.get(name).invoke(args);
     }
 
@@ -219,5 +216,13 @@ public final class ExportedValuesMBean implements DynamicMBean {
 
 
     }
+
+    @Override
+    public String toString() {
+        return "ExportedValuesMBean{" + "exportedValues=" + exportedValues + ", exportedOperations="
+                + exportedOperations + ", objectName=" + objectName + ", beanInfo=" + beanInfo + '}';
+    }
+
+
 
 }

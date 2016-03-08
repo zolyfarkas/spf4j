@@ -500,4 +500,12 @@ public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializab
         }
     }
 
+    @Override
+    public String toString() {
+        return "UpdateablePriorityQueue{" + "queue=" + Arrays.toString(queue) + ", size=" + size + ", comparator="
+                + comparator + ", modCount=" + modCount + '}';
+    }
+
+
+
 }

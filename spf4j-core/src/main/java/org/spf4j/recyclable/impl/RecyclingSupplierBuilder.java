@@ -94,12 +94,12 @@ public final class RecyclingSupplierBuilder<T> {
         return pool;
     }
 
-    public static final class AbstractRunnableImpl<T> extends AbstractRunnable {
+     static final class AbstractRunnableImpl<T> extends AbstractRunnable {
 
         private final ScalableObjectPool<T> underlyingPool;
         private final boolean collectBorrowed;
 
-        public AbstractRunnableImpl(final ScalableObjectPool<T> underlyingPool, final boolean collectBorrowed) {
+        AbstractRunnableImpl(final ScalableObjectPool<T> underlyingPool, final boolean collectBorrowed) {
             super(true);
             this.underlyingPool = underlyingPool;
             this.collectBorrowed = collectBorrowed;
@@ -120,4 +120,15 @@ public final class RecyclingSupplierBuilder<T> {
            
         }
     }
+
+    @Override
+    public String toString() {
+        return "RecyclingSupplierBuilder{" + "maxSize=" + maxSize + ", factory=" + factory + ", fair="
+                + fair + ", maintenanceExecutor=" + maintenanceExecutor + ", maintenanceIntervalMillis="
+                + maintenanceIntervalMillis + ", borrowHook=" + borrowHook + ", returnHook=" + returnHook
+                + ", initialSize=" + initialSize + ", collectBorrowed=" + collectBorrowed + '}';
+    }
+
+
+
 }

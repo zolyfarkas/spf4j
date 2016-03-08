@@ -101,4 +101,13 @@ public final class ProxyClientHandler implements ClientHandler {
         }
     }
 
+    @Override
+    public String toString() {
+        return "ProxyClientHandler{" + "fwdDestination=" + fwdDestination + ", proxyBufferSize="
+                + proxyBufferSize + ", connectTimeoutMillis=" + connectTimeoutMillis + ", c2sSnifferFact="
+                + c2sSnifferFact + ", s2cSnifferFact=" + s2cSnifferFact + '}';
+    }
+
+
+
 }

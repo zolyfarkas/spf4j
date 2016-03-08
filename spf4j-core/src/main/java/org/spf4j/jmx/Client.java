@@ -75,7 +75,7 @@ public final class Client {
             @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String operationName,
             final Object ... parameters)
             throws IOException, InstanceNotFoundException,
-            MBeanException, AttributeNotFoundException, ReflectionException {
+            MBeanException, ReflectionException {
         JMXServiceURL url = new JMXServiceURL(serviceUrl);
         try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {
             MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();

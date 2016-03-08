@@ -21,11 +21,13 @@ import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import java.io.IOException;
 import java.io.OutputStream;
 import javax.annotation.WillClose;
+import org.spf4j.base.Base64;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
 /**
- * Better that the JDK outpustream, no exception swallowing...
+ * Better that the JDK outputstream, no exception swallowing...
+ * and ability to recycle underlying byte array.
  * @author zoly
  */
 @CleanupObligation
@@ -113,5 +115,14 @@ public final class BufferedOutputStream extends OutputStream {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        return "BufferedOutputStream{" + "buf=" + (buf != null ? Base64.encodeBase64(buf) : "null")
+                + ", length=" + length + ", os=" + os + ", bufferProvider="
+                + bufferProvider + ", count=" + count + '}';
+    }
+
+
 
 }

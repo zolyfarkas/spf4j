@@ -371,7 +371,7 @@ public final class Callables {
 
         @Override
         @SuppressFBWarnings("MDM_THREAD_YIELD")
-        public Action apply(final T value, final long deadline) throws InterruptedException, TimeoutException {
+        public Action apply(final T value, final long deadline) throws InterruptedException {
             int apply = predicate.apply(value, deadline);
             if (apply < 0) {
                 return Action.ABORT;

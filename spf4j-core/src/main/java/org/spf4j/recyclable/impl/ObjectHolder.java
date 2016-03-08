@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 @ParametersAreNonnullByDefault
 @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
-final class ObjectHolder<T> {
+public final class ObjectHolder<T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ObjectHolder.class);
     private T obj;

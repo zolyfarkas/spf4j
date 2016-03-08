@@ -59,7 +59,7 @@ import org.spf4j.jmx.Registry;
     static {
         org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
             @Override
-            public void doRun() throws Exception {
+            public void doRun() {
                 stop();
             }
         });

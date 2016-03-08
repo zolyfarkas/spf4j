@@ -56,8 +56,7 @@ public class SerializablePair<A extends Serializable, B extends Serializable>
         private Serializable first;
         private Serializable second;
 
-        private Object readResolve()
-                throws java.io.ObjectStreamException {
+        private Object readResolve() {
             return SerializablePair.of(first, second);
         }
 

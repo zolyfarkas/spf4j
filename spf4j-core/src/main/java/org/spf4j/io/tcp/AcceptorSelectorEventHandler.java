@@ -76,4 +76,13 @@ public final class AcceptorSelectorEventHandler extends SelectorEventHandler {
         return serverChannel.register(selector, SelectionKey.OP_ACCEPT, this);
     }
 
+    @Override
+    public String toString() {
+        return "AcceptorSelectorEventHandler{" + "clientHandler=" + clientHandler + ", serverChannel="
+                + serverChannel + ", selector=" + selector + ", exec=" + exec + ", tasksToRunBySelector="
+                + tasksToRunBySelector + ", deadlineActions=" + deadlineActions + '}';
+    }
+
+
+
 }

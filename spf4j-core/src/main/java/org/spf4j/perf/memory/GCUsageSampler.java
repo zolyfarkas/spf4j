@@ -50,7 +50,7 @@ public final class GCUsageSampler {
     static {
         org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
             @Override
-            public void doRun() throws Exception {
+            public void doRun() {
                 stop();
             }
         });
@@ -67,7 +67,7 @@ public final class GCUsageSampler {
                 private final TObjectLongMap lastValues = new TObjectLongHashMap();
 
                 @Override
-                public void doRun() throws Exception {
+                public void doRun() {
                     synchronized (lastValues) {
                         gcUsage.record(getGCTimeDiff(MBEANS, lastValues));
                     }

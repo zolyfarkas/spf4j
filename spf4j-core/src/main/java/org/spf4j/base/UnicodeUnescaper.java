@@ -28,7 +28,7 @@ public final class UnicodeUnescaper extends CharSequenceTranslator {
     @Override
     public int translate(final CharSequence input, final int index, final Writer out) throws IOException {
         final int length = input.length();
-        if (input.charAt(index) == '\\' && index + 1 < length && input.charAt(index + 1) == 'u') {
+        if (index + 1 < length &&  input.charAt(index) == '\\' && input.charAt(index + 1) == 'u') {
             // consume optional additional 'u' chars
             int i = 2;
             while (index + i < length && input.charAt(index + i) == 'u') {

@@ -54,7 +54,7 @@ public enum StoreType {
     }),
     GRAPHITE_UDP(new StoreFactory() {
         @Override
-        public MeasurementStore create(final String config) throws IOException, ObjectCreationException {
+        public MeasurementStore create(final String config) throws ObjectCreationException {
             try {
                 return new GraphiteUdpStore(config);
             } catch (URISyntaxException ex) {
@@ -64,7 +64,7 @@ public enum StoreType {
     }),
     GRAPHITE_TCP(new StoreFactory() {
         @Override
-        public MeasurementStore create(final String config) throws IOException, ObjectCreationException {
+        public MeasurementStore create(final String config) throws ObjectCreationException {
             try {
                 return new GraphiteTcpStore(config);
             } catch (URISyntaxException ex) {
@@ -75,7 +75,7 @@ public enum StoreType {
     NOP_STORE(new StoreFactory() {
 
         @Override
-        public MeasurementStore create(final String config) throws IOException, ObjectCreationException {
+        public MeasurementStore create(final String config) {
             return new NopMeasurementStore();
         }
     });

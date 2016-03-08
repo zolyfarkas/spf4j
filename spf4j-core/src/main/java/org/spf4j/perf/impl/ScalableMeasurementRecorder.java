@@ -88,7 +88,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
         final AbstractRunnable runnable = new AbstractRunnable(true) {
 
             @Override
-            public void doRun() throws Exception {
+            public void doRun() {
                 close();
             }
         };

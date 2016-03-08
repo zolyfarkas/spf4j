@@ -93,4 +93,9 @@ public final class SizedThreadLocalRecyclingSupplier<T> implements SizedRecyclin
         refs.add(refType.create(object));
     }
 
+    @Override
+    public String toString() {
+        return "SizedThreadLocalRecyclingSupplier{" + "factory=" + factory + ", refType=" + refType + '}';
+    }
+
 }

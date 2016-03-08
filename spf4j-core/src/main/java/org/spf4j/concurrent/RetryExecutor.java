@@ -170,7 +170,7 @@ public class RetryExecutor {
             this(new Callable() {
 
                 @Override
-                public Object call() throws Exception {
+                public Object call() {
                     task.run();
                     return result;
                 }
@@ -368,5 +368,17 @@ public class RetryExecutor {
          resultRetryPredicateSupplier.get((Callable<?>) command),
                 exceptionRetryPredicateSupplier.get((Callable<?>) command)));
     }
+
+    @Override
+    public final String toString() {
+        return "RetryExecutor{" + "executionService=" + executionService + ", executionEvents="
+                + executionEvents + ", resultRetryPredicateSupplier=" + resultRetryPredicateSupplier
+                + ", exceptionRetryPredicateSupplier=" + exceptionRetryPredicateSupplier + ", retryManager="
+                + retryManager + ", retryManagerFuture=" + retryManagerFuture + ", completionQueue="
+                + completionQueue + ", sync=" + sync + '}';
+    }
+
+
+
 
 }

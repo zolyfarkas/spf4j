@@ -36,14 +36,13 @@ import org.spf4j.perf.MeasurementRecorderSource;
 public final class MeasuredFileInputStream extends FileInputStream {
 
     private final Class<?> from;
+    private final File file;
     private final MeasurementRecorderSource recorderSource;
 
     public MeasuredFileInputStream(final String name, final Class<?> from,
             final MeasurementRecorderSource recorderSource)
             throws FileNotFoundException {
-        super(name);
-        this.from = from;
-        this.recorderSource = recorderSource;
+        this(new File(name), from, recorderSource);
     }
 
     public MeasuredFileInputStream(final File file, final Class<?> from, final MeasurementRecorderSource recorderSource)
@@ -51,6 +50,7 @@ public final class MeasuredFileInputStream extends FileInputStream {
         super(file);
         this.from = from;
         this.recorderSource = recorderSource;
+        this.file = file;
     }
 
     public MeasuredFileInputStream(final FileDescriptor fdObj, final Class<?> from,
@@ -58,6 +58,7 @@ public final class MeasuredFileInputStream extends FileInputStream {
         super(fdObj);
         this.from = from;
         this.recorderSource = recorderSource;
+        this.file = null;
     }
 
     @Override
@@ -82,4 +83,11 @@ public final class MeasuredFileInputStream extends FileInputStream {
         }
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "MeasuredFileInputStream{" + "from=" + from + ", file=" + file + ", recorderSource="
+                + recorderSource + '}';
+    }
+
 }

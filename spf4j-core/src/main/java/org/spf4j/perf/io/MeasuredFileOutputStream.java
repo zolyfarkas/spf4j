@@ -37,26 +37,21 @@ public final class MeasuredFileOutputStream extends FileOutputStream {
 
     private final Class<?> from;
     private final MeasurementRecorderSource recorderSource;
+    private final File file;
 
     public MeasuredFileOutputStream(final String name, final Class<?> from,
             final MeasurementRecorderSource recorderSource) throws FileNotFoundException {
-        super(name);
-        this.from = from;
-        this.recorderSource = recorderSource;
+        this(new File(name), from, recorderSource);
     }
 
     public MeasuredFileOutputStream(final String name, final boolean append,
             final Class<?> from, final MeasurementRecorderSource recorderSource) throws FileNotFoundException {
-        super(name, append);
-        this.from = from;
-        this.recorderSource = recorderSource;
+        this(new File(name), append, from, recorderSource);
     }
 
     public MeasuredFileOutputStream(final File file, final Class<?> from,
             final MeasurementRecorderSource recorderSource) throws FileNotFoundException {
-        super(file);
-        this.from = from;
-        this.recorderSource = recorderSource;
+        this(file, false, from, recorderSource);
     }
 
     public MeasuredFileOutputStream(final File file, final boolean append, final Class<?> from,
@@ -64,6 +59,7 @@ public final class MeasuredFileOutputStream extends FileOutputStream {
         super(file, append);
         this.from = from;
         this.recorderSource = recorderSource;
+        this.file = file;
     }
 
     public MeasuredFileOutputStream(final FileDescriptor fdObj, final Class<?> from,
@@ -71,6 +67,7 @@ public final class MeasuredFileOutputStream extends FileOutputStream {
         super(fdObj);
         this.from = from;
         this.recorderSource = recorderSource;
+        this.file = null;
     }
 
     @Override
@@ -90,4 +87,13 @@ public final class MeasuredFileOutputStream extends FileOutputStream {
         super.write(b, off, len);
         recorderSource.getRecorder(from).record(len);
     }
+
+    @Override
+    public String toString() {
+        return "MeasuredFileOutputStream{" + "from=" + from + ", recorderSource=" + recorderSource
+                + ", file=" + file + '}';
+    }
+
+
+
 }

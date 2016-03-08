@@ -47,7 +47,7 @@ public final class CpuUsageSampler {
         if (OS_MBEAN != null) {
             org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
                 @Override
-                public void doRun() throws Exception {
+                public void doRun() {
                     stop();
                 }
             });
@@ -64,7 +64,7 @@ public final class CpuUsageSampler {
                 private long lastValue = 0;
 
                 @Override
-                public void doRun() throws Exception {
+                public void doRun() {
                      long currTime = OS_MBEAN.getProcessCpuTime();
                      cpuUsage.record(currTime - lastValue);
                      lastValue = currTime;

@@ -92,8 +92,10 @@ public final class MeasuredInputStream  extends InputStream {
         }
         return result;
     }
-    
-    
-    
-    
+
+    @Override
+    public String toString() {
+        return "MeasuredInputStream{" + "is=" + is + ", from=" + from + ", recorderSource=" + recorderSource + '}';
+    }
+       
 }

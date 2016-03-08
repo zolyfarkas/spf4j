@@ -175,4 +175,9 @@ public final class UnboundedRacyLoadingCache<K, V> implements LoadingCache<K, V>
         map.clear();
     }
 
+    @Override
+    public String toString() {
+        return "UnboundedRacyLoadingCache{" + "map=" + map + ", loader=" + loader + '}';
+    }
+
 }

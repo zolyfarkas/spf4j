@@ -69,5 +69,10 @@ public final class MeasuredOutputStream extends OutputStream {
     public void close() throws IOException {
         os.close();
     }
-  
+
+    @Override
+    public String toString() {
+        return "MeasuredOutputStream{" + "os=" + os + ", from=" + from + ", recorderSource=" + recorderSource + '}';
+    }
+
 }

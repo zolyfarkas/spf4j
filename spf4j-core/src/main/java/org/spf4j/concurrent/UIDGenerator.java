@@ -62,6 +62,7 @@ public final class UIDGenerator {
      * @param sequence
      * @param baseEncoding - if null MAC address based ID will not be included.
      */
+    @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
     public UIDGenerator(final Sequence sequence, @Nullable final BaseEncoding baseEncoding,
             final long customEpoch, final char separator, final String prefix) {
         this.sequence = sequence;

@@ -54,7 +54,7 @@ public final class Template<T, E extends Exception> {
             @Override
             // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
             public Void call(final long deadline)
-                    throws ObjectReturnException, ObjectCreationException,
+                    throws ObjectCreationException,
                     ObjectBorrowException, InterruptedException, TimeoutException, E {
                 Template.doOnSupplied(handler, pool, deadline);
                 return null;
@@ -66,8 +66,7 @@ public final class Template<T, E extends Exception> {
     @SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
     private static <T, E extends Exception> void doOnSupplied(final Handler<T, E> handler,
             final RecyclingSupplier<T> pool, final long deadline)
-            throws ObjectReturnException, ObjectCreationException,
-            ObjectBorrowException, InterruptedException, TimeoutException, E {
+            throws  E, ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
         T object = pool.get();
         try {
             handler.handle(object, deadline);
