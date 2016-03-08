@@ -129,4 +129,10 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        return "JmhFlightRecorderProfiler{" + "dumpFile=" + dumpFile + '}';
+    }
+
 }
