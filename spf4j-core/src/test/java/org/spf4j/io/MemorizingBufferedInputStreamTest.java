@@ -40,6 +40,23 @@ public class MemorizingBufferedInputStreamTest {
         Assert.assertEquals(i, array.length);
     }
 
+    @Test
+    public void testStreamCLose() throws IOException {
+        final byte[] array = Strings.toUtf8(TSTR);
+        ByteArrayInputStream bis = new ByteArrayInputStream(array);
+        MemorizingBufferedInputStream mis = new MemorizingBufferedInputStream(bis, 8);
+
+        for (int i = 0; i < 6; i++)  {
+            int val = mis.read();
+            System.out.print((char) val);
+            Assert.assertEquals(array[i], (byte) val);
+        }
+        System.out.println(mis);
+        mis.close();
+        System.out.println(mis);
+    }
+
+
 
     @Test
     public void testStreamBuffering() throws IOException {
