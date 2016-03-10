@@ -18,6 +18,13 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  * Why another buffered input stream?
  * Main use case if for troubleshooting.
  * Allows you to get more detail on where your stream processing failed.
+ *
+ * Implementation is a circular byte buffer, where you have 2 sizes to control the behavior:
+ *
+ * buffer size - the total sie of the buffer.
+ * read size - the maximum number of read bytes kept in the buffer.
+ *
+ *
  * @author zoly
  */
 @ParametersAreNonnullByDefault
@@ -48,6 +55,10 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         this(in, 16384, 8192, ArraySuppliers.Bytes.GL_SUPPLIER, Charsets.UTF_8);
     }
 
+    public MemorizingBufferedInputStream(final InputStream in, final int size) {
+        this(in, size, size / 2, ArraySuppliers.Bytes.GL_SUPPLIER, Charsets.UTF_8);
+    }
+
     public MemorizingBufferedInputStream(final InputStream in, final Charset charset) {
         this(in, 16384, 8192, ArraySuppliers.Bytes.GL_SUPPLIER, charset);
     }
@@ -59,6 +70,9 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         super(in);
         if (readSize > size) {
             throw new IllegalArgumentException("Read size " + readSize + " cannot be greater than " + size);
+        }
+        if (size < 2) {
+            throw new IllegalArgumentException("Buffer size " + size + " cannot be smaler than 2");
         }
         memory = bufferProvider.get(size);
         this.bufferProvider = bufferProvider;
@@ -253,11 +267,15 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
 
     @Override
     public synchronized String toString() {
-        StringBuilder result = new StringBuilder((availableToRead() + availableInMemory()) * 2 + 128);
-
+        StringBuilder result;
+        if (isClosed) {
+           result = new StringBuilder(64);
+        } else {
+           result = new StringBuilder((availableToRead() + availableInMemory()) * 2 + 128);
+        }
         result.append("MemorizingBufferedInputStream{\n");
         if (isClosed) {
-            result.append("closed");
+            result.append("closed=true\n");
         } else if (charset == null) {
             final BaseEncoding base64 = BaseEncoding.base64();
             result.append("readBytes=\"").append(base64.encode(getReadBytesFromBuffer())).append("\",\n");
