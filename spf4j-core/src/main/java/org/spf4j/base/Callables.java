@@ -107,6 +107,16 @@ public final class Callables {
     /**
      * After the immediate retries are done,
      * delayed retry with randomized Fibonacci values up to the specified max is executed.
+     * @param <T> - the type returned by the Callable that is retried.
+     * @param <EX> - the Exception thrown by the retried callable.
+     * @param what - the callable to retry.
+     * @param nrImmediateRetries - the number of immediate retries.
+     * @param maxWaitMillis - maximum wait time in between retries.
+     * @param retryOnReturnVal - predicate to control retry on return value;
+     * @param retryOnException - predicate to retry on thrown exception.
+     * @return the result of the callable.
+     * @throws java.lang.InterruptedException - thrown if interrupted.
+     * @throws EX - the exception declared to be thrown by the callable.
      */
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
             final int nrImmediateRetries, final int maxWaitMillis,
@@ -445,15 +455,15 @@ public final class Callables {
 
     /**
      * A callable that will be retried.
-     * @param <T>
-     * @param <EX>
+     * @param <T> - The type returned by  Callable.
+     * @param <EX> - The type of exception thrown by call.
      */
     public abstract static class CheckedCallable<T, EX extends Exception> implements RetryCallable<T, EX> {
 
         /**
          * method to process result (after all retries exhausted).
-         * @param lastRet
-         * @return
+         * @param lastRet - the last return.
+         * @return - the value being returned.
          */
         //design for extension here is not quite right. This case is a case of a "default implementation"
         //CHECKSTYLE:OFF
@@ -462,14 +472,9 @@ public final class Callables {
             return lastRet;
         }
 
-        /**
-         * method to press the exception after all retries exhausted.
-         * @param ex
-         * @return
-         */
         @Override
-        public <T extends Exception> T lastException(final T ex) {
-            return ex;
+        public <EXX extends Exception> EXX lastException(EXX ex) throws EXX {   
+            throw ex;
         }
         //CHECKSTYLE:ON
 
@@ -483,8 +488,8 @@ public final class Callables {
 
     /**
      * A callable that will be retried.
-     * @param <T>
-     * @param <EX>
+     * @param <T> - the type of the object returned by this callable.
+     * @param <EX> - the exception type returned by this callable.
      */
     public interface RetryCallable<T, EX extends Exception> extends Callable<T> {
 
@@ -493,6 +498,7 @@ public final class Callables {
          * @return
          * @throws EX
          * @throws InterruptedException
+         * @throws java.util.concurrent.TimeoutException
          */
         @Override
         T call() throws EX, InterruptedException, TimeoutException;
@@ -506,10 +512,12 @@ public final class Callables {
 
         /**
          * method to press the exception after all retries exhausted.
+         * @param <EXX>
          * @param ex
-         * @return
+         * @return 
+         * @throws EXX
          */
-        <T extends Exception> T lastException(T ex);
+       <EXX extends Exception> EXX lastException(EXX ex) throws EXX;     
 
     }
 
@@ -528,6 +536,14 @@ public final class Callables {
      * thread if the result and exception predicates. before retry, a callable can be executed that can abort the retry
      * and finish the function with the previous result.
      *
+     * @param <T> - The type of callable to retry result;
+     * @param <EX> - the exception thrown by the callable to retry.
+     * @param what - the callable to retry.
+     * @param retryOnReturnVal - the predicate to control retry on return value.
+     * @param retryOnException - the predicate to return on retry value.
+     * @return the result of the retried callable if successful.
+     * @throws java.lang.InterruptedException - thrown if retry interrupted.
+     * @throws EX - the exception thrown by callable.
      */
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST_OF_RETURN_VALUE")
     public static <T, EX extends Exception> T executeWithRetry(

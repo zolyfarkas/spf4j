@@ -34,9 +34,11 @@ public abstract class AbstractRunnable implements Runnable {
     private final String threadName;
 
     /**
-     * If lenient is true, it means that nobody is waiting for this runnable's result(finish)
-     * so To not loose the exception, the runnable will LOG it as an error and not rethrow it
-     * @param lenient
+     * Create runnable lenient or not with a specific thread name during its execution.
+     * 
+     * @param lenient - If lenient is true, it means that nobody is waiting for this runnable's result(finish)
+     * so To not loose the exception, the runnable will LOG it as an error, and not retrow it
+     * @param threadName - the thread name during the execution of this runnable.
      */
     public AbstractRunnable(final boolean lenient, @Nullable final String threadName) {
         this.lenient = lenient;
@@ -44,9 +46,9 @@ public abstract class AbstractRunnable implements Runnable {
     }
 
     /**
-     * If lenient is true, it means that nobody is waiting for this runnable's result(finish)
+     * create runnable.
+     * @param lenient - If lenient is true, it means that nobody is waiting for this runnable's result(finish)
      * so To not loose the exception, the runnable will LOG it as an error, and not retrow it
-     * @param lenient
      */
     public AbstractRunnable(final boolean lenient) {
        this(lenient, null);

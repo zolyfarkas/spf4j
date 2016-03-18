@@ -37,13 +37,11 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.PARAMETER })
 public @interface JmxExport {
     /**
-     * the name of the operation or attribute or parameter.
-     * @return
+     * @return - the name of the operation or attribute or parameter.
      */
      String value() default "";
-     /**
-      * the description of the operation attribute or parameter.
-      * @return
-      */
+    /**
+     * @return - the description of the operation attribute or parameter.
+     */
      String description() default "";
 }

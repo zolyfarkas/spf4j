@@ -137,6 +137,9 @@ public final class Base64 {
     /**
      * @param text base64Binary data is likely to be long, and decoding requires each character to be accessed twice
      * (once for counting length, another for decoding.)
+     * @param from the index of the first character in the sequence.
+     * @param len - the number of characters to decode.
+     * @return - the decoded byte array.
      *
      */
     public static byte[] decodeBase64(final CharSequence text, final int from, final int len) {
@@ -270,10 +273,10 @@ public final class Base64 {
 
     /**
      * Alternate implementation, should be better for large data.
-     * @param input
-     * @param offset
-     * @param len
-     * @return
+     * @param input - the byte array to encode
+     * @param offset - the index of the first byte that is to be encoded.
+     * @param len - the number of bytes to encode.
+     * @return - the encoded String.
      */
     public static String encodeBase64V2(final byte[] input, final int offset, final int len) {
         char[] buf = new char[(((len + 2) / 3) * 4)];
@@ -318,37 +321,42 @@ public final class Base64 {
      *
      * The caller must supply a big enough buffer.
      *
+     * @param input - the byte array to encode.
+     * @param offset - the index of the first byte to encode.
+     * @param len - the number of bytes to encode.
+     * @param output - the destination character array to encode to.
+     * @param cptr - the index of the first character to encode to.
      * @return the value of {@code ptr+((len+2)/3)*4}, which is the new offset in the output buffer where the further
      * bytes should be placed.
      */
     public static int encodeBase64(final byte[] input, final int offset,
-            final int len, final char[] buf, final int cptr) {
+            final int len, final char[] output, final int cptr) {
         int ptr = cptr;
         for (int i = offset; i < len; i += 3) {
             switch (len - i) {
                 case 1:
-                    buf[ptr++] = encode(input[i] >> 2);
-                    buf[ptr++] = encode(((input[i]) & 0x3) << 4);
-                    buf[ptr++] = '=';
-                    buf[ptr++] = '=';
+                    output[ptr++] = encode(input[i] >> 2);
+                    output[ptr++] = encode(((input[i]) & 0x3) << 4);
+                    output[ptr++] = '=';
+                    output[ptr++] = '=';
                     break;
                 case 2:
-                    buf[ptr++] = encode(input[i] >> 2);
-                    buf[ptr++] = encode(
+                    output[ptr++] = encode(input[i] >> 2);
+                    output[ptr++] = encode(
                             ((input[i] & 0x3) << 4)
                             | ((input[i + 1] >> 4) & 0xF));
-                    buf[ptr++] = encode((input[i + 1] & 0xF) << 2);
-                    buf[ptr++] = '=';
+                    output[ptr++] = encode((input[i + 1] & 0xF) << 2);
+                    output[ptr++] = '=';
                     break;
                 default:
-                    buf[ptr++] = encode(input[i] >> 2);
-                    buf[ptr++] = encode(
+                    output[ptr++] = encode(input[i] >> 2);
+                    output[ptr++] = encode(
                             ((input[i] & 0x3) << 4)
                             | ((input[i + 1] >> 4) & 0xF));
-                    buf[ptr++] = encode(
+                    output[ptr++] = encode(
                             ((input[i + 1] & 0xF) << 2)
                             | ((input[i + 2] >> 6) & 0x3));
-                    buf[ptr++] = encode(input[i + 2] & 0x3F);
+                    output[ptr++] = encode(input[i + 2] & 0x3F);
                     break;
             }
         }
@@ -360,6 +368,11 @@ public final class Base64 {
      *
      * The caller must supply a big enough buffer.
      *
+     * @param input - the byte array to encode.
+     * @param offset - the index of the first byte to encode.
+     * @param len - the number of bytes to encode.
+     * @param out - the destination byte array that represents an ASCII string to encode to.
+     * @param cptr - the index of the first byte in the destination array to encode to.
      * @return the value of {@code ptr+((len+2)/3)*4}, which is the new offset in the output buffer where the further
      * bytes should be placed.
      */

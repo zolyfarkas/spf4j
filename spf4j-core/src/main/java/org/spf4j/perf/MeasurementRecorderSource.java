@@ -20,7 +20,7 @@ package org.spf4j.perf;
 import java.io.Closeable;
 
 /**
- *
+ * A factory for measurement recorders.
  * @author zoly
  */
 public interface MeasurementRecorderSource extends Closeable {
@@ -28,8 +28,8 @@ public interface MeasurementRecorderSource extends Closeable {
     /**
      * do not hold onto the returned recorder.
      * the returned recorder should never cross Thread boundaries.
-     * @param forWhat
-     * @return measurement recorder.
+     * @param forWhat - Object to get a recorder for.
+     * @return - measurement recorder.
      */
     MeasurementRecorder getRecorder(Object forWhat);
     

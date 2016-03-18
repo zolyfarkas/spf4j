@@ -86,7 +86,7 @@ public final class ExportedValuesMBean implements DynamicMBean {
 
 
     /**
-     * Returns the object name built from the {@link com.netflix.servo.monitor.MonitorConfig}.
+     * @return - the object name of this mbean.
      */
     public ObjectName getObjectName() {
         return objectName;

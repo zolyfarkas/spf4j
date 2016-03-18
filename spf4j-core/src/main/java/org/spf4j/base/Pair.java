@@ -47,7 +47,7 @@ public class Pair<A, B> implements Map.Entry<A, B> {
     /**
      * Creates a pair from a (str1,str2) pair.
      *
-     * @param stringPair
+     * @param stringPair - pair in the format (a,b) csv pair.
      * @return null if this is not a pair.
      */
     @Nullable

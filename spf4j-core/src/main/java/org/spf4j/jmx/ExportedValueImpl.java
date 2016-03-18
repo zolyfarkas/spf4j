@@ -56,11 +56,7 @@ class ExportedValueImpl implements ExportedValue<Object> {
                 || Number.class.isAssignableFrom(valueClass)) {
             this.converter = null;
         } else {
-            try {
-                this.converter = OpenTypeConverter.getConverter(valueClass);
-            } catch (OpenDataException ex) {
-                throw new RuntimeException(ex);
-            }
+            this.converter = OpenTypeConverter.getConverter(valueClass);
         }
     }
 

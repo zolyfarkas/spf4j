@@ -180,8 +180,8 @@ public final class Arrays {
      * returns a thread local byte array of at least the size requested.
      * use only for temporary purpose.
      * This method needs to be carefully used!
-     * @param size
-     * @return
+     * @param size - the minimum size of the temporary buffer requested.
+     * @return - the temporary buffer.
      */
     public static byte[] getBytesTmp(final int size) {
         SoftReference<byte[]> sr = BYTES_TMP.get();
@@ -202,8 +202,8 @@ public final class Arrays {
     /**
      * returns a thread local char array of at least the requested size.
      * Use only for temporary purpose.
-     * @param size
-     * @return
+     * @param size - the minimum size of the temporary buffer requested.
+     * @return - the temporary buffer.
      */
 
     public static char[] getCharsTmp(final int size) {

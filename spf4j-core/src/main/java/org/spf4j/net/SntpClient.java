@@ -65,8 +65,8 @@ public final class SntpClient {
      * @param ntpResponseTimeout - the time after which if we do not receive a response from the NTP server,
      *                              we consider the call failed (and will retry until timeoutMillis.
      * @return Ntp timing info.
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException - thrown in case of time server connectivity issues.
+     * @throws InterruptedException - thrown if exec interrupted.
      */
     @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION") //findbugs nonsense
     public static Timing requestTimeHA(final int timeoutMillis, final int ntpResponseTimeout, final String ... hosts)
@@ -90,7 +90,7 @@ public final class SntpClient {
      * @param host - NTP server host name.
      * @param timeoutMillis - the socket timeout.
      * @return - NTP server timing info.
-     * @throws IOException
+     * @throws IOException - thrown in case of time server connectivity issues.
      */
     @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // false positive
     public static Timing requestTime(final String host, final int timeoutMillis) throws IOException {
