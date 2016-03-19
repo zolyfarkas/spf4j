@@ -43,8 +43,17 @@ public final class Client {
     private Client() { }
 
     /**
-     *
-     * @param serviceUrl "service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"
+     * get a an attribute from a JMX mbean.
+     * @param serviceUrl in the form of: "service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"
+     * @param domain - mbean domain name.
+     * @param mbeanName -  mbean name.
+     * @param attribName - attribute name.
+     * @return - the attribute value.
+     * @throws java.io.IOException - IO issue communicating with mbean. 
+     * @throws javax.management.InstanceNotFoundException - mbean not found.
+     * @throws javax.management.MBeanException - exception while getting the attribute.
+     * @throws javax.management.AttributeNotFoundException - attribute not found.
+     * @throws javax.management.ReflectionException - mbean reflection exception.
      */
     public static Object getAttribute(@Nonnull final String serviceUrl,
             @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String attribName)
