@@ -48,7 +48,7 @@ public interface MeasurementStore extends Closeable {
 
     /**
      * flush all data that might be buffered by this store.
-     * @throws IOException
+     * @throws IOException - IO issues.
      */
     void flush() throws IOException;
 
