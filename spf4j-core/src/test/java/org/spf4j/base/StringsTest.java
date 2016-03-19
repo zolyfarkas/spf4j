@@ -17,7 +17,7 @@
  */
 package org.spf4j.base;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
@@ -69,7 +69,6 @@ public final class StringsTest {
 
 
     public void testEndsWith() {
-
         Assert.assertEquals(true, Strings.endsWith("dfjkshfks", ""));
         Assert.assertEquals(true, Strings.endsWith("dfjkshfks", "hfks"));
         Assert.assertEquals(false, Strings.endsWith("dfjkshfks", "hfk"));
@@ -77,5 +76,23 @@ public final class StringsTest {
         Assert.assertEquals(false, Strings.endsWith("dfjkshfks", "dfjkshfksu"));
     }
 
+    @Test
+    public void testEncoding() {
+        StringBuilder sb = new StringBuilder();
+        Strings.appendUnsignedString(sb, 38, 4);
+        Assert.assertEquals(Integer.toHexString(38), sb.toString());
+        System.out.println("Encoded: " + sb);
+    }
+    
+    @Test
+    public void testEncoding2() {
+        StringBuilder sb = new StringBuilder();
+        Strings.appendUnsignedStringPadded(sb, 38, 5, 4);
+        Assert.assertEquals(4, sb.length());
+        System.out.println("Encoded: " + sb);
+    }    
+    
+    
+    
 
 }

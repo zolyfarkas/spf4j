@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import sun.nio.cs.ArrayDecoder;
 import sun.nio.cs.ArrayEncoder;
 //CHECKSTYLE:ON
+
 /**
  *
  * @author zoly
@@ -55,8 +56,7 @@ public final class Strings {
     public static final String EOL = System.getProperty("line.separator", "\n");
 
     /**
-     * function that calculates the number of operations that are needed to transform s1 into s2.
-     * operations are: char
+     * function that calculates the number of operations that are needed to transform s1 into s2. operations are: char
      * add, char delete, char modify
      *
      * @param s1
@@ -178,26 +178,26 @@ public final class Strings {
 
     static {
         CHARS_FIELD = AccessController.doPrivileged(new PrivilegedAction<Field>() {
-                @Override
-                public Field run() {
-                    Field charsField;
-                    try {
-                        charsField = String.class.getDeclaredField("value");
-                        charsField.setAccessible(true);
-                    } catch (NoSuchFieldException ex) {
-                        LOG.info("char array stealing from String not supported", ex);
-                        charsField = null;
-                    } catch (SecurityException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                    return charsField;
+            @Override
+            public Field run() {
+                Field charsField;
+                try {
+                    charsField = String.class.getDeclaredField("value");
+                    charsField.setAccessible(true);
+                } catch (NoSuchFieldException ex) {
+                    LOG.info("char array stealing from String not supported", ex);
+                    charsField = null;
+                } catch (SecurityException ex) {
+                    throw new RuntimeException(ex);
                 }
-            });
+                return charsField;
+            }
+        });
 
         if (Runtime.JAVA_PLATFORM.ordinal() >= Runtime.Version.V1_8.ordinal()) {
             // up until u45 String(int offset, int count, char value[]) {
             // u45 reverted to: String(char[] value, boolean share) {
-        PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction<Constructor<String>>() {
+            PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction<Constructor<String>>() {
                 @Override
                 public Constructor<String> run() {
                     Constructor<String> constr;
@@ -224,7 +224,7 @@ public final class Strings {
             });
 
         } else {
-        PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction<Constructor<String>>() {
+            PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction<Constructor<String>>() {
                 @Override
                 public Constructor<String> run() {
                     Constructor<String> constr;
@@ -251,6 +251,7 @@ public final class Strings {
 
     /**
      * Steal the underlying character array of a String.
+     *
      * @param str
      * @return
      */
@@ -267,8 +268,8 @@ public final class Strings {
     }
 
     /**
-     * Create a String based on the provided character array.
-     * No copy of the array is made.
+     * Create a String based on the provided character array. No copy of the array is made.
+     *
      * @param chars
      * @return
      */
@@ -280,8 +281,7 @@ public final class Strings {
                 } else {
                     return PROTECTED_STR_CONSTR.newInstance(chars, Boolean.TRUE);
                 }
-            } catch (InstantiationException | IllegalAccessException
-                    | IllegalArgumentException | InvocationTargetException ex) {
+            } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                 throw new RuntimeException(ex);
             }
         } else {
@@ -309,7 +309,6 @@ public final class Strings {
 
     };
 
-
     public static CharsetEncoder getUTF8CharsetEncoder() {
         return UTF8_ENCODER.get();
     }
@@ -331,7 +330,6 @@ public final class Strings {
     public static int getmaxNrBytes(final CharsetEncoder ce, final int nrChars) {
         return (int) (nrChars * (double) ce.maxBytesPerChar());
     }
-
 
     public static int encode(final CharsetEncoder ce, final char[] ca, final int off, final int len,
             final byte[] targetArray) {
@@ -359,7 +357,6 @@ public final class Strings {
             return bb.position();
         }
     }
-
 
     @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
     public static String decode(final CharsetDecoder cd, final byte[] ba, final int off, final int len) {
@@ -390,7 +387,6 @@ public final class Strings {
         return new String(ca, 0, cb.position());
     }
 
-
     public static String fromUtf8(final byte[] bytes) {
         return decode(UTF8_DECODER.get(), bytes, 0, bytes.length);
     }
@@ -399,12 +395,10 @@ public final class Strings {
         return decode(UTF8_DECODER.get(), bytes, startIdx, length);
     }
 
-
     public static byte[] toUtf8(final String str) {
         final char[] chars = steal(str);
         return encode(UTF8_ENCODER.get(), chars, 0, chars.length);
     }
-
 
     public static int compareTo(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
         int i = 0;
@@ -437,10 +431,8 @@ public final class Strings {
         }
     }
 
-
-
     public static CharSequence subSequence(final CharSequence seq, final int startIdx, final int endIdx) {
-        if (startIdx == 0  && endIdx == seq.length()) {
+        if (startIdx == 0 && endIdx == seq.length()) {
             return seq;
         } else if (startIdx >= endIdx) {
             return "";
@@ -473,7 +465,7 @@ public final class Strings {
 
         @Override
         public CharSequence subSequence(final int start, final int end) {
-           return Strings.subSequence(underlyingSequence, startIdx + start, startIdx + end);
+            return Strings.subSequence(underlyingSequence, startIdx + start, startIdx + end);
         }
 
         @Override
@@ -502,4 +494,118 @@ public final class Strings {
             return false;
         }
     }
+
+    /**
+     * Utility method to escape java strings to json strings.
+     *
+     * @param toEscape - the java string to escape.
+     * @param jsonString - the destination json String builder.
+     * @throws IOException
+     */
+    public static void escapeJsonString(@Nonnull final String toEscape, final StringBuilder jsonString)
+            throws IOException {
+
+        int len = toEscape.length();
+        for (int i = 0; i < len; i++) {
+            char c = toEscape.charAt(i);
+            switch (c) {
+                case '\\':
+                case '"':
+                    jsonString.append('\\');
+                    jsonString.append(c);
+                    break;
+                case '\b':
+                    jsonString.append("\\b");
+                    break;
+                case '\t':
+                    jsonString.append("\\t");
+                    break;
+                case '\n':
+                    jsonString.append("\\n");
+                    break;
+                case '\f':
+                    jsonString.append("\\f");
+                    break;
+                case '\r':
+                    jsonString.append("\\r");
+                    break;
+                default:
+                    if (c < ' ') {
+                        appendUnsignedStringPadded(jsonString, (int) c, 4, 4);
+                    } else {
+                        jsonString.append(c);
+                    }
+            }
+        }
+
+    }
+
+    private static final char[] DIGITS = {
+        '0', '1', '2', '3', '4', '5',
+        '6', '7', '8', '9', 'a', 'b',
+        'c', 'd', 'e', 'f', 'g', 'h',
+        'i', 'j', 'k', 'l', 'm', 'n',
+        'o', 'p', 'q', 'r', 's', 't',
+        'u', 'v', 'w', 'x', 'y', 'z'
+    };
+
+    private static final ThreadLocal<char[]> BUFF = new ThreadLocal<char[]>() {
+
+        @Override
+        @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+        protected char[] initialValue() {
+            return new char[64];
+        }
+
+    };
+
+    public static void appendUnsignedString(final StringBuilder sb, final long nr, final int shift) {
+        long i = nr;
+        char[] buf = BUFF.get();
+        int charPos = 64;
+        int radix = 1 << shift;
+        long mask = radix - 1;
+        do {
+            buf[--charPos] = DIGITS[(int) (i & mask)];
+            i >>>= shift;
+        } while (i != 0);
+        sb.append(buf, charPos, 64 - charPos);
+    }
+
+    public static void appendUnsignedString(final StringBuilder sb, final int nr, final int shift) {
+        long i = nr;
+        char[] buf = BUFF.get();
+        int charPos = 32;
+        int radix = 1 << shift;
+        long mask = radix - 1;
+        do {
+            buf[--charPos] = DIGITS[(int) (i & mask)];
+            i >>>= shift;
+        } while (i != 0);
+        sb.append(buf, charPos, 32 - charPos);
+    }
+
+    public static void appendUnsignedStringPadded(final StringBuilder sb, final int nr, final int shift,
+            final int padTo) {
+        long i = nr;
+        char[] buf = BUFF.get();
+        int charPos = 32;
+        int radix = 1 << shift;
+        long mask = radix - 1;
+        do {
+            buf[--charPos] = DIGITS[(int) (i & mask)];
+            i >>>= shift;
+        } while (i != 0);
+        final int nrChars = 32 - charPos;
+        if (nrChars > padTo) {
+            throw new IllegalArgumentException("Your pad to value " + padTo
+                    + " is to small, must be at least " + nrChars);
+        } else {
+            for (int j = 0, n = padTo - nrChars; j < n; j++) {
+                sb.append('0');
+            }
+        }
+        sb.append(buf, charPos, nrChars);
+    }
+
 }

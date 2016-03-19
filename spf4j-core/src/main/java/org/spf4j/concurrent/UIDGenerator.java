@@ -24,6 +24,8 @@ import java.net.SocketException;
 import java.util.Enumeration;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.Strings;
+import static org.spf4j.base.Strings.appendUnsignedString;
 
 /**
  * Unique ID Generator Based on the assumptions:
@@ -103,41 +105,11 @@ public final class UIDGenerator {
     public CharSequence next() {
         StringBuilder result = new StringBuilder(maxSize);
         result.append(base);
-        appendUnsignedString(result, sequence.next(), 5);
+        Strings.appendUnsignedString(result, sequence.next(), 5);
         return result;
     }
 
-    private static final char[] DIGITS = {
-        '0', '1', '2', '3', '4', '5',
-        '6', '7', '8', '9', 'a', 'b',
-        'c', 'd', 'e', 'f', 'g', 'h',
-        'i', 'j', 'k', 'l', 'm', 'n',
-        'o', 'p', 'q', 'r', 's', 't',
-        'u', 'v', 'w', 'x', 'y', 'z'
-    };
-
-    private static final ThreadLocal<char[]> BUFF = new ThreadLocal<char[]>() {
-
-        @Override
-        @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
-        protected char[] initialValue() {
-            return new char[64];
-        }
-
-    };
-
-    private static void appendUnsignedString(final StringBuilder sb, final long nr, final int shift) {
-        long i = nr;
-        char[] buf = BUFF.get();
-        int charPos = 64;
-        int radix = 1 << shift;
-        long mask = radix - 1;
-        do {
-            buf[--charPos] = DIGITS[(int) (i & mask)];
-            i >>>= shift;
-        } while (i != 0);
-        sb.append(buf, charPos, (64 - charPos));
-    }
+    
 
     @Override
     public String toString() {
