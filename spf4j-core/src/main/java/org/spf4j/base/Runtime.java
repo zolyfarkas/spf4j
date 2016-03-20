@@ -641,9 +641,7 @@ public final class Runtime {
      */
     @SuppressFBWarnings
     public static boolean gc(final long timeoutMillis) {
-        Object obj = new Object();
-        WeakReference ref = new WeakReference<>(obj);
-        obj = null;
+        WeakReference<Object> ref = new WeakReference<>(new Object());
         long deadline = System.currentTimeMillis() + timeoutMillis;
         do {
             System.gc();
