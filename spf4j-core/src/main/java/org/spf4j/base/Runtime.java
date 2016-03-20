@@ -297,11 +297,12 @@ public final class Runtime {
 
 
     /**
-     *
+     * get the number of open files by current java process.
      * @return -1 if cannot get nr of open files
-     * @throws IOException
-     * @throws InterruptedException
-     * @throws ExecutionException
+     * @throws IOException - IO exception while accessing procfs.
+     * @throws InterruptedException - interrupted.
+     * @throws ExecutionException - execution exception while invoking lsof.
+     * @throws java.util.concurrent.TimeoutException - timeout while obtaining info.
      */
 
     public static int getNrOpenFiles() throws IOException, InterruptedException, ExecutionException, TimeoutException {
@@ -634,8 +635,9 @@ public final class Runtime {
 
     /**
      * Attempts to run the GC in a verifiable way.
-     * @param timeoutMillis
-     * @return true if GC executed for sure, false otherwise.
+     * @param timeoutMillis - timeout for GC attempt
+     * @return true if GC executed for sure, false otherwise, gc might have been executed though,
+     * but we cannot be sure.
      */
     @SuppressFBWarnings
     public static boolean gc(final long timeoutMillis) {
