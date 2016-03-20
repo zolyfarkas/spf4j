@@ -30,6 +30,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  *
  *
  * @author zoly
+ * @param <T> - type of recycled objects
  */
 @ParametersAreNonnullByDefault
 public interface RecyclingSupplier<T> extends Disposable {
@@ -37,11 +38,11 @@ public interface RecyclingSupplier<T> extends Disposable {
     /**
      * block until a object is available and return it.
      *
-     * @return
-     * @throws ObjectCreationException
-     * @throws ObjectBorrowException
-     * @throws InterruptedException
-     * @throws TimeoutException
+     * @return - a object instance returned by this supplier.
+     * @throws ObjectCreationException - cannot create an object.
+     * @throws ObjectBorrowException - cannot borrow an object.
+     * @throws InterruptedException - interrupted.
+     * @throws TimeoutException - timed out while getting object.
      */
     @Nonnull
     T get() throws ObjectCreationException, ObjectBorrowException,
@@ -53,12 +54,16 @@ public interface RecyclingSupplier<T> extends Disposable {
      * while using the object. passing an exception will cause the object
      * to be validated and potentially retired from the pool.
      *
-     * @param object
-     * @param e
+     * @param object - object to recycle.
+     * @param e - exception encountered while handling the object. this is useful for the recycle to validate/retire
+     * object
      */
     void recycle(T object, @Nullable Exception e);
 
-
+    /**
+     * recycle object.
+     * @param object - object to recycle.
+     */
     void recycle(T object);
 
 
@@ -68,16 +73,16 @@ public interface RecyclingSupplier<T> extends Disposable {
         /**
          * create the object.
          *
-         * @return
-         * @throws ObjectCreationException
+         * @return - the created object.
+         * @throws ObjectCreationException - cannot create object.
          */
         T create() throws ObjectCreationException;
 
         /**
          * Dispose the object.
          *
-         * @param object
-         * @throws ObjectDisposeException
+         * @param object - object to dispose.
+         * @throws ObjectDisposeException - cannot dispose object.
          */
         void dispose(T object) throws ObjectDisposeException;
 
@@ -85,6 +90,10 @@ public interface RecyclingSupplier<T> extends Disposable {
          * Validate the object, return true if valid,
          * false of throw an Exception with validation detail otherwise.
          * in case of throwing an exception the object is considered invalid.
+         * @param object - object to validate.
+         * @param e - exception previously encountered while handling the object.
+         * @return  - true is object is still valid, false otherwise.
+         * @throws java.lang.Exception 
          */
         @Nullable
         @CheckReturnValue

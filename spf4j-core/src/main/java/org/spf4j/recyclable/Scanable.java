@@ -20,6 +20,7 @@ package org.spf4j.recyclable;
 /**
  *
  * @author zoly
+ * @param <T> - type of the objects to scan.
  */
 public interface Scanable<T> {
     
@@ -27,9 +28,9 @@ public interface Scanable<T> {
      * Scan through  objects and call handler...
      * if handler throws exception scan is not aborted.
      * scan is aborted only if handler returns false.
-     * @param handler
-     * @return
-     * @throws Exception
+     * @param handler - the handler to handle the scanned objects.
+     * @return - false if scanning is stopped by the handler, true otherwise.
+     * @throws Exception - whatever exception is thrown during scanning.
      */
     boolean scan(ScanHandler<T> handler) throws Exception;
             
@@ -37,8 +38,9 @@ public interface Scanable<T> {
         
         /**
          * method to handle object
-         * @param object
-         * @return true if scan operation is to continue
+         * @param object - the scanned object.
+         * @return true if scan operation is to continue, false otherwise.
+         * @throws java.lang.Exception - whatever exception this handler needs to throw.
          */
         boolean handle(O object) throws Exception;
     }
