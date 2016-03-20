@@ -62,10 +62,10 @@ public final class DefaultScheduler {
     private static final long DAY_MILLIS = HOUR_MILLIS * 24;
 
     /**
-     * this will schedule a runnable aligned to the hour or day.
-     * @param command
-     * @param millisInterval
-     * @return Future that allows to cancel the schedule.
+     * this will schedule a runnable aligned to the hour or day at a fixed rate.
+     * @param command - the Runnable to execute.
+     * @param millisInterval - the schedule interval in milliseconds.
+     * @return - Future that allows to cancel the schedule.
      */
     public static ScheduledFuture<?> scheduleAllignedAtFixedRateMillis(
             final Runnable command, final long millisInterval) {
