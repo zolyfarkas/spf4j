@@ -20,7 +20,6 @@ package org.spf4j.stackmonitor;
 import com.google.common.base.Function;
 
 /**
- *
  * @author zoly
  */
 public interface StackCollector {
@@ -28,10 +27,10 @@ public interface StackCollector {
     /**
      * Apply function on the collected samples.
      * 
-     * @param predicate
+     * @param transform - the function to apply on samples.
      * @return - sample node before function was applied.
      */
-    SampleNode applyOnSamples(Function<SampleNode, SampleNode> predicate);
+    SampleNode applyOnSamples(Function<SampleNode, SampleNode> transform);
 
     SampleNode clear();
 
