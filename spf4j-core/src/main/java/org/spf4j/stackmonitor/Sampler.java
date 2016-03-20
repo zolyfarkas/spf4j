@@ -179,12 +179,14 @@ public final class Sampler {
      * the collected samples are reset
      * @param id - id will be added to file name
      * returns the name of the file.
-     * @throws IOException
+     * @return  - the file name where the data was persisted or null if there was no data to persist.
+     * @throws IOException - io issues while persisting data.
      */
 
     @JmxExport(value = "dumpToSpecificFile", description = "save stack samples to file")
+    @Nullable
     public synchronized String dumpToFile(
-            @JmxExport(value = "fileName", description = "the file name to save to")
+            @JmxExport(value = "fileID", description = "the ID that will be part of the file name")
             @Nullable final String id) throws IOException {
         SampleNode collected = stackCollector.clear();
         if (collected != null) {

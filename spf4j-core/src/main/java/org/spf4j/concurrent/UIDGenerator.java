@@ -44,8 +44,6 @@ public final class UIDGenerator {
 
     private final int maxSize;
 
-    private final int baseLength;
-
     public UIDGenerator(final Sequence sequence) {
         this(sequence, 0);
     }
@@ -94,8 +92,7 @@ public final class UIDGenerator {
         appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);
         sb.append(separator);
         base = sb;
-        baseLength = base.length();
-        maxSize = baseLength + 16;
+        maxSize = base.length() + 16;
     }
 
     public int getMaxSize() {

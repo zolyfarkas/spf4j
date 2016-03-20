@@ -502,8 +502,7 @@ public final class Strings {
      * @param jsonString - the destination json String builder.
      * @throws IOException
      */
-    public static void escapeJsonString(@Nonnull final String toEscape, final StringBuilder jsonString)
-            throws IOException {
+    public static void escapeJsonString(@Nonnull final String toEscape, final StringBuilder jsonString) {
 
         int len = toEscape.length();
         for (int i = 0; i < len; i++) {

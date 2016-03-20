@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
  * Element update can be either a replacement or element mutation.
  * Implementation is based on jdk priority queue.
  * @author zoly
- * @param <E>
+ * @param <E> - the type of the elements in the queue.
  */
 
 public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializable {
