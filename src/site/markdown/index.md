@@ -146,7 +146,7 @@ Callable<?> monitoredCallable =
 
 ### 4.3. How to see the recorded measurements?
 
-** Via JMX 
+  * Via JMX
  
  invoke org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore/flush to flush all measurements from memory to disk.
 
@@ -154,12 +154,15 @@ Callable<?> monitoredCallable =
 
  invoke org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore/writeTableAsCsv to write the data from a particular rsdb table to a csv file.
 
-** spf4j-UI.
+  * spf4j-UI.
 
  The recorded measurements are saved to a TSDB file. Use the library provided UI (spf4j-ui module) to open the file
  and visualize the measurements.
 
 ![Explorer UI](images/explorer-ui.png)
+
+![Distribution Chart](images/spf4j_dist.png)
+
 
 ### 4.4. How does it work ?
 
