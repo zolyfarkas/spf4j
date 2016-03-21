@@ -281,7 +281,8 @@ public final class Strings {
                 } else {
                     return PROTECTED_STR_CONSTR.newInstance(chars, Boolean.TRUE);
                 }
-            } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+            } catch (InstantiationException | IllegalAccessException
+                    | IllegalArgumentException | InvocationTargetException ex) {
                 throw new RuntimeException(ex);
             }
         } else {

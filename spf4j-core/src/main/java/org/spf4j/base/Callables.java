@@ -506,7 +506,7 @@ public final class Callables {
         /**
          * method to process result (after all retries exhausted).
          * @param lastRet
-         * @return
+         * @return - the result to be returned.
          */
         T lastReturn(final T lastRet);
 
@@ -514,10 +514,10 @@ public final class Callables {
          * method to press the exception after all retries exhausted.
          * @param <EXX>
          * @param ex
-         * @return 
+         * @return - the exception to be thrown.
          * @throws EXX
          */
-       <EXX extends Exception> EXX lastException(EXX ex) throws EXX;     
+       <EXX extends Exception> EXX lastException(EXX ex) throws EXX;
 
     }
 

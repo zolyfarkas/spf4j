@@ -93,7 +93,7 @@ public interface RecyclingSupplier<T> extends Disposable {
          * @param object - object to validate.
          * @param e - exception previously encountered while handling the object.
          * @return  - true is object is still valid, false otherwise.
-         * @throws java.lang.Exception 
+         * @throws java.lang.Exception - something happened during validation.
          */
         @Nullable
         @CheckReturnValue

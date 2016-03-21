@@ -49,7 +49,7 @@ public final class Client {
      * @param mbeanName -  mbean name.
      * @param attribName - attribute name.
      * @return - the attribute value.
-     * @throws java.io.IOException - IO issue communicating with mbean. 
+     * @throws java.io.IOException - IO issue communicating with mbean.
      * @throws javax.management.InstanceNotFoundException - mbean not found.
      * @throws javax.management.MBeanException - exception while getting the attribute.
      * @throws javax.management.AttributeNotFoundException - attribute not found.
