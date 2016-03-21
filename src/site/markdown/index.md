@@ -148,22 +148,13 @@ Callable<?> monitoredCallable =
 
 ** Via JMX 
  
- invoke org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore/generateCharts*
- this will generate 2 charts with all the recorded metrics:
+ invoke org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore/flush to flush all measurements from memory to disk.
 
-*** a) min, max, avg 
+ invoke org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore/getTableAsCsv to get the data from a particular tsdb table as csv.
 
-![min max avg sample](images/spf4j_min_max_avg.png) sample min, max, avg performance chart with measurement count values/ time axis
+ invoke org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore/writeTableAsCsv to write the data from a particular rsdb table to a csv file.
 
-*** b) Distribution chart, 
-
-![distribution chart](images/spf4j_dist.png) sample distribution chart
-
- where on the X axis we have the time, the Y axis we have the recorded values (buckets) and
- the number of measurements recorded that fall in a particular bucket will be represented by the color
- (values to color mapping can be seen in the legend). As you can see this is a log linear chart. 
-
-** Embeded UI.
+** spf4j-UI.
 
  The recorded measurements are saved to a TSDB file. Use the library provided UI (spf4j-ui module) to open the file
  and visualize the measurements.
@@ -487,5 +478,9 @@ Template.doOnSupplied(new Handler<PooledObject, SomeException>() {
  Object recyclers: org.spf4j.recyclable.impl.*
 
  Concurrency: org.spf4j.io.PipedOutputStream
+
+ String performance utilities: org.spf4j.base.Strings
+
+ NIO TCP proxy server: org.spf4j.io.tcp.proxy.*
 
  
