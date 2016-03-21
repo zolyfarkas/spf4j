@@ -91,7 +91,17 @@ public final class StringsTest {
         Assert.assertEquals(4, sb.length());
         System.out.println("Encoded: " + sb);
     }    
+   
     
+    @Test
+    public void testJsonEncoding() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\"");
+        Strings.escapeJsonString("\n\u0008\u0000abc\"", sb);
+        sb.append("\"");
+        System.out.println("Encoded: " + sb);
+        Assert.assertEquals("\"\\n\\b\\u0000abc\\\"\"", sb.toString());
+    }     
     
     
 

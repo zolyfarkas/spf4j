@@ -530,6 +530,7 @@ public final class Strings {
                     break;
                 default:
                     if (c < ' ') {
+                        jsonString.append("\\u");
                         appendUnsignedStringPadded(jsonString, (int) c, 4, 4);
                     } else {
                         jsonString.append(c);
