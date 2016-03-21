@@ -143,7 +143,7 @@ public final class Registry {
 <span class="nc" id="L143">                        continue;</span>
                     }
 <span class="fc bfc" id="L145" title="All 2 branches covered.">                    if (Modifier.isStatic(method.getModifiers())) {</span>
-<span class="fc" id="L146">                        Annotation [] annotations = method.getAnnotations();</span>
+<span class="fc" id="L146">                        Annotation[] annotations = method.getAnnotations();</span>
 <span class="fc bfc" id="L147" title="All 2 branches covered.">                        for (Annotation annot : annotations) {</span>
 <span class="pc bpc" id="L148" title="1 of 2 branches missed.">                            if (annot.annotationType() == JmxExport.class) {</span>
 <span class="fc" id="L149">                                exportMethod(method, null, exportedAttributes, exportedOps, annot);</span>
@@ -157,7 +157,7 @@ public final class Registry {
 <span class="fc bfc" id="L157" title="All 2 branches covered.">                    if (method.isSynthetic()) {</span>
 <span class="fc" id="L158">                        continue;</span>
                     }
-<span class="fc" id="L160">                    Annotation [] annotations = method.getAnnotations();</span>
+<span class="fc" id="L160">                    Annotation[] annotations = method.getAnnotations();</span>
 <span class="fc bfc" id="L161" title="All 2 branches covered.">                    for (Annotation annot : annotations) {</span>
 <span class="fc bfc" id="L162" title="All 2 branches covered.">                        if (annot.annotationType() == JmxExport.class) {</span>
 <span class="fc" id="L163">                            exportMethod(method, object, exportedAttributes, exportedOps, annot);</span>
@@ -170,7 +170,7 @@ public final class Registry {
 <span class="fc bfc" id="L170" title="All 4 branches covered.">        if (exportedAttributes.isEmpty() &amp;&amp; exportedOps.isEmpty()) {</span>
 <span class="fc" id="L171">            return null;</span>
         }
-<span class="fc" id="L173">        ExportedValue&lt;?&gt; [] values = new ExportedValue[exportedAttributes.size()];</span>
+<span class="fc" id="L173">        ExportedValue&lt;?&gt;[] values = new ExportedValue[exportedAttributes.size()];</span>
 <span class="fc" id="L174">        int i = 0;</span>
 <span class="fc bfc" id="L175" title="All 2 branches covered.">        for (ExportedValue expVal : exportedAttributes.values()) {</span>
 <span class="pc bpc" id="L176" title="1 of 4 branches missed.">            if (expVal instanceof ExportedValueImpl &amp;&amp; !((ExportedValueImpl) expVal).isValid()) {</span>
@@ -182,10 +182,10 @@ public final class Registry {
         ExportedValuesMBean mbean;
 <span class="fc bfc" id="L183" title="All 2 branches covered.">        if (existing == null) {</span>
 <span class="fc" id="L184">            mbean = new ExportedValuesMBean(objectName, values,</span>
-                        exportedOps.values().toArray(new ExportedOperation [exportedOps.size()]));
+                        exportedOps.values().toArray(new ExportedOperation[exportedOps.size()]));
         } else {
 <span class="fc" id="L187">            mbean = new ExportedValuesMBean(existing, values,</span>
-                        exportedOps.values().toArray(new ExportedOperation [exportedOps.size()]));
+                        exportedOps.values().toArray(new ExportedOperation[exportedOps.size()]));
         }
 <span class="fc" id="L190">        Registry.registerMBean(mbean.getObjectName(), mbean);</span>
 <span class="fc" id="L191">        return mbean;</span>
@@ -197,15 +197,15 @@ public final class Registry {
 <span class="fc" id="L197">        method.setAccessible(true); // this is to speed up invocation</span>
 <span class="fc" id="L198">        String methodName = method.getName();</span>
 <span class="fc" id="L199">        int nrParams = method.getParameterTypes().length;</span>
-<span class="fc bfc" id="L200" title="All 4 branches covered.">        if (methodName.startsWith(&quot;get&quot;) &amp;&amp; nrParams == 0) {</span>
+<span class="fc bfc" id="L200" title="All 4 branches covered.">        if (nrParams == 0 &amp;&amp; methodName.startsWith(&quot;get&quot;)) {</span>
 <span class="fc" id="L201">            String valueName = methodName.substring(&quot;get&quot;.length());</span>
 <span class="fc" id="L202">            valueName = Strings.withFirstCharLower(valueName);</span>
 <span class="fc" id="L203">            addGetter(valueName, exportedAttributes, annot, method, object);</span>
-<span class="pc bpc" id="L204" title="1 of 4 branches missed.">        } else if (methodName.startsWith(&quot;is&quot;) &amp;&amp; nrParams == 0) {</span>
+<span class="fc bfc" id="L204" title="All 4 branches covered.">        } else if (nrParams == 0 &amp;&amp; methodName.startsWith(&quot;is&quot;)) {</span>
 <span class="fc" id="L205">            String valueName = methodName.substring(&quot;is&quot;.length());</span>
 <span class="fc" id="L206">            valueName = Strings.withFirstCharLower(valueName);</span>
 <span class="fc" id="L207">            addGetter(valueName, exportedAttributes, annot, method, object);</span>
-<span class="fc bfc" id="L208" title="All 4 branches covered.">        } else if (methodName.startsWith(&quot;set&quot;) &amp;&amp; nrParams == 1) {</span>
+<span class="fc bfc" id="L208" title="All 4 branches covered.">        } else if (nrParams == 1 &amp;&amp; methodName.startsWith(&quot;set&quot;)) {</span>
 <span class="fc" id="L209">            addSetter(methodName, exportedAttributes, method, object, annot);</span>
         } else {
 <span class="fc" id="L211">            String opName = methodName;</span>
@@ -267,4 +267,4 @@ public final class Registry {
 <span class="fc" id="L267">        exported.put(valueName, existing);</span>
 <span class="fc" id="L268">    }</span>
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

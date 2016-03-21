@@ -37,58 +37,64 @@ public final class MeasuredFileOutputStream extends FileOutputStream {
 
     private final Class&lt;?&gt; from;
     private final MeasurementRecorderSource recorderSource;
+    private final File file;
 
     public MeasuredFileOutputStream(final String name, final Class&lt;?&gt; from,
             final MeasurementRecorderSource recorderSource) throws FileNotFoundException {
-<span class="nc" id="L43">        super(name);</span>
-<span class="nc" id="L44">        this.from = from;</span>
-<span class="nc" id="L45">        this.recorderSource = recorderSource;</span>
-<span class="nc" id="L46">    }</span>
+<span class="nc" id="L44">        this(new File(name), from, recorderSource);</span>
+<span class="nc" id="L45">    }</span>
 
     public MeasuredFileOutputStream(final String name, final boolean append,
             final Class&lt;?&gt; from, final MeasurementRecorderSource recorderSource) throws FileNotFoundException {
-<span class="nc" id="L50">        super(name, append);</span>
-<span class="nc" id="L51">        this.from = from;</span>
-<span class="nc" id="L52">        this.recorderSource = recorderSource;</span>
-<span class="nc" id="L53">    }</span>
+<span class="nc" id="L49">        this(new File(name), append, from, recorderSource);</span>
+<span class="nc" id="L50">    }</span>
 
     public MeasuredFileOutputStream(final File file, final Class&lt;?&gt; from,
             final MeasurementRecorderSource recorderSource) throws FileNotFoundException {
-<span class="nc" id="L57">        super(file);</span>
-<span class="nc" id="L58">        this.from = from;</span>
-<span class="nc" id="L59">        this.recorderSource = recorderSource;</span>
-<span class="nc" id="L60">    }</span>
+<span class="nc" id="L54">        this(file, false, from, recorderSource);</span>
+<span class="nc" id="L55">    }</span>
 
     public MeasuredFileOutputStream(final File file, final boolean append, final Class&lt;?&gt; from,
             final MeasurementRecorderSource recorderSource) throws FileNotFoundException {
-<span class="nc" id="L64">        super(file, append);</span>
-<span class="nc" id="L65">        this.from = from;</span>
-<span class="nc" id="L66">        this.recorderSource = recorderSource;</span>
-<span class="nc" id="L67">    }</span>
+<span class="nc" id="L59">        super(file, append);</span>
+<span class="nc" id="L60">        this.from = from;</span>
+<span class="nc" id="L61">        this.recorderSource = recorderSource;</span>
+<span class="nc" id="L62">        this.file = file;</span>
+<span class="nc" id="L63">    }</span>
 
     public MeasuredFileOutputStream(final FileDescriptor fdObj, final Class&lt;?&gt; from,
             final MeasurementRecorderSource recorderSource) {
-<span class="nc" id="L71">        super(fdObj);</span>
-<span class="nc" id="L72">        this.from = from;</span>
-<span class="nc" id="L73">        this.recorderSource = recorderSource;</span>
-<span class="nc" id="L74">    }</span>
+<span class="nc" id="L67">        super(fdObj);</span>
+<span class="nc" id="L68">        this.from = from;</span>
+<span class="nc" id="L69">        this.recorderSource = recorderSource;</span>
+<span class="nc" id="L70">        this.file = null;</span>
+<span class="nc" id="L71">    }</span>
 
     @Override
     public void write(final int b) throws IOException {
-<span class="nc" id="L78">        super.write(b);</span>
-<span class="nc" id="L79">        recorderSource.getRecorder(from).record(1);</span>
-<span class="nc" id="L80">    }</span>
+<span class="nc" id="L75">        super.write(b);</span>
+<span class="nc" id="L76">        recorderSource.getRecorder(from).record(1);</span>
+<span class="nc" id="L77">    }</span>
 
     @Override
     public void write(final byte[] b) throws IOException {
-<span class="nc" id="L84">        super.write(b);</span>
-<span class="nc" id="L85">        recorderSource.getRecorder(from).record(b.length);</span>
-<span class="nc" id="L86">    }</span>
+<span class="nc" id="L81">        super.write(b);</span>
+<span class="nc" id="L82">        recorderSource.getRecorder(from).record(b.length);</span>
+<span class="nc" id="L83">    }</span>
 
     @Override
     public void write(final byte[] b, final int off, final int len) throws IOException {
-<span class="nc" id="L90">        super.write(b, off, len);</span>
-<span class="nc" id="L91">        recorderSource.getRecorder(from).record(len);</span>
-<span class="nc" id="L92">    }</span>
+<span class="nc" id="L87">        super.write(b, off, len);</span>
+<span class="nc" id="L88">        recorderSource.getRecorder(from).record(len);</span>
+<span class="nc" id="L89">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L93">        return &quot;MeasuredFileOutputStream{&quot; + &quot;from=&quot; + from + &quot;, recorderSource=&quot; + recorderSource</span>
+                + &quot;, file=&quot; + file + '}';
+    }
+
+
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

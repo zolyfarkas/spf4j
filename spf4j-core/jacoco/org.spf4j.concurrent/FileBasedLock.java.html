@@ -231,7 +231,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     @Override
     protected void finalize() throws Throwable {
         try {
-<span class="nc" id="L234">            super.finalize();</span>
+<span class="fc" id="L234">            super.finalize();</span>
 <span class="nc" id="L235">        } catch (Throwable t) {</span>
             try {
 <span class="nc" id="L237">                forceClose();</span>
@@ -239,9 +239,9 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
 <span class="nc" id="L239">                ex.addSuppressed(t);</span>
 <span class="nc" id="L240">                throw ex;</span>
 <span class="nc" id="L241">            }</span>
-<span class="nc" id="L242">        }</span>
-<span class="nc" id="L243">        forceClose();</span>
-<span class="nc" id="L244">    }</span>
+<span class="fc" id="L242">        }</span>
+<span class="fc" id="L243">        forceClose();</span>
+<span class="fc" id="L244">    }</span>
 
     @Override
     @WillClose
@@ -262,15 +262,22 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
 
     @WillClose
     public void forceClose() throws IOException {
-<span class="nc" id="L265">        file.close();</span>
-<span class="nc" id="L266">    }</span>
+<span class="fc" id="L265">        file.close();</span>
+<span class="fc" id="L266">    }</span>
 
     private void writeHolderInfo() throws IOException {
 <span class="fc" id="L269">        file.seek(0);</span>
-<span class="fc" id="L270">        byte [] data = org.spf4j.base.Runtime.PROCESS_NAME.getBytes(Charsets.UTF_8);</span>
+<span class="fc" id="L270">        byte[] data = org.spf4j.base.Runtime.PROCESS_NAME.getBytes(Charsets.UTF_8);</span>
 <span class="fc" id="L271">        file.write(data);</span>
 <span class="fc" id="L272">        file.setLength(data.length);</span>
 <span class="fc" id="L273">        file.getChannel().force(true);</span>
 <span class="fc" id="L274">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L278">        return &quot;FileBasedLock{&quot; + &quot;file=&quot; + file + &quot;, owner=&quot; + owner + &quot;, reentranceCount=&quot; + reentranceCount + '}';</span>
+    }
+    
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

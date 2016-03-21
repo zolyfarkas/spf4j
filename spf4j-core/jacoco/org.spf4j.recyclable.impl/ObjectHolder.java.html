@@ -33,26 +33,26 @@ import org.slf4j.LoggerFactory;
  */
 @ParametersAreNonnullByDefault
 @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
-final class ObjectHolder&lt;T&gt; {
+public final class ObjectHolder&lt;T&gt; {
 
 <span class="fc" id="L38">    private static final Logger LOG = LoggerFactory.getLogger(ObjectHolder.class);</span>
     private T obj;
     private boolean borrowed;
     private final RecyclingSupplier.Factory&lt;T&gt; factory;
 
-<span class="fc" id="L43">    public ObjectHolder(final RecyclingSupplier.Factory&lt;T&gt; factory) {</span>
+<span class="fc" id="L43">    ObjectHolder(final RecyclingSupplier.Factory&lt;T&gt; factory) {</span>
 <span class="fc" id="L44">        this.factory = factory;</span>
 <span class="fc" id="L45">        borrowed = false;</span>
 <span class="fc" id="L46">    }</span>
 
-    public ObjectHolder(final RecyclingSupplier.Factory&lt;T&gt; factory, final boolean lazy) throws ObjectCreationException {
+    ObjectHolder(final RecyclingSupplier.Factory&lt;T&gt; factory, final boolean lazy) throws ObjectCreationException {
 <span class="nc" id="L49">        this(factory);</span>
 <span class="nc bnc" id="L50" title="All 2 branches missed.">        if (!lazy) {</span>
 <span class="nc" id="L51">            obj = factory.create();</span>
         }
 <span class="nc" id="L53">    }</span>
 
-<span class="fc" id="L55">    public ObjectHolder(final T object) {</span>
+<span class="fc" id="L55">    ObjectHolder(final T object) {</span>
 <span class="fc" id="L56">        this.factory = null;</span>
 <span class="fc" id="L57">        borrowed = false;</span>
 <span class="fc" id="L58">        this.obj = object;</span>
@@ -125,10 +125,10 @@ final class ObjectHolder&lt;T&gt; {
 <span class="fc" id="L125">            } catch (Exception ex) {</span>
 <span class="fc" id="L126">                isValid = false;</span>
 <span class="pc" id="L127">            }</span>
-<span class="pc bpc" id="L128" title="1 of 2 branches missed.">            if (!isValid) {</span>
-<span class="nc" id="L129">                LOG.warn(&quot;Validation of {} failed, detail {} &quot;, obj, vex);</span>
-<span class="nc" id="L130">                T object = obj;</span>
-<span class="nc" id="L131">                obj = null;</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">            if (!isValid) {</span>
+<span class="fc" id="L129">                LOG.warn(&quot;Validation of {} failed, detail {} &quot;, obj, vex);</span>
+<span class="fc" id="L130">                T object = obj;</span>
+<span class="fc" id="L131">                obj = null;</span>
 <span class="nc" id="L132">                factory.dispose(object);</span>
             }
         }
@@ -154,4 +154,4 @@ final class ObjectHolder&lt;T&gt; {
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

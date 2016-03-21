@@ -20,55 +20,61 @@ package org.spf4j.zel.vm;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.spf4j.base.Pair;
 
 
 public final  class MemoryBuilder {
 
-    private final List&lt;Object&gt; memory;
+    private final ArrayList&lt;Object&gt; memory;
 
     private final Map&lt;String, Integer&gt; symbolTable;
 
-<span class="fc" id="L34">    private int idx = 0;</span>
+<span class="fc" id="L33">    private int idx = 0;</span>
 
-<span class="fc" id="L36">    public MemoryBuilder() {</span>
-<span class="fc" id="L37">        memory = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L38">        symbolTable = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L39">    }</span>
+<span class="fc" id="L35">    public MemoryBuilder() {</span>
+<span class="fc" id="L36">        memory = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L37">        symbolTable = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L38">    }</span>
 
-<span class="fc" id="L41">    MemoryBuilder(final List&lt;Object&gt; memory, final Map&lt;String, Integer&gt; symbolTable) {</span>
-<span class="fc" id="L42">        this.memory = memory;</span>
-<span class="fc" id="L43">        this.symbolTable = symbolTable;</span>
-<span class="fc" id="L44">        this.idx = memory.size();</span>
-<span class="fc" id="L45">    }</span>
+<span class="fc" id="L40">    MemoryBuilder(final ArrayList&lt;Object&gt; memory, final Map&lt;String, Integer&gt; symbolTable) {</span>
+<span class="fc" id="L41">        this.memory = memory;</span>
+<span class="fc" id="L42">        this.symbolTable = symbolTable;</span>
+<span class="fc" id="L43">        this.idx = memory.size();</span>
+<span class="fc" id="L44">    }</span>
 
     public void addSymbol(final String symbol) {
-<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (!symbolTable.containsKey(symbol)) {</span>
-<span class="nc" id="L49">            memory.add(null);</span>
-<span class="nc" id="L50">            symbolTable.put(symbol, idx++);</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        if (!symbolTable.containsKey(symbol)) {</span>
+<span class="nc" id="L48">            memory.add(null);</span>
+<span class="nc" id="L49">            symbolTable.put(symbol, idx++);</span>
         }
-<span class="nc" id="L52">    }</span>
+<span class="nc" id="L51">    }</span>
 
     public void addSymbol(final String symbol, final Object value) {
-<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (!symbolTable.containsKey(symbol)) {</span>
-<span class="fc" id="L56">            memory.add(value);</span>
-<span class="fc" id="L57">            symbolTable.put(symbol, idx++);</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (!symbolTable.containsKey(symbol)) {</span>
+<span class="fc" id="L55">            memory.add(value);</span>
+<span class="fc" id="L56">            symbolTable.put(symbol, idx++);</span>
         } else {
-<span class="fc" id="L59">            memory.set(symbolTable.get(symbol).intValue(), value);</span>
+<span class="fc" id="L58">            final int position = symbolTable.get(symbol);</span>
+<span class="fc" id="L59">            memory.ensureCapacity(position + 1);</span>
+<span class="fc" id="L60">            memory.set(position, value);</span>
         }
-<span class="fc" id="L61">    }</span>
+<span class="fc" id="L62">    }</span>
 
 
     public Pair&lt;Object[], Map&lt;String, Integer&gt;&gt; build() {
-<span class="fc" id="L65">        return Pair.of(memory.toArray(), (Map&lt;String, Integer&gt;) new HashMap&lt;&gt;(symbolTable));</span>
+<span class="fc" id="L66">        return Pair.of(memory.toArray(), (Map&lt;String, Integer&gt;) new HashMap&lt;&gt;(symbolTable));</span>
     }
 
 
     public MemoryBuilder copy() {
-<span class="fc" id="L70">        return new MemoryBuilder(new ArrayList&lt;&gt;(memory), new HashMap&lt;String, Integer&gt;(symbolTable));</span>
+<span class="fc" id="L71">        return new MemoryBuilder(new ArrayList&lt;&gt;(memory), new HashMap&lt;&gt;(symbolTable));</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L76">        return &quot;MemoryBuilder{&quot; + &quot;memory=&quot; + memory + &quot;, symbolTable=&quot; + symbolTable + &quot;, idx=&quot; + idx + '}';</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

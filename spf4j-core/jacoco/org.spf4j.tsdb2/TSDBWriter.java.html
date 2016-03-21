@@ -123,7 +123,7 @@ public final class TSDBWriter implements Closeable, Flushable {
 <span class="fc" id="L123">    }</span>
 
     static void validateType(final InputStream dis) throws IOException {
-<span class="fc" id="L126">        byte [] readMagic = new byte[MAGIC.length];</span>
+<span class="fc" id="L126">        byte[] readMagic = new byte[MAGIC.length];</span>
 <span class="fc" id="L127">        ByteStreams.readFully(dis, readMagic);</span>
 <span class="pc bpc" id="L128" title="1 of 2 branches missed.">        if (!Arrays.equals(MAGIC, readMagic)) {</span>
 <span class="nc" id="L129">            throw new IOException(&quot;wrong file type, magic is &quot; + Arrays.toString(readMagic));</span>
@@ -168,7 +168,7 @@ public final class TSDBWriter implements Closeable, Flushable {
 <span class="fc" id="L168">        return file;</span>
     }
 
-  public static void toByteArray(final long pvalue, final byte [] bytes, final int idx) {
+  public static void toByteArray(final long pvalue, final byte[] bytes, final int idx) {
 <span class="fc" id="L172">    long value = pvalue;</span>
 <span class="fc bfc" id="L173" title="All 2 branches covered.">    for (int i = idx + 7; i &gt;= idx; i--) {</span>
 <span class="fc" id="L174">      bytes[i] = (byte) (value &amp; 0xffL);</span>
@@ -210,7 +210,12 @@ public final class TSDBWriter implements Closeable, Flushable {
 <span class="nc" id="L210">        return header;</span>
     }
 
+    @Override
+    public String toString() {
+<span class="fc" id="L215">        return &quot;TSDBWriter{&quot; + &quot;file=&quot; + file + &quot;, raf=&quot; + raf + '}';</span>
+    }
+
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

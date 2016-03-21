@@ -21,6 +21,7 @@ package org.spf4j.jmx;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import javax.management.MBeanParameterInfo;
 import org.spf4j.base.Reflections;
@@ -41,31 +42,31 @@ final class ExportedOperationImpl implements ExportedOperation {
 
     private final  MBeanParameterInfo[] paramInfos;
 
-    public ExportedOperationImpl(final String name, final String description,
-<span class="fc" id="L45">            final Method method, final Object object) {</span>
-<span class="fc" id="L46">        this.name = name;</span>
-<span class="fc" id="L47">        this.description = description;</span>
-<span class="fc" id="L48">        this.method = method;</span>
-<span class="fc" id="L49">        this.object = object;</span>
-<span class="fc" id="L50">        Class&lt;?&gt;[] parameterTypes = method.getParameterTypes();</span>
-<span class="fc" id="L51">        Annotation[][] parameterAnnotations = method.getParameterAnnotations();</span>
-<span class="fc" id="L52">        paramInfos = new MBeanParameterInfo[parameterTypes.length];</span>
-<span class="fc bfc" id="L53" title="All 2 branches covered.">        for (int i = 0; i &lt; paramInfos.length; i++) {</span>
-<span class="fc" id="L54">            Annotation [] annotations = parameterAnnotations[i];</span>
-<span class="fc" id="L55">            String pname = &quot;&quot;;</span>
-<span class="fc" id="L56">            String pdesc = &quot;&quot;;</span>
-<span class="fc bfc" id="L57" title="All 2 branches covered.">            for (Annotation annot : annotations) {</span>
-<span class="pc bpc" id="L58" title="1 of 2 branches missed.">                if (annot.getClass() == JmxExport.class) {</span>
-<span class="nc" id="L59">                    pname = (String) Reflections.getAnnotationAttribute(annot, &quot;value&quot;);</span>
-<span class="nc" id="L60">                    pdesc = (String) Reflections.getAnnotationAttribute(annot, &quot;description&quot;);</span>
+    ExportedOperationImpl(final String name, final String description,
+<span class="fc" id="L46">            final Method method, final Object object) {</span>
+<span class="fc" id="L47">        this.name = name;</span>
+<span class="fc" id="L48">        this.description = description;</span>
+<span class="fc" id="L49">        this.method = method;</span>
+<span class="fc" id="L50">        this.object = object;</span>
+<span class="fc" id="L51">        Class&lt;?&gt;[] parameterTypes = method.getParameterTypes();</span>
+<span class="fc" id="L52">        Annotation[][] parameterAnnotations = method.getParameterAnnotations();</span>
+<span class="fc" id="L53">        paramInfos = new MBeanParameterInfo[parameterTypes.length];</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        for (int i = 0; i &lt; paramInfos.length; i++) {</span>
+<span class="fc" id="L55">            Annotation[] annotations = parameterAnnotations[i];</span>
+<span class="fc" id="L56">            String pname = &quot;&quot;;</span>
+<span class="fc" id="L57">            String pdesc = &quot;&quot;;</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">            for (Annotation annot : annotations) {</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">                if (annot.annotationType() == JmxExport.class) {</span>
+<span class="fc" id="L60">                    pname = (String) Reflections.getAnnotationAttribute(annot, &quot;value&quot;);</span>
+<span class="fc" id="L61">                    pdesc = (String) Reflections.getAnnotationAttribute(annot, &quot;description&quot;);</span>
                 }
             }
-<span class="pc bpc" id="L63" title="1 of 2 branches missed.">            if (&quot;&quot;.equals(pname)) {</span>
-<span class="fc" id="L64">                pname = &quot;param_&quot; + i;</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">            if (&quot;&quot;.equals(pname)) {</span>
+<span class="fc" id="L65">                pname = &quot;param_&quot; + i;</span>
             }
-<span class="fc" id="L66">            paramInfos[i] = new MBeanParameterInfo(pname, parameterTypes[i].getName(), pdesc);</span>
+<span class="fc" id="L67">            paramInfos[i] = new MBeanParameterInfo(pname, parameterTypes[i].getName(), pdesc);</span>
         }
-<span class="fc" id="L68">    }</span>
+<span class="fc" id="L69">    }</span>
 
 
 
@@ -73,33 +74,39 @@ final class ExportedOperationImpl implements ExportedOperation {
 
     @Override
     public String getName() {
-<span class="fc" id="L76">        return name;</span>
+<span class="fc" id="L77">        return name;</span>
     }
 
     @Override
     public String getDescription() {
-<span class="fc" id="L81">        return description;</span>
+<span class="fc" id="L82">        return description;</span>
     }
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = &quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
     public Object invoke(final Object[] parameters) {
         try {
-<span class="fc" id="L88">            return method.invoke(object, parameters);</span>
-<span class="nc" id="L89">        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
-<span class="nc" id="L90">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L89">            return method.invoke(object, parameters);</span>
+<span class="nc" id="L90">        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
+<span class="nc" id="L91">            throw new RuntimeException(ex);</span>
         }
     }
 
     @Override
     public MBeanParameterInfo[] getParameterInfos() {
-<span class="fc" id="L96">        return paramInfos;</span>
+<span class="fc" id="L97">        return paramInfos;</span>
     }
 
     @Override
     public Class&lt;?&gt; getReturnType() {
-<span class="fc" id="L101">        return method.getReturnType();</span>
+<span class="fc" id="L102">        return method.getReturnType();</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L107">        return &quot;ExportedOperationImpl{&quot; + &quot;name=&quot; + name + &quot;, description=&quot; + description</span>
+                + &quot;, method=&quot; + method + &quot;, object=&quot; + object + &quot;, paramInfos=&quot; + Arrays.toString(paramInfos) + '}';
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

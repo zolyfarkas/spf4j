@@ -53,7 +53,7 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
     private final Condition available;
     private final RecyclingSupplier.Factory&lt;T&gt; factory;
 
-    public SimpleSmartObjectPool(final int initialSize, final int maxSize,
+    SimpleSmartObjectPool(final int initialSize, final int maxSize,
         final  RecyclingSupplier.Factory&lt;T&gt; factory, final boolean fair)
 <span class="fc" id="L58">            throws ObjectCreationException {</span>
 <span class="fc" id="L59">        this.maxSize = maxSize;</span>
@@ -72,7 +72,7 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
     @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED_BAD_PRACTICE&quot;)
     public T get(final ObjectBorower borower) throws InterruptedException,
             TimeoutException, ObjectCreationException {
-<span class="fc" id="L75">        long deadline = org.spf4j.base.Runtime.DEADLINE.get();</span>
+<span class="fc" id="L75">        long deadline = org.spf4j.base.Runtime.getDeadline();</span>
 <span class="fc" id="L76">        lock.lock();</span>
         try {
             // trying to be fair here, if others are already waiting, we will not get one.
@@ -101,7 +101,7 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
 <span class="fc bfc" id="L101" title="All 2 branches covered.">                for (ObjectBorower&lt;T&gt; b : borrowedObjects.keySet()) {</span>
 <span class="pc bpc" id="L102" title="1 of 2 branches missed.">                    if (borower != b) {</span>
 <span class="fc" id="L103">                        T object = b.tryReturnObjectIfNotInUse();</span>
-<span class="pc bpc" id="L104" title="1 of 2 branches missed.">                        if (object != null) {</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">                        if (object != null) {</span>
 <span class="nc bnc" id="L105" title="All 2 branches missed.">                            if (!borrowedObjects.remove(b, object)) {</span>
 <span class="nc" id="L106">                                throw new IllegalStateException(&quot;Returned Object hasn't been borrowed &quot; + object);</span>
                             }
@@ -203,7 +203,7 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
 
     @Override
     public void dispose() throws ObjectDisposeException, InterruptedException {
-<span class="fc" id="L206">        long deadline = org.spf4j.base.Runtime.DEADLINE.get();</span>
+<span class="fc" id="L206">        long deadline = org.spf4j.base.Runtime.getDeadline();</span>
 <span class="fc" id="L207">        lock.lock();</span>
         try {
 <span class="fc" id="L209">            maxSize = 0;</span>
@@ -359,4 +359,4 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
         }
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

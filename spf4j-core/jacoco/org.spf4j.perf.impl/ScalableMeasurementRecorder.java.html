@@ -88,7 +88,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
 <span class="fc" id="L88">        final AbstractRunnable runnable = new AbstractRunnable(true) {</span>
 
             @Override
-            public void doRun() throws Exception {
+            public void doRun() {
 <span class="nc" id="L92">                close();</span>
 <span class="nc" id="L93">            }</span>
         };
@@ -102,7 +102,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
 <span class="fc" id="L102">    }</span>
 
     @Override
-    public long [] get() {
+    public long[] get() {
 <span class="fc" id="L106">        MeasurementAccumulator result  = null;</span>
 <span class="fc" id="L107">        synchronized (threadLocalRecorders) {</span>
 <span class="fc bfc" id="L108" title="All 2 branches covered.">            for (Map.Entry&lt;Thread, MeasurementAccumulator&gt; entry : threadLocalRecorders.entrySet()) {</span>
@@ -210,7 +210,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
 <span class="fc bfc" id="L210" title="All 2 branches covered.">                if (result == null) {</span>
 <span class="fc" id="L211">                    result = measurements;</span>
                 } else {
-<span class="pc bpc" id="L213" title="1 of 2 branches missed.">                    if (measurements != null) {</span>
+<span class="fc bfc" id="L213" title="All 2 branches covered.">                    if (measurements != null) {</span>
 <span class="fc" id="L214">                        result = result.aggregate(measurements);</span>
                     }
                 }
@@ -225,7 +225,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
         private final long tableId;
         private final MeasurementAccumulator processor;
 
-        public Persister(final MeasurementStore measurementStore,
+        Persister(final MeasurementStore measurementStore,
 <span class="fc" id="L229">                final long tableId, final MeasurementAccumulator processor) {</span>
 <span class="fc" id="L230">            super(true);</span>
 <span class="fc" id="L231">            this.measurementStore = measurementStore;</span>
@@ -255,4 +255,4 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

@@ -35,8 +35,8 @@ import org.spf4j.perf.MeasurementStore;
  */
 public final class MultiStore implements MeasurementStore {
 
-    private final MeasurementStore [] stores;
-    private final TLongObjectMap&lt;long []&gt; idToIds;
+    private final MeasurementStore[] stores;
+    private final TLongObjectMap&lt;long[]&gt; idToIds;
     private final TObjectLongMap&lt;MeasurementsInfo&gt; infoToId;
     private long idSeq;
 
@@ -58,7 +58,7 @@ public final class MultiStore implements MeasurementStore {
 <span class="fc" id="L58">        synchronized (idToIds) {</span>
 <span class="fc" id="L59">            long id = infoToId.get(measurement);</span>
 <span class="pc bpc" id="L60" title="1 of 2 branches missed.">            if (id &lt;= 0) {</span>
-<span class="fc" id="L61">                long [] ids = new long [stores.length];</span>
+<span class="fc" id="L61">                long[] ids = new long[stores.length];</span>
 <span class="fc" id="L62">                int i = 0;</span>
 <span class="fc bfc" id="L63" title="All 2 branches covered.">                for (MeasurementStore store : stores) {</span>
                     try {
@@ -86,7 +86,7 @@ public final class MultiStore implements MeasurementStore {
     public void saveMeasurements(final long tableId,
             final long timeStampMillis,  final long... measurements) throws IOException {
 <span class="fc" id="L88">                IOException ex = null;</span>
-        long [] ids;
+        long[] ids;
 <span class="fc" id="L90">        synchronized (idToIds) {</span>
 <span class="fc" id="L91">            ids = idToIds.get(tableId);</span>
 <span class="pc" id="L92">        }</span>
@@ -152,5 +152,10 @@ public final class MultiStore implements MeasurementStore {
 <span class="nc" id="L152">        return Collections.unmodifiableList(Arrays.asList(stores));</span>
     }
 
+    @Override
+    public String toString() {
+<span class="nc" id="L157">        return &quot;MultiStore{&quot; + &quot;stores=&quot; + Arrays.toString(stores) + '}';</span>
+    }
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

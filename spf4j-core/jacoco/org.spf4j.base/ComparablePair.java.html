@@ -25,28 +25,30 @@ import java.io.Serializable;
  * @author zoly
  */
 public final class ComparablePair&lt;A extends Comparable &amp; Serializable, B extends Comparable &amp; Serializable&gt;
-    extends Pair&lt;A, B&gt;
+    extends SerializablePair&lt;A, B&gt;
     implements Comparable&lt;ComparablePair&lt;A, B&gt;&gt;, Serializable  {
 
+    private static final long serialVersionUID = 1L;
+
     public ComparablePair(final A first, final B second) {
-<span class="nc" id="L32">        super(first, second);</span>
-<span class="nc" id="L33">    }</span>
+<span class="nc" id="L34">        super(first, second);</span>
+<span class="nc" id="L35">    }</span>
     
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;UMTP_UNBOUND_METHOD_TEMPLATE_PARAMETER&quot;)
     public static &lt;A extends Comparable &amp; Serializable, B extends Comparable &amp; Serializable&gt;
                     ComparablePair&lt;A, B&gt; of(final A first, final B second) {
-<span class="nc" id="L38">        return new ComparablePair&lt;A, B&gt;(first, second);</span>
+<span class="nc" id="L40">        return new ComparablePair&lt;&gt;(first, second);</span>
     }
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings
     public int compareTo(final ComparablePair&lt;A, B&gt; o) {
-<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (this.first.equals(o.first)) {</span>
-<span class="nc" id="L45">            return this.second.compareTo(o.second);</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        if (this.first.equals(o.first)) {</span>
+<span class="nc" id="L47">            return this.second.compareTo(o.second);</span>
         } else {
-<span class="nc" id="L47">            return this.first.compareTo(o.first);</span>
+<span class="nc" id="L49">            return this.first.compareTo(o.first);</span>
         }
     }
     
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

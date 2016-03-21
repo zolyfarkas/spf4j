@@ -20,27 +20,33 @@ package org.spf4j.base;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 
 
 public final class AggregateTranslator extends CharSequenceTranslator {
 
     private final CharSequenceTranslator[] translators;
 
-<span class="fc" id="L29">    public AggregateTranslator(final CharSequenceTranslator... translators) {</span>
-<span class="fc" id="L30">        this.translators = translators.clone();</span>
-<span class="fc" id="L31">    }</span>
+<span class="fc" id="L30">    public AggregateTranslator(final CharSequenceTranslator... translators) {</span>
+<span class="fc" id="L31">        this.translators = translators.clone();</span>
+<span class="fc" id="L32">    }</span>
 
 
     @Override
     public int translate(final CharSequence input, final int index, final Writer out) throws IOException {
-<span class="fc bfc" id="L36" title="All 2 branches covered.">        for (final CharSequenceTranslator translator : translators) {</span>
-<span class="fc" id="L37">            final int consumed = translator.translate(input, index, out);</span>
-<span class="fc bfc" id="L38" title="All 2 branches covered.">            if (consumed != 0) {</span>
-<span class="fc" id="L39">                return consumed;</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        for (final CharSequenceTranslator translator : translators) {</span>
+<span class="fc" id="L38">            final int consumed = translator.translate(input, index, out);</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">            if (consumed != 0) {</span>
+<span class="fc" id="L40">                return consumed;</span>
             }
         }
-<span class="fc" id="L42">        return 0;</span>
+<span class="fc" id="L43">        return 0;</span>
     }
 
+    @Override
+    public String toString() {
+<span class="nc" id="L48">        return &quot;AggregateTranslator{&quot; + &quot;translators=&quot; + Arrays.toString(translators) + '}';</span>
+    }
+    
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

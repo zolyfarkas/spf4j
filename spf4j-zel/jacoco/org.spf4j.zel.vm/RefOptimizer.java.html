@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>RefOptimizer.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.vm</a> &gt; <span class="el_source">RefOptimizer.java</span></div><h1>RefOptimizer.java</h1><pre class="source lang-java linenums">/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 package org.spf4j.zel.vm;
@@ -20,55 +32,51 @@ import org.spf4j.zel.instr.LODXF;
  */
 public final class RefOptimizer implements Function&lt;Program, Program&gt; {
 
-<span class="fc" id="L23">    private RefOptimizer() { }</span>
+<span class="fc" id="L35">    private RefOptimizer() { }</span>
 
-<span class="fc" id="L25">    public static final Function&lt;Program, Program&gt; INSTANCE = new RefOptimizer();</span>
+<span class="fc" id="L37">    public static final Function&lt;Program, Program&gt; INSTANCE = new RefOptimizer();</span>
 
     @Override
     public Program apply(final Program input) {
-<span class="pc bpc" id="L29" title="1 of 2 branches missed.">        if (input == null) {</span>
-<span class="nc" id="L30">            throw new IllegalArgumentException(&quot;Input cannot be null for &quot; + this);</span>
+<span class="pc bpc" id="L41" title="1 of 2 branches missed.">        if (input == null) {</span>
+<span class="nc" id="L42">            throw new IllegalArgumentException(&quot;Input cannot be null for &quot; + this);</span>
         }
-<span class="fc" id="L32">        Instruction [] instructions = input.getInstructions().clone();</span>
-<span class="fc" id="L33">        Map&lt;String, Integer&gt; lsym = input.getLocalSymbolTable();</span>
-<span class="fc" id="L34">        Map&lt;String, Integer&gt; gsym = input.getGlobalSymbolTable();</span>
+<span class="fc" id="L44">        Instruction[] instructions = input.getInstructions().clone();</span>
+<span class="fc" id="L45">        Map&lt;String, Integer&gt; lsym = input.getLocalSymbolTable();</span>
+<span class="fc" id="L46">        Map&lt;String, Integer&gt; gsym = input.getGlobalSymbolTable();</span>
 
-<span class="fc bfc" id="L36" title="All 2 branches covered.">        for (int i = 0; i &lt; instructions.length; i++) {</span>
-<span class="fc" id="L37">            Instruction instr = instructions[i];</span>
-<span class="fc bfc" id="L38" title="All 2 branches covered.">            if (LODX.class.equals(instr.getClass())) {</span>
-<span class="fc" id="L39">                String symbol = ((LODX) instr).getSymbol();</span>
-<span class="fc" id="L40">                Address addr = getAddress(lsym, symbol, gsym);</span>
-<span class="fc" id="L41">                instructions[i] = new LODXF(addr);</span>
-<span class="fc bfc" id="L42" title="All 2 branches covered.">            } else if (LODAX.class.equals(instr.getClass())) {</span>
-<span class="fc" id="L43">                String symbol = ((LODAX) instr).getSymbol();</span>
-<span class="fc" id="L44">                Address addr = getAddress(lsym, symbol, gsym);</span>
-<span class="fc" id="L45">                instructions[i] = new LODAXF(addr);</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        for (int i = 0; i &lt; instructions.length; i++) {</span>
+<span class="fc" id="L49">            Instruction instr = instructions[i];</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">            if (LODX.class.equals(instr.getClass())) {</span>
+<span class="fc" id="L51">                String symbol = ((LODX) instr).getSymbol();</span>
+<span class="fc" id="L52">                Address addr = getAddress(lsym, symbol, gsym);</span>
+<span class="fc" id="L53">                instructions[i] = new LODXF(addr);</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">            } else if (LODAX.class.equals(instr.getClass())) {</span>
+<span class="fc" id="L55">                String symbol = ((LODAX) instr).getSymbol();</span>
+<span class="fc" id="L56">                Address addr = getAddress(lsym, symbol, gsym);</span>
+<span class="fc" id="L57">                instructions[i] = new LODAXF(addr);</span>
             }
         }
 
-        try {
-<span class="fc" id="L50">            return new Program(input.getName(), input.getGlobalSymbolTable(),</span>
+<span class="fc" id="L61">        return new Program(input.getName(), input.getGlobalSymbolTable(),</span>
                     input.getGlobalMem(), input.getLocalSymbolTable(),
                     instructions, input.getDebug(), input.getSource(),
                     input.getType(), input.getExecType(),
                     input.hasDeterministicFunctions());
-<span class="nc" id="L55">        } catch (CompileException ex) {</span>
-<span class="nc" id="L56">            throw new RuntimeException(ex);</span>
-        }
     }
 
     private static Address getAddress(final Map&lt;String, Integer&gt; lsym,
             final String symbol, final Map&lt;String, Integer&gt; gsym) {
         Address addr;
-<span class="fc" id="L63">        Integer idx = lsym.get(symbol);</span>
-<span class="fc bfc" id="L64" title="All 2 branches covered.">        if (idx == null) {</span>
-<span class="fc" id="L65">            idx = gsym.get(symbol);</span>
-<span class="fc" id="L66">            addr = new Address(idx, Address.Scope.GLOBAL);</span>
+<span class="fc" id="L71">        Integer idx = lsym.get(symbol);</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        if (idx == null) {</span>
+<span class="fc" id="L73">            idx = gsym.get(symbol);</span>
+<span class="fc" id="L74">            addr = new Address(idx, Address.Scope.GLOBAL);</span>
         } else {
-<span class="fc" id="L68">            addr = new Address(idx, Address.Scope.LOCAL);</span>
+<span class="fc" id="L76">            addr = new Address(idx, Address.Scope.LOCAL);</span>
         }
-<span class="fc" id="L70">        return addr;</span>
+<span class="fc" id="L78">        return addr;</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

@@ -61,7 +61,7 @@
 <a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Condition available;
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> RecyclingSupplier.Factory&lt;T&gt; factory;
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>  
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../org/spf4j/recyclable/impl/SimpleSmartObjectPool.html">SimpleSmartObjectPool</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> initialSize, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxSize,
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <a href="../../../../org/spf4j/recyclable/impl/SimpleSmartObjectPool.html">SimpleSmartObjectPool</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> initialSize, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxSize,
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>          <strong class="jxr_keyword">final</strong>  RecyclingSupplier.Factory&lt;T&gt; factory, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> fair)
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>              <strong class="jxr_keyword">throws</strong> <a href="../../../../org/spf4j/recyclable/ObjectCreationException.html">ObjectCreationException</a> {
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>          <strong class="jxr_keyword">this</strong>.maxSize = maxSize;
@@ -80,7 +80,7 @@
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>      @SuppressFBWarnings(<span class="jxr_string">"RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"</span>)
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>      <strong class="jxr_keyword">public</strong> T get(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/recyclable/ObjectBorower.html">ObjectBorower</a> borower) <strong class="jxr_keyword">throws</strong> InterruptedException,
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>              TimeoutException, <a href="../../../../org/spf4j/recyclable/ObjectCreationException.html">ObjectCreationException</a> {
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>          <strong class="jxr_keyword">long</strong> deadline = org.spf4j.base.Runtime.DEADLINE.get();
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>          <strong class="jxr_keyword">long</strong> deadline = org.spf4j.base.Runtime.getDeadline();
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>          lock.lock();
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>          <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>              <em class="jxr_comment">// trying to be fair here, if others are already waiting, we will not get one.</em>
@@ -211,7 +211,7 @@
 <a class="jxr_linenumber" name="L203" href="#L203">203</a> 
 <a class="jxr_linenumber" name="L204" href="#L204">204</a>     @Override
 <a class="jxr_linenumber" name="L205" href="#L205">205</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> dispose() <strong class="jxr_keyword">throws</strong> ObjectDisposeException, InterruptedException {
-<a class="jxr_linenumber" name="L206" href="#L206">206</a>         <strong class="jxr_keyword">long</strong> deadline = org.spf4j.base.Runtime.DEADLINE.get();
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>         <strong class="jxr_keyword">long</strong> deadline = org.spf4j.base.Runtime.getDeadline();
 <a class="jxr_linenumber" name="L207" href="#L207">207</a>         lock.lock();
 <a class="jxr_linenumber" name="L208" href="#L208">208</a>         <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L209" href="#L209">209</a>             maxSize = 0;
@@ -369,6 +369,6 @@
 <a class="jxr_linenumber" name="L361" href="#L361">361</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2015. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2016. All rights reserved.</div>
 </body>
 </html>

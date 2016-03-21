@@ -48,10 +48,10 @@ public class TokenMgrError extends Error
    * equivalents in the given string
    */
   protected static final String addEscapes(String str) {
-<span class="nc" id="L51">    StringBuffer retval = new StringBuffer();</span>
+<span class="fc" id="L51">    StringBuffer retval = new StringBuffer();</span>
     char ch;
-<span class="nc bnc" id="L53" title="All 2 branches missed.">    for (int i = 0; i &lt; str.length(); i++) {</span>
-<span class="nc bnc" id="L54" title="All 10 branches missed.">      switch (str.charAt(i))</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">    for (int i = 0; i &lt; str.length(); i++) {</span>
+<span class="pc bpc" id="L54" title="7 of 10 branches missed.">      switch (str.charAt(i))</span>
       {
         case 0 :
 <span class="nc" id="L57">          continue;</span>
@@ -71,25 +71,25 @@ public class TokenMgrError extends Error
 <span class="nc" id="L71">          retval.append(&quot;\\r&quot;);</span>
 <span class="nc" id="L72">          continue;</span>
         case '\&quot;':
-<span class="nc" id="L74">          retval.append(&quot;\\\&quot;&quot;);</span>
-<span class="nc" id="L75">          continue;</span>
+<span class="fc" id="L74">          retval.append(&quot;\\\&quot;&quot;);</span>
+<span class="fc" id="L75">          continue;</span>
         case '\'':
 <span class="nc" id="L77">          retval.append(&quot;\\\'&quot;);</span>
 <span class="nc" id="L78">          continue;</span>
         case '\\':
-<span class="nc" id="L80">          retval.append(&quot;\\\\&quot;);</span>
-<span class="nc" id="L81">          continue;</span>
+<span class="fc" id="L80">          retval.append(&quot;\\\\&quot;);</span>
+<span class="fc" id="L81">          continue;</span>
         default:
-<span class="nc bnc" id="L83" title="All 4 branches missed.">          if ((ch = str.charAt(i)) &lt; 0x20 || ch &gt; 0x7e) {</span>
+<span class="pc bpc" id="L83" title="2 of 4 branches missed.">          if ((ch = str.charAt(i)) &lt; 0x20 || ch &gt; 0x7e) {</span>
 <span class="nc" id="L84">            String s = &quot;0000&quot; + Integer.toString(ch, 16);</span>
 <span class="nc" id="L85">            retval.append(&quot;\\u&quot; + s.substring(s.length() - 4, s.length()));</span>
 <span class="nc" id="L86">          } else {</span>
-<span class="nc" id="L87">            retval.append(ch);</span>
+<span class="fc" id="L87">            retval.append(ch);</span>
           }
           continue;
       }
     }
-<span class="nc" id="L92">    return retval.toString();</span>
+<span class="fc" id="L92">    return retval.toString();</span>
   }
 
   /**
@@ -105,7 +105,7 @@ public class TokenMgrError extends Error
    * Note: You can customize the lexical error message by modifying this method.
    */
   protected static String LexicalError(boolean EOFSeen, int lexState, int errorLine, int errorColumn, String errorAfter, char curChar) {
-<span class="nc bnc" id="L108" title="All 2 branches missed.">    return(&quot;Lexical error at line &quot; +</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">    return(&quot;Lexical error at line &quot; +</span>
           errorLine + &quot;, column &quot; +
           errorColumn + &quot;.  Encountered: &quot; +
           (EOFSeen ? &quot;&lt;EOF&gt; &quot; : (&quot;\&quot;&quot; + addEscapes(String.valueOf(curChar)) + &quot;\&quot;&quot;) + &quot; (&quot; + (int)curChar + &quot;), &quot;) +
@@ -122,7 +122,7 @@ public class TokenMgrError extends Error
    * from this method for such cases in the release version of your parser.
    */
   public String getMessage() {
-<span class="nc" id="L125">    return super.getMessage();</span>
+<span class="fc" id="L125">    return super.getMessage();</span>
   }
 
   /*
@@ -135,14 +135,14 @@ public class TokenMgrError extends Error
 
   /** Constructor with message and reason. */
   public TokenMgrError(String message, int reason) {
-<span class="nc" id="L138">    super(message);</span>
-<span class="nc" id="L139">    errorCode = reason;</span>
-<span class="nc" id="L140">  }</span>
+<span class="fc" id="L138">    super(message);</span>
+<span class="fc" id="L139">    errorCode = reason;</span>
+<span class="fc" id="L140">  }</span>
 
   /** Full Constructor. */
   public TokenMgrError(boolean EOFSeen, int lexState, int errorLine, int errorColumn, String errorAfter, char curChar, int reason) {
-<span class="nc" id="L144">    this(LexicalError(EOFSeen, lexState, errorLine, errorColumn, errorAfter, curChar), reason);</span>
-<span class="nc" id="L145">  }</span>
+<span class="fc" id="L144">    this(LexicalError(EOFSeen, lexState, errorLine, errorColumn, errorAfter, curChar), reason);</span>
+<span class="fc" id="L145">  }</span>
 }
 /* JavaCC - OriginalChecksum=7cec1852d08013eeda4ac51efcfd507c (do not edit this line) */
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

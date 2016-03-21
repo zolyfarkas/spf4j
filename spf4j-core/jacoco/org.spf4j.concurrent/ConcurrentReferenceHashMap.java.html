@@ -275,9 +275,9 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
     static final class WeakKeyReference&lt;K&gt; extends WeakReference&lt;K&gt;  implements KeyReference {
         private final int hash;
         WeakKeyReference(final K key, final int hash, final ReferenceQueue&lt;Object&gt; refQueue) {
-<span class="fc" id="L278">            super(key, refQueue);</span>
-<span class="fc" id="L279">            this.hash = hash;</span>
-<span class="fc" id="L280">        }</span>
+<span class="nc" id="L278">            super(key, refQueue);</span>
+<span class="nc" id="L279">            this.hash = hash;</span>
+<span class="nc" id="L280">        }</span>
 
         @Override
         public int keyHash() {
@@ -381,11 +381,11 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
                 final ReferenceQueue&lt;Object&gt; refQueue) {
 <span class="pc bpc" id="L382" title="3 of 4 branches missed.">            switch (keyType) {</span>
                 case WEAK:
-<span class="fc" id="L384">                return new WeakKeyReference&lt;&gt;(key, hash, refQueue);</span>
+<span class="nc" id="L384">                return new WeakKeyReference&lt;&gt;(key, hash, refQueue);</span>
                 case SOFT:
 <span class="nc" id="L386">                return new SoftKeyReference&lt;&gt;(key, hash, refQueue);</span>
                 case STRONG:
-<span class="nc" id="L388">                return key;</span>
+<span class="fc" id="L388">                return key;</span>
                 default:
 <span class="nc" id="L390">                    throw new RuntimeException(&quot;Unsupported refference type &quot; + keyType);</span>
             }
@@ -408,9 +408,9 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
         @SuppressWarnings(&quot;unchecked&quot;)
         final K key() {
 <span class="pc bpc" id="L410" title="1 of 2 branches missed.">            if (keyRef instanceof KeyReference)</span>
-<span class="fc" id="L411">                return ((Reference&lt;K&gt;)keyRef).get();</span>
+<span class="nc" id="L411">                return ((Reference&lt;K&gt;)keyRef).get();</span>
 
-<span class="nc" id="L413">            return (K) keyRef;</span>
+<span class="fc" id="L413">            return (K) keyRef;</span>
         }
 
         final V value() {
@@ -943,9 +943,9 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
      */
     public ConcurrentReferenceHashMap(final int initialCapacity,
                              final float loadFactor, final int concurrencyLevel) {
-<span class="fc" id="L946">        this(initialCapacity, loadFactor, concurrencyLevel,</span>
+<span class="nc" id="L946">        this(initialCapacity, loadFactor, concurrencyLevel,</span>
                 DEFAULT_KEY_TYPE, DEFAULT_VALUE_TYPE, null);
-<span class="fc" id="L948">    }</span>
+<span class="nc" id="L948">    }</span>
 
     /**
      * Creates a new, empty map with the specified initial capacity
@@ -994,9 +994,9 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
      * elements is negative.
      */
     public ConcurrentReferenceHashMap(ReferenceType keyType, ReferenceType valueType) {
-<span class="nc" id="L997">        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL,</span>
+<span class="fc" id="L997">        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL,</span>
                 keyType, valueType, null);
-<span class="nc" id="L999">    }</span>
+<span class="fc" id="L999">    }</span>
 
     /**
      * Creates a new, empty reference map with the specified reference types
@@ -1034,8 +1034,8 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
      * load factor (0.75) and concurrencyLevel (16).
      */
     public ConcurrentReferenceHashMap() {
-<span class="fc" id="L1037">        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL);</span>
-<span class="fc" id="L1038">    }</span>
+<span class="nc" id="L1037">        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL);</span>
+<span class="nc" id="L1038">    }</span>
 
     /**
      * Creates a new map with the same mappings as the given map.
@@ -1811,4 +1811,4 @@ public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&
 <span class="nc" id="L1811">        }</span>
 <span class="nc" id="L1812">    }</span>
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

@@ -20,6 +20,7 @@
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * Translates a value using a lookup table.
@@ -35,47 +36,87 @@ public final class LookupTranslator extends CharSequenceTranslator {
     private final int longest;
 
 
-<span class="fc" id="L38">    public LookupTranslator(final CharSequence[]... lookup) {</span>
-<span class="fc" id="L39">        lookupMap = new HashMap&lt;String, CharSequence&gt;();</span>
-<span class="fc" id="L40">        int ashortest = Integer.MAX_VALUE;</span>
-<span class="fc" id="L41">        int alongest = 0;</span>
-<span class="pc bpc" id="L42" title="1 of 2 branches missed.">        if (lookup != null) {</span>
-<span class="fc bfc" id="L43" title="All 2 branches covered.">            for (final CharSequence[] seq : lookup) {</span>
-<span class="fc" id="L44">                this.lookupMap.put(seq[0].toString(), seq[1]);</span>
-<span class="fc" id="L45">                final int sz = seq[0].length();</span>
-<span class="fc bfc" id="L46" title="All 2 branches covered.">                if (sz &lt; ashortest) {</span>
-<span class="fc" id="L47">                    ashortest = sz;</span>
+<span class="fc" id="L39">    public LookupTranslator(final CharSequence[]... lookup) {</span>
+<span class="fc" id="L40">        lookupMap = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L41">        int ashortest = Integer.MAX_VALUE;</span>
+<span class="fc" id="L42">        int alongest = 0;</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">        if (lookup != null) {</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">            for (final CharSequence[] seq : lookup) {</span>
+<span class="fc" id="L45">                this.lookupMap.put(seq[0].toString(), seq[1]);</span>
+<span class="fc" id="L46">                final int sz = seq[0].length();</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">                if (sz &lt; ashortest) {</span>
+<span class="fc" id="L48">                    ashortest = sz;</span>
                 }
-<span class="fc bfc" id="L49" title="All 2 branches covered.">                if (sz &gt; alongest) {</span>
-<span class="fc" id="L50">                    alongest = sz;</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">                if (sz &gt; alongest) {</span>
+<span class="fc" id="L51">                    alongest = sz;</span>
                 }
             }
         }
-<span class="fc" id="L54">        shortest = ashortest;</span>
-<span class="fc" id="L55">        longest = alongest;</span>
-<span class="fc" id="L56">    }</span>
+<span class="fc" id="L55">        shortest = ashortest;</span>
+<span class="fc" id="L56">        longest = alongest;</span>
+<span class="fc" id="L57">    }</span>
 
     /**
      * {@inheritDoc}
      */
     @Override
     public int translate(final CharSequence input, final int index, final Writer out) throws IOException {
-<span class="fc" id="L63">        int max = longest;</span>
-<span class="fc" id="L64">        final int l = input.length();</span>
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (index + longest &gt; l) {</span>
-<span class="nc" id="L66">            max = l - index;</span>
+<span class="fc" id="L64">        int max = longest;</span>
+<span class="fc" id="L65">        final int l = input.length();</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        if (index + longest &gt; l) {</span>
+<span class="nc" id="L67">            max = l - index;</span>
         }
         // descend so as to get a greedy algorithm
-<span class="fc bfc" id="L69" title="All 2 branches covered.">        for (int i = max; i &gt;= shortest; i--) {</span>
-<span class="fc" id="L70">            final CharSequence subSeq = input.subSequence(index, index + i);</span>
-<span class="fc" id="L71">            final CharSequence result = lookupMap.get(subSeq.toString());</span>
-<span class="fc bfc" id="L72" title="All 2 branches covered.">            if (result != null) {</span>
-<span class="fc" id="L73">                out.write(result.toString());</span>
-<span class="fc" id="L74">                return i;</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        for (int i = max; i &gt;= shortest; i--) {</span>
+<span class="fc" id="L71">            final CharSequence subSeq = input.subSequence(index, index + i);</span>
+<span class="fc" id="L72">            final CharSequence result = lookupMap.get(subSeq.toString());</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">            if (result != null) {</span>
+<span class="fc" id="L74">                out.write(result.toString());</span>
+<span class="fc" id="L75">                return i;</span>
             }
         }
-<span class="fc" id="L77">        return 0;</span>
+<span class="fc" id="L78">        return 0;</span>
     }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L83">        return &quot;LookupTranslator{&quot; + &quot;lookupMap=&quot; + lookupMap</span>
+                + &quot;, shortest=&quot; + shortest + &quot;, longest=&quot; + longest + '}';
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L89">        int hash = 7;</span>
+<span class="nc" id="L90">        hash = 73 * hash + Objects.hashCode(this.lookupMap);</span>
+<span class="nc" id="L91">        hash = 73 * hash + this.shortest;</span>
+<span class="nc" id="L92">        return 73 * hash + this.longest;</span>
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (this == obj) {</span>
+<span class="nc" id="L98">            return true;</span>
+        }
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L101">            return false;</span>
+        }
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L104">            return false;</span>
+        }
+<span class="nc" id="L106">        final LookupTranslator other = (LookupTranslator) obj;</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (this.shortest != other.shortest) {</span>
+<span class="nc" id="L108">            return false;</span>
+        }
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if (this.longest != other.longest) {</span>
+<span class="nc" id="L111">            return false;</span>
+        }
+<span class="nc" id="L113">        return Objects.equals(this.lookupMap, other.lookupMap);</span>
+    }
+
+
+
+
+
 }
 
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

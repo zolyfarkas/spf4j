@@ -116,7 +116,7 @@ public final class Arrays {
 <span class="nc" id="L116">        return true;</span>
     }
 
-    public static int search(final char [] array, final char c) {
+    public static int search(final char[] array, final char c) {
 <span class="fc bfc" id="L120" title="All 2 branches covered.">        for (int i = 0; i &lt; array.length; i++) {</span>
 <span class="fc bfc" id="L121" title="All 2 branches covered.">            if (array[i] == c) {</span>
 <span class="fc" id="L122">                return i;</span>
@@ -162,63 +162,67 @@ public final class Arrays {
 <span class="fc" id="L162">        return result;</span>
     }
 
-<span class="fc" id="L165">    public static final Object [] EMPTY_OBJ_ARRAY = new Object [] {};</span>
+<span class="fc" id="L165">    public static final Object[] EMPTY_OBJ_ARRAY = new Object[] {};</span>
 
-<span class="fc" id="L167">    public static final byte [] EMPTY_BYTE_ARRAY = new byte [] {};</span>
+<span class="fc" id="L167">    public static final String[] EMPTY_STRING_ARRAY = new String[] {};</span>
 
-<span class="fc" id="L169">    public static final long [] EMPTY_LONG_ARRAY = new long [] {};</span>
+<span class="fc" id="L169">    public static final byte[] EMPTY_BYTE_ARRAY = new byte[] {};</span>
 
-<span class="fc" id="L171">    private static final ThreadLocal&lt;SoftReference&lt;byte[]&gt;&gt; BYTES_TMP = new ThreadLocal&lt;&gt;();</span>
+<span class="fc" id="L171">    public static final long[] EMPTY_LONG_ARRAY = new long[] {};</span>
 
-<span class="fc" id="L173">    private static final ThreadLocal&lt;SoftReference&lt;char[]&gt;&gt; CHARS_TMP = new ThreadLocal&lt;&gt;();</span>
+<span class="fc" id="L173">    public static final int[] EMPTY_INT_ARRAY = new int[] {};</span>
+
+<span class="fc" id="L175">    private static final ThreadLocal&lt;SoftReference&lt;byte[]&gt;&gt; BYTES_TMP = new ThreadLocal&lt;&gt;();</span>
+
+<span class="fc" id="L177">    private static final ThreadLocal&lt;SoftReference&lt;char[]&gt;&gt; CHARS_TMP = new ThreadLocal&lt;&gt;();</span>
 
     /**
      * returns a thread local byte array of at least the size requested.
      * use only for temporary purpose.
      * This method needs to be carefully used!
-     * @param size
-     * @return
+     * @param size - the minimum size of the temporary buffer requested.
+     * @return - the temporary buffer.
      */
-    public static byte [] getBytesTmp(final int size) {
-<span class="fc" id="L183">        SoftReference&lt;byte[]&gt; sr = BYTES_TMP.get();</span>
-        byte [] result;
-<span class="fc bfc" id="L185" title="All 2 branches covered.">        if (sr == null) {</span>
-<span class="fc" id="L186">            result = new byte [size];</span>
-<span class="fc" id="L187">            BYTES_TMP.set(new SoftReference&lt;&gt;(result));</span>
+    public static byte[] getBytesTmp(final int size) {
+<span class="fc" id="L187">        SoftReference&lt;byte[]&gt; sr = BYTES_TMP.get();</span>
+        byte[] result;
+<span class="fc bfc" id="L189" title="All 2 branches covered.">        if (sr == null) {</span>
+<span class="fc" id="L190">            result = new byte[size];</span>
+<span class="fc" id="L191">            BYTES_TMP.set(new SoftReference&lt;&gt;(result));</span>
         } else {
-<span class="fc" id="L189">            result = sr.get();</span>
-<span class="pc bpc" id="L190" title="1 of 4 branches missed.">            if (result == null || result.length &lt; size) {</span>
-<span class="fc" id="L191">                result = new byte [size];</span>
-<span class="fc" id="L192">                BYTES_TMP.set(new SoftReference&lt;&gt;(result));</span>
+<span class="fc" id="L193">            result = sr.get();</span>
+<span class="pc bpc" id="L194" title="1 of 4 branches missed.">            if (result == null || result.length &lt; size) {</span>
+<span class="fc" id="L195">                result = new byte[size];</span>
+<span class="fc" id="L196">                BYTES_TMP.set(new SoftReference&lt;&gt;(result));</span>
             }
         }
-<span class="fc" id="L195">        return result;</span>
+<span class="fc" id="L199">        return result;</span>
     }
 
     /**
      * returns a thread local char array of at least the requested size.
      * Use only for temporary purpose.
-     * @param size
-     * @return
+     * @param size - the minimum size of the temporary buffer requested.
+     * @return - the temporary buffer.
      */
 
-    public static char [] getCharsTmp(final int size) {
-<span class="fc" id="L206">        SoftReference&lt;char[]&gt; sr = CHARS_TMP.get();</span>
-        char [] result;
-<span class="fc bfc" id="L208" title="All 2 branches covered.">        if (sr == null) {</span>
-<span class="fc" id="L209">            result = new char [size];</span>
-<span class="fc" id="L210">            CHARS_TMP.set(new SoftReference&lt;&gt;(result));</span>
+    public static char[] getCharsTmp(final int size) {
+<span class="fc" id="L210">        SoftReference&lt;char[]&gt; sr = CHARS_TMP.get();</span>
+        char[] result;
+<span class="fc bfc" id="L212" title="All 2 branches covered.">        if (sr == null) {</span>
+<span class="fc" id="L213">            result = new char[size];</span>
+<span class="fc" id="L214">            CHARS_TMP.set(new SoftReference&lt;&gt;(result));</span>
         } else {
-<span class="fc" id="L212">            result = sr.get();</span>
-<span class="pc bpc" id="L213" title="1 of 4 branches missed.">            if (result == null || result.length &lt; size) {</span>
-<span class="fc" id="L214">                result = new char [size];</span>
-<span class="fc" id="L215">                CHARS_TMP.set(new SoftReference&lt;&gt;(result));</span>
+<span class="fc" id="L216">            result = sr.get();</span>
+<span class="pc bpc" id="L217" title="1 of 4 branches missed.">            if (result == null || result.length &lt; size) {</span>
+<span class="fc" id="L218">                result = new char[size];</span>
+<span class="fc" id="L219">                CHARS_TMP.set(new SoftReference&lt;&gt;(result));</span>
             }
         }
-<span class="fc" id="L218">        return result;</span>
+<span class="fc" id="L222">        return result;</span>
     }
 
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

@@ -36,21 +36,21 @@ import org.spf4j.perf.MeasurementRecorderSource;
 public final class MeasuredFileInputStream extends FileInputStream {
 
     private final Class&lt;?&gt; from;
+    private final File file;
     private final MeasurementRecorderSource recorderSource;
 
     public MeasuredFileInputStream(final String name, final Class&lt;?&gt; from,
             final MeasurementRecorderSource recorderSource)
             throws FileNotFoundException {
-<span class="nc" id="L44">        super(name);</span>
-<span class="nc" id="L45">        this.from = from;</span>
-<span class="nc" id="L46">        this.recorderSource = recorderSource;</span>
-<span class="nc" id="L47">    }</span>
+<span class="nc" id="L45">        this(new File(name), from, recorderSource);</span>
+<span class="nc" id="L46">    }</span>
 
     public MeasuredFileInputStream(final File file, final Class&lt;?&gt; from, final MeasurementRecorderSource recorderSource)
             throws FileNotFoundException {
-<span class="nc" id="L51">        super(file);</span>
-<span class="nc" id="L52">        this.from = from;</span>
-<span class="nc" id="L53">        this.recorderSource = recorderSource;</span>
+<span class="nc" id="L50">        super(file);</span>
+<span class="nc" id="L51">        this.from = from;</span>
+<span class="nc" id="L52">        this.recorderSource = recorderSource;</span>
+<span class="nc" id="L53">        this.file = file;</span>
 <span class="nc" id="L54">    }</span>
 
     public MeasuredFileInputStream(final FileDescriptor fdObj, final Class&lt;?&gt; from,
@@ -58,29 +58,37 @@ public final class MeasuredFileInputStream extends FileInputStream {
 <span class="nc" id="L58">        super(fdObj);</span>
 <span class="nc" id="L59">        this.from = from;</span>
 <span class="nc" id="L60">        this.recorderSource = recorderSource;</span>
-<span class="nc" id="L61">    }</span>
+<span class="nc" id="L61">        this.file = null;</span>
+<span class="nc" id="L62">    }</span>
 
     @Override
     public int read(final byte[] b) throws IOException {
-<span class="nc" id="L65">        int result = super.read(b);</span>
-<span class="nc" id="L66">        recorderSource.getRecorder(from).record(result);</span>
-<span class="nc" id="L67">        return result;</span>
+<span class="nc" id="L66">        int result = super.read(b);</span>
+<span class="nc" id="L67">        recorderSource.getRecorder(from).record(result);</span>
+<span class="nc" id="L68">        return result;</span>
     }
 
     @Override
     public int read(final byte[] b, final int off, final int len) throws IOException {
-<span class="nc" id="L72">        int result = super.read(b, off, len);</span>
-<span class="nc" id="L73">        recorderSource.getRecorder(from).record(result);</span>
-<span class="nc" id="L74">        return result;</span>
+<span class="nc" id="L73">        int result = super.read(b, off, len);</span>
+<span class="nc" id="L74">        recorderSource.getRecorder(from).record(result);</span>
+<span class="nc" id="L75">        return result;</span>
     }
 
     @Override
     public int read() throws IOException {
-<span class="nc" id="L79">        int result = super.read();</span>
-<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (result &gt;= 0) {</span>
-<span class="nc" id="L81">            recorderSource.getRecorder(from).record(1);</span>
+<span class="nc" id="L80">        int result = super.read();</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (result &gt;= 0) {</span>
+<span class="nc" id="L82">            recorderSource.getRecorder(from).record(1);</span>
         }
-<span class="nc" id="L83">        return result;</span>
+<span class="nc" id="L84">        return result;</span>
     }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L89">        return &quot;MeasuredFileInputStream{&quot; + &quot;from=&quot; + from + &quot;, file=&quot; + file + &quot;, recorderSource=&quot;</span>
+                + recorderSource + '}';
+    }
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

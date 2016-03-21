@@ -245,7 +245,7 @@ public final class RTree&lt;T&gt; {
         }
 <span class="nc bnc" id="L246" title="All 2 branches missed.">        if (root.children.size() == 0) {</span>
 <span class="nc" id="L247">            root = buildRoot(true);</span>
-<span class="nc bnc" id="L248" title="All 4 branches missed.">        } else if ((root.children.size() == 1) &amp;&amp; (!root.leaf)) {</span>
+<span class="nc bnc" id="L248" title="All 4 branches missed.">        } else if ((!root.leaf) &amp;&amp; (root.children.size() == 1)) {</span>
 <span class="nc" id="L249">            root = root.children.get(0);</span>
 <span class="nc" id="L250">            root.parent = null;</span>
         } else {
@@ -636,8 +636,17 @@ public final class RTree&lt;T&gt; {
 <span class="fc" id="L636">            System.arraycopy(coords, 0, this.coords, 0, coords.length);</span>
 <span class="fc" id="L637">            System.arraycopy(dimensions, 0, this.dimensions, 0, dimensions.length);</span>
 <span class="fc" id="L638">            this.leaf = leaf;</span>
-<span class="fc" id="L639">            children = new LinkedList&lt;Node&gt;();</span>
+<span class="fc" id="L639">            children = new LinkedList&lt;&gt;();</span>
 <span class="fc" id="L640">        }</span>
+
+        @Override
+        public String toString() {
+<span class="nc" id="L644">            return &quot;Node{&quot; + &quot;coords=&quot; + Arrays.toString(coords) + &quot;, dimensions=&quot;</span>
+                    + Arrays.toString(dimensions) + &quot;, children=&quot;
+                    + children + &quot;, leaf=&quot; + leaf + &quot;, parent=&quot; + parent + '}';
+        }
+
+
     }
 
     private static class Entry&lt;T&gt; extends Node {
@@ -648,13 +657,13 @@ public final class RTree&lt;T&gt; {
             // an entry isn't actually a leaf (its parent is a leaf)
             // but all the algorithms should stop at the first leaf they encounter,
             // so this little hack shouldn't be a problem.
-<span class="fc" id="L651">            super(coords, dimensions, true);</span>
-<span class="fc" id="L652">            this.entry = entry;</span>
-<span class="fc" id="L653">        }</span>
+<span class="fc" id="L660">            super(coords, dimensions, true);</span>
+<span class="fc" id="L661">            this.entry = entry;</span>
+<span class="fc" id="L662">        }</span>
 
         @Override
         public String toString() {
-<span class="nc" id="L657">            return &quot;Entry: &quot; + entry;</span>
+<span class="nc" id="L666">            return &quot;Entry: &quot; + entry;</span>
         }
     }
     //CHECKSTYLE:ON
@@ -665,34 +674,44 @@ public final class RTree&lt;T&gt; {
     private static final int ELEM_HEIGHT = 120;
 
     public String visualize() {
-<span class="nc" id="L668">        int ubDepth = (int) Math.ceil(Math.log(size) / Math.log(minEntries)) * ELEM_HEIGHT;</span>
-<span class="nc" id="L669">        int ubWidth = size * ELEM_WIDTH;</span>
-<span class="nc" id="L670">        java.io.StringWriter sw = new java.io.StringWriter();</span>
-<span class="nc" id="L671">        java.io.PrintWriter pw = new java.io.PrintWriter(sw);</span>
-<span class="nc" id="L672">        pw.println(&quot;&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&quot;);</span>
-<span class="nc" id="L673">        visualize(root, pw, 0, 0, ubWidth, ubDepth);</span>
-<span class="nc" id="L674">        pw.println(&quot;&lt;/body&gt;&quot;);</span>
-<span class="nc" id="L675">        pw.flush();</span>
-<span class="nc" id="L676">        return sw.toString();</span>
+<span class="nc" id="L677">        int ubDepth = (int) Math.ceil(Math.log(size) / Math.log(minEntries)) * ELEM_HEIGHT;</span>
+<span class="nc" id="L678">        int ubWidth = size * ELEM_WIDTH;</span>
+<span class="nc" id="L679">        java.io.StringWriter sw = new java.io.StringWriter();</span>
+<span class="nc" id="L680">        java.io.PrintWriter pw = new java.io.PrintWriter(sw);</span>
+<span class="nc" id="L681">        pw.println(&quot;&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&quot;);</span>
+<span class="nc" id="L682">        visualize(root, pw, 0, 0, ubWidth, ubDepth);</span>
+<span class="nc" id="L683">        pw.println(&quot;&lt;/body&gt;&quot;);</span>
+<span class="nc" id="L684">        pw.flush();</span>
+<span class="nc" id="L685">        return sw.toString();</span>
     }
 
     private void visualize(final Node n, final java.io.PrintWriter pw, final int x0,
             final int y0, final int w, final int h) {
-<span class="nc" id="L681">        pw.printf(&quot;&lt;div style=\&quot;position:absolute; left: %d; top: %d; width: %d; height: %d; border: 1px dashed\&quot;&gt;%n&quot;,</span>
+<span class="nc" id="L690">        pw.printf(&quot;&lt;div style=\&quot;position:absolute; left: %d; top: %d; width: %d; height: %d; border: 1px dashed\&quot;&gt;%n&quot;,</span>
                 x0, y0, w, h);
-<span class="nc" id="L683">        pw.println(&quot;&lt;pre&gt;&quot;);</span>
-<span class="nc bnc" id="L684" title="All 2 branches missed.">        pw.println(&quot;Node: &quot; + n + &quot; (root==&quot; + (n == root) + &quot;) \n&quot;);</span>
-<span class="nc" id="L685">        pw.println(&quot;Coords: &quot; + Arrays.toString(n.coords) + '\n');</span>
-<span class="nc" id="L686">        pw.println(&quot;Dimensions: &quot; + Arrays.toString(n.dimensions) + '\n');</span>
-<span class="nc bnc" id="L687" title="All 2 branches missed.">        pw.println(&quot;# Children: &quot; + ((n.children == null) ? 0 : n.children.size()) + '\n');</span>
-<span class="nc" id="L688">        pw.println(&quot;isLeaf: &quot; + n.leaf + '\n');</span>
-<span class="nc" id="L689">        pw.println(&quot;&lt;/pre&gt;&quot;);</span>
-<span class="nc bnc" id="L690" title="All 2 branches missed.">        int numChildren = (n.children == null) ? 0 : n.children.size();</span>
-<span class="nc bnc" id="L691" title="All 2 branches missed.">        for (int i = 0; i &lt; numChildren; i++) {</span>
-<span class="nc" id="L692">            visualize(n.children.get(i), pw, (int) (x0 + (i * w / (float) numChildren)),</span>
+<span class="nc" id="L692">        pw.println(&quot;&lt;pre&gt;&quot;);</span>
+<span class="nc bnc" id="L693" title="All 2 branches missed.">        pw.println(&quot;Node: &quot; + n + &quot; (root==&quot; + (n == root) + &quot;) \n&quot;);</span>
+<span class="nc" id="L694">        pw.println(&quot;Coords: &quot; + Arrays.toString(n.coords) + '\n');</span>
+<span class="nc" id="L695">        pw.println(&quot;Dimensions: &quot; + Arrays.toString(n.dimensions) + '\n');</span>
+<span class="nc bnc" id="L696" title="All 2 branches missed.">        pw.println(&quot;# Children: &quot; + ((n.children == null) ? 0 : n.children.size()) + '\n');</span>
+<span class="nc" id="L697">        pw.println(&quot;isLeaf: &quot; + n.leaf + '\n');</span>
+<span class="nc" id="L698">        pw.println(&quot;&lt;/pre&gt;&quot;);</span>
+<span class="nc bnc" id="L699" title="All 2 branches missed.">        int numChildren = (n.children == null) ? 0 : n.children.size();</span>
+<span class="nc bnc" id="L700" title="All 2 branches missed.">        for (int i = 0; i &lt; numChildren; i++) {</span>
+<span class="nc" id="L701">            visualize(n.children.get(i), pw, (int) (x0 + (i * w / (float) numChildren)),</span>
                     y0 + ELEM_HEIGHT, (int) (w / (float) numChildren), h - ELEM_HEIGHT);
         }
-<span class="nc" id="L695">        pw.println(&quot;&lt;/div&gt;&quot;);</span>
-<span class="nc" id="L696">    }</span>
+<span class="nc" id="L704">        pw.println(&quot;&lt;/div&gt;&quot;);</span>
+<span class="nc" id="L705">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L709">        return &quot;RTree{&quot; + &quot;maxEntries=&quot; + maxEntries + &quot;, minEntries=&quot; + minEntries + &quot;, numDims=&quot;</span>
+                + numDims + &quot;, pointDims=&quot; + Arrays.toString(pointDims)
+                + &quot;, seedPicker=&quot; + seedPicker + &quot;, root=&quot; + root + &quot;, size=&quot; + size + '}';
+    }
+
+    
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

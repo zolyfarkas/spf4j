@@ -19,7 +19,6 @@ package org.spf4j.zel.vm;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.Either;
 
@@ -28,24 +27,25 @@ import org.spf4j.base.Either;
  * @author zoly
  */
 @ThreadSafe
-<span class="fc" id="L31">public class VMASyncFuture&lt;T&gt; implements VMFuture&lt;T&gt; {</span>
+<span class="fc" id="L30">public class VMASyncFuture&lt;T&gt; implements VMFuture&lt;T&gt; {</span>
     private volatile Either&lt;T, ? extends ExecutionException&gt; resultStore;
 
     @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
-<span class="nc" id="L36">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L35">        throw new UnsupportedOperationException();</span>
     }
 
     @Override
     public final boolean isCancelled() {
-<span class="nc" id="L41">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L40">        throw new UnsupportedOperationException();</span>
     }
 
     @Override
     public final boolean isDone() {
-<span class="fc bfc" id="L46" title="All 2 branches covered.">        return resultStore != null;</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        return resultStore != null;</span>
     }
     
+    @Override
     public final Either&lt;T, ? extends ExecutionException&gt; getResultStore() {
 <span class="fc" id="L50">        return resultStore;</span>
     }
@@ -54,29 +54,32 @@ import org.spf4j.base.Either;
     // Findbugs complain here is rubbish, InterruptedException is thrown by wait
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;BED_BOGUS_EXCEPTION_DECLARATION&quot;)
     public final T get() throws InterruptedException, ExecutionException {
-<span class="nc" id="L57">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L57">        throw new UnsupportedOperationException();</span>
     }
 
     @Override
-    public final T get(final long timeout, final TimeUnit unit)
-            throws InterruptedException, ExecutionException, TimeoutException {
-<span class="nc" id="L63">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+    public final T get(final long timeout, final TimeUnit unit) {
+<span class="nc" id="L62">        throw new UnsupportedOperationException();</span>
     }
 
 
     @Override
     public final void setResult(final T result) {
-<span class="fc" id="L69">        resultStore = Either.left(result);</span>
-<span class="fc" id="L70">    }</span>
+<span class="fc" id="L68">        resultStore = Either.left(result);</span>
+<span class="fc" id="L69">    }</span>
     
     @Override
     public final void setExceptionResult(final ExecutionException result) {
-<span class="pc bpc" id="L74" title="1 of 2 branches missed.">        if (result.getCause() == ExecAbortException.INSTANCE) {</span>
-<span class="nc" id="L75">            return;</span>
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        if (result.getCause() == ExecAbortException.INSTANCE) {</span>
+<span class="nc" id="L74">            return;</span>
         }
-<span class="fc" id="L77">        resultStore = Either.right(result);</span>
-<span class="fc" id="L78">    }</span>
+<span class="fc" id="L76">        resultStore = Either.right(result);</span>
+<span class="fc" id="L77">    }</span>
 
+    @Override
+    public final String toString() {
+<span class="nc" id="L81">        return &quot;VMASyncFuture{&quot; + &quot;resultStore=&quot; + resultStore + '}';</span>
+    }
     
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

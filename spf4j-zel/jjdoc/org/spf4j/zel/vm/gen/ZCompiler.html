@@ -7,6 +7,15 @@
 <H1 ALIGN=CENTER>BNF for ZCompiler.jj</H1>
 <H2 ALIGN=CENTER>TOKENS</H2>
 <TABLE>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * Whitespace
+ */</PRE>
+  </TD>
+ </TR>
  <!-- Token -->
  <TR>
   <TD>
@@ -17,10 +26,47 @@
 | "\t"
 | "\n"
 | &lt;SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n" | "\r" | "\r\n")&gt;
-| &lt;MULTILINE_COMMENT: "/*" (~["*"])* "*" ("*" | ~["*","/"] (~["*"])* "*")* "/"&gt;
 }
 
    </PRE>
+  </TD>
+ </TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * Multiline comment. can contain other multi line comments.
+ */</PRE>
+  </TD>
+ </TR>
+ <!-- Token -->
+ <TR>
+  <TD>
+   <PRE>
+&lt;DEFAULT&gt; TOKEN : {
+&lt;COMMENT_END: "*/"&gt;
+}
+
+   </PRE>
+  </TD>
+ </TR>
+ <!-- Token -->
+ <TR>
+  <TD>
+   <PRE>
+&lt;DEFAULT&gt; SPECIAL : {
+&lt;COMMENT_START: "/*"&gt; : {
+}
+
+   </PRE>
+  </TD>
+ </TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/* OPERATORS & KEYWORDS*/</PRE>
   </TD>
  </TR>
  <!-- Token -->
@@ -87,6 +133,15 @@
    </PRE>
   </TD>
  </TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * Number and String constants 
+ */</PRE>
+  </TD>
+ </TR>
  <!-- Token -->
  <TR>
   <TD>
@@ -104,6 +159,15 @@
 }
 
    </PRE>
+  </TD>
+ </TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * ZEL identifiers.
+ */</PRE>
   </TD>
  </TR>
  <!-- Token -->
@@ -125,22 +189,17 @@
 <TR>
 <TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod1">mainprogram</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod2">program</A> )? &lt;EOF&gt;</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod2">program</A> &lt;EOF&gt;</TD>
 </TR>
 <TR>
 <TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod2">program</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod3">statement</A> ( &lt;SCL&gt; <A HREF="#prod3">statement</A> )*</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>( ( ( <A HREF="#prod3">programBlockStatic</A> ) | ( <A HREF="#prod4">statement</A> ) ) ( ( &lt;SCL&gt; ( <A HREF="#prod3">programBlockStatic</A> | <A HREF="#prod4">statement</A> ) ) | <A HREF="#prod3">programBlockStatic</A> )* )?</TD>
 </TR>
 <TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod3">statement</A></TD>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod4">statement</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod4">assignement</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod5">swap</A></TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod5">operations</A></TD>
 </TR>
 <TR>
 <TD ALIGN=RIGHT VALIGN=BASELINE></TD>
@@ -182,16 +241,59 @@
 <TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
 <TD ALIGN=LEFT VALIGN=BASELINE>( &lt;USE&gt; &lt;DECIMAL&gt; &lt;INTEGER&gt; )</TD>
 </TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * The ZEL for statement, (similar with for from GO):
+ *   for i = 0, result = 0; i < breakup; i = i + 1 {
+ *    result = result + part[i] 
+ *   };
+ */</PRE>
+  </TD>
+ </TR>
 <TR>
 <TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod8">forStmt</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>&lt;FOR&gt; ( ( <A HREF="#prod4">assignement</A> ( &lt;COMMA&gt; <A HREF="#prod4">assignement</A> )* ) &lt;SCL&gt; )? <A HREF="#prod10">logical</A> ( &lt;SCL&gt; ( <A HREF="#prod4">assignement</A> ( &lt;COMMA&gt; <A HREF="#prod4">assignement</A> )* ) )? <A HREF="#prod11">programBlock</A></TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>&lt;FOR&gt; ( ( <A HREF="#prod5">operations</A> ( &lt;COMMA&gt; <A HREF="#prod5">operations</A> )* ) &lt;SCL&gt; )? <A HREF="#prod10">logical</A> ( &lt;SCL&gt; ( <A HREF="#prod5">operations</A> ( &lt;COMMA&gt; <A HREF="#prod5">operations</A> )* ) )? <A HREF="#prod3">programBlockStatic</A></TD>
 </TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * The IF statment. (Similar as in GO):
+ *     if v > ma {
+ *        ma = v
+ *     } else if v < mi {
+ *        mi = v
+ *     }
+ */</PRE>
+  </TD>
+ </TR>
 <TR>
 <TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod9">ifStmt</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;IF&gt; <A HREF="#prod10">logical</A> ( <A HREF="#prod11">programBlock</A> | <A HREF="#prod3">statement</A> ) ) ( &lt;ELSE&gt; ( <A HREF="#prod11">programBlock</A> | <A HREF="#prod3">statement</A> ) )?</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;IF&gt; <A HREF="#prod10">logical</A> ( <A HREF="#prod3">programBlockStatic</A> | <A HREF="#prod4">statement</A> ) ) ( &lt;ELSE&gt; ( <A HREF="#prod3">programBlockStatic</A> | <A HREF="#prod4">statement</A> ) )?</TD>
 </TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod3">programBlockStatic</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod11">programBlock</A> ( &lt;SAND&gt; )?</TD>
+</TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * A zel program block:
+ * {
+ *  .....
+ * }
+ */</PRE>
+  </TD>
+ </TR>
 <TR>
 <TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod11">programBlock</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
@@ -202,83 +304,177 @@
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
 <TD ALIGN=LEFT VALIGN=BASELINE>&lt;RETURN&gt; ( <A HREF="#prod6">expression</A> )?</TD>
 </TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * The ZEL operations:
+ *
+ * Assignements: x, y, z = {1, 2, 3}; f(x) = 4;
+ * Increment: x++
+ * Decrement: x--
+ * Swap: x <-> y
+ *
+ */</PRE>
+  </TD>
+ </TR>
 <TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod4">assignement</A></TD>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod5">operations</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod12">assignableExpression</A> ( &lt;COMMA&gt; <A HREF="#prod12">assignableExpression</A> )* ( ( &lt;EQUAL&gt; <A HREF="#prod6">expression</A> ) | ( &lt;INC&gt; ) | ( &lt;DEC&gt; ) )</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod5">swap</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod12">assignableExpression</A> &lt;SWAP&gt; <A HREF="#prod12">assignableExpression</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod12">assignableExpression</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;ID&gt; ) ( ( <A HREF="#prod13">params</A> ) | ( ( ( &lt;DOT&gt; &lt;ID&gt; ) | ( &lt;LBRACKET&gt; <A HREF="#prod6">expression</A> &lt;RBRACKET&gt; ) ) ) )*</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod6">expression</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod14">ternary</A></TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod14">ternary</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod10">logical</A> ( ( &lt;CONDITION&gt; ) <A HREF="#prod14">ternary</A> &lt;CLM&gt; <A HREF="#prod14">ternary</A> )?</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod10">logical</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod15">compare</A> ( ( &lt;AND&gt; | &lt;OR&gt; | &lt;XOR&gt; ) <A HREF="#prod15">compare</A> )*</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod15">compare</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod16">sum</A> ( ( &lt;GT&gt; | &lt;LT&gt; | &lt;GE&gt; | &lt;LE&gt; | &lt;EQ&gt; | &lt;NEQ&gt; ) <A HREF="#prod16">sum</A> )*</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod16">sum</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod17">term</A> ( ( &lt;PLUS&gt; | &lt;MINUS&gt; ) <A HREF="#prod17">term</A> )*</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod17">term</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod18">exponent</A> ( ( &lt;MULTIPLY&gt; | &lt;DIVIDE&gt; | &lt;MOD&gt; ) <A HREF="#prod18">exponent</A> )*</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod18">exponent</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod19">unaryPost</A> ( &lt;POW&gt; <A HREF="#prod19">unaryPost</A> )*</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod19">unaryPost</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod20">unary</A> ( ( <A HREF="#prod13">params</A> ( &lt;SAND&gt; )? ) | ( ( ( &lt;DOT&gt; &lt;ID&gt; ) | ( &lt;LBRACKET&gt; <A HREF="#prod6">expression</A> &lt;RBRACKET&gt; ) ) ) )*</TD>
-</TR>
-<TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod20">unary</A></TD>
-<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>( ( &lt;MINUS&gt; | &lt;NOT&gt; ) <A HREF="#prod21">element</A> )</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod12">assignement</A></TD>
 </TR>
 <TR>
 <TD ALIGN=RIGHT VALIGN=BASELINE></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod21">element</A></TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod13">swap</A></TD>
 </TR>
 <TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod21">element</A></TD>
+<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod14">assignableExpression</A> ( &lt;INC&gt; | &lt;DEC&gt; ) )</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod12">assignement</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
-<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod22">constant</A> | ( &lt;ID&gt; ) | <A HREF="#prod23">sysFunction</A> | ( &lt;FIRST&gt; <A HREF="#prod13">params</A> ) | &lt;LPAREN&gt; <A HREF="#prod6">expression</A> &lt;RPAREN&gt; | ( &lt;LBRACE&gt; ( <A HREF="#prod6">expression</A> ( &lt;COMMA&gt; <A HREF="#prod6">expression</A> )* )? &lt;RBRACE&gt; ) | ( &lt;PIPE&gt; <A HREF="#prod6">expression</A> &lt;PIPE&gt; ) )</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod14">assignableExpression</A> ( &lt;COMMA&gt; <A HREF="#prod14">assignableExpression</A> )* ( &lt;EQUAL&gt; <A HREF="#prod6">expression</A> )</TD>
 </TR>
 <TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod13">params</A></TD>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod13">swap</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod14">assignableExpression</A> &lt;SWAP&gt; <A HREF="#prod14">assignableExpression</A></TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod14">assignableExpression</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;ID&gt; ) ( ( <A HREF="#prod15">params</A> ) | ( ( ( &lt;DOT&gt; &lt;ID&gt; ) | ( &lt;LBRACKET&gt; <A HREF="#prod6">expression</A> &lt;RBRACKET&gt; ) ) ) )*</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod6">expression</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod16">ternary</A></TD>
+</TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * The ternary operator:
+ * a < 0 ? 1 : 2
+ */</PRE>
+  </TD>
+ </TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod16">ternary</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod10">logical</A> ( ( &lt;CONDITION&gt; ) <A HREF="#prod16">ternary</A> &lt;CLM&gt; <A HREF="#prod16">ternary</A> )?</TD>
+</TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * Logical operators: AND OR XOR
+ */</PRE>
+  </TD>
+ </TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod10">logical</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod17">compare</A> ( ( &lt;AND&gt; | &lt;OR&gt; | &lt;XOR&gt; ) <A HREF="#prod17">compare</A> )*</TD>
+</TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * Commparison operatiors: < > <= >= == !=
+ */</PRE>
+  </TD>
+ </TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod17">compare</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod18">sum</A> ( ( &lt;GT&gt; | &lt;LT&gt; | &lt;GE&gt; | &lt;LE&gt; | &lt;EQ&gt; | &lt;NEQ&gt; ) <A HREF="#prod18">sum</A> )*</TD>
+</TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * + - operators.
+ */</PRE>
+  </TD>
+ </TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod18">sum</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod19">term</A> ( ( &lt;PLUS&gt; | &lt;MINUS&gt; ) <A HREF="#prod19">term</A> )*</TD>
+</TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * * / % operators
+ */</PRE>
+  </TD>
+ </TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod19">term</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod20">exponent</A> ( ( &lt;MULTIPLY&gt; | &lt;DIVIDE&gt; | &lt;MOD&gt; ) <A HREF="#prod20">exponent</A> )*</TD>
+</TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * the exponent operator: ^
+ */</PRE>
+  </TD>
+ </TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod20">exponent</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod21">unaryPost</A> ( &lt;POW&gt; <A HREF="#prod21">unaryPost</A> )*</TD>
+</TR>
+ <!-- Special token -->
+ <TR>
+  <TD>
+<PRE>
+/**
+ * Async invocation operator: &
+ */</PRE>
+  </TD>
+ </TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod21">unaryPost</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod22">unary</A> ( ( <A HREF="#prod15">params</A> ( &lt;SAND&gt; )? ) | ( ( ( &lt;DOT&gt; &lt;ID&gt; ) | ( &lt;LBRACKET&gt; <A HREF="#prod6">expression</A> &lt;RBRACKET&gt; ) ) ) )*</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod22">unary</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>( ( &lt;MINUS&gt; | &lt;NOT&gt; ) <A HREF="#prod23">element</A> )</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod23">element</A></TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod23">element</A></TD>
+<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
+<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod24">constant</A> | ( &lt;ID&gt; ) | <A HREF="#prod25">sysFunction</A> | ( &lt;FIRST&gt; <A HREF="#prod15">params</A> ) | &lt;LPAREN&gt; <A HREF="#prod6">expression</A> &lt;RPAREN&gt; | ( &lt;LBRACE&gt; ( <A HREF="#prod6">expression</A> ( &lt;COMMA&gt; <A HREF="#prod6">expression</A> )* )? &lt;RBRACE&gt; ) | ( &lt;PIPE&gt; <A HREF="#prod6">expression</A> &lt;PIPE&gt; ) )</TD>
+</TR>
+<TR>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod15">params</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
 <TD ALIGN=LEFT VALIGN=BASELINE>&lt;LPAREN&gt; ( <A HREF="#prod6">expression</A> ( &lt;COMMA&gt; <A HREF="#prod6">expression</A> )* )? &lt;RPAREN&gt;</TD>
 </TR>
 <TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod22">constant</A></TD>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod24">constant</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
 <TD ALIGN=LEFT VALIGN=BASELINE>( &lt;FLOATING_POINT&gt; | &lt;INTEGER&gt; | &lt;TRUE&gt; | &lt;FALSE&gt; | &lt;CHARACTER&gt; | &lt;NULL&gt; | &lt;STRING&gt; | &lt;MATCHEXP&gt; )</TD>
 </TR>
@@ -298,11 +494,11 @@
 <TD ALIGN=LEFT VALIGN=BASELINE>&lt;MEMORY&gt;</TD>
 </TR>
 <TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod24">parseInteger</A></TD>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod26">parseInteger</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
 <TD ALIGN=LEFT VALIGN=BASELINE><I>java code</I></TD></TR>
 <TR>
-<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod23">sysFunction</A></TD>
+<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod25">sysFunction</A></TD>
 <TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
 <TD ALIGN=LEFT VALIGN=BASELINE>( &lt;FUNCTION&gt; ( &lt;DETERMINISTIC&gt; )? ( ( &lt;SYNC&gt; ) | ( &lt;ASYNC&gt; ) )? ( &lt;ID&gt; )? ( &lt;LPAREN&gt; ( &lt;ID&gt; ( &lt;COMMA&gt; &lt;ID&gt; )* ) &lt;RPAREN&gt; )? ) <A HREF="#prod11">programBlock</A></TD>
 </TR>

@@ -44,17 +44,17 @@ public final class SLEEP extends Instruction {
 <span class="fc" id="L44">        Number param = (Number) context.popSyncStackVal();</span>
 <span class="fc" id="L45">        final long sleepMillis = param.longValue();</span>
 <span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (sleepMillis &gt; 0) {</span>
-<span class="nc bnc" id="L47" title="All 2 branches missed.">            if (context.execService == null) {</span>
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">            if (context.execService == null) {</span>
 <span class="nc" id="L48">                Thread.sleep(sleepMillis);</span>
             } else {
-<span class="nc" id="L50">                final VMASyncFuture&lt;Object&gt; future = new VMASyncFuture&lt;&gt;();</span>
-<span class="nc" id="L51">                DefaultScheduler.INSTANCE.schedule(</span>
+<span class="fc" id="L50">                final VMASyncFuture&lt;Object&gt; future = new VMASyncFuture&lt;&gt;();</span>
+<span class="fc" id="L51">                DefaultScheduler.INSTANCE.schedule(</span>
                         new RunnableImpl(context, future), sleepMillis, TimeUnit.MILLISECONDS);
-<span class="nc" id="L53">                context.ip++;</span>
+<span class="fc" id="L53">                context.ip++;</span>
 <span class="nc" id="L54">                context.suspend(future);</span>
             }
         }
-<span class="fc" id="L57">        return 1;</span>
+<span class="nc" id="L57">        return 1;</span>
 
     }
 
@@ -70,7 +70,7 @@ public final class SLEEP extends Instruction {
         private final ExecutionContext context;
         private final VMASyncFuture&lt;Object&gt; future;
 
-<span class="fc" id="L73">        public RunnableImpl(final ExecutionContext context, final VMASyncFuture&lt;Object&gt; future) {</span>
+<span class="fc" id="L73">        RunnableImpl(final ExecutionContext context, final VMASyncFuture&lt;Object&gt; future) {</span>
 <span class="fc" id="L74">            this.context = context;</span>
 <span class="fc" id="L75">            this.future = future;</span>
 <span class="fc" id="L76">        }</span>
@@ -85,4 +85,4 @@ public final class SLEEP extends Instruction {
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

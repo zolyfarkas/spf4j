@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ThreadUsageSampler.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.cpu</a> &gt; <span class="el_source">ThreadUsageSampler.java</span></div><h1>ThreadUsageSampler.java</h1><pre class="source lang-java linenums">package org.spf4j.perf.cpu;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
@@ -27,147 +26,145 @@ import org.spf4j.stackmonitor.FastStackCollector;
  */
 public final class ThreadUsageSampler {
 
-<span class="nc" id="L30">    private ThreadUsageSampler() {</span>
-<span class="nc" id="L31">    }</span>
+<span class="nc" id="L29">    private ThreadUsageSampler() {</span>
+<span class="nc" id="L30">    }</span>
 
-<span class="nc" id="L33">    private static final ThreadMXBean TH_BEAN = ManagementFactory.getThreadMXBean();</span>
+<span class="nc" id="L32">    private static final ThreadMXBean TH_BEAN = ManagementFactory.getThreadMXBean();</span>
 
     private static ScheduledFuture&lt;?&gt; samplingFuture;
 
-<span class="nc" id="L37">    private static final List&lt;String&gt; PEAK_THREAD_NAMES = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L38">    private static final List&lt;StackTraceElement []&gt; PEAK_THREAD_TRACES = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L39">    private static final BitSet PEAK_THREAD_DAEMON = new BitSet();</span>
+<span class="nc" id="L36">    private static final List&lt;String&gt; PEAK_THREAD_NAMES = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L37">    private static final List&lt;StackTraceElement[]&gt; PEAK_THREAD_TRACES = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L38">    private static final BitSet PEAK_THREAD_DAEMON = new BitSet();</span>
 
-    public static void writePeakThreadInfo(final PrintStream out) throws IOException {
-<span class="nc" id="L42">        out.println(&quot;Peak Threads:&quot;);</span>
-<span class="nc" id="L43">        int i = 0;</span>
-<span class="nc bnc" id="L44" title="All 2 branches missed.">        boolean haveStacktraces = PEAK_THREAD_TRACES.size() &gt; 0;</span>
-<span class="nc bnc" id="L45" title="All 2 branches missed.">        for (String tname : PEAK_THREAD_NAMES) {</span>
-<span class="nc" id="L46">            out.print(tname);</span>
-<span class="nc" id="L47">            out.print(&quot;, daemon =&quot;);</span>
-<span class="nc" id="L48">            out.print(PEAK_THREAD_DAEMON.get(i));</span>
-<span class="nc" id="L49">            out.print(',');</span>
-<span class="nc bnc" id="L50" title="All 2 branches missed.">            if (haveStacktraces) {</span>
-<span class="nc" id="L51">                out.print(' ');</span>
-<span class="nc" id="L52">                out.print(Arrays.toString(PEAK_THREAD_TRACES.get(i)));</span>
+    public static void writePeakThreadInfo(final PrintStream out) {
+<span class="nc" id="L41">        out.println(&quot;Peak Threads:&quot;);</span>
+<span class="nc" id="L42">        int i = 0;</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        boolean haveStacktraces = PEAK_THREAD_TRACES.size() &gt; 0;</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        for (String tname : PEAK_THREAD_NAMES) {</span>
+<span class="nc" id="L45">            out.print(tname);</span>
+<span class="nc" id="L46">            out.print(&quot;, daemon =&quot;);</span>
+<span class="nc" id="L47">            out.print(PEAK_THREAD_DAEMON.get(i));</span>
+<span class="nc" id="L48">            out.print(',');</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">            if (haveStacktraces) {</span>
+<span class="nc" id="L50">                out.print(' ');</span>
+<span class="nc" id="L51">                out.print(Arrays.toString(PEAK_THREAD_TRACES.get(i)));</span>
             }
-<span class="nc" id="L54">            out.println();</span>
-<span class="nc" id="L55">            i++;</span>
-<span class="nc" id="L56">        }</span>
-<span class="nc" id="L57">    }</span>
+<span class="nc" id="L53">            out.println();</span>
+<span class="nc" id="L54">            i++;</span>
+<span class="nc" id="L55">        }</span>
+<span class="nc" id="L56">    }</span>
 
     @JmxExport
-    @SuppressFBWarnings(&quot;DM_DEFAULT_ENCODING&quot;)
+    @SuppressFBWarnings({ &quot;DM_DEFAULT_ENCODING&quot;, &quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot; })
     public static String getPeakThreadInfo() {
-<span class="nc" id="L62">        try (ByteArrayBuilder bab = new ByteArrayBuilder()) {</span>
-<span class="nc" id="L63">            PrintStream ps = new PrintStream(bab);</span>
-<span class="nc" id="L64">            writePeakThreadInfo(ps);</span>
-<span class="nc" id="L65">            return bab.toString(Charset.defaultCharset());</span>
-<span class="nc bnc" id="L66" title="All 8 branches missed.">        } catch (IOException ex) {</span>
-<span class="nc" id="L67">           throw new RuntimeException(ex);</span>
-        }
+<span class="nc" id="L61">        try (ByteArrayBuilder bab = new ByteArrayBuilder()) {</span>
+<span class="nc" id="L62">            PrintStream ps = new PrintStream(bab);</span>
+<span class="nc" id="L63">            writePeakThreadInfo(ps);</span>
+<span class="nc" id="L64">            return bab.toString(Charset.defaultCharset());</span>
+<span class="nc bnc" id="L65" title="All 8 branches missed.">        }</span>
     }
 
 
     @JmxExport
     public static String getCurrentAliveThreadInfo() {
-<span class="nc" id="L74">        StringBuilder sb = new StringBuilder(1024);</span>
-<span class="nc" id="L75">        Thread[] threads = FastStackCollector.getThreads();</span>
-<span class="nc" id="L76">        StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(threads);</span>
-<span class="nc bnc" id="L77" title="All 2 branches missed.">        for (int i = 0; i &lt; threads.length; i++) {</span>
-<span class="nc" id="L78">            Thread t = threads[i];</span>
-<span class="nc bnc" id="L79" title="All 2 branches missed.">            if (t.isAlive()) {</span>
-<span class="nc" id="L80">                sb.append(t.getName());</span>
-<span class="nc" id="L81">                sb.append(&quot;, daemon =&quot;);</span>
-<span class="nc" id="L82">                sb.append(t.isDaemon());</span>
-<span class="nc" id="L83">                sb.append(',');</span>
-<span class="nc" id="L84">                StackTraceElement [] straces = stackTraces[i];</span>
-<span class="nc bnc" id="L85" title="All 4 branches missed.">                if (straces != null &amp;&amp; straces.length &gt; 0) {</span>
-<span class="nc" id="L86">                    sb.append(' ');</span>
-<span class="nc" id="L87">                    sb.append(Arrays.toString(straces));</span>
+<span class="nc" id="L71">        StringBuilder sb = new StringBuilder(1024);</span>
+<span class="nc" id="L72">        Thread[] threads = FastStackCollector.getThreads();</span>
+<span class="nc" id="L73">        StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(threads);</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        for (int i = 0; i &lt; threads.length; i++) {</span>
+<span class="nc" id="L75">            Thread t = threads[i];</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (t.isAlive()) {</span>
+<span class="nc" id="L77">                sb.append(t.getName());</span>
+<span class="nc" id="L78">                sb.append(&quot;, daemon =&quot;);</span>
+<span class="nc" id="L79">                sb.append(t.isDaemon());</span>
+<span class="nc" id="L80">                sb.append(',');</span>
+<span class="nc" id="L81">                StackTraceElement[] straces = stackTraces[i];</span>
+<span class="nc bnc" id="L82" title="All 4 branches missed.">                if (straces != null &amp;&amp; straces.length &gt; 0) {</span>
+<span class="nc" id="L83">                    sb.append(' ');</span>
+<span class="nc" id="L84">                    sb.append(Arrays.toString(straces));</span>
                 }
-<span class="nc" id="L89">                sb.append('\n');</span>
+<span class="nc" id="L86">                sb.append('\n');</span>
             }
         }
-<span class="nc" id="L92">        return sb.toString();</span>
+<span class="nc" id="L89">        return sb.toString();</span>
     }
 
 
 
     static {
-<span class="nc" id="L98">        org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {</span>
+<span class="nc" id="L95">        org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {</span>
             @Override
-            public void doRun() throws Exception {
-<span class="nc" id="L101">                stop();</span>
-<span class="nc" id="L102">                writePeakThreadInfo(System.err);</span>
-<span class="nc" id="L103">            }</span>
+            public void doRun() {
+<span class="nc" id="L98">                stop();</span>
+<span class="nc" id="L99">                writePeakThreadInfo(System.err);</span>
+<span class="nc" id="L100">            }</span>
 
         });
-<span class="nc" id="L106">        Registry.export(ThreadUsageSampler.class);</span>
-<span class="nc" id="L107">    }</span>
+<span class="nc" id="L103">        Registry.export(ThreadUsageSampler.class);</span>
+<span class="nc" id="L104">    }</span>
 
 
    public static synchronized void start(final int sampleTime) {
-<span class="nc" id="L111">       start(sampleTime, true);</span>
-<span class="nc" id="L112">   }</span>
+<span class="nc" id="L108">       start(sampleTime, true);</span>
+<span class="nc" id="L109">   }</span>
 
     @JmxExport
     public static synchronized void start(@JmxExport(&quot;sampleTimeMillis&quot;) final int sampleTime,
             @JmxExport(&quot;withStackTraces&quot;) final boolean withStackTraces) {
-<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (samplingFuture == null) {</span>
-<span class="nc" id="L118">            final MeasurementRecorder cpuUsage</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (samplingFuture == null) {</span>
+<span class="nc" id="L115">            final MeasurementRecorder cpuUsage</span>
                     = RecorderFactory.createDirectRecorder(&quot;peak-thread-count&quot;, &quot;count&quot;, sampleTime);
-<span class="nc" id="L120">            samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {</span>
+<span class="nc" id="L117">            samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {</span>
 
-<span class="nc" id="L122">                private int maxThreadsNr = 0;</span>
+<span class="nc" id="L119">                private int maxThreadsNr = 0;</span>
 
                 @Override
-                public void doRun() throws Exception {
-<span class="nc" id="L126">                    final int peakThreadCount = TH_BEAN.getPeakThreadCount();</span>
-<span class="nc" id="L127">                    cpuUsage.record(peakThreadCount);</span>
-<span class="nc bnc" id="L128" title="All 2 branches missed.">                    if (peakThreadCount &gt; maxThreadsNr) {</span>
-<span class="nc" id="L129">                        Thread[] ths = FastStackCollector.getThreads();</span>
-<span class="nc bnc" id="L130" title="All 2 branches missed.">                        if (ths.length &gt; PEAK_THREAD_NAMES.size()) {</span>
-<span class="nc bnc" id="L131" title="All 2 branches missed.">                            if (withStackTraces) {</span>
-<span class="nc" id="L132">                                StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(ths);</span>
-<span class="nc" id="L133">                                PEAK_THREAD_TRACES.clear();</span>
-<span class="nc" id="L134">                                PEAK_THREAD_TRACES.addAll(Arrays.asList(stackTraces));</span>
+                public void doRun() {
+<span class="nc" id="L123">                    final int peakThreadCount = TH_BEAN.getPeakThreadCount();</span>
+<span class="nc" id="L124">                    cpuUsage.record(peakThreadCount);</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                    if (peakThreadCount &gt; maxThreadsNr) {</span>
+<span class="nc" id="L126">                        Thread[] ths = FastStackCollector.getThreads();</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                        if (ths.length &gt; PEAK_THREAD_NAMES.size()) {</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">                            if (withStackTraces) {</span>
+<span class="nc" id="L129">                                StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(ths);</span>
+<span class="nc" id="L130">                                PEAK_THREAD_TRACES.clear();</span>
+<span class="nc" id="L131">                                PEAK_THREAD_TRACES.addAll(Arrays.asList(stackTraces));</span>
                             }
 
-<span class="nc" id="L137">                            PEAK_THREAD_NAMES.clear();</span>
-<span class="nc" id="L138">                            int i = 0;</span>
-<span class="nc bnc" id="L139" title="All 2 branches missed.">                            for (Thread th : ths) {</span>
-<span class="nc" id="L140">                                PEAK_THREAD_NAMES.add(th.getName());</span>
-<span class="nc bnc" id="L141" title="All 2 branches missed.">                                if (th.isDaemon()) {</span>
-<span class="nc" id="L142">                                    PEAK_THREAD_DAEMON.set(i);</span>
+<span class="nc" id="L134">                            PEAK_THREAD_NAMES.clear();</span>
+<span class="nc" id="L135">                            int i = 0;</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                            for (Thread th : ths) {</span>
+<span class="nc" id="L137">                                PEAK_THREAD_NAMES.add(th.getName());</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">                                if (th.isDaemon()) {</span>
+<span class="nc" id="L139">                                    PEAK_THREAD_DAEMON.set(i);</span>
                                 } else {
-<span class="nc" id="L144">                                    PEAK_THREAD_DAEMON.clear(i);</span>
+<span class="nc" id="L141">                                    PEAK_THREAD_DAEMON.clear(i);</span>
                                 }
-<span class="nc" id="L146">                                i++;</span>
+<span class="nc" id="L143">                                i++;</span>
                             }
                         }
-<span class="nc" id="L149">                        maxThreadsNr = peakThreadCount;</span>
+<span class="nc" id="L146">                        maxThreadsNr = peakThreadCount;</span>
                     }
-<span class="nc" id="L151">                    TH_BEAN.resetPeakThreadCount();</span>
-<span class="nc" id="L152">                }</span>
+<span class="nc" id="L148">                    TH_BEAN.resetPeakThreadCount();</span>
+<span class="nc" id="L149">                }</span>
             }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
-<span class="nc" id="L154">        } else {</span>
-<span class="nc" id="L155">            throw new IllegalStateException(&quot;Thread sampling already started &quot; + samplingFuture);</span>
+<span class="nc" id="L151">        } else {</span>
+<span class="nc" id="L152">            throw new IllegalStateException(&quot;Thread sampling already started &quot; + samplingFuture);</span>
         }
-<span class="nc" id="L157">    }</span>
+<span class="nc" id="L154">    }</span>
 
     @JmxExport
     public static synchronized void stop() {
-<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (samplingFuture != null) {</span>
-<span class="nc" id="L162">            samplingFuture.cancel(false);</span>
-<span class="nc" id="L163">            samplingFuture = null;</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        if (samplingFuture != null) {</span>
+<span class="nc" id="L159">            samplingFuture.cancel(false);</span>
+<span class="nc" id="L160">            samplingFuture = null;</span>
         }
-<span class="nc" id="L165">    }</span>
+<span class="nc" id="L162">    }</span>
 
     @JmxExport
     public static synchronized boolean isStarted() {
-<span class="nc bnc" id="L169" title="All 2 branches missed.">        return samplingFuture != null;</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        return samplingFuture != null;</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

@@ -35,17 +35,17 @@ import org.spf4j.base.Handler;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-final class ObjectPoolWrapper&lt;T&gt; implements RecyclingSupplier&lt;T&gt; , Scanable&lt;ObjectHolder&lt;T&gt;&gt; {
+final class ObjectPoolWrapper&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Scanable&lt;ObjectHolder&lt;T&gt;&gt; {
 
     private final RecyclingSupplier&lt;T&gt; pool;
-    
+
     private final Handler&lt;T, ? extends Exception&gt; borrowHook;
-    
+
     private final Handler&lt;T, ? extends Exception&gt; returnHook;
-    
+
 <span class="nc" id="L46">    private static final Logger LOG = LoggerFactory.getLogger(ObjectPoolWrapper.class);</span>
 
-    public ObjectPoolWrapper(final RecyclingSupplier&lt;T&gt; pool,
+    ObjectPoolWrapper(final RecyclingSupplier&lt;T&gt; pool,
             @Nullable final Handler&lt;T, ? extends Exception&gt; borrowHook,
 <span class="nc" id="L50">            @Nullable final Handler&lt;T, ? extends Exception&gt; returnHook) {</span>
 <span class="nc" id="L51">        this.pool = pool;</span>
@@ -55,9 +55,9 @@ final class ObjectPoolWrapper&lt;T&gt; implements RecyclingSupplier&lt;T&gt; , S
 <span class="nc" id="L55">            throw new IllegalArgumentException(&quot;Both hooks can't be null for &quot; + pool);</span>
         }
 <span class="nc" id="L57">    }</span>
-    
-    
-    
+
+
+
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;LEST_LOST_EXCEPTION_STACK_TRACE&quot;)
     @Override
     public T get()
@@ -74,7 +74,7 @@ final class ObjectPoolWrapper&lt;T&gt; implements RecyclingSupplier&lt;T&gt; , S
 <span class="nc" id="L74">            } catch (RuntimeException ex) {</span>
 <span class="nc" id="L75">                throw Throwables.suppress(new RuntimeException(ex), e);</span>
 <span class="nc" id="L76">            }</span>
-<span class="nc" id="L77">            throw new ObjectBorrowException(&quot;Exception while executing borrow hook&quot;, e);</span>
+<span class="nc" id="L77">            throw new ObjectBorrowException(&quot;Exception while executing borrow hook &quot; + borrowHook, e);</span>
         }
     }
 
@@ -110,7 +110,13 @@ final class ObjectPoolWrapper&lt;T&gt; implements RecyclingSupplier&lt;T&gt; , S
 <span class="nc" id="L110">        pool.recycle(object);</span>
 <span class="nc" id="L111">    }</span>
 
-  
-    
+    @Override
+    public String toString() {
+<span class="nc" id="L115">        return &quot;ObjectPoolWrapper{&quot; + &quot;pool=&quot; + pool + &quot;, borrowHook=&quot;</span>
+                + borrowHook + &quot;, returnHook=&quot; + returnHook + '}';
+    }
+
+
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

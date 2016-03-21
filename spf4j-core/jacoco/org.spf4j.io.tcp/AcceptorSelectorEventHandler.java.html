@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>AcceptorSelectorEventHandler.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io.tcp</a> &gt; <span class="el_source">AcceptorSelectorEventHandler.java</span></div><h1>AcceptorSelectorEventHandler.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.io.tcp;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spf4j.ds.UpdateablePriorityQueue;
+
+/**
+ *
+ * @author zoly
+ */
+@SuppressFBWarnings(&quot;HES_EXECUTOR_NEVER_SHUTDOWN&quot;)
+public final class AcceptorSelectorEventHandler extends SelectorEventHandler {
+
+<span class="nc" id="L40">    private static final Logger LOG = LoggerFactory.getLogger(AcceptorSelectorEventHandler.class);</span>
+
+    private final ClientHandler clientHandler;
+    private final ServerSocketChannel serverChannel;
+    private final Selector selector;
+    private final ExecutorService exec;
+    private final BlockingQueue&lt;Runnable&gt; tasksToRunBySelector;
+    private final UpdateablePriorityQueue&lt;DeadlineAction&gt; deadlineActions;
+
+    public AcceptorSelectorEventHandler(final ServerSocketChannel channel,
+            final ClientHandler clientHandler, final Selector selector, final ExecutorService exec,
+            final BlockingQueue&lt;Runnable&gt; tasksToRunBySelector,
+<span class="nc" id="L52">            final UpdateablePriorityQueue&lt;DeadlineAction&gt; deadlineActions) {</span>
+<span class="nc" id="L53">        this.serverChannel = channel;</span>
+<span class="nc" id="L54">        this.clientHandler = clientHandler;</span>
+<span class="nc" id="L55">        this.selector = selector;</span>
+<span class="nc" id="L56">        this.exec = exec;</span>
+<span class="nc" id="L57">        this.tasksToRunBySelector = tasksToRunBySelector;</span>
+<span class="nc" id="L58">        this.deadlineActions = deadlineActions;</span>
+<span class="nc" id="L59">    }</span>
+
+    @Override
+    public void run(final SelectionKey key) throws IOException {
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            if (!key.isAcceptable()) {</span>
+<span class="nc" id="L64">                throw new IllegalStateException(&quot;selection key must be acceptable &quot; + key);</span>
+            }
+            SocketChannel clientChannel;
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            while ((clientChannel = serverChannel.accept()) != null) {</span>
+                try {
+<span class="nc" id="L69">                    LOG.debug(&quot;Accepted {}&quot;, clientChannel);</span>
+<span class="nc" id="L70">                    clientChannel.configureBlocking(false);</span>
+<span class="nc" id="L71">                    clientHandler.handle(selector, clientChannel, exec, tasksToRunBySelector, deadlineActions);</span>
+<span class="nc" id="L72">                } catch (IOException ex) {</span>
+<span class="nc" id="L73">                    clientChannel.close();</span>
+<span class="nc" id="L74">                    throw ex;</span>
+<span class="nc" id="L75">                }</span>
+            }
+<span class="nc" id="L77">    }</span>
+
+
+    @Override
+    public boolean canRunAsync() {
+<span class="nc" id="L82">        return false;</span>
+    }
+
+    @Override
+    public void runAsync(final SelectionKey key) {
+<span class="nc" id="L87">        throw new UnsupportedOperationException();</span>
+    }
+
+    @Override
+    public SelectionKey initialInterestRegistration() throws ClosedChannelException {
+<span class="nc" id="L92">        return serverChannel.register(selector, SelectionKey.OP_ACCEPT, this);</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L97">        return &quot;AcceptorSelectorEventHandler{&quot; + &quot;clientHandler=&quot; + clientHandler + &quot;, serverChannel=&quot;</span>
+                + serverChannel + &quot;, selector=&quot; + selector + &quot;, exec=&quot; + exec + &quot;, tasksToRunBySelector=&quot;
+                + tasksToRunBySelector + &quot;, deadlineActions=&quot; + deadlineActions + '}';
+    }
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

@@ -50,16 +50,16 @@
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> minValue;
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> maxValue;
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ArrayList&lt;ComparablePair&lt;Quanta, Integer&gt;&gt; quantas;
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> [][] data;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong>[][] data;
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> startTimeMillis;
 <a class="jxr_linenumber" name="L47" href="#L47">47</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> stepMillis;
 <a class="jxr_linenumber" name="L48" href="#L48">48</a>  
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../../org/spf4j/perf/impl/chart/QuantizedXYZDatasetImpl.html">QuantizedXYZDatasetImpl</a>(<strong class="jxr_keyword">final</strong> String[] dataSources, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> [][] pdata,
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../../org/spf4j/perf/impl/chart/QuantizedXYZDatasetImpl.html">QuantizedXYZDatasetImpl</a>(<strong class="jxr_keyword">final</strong> String[] dataSources, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong>[][] pdata,
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>                          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> startTimeMillis, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> step) {
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>          <strong class="jxr_keyword">this</strong>.data = pdata.clone();
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>          <strong class="jxr_keyword">this</strong>.startTimeMillis = startTimeMillis;
 <a class="jxr_linenumber" name="L53" href="#L53">53</a>          <strong class="jxr_keyword">this</strong>.stepMillis = step;
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>          quantas = <strong class="jxr_keyword">new</strong> ArrayList&lt;ComparablePair&lt;Quanta, Integer&gt;&gt;(dataSources.length);
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>          quantas = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(dataSources.length);
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; dataSources.length; i++) {
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>              String ds = dataSources[i];
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>              <strong class="jxr_keyword">if</strong> (ds.startsWith(<span class="jxr_string">"Q"</span>)) {
@@ -247,9 +247,21 @@
 <a class="jxr_linenumber" name="L239" href="#L239">239</a> 
 <a class="jxr_linenumber" name="L240" href="#L240">240</a>     
 <a class="jxr_linenumber" name="L241" href="#L241">241</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 1L;
-<a class="jxr_linenumber" name="L242" href="#L242">242</a> }
+<a class="jxr_linenumber" name="L242" href="#L242">242</a> 
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>     @Override
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>     <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"QuantizedXYZDatasetImpl{"</span> + <span class="jxr_string">"x="</span> + java.util.Arrays.toString(x)
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>                 + <span class="jxr_string">", y="</span> + java.util.Arrays.toString(y) + <span class="jxr_string">", z="</span> + java.util.Arrays.toString(z)
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>                 + <span class="jxr_string">", minValue="</span> + minValue + <span class="jxr_string">", maxValue="</span> + maxValue + <span class="jxr_string">", quantas="</span> + quantas
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>                 + <span class="jxr_string">", data="</span> + java.util.Arrays.toString(data)
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>                 + <span class="jxr_string">", startTimeMillis="</span> + startTimeMillis + <span class="jxr_string">", stepMillis="</span> + stepMillis + '}';
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>     }
+<a class="jxr_linenumber" name="L251" href="#L251">251</a> 
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>     
+<a class="jxr_linenumber" name="L253" href="#L253">253</a> 
+<a class="jxr_linenumber" name="L254" href="#L254">254</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2015. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2016. All rights reserved.</div>
 </body>
 </html>

@@ -18,6 +18,7 @@
 package org.spf4j.recyclable.impl;
 
 import java.lang.ref.Reference;
+import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.spf4j.base.IntMath;
@@ -35,43 +36,49 @@ public final class Powerof2SizedGlobalRecyclingSupplier&lt;T&gt; implements Size
 
     private final ReferenceType refType;
 
-    private final BlockingQueue&lt;Reference&lt;T&gt;&gt; [] objects;
+    private final BlockingQueue&lt;Reference&lt;T&gt;&gt;[] objects;
 
-<span class="fc" id="L40">    public Powerof2SizedGlobalRecyclingSupplier(final Factory&lt;T&gt; factory, final ReferenceType refType) {</span>
-<span class="fc" id="L41">        this.factory = factory;</span>
-<span class="fc" id="L42">        this.refType = refType;</span>
-<span class="fc" id="L43">        objects = new BlockingQueue[28];</span>
-<span class="fc bfc" id="L44" title="All 2 branches covered.">        for (int i = 0; i &lt; objects.length; i++) {</span>
-<span class="fc" id="L45">            objects [i] = new LinkedBlockingQueue&lt;&gt;();</span>
+<span class="fc" id="L41">    public Powerof2SizedGlobalRecyclingSupplier(final Factory&lt;T&gt; factory, final ReferenceType refType) {</span>
+<span class="fc" id="L42">        this.factory = factory;</span>
+<span class="fc" id="L43">        this.refType = refType;</span>
+<span class="fc" id="L44">        objects = new BlockingQueue[28];</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        for (int i = 0; i &lt; objects.length; i++) {</span>
+<span class="fc" id="L46">            objects[i] = new LinkedBlockingQueue&lt;&gt;();</span>
         }
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L48">    }</span>
 
     @Override
     public T get(final int size) {
-<span class="fc" id="L51">        int idx = IntMath.closestPowerOf2(size);</span>
-<span class="fc" id="L52">        BlockingQueue&lt;Reference&lt;T&gt;&gt; refs = objects[idx];</span>
+<span class="fc" id="L52">        int idx = IntMath.closestPowerOf2(size);</span>
+<span class="fc" id="L53">        BlockingQueue&lt;Reference&lt;T&gt;&gt; refs = objects[idx];</span>
         Reference&lt;T&gt; ref;
         do {
-<span class="fc" id="L55">            ref = refs.poll();</span>
-<span class="fc bfc" id="L56" title="All 2 branches covered.">            if (ref == null) {</span>
-<span class="fc" id="L57">                int actualSize = 1 &lt;&lt; idx;</span>
-<span class="fc" id="L58">                return factory.create(actualSize);</span>
+<span class="fc" id="L56">            ref = refs.poll();</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">            if (ref == null) {</span>
+<span class="fc" id="L58">                int actualSize = 1 &lt;&lt; idx;</span>
+<span class="fc" id="L59">                return factory.create(actualSize);</span>
             } else {
-<span class="fc" id="L60">                T result = ref.get();</span>
-<span class="pc bpc" id="L61" title="1 of 2 branches missed.">                if (result != null) {</span>
-<span class="fc" id="L62">                    return result;</span>
+<span class="fc" id="L61">                T result = ref.get();</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">                if (result != null) {</span>
+<span class="fc" id="L63">                    return result;</span>
                 }
             }
-<span class="nc" id="L65">        } while (true);</span>
+<span class="nc" id="L66">        } while (true);</span>
     }
 
     @Override
     public void recycle(final T object) {
-<span class="fc" id="L70">        int size = factory.size(object);</span>
-<span class="fc" id="L71">        int idx = IntMath.closestPowerOf2(size);</span>
-<span class="fc" id="L72">        BlockingQueue&lt;Reference&lt;T&gt;&gt; refs = objects[idx];</span>
-<span class="fc" id="L73">        refs.add(refType.create(object));</span>
-<span class="fc" id="L74">    }</span>
+<span class="fc" id="L71">        int size = factory.size(object);</span>
+<span class="fc" id="L72">        int idx = IntMath.closestPowerOf2(size);</span>
+<span class="fc" id="L73">        BlockingQueue&lt;Reference&lt;T&gt;&gt; refs = objects[idx];</span>
+<span class="fc" id="L74">        refs.add(refType.create(object));</span>
+<span class="fc" id="L75">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L79">        return &quot;Powerof2SizedGlobalRecyclingSupplier{&quot; + &quot;factory=&quot; + factory + &quot;, refType=&quot;</span>
+                + refType + &quot;, objects=&quot; + Arrays.toString(objects) + '}';
+    }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

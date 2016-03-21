@@ -17,7 +17,6 @@
  */
 package org.spf4j.zel.instr;
 
-import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
@@ -26,32 +25,31 @@ public final class FIRST extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
 
-<span class="fc" id="L29">    private FIRST() {</span>
-<span class="fc" id="L30">    }</span>
+    private final int nrParameters;
+
+<span class="fc" id="L30">    public FIRST(final int nrParameters) {</span>
+<span class="fc" id="L31">        this.nrParameters = nrParameters;</span>
+<span class="fc" id="L32">    }</span>
     
 
     @Override
     public int execute(final ExecutionContext context)
             throws SuspendedException {
-<span class="fc" id="L36">        Integer nrParams = (Integer) context.pop();</span>
         final Object val;
         try {
-<span class="fc" id="L39">            val = context.popFirstAvail(nrParams);</span>
-<span class="fc" id="L40">        } catch (SuspendedException ex) {</span>
-<span class="fc" id="L41">            context.push(nrParams);</span>
+<span class="fc" id="L40">            val = context.popFirstAvail(nrParameters);</span>
+<span class="fc" id="L41">        } catch (SuspendedException ex) {</span>
 <span class="fc" id="L42">            throw ex;</span>
 <span class="fc" id="L43">        }</span>
 <span class="fc" id="L44">        context.push(val);</span>
 <span class="fc" id="L45">        return 1;</span>
     }
 
-<span class="fc" id="L48">    public static final Instruction INSTANCE = new FIRST();</span>
-
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L52">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L50">        return new Object[] {nrParameters};</span>
     }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

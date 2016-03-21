@@ -44,7 +44,7 @@ public final class ProgramBuilder {
 
     private Instruction[] instructions;
 
-    private List&lt;Location&gt; debugInfo;
+    private final List&lt;Location&gt; debugInfo;
 
     private int instrNumber;
 
@@ -154,11 +154,11 @@ public final class ProgramBuilder {
     }
 
     public ProgramBuilder addAll(final Instruction[] objects, final List&lt;Location&gt; debug) {
-<span class="nc" id="L157">        ensureCapacity(instrNumber + objects.length);</span>
-<span class="nc" id="L158">        System.arraycopy(objects, 0, instructions, instrNumber, objects.length);</span>
-<span class="nc" id="L159">        instrNumber += objects.length;</span>
-<span class="nc" id="L160">        this.debugInfo.addAll(debug);</span>
-<span class="nc" id="L161">        return this;</span>
+<span class="fc" id="L157">        ensureCapacity(instrNumber + objects.length);</span>
+<span class="fc" id="L158">        System.arraycopy(objects, 0, instructions, instrNumber, objects.length);</span>
+<span class="fc" id="L159">        instrNumber += objects.length;</span>
+<span class="fc" id="L160">        this.debugInfo.addAll(debug);</span>
+<span class="fc" id="L161">        return this;</span>
     }
 
 //    public ProgramBuilder setAll(final int idx, final Object[] objects) {
@@ -273,19 +273,28 @@ public final class ProgramBuilder {
 <span class="fc" id="L273">    private static final class HasAsyncFunc implements Function&lt;Object, Boolean&gt; {</span>
 
         @Override
-        @SuppressFBWarnings(&quot;TBP_TRISTATE_BOOLEAN_PATTERN&quot;)
+        @SuppressFBWarnings({ &quot;TBP_TRISTATE_BOOLEAN_PATTERN&quot;, &quot;ITC_INHERITANCE_TYPE_CHECKING&quot; })
         public Boolean apply(final Object input) {
 <span class="fc bfc" id="L278" title="All 2 branches covered.">            if (input instanceof Program) {</span>
 <span class="fc" id="L279">                Program prog = (Program) input;</span>
 <span class="fc bfc" id="L280" title="All 2 branches covered.">                if (prog.getExecType() == Program.ExecutionType.ASYNC) {</span>
 <span class="fc" id="L281">                    return Boolean.TRUE;</span>
                 }
-<span class="fc bfc" id="L283" title="All 2 branches covered.">            } else if (input == CALLA.INSTANCE) {</span>
+<span class="fc bfc" id="L283" title="All 2 branches covered.">            } else if (input instanceof CALLA) {</span>
 <span class="fc" id="L284">                return Boolean.TRUE;</span>
             }
 <span class="fc" id="L286">            return null;</span>
         }
     }
 
+    @Override
+    public String toString() {
+<span class="nc" id="L292">        return &quot;ProgramBuilder{&quot; + &quot;instructions=&quot; + Arrays.toString(instructions) + &quot;, debugInfo=&quot; + debugInfo</span>
+                + &quot;, instrNumber=&quot; + instrNumber + &quot;, type=&quot; + type + &quot;, execType=&quot; + execType
+                + &quot;, stringInterner=&quot; + stringInterner + &quot;, staticMemBuilder=&quot; + staticMemBuilder + '}';
+    }
+
+
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

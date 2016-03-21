@@ -17,6 +17,7 @@
  */
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
@@ -29,43 +30,41 @@ import static org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_MILLIS;
  *
  * @author zoly
  */
+@SuppressFBWarnings(&quot;HES_EXECUTOR_NEVER_SHUTDOWN&quot;) // THere is a shutdownhook being registered which FB does not see
 public final class DefaultExecutor {
 
-<span class="nc" id="L34">    private DefaultExecutor() {</span>
-<span class="nc" id="L35">    }</span>
+<span class="nc" id="L36">    private DefaultExecutor() {</span>
+<span class="nc" id="L37">    }</span>
+    
+    public static final ExecutorService INSTANCE;
 
     static {
-<span class="fc" id="L38">        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {</span>
+<span class="fc" id="L42">        final int coreThreads = Integer.getInteger(&quot;defaultExecutor.coreThreads&quot;, 0);</span>
+<span class="fc" id="L43">        final int maxIdleMillis = Integer.getInteger(&quot;defaultExecutor.maxIdleMillis&quot;, 60000);</span>
+<span class="fc" id="L44">        final boolean isDaemon = Boolean.getBoolean(&quot;defaultExecutor.daemon&quot;);</span>
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">        if (&quot;spf4j&quot;.equalsIgnoreCase(System.getProperty(&quot;defaultExecutor.implementation&quot;, &quot;spf4j&quot;))) {</span>
+<span class="fc" id="L46">            LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP(&quot;defaultExecutor&quot;, coreThreads,</span>
+                    Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon, Integer.getInteger(&quot;defaultExecutor.spinlockCount&quot;,
+                            1024));
+<span class="fc" id="L49">            lifoExec.exportJmx();</span>
+<span class="fc" id="L50">            INSTANCE = lifoExec;</span>
+<span class="fc" id="L51">        } else {</span>
+<span class="nc" id="L52">            INSTANCE = new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,</span>
+                new SynchronousQueue&lt;Runnable&gt;(), new CustomThreadFactory(&quot;DefaultExecutor&quot;, isDaemon));
+        }
+<span class="fc" id="L55">        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {</span>
 
             @Override
             public void doRun() throws InterruptedException {
-<span class="fc" id="L42">                shutdown();</span>
-<span class="fc" id="L43">                INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);</span>
-<span class="fc" id="L44">                List&lt;Runnable&gt; remaining = INSTANCE.shutdownNow();</span>
-<span class="pc bpc" id="L45" title="1 of 2 branches missed.">                if (remaining.size() &gt; 0) {</span>
-<span class="nc" id="L46">                    System.err.println(&quot;Remaining tasks: &quot; + remaining);</span>
+<span class="fc" id="L59">                INSTANCE.shutdown();</span>
+<span class="fc" id="L60">                INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L61">                List&lt;Runnable&gt; remaining = INSTANCE.shutdownNow();</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">                if (remaining.size() &gt; 0) {</span>
+<span class="nc" id="L63">                    System.err.println(&quot;Remaining tasks: &quot; + remaining);</span>
                 }
-<span class="fc" id="L48">            }</span>
+<span class="fc" id="L65">            }</span>
         });
-    }
+<span class="fc" id="L67">    }</span>
 
-    public static final ExecutorService INSTANCE;
-    static {
-<span class="fc" id="L54">        final int coreThreads = Integer.getInteger(&quot;defaultExecutor.coreThreads&quot;, 0);</span>
-<span class="fc" id="L55">        final int maxIdleMillis = Integer.getInteger(&quot;defaultExecutor.maxIdleMillis&quot;, 60000);</span>
-<span class="fc" id="L56">        final boolean isDaemon = Boolean.getBoolean(&quot;defaultExecutor.daemon&quot;);</span>
-<span class="pc bpc" id="L57" title="1 of 2 branches missed.">        if (&quot;spf4j&quot;.equalsIgnoreCase(System.getProperty(&quot;defaultExecutor.implementation&quot;, &quot;spf4j&quot;))) {</span>
-<span class="fc" id="L58">            INSTANCE = new LifoThreadPoolExecutorSQP(&quot;defaultExecutor&quot;, coreThreads,</span>
-                    Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon, Integer.getInteger(&quot;defaultExecutor.spinlockCount&quot;,
-                            1024));
-        } else {
-<span class="nc" id="L62">            INSTANCE = new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,</span>
-                new SynchronousQueue&lt;Runnable&gt;(), new CustomThreadFactory(&quot;DefaultExecutor&quot;, isDaemon));
-        }
-<span class="fc" id="L65">    }</span>
-
-    private static void shutdown() {
-<span class="fc" id="L68">        INSTANCE.shutdown();</span>
-<span class="fc" id="L69">    }</span>
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

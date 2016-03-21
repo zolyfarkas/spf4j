@@ -167,11 +167,11 @@ public final class Reflections {
     }
 
 
-    public static Object invoke(final Method m, final Object object, final Object [] parameters)
+    public static Object invoke(final Method m, final Object object, final Object[] parameters)
             throws IllegalAccessException, InvocationTargetException {
 <span class="nc" id="L172">        int np = parameters.length;</span>
 <span class="nc bnc" id="L173" title="All 2 branches missed.">        if (np &gt; 0) {</span>
-<span class="nc" id="L174">            Class&lt;?&gt; [] actTypes = m.getParameterTypes();</span>
+<span class="nc" id="L174">            Class&lt;?&gt;[] actTypes = m.getParameterTypes();</span>
 <span class="nc" id="L175">            Class&lt;?&gt; lastParamClass =  actTypes[actTypes.length - 1];</span>
 <span class="nc bnc" id="L176" title="All 2 branches missed.">            if (Reflections.canAssign(lastParamClass, parameters[np - 1].getClass())) {</span>
 <span class="nc" id="L177">                return m.invoke(object, parameters);</span>
@@ -182,7 +182,7 @@ public final class Reflections {
 <span class="nc bnc" id="L182" title="All 2 branches missed.">                for (int k = 0; k &lt; l; k++) {</span>
 <span class="nc" id="L183">                    Array.set(array, k, parameters[lidx + k]);</span>
                 }
-<span class="nc" id="L185">                Object [] newParams  = new Object [actTypes.length];</span>
+<span class="nc" id="L185">                Object[] newParams  = new Object[actTypes.length];</span>
 <span class="nc" id="L186">                System.arraycopy(parameters, 0, newParams, 0, lidx);</span>
 <span class="nc" id="L187">                newParams[lidx] = array;</span>
 <span class="nc" id="L188">                return m.invoke(object, newParams);</span>
@@ -220,7 +220,7 @@ public final class Reflections {
         @Nonnull
         private final Class&lt;?&gt;[] paramTypes;
 
-<span class="fc" id="L223">        public MethodDesc(final Class&lt;?&gt; clasz, final String name, final Class&lt;?&gt;[] paramTypes) {</span>
+<span class="fc" id="L223">        MethodDesc(final Class&lt;?&gt; clasz, final String name, final Class&lt;?&gt;[] paramTypes) {</span>
 <span class="fc" id="L224">            this.clasz = clasz;</span>
 <span class="fc" id="L225">            this.name = name;</span>
 <span class="fc" id="L226">            this.paramTypes = paramTypes;</span>
@@ -274,7 +274,7 @@ public final class Reflections {
             = new UnboundedRacyLoadingCache&lt;&gt;(64,
 <span class="fc" id="L275">                    new CacheLoader&lt;MethodDesc, Method&gt;() {</span>
                         @Override
-                        public Method load(final MethodDesc k) throws Exception {
+                        public Method load(final MethodDesc k) {
 <span class="fc" id="L278">                            final Method m = getCompatibleMethod(k.getClasz(), k.getName(), k.getParamTypes());</span>
 <span class="fc" id="L279">                            AccessController.doPrivileged(new PrivilegedAction() {</span>
                                 @Override
@@ -411,4 +411,4 @@ public final class Reflections {
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

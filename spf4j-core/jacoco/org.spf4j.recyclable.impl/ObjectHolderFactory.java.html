@@ -35,22 +35,22 @@ public final class ObjectHolderFactory&lt;T&gt; implements RecyclingSupplier.Fac
 
     public ObjectHolderFactory(final int precreateNumber, final RecyclingSupplier.Factory&lt;T&gt; factory)
 <span class="fc" id="L37">            throws ObjectCreationException {</span>
-<span class="fc" id="L38">        objects = new LinkedList&lt;ObjectHolder&lt;T&gt;&gt;();</span>
+<span class="fc" id="L38">        objects = new LinkedList&lt;&gt;();</span>
 <span class="fc" id="L39">        this.factory = factory;</span>
 <span class="pc bpc" id="L40" title="1 of 2 branches missed.">        for (int i = 0; i &lt; precreateNumber; i++) {</span>
-<span class="nc" id="L41">            objects.add(new ObjectHolder&lt;T&gt;(factory, false));</span>
+<span class="nc" id="L41">            objects.add(new ObjectHolder&lt;&gt;(factory, false));</span>
         }
 <span class="fc" id="L43">    }</span>
 
 <span class="nc" id="L45">    public ObjectHolderFactory(final RecyclingSupplier.Factory&lt;T&gt; factory) {</span>
-<span class="nc" id="L46">        objects = new LinkedList&lt;ObjectHolder&lt;T&gt;&gt;();</span>
+<span class="nc" id="L46">        objects = new LinkedList&lt;&gt;();</span>
 <span class="nc" id="L47">        this.factory = factory;</span>
 <span class="nc" id="L48">    }</span>
 
     @Override
     public ObjectHolder&lt;T&gt; create() throws ObjectCreationException {
 <span class="pc bpc" id="L52" title="1 of 2 branches missed.">        if (objects.isEmpty()) {</span>
-<span class="fc" id="L53">            return new ObjectHolder&lt;T&gt;(factory);</span>
+<span class="fc" id="L53">            return new ObjectHolder&lt;&gt;(factory);</span>
         } else {
 <span class="nc" id="L55">            return objects.remove();</span>
         }
@@ -68,5 +68,11 @@ public final class ObjectHolderFactory&lt;T&gt; implements RecyclingSupplier.Fac
 <span class="nc" id="L68">        return true;</span>
     }
 
+    @Override
+    public String toString() {
+<span class="fc" id="L73">        return &quot;ObjectHolderFactory{&quot; + &quot;objects=&quot; + objects + &quot;, factory=&quot; + factory + '}';</span>
+    }
+
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

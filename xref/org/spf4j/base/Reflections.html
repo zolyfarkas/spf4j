@@ -175,11 +175,11 @@
 <a class="jxr_linenumber" name="L167" href="#L167">167</a>     }
 <a class="jxr_linenumber" name="L168" href="#L168">168</a> 
 <a class="jxr_linenumber" name="L169" href="#L169">169</a> 
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Object invoke(<strong class="jxr_keyword">final</strong> Method m, <strong class="jxr_keyword">final</strong> Object object, <strong class="jxr_keyword">final</strong> Object [] parameters)
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Object invoke(<strong class="jxr_keyword">final</strong> Method m, <strong class="jxr_keyword">final</strong> Object object, <strong class="jxr_keyword">final</strong> Object[] parameters)
 <a class="jxr_linenumber" name="L171" href="#L171">171</a>             <strong class="jxr_keyword">throws</strong> IllegalAccessException, InvocationTargetException {
 <a class="jxr_linenumber" name="L172" href="#L172">172</a>         <strong class="jxr_keyword">int</strong> np = parameters.length;
 <a class="jxr_linenumber" name="L173" href="#L173">173</a>         <strong class="jxr_keyword">if</strong> (np &gt; 0) {
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>             Class&lt;?&gt; [] actTypes = m.getParameterTypes();
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>             Class&lt;?&gt;[] actTypes = m.getParameterTypes();
 <a class="jxr_linenumber" name="L175" href="#L175">175</a>             Class&lt;?&gt; lastParamClass =  actTypes[actTypes.length - 1];
 <a class="jxr_linenumber" name="L176" href="#L176">176</a>             <strong class="jxr_keyword">if</strong> (Reflections.canAssign(lastParamClass, parameters[np - 1].getClass())) {
 <a class="jxr_linenumber" name="L177" href="#L177">177</a>                 <strong class="jxr_keyword">return</strong> m.invoke(object, parameters);
@@ -190,7 +190,7 @@
 <a class="jxr_linenumber" name="L182" href="#L182">182</a>                 <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> k = 0; k &lt; l; k++) {
 <a class="jxr_linenumber" name="L183" href="#L183">183</a>                     Array.set(array, k, parameters[lidx + k]);
 <a class="jxr_linenumber" name="L184" href="#L184">184</a>                 }
-<a class="jxr_linenumber" name="L185" href="#L185">185</a>                 Object [] newParams  = <strong class="jxr_keyword">new</strong> Object [actTypes.length];
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>                 Object[] newParams  = <strong class="jxr_keyword">new</strong> Object[actTypes.length];
 <a class="jxr_linenumber" name="L186" href="#L186">186</a>                 System.arraycopy(parameters, 0, newParams, 0, lidx);
 <a class="jxr_linenumber" name="L187" href="#L187">187</a>                 newParams[lidx] = array;
 <a class="jxr_linenumber" name="L188" href="#L188">188</a>                 <strong class="jxr_keyword">return</strong> m.invoke(object, newParams);
@@ -228,7 +228,7 @@
 <a class="jxr_linenumber" name="L220" href="#L220">220</a>         @Nonnull
 <a class="jxr_linenumber" name="L221" href="#L221">221</a>         <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Class&lt;?&gt;[] paramTypes;
 <a class="jxr_linenumber" name="L222" href="#L222">222</a> 
-<a class="jxr_linenumber" name="L223" href="#L223">223</a>         <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/base/Reflections.html">MethodDesc</a>(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; clasz, <strong class="jxr_keyword">final</strong> String name, <strong class="jxr_keyword">final</strong> Class&lt;?&gt;[] paramTypes) {
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>         <a href="../../../org/spf4j/base/Reflections.html">MethodDesc</a>(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; clasz, <strong class="jxr_keyword">final</strong> String name, <strong class="jxr_keyword">final</strong> Class&lt;?&gt;[] paramTypes) {
 <a class="jxr_linenumber" name="L224" href="#L224">224</a>             <strong class="jxr_keyword">this</strong>.clasz = clasz;
 <a class="jxr_linenumber" name="L225" href="#L225">225</a>             <strong class="jxr_keyword">this</strong>.name = name;
 <a class="jxr_linenumber" name="L226" href="#L226">226</a>             <strong class="jxr_keyword">this</strong>.paramTypes = paramTypes;
@@ -282,7 +282,7 @@
 <a class="jxr_linenumber" name="L274" href="#L274">274</a>             = <strong class="jxr_keyword">new</strong> UnboundedRacyLoadingCache&lt;&gt;(64,
 <a class="jxr_linenumber" name="L275" href="#L275">275</a>                     <strong class="jxr_keyword">new</strong> CacheLoader&lt;MethodDesc, Method&gt;() {
 <a class="jxr_linenumber" name="L276" href="#L276">276</a>                         @Override
-<a class="jxr_linenumber" name="L277" href="#L277">277</a>                         <strong class="jxr_keyword">public</strong> Method load(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Reflections.html">MethodDesc</a> k) <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>                         <strong class="jxr_keyword">public</strong> Method load(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Reflections.html">MethodDesc</a> k) {
 <a class="jxr_linenumber" name="L278" href="#L278">278</a>                             <strong class="jxr_keyword">final</strong> Method m = getCompatibleMethod(k.getClasz(), k.getName(), k.getParamTypes());
 <a class="jxr_linenumber" name="L279" href="#L279">279</a>                             AccessController.doPrivileged(<strong class="jxr_keyword">new</strong> PrivilegedAction() {
 <a class="jxr_linenumber" name="L280" href="#L280">280</a>                                 @Override
@@ -421,6 +421,6 @@
 <a class="jxr_linenumber" name="L413" href="#L413">413</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2015. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2016. All rights reserved.</div>
 </body>
 </html>

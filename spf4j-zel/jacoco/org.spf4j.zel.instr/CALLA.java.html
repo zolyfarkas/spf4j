@@ -33,52 +33,50 @@ public final class CALLA extends Instruction {
 
     private static final long serialVersionUID = 759722625722456554L;
 
-<span class="fc" id="L36">    private CALLA() {</span>
-<span class="fc" id="L37">    }</span>
+    private final int nrParameters;
+
+<span class="fc" id="L38">    public CALLA(final int nrParameters) {</span>
+<span class="fc" id="L39">        this.nrParameters = nrParameters;</span>
+<span class="fc" id="L40">    }</span>
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
     public int execute(final ExecutionContext context)
             throws ExecutionException, InterruptedException, SuspendedException {
-<span class="fc" id="L43">        Integer nrParams = (Integer) context.pop();</span>
-<span class="fc" id="L44">        final Object function = context.peekFromTop(nrParams);</span>
-<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (function instanceof Program) {</span>
-<span class="fc" id="L46">            final Program p = (Program) function;</span>
+<span class="fc" id="L46">        final Object function = context.peekFromTop(nrParameters);</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        if (function instanceof Program) {</span>
+<span class="fc" id="L48">            final Program p = (Program) function;</span>
             final ExecutionContext nctx;
             Object obj;
             Object[] parameters;
-<span class="pc bpc" id="L50" title="2 of 3 branches missed.">            switch (p.getType()) {</span>
+<span class="pc bpc" id="L52" title="2 of 3 branches missed.">            switch (p.getType()) {</span>
                 case DETERMINISTIC:
-<span class="nc" id="L52">                    parameters = CALL.getParamsSync(context, nrParams);</span>
-<span class="nc" id="L53">                    nctx = context.getSubProgramContext(p, parameters);</span>
-<span class="nc" id="L54">                    obj = context.resultCache.getResult(p, Arrays.asList(parameters), new AsyncCallable(nctx));</span>
-
-<span class="nc" id="L56">                    break;</span>
+<span class="nc" id="L54">                    parameters = CALL.getParamsSync(context, nrParameters);</span>
+<span class="nc" id="L55">                    nctx = context.getSubProgramContext(p, parameters);</span>
+<span class="nc" id="L56">                    obj = context.resultCache.getResult(p, Arrays.asList(parameters), new AsyncCallable(nctx));</span>
+<span class="nc" id="L57">                    break;</span>
                 case NONDETERMINISTIC:
-<span class="fc" id="L58">                    parameters = CALL.getParams(context, nrParams);</span>
-<span class="fc" id="L59">                    nctx = context.getSubProgramContext(p, parameters);</span>
-<span class="fc" id="L60">                    obj = Program.executeAsync(nctx);</span>
-<span class="fc" id="L61">                    break;</span>
+<span class="fc" id="L59">                    parameters = CALL.getParams(context, nrParameters);</span>
+<span class="fc" id="L60">                    nctx = context.getSubProgramContext(p, parameters);</span>
+<span class="fc" id="L61">                    obj = Program.executeAsync(nctx);</span>
+<span class="fc" id="L62">                    break;</span>
                 default:
-<span class="nc" id="L63">                    throw new UnsupportedOperationException(p.getType().toString());</span>
+<span class="nc" id="L64">                    throw new UnsupportedOperationException(p.getType().toString());</span>
             }
-<span class="fc" id="L65">            context.push(obj);</span>
-<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        } else if (function instanceof Method) {</span>
-<span class="fc" id="L67">            final Object[] parameters = CALL.getParamsSync(context, nrParams);</span>
-<span class="fc" id="L68">            Future&lt;Object&gt; obj = context.execService.submit(new MethodVMExecutor(function, context, parameters));</span>
-<span class="fc" id="L69">            context.push(obj);</span>
-
+<span class="fc" id="L66">            context.push(obj);</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        } else if (function instanceof Method) {</span>
+<span class="fc" id="L68">            final Object[] parameters = CALL.getParamsSync(context, nrParameters);</span>
+<span class="fc" id="L69">            Future&lt;Object&gt; obj = context.execService.submit(new MethodVMExecutor(function, context, parameters));</span>
+<span class="fc" id="L70">            context.push(obj);</span>
 <span class="fc" id="L71">        } else {</span>
 <span class="nc" id="L72">            throw new ZExecutionException(&quot;cannot invoke &quot; + function);</span>
         }
 <span class="fc" id="L74">        return 1;</span>
     }
 
-<span class="fc" id="L77">    public static final Instruction INSTANCE = new CALLA();</span>
-
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L81">        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L79">        return new Object[] {nrParameters};</span>
     }
 
     private static class MethodVMExecutor implements VMExecutor.Suspendable&lt;Object&gt; {
@@ -87,21 +85,21 @@ public final class CALLA extends Instruction {
         private final ExecutionContext context;
         private final Object[] parameters;
 
-<span class="fc" id="L90">        public MethodVMExecutor(final Object function, final ExecutionContext context, final Object[] parameters) {</span>
-<span class="fc" id="L91">            this.function = function;</span>
-<span class="fc" id="L92">            this.context = context;</span>
-<span class="fc" id="L93">            this.parameters = parameters;</span>
-<span class="fc" id="L94">        }</span>
+<span class="fc" id="L88">        MethodVMExecutor(final Object function, final ExecutionContext context, final Object[] parameters) {</span>
+<span class="fc" id="L89">            this.function = function;</span>
+<span class="fc" id="L90">            this.context = context;</span>
+<span class="fc" id="L91">            this.parameters = parameters;</span>
+<span class="fc" id="L92">        }</span>
 
         @Override
         public Object call() {
-<span class="fc" id="L98">            return ((Method) function).invoke(context, parameters);</span>
+<span class="fc" id="L96">            return ((Method) function).invoke(context, parameters);</span>
         }
 
         @Override
         public List&lt;VMFuture&lt;Object&gt;&gt; getSuspendedAt() {
-<span class="nc" id="L103">            throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L101">            throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
         }
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.3.201502191951</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
