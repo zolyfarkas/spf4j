@@ -41,7 +41,7 @@ public final  class Slf4jMessageFormatter {
     
     public static void format(final StringBuilder sbuf, final String messagePattern,
             final Object... argArray) {
-        format(sbuf, messagePattern, ObjectAppenderSupplier.DEFAULT, argArray);
+        format(sbuf, messagePattern, ObjectAppenderSupplier.TO_STRINGER, argArray);
     }
     
     public static void format(final StringBuilder sbuf, final String messagePattern,

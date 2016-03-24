@@ -34,7 +34,7 @@ public final class ArraySuppliers {
 
        private Objects() { }
 
-       private static final SizedRecyclingSupplier.Factory FACTORY =
+       private static final SizedRecyclingSupplier.Factory<Object[]> FACTORY =
                new SizedRecyclingSupplier.Factory<Object[]>() {
 
             @Override
@@ -60,7 +60,7 @@ public final class ArraySuppliers {
         private Bytes() { }
 
 
-       private static final SizedRecyclingSupplier.Factory FACTORY =
+       private static final SizedRecyclingSupplier.Factory<byte[]> FACTORY =
                new SizedRecyclingSupplier.Factory<byte[]>() {
 
             @Override
@@ -98,5 +98,52 @@ public final class ArraySuppliers {
 
 
     }
+    
+    public static final class Chars {
+
+        private Chars() { }
+
+
+       private static final SizedRecyclingSupplier.Factory<char[]> FACTORY =
+               new SizedRecyclingSupplier.Factory<char[]>() {
+
+            @Override
+            @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+            public char[] create(final int size) {
+                return new char[size];
+            }
+
+            @Override
+            public int size(final char[] object) {
+                return object.length;
+            }
+        };
+
+      public static final SizedRecyclingSupplier<char[]> TL_SUPPLIER
+              = new Powerof2ThreadLocalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
+
+      public static final SizedRecyclingSupplier<char[]> GL_SUPPLIER
+              = new Powerof2SizedGlobalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
+
+      public static final SizedRecyclingSupplier<char[]> JAVA_NEW
+              = new SizedRecyclingSupplier<char[]>() {
+
+            @Override
+            @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+            public char[] get(final int size) {
+                return new char[size];
+            }
+
+            @Override
+            public void recycle(final char[] object) {
+                // Let the GC deal with this
+            }
+        };
+
+
+    }
+    
+    
+    
 
 }

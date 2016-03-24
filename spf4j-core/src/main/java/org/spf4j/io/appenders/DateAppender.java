@@ -16,26 +16,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.spf4j.io;
+package org.spf4j.io.appenders;
 
 import java.io.IOException;
-import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Date;
+import org.spf4j.io.ObjectAppender;
 
 /**
+ *
  * @author zoly
- * @param <T> - type of object to append.
  */
-@ParametersAreNonnullByDefault
-public interface ObjectAppender<T> {
+public final class DateAppender implements ObjectAppender<Date> {
 
-    void append(T object, Appendable appendTo) throws IOException;
-    
-    
-    ObjectAppender<Object> TOSTRING_APPENDER = new ObjectAppender<Object>() {
-        @Override
-        public void append(final Object object, final Appendable appendTo) throws IOException {
-            appendTo.append(object.toString());
-        }
-    };
+    @Override
+    public void append(final Date date, final Appendable appendTo) throws IOException {
+        InstantAppender.FMT.printTo(appendTo, date.getTime());
+    }
     
 }
