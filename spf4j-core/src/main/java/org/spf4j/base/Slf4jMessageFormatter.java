@@ -44,21 +44,22 @@ public final  class Slf4jMessageFormatter {
         format(sbuf, messagePattern, ObjectAppenderSupplier.TO_STRINGER, argArray);
     }
     
-    public static void format(final StringBuilder sbuf, final String messagePattern,
+    public static int format(final StringBuilder sbuf, final String messagePattern,
             final ObjectAppenderSupplier appSupplier, final Object... argArray) {
         int i = 0;
-        for (int k = 0; k < argArray.length; k++) {
+        final int len = argArray.length;
+        for (int k = 0; k < len; k++) {
 
             int j = messagePattern.indexOf(DELIM_STR, i);
 
             if (j == -1) {
                 // no more variables
                 if (i == 0) { // this is a simple string
-                    return;
+                    return k;
                 } else { // add the tail string which contains no variables and return
                     // the result.
                     sbuf.append(messagePattern, i, messagePattern.length());
-                    return;
+                    return k;
                 }
             } else {
                 if (isEscapedDelimeter(messagePattern, j)) {
@@ -85,6 +86,7 @@ public final  class Slf4jMessageFormatter {
         }
         // append the characters following the last {} pair.
         sbuf.append(messagePattern, i, messagePattern.length());
+        return len;
     }
     
     static boolean isEscapedDelimeter(final String messagePattern, final int delimeterStartIndex) {

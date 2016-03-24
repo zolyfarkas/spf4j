@@ -53,8 +53,17 @@ public class Slf4jMessageFormatterTest {
         Assert.assertEquals("bla bla " + LocalDateAppender.FMT.print(currentTimeMillis), sb.toString());
         sb.setLength(0);
         AMethod method = AMethod.newBuilder().setName("m1").setDeclaringClass("c1").build();
-        Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp, method);
+        int written = Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp, method);
         Assert.assertEquals("bla bla {\"declaringClass\":\"c1\",\"name\":\"m1\"}", sb.toString());
+        Assert.assertEquals(1, written);
+        sb.setLength(0);
+        written = Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp, method, "yohooo");
+        System.out.println("formatted message: " + sb.toString());
+        Assert.assertEquals(1, written);
+        sb.setLength(0);
+        written = Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp);
+        System.out.println("formatted message: " + sb.toString());
+        Assert.assertEquals(0, written);        
     }    
     
     
