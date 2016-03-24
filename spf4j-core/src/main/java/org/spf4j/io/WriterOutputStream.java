@@ -17,6 +17,8 @@
  */
 package org.spf4j.io;
 
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -68,6 +70,7 @@ import java.nio.charset.CodingErrorAction;
  * 
  * @since 7.2.25
  */
+@CleanupObligation
 public final class WriterOutputStream extends AppendableOutputStream {
     private static final int DEFAULT_BUFFER_SIZE = 8192;
 
@@ -172,6 +175,7 @@ public final class WriterOutputStream extends AppendableOutputStream {
      * @throws IOException if an I/O error occurs
      */
     @Override
+    @DischargesObligation
     public void close() throws IOException {
         super.close();
         writer.close();

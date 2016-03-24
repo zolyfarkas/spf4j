@@ -20,12 +20,12 @@ package org.spf4j.io;
 
 import com.google.common.io.BaseEncoding;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import javax.annotation.Nullable;
-import javax.annotation.WillClose;
 
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
@@ -220,7 +220,7 @@ public final class PipedOutputStream extends OutputStream {
 
 
     @Override
-    @WillClose
+    @DischargesObligation
     public void close() {
         synchronized (sync) {
             if (!writerClosed) {

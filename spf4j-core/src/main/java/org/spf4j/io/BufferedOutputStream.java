@@ -18,9 +18,9 @@
 package org.spf4j.io;
 
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.io.IOException;
 import java.io.OutputStream;
-import javax.annotation.WillClose;
 import org.spf4j.base.Base64;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
@@ -104,7 +104,7 @@ public final class BufferedOutputStream extends OutputStream {
     }
 
     @Override
-    @WillClose
+    @DischargesObligation
     public synchronized void close() throws IOException {
         if (buf != null) {
             try (OutputStream los = os) {

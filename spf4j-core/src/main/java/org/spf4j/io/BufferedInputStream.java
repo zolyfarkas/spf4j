@@ -18,12 +18,12 @@
 package org.spf4j.io;
 
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import javax.annotation.WillClose;
 import org.spf4j.base.Base64;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
@@ -121,6 +121,7 @@ public final class BufferedInputStream extends FilterInputStream {
         }
     }
 
+    @Override
     public synchronized int read() throws IOException {
         if (pos >= count) {
             fill();
@@ -230,7 +231,7 @@ public final class BufferedInputStream extends FilterInputStream {
     }
 
     @Override
-    @WillClose
+    @DischargesObligation
     public void close() throws IOException {
         byte[] buffer;
         while ((buffer = buf) != null) {

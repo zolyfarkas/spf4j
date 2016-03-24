@@ -20,12 +20,12 @@ package org.spf4j.io;
 
 import com.google.common.base.Charsets;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import javax.annotation.WillClose;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
@@ -259,7 +259,7 @@ public final class ByteArrayBuilder extends OutputStream {
      * this class can be called after the stream has been closed without
      * generating an <tt>IOException</tt>.
      */
-    @WillClose
+    @DischargesObligation
     @Override
     public synchronized void close() {
         if (arraySupplier != null) {

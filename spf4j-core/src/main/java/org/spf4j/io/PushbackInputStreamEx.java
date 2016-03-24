@@ -2,6 +2,7 @@
 package org.spf4j.io;
 
 import com.google.common.io.BaseEncoding;
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import java.io.InputStream;
 
 
@@ -9,6 +10,7 @@ import java.io.InputStream;
  *
  * @author zoly
  */
+@CleanupObligation
 public final class PushbackInputStreamEx  extends java.io.PushbackInputStream {
 
     public PushbackInputStreamEx(final InputStream in, final int size) {

@@ -17,6 +17,8 @@
  */
 package org.spf4j.io;
 
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -74,6 +76,7 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  */
 //CHECKSTYLE IGNORE DesignForExtension FOR NEXT 2000 LINES
 //CHECKSTYLE IGNORE VisibilityModifier FOR NEXT 2000 LINES
+@CleanupObligation
 public class AppendableOutputStream extends OutputStream {
     private static final int DEFAULT_BUFFER_SIZE = 8192;
 
@@ -245,6 +248,7 @@ public class AppendableOutputStream extends OutputStream {
      * @throws IOException if an I/O error occurs
      */
     @Override
+    @DischargesObligation
     public void close() throws IOException {
         if (decoderIn != null) {
             processInput(true);

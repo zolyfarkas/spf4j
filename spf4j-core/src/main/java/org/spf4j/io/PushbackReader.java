@@ -1,9 +1,12 @@
 package org.spf4j.io;
 
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.io.FilterReader;
 import java.io.IOException;
 import java.io.Reader;
 
+@CleanupObligation
 public final class PushbackReader extends FilterReader {
 
     private char[] buf;
@@ -115,6 +118,7 @@ public final class PushbackReader extends FilterReader {
     }
 
     @Override
+    @DischargesObligation
     public void close() throws IOException {
         super.close();
         buf = null;

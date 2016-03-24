@@ -21,6 +21,7 @@ package org.spf4j.io;
 import com.google.common.base.Charsets;
 import com.google.common.io.BaseEncoding;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -104,6 +105,7 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
     }
 
     @Override
+    @DischargesObligation
     public synchronized void close() throws IOException {
         if (!isClosed) {
             isClosed = true;
