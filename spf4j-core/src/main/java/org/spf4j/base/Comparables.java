@@ -56,4 +56,33 @@ public final class Comparables {
         return max;
     }
     
+    public static <T extends Comparable<T>> int compare(final T first, final T second) {
+        if (first == null) {
+            return (second == null) ? 0 : 1;
+        } else {
+            return (second == null) ? -1 : first.compareTo(second);
+        }
+    }
+    
+    
+    public static <T extends Comparable<T>> int compareArrays(final T[] first, final T[] second) {
+        int result = 0;
+        if (first == second) {
+            return result;
+        }
+        int i = 0;
+        int l1 = first.length;
+        int l2 = second.length;
+        int n = Math.min(l1, l2);
+        do {
+            result = Comparables.compare(first[i], second[i]);
+            i++;
+        } while (result == 0 && i < n);
+        if (result == 0 && l1 != l2) {
+            return (l1 < l2) ? -1 : 1;
+        }
+        return result;
+    }
+    
+    
 }
