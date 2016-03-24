@@ -14,6 +14,7 @@ import org.openjdk.jmh.results.Aggregator;
 import org.openjdk.jmh.results.BenchmarkResult;
 import org.openjdk.jmh.results.Result;
 import org.openjdk.jmh.results.ResultRole;
+import org.spf4j.base.Version;
 
 /**
  *
@@ -65,8 +66,8 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
     @Override
     public void beforeTrial(final BenchmarkParams benchmarkParams) {
         final List<String> inputArguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
-        if (!inputArguments
-                .contains("-XX:+UnlockCommercialFeatures")) {
+        if (new Version(org.spf4j.base.Runtime.JAVA_VERSION).compareTo(new Version("1.8.0_40")) <= 0
+                && !inputArguments.contains("-XX:+UnlockCommercialFeatures")) {
             throw new RuntimeException("-XX:+UnlockCommercialFeatures must pre present in the JVM options,"
                     + " current options are: " + inputArguments);
         }
