@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.ExecutionContext;
@@ -37,7 +38,7 @@ public final class CALL extends Instruction {
     }
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public int execute(final ExecutionContext context)
             throws ExecutionException, InterruptedException, SuspendedException {
         Object function = context.peekFromTop(nrParameters);
@@ -50,13 +51,14 @@ public final class CALL extends Instruction {
                 case DETERMINISTIC:
                     parameters = getParamsSync(context, nrParameters);
                     nctx = context.getSubProgramContext(p, parameters);
-                    obj = context.resultCache.getResult(p,  Arrays.asList(parameters), new SyncAsyncCallable(nctx));
+                    obj = context.getResultCache().getResult(p,  Arrays.asList(parameters),
+                            new SyncAsyncCallable(nctx));
 
                     break;
                 case NONDETERMINISTIC:
                         parameters = getParams(context, nrParameters);
                         nctx = context.getSubProgramContext(p, parameters);
-                        obj = Program.executeSyncOrAsync(nctx);
+                        obj = nctx.executeSyncOrAsync();
                     break;
                 default:
                     throw new UnsupportedOperationException(p.getType().toString());

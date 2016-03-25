@@ -79,7 +79,7 @@ public final class Channel {
 
         @Override
         public Object invoke(final ExecutionContext context, final Object[] parameters) {
-            return new Channel(context.execService);
+            return new Channel(context.getExecService());
         }
 
         public static final Factory INSTANCE = new Factory();

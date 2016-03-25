@@ -44,13 +44,13 @@ public final class SLEEP extends Instruction {
         Number param = (Number) context.popSyncStackVal();
         final long sleepMillis = param.longValue();
         if (sleepMillis > 0) {
-            if (context.execService == null) {
+            if (context.getExecService() == null) {
                 Thread.sleep(sleepMillis);
             } else {
                 final VMASyncFuture<Object> future = new VMASyncFuture<>();
                 DefaultScheduler.INSTANCE.schedule(
                         new RunnableImpl(context, future), sleepMillis, TimeUnit.MILLISECONDS);
-                context.ip++;
+                context.incrementInstructionPointer();
                 context.suspend(future);
             }
         }
@@ -79,7 +79,7 @@ public final class SLEEP extends Instruction {
         public void run() {
             Object stuff;
             do {
-                stuff = context.execService.resumeSuspendables(future);
+                stuff = context.getExecService().resumeSuspendables(future);
             } while (stuff == null);
         }
     }

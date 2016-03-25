@@ -72,7 +72,7 @@ public final class CALLREF extends Instruction {
 
         @Override
         public void assign(final Object object) {
-            context.resultCache.putPermanentResult((Program) function,
+            context.getResultCache().putPermanentResult((Program) function,
                     Arrays.asList(parameters), object);
 
         }
@@ -87,7 +87,7 @@ public final class CALLREF extends Instruction {
                 switch (p.getType()) {
                     case DETERMINISTIC:
                         nctx = context.getSyncSubProgramContext(p, parameters);
-                        obj = context.resultCache.getResult(p, Arrays.asList(parameters), new SyncCallable(nctx));
+                        obj = context.getResultCache().getResult(p, Arrays.asList(parameters), new SyncCallable(nctx));
 
                         break;
                     case NONDETERMINISTIC:

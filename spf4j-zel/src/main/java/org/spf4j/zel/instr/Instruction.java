@@ -39,7 +39,6 @@ public abstract class Instruction implements Serializable {
      * Instruction execution
      *
      * @param context ExecutionContext
-     * @throws ZExecutionException
      * @throws java.lang.InterruptedException
      * @returns relative instruction pointer for next instruction.
      */

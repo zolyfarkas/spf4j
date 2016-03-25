@@ -34,20 +34,22 @@ public final class MCTX extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context) {
+        MathContext mc;
         switch (precission) {
             case 32:
-                context.mathContext = MathContext.DECIMAL32;
+                mc = MathContext.DECIMAL32;
                 break;
             case 64:
-                context.mathContext = MathContext.DECIMAL64;
+                mc = MathContext.DECIMAL64;
                 break;
             case 128:
-                context.mathContext = MathContext.DECIMAL128;
+                mc = MathContext.DECIMAL128;
                 break;
             default:
-                context.mathContext = MathContext.DECIMAL128;
+                mc = new MathContext(precission);
         }
-        Operator.MATH_CONTEXT.set(context.mathContext);
+        context.setMathContext(mc);
+        Operator.MATH_CONTEXT.set(mc);
         return 1;
     }
 

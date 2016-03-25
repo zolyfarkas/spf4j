@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Either;
@@ -44,12 +45,12 @@ public final class ExecutionContext {
 
     private static final long serialVersionUID = 1L;
 
-    //CHECKSTYLE:OFF
-    public MathContext mathContext;
+    @Nonnull
+    private MathContext mathContext;
 
-    public final VMExecutor execService;
+    private final VMExecutor execService;
 
-    public final ResultCache resultCache;
+    private final ResultCache resultCache;
 
     public final Object[] mem;
 
@@ -58,17 +59,17 @@ public final class ExecutionContext {
     /**
      * the program
      */
-    public final Program code;
+    private final Program code;
 
     /**
      * The Instruction pointer
      */
-    public int ip;
+    private int ip;
 
     /**
      * The halt register
      */
-    public boolean terminated;
+    private boolean terminated;
 
     /**
      * The main stack
@@ -78,32 +79,22 @@ public final class ExecutionContext {
     /**
      * Standard Input
      */
-    public transient final InputStream in;
+    private final transient InputStream in;
 
     /**
      * Standard Output
      */
-    public transient final PrintStream out;
+    private final transient PrintStream out;
 
     /**
      * Standard Error Output
      */
-    public transient final PrintStream err;
+    private final transient PrintStream err;
 
-    List<VMFuture<Object>> suspendedAt;
-    //CHECKSTYLE:ON
-
-    public void suspend(final VMFuture<Object> future) throws SuspendedException {
-        suspendedAt = Arrays.asList(future);
-        throw SuspendedException.INSTANCE;
-    }
-
-    public void suspend(final List<VMFuture<Object>> futures) throws SuspendedException {
-        suspendedAt = futures;
-        throw SuspendedException.INSTANCE;
-    }
-
+    private List<VMFuture<Object>> suspendedAt;
+    
     private final boolean isChildContext;
+    
 
     private ExecutionContext(final ExecutionContext parent, @Nullable final VMExecutor service, final Program program) {
         this.in = parent.in;
@@ -112,11 +103,12 @@ public final class ExecutionContext {
         this.mem = new Object[program.getLocalMemSize()];
         this.globalMem = parent.globalMem;
         this.execService = service;
-        this.stack = new SimpleStack(8);
+        this.stack = new SimpleStack<>(8);
         this.code = program;
         this.resultCache = parent.resultCache;
         this.ip = 0;
         isChildContext = true;
+        this.mathContext = MathContext.DECIMAL128;
     }
 
     /**
@@ -144,13 +136,92 @@ public final class ExecutionContext {
         this.out = out;
         this.err = err;
         this.execService = execService;
-        this.stack = new SimpleStack(8);
+        this.stack = new SimpleStack<>(8);
         this.ip = 0;
         this.mem = new Object[program.getLocalMemSize()];
         this.globalMem = globalMem;
         this.resultCache = resultCache;
         isChildContext = false;
+        this.mathContext = MathContext.DECIMAL128;
     }
+
+    public InputStream getIn() {
+        return in;
+    }
+
+    public PrintStream getOut() {
+        return out;
+    }
+
+    public PrintStream getErr() {
+        return err;
+    }
+    
+    
+    public Program getProgram() {
+        return code;
+    }
+    
+    
+    public void incrementInstructionPointer() {
+        ip++;
+    }
+    
+    public void terminate() {
+        terminated = true;
+    }
+    
+    // TODO: Need to employ Either here
+    @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
+    public Object executeSyncOrAsync()
+            throws ExecutionException, InterruptedException {
+        final VMExecutor.Suspendable<Object> execution = this.getCallable();
+        if (this.execService != null && this.code.getExecType() == Program.ExecutionType.ASYNC) {
+            if (this.isChildContext()) {
+                return this.execService.submitInternal(VMExecutor.synchronize(execution));
+            } else {
+                return this.execService.submit(VMExecutor.synchronize(execution));
+            }
+        } else {
+            try {
+                return execution.call();
+            } catch (SuspendedException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+    
+    @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
+    // TODO: Need to employ Either here
+    public Object executeAsync()
+            throws ExecutionException, InterruptedException {
+        final VMExecutor.Suspendable<Object> execution = this.getCallable();
+        if (this.execService != null) {
+            if (this.isChildContext()) {
+                return this.execService.submitInternal(VMExecutor.synchronize(execution));
+            } else {
+                return this.execService.submit(VMExecutor.synchronize(execution));
+            }
+        } else {
+            try {
+                return execution.call();
+            } catch (SuspendedException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+    
+    public void suspend(final VMFuture<Object> future) throws SuspendedException {
+        suspendedAt = Arrays.asList(future);
+        throw SuspendedException.INSTANCE;
+    }
+
+    public void suspend(final List<VMFuture<Object>> futures) throws SuspendedException {
+        suspendedAt = futures;
+        throw SuspendedException.INSTANCE;
+    }
+    
+    
 
     public VMExecutor.Suspendable<Object> getCallable() {
         return new VMExecutor.Suspendable<Object>() {
@@ -159,9 +230,7 @@ public final class ExecutionContext {
             public Object call()
                     throws ExecutionException, InterruptedException, SuspendedException {
                 suspendedAt = null;
-                if (mathContext != null) {
-                    Operator.MATH_CONTEXT.set(mathContext);
-                }
+                Operator.MATH_CONTEXT.set(getMathContext());
                 Instruction[] instructions = code.getInstructions();
                 try {
                     while (!terminated) {
@@ -384,7 +453,7 @@ public final class ExecutionContext {
         if (program.getExecType() == SYNC) {
             ec = new ExecutionContext(this, null, program);
         } else {
-            ec = new ExecutionContext(this, this.execService, program);
+            ec = new ExecutionContext(this, this.getExecService(), program);
         }
         System.arraycopy(parameters, 0, ec.mem, 0, parameters.length);
         return ec;
@@ -399,8 +468,8 @@ public final class ExecutionContext {
 
     @Override
     public String toString() {
-        return "ExecutionContext{" + "execService=" + execService + ",\nresultCache="
-                + resultCache + ",\nmemory=" + Arrays.toString(mem)
+        return "ExecutionContext{" + "execService=" + getExecService() + ",\nresultCache="
+                + getResultCache() + ",\nmemory=" + Arrays.toString(mem)
                 + ",\nlocalSymbolTable=" + code.getLocalSymbolTable()
                 + ",\nglobalMem=" + Arrays.toString(globalMem)
                 + ",\nglobalSymbolTable=" + code.getGlobalSymbolTable()
@@ -411,6 +480,36 @@ public final class ExecutionContext {
 
     public boolean isChildContext() {
         return isChildContext;
+    }
+
+    /**
+     * @return the mathContext
+     */
+    @Nonnull
+    public MathContext getMathContext() {
+        return mathContext;
+    }
+
+    /**
+     * @param mathContext the mathContext to set
+     */
+    public void setMathContext(@Nonnull final MathContext mathContext) {
+        this.mathContext = mathContext;
+    }
+
+    /**
+     * @return the execService
+     */
+    @Nullable
+    public VMExecutor getExecService() {
+        return execService;
+    }
+
+    /**
+     * @return the resultCache
+     */
+    public ResultCache getResultCache() {
+        return resultCache;
     }
 
 

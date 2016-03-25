@@ -18,6 +18,7 @@
 package org.spf4j.zel.instr;
 
 import org.spf4j.zel.vm.ExecutionContext;
+import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
@@ -34,9 +35,10 @@ public final class LODX extends Instruction implements RValRef {
     
     
     public static Object readFrom(final String symbol, final ExecutionContext context) throws ZExecutionException {
-        Integer addr  = context.code.getLocalSymbolTable().get(symbol);
+        Program code = context.getProgram();
+        Integer addr  = code.getLocalSymbolTable().get(symbol);
         if (addr == null) {
-            addr = context.code.getGlobalSymbolTable().get(symbol);
+            addr = code.getGlobalSymbolTable().get(symbol);
             if (addr == null) {
                 throw new ZExecutionException("unalocated symbol encountered " + symbol);
             }

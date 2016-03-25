@@ -20,6 +20,7 @@ package org.spf4j.zel.instr;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
+import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
@@ -37,9 +38,10 @@ public final class LODAX extends Instruction implements LValRef {
     
     public static void writeTo(final String symbol, final ExecutionContext context, final Object what)
             throws ZExecutionException {
-        Integer addr  = context.code.getLocalSymbolTable().get(symbol);
+        Program code = context.getProgram();
+        Integer addr  = code.getLocalSymbolTable().get(symbol);
         if (addr == null) {
-            addr = context.code.getGlobalSymbolTable().get(symbol);
+            addr = code.getGlobalSymbolTable().get(symbol);
             if (addr == null) {
                 throw new ZExecutionException("unalocated symbol encountered " + symbol);
             }

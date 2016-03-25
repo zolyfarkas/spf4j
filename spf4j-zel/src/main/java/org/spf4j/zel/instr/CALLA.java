@@ -53,12 +53,12 @@ public final class CALLA extends Instruction {
                 case DETERMINISTIC:
                     parameters = CALL.getParamsSync(context, nrParameters);
                     nctx = context.getSubProgramContext(p, parameters);
-                    obj = context.resultCache.getResult(p, Arrays.asList(parameters), new AsyncCallable(nctx));
+                    obj = context.getResultCache().getResult(p, Arrays.asList(parameters), new AsyncCallable(nctx));
                     break;
                 case NONDETERMINISTIC:
                     parameters = CALL.getParams(context, nrParameters);
                     nctx = context.getSubProgramContext(p, parameters);
-                    obj = Program.executeAsync(nctx);
+                    obj = nctx.executeAsync();
                     break;
                 default:
                     throw new UnsupportedOperationException(p.getType().toString());
@@ -66,7 +66,7 @@ public final class CALLA extends Instruction {
             context.push(obj);
         } else if (function instanceof Method) {
             final Object[] parameters = CALL.getParamsSync(context, nrParameters);
-            Future<Object> obj = context.execService.submit(new MethodVMExecutor(function, context, parameters));
+            Future<Object> obj = context.getExecService().submit(new MethodVMExecutor(function, context, parameters));
             context.push(obj);
         } else {
             throw new ZExecutionException("cannot invoke " + function);

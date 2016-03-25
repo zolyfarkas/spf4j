@@ -203,8 +203,6 @@ public final class Program implements Serializable {
     }
 
 
-
-
     @Override
     @CheckReturnValue
     public boolean equals(final Object obj) {
@@ -229,10 +227,11 @@ public final class Program implements Serializable {
     }
 
     /**
-     * @return the instructions
+     * @param i - inst address.
+     * @return the instruction.
      */
     @CheckReturnValue
-    public Object get(final int i) {
+    public Instruction get(final int i) {
         return instructions[i];
     }
 
@@ -353,45 +352,7 @@ public final class Program implements Serializable {
         return Pair.of(execute(ectx), ectx);
     }
 
-    // TODO: Need to employ Either here
-    @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
-    public static Object executeSyncOrAsync(@Nonnull final ExecutionContext ectx)
-            throws ExecutionException, InterruptedException {
-        final VMExecutor.Suspendable<Object> execution = ectx.getCallable();
-        if (ectx.execService != null && ectx.code.getExecType() == ExecutionType.ASYNC) {
-            if (ectx.isChildContext()) {
-                return ectx.execService.submitInternal(VMExecutor.synchronize(execution));
-            } else {
-                return ectx.execService.submit(VMExecutor.synchronize(execution));
-            }
-        } else {
-            try {
-                return execution.call();
-            } catch (SuspendedException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-    }
 
-    @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
-    // TODO: Need to employ Either here
-    public static Object executeAsync(@Nonnull final ExecutionContext ectx)
-            throws ExecutionException, InterruptedException {
-        final VMExecutor.Suspendable<Object> execution = ectx.getCallable();
-        if (ectx.execService != null) {
-            if (ectx.isChildContext()) {
-                return ectx.execService.submitInternal(VMExecutor.synchronize(execution));
-            } else {
-                return ectx.execService.submit(VMExecutor.synchronize(execution));
-            }
-        } else {
-            try {
-                return execution.call();
-            } catch (SuspendedException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-    }
 
     public static Object executeSync(@Nonnull final ExecutionContext ectx) throws
             ExecutionException, InterruptedException {
@@ -404,7 +365,7 @@ public final class Program implements Serializable {
 
     public static Object execute(@Nonnull final ExecutionContext ectx)
             throws ExecutionException, InterruptedException {
-        Object result = executeSyncOrAsync(ectx);
+        Object result = ectx.executeSyncOrAsync();
         if (result instanceof Future) {
             return ((Future<Object>) result).get();
         } else {
@@ -441,8 +402,6 @@ public final class Program implements Serializable {
      * @param mem
      * @param name String
      * @param value Object
-     * @throws net.sf.zel.vm.ParseException
-     * @throws net.sf.zel.vm.ZExecutionException
      * @throws java.lang.InterruptedException
      */
     public static void addValue(@Nonnull final java.util.Map mem, @Nonnull final String name,
@@ -505,7 +464,7 @@ public final class Program implements Serializable {
     public static void main(final String[] args) throws IOException, InterruptedException {
         System.out.println("ZEL Shell");
         boolean terminated = false;
-        Map<String, Integer> localSymTable = Collections.EMPTY_MAP;
+        Map<String, Integer> localSymTable = Collections.emptyMap();
         Pair<Object[], Map<String, Integer>> gmemPair = ZEL_GLOBAL_FUNC.build();
         Map<String, Integer> globalSymTable = gmemPair.getSecond();
         Object[] mem = new Object[] {};
@@ -530,7 +489,7 @@ public final class Program implements Serializable {
                         System.out.println("result>" + res.getFirst());
                         final ExecutionContext execCtx = res.getSecond();
                         mem = execCtx.mem;
-                        resCache = execCtx.resultCache;
+                        resCache = execCtx.getResultCache();
                     } catch (CompileException ex) {
                         System.out.println("Syntax Error: " + Throwables.getStackTraceAsString(ex));
                     } catch (ExecutionException ex) {

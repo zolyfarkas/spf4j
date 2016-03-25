@@ -33,7 +33,7 @@ public final class HALT extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context) {
-        context.terminated = true;
+        context.terminate();
         return 0;
     }
 

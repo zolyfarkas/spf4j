@@ -3,7 +3,6 @@ package org.spf4j.zel.instr;
 
 import java.util.concurrent.Callable;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.Program;
 
 public final class SyncAsyncCallable implements Callable<Object> {
 
@@ -15,7 +14,7 @@ public final class SyncAsyncCallable implements Callable<Object> {
 
     @Override
     public Object call() throws Exception {
-        return Program.executeSyncOrAsync(nctx);
+        return nctx.executeSyncOrAsync();
     }
 
     @Override

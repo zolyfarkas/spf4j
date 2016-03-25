@@ -20,7 +20,6 @@ package org.spf4j.zel.instr;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.VMASyncFuture;
 import org.spf4j.zel.vm.ZExecutionException;
 
 /**
@@ -47,25 +46,6 @@ public final class THROW extends Instruction {
     @Override
     public Object[] getParameters() {
         return Arrays.EMPTY_OBJ_ARRAY;
-    }
-
-    private static final  class RunnableImpl implements Runnable {
-
-        private final ExecutionContext context;
-        private final VMASyncFuture<Object> future;
-
-        RunnableImpl(final ExecutionContext context, final VMASyncFuture<Object> future) {
-            this.context = context;
-            this.future = future;
-        }
-
-        @Override
-        public void run() {
-            Object stuff;
-            do {
-                stuff = context.execService.resumeSuspendables(future);
-            } while (stuff == null);
-        }
     }
 
 }

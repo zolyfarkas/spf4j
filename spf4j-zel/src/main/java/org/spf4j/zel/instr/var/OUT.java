@@ -17,6 +17,8 @@
  */
 package org.spf4j.zel.instr.var;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.PrintStream;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 
@@ -30,10 +32,12 @@ public final class OUT implements Method {
     public static final Method INSTANCE = new OUT();
 
     @Override
+    @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
     public Object invoke(final ExecutionContext context, final Object[] parameters) {
-        synchronized (context.out) {
+        final PrintStream out = context.getOut();
+        synchronized (out) {
             for (Object obj : parameters) {
-                    context.out.print(obj);
+               out.print(obj);
             }
         }
         return null;
