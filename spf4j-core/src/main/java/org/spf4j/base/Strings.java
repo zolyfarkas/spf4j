@@ -22,7 +22,6 @@ import com.google.common.base.Charsets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.Writer;
-import static java.lang.Math.min;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -41,6 +40,7 @@ import org.slf4j.LoggerFactory;
 //CHECKSTYLE:OFF
 import sun.nio.cs.ArrayDecoder;
 import sun.nio.cs.ArrayEncoder;
+import static java.lang.Math.min;
 //CHECKSTYLE:ON
 
 /**
@@ -496,50 +496,87 @@ public final class Strings {
         }
     }
 
-    /**
-     * Utility method to escape java strings to json strings.
-     *
-     * @param toEscape - the java string to escape.
-     * @param jsonString - the destination json String builder.
-     * @throws IOException
-     */
-    public static void escapeJsonString(@Nonnull final String toEscape, final StringBuilder jsonString) {
+  /**
+   * Utility method to escape java strings to json strings.
+   *
+   * @param toEscape - the java string to escape.
+   * @param jsonString - the destination json String builder.
+   * @throws IOException
+   */
+  public static void escapeJsonString(@Nonnull final String toEscape, final StringBuilder jsonString) {
 
-        int len = toEscape.length();
-        for (int i = 0; i < len; i++) {
-            char c = toEscape.charAt(i);
-            switch (c) {
-                case '\\':
-                case '"':
-                    jsonString.append('\\');
-                    jsonString.append(c);
-                    break;
-                case '\b':
-                    jsonString.append("\\b");
-                    break;
-                case '\t':
-                    jsonString.append("\\t");
-                    break;
-                case '\n':
-                    jsonString.append("\\n");
-                    break;
-                case '\f':
-                    jsonString.append("\\f");
-                    break;
-                case '\r':
-                    jsonString.append("\\r");
-                    break;
-                default:
-                    if (c < ' ') {
-                        jsonString.append("\\u");
-                        appendUnsignedStringPadded(jsonString, (int) c, 4, 4);
-                    } else {
-                        jsonString.append(c);
-                    }
-            }
-        }
-
+    int len = toEscape.length();
+    for (int i = 0; i < len; i++) {
+      char c = toEscape.charAt(i);
+      appendJsonStringEscapedChar(c, jsonString);
     }
+
+  }
+
+  public static void appendJsonStringEscapedChar(final char c, final StringBuilder jsonString) {
+    switch (c) {
+      case '\\':
+      case '"':
+        jsonString.append('\\');
+        jsonString.append(c);
+        break;
+      case '\b':
+        jsonString.append("\\b");
+        break;
+      case '\t':
+        jsonString.append("\\t");
+        break;
+      case '\n':
+        jsonString.append("\\n");
+        break;
+      case '\f':
+        jsonString.append("\\f");
+        break;
+      case '\r':
+        jsonString.append("\\r");
+        break;
+      default:
+        if (c < ' ') {
+          jsonString.append("\\u");
+          appendUnsignedStringPadded(jsonString, (int) c, 4, 4);
+        } else {
+          jsonString.append(c);
+        }
+    }
+  }
+  
+  
+  public static void appendJsonStringEscapedChar(final char c, final Appendable jsonString) throws IOException {
+    switch (c) {
+      case '\\':
+      case '"':
+        jsonString.append('\\');
+        jsonString.append(c);
+        break;
+      case '\b':
+        jsonString.append("\\b");
+        break;
+      case '\t':
+        jsonString.append("\\t");
+        break;
+      case '\n':
+        jsonString.append("\\n");
+        break;
+      case '\f':
+        jsonString.append("\\f");
+        break;
+      case '\r':
+        jsonString.append("\\r");
+        break;
+      default:
+        if (c < ' ') {
+          jsonString.append("\\u");
+          appendUnsignedStringPadded(jsonString, (int) c, 4, 4);
+        } else {
+          jsonString.append(c);
+        }
+    }
+  }
 
     private static final char[] DIGITS = {
         '0', '1', '2', '3', '4', '5',
@@ -608,5 +645,29 @@ public final class Strings {
         }
         sb.append(buf, charPos, nrChars);
     }
+    
+    public static void appendUnsignedStringPadded(final Appendable sb, final int nr, final int shift,
+            final int padTo) throws IOException {
+        long i = nr;
+        char[] buf = BUFF.get();
+        int charPos = 32;
+        int radix = 1 << shift;
+        long mask = radix - 1;
+        do {
+            buf[--charPos] = DIGITS[(int) (i & mask)];
+            i >>>= shift;
+        } while (i != 0);
+        final int nrChars = 32 - charPos;
+        if (nrChars > padTo) {
+            throw new IllegalArgumentException("Your pad to value " + padTo
+                    + " is to small, must be at least " + nrChars);
+        } else {
+            for (int j = 0, n = padTo - nrChars; j < n; j++) {
+                sb.append('0');
+            }
+        }
+        sb.append(CharBuffer.wrap(buf), charPos, nrChars);
+    }
+    
     
 }
