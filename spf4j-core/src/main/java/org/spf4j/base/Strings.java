@@ -608,5 +608,5 @@ public final class Strings {
         }
         sb.append(buf, charPos, nrChars);
     }
-
+    
 }

@@ -20,6 +20,7 @@ package org.spf4j.base;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.set.hash.THashSet;
+import java.io.IOException;
 import java.util.Set;
 import org.slf4j.helpers.Util;
 import org.spf4j.io.ObjectAppenderSupplier;
@@ -39,13 +40,13 @@ public final  class Slf4jMessageFormatter {
     private static final char ESCAPE_CHAR = '\\';
     
     
-    public static void format(final StringBuilder sbuf, final String messagePattern,
-            final Object... argArray) {
+    public static void format(final Appendable sbuf, final String messagePattern,
+            final Object... argArray) throws IOException {
         format(sbuf, messagePattern, ObjectAppenderSupplier.TO_STRINGER, argArray);
     }
     
-    public static int format(final StringBuilder sbuf, final String messagePattern,
-            final ObjectAppenderSupplier appSupplier, final Object... argArray) {
+    public static int format(final Appendable sbuf, final String messagePattern,
+            final ObjectAppenderSupplier appSupplier, final Object... argArray) throws IOException {
         int i = 0;
         final int len = argArray.length;
         for (int k = 0; k < len; k++) {
@@ -102,8 +103,8 @@ public final  class Slf4jMessageFormatter {
 
     // special treatment of array values was suggested by 'lizongbo'
     @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
-    private static void deeplyAppendParameter(final StringBuilder sbuf, final Object o,
-            final Set<Object[]> seen, final ObjectAppenderSupplier appSupplier) {
+    private static void deeplyAppendParameter(final Appendable sbuf, final Object o,
+            final Set<Object[]> seen, final ObjectAppenderSupplier appSupplier) throws IOException {
         if (o == null) {
             sbuf.append("null");
             return;
@@ -136,8 +137,8 @@ public final  class Slf4jMessageFormatter {
     }
 
     @SuppressWarnings("unchecked")
-    private static void safeObjectAppend(final StringBuilder sbuf, final Object obj,
-            final ObjectAppenderSupplier appSupplier) {
+    private static void safeObjectAppend(final Appendable sbuf, final Object obj,
+            final ObjectAppenderSupplier appSupplier) throws IOException {
         try {
             appSupplier.get((Class) obj.getClass()).append(obj, sbuf);
         } catch (Throwable t) {
@@ -149,8 +150,8 @@ public final  class Slf4jMessageFormatter {
     }
 
     @SuppressFBWarnings("ABC_ARRAY_BASED_COLLECTIONS")
-    private static void objectArrayAppend(final StringBuilder sbuf, final Object[] a, final Set<Object[]> seen,
-            final ObjectAppenderSupplier appSupplier) {
+    private static void objectArrayAppend(final Appendable sbuf, final Object[] a, final Set<Object[]> seen,
+            final ObjectAppenderSupplier appSupplier) throws IOException {
         sbuf.append('[');
         if (!seen.contains(a)) {
             seen.add(a);
@@ -170,7 +171,33 @@ public final  class Slf4jMessageFormatter {
         sbuf.append(']');
     }
 
-    private static void booleanArrayAppend(final StringBuilder sbuf, final boolean[] a) {
+    private static void booleanArrayAppend(final Appendable sbuf, final boolean[] a) throws IOException {
+        sbuf.append('[');
+        final int len = a.length;
+        if (len > 0) {
+            sbuf.append(Boolean.toString(a[0]));
+            for (int i = 1; i < len; i++) {
+                sbuf.append(", ");
+                sbuf.append(Boolean.toString(a[i]));
+            }
+        }
+        sbuf.append(']');
+    }
+
+    private static void byteArrayAppend(final Appendable sbuf, final byte[] a) throws IOException {
+        sbuf.append('[');
+        final int len = a.length;
+        if (len > 0) {
+            sbuf.append(Byte.toString(a[0]));
+            for (int i = 1; i < len; i++) {
+                sbuf.append(", ");
+                sbuf.append(Byte.toString(a[i]));
+            }
+        }
+        sbuf.append(']');
+    }
+
+    private static void charArrayAppend(final Appendable sbuf, final char[] a) throws IOException {
         sbuf.append('[');
         final int len = a.length;
         if (len > 0) {
@@ -183,92 +210,66 @@ public final  class Slf4jMessageFormatter {
         sbuf.append(']');
     }
 
-    private static void byteArrayAppend(final StringBuilder sbuf, final byte[] a) {
+    private static void shortArrayAppend(final Appendable sbuf, final short[] a) throws IOException {
         sbuf.append('[');
         final int len = a.length;
         if (len > 0) {
-            sbuf.append(a[0]);
+            sbuf.append(Short.toString(a[0]));
             for (int i = 1; i < len; i++) {
                 sbuf.append(", ");
-                sbuf.append(a[i]);
+                sbuf.append(Short.toString(a[i]));
             }
         }
         sbuf.append(']');
     }
 
-    private static void charArrayAppend(final StringBuilder sbuf, final char[] a) {
+    private static void intArrayAppend(final Appendable sbuf, final int[] a) throws IOException {
         sbuf.append('[');
         final int len = a.length;
         if (len > 0) {
-            sbuf.append(a[0]);
+            sbuf.append(Integer.toString(a[0]));
             for (int i = 1; i < len; i++) {
                 sbuf.append(", ");
-                sbuf.append(a[i]);
+                sbuf.append(Integer.toString(a[i]));
             }
         }
         sbuf.append(']');
     }
 
-    private static void shortArrayAppend(final StringBuilder sbuf, final short[] a) {
+    private static void longArrayAppend(final Appendable sbuf, final long[] a) throws IOException {
         sbuf.append('[');
         final int len = a.length;
         if (len > 0) {
-            sbuf.append(a[0]);
+            sbuf.append(Long.toString(a[0]));
             for (int i = 1; i < len; i++) {
                 sbuf.append(", ");
-                sbuf.append(a[i]);
+                sbuf.append(Long.toString(a[i]));
             }
         }
         sbuf.append(']');
     }
 
-    private static void intArrayAppend(final StringBuilder sbuf, final int[] a) {
+    private static void floatArrayAppend(final Appendable sbuf, final float[] a) throws IOException {
         sbuf.append('[');
         final int len = a.length;
         if (len > 0) {
-            sbuf.append(a[0]);
+            sbuf.append(Float.toString(a[0]));
             for (int i = 1; i < len; i++) {
                 sbuf.append(", ");
-                sbuf.append(a[i]);
+                sbuf.append(Float.toString(a[i]));
             }
         }
         sbuf.append(']');
     }
 
-    private static void longArrayAppend(final StringBuilder sbuf, final long[] a) {
+    private static void doubleArrayAppend(final Appendable sbuf, final double[] a) throws IOException {
         sbuf.append('[');
         final int len = a.length;
         if (len > 0) {
-            sbuf.append(a[0]);
+            sbuf.append(Double.toString(a[0]));
             for (int i = 1; i < len; i++) {
                 sbuf.append(", ");
-                sbuf.append(a[i]);
-            }
-        }
-        sbuf.append(']');
-    }
-
-    private static void floatArrayAppend(final StringBuilder sbuf, final float[] a) {
-        sbuf.append('[');
-        final int len = a.length;
-        if (len > 0) {
-            sbuf.append(a[0]);
-            for (int i = 1; i < len; i++) {
-                sbuf.append(", ");
-                sbuf.append(a[i]);
-            }
-        }
-        sbuf.append(']');
-    }
-
-    private static void doubleArrayAppend(final StringBuilder sbuf, final double[] a) {
-        sbuf.append('[');
-        final int len = a.length;
-        if (len > 0) {
-            sbuf.append(a[0]);
-            for (int i = 1; i < len; i++) {
-                sbuf.append(", ");
-                sbuf.append(a[i]);
+                sbuf.append(Double.toString(a[i]));
             }
         }
         sbuf.append(']');
