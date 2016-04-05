@@ -511,6 +511,15 @@ public final class Strings {
     }
 
   }
+  
+  public static void escapeJsonString(@Nonnull final String toEscape, final Appendable jsonString) throws IOException {
+    int len = toEscape.length();
+    for (int i = 0; i < len; i++) {
+      char c = toEscape.charAt(i);
+      appendJsonStringEscapedChar(c, jsonString);
+    }
+  }
+  
 
   public static void appendJsonStringEscapedChar(final char c, final StringBuilder jsonString) {
     switch (c) {
