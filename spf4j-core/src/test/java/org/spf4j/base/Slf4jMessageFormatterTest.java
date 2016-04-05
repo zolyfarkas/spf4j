@@ -18,6 +18,7 @@
 
 package org.spf4j.base;
 
+import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.io.ConfigurableAppenderSupplier;
@@ -31,7 +32,7 @@ import org.spf4j.ssdump2.avro.AMethod;
 public class Slf4jMessageFormatterTest {
 
     @Test
-    public void testFormatter() {
+    public void testFormatter() throws IOException {
         StringBuilder sb = new StringBuilder();
         Slf4jMessageFormatter.format(sb, "bla bla");
         Assert.assertEquals("bla bla", sb.toString());
@@ -44,7 +45,7 @@ public class Slf4jMessageFormatterTest {
     }
     
     @Test
-    public void testFormatter2() {
+    public void testFormatter2() throws IOException {
         ConfigurableAppenderSupplier appSupp = new ConfigurableAppenderSupplier();
         System.out.println(appSupp);
         StringBuilder sb = new StringBuilder();
