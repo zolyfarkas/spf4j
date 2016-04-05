@@ -42,9 +42,9 @@ public final class LODX extends Instruction implements RValRef {
             if (addr == null) {
                 throw new ZExecutionException("unalocated symbol encountered " + symbol);
             }
-            return context.globalMem[addr];
+            return context.globalPeek(addr);
         } else {
-            return context.mem[addr];
+            return context.localPeek(addr);
         }
     }
     

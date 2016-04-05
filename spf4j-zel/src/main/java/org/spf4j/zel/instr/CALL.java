@@ -18,7 +18,8 @@
 package org.spf4j.zel.instr;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
@@ -49,15 +50,16 @@ public final class CALL extends Instruction {
             Object[] parameters;
             switch (p.getType()) {
                 case DETERMINISTIC:
-                    parameters = getParamsSync(context, nrParameters);
-                    nctx = context.getSubProgramContext(p, parameters);
-                    obj = context.getResultCache().getResult(p,  Arrays.asList(parameters),
+                    nctx = context.getSubProgramContext(p, nrParameters);
+                    context.pop();
+                    List<Object> params = getParameters(nctx, nrParameters);
+                    obj = context.getResultCache().getResult(p,  params,
                             new SyncAsyncCallable(nctx));
 
                     break;
                 case NONDETERMINISTIC:
-                        parameters = getParams(context, nrParameters);
-                        nctx = context.getSubProgramContext(p, parameters);
+                        nctx = context.getSubProgramContext(p, nrParameters);
+                        context.pop();
                         obj = nctx.executeSyncOrAsync();
                     break;
                 default:
@@ -65,7 +67,8 @@ public final class CALL extends Instruction {
             }
             context.push(obj);
         } else if (function instanceof Method) {
-            Object[] parameters = getParamsSync(context, nrParameters);
+            Object[] parameters = context.popSyncStackVals(nrParameters);
+            context.pop();
             try {
                 context.push(((Method) function).invoke(context, parameters));
             } catch (RuntimeException ex) {
@@ -77,23 +80,13 @@ public final class CALL extends Instruction {
         return 1;
     }
 
-    static Object[] getParamsSync(final ExecutionContext context, final Integer nrParams)
-            throws SuspendedException, ExecutionException {
-        Object[] parameters;
-        try {
-            parameters = context.popSyncStackVals(nrParams);
-        } catch (SuspendedException e) {
-            throw e;
-        }
-        context.pop(); // extract function
-        return parameters;
+  public static List<Object> getParameters(final ExecutionContext nctx, final int nrParameters) {
+    List<Object> params = new ArrayList<>(nrParameters);
+    for (int i = 0; i < nrParameters; i++) {
+      params.add(nctx.localPeek(i));
     }
-
-    static Object[] getParams(final ExecutionContext context, final Integer nrParams) {
-        Object[] parameters = context.popStackVals(nrParams);
-        context.pop(); // pop the called method out.
-        return parameters;
-    }
+    return params;
+  }
 
     @Override
     public Object[] getParameters() {

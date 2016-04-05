@@ -37,15 +37,9 @@ public final class CALLREF extends Instruction {
     }
 
     @Override
-//    @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public int execute(final ExecutionContext context)
             throws ExecutionException, InterruptedException, SuspendedException {
-        final Object[] parameters;
-        try {
-            parameters = context.popSyncStackVals(nrParameters);
-        } catch (SuspendedException e) {
-            throw e;
-        }
+        final Object[] parameters = context.popSyncStackVals(nrParameters);
         final Object function = ((AssignableValue) context.pop()).get();
 
         context.push(new FunctionDeref(context, function, parameters));

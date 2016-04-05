@@ -38,9 +38,9 @@ public final class LODXF extends Instruction {
         Address adr = fromAddr;
         Object obj;
         if (adr.getScope() == Scope.LOCAL) {
-            obj = context.mem[adr.getAddress()];
+            obj = context.localPeek(adr.getAddress());
         } else {
-            obj = context.globalMem[adr.getAddress()];
+            obj = context.globalPeek(adr.getAddress());
         }
         context.push(obj);
         return 1;

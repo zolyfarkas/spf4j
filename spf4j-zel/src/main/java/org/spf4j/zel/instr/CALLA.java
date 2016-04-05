@@ -17,7 +17,6 @@
  */
 package org.spf4j.zel.instr;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -51,13 +50,13 @@ public final class CALLA extends Instruction {
             Object[] parameters;
             switch (p.getType()) {
                 case DETERMINISTIC:
-                    parameters = CALL.getParamsSync(context, nrParameters);
-                    nctx = context.getSubProgramContext(p, parameters);
-                    obj = context.getResultCache().getResult(p, Arrays.asList(parameters), new AsyncCallable(nctx));
+                    nctx = context.getSubProgramContext(p, nrParameters);
+                    context.pop();
+                    List<Object> params = CALL.getParameters(nctx, nrParameters);
+                    obj = context.getResultCache().getResult(p, params, new AsyncCallable(nctx));
                     break;
                 case NONDETERMINISTIC:
-                    parameters = CALL.getParams(context, nrParameters);
-                    nctx = context.getSubProgramContext(p, parameters);
+                    nctx = context.getSubProgramContext(p, nrParameters);
                     obj = nctx.executeAsync();
                     break;
                 default:
@@ -65,7 +64,8 @@ public final class CALLA extends Instruction {
             }
             context.push(obj);
         } else if (function instanceof Method) {
-            final Object[] parameters = CALL.getParamsSync(context, nrParameters);
+            Object[] parameters = context.popSyncStackVals(nrParameters);
+            context.pop();
             Future<Object> obj = context.getExecService().submit(new MethodVMExecutor(function, context, parameters));
             context.push(obj);
         } else {

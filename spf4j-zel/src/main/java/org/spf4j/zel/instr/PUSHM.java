@@ -30,7 +30,7 @@ public final class PUSHM extends Instruction {
     
     @Override
     public int execute(final ExecutionContext context) {
-        context.push(context.mem);
+        context.push(context.getMem());
         return 1;
     }
 

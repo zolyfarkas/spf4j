@@ -45,9 +45,9 @@ public final class LODAX extends Instruction implements LValRef {
             if (addr == null) {
                 throw new ZExecutionException("unalocated symbol encountered " + symbol);
             }
-            context.globalMem[addr] = what;
+            context.globalPoke(addr, what);
         } else {
-            context.mem[addr] = what;
+            context.localPoke(addr, what);
         }
     }
 

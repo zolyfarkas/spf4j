@@ -134,6 +134,15 @@ public final class SimpleStack<T>
         }
         return result;
     }
+    
+    public void popTo(final T[] to, final int n) {
+        int ot = top;
+        top -= n;
+        for (int i = top, j = 0; i < ot; i++, j++) {
+            to[j] = elems[i];
+            elems[i] = null;
+        }
+    }
 
     public void removeFromTop(final int n) {
         int ot = top;

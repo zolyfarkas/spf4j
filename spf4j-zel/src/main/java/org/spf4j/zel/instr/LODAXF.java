@@ -40,7 +40,7 @@ public final class LODAXF extends Instruction {
             @Override
             public void assign(final Object object) throws ZExecutionException {
                 if (fromAddr.getScope() == Address.Scope.LOCAL) {
-                    context.mem[fromAddr.getAddress()] = object;
+                  context.localPoke(fromAddr.getAddress(), object);
                 } else {
                     throw new ZExecutionException("Cannot assign " + object + "to a global refference");
                 }
@@ -49,9 +49,9 @@ public final class LODAXF extends Instruction {
             @Override
             public Object get() {
                 if (fromAddr.getScope() == Address.Scope.LOCAL) {
-                    return context.mem[fromAddr.getAddress()];
+                    return context.localPeek(fromAddr.getAddress());
                 } else {
-                    return context.globalMem[fromAddr.getAddress()];
+                    return context.globalPeek(fromAddr.getAddress());
                 }
             }
         });
