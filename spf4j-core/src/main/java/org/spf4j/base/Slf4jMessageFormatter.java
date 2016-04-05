@@ -40,9 +40,9 @@ public final  class Slf4jMessageFormatter {
     private static final char ESCAPE_CHAR = '\\';
     
     
-    public static void format(final Appendable sbuf, final String messagePattern,
+    public static int format(final Appendable sbuf, final String messagePattern,
             final Object... argArray) throws IOException {
-        format(sbuf, messagePattern, ObjectAppenderSupplier.TO_STRINGER, argArray);
+        return format(sbuf, messagePattern, ObjectAppenderSupplier.TO_STRINGER, argArray);
     }
     
     public static int format(final Appendable sbuf, final String messagePattern,
