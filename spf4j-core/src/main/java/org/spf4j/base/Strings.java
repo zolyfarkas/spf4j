@@ -665,7 +665,7 @@ public final class Strings {
                 sb.append('0');
             }
         }
-        sb.append(CharBuffer.wrap(buf), charPos, nrChars);
+        sb.append(CharBuffer.wrap(buf), charPos, charPos + nrChars);
     }
     
     

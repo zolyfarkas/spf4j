@@ -1,6 +1,7 @@
 package org.spf4j.base;
 
 import java.io.IOException;
+import java.nio.CharBuffer;
 
 /**
  * "improved" implementation based on DataTypeConverterImpl
@@ -278,11 +279,11 @@ public final class Base64 {
      * @param len - the number of bytes to encode.
      * @return - the encoded String.
      */
-    public static String encodeBase64V2(final byte[] input, final int offset, final int len) {
+    public static CharSequence encodeBase64V2(final byte[] input, final int offset, final int len) {
         char[] buf = new char[(((len + 2) / 3) * 4)];
-        int ptr = Base64.encodeBase64(input, offset, len, buf, 0);
+        int ptr = encodeBase64(input, offset, len, buf, 0);
         assert ptr == buf.length;
-        return Strings.wrap(buf);
+        return CharBuffer.wrap(buf);
     }
 
     public static void encodeBase64(final byte[] input, final int offset, final int len, final Appendable result)

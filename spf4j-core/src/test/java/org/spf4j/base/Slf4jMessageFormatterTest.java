@@ -64,7 +64,13 @@ public class Slf4jMessageFormatterTest {
         sb.setLength(0);
         written = Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp);
         System.out.println("formatted message: " + sb.toString());
-        Assert.assertEquals(0, written);        
+        Assert.assertEquals(0, written);
+        sb.setLength(0);
+        EscapeJsonStringAppendableWrapper escaper = new EscapeJsonStringAppendableWrapper(sb);
+        Slf4jMessageFormatter.format(escaper, "bla bla {} {}", appSupp, "\n\u2013\u0010",
+                new int [] {1, 2, 3});
+        System.out.println("formatted message: " + sb.toString());        
+        Assert.assertEquals("bla bla \\n–\\u0010 [1, 2, 3]", sb.toString());
     }    
     
     
