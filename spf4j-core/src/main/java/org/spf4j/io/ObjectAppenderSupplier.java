@@ -18,10 +18,13 @@
 
 package org.spf4j.io;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  *
  * @author zoly
  */
+@ParametersAreNonnullByDefault
 public interface ObjectAppenderSupplier {
  
     <T> ObjectAppender<? super T> get(Class<T> type);
