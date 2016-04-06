@@ -1,5 +1,7 @@
 package org.spf4j.io;
 
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
@@ -10,7 +12,7 @@ import java.nio.CharBuffer;
  * Utility class to adapt a Appendable to a Writer.
  * @author zoly
  */
-
+@CleanupObligation
 public final class AppendableWriter extends Writer {
 
   private final Appendable appendable;
@@ -59,6 +61,7 @@ public final class AppendableWriter extends Writer {
   }
 
   @Override
+  @DischargesObligation
   public void close() throws IOException {
     flush();
     if (appendable instanceof Closeable) {
