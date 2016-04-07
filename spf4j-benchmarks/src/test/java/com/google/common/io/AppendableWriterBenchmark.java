@@ -20,7 +20,7 @@ import org.spf4j.base.IntMath;
 @Threads(value = 4)
 public class AppendableWriterBenchmark {
 
-    public static final char[] TEST_STRING;
+    public static final char[] TEST_CHARS;
 
     static {
         IntMath.XorShift32 rnd = new IntMath.XorShift32();
@@ -28,7 +28,7 @@ public class AppendableWriterBenchmark {
         for (int i = 0; i < 1000; i++) {
             builder.append('A' + Math.abs(rnd.nextInt()) % 22);
         }
-        TEST_STRING = builder.toString().toCharArray();
+        TEST_CHARS = builder.toString().toCharArray();
     }
 
     @Benchmark
@@ -36,7 +36,7 @@ public class AppendableWriterBenchmark {
       final StringBuilder stringBuilder = new StringBuilder(100000);
       Writer writer = new AppendableWriter(stringBuilder);
       for (int i = 0; i < 100; i++) {
-        writer.write(TEST_STRING);
+        writer.write(TEST_CHARS);
       }
       writer.close();
       return stringBuilder;
@@ -47,7 +47,7 @@ public class AppendableWriterBenchmark {
             final StringBuilder stringBuilder = new StringBuilder(100000);
       Writer writer = new  org.spf4j.io.AppendableWriter(stringBuilder);
       for (int i = 0; i < 100; i++) {
-        writer.write(TEST_STRING);
+        writer.write(TEST_CHARS);
       }
       writer.close();
       return stringBuilder;        
