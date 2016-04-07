@@ -26,7 +26,7 @@ public final class AppendableWriter extends Writer {
 
   @Override
   public void write(final char[] cbuf, final int off, final int len) throws IOException {
-    appendable.append(CharBuffer.wrap(cbuf), off, len);
+    appendable.append(CharBuffer.wrap(cbuf), off, off + len);
   }
 
   @Override
