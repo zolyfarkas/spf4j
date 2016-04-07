@@ -21,21 +21,70 @@ public class AppendableLimiterWithFileOverflowTest {
     File ovflow = File.createTempFile("overflow", ".txt");
     System.out.println();
     StringBuilder destination = new StringBuilder();
-    final String testStr = "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";    
+    final String testStr =
+        "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";    
     
     try(AppendableLimiterWithFileOverflow limiter =
-            new AppendableLimiterWithFileOverflow(50, ovflow, "...@", destination)) {
+            new AppendableLimiterWithFileOverflow(90, ovflow, "...@", destination)) {
       limiter.append(testStr.subSequence(0, 45));
       limiter.append(testStr.charAt(45));
       limiter.append(testStr.subSequence(46, testStr.length()));
     }
     
     System.out.println(destination);
-    Assert.assertEquals(50, destination.length());
+    Assert.assertEquals(90, destination.length());
     System.out.println(destination);
     String oContent = CharStreams.toString(new InputStreamReader(new FileInputStream(ovflow)));
     System.out.println(oContent);
     Assert.assertEquals(testStr, oContent);
   }
+  
+  @Test
+  public void testOverflowX() throws IOException {
+    File ovflow = File.createTempFile("overflow", ".txt");
+    System.out.println();
+    StringBuilder destination = new StringBuilder();
+    final String testStr =
+        "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";    
+    int nr = ovflow.getPath().length() + 4;
+    try(AppendableLimiterWithFileOverflow limiter =
+            new AppendableLimiterWithFileOverflow(90, ovflow, "...@", destination)) {
+      limiter.append(testStr.subSequence(0, nr));
+      limiter.append(testStr.charAt(nr));
+      limiter.append(testStr.subSequence(nr + 1, testStr.length()));
+    }
+    
+    System.out.println(destination);
+    Assert.assertEquals(90, destination.length());
+    System.out.println(destination);
+    String oContent = CharStreams.toString(new InputStreamReader(new FileInputStream(ovflow)));
+    System.out.println(oContent);
+    Assert.assertEquals(testStr, oContent);
+  }  
+  
+  
+  @Test
+  public void testOverflow2() throws IOException {
+    File ovflow = File.createTempFile("overflow", ".txt");
+    System.out.println();
+    StringBuilder destination = new StringBuilder();
+    final String testStr =
+    "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";    
+    try(AppendableLimiterWithFileOverflow limiter =
+            new AppendableLimiterWithFileOverflow(90, ovflow, "...@", destination)) {
+      limiter.append(testStr.subSequence(0, 45));
+      limiter.append(testStr.charAt(45));
+      limiter.append(testStr.subSequence(46, testStr.length()));
+    }
+    
+    System.out.println(destination);
+    Assert.assertEquals(90, destination.length());
+    Assert.assertEquals(testStr, destination.toString());
+    System.out.println(destination);
+    String oContent = CharStreams.toString(new InputStreamReader(new FileInputStream(ovflow)));
+    System.out.println(oContent);
+    Assert.assertEquals("", oContent);
+  }
+  
   
 }

@@ -14,7 +14,11 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 /**
- *
+ * Utility class that limits the nr of characters written to a particular Appender.
+ * if nr of characters exceed the limit the character above the limit + entire message are written to
+ * the specified file.
+ * THe destination appender will contain the chars that fit the limit + a reference to the overflow file
+ * if overflow happened.
  * @author zoly
  */
 @Beta
@@ -22,6 +26,7 @@ import java.io.Writer;
 public final class AppendableLimiterWithFileOverflow implements Appendable, Closeable {
 
   
+  private final int directWriteLimit;
   private final int limit;
   private final Appendable destination;
   private int count;
@@ -29,12 +34,14 @@ public final class AppendableLimiterWithFileOverflow implements Appendable, Clos
   private final String destinationSuffix;
   private final StringBuilder buffer;
   private final File overflowFile;
+  private StringBuilder asideBuffer;
   
   public AppendableLimiterWithFileOverflow(final int limit, final File overflowFile,
           final String destinationSuffix, final Appendable destination) {
+    this.limit = limit;
     final int refSize = destinationSuffix.length() + overflowFile.getPath().length();
-    this.limit = limit - refSize;
-    if (this.limit < 0) {
+    this.directWriteLimit = limit - refSize;
+    if (this.directWriteLimit < 0) {
       throw new IllegalArgumentException("Limit too small " + limit + " should be at least " + refSize);
     }
     this.destination = destination;
@@ -47,6 +54,7 @@ public final class AppendableLimiterWithFileOverflow implements Appendable, Clos
     }
     this.overflowFile = overflowFile;
     this.overflowWriter = null;
+    this.asideBuffer = null;
   }
 
   
@@ -59,17 +67,55 @@ public final class AppendableLimiterWithFileOverflow implements Appendable, Clos
   @Override
   public Appendable append(final CharSequence csq, final int start, final int end) throws IOException {
     int nrChars = end - start;
-    int charsToWrite = Math.min(limit - count, nrChars);
+    int charsToWrite = Math.min(directWriteLimit - count, nrChars);
+    int dwe = start + charsToWrite;
     if (charsToWrite > 0) {
-      destination.append(csq, start, start + charsToWrite);
+      destination.append(csq, start, dwe);
+      if (buffer != null) {
+        buffer.append(csq, start, charsToWrite);
+      }
       count += charsToWrite;
     }
-    createOverflowIfNeeded();
-    if (charsToWrite < end) {
-      overflowWriter.append(csq, charsToWrite, end);
+    int charsToWriteAside = Math.min(limit - count, end - dwe);
+    if (charsToWriteAside > 0) {
+      if (asideBuffer == null) {
+        asideBuffer = new StringBuilder(limit - directWriteLimit);
+      }
+      asideBuffer.append(csq, dwe, dwe + charsToWriteAside);
+      count += charsToWriteAside;
+    }
+    if (charsToWrite + charsToWriteAside < end) {
+      createOverflowIfNeeded();
+      overflowWriter.append(csq, charsToWrite + charsToWriteAside, end);
     }
     return this;
   }
+  
+  @Override
+  public Appendable append(final char c) throws IOException {
+    int charsToWrite = Math.min(directWriteLimit - count, 1);
+    if (charsToWrite > 0) {
+      destination.append(c);
+      if (buffer != null) {
+        buffer.append(c);
+      }
+      count++;
+    } else {
+      int charsToWriteAside = Math.min(limit - count, 1);
+      if (charsToWriteAside > 0) {
+        if (asideBuffer == null) {
+          asideBuffer = new StringBuilder(limit - directWriteLimit);
+        }
+        asideBuffer.append(c);
+        count++;
+      } else {
+        createOverflowIfNeeded();
+        overflowWriter.append(c);
+      }
+    }
+    return this;
+  }
+  
 
   public void createOverflowIfNeeded() throws IOException {
     if (count >= limit && overflowWriter == null) {
@@ -80,41 +126,33 @@ public final class AppendableLimiterWithFileOverflow implements Appendable, Clos
       } else {
         CharSequence cs = (CharSequence) destination;
         final int l = cs.length();
-        overflowWriter.append(cs, l - limit, l);
+        overflowWriter.append(cs, l - directWriteLimit, l);
       }
+      overflowWriter.append(asideBuffer);
+      asideBuffer = null;
       destination.append(destinationSuffix);
       destination.append(overflowFile.getPath());
     }
   }
 
-  @Override
-  public Appendable append(final char c) throws IOException {
-    int charsToWrite = Math.min(limit - count, 1);
-    if (charsToWrite > 0) {
-      destination.append(c);
-      count++;
-    }
-    createOverflowIfNeeded();
-    if (charsToWrite == 0) {
-      overflowWriter.append(c);
-    }
-    return this;
-    
-  }
 
   @Override
   @DischargesObligation
   public void close() throws IOException {
     if (overflowWriter != null) {
       overflowWriter.close();
+    } else if (asideBuffer != null) {
+      destination.append(asideBuffer);
     }
   }
 
   @Override
   public String toString() {
-    return "AppendableLimiterWithFileOverflow{" + "limit=" + limit + ", destination=" + destination
-            + ", count=" + count + ", overflowWriter=" + overflowWriter + ", destinationSuffix="
-            + destinationSuffix + ", buffer=" + buffer + ", overflowFile=" + overflowFile + '}';
+    return "AppendableLimiterWithFileOverflow{" + "directWriteLimit=" + directWriteLimit
+            + ", limit=" + limit + ", destination=" + destination + ", count=" + count
+            + ", overflowWriter=" + overflowWriter + ", destinationSuffix=" + destinationSuffix
+            + ", buffer=" + buffer + ", overflowFile=" + overflowFile + ", asideBuffer=" + asideBuffer + '}';
   }
-  
+
+
 }
