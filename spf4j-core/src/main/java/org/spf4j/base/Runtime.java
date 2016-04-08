@@ -55,6 +55,8 @@ import static org.spf4j.base.Runtime.Lsof.LSOF;
 import static org.spf4j.base.Runtime.Lsof.LSOF_CMD;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.io.ByteArrayBuilder;
+import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 import org.spf4j.stackmonitor.FastStackCollector;
 
@@ -206,6 +208,7 @@ public final class Runtime {
         }, "spf4j queued shutdown"));
         //JAVA_PLATFORM = Version.fromSpecVersion(runtimeMxBean.getSpecVersion());
         JAVA_PLATFORM = Version.fromSpecVersion(JAVA_VERSION);
+        Registry.export(Jmx.class);
     }
     private static final Path FD_FOLDER = Paths.get("/proc/" + PID + "/fd");
 
@@ -662,5 +665,15 @@ public final class Runtime {
         String[] command = Arrays.concat(new String[] {jvmPath, "-cp", classPath, classWithMain.getName() }, arguments);
         return run(command, timeoutMillis);
     }
+  
+  public static final class Jmx {
+    
+    @JmxExport
+    public static Reflections.PackageInfo getPackageInfo(@JmxExport("className") final String className) {
+      return Reflections.getPackageInfo(className);
+    }
+  
+  }
+    
 
 }

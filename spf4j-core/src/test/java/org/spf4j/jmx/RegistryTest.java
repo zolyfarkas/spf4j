@@ -26,8 +26,11 @@ import javax.management.InstanceNotFoundException;
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanException;
 import javax.management.ReflectionException;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.base.Reflections;
+import org.spf4j.base.Runtime;
+import org.spf4j.base.Runtime.Jmx;
 
 /**
  *
@@ -255,7 +258,16 @@ public final class RegistryTest {
         Assert.assertEquals("Doing a b", ret5);
 
     }
-
-
+    
+    @Test
+    public void testClassLocator() throws IOException, InstanceNotFoundException, MBeanException, ReflectionException {
+        Registry.export(Jmx.class);
+        Reflections.PackageInfo info = (Reflections.PackageInfo) Client.callOperation(
+                "service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+                Jmx.class.getPackage().getName(),
+                Jmx.class.getSimpleName(), "getPackageInfo", Registry.class.getName());
+        System.out.println(info);
+        Assert.assertNotNull(info);
+    }
 
 }
