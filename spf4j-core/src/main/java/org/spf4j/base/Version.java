@@ -1,6 +1,6 @@
 package org.spf4j.base;
 
-import avro.shaded.com.google.common.primitives.Ints;
+import com.google.common.primitives.Ints;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
