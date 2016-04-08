@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -328,6 +329,7 @@ public final class Reflections {
         private final URL url;
         private final String version;
 
+        @ConstructorProperties({"url", "version" })
         public PackageInfo(@Nullable final URL url, @Nullable final String version) {
             this.url = url;
             this.version = version;
