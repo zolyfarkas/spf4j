@@ -1,5 +1,7 @@
 package org.spf4j.io;
 
+import com.google.common.annotations.Beta;
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -20,6 +22,7 @@ import org.spf4j.base.Pair;
  *
  * @author zoly
  */
+@Beta
 @ParametersAreNonnullByDefault
 public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplier {
 
@@ -97,6 +100,24 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
       }
       lookup.clear();
       return i;
+    }
+  }
+  
+  public <T> void replace(final Class<T> type,
+          final Function<ObjectAppender<? super T>, ObjectAppender<? super T>> replace) {
+    synchronized (registry) {
+      ListIterator<Pair<Class<?>, ObjectAppender<?>>> listIterator = registry.listIterator();
+      while (listIterator.hasNext()) {
+        Pair<Class<?>, ObjectAppender<?>> next = listIterator.next();
+        final Class<?> nType = next.getFirst();
+        if (nType == type) {
+          listIterator.set((Pair) Pair.of(type, replace.apply((ObjectAppender) next.getSecond())));
+          lookup.clear();
+          return;
+        }
+      }
+      registry.add((Pair) Pair.of(type, replace.apply((ObjectAppender) ObjectAppender.TOSTRING_APPENDER)));
+      lookup.clear();
     }
   }
 

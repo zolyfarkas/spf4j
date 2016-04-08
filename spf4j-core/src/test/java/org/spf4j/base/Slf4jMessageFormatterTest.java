@@ -18,10 +18,14 @@
 
 package org.spf4j.base;
 
+import com.google.common.base.Function;
+import java.io.File;
 import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.io.AppendableLimiterWithFileOverflow;
 import org.spf4j.io.ConfigurableAppenderSupplier;
+import org.spf4j.io.ObjectAppender;
 import org.spf4j.io.appenders.LocalDateAppender;
 import org.spf4j.ssdump2.avro.AMethod;
 
@@ -71,6 +75,27 @@ public class Slf4jMessageFormatterTest {
                 new int [] {1, 2, 3});
         System.out.println("formatted message: " + sb.toString());        
         Assert.assertEquals("bla bla \\n–\\u0010 [1, 2, 3]", sb.toString());
+        appSupp.replace(String.class, new Function<ObjectAppender<? super String>, ObjectAppender<? super String>>() {
+          @Override
+          public ObjectAppender<? super String> apply(final ObjectAppender<? super String> input) {
+            return new ObjectAppender<String>() {
+              @Override
+              public void append(final String object, final Appendable appendTo) throws IOException {
+                try (AppendableLimiterWithFileOverflow limiter =
+                        new AppendableLimiterWithFileOverflow(90, File.createTempFile("string", ".overflow"),
+                                "...@", appendTo)) {
+                  input.append(object, limiter);
+                }
+              }
+            };
+          }
+        });
+        sb.setLength(0);
+        Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp,
+         "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+        System.out.println(sb.toString());
+        
+        
     }    
     
     
