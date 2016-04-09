@@ -18,12 +18,13 @@
 
 package org.spf4j.base;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import java.io.File;
 import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
-import org.spf4j.io.AppendableLimiterWithFileOverflow;
+import org.spf4j.io.AppendableLimiterWithOverflow;
 import org.spf4j.io.ConfigurableAppenderSupplier;
 import org.spf4j.io.ObjectAppender;
 import org.spf4j.io.appenders.LocalDateAppender;
@@ -81,9 +82,9 @@ public class Slf4jMessageFormatterTest {
             return new ObjectAppender<String>() {
               @Override
               public void append(final String object, final Appendable appendTo) throws IOException {
-                try (AppendableLimiterWithFileOverflow limiter =
-                        new AppendableLimiterWithFileOverflow(90, File.createTempFile("string", ".overflow"),
-                                "...@", appendTo)) {
+                try (AppendableLimiterWithOverflow limiter =
+                        new AppendableLimiterWithOverflow(90, File.createTempFile("string", ".overflow"),
+                                "...@", Charsets.UTF_8, appendTo)) {
                   input.append(object, limiter);
                 }
               }

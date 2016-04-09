@@ -112,7 +112,7 @@ public final class Streams {
     /**
      * faster variant than guava CharStreams.asWriter.
      * @param appendable - the appendable to transform.
-     * @return 
+     * @return - the writer that will write to the appendable.
      */
     public static Writer asWriter(final Appendable appendable) {
       if (appendable instanceof Writer) {

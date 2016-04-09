@@ -2,16 +2,17 @@
 package org.spf4j.io;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.Charsets;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
 
 /**
  * Utility class that limits the nr of characters written to a particular Appender.
@@ -23,7 +24,7 @@ import java.io.Writer;
  */
 @Beta
 @CleanupObligation
-public final class AppendableLimiterWithFileOverflow implements Appendable, Closeable {
+public final class AppendableLimiterWithOverflow implements Appendable, Closeable {
 
   
   private final int directWriteLimit;
@@ -31,30 +32,68 @@ public final class AppendableLimiterWithFileOverflow implements Appendable, Clos
   private final Appendable destination;
   private int count;
   private Writer overflowWriter;
-  private final String destinationSuffix;
+  private final CharSequence destinationSuffix;
   private final StringBuilder buffer;
-  private final File overflowFile;
   private StringBuilder asideBuffer;
+  private final OverflowSupplier owflSupplier;
   
-  public AppendableLimiterWithFileOverflow(final int limit, final File overflowFile,
-          final String destinationSuffix, final Appendable destination) {
+  /**
+   * provide the overflow.
+   */
+  public  interface OverflowSupplier {
+    /**
+     * @return - a string that you can use to reference the overflow. (file name, url...)
+     * this string is used as a suffix for the appender that is being limited.
+     */
+    CharSequence getOverflowReference();
+    
+    /**
+     * @return - a writer to write the overflow.
+     */
+    Writer getOverflowWriter() throws IOException;
+  }
+  
+  
+  
+  public AppendableLimiterWithOverflow(final int limit, final File overflowFile,
+          final CharSequence destinationSuffix, final Charset characterSet, final Appendable destination) {
+    this(limit, destination, new OverflowSupplier() {
+      @Override
+      public CharSequence getOverflowReference() {
+        String path = overflowFile.getPath();
+        StringBuilder sb = new StringBuilder(path.length() + destinationSuffix.length());
+        sb.append(destinationSuffix);
+        sb.append(path);
+        return sb;
+      }
+
+      @Override
+      public Writer getOverflowWriter() throws FileNotFoundException {
+        return new BufferedWriter(
+              new OutputStreamWriter(new FileOutputStream(overflowFile, false), characterSet));
+      }
+    });
+  }
+  
+  public AppendableLimiterWithOverflow(final int limit, final Appendable destination,
+          final OverflowSupplier owflSupplier) {
     this.limit = limit;
-    final int refSize = destinationSuffix.length() + overflowFile.getPath().length();
+    this.destinationSuffix = owflSupplier.getOverflowReference();
+    final int refSize = destinationSuffix.length();
     this.directWriteLimit = limit - refSize;
     if (this.directWriteLimit < 0) {
       throw new IllegalArgumentException("Limit too small " + limit + " should be at least " + refSize);
     }
     this.destination = destination;
     this.count = 0;
-    this.destinationSuffix = destinationSuffix;
     if (destination instanceof CharSequence) {
       buffer = null;
     } else {
       buffer = new StringBuilder(limit);
     }
-    this.overflowFile = overflowFile;
     this.overflowWriter = null;
     this.asideBuffer = null;
+    this.owflSupplier = owflSupplier;
   }
 
   
@@ -119,8 +158,7 @@ public final class AppendableLimiterWithFileOverflow implements Appendable, Clos
 
   public void createOverflowIfNeeded() throws IOException {
     if (count >= limit && overflowWriter == null) {
-      overflowWriter = new BufferedWriter(
-              new OutputStreamWriter(new FileOutputStream(overflowFile, false), Charsets.UTF_8));
+      overflowWriter = owflSupplier.getOverflowWriter();
       if (buffer != null) {
         overflowWriter.append(buffer);
       } else {
@@ -131,7 +169,6 @@ public final class AppendableLimiterWithFileOverflow implements Appendable, Clos
       overflowWriter.append(asideBuffer);
       asideBuffer = null;
       destination.append(destinationSuffix);
-      destination.append(overflowFile.getPath());
     }
   }
 
@@ -148,10 +185,10 @@ public final class AppendableLimiterWithFileOverflow implements Appendable, Clos
 
   @Override
   public String toString() {
-    return "AppendableLimiterWithFileOverflow{" + "directWriteLimit=" + directWriteLimit
+    return "AppendableLimiterWithOverflow{" + "directWriteLimit=" + directWriteLimit
             + ", limit=" + limit + ", destination=" + destination + ", count=" + count
             + ", overflowWriter=" + overflowWriter + ", destinationSuffix=" + destinationSuffix
-            + ", buffer=" + buffer + ", overflowFile=" + overflowFile + ", asideBuffer=" + asideBuffer + '}';
+            + ", buffer=" + buffer + ", overflow=" + owflSupplier + ", asideBuffer=" + asideBuffer + '}';
   }
 
 
