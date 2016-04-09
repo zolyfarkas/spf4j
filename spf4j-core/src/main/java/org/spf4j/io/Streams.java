@@ -20,6 +20,7 @@ package org.spf4j.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Writer;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
 /**
@@ -106,6 +107,19 @@ public final class Streams {
             ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
         }
         return total;
+    }
+    
+    /**
+     * faster variant than guava CharStreams.asWriter.
+     * @param appendable - the appendable to transform.
+     * @return 
+     */
+    public static Writer asWriter(final Appendable appendable) {
+      if (appendable instanceof Writer) {
+        return (Writer) appendable;
+      } else {
+        return new AppendableWriter(appendable);
+      }
     }
 
 }

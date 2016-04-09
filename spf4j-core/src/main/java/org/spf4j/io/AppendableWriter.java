@@ -10,6 +10,7 @@ import java.nio.CharBuffer;
 
 /**
  * Utility class to adapt a Appendable to a Writer.
+ * this is a faster version of guava: CharStreams.asWriter
  * @author zoly
  */
 @CleanupObligation
