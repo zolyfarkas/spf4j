@@ -22,11 +22,21 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.set.hash.THashSet;
 import java.io.IOException;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.slf4j.helpers.Util;
 import org.spf4j.io.ObjectAppenderSupplier;
 
 /**
+ * A more flexible implementation of the SLF4j message formatter (org.slf4j.helpers.MessageFormatter).
+ * the following improvements:
  *
+ * 1) Allow to format to a procvided destination (Appendable) allowing you to reduce the amount of garbage generated
+ * in a custom formatter...
+ * 2) Lets you know which arguments have been used in the message allowing you to implement extra logic to handle
+ * the unused ones
+ * 3) Lets you plug custom formatters for argument types.  (you can get better performance and more flexibility)
+ * 4) Processing arguments that are arrays is sligtly faster than the slf4j formatter.
+ * 
  * @author zoly
  */
 public final  class Slf4jMessageFormatter {
@@ -39,14 +49,45 @@ public final  class Slf4jMessageFormatter {
     static final String DELIM_STR = "{}";
     private static final char ESCAPE_CHAR = '\\';
     
-    
-    public static int format(final Appendable sbuf, final String messagePattern,
+  /**
+   * slf4j message formatter.
+   * @param to - Appendable to put formatted message to.
+   * @param messagePattern - see org.slf4j.helpers.MessageFormatter for format.
+   * @param argArray - the message arguments.
+   * @return - the number of arguments used in the message.
+   * @throws IOException
+   */
+    public static int format(@Nonnull final Appendable to, @Nonnull final String messagePattern,
             final Object... argArray) throws IOException {
-        return format(sbuf, messagePattern, ObjectAppenderSupplier.TO_STRINGER, argArray);
+        return format(to, messagePattern, ObjectAppenderSupplier.TO_STRINGER, argArray);
     }
     
-    public static int format(final Appendable sbuf, final String messagePattern,
-            final ObjectAppenderSupplier appSupplier, final Object... argArray) throws IOException {
+  /**
+   * slf4j message formatter.
+   * @param to - Appendable to put formatted message to.
+   * @param appSupplier - a supplier that will provide the serialization method for a particular argument type.
+   * @param messagePattern - see org.slf4j.helpers.MessageFormatter for format.
+   * @param argArray - the message arguments.
+   * @return - the number of arguments used in the message.
+   * @throws IOException
+   */
+    public static int format(@Nonnull final Appendable to,
+            @Nonnull final ObjectAppenderSupplier appSupplier, @Nonnull final String messagePattern,
+            final Object... argArray) throws IOException {
+      return format(to, messagePattern, appSupplier, argArray);
+    }
+
+  /**
+   * slf4j message formatter.
+   * @param to - Appendable to put formatted message to.
+   * @param messagePattern - see org.slf4j.helpers.MessageFormatter for format.
+   * @param appSupplier - a supplier that will provide the serialization method for a particular argument type.
+   * @param argArray - the message arguments.
+   * @return - the number of arguments used in the message.
+   * @throws IOException
+   */
+    public static int format(@Nonnull final Appendable to, @Nonnull final String messagePattern,
+            @Nonnull final ObjectAppenderSupplier appSupplier, final Object... argArray) throws IOException {
         int i = 0;
         final int len = argArray.length;
         for (int k = 0; k < len; k++) {
@@ -59,34 +100,34 @@ public final  class Slf4jMessageFormatter {
                     return k;
                 } else { // add the tail string which contains no variables and return
                     // the result.
-                    sbuf.append(messagePattern, i, messagePattern.length());
+                    to.append(messagePattern, i, messagePattern.length());
                     return k;
                 }
             } else {
                 if (isEscapedDelimeter(messagePattern, j)) {
                     if (!isDoubleEscaped(messagePattern, j)) {
                         k--; // DELIM_START was escaped, thus should not be incremented
-                        sbuf.append(messagePattern, i, j - 1);
-                        sbuf.append(DELIM_START);
+                        to.append(messagePattern, i, j - 1);
+                        to.append(DELIM_START);
                         i = j + 1;
                     } else {
                         // The escape character preceding the delimiter start is
                         // itself escaped: "abc x:\\{}"
                         // we have to consume one backward slash
-                        sbuf.append(messagePattern, i, j - 1);
-                        deeplyAppendParameter(sbuf, argArray[k], new THashSet<Object[]>(), appSupplier);
+                        to.append(messagePattern, i, j - 1);
+                        deeplyAppendParameter(to, argArray[k], new THashSet<Object[]>(), appSupplier);
                         i = j + 2;
                     }
                 } else {
                     // normal case
-                    sbuf.append(messagePattern, i, j);
-                    deeplyAppendParameter(sbuf, argArray[k], new THashSet<Object[]>(), appSupplier);
+                    to.append(messagePattern, i, j);
+                    deeplyAppendParameter(to, argArray[k], new THashSet<Object[]>(), appSupplier);
                     i = j + 2;
                 }
             }
         }
         // append the characters following the last {} pair.
-        sbuf.append(messagePattern, i, messagePattern.length());
+        to.append(messagePattern, i, messagePattern.length());
         return len;
     }
     
