@@ -18,6 +18,7 @@
 
 package org.spf4j.io;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -26,7 +27,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public interface ObjectAppenderSupplier {
- 
+  
+    @Nonnull
     <T> ObjectAppender<? super T> get(Class<T> type);
     
     
