@@ -97,6 +97,7 @@ public final  class Slf4jMessageFormatter {
             if (j == -1) {
                 // no more variables
                 if (i == 0) { // this is a simple string
+                    to.append(messagePattern, i, messagePattern.length());
                     return k;
                 } else { // add the tail string which contains no variables and return
                     // the result.

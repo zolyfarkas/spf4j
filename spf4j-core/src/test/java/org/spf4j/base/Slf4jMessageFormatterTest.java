@@ -46,7 +46,11 @@ public class Slf4jMessageFormatterTest {
         Assert.assertEquals("bla bla coco", sb.toString());
         sb.setLength(0);
         Slf4jMessageFormatter.format(sb, "\\{}bla bla {}", "coco");
-        Assert.assertEquals("{}bla bla coco", sb.toString());             
+        Assert.assertEquals("{}bla bla coco", sb.toString());
+        sb.setLength(0);
+        int processed = Slf4jMessageFormatter.format(sb, "Some Message", "coco");
+        Assert.assertEquals("Some Message", sb.toString());
+        Assert.assertEquals(0, processed);
     }
     
     @Test
