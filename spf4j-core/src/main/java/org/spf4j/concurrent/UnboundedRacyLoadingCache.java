@@ -29,9 +29,10 @@ import java.util.concurrent.ExecutionException;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- *
  * @author zoly
+ * @deprecated use UnboundedLoadingCache instead.
  */
+@Deprecated
 @ParametersAreNonnullByDefault
 public final class UnboundedRacyLoadingCache<K, V> implements LoadingCache<K, V> {
 
