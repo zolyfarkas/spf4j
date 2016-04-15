@@ -12,24 +12,21 @@ public final class Closeables {
 
     private Closeables() { }
 
-    public static <T extends Exception> void closeAll(@Nullable final T throwed, final AutoCloseable ... closeables)
-    throws T {
-        T ex = throwed;
+    @Nullable
+    public static Exception closeAll(final AutoCloseable ... closeables) {
+        Exception ex = null;
         for (AutoCloseable closeable : closeables) {
             try {
                 closeable.close();
             } catch (Exception ex1) {
                 if (ex == null) {
-                    ex = (T) ex1;
+                    ex =  ex1;
                 } else {
-                    ex = (T) Throwables.suppress(ex1, ex);
+                    ex = Throwables.suppress(ex1, ex);
                 }
             }
         }
-        if (ex != null) {
-            throw ex;
-        }
-
+        return ex;
     }
 
 

@@ -45,7 +45,7 @@ public final class DefaultExecutor {
         final int maxIdleMillis = Integer.getInteger("defaultExecutor.maxIdleMillis", 60000);
         final boolean isDaemon = Boolean.getBoolean("defaultExecutor.daemon");
         final String impParam = "defaultExecutor.implementation";
-        final String value = System.getProperty(impParam, "fjp");
+        final String value = System.getProperty(impParam, "spf4j");
         switch (value) {
           case "spf4j":
             LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP("defaultExecutor", coreThreads,
@@ -54,7 +54,7 @@ public final class DefaultExecutor {
             lifoExec.exportJmx();
             INSTANCE = lifoExec;
             break;
-          case "fjp":
+          case "fjp": // EXPERIMENTAL! canceling with interrupt a future of taks submited does not seem to work!
             INSTANCE = new ForkJoinPool(32767);
             break;
           case "legacy":

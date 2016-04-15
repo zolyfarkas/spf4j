@@ -91,7 +91,9 @@ public final class ProxyClientHandler implements ClientHandler {
             new ProxyBufferTransferHandler(s2c, c2s, s2cSnifferFact, proxyChannel,
                     serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();
         } catch (IOException ex) {
-            Closeables.closeAll(ex, proxyChannel, clientChannel);
+            Exception exs = Closeables.closeAll(proxyChannel, clientChannel);
+            ex.addSuppressed(exs);
+            throw ex;
         }
 
     }

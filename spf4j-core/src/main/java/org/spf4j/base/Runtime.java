@@ -27,7 +27,6 @@ import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -43,17 +42,15 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.spf4j.base.Runtime.Lsof.LSOF;
 import static org.spf4j.base.Runtime.Lsof.LSOF_CMD;
-import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.concurrent.Futures;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
@@ -366,121 +363,106 @@ public final class Runtime {
     }
 
 
-    public static void killProcess(final Process proc) {
-        if (JAVA_PLATFORM.ordinal() >= Version.V1_8.ordinal()) {
-            final Class<? extends Process> aClass = proc.getClass();
-            try {
-                if (isAlive(proc)) {
-                    aClass.getMethod("destroyForcibly").invoke(proc);
-                }
-            } catch (NoSuchMethodException | SecurityException
-                    | IllegalAccessException | InvocationTargetException ex) {
-                throw new RuntimeException(ex);
-            }
+    public static int killProcess(final Process proc, final long terminateTimeoutMillis,
+            final long forceTerminateTimeoutMillis)
+            throws InterruptedException {
+      proc.destroy();
+      if (proc.waitFor(terminateTimeoutMillis, TimeUnit.MINUTES)) {
+          return proc.exitValue();
+      } else {
+        proc.destroyForcibly();
+        if (!proc.waitFor(forceTerminateTimeoutMillis, TimeUnit.SECONDS)) {
+          throw new RuntimeException("Cannot terminate " + proc);
         } else {
-            proc.destroy();
+          return proc.exitValue();
         }
+      }
     }
 
 
-    @SuppressFBWarnings("NPMC_NON_PRODUCTIVE_METHOD_CALL")
-    public static boolean isAlive(final Process proc) {
-        if (JAVA_PLATFORM.ordinal() >= Version.V1_8.ordinal()) {
-            try {
-                return (Boolean) Process.class.getMethod("isAlive").invoke(proc);
-            } catch (NoSuchMethodException | SecurityException | IllegalAccessException
-                    | InvocationTargetException ex) {
-                throw new RuntimeException(ex);
-            }
+  public static int run(final String[] command, final ProcOutputHandler handler,
+          final long timeoutMillis)
+          throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    return run(command, handler, timeoutMillis, 60000);
+  }
+
+  @SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE") // not really lost, suppressed exceptions are used.
+  public static int run(final String[] command, final ProcOutputHandler handler,
+          final long timeoutMillis, final long terminationTimeoutMillis)
+          throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    final Process proc = java.lang.Runtime.getRuntime().exec(command);
+    try (InputStream pos = proc.getInputStream();
+            InputStream pes = proc.getErrorStream();
+            OutputStream pis = proc.getOutputStream()) {
+      Future<?> esh;
+      Future<?> osh;
+      try {
+        esh = DefaultExecutor.INSTANCE.submit(new StdErrHandlerRunnable(handler, pes));
+      } catch (RuntimeException ex) {
+        int result = killProcess(proc, terminationTimeoutMillis, 5000);
+        throw new ExecutionException("Error, process terminated and returned " + result, ex);
+      }
+      try {
+        osh = DefaultExecutor.INSTANCE.submit(new StdOutHandlerRunnable(handler, pos));
+      } catch (RuntimeException ex) {
+        RuntimeException cex = Futures.cancelAll(true, esh);
+        if (cex != null) {
+          ex.addSuppressed(cex);
+        }
+        int result = killProcess(proc, terminationTimeoutMillis, 5000);
+        throw new ExecutionException("Error, process terminated and returned " + result, ex);
+      }
+      
+      long deadlineNanos = System.nanoTime() + TimeUnit.NANOSECONDS.convert(timeoutMillis, TimeUnit.MILLISECONDS);
+      boolean isProcessFinished;
+      try {
+        isProcessFinished = proc.waitFor(timeoutMillis, TimeUnit.MILLISECONDS);
+      } catch (InterruptedException ex) {
+        RuntimeException cex = Futures.cancelAll(true, osh, esh);
+        if (cex != null) {
+          ex.addSuppressed(cex);
+        }
+        killProcess(proc, terminationTimeoutMillis, 5000);
+        throw ex;
+      }
+      if (isProcessFinished) {
+        Exception hex = Futures.getAllWithDeadline(deadlineNanos, osh, esh).getSecond();
+        if (hex == null) {
+          return proc.exitValue();
         } else {
-            try {
-                proc.exitValue();
-                return false;
-            } catch (IllegalThreadStateException ex) {
-                return true;
-            }
+          throwException(hex);
+          throw new IllegalStateException();
         }
-    }
-
-
-    @SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE") // not really lost, suppressed exceptions are used.
-    public static int run(final String[] command, final ProcOutputHandler handler,
-            final long timeoutMillis)
-            throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        final Process proc = java.lang.Runtime.getRuntime().exec(command);
-        final AtomicBoolean timedOut = new AtomicBoolean(false);
-        ScheduledFuture<?> schedule = DefaultScheduler.INSTANCE.schedule(new AbstractRunnable(false) {
-
-            @Override
-            public void doRun() {
-                timedOut.set(true);
-                killProcess(proc);
-            }
-
-        }, timeoutMillis, TimeUnit.MILLISECONDS);
-        try (InputStream pos = proc.getInputStream();
-                InputStream pes = proc.getErrorStream();
-                OutputStream pis = proc.getOutputStream()) {
-            Future<?> esh = DefaultExecutor.INSTANCE.submit(new AbstractRunnable() {
-                @Override
-                public void doRun() throws Exception {
-                    int eos;
-                    byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
-                    try {
-                        while ((eos = pes.read(buffer)) >= 0) {
-                            handler.handleStdErr(buffer, eos);
-                        }
-                    } finally {
-                        ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
-                        handler.stdErrDone();
-                    }
-                }
-            });
-            Future<?> osh = DefaultExecutor.INSTANCE.submit(new AbstractRunnable() {
-                @Override
-                public void doRun() throws Exception {
-                    int cos;
-                    byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
-                    try {
-                        while ((cos = pos.read(buffer)) >= 0) {
-                            handler.handleStdOut(buffer, cos);
-                        }
-                    } finally {
-                        ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
-                        handler.stdOutDone();
-                    }
-                }
-            });
-            try {
-                int result = proc.waitFor();
-                esh.get();
-                osh.get();
-                if (timedOut.get()) {
-                    killProcess(proc);
-                    throw new TimeoutException("Timed out while executing: " + java.util.Arrays.toString(command)
-                     + ";\n process returned " + result + ";\n output handler: " + handler);
-                } else {
-                    return result;
-                }
-            } catch (ExecutionException | InterruptedException | RuntimeException ex) {
-                 killProcess(proc);
-                 throw ex;
-            }
-
-        } catch (ExecutionException | IOException | InterruptedException | RuntimeException ex) {
-            if (timedOut.get()) {
-               TimeoutException te = new TimeoutException("Timed out while executing: "
-                       + java.util.Arrays.toString(command)
-                + ";\n output handler: " + handler);
-               te.addSuppressed(ex);
-               throw te;
-            } else {
-                throw ex;
-            }
-        } finally {
-            schedule.cancel(false);
+      } else {
+        RuntimeException cex = Futures.cancelAll(true, osh, esh);
+        int result = killProcess(proc, terminationTimeoutMillis, 5000);
+        TimeoutException tex = new TimeoutException("Timed out while executing: " + java.util.Arrays.toString(command)
+                + ";\n process returned " + result + ";\n output handler: " + handler);
+        if (cex != null) {
+          tex.addSuppressed(cex);
         }
+        throw tex;
+      }
     }
+  }
+  
+  @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+  public static void throwException(final Exception ex) throws IOException, InterruptedException,
+          ExecutionException, TimeoutException {
+    if (ex instanceof IOException) {
+      throw (IOException) ex;
+    } else if (ex instanceof InterruptedException) {
+      throw (InterruptedException) ex;
+    } else if (ex instanceof ExecutionException) {
+      throw (ExecutionException) ex;
+    } else if (ex instanceof TimeoutException) {
+      throw (TimeoutException) ex;
+    } else {
+      throw new ExecutionException(ex);
+    }
+    
+  }
+  
 
     /**
      * todo: character enconding is not really don eproperly...
@@ -673,6 +655,58 @@ public final class Runtime {
       return Reflections.getPackageInfo(className);
     }
   
+  }
+
+  private static class StdErrHandlerRunnable extends AbstractRunnable {
+
+    private final ProcOutputHandler handler;
+    
+    private final InputStream is;
+
+    StdErrHandlerRunnable(final ProcOutputHandler handler, final InputStream is) {
+      this.handler = handler;
+      this.is = is;
+    }
+
+    @Override
+    public void doRun() throws Exception {
+      int eos;
+      byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
+      try {
+        while ((eos = is.read(buffer)) >= 0) {
+          handler.handleStdErr(buffer, eos);
+        }
+      } finally {
+        ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
+        handler.stdErrDone();
+      }
+    }
+  }
+
+  private static class StdOutHandlerRunnable extends AbstractRunnable {
+
+    private final ProcOutputHandler handler;
+    
+    private final InputStream is;
+
+    StdOutHandlerRunnable(final ProcOutputHandler handler, final InputStream is) {
+      this.handler = handler;
+      this.is = is;
+    }
+
+    @Override
+    public void doRun() throws Exception {
+      int cos;
+      byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
+      try {
+        while ((cos = is.read(buffer)) >= 0) {
+          handler.handleStdOut(buffer, cos);
+        }
+      } finally {
+        ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
+        handler.stdOutDone();
+      }
+    }
   }
     
 
