@@ -219,7 +219,7 @@ public final class Runtime {
         return IS_WINDOWS;
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
+    @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     public static final class Lsof {
 
         public static final File LSOF;
@@ -246,7 +246,9 @@ public final class Runtime {
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     public static final class Ulimit {
 
-        private static final File BASH = new File("/usr/bin/bash");
+        private static final File BASH = new File("/bin/bash");
+        
+        private static final File SH = new File("/bin/sh");
 
         private static final File ULIMIT = new File("/usr/bin/ulimit");
 
@@ -261,6 +263,8 @@ public final class Runtime {
                 ULIMIT_CMD = new String[]{ULIMIT.getPath()};
             } else if (BASH.exists() && BASH.canExecute()) {
                 ULIMIT_CMD = new String[]{BASH.getPath(), "-c", "ulimit"};
+            }  else if (SH.exists() && SH.canExecute()) {
+                ULIMIT_CMD = new String[]{SH.getPath(), "-c", "ulimit"};
             } else {
                 ULIMIT_CMD = null;
             }
