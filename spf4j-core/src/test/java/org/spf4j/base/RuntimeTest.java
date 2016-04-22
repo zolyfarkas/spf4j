@@ -51,23 +51,23 @@ public final class RuntimeTest {
         System.out.println("MAX_OPEN_FILES=" + Runtime.Ulimit.MAX_NR_OPENFILES);
     }
 
-    @Test(expected = ExecutionException.class)
+    @Test(expected = ExecutionException.class, timeout = 60000)
     public void testExitCode() throws IOException, InterruptedException, ExecutionException, TimeoutException {
         Runtime.jrun(RuntimeTest.TestError.class, 60000);
     }
 
-    @Test(expected = ExecutionException.class)
+    @Test(expected = ExecutionException.class, timeout = 60000)
     public void testExitCode2() throws IOException, InterruptedException, ExecutionException, TimeoutException {
         Runtime.jrun(RuntimeTest.TestError2.class, 60000);
     }
 
-    @Test(expected = TimeoutException.class)
+    @Test(expected = TimeoutException.class, timeout = 30000)
     public void testExitCode3() throws IOException, InterruptedException, ExecutionException, TimeoutException {
         Runtime.jrun(RuntimeTest.TestError3.class, 10000);
     }
 
 
-    @Test(expected = InterruptedException.class)
+    @Test(expected = InterruptedException.class, timeout = 30000)
     public void testExitCode4() throws IOException, InterruptedException, ExecutionException, TimeoutException {
         final Thread t = Thread.currentThread();
         DefaultScheduler.INSTANCE.schedule(new Runnable() {
@@ -80,7 +80,7 @@ public final class RuntimeTest {
         Runtime.jrun(RuntimeTest.TestError3.class, 10000);
     }
 
-    @Test(expected = CancellationException.class)
+    @Test(expected = CancellationException.class, timeout = 30000)
     public void testExitCode5() throws IOException, InterruptedException, ExecutionException, TimeoutException {
         final CountDownLatch latch  = new CountDownLatch(1);
         Future<?> submit = DefaultExecutor.INSTANCE.submit(new AbstractRunnable() {
@@ -99,7 +99,7 @@ public final class RuntimeTest {
         });
         Thread.sleep(1000);
         submit.cancel(true);
-        if (!latch.await(20000, TimeUnit.SECONDS)) {
+        if (!latch.await(15000, TimeUnit.SECONDS)) {
             Assert.fail("exec should be cancelled");
         }
         submit.get();

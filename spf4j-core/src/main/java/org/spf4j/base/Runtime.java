@@ -243,7 +243,7 @@ public final class Runtime {
 
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
+    @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     public static final class Ulimit {
 
         private static final File BASH = new File("/usr/bin/bash");
