@@ -27,7 +27,7 @@ import org.spf4j.zel.instr.LODX;
 import org.spf4j.zel.instr.LODXF;
 
 /**
- *
+ * Changes reference by name instructions to reference by index.
  * @author zoly
  */
 public final class RefOptimizer implements Function<Program, Program> {

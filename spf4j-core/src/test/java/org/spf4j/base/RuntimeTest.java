@@ -92,12 +92,14 @@ public final class RuntimeTest {
                 } catch (InterruptedException ex) {
                     ex.printStackTrace();
                     latch.countDown();
+                } catch (Exception ex) {
+                  ex.printStackTrace();
                 }
             }
         });
         Thread.sleep(1000);
         submit.cancel(true);
-        if (!latch.await(10, TimeUnit.SECONDS)) {
+        if (!latch.await(20000, TimeUnit.SECONDS)) {
             Assert.fail("exec should be cancelled");
         }
         submit.get();

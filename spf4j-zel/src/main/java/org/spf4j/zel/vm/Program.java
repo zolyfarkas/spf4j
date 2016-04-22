@@ -59,13 +59,13 @@ import org.spf4j.zel.vm.gen.TokenMgrError;
 import org.spf4j.zel.vm.gen.ZCompiler;
 
 /**
- * <p>
- * Title: Program</p>
- *
+ * <p> A ZEL program (function)</p>
+ * 
+ * This is a Turing machine a Program will always be pretty much an array of operations (instructions).
+ * 
  * @author zoly
  * @version 1.0
  *
- * This is a Turing machine a Program will always be pretty much an array of operations.
  */
 @Immutable
 public final class Program implements Serializable {
