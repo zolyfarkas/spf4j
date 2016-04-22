@@ -416,20 +416,6 @@ public final class Program implements Serializable {
     Program.compile(name + '=' + value + ';').execute(mem);
   }
 
-  /**
-   * build indentation string
-   *
-   * @param indent
-   * @return
-   */
-  @CheckReturnValue
-  public static String strIndent(@Nonnegative final int indent) {
-    StringBuilder result = new StringBuilder();
-    for (int i = 0; i < indent; i++) {
-      result.append(' ');
-    }
-    return result.toString();
-  }
 
   /**
    * Output Core, in hierarchical tab indented mode
@@ -451,12 +437,14 @@ public final class Program implements Serializable {
     }
     StringBuilder result = new StringBuilder();
     if (mem instanceof java.util.Map) {
-      result.append(strIndent(indent)).append(name).append('\n');
+      org.spf4j.base.Strings.appendSpaces(result, indent);
+      result.append(name).append('\n');
       for (Map.Entry<Object, Object> elem : ((Map<Object, Object>) mem).entrySet()) {
         result.append(dumpCore(elem.getKey().toString(), elem.getValue(), indent + 1, maxIndent));
       }
     } else {
-      result.append(strIndent(indent)).append(name).append('=').append(mem).append('\n');
+     org.spf4j.base.Strings.appendSpaces(result, indent);
+      result.append(name).append('=').append(mem).append('\n');
     }
     return result.toString();
   }
