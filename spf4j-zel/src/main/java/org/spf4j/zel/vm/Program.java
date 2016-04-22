@@ -363,7 +363,7 @@ public final class Program implements Serializable {
   public static Object executeSync(@Nonnull final ExecutionContext ectx) throws
           ExecutionException, InterruptedException {
     try {
-      return ectx.getCallable().call();
+      return ectx.call();
     } catch (SuspendedException ex) {
       throw new RuntimeException(ex);
     }

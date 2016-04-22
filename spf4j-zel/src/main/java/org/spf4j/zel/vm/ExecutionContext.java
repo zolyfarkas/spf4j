@@ -41,9 +41,7 @@ import static org.spf4j.zel.vm.Program.ExecutionType.SYNC;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class ExecutionContext {
-
-  private static final long serialVersionUID = 1L;
+public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
 
   @Nonnull
   private MathContext mathContext;
@@ -112,7 +110,7 @@ public final class ExecutionContext {
   }
 
   /**
-   * aditional constructor that allows you to set the standard Input/Output streams
+   * additional constructor that allows you to set the standard Input/Output streams
    *
    * @param program
    * @param in
@@ -202,16 +200,15 @@ public final class ExecutionContext {
   @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
   public Object executeSyncOrAsync()
           throws ExecutionException, InterruptedException {
-    final VMExecutor.Suspendable<Object> execution = this.getCallable();
     if (this.execService != null && this.code.getExecType() == Program.ExecutionType.ASYNC) {
       if (this.isChildContext()) {
-        return this.execService.submitInternal(VMExecutor.synchronize(execution));
+        return this.execService.submitInternal(VMExecutor.synchronize(this));
       } else {
-        return this.execService.submit(VMExecutor.synchronize(execution));
+        return this.execService.submit(VMExecutor.synchronize(this));
       }
     } else {
       try {
-        return execution.call();
+        return this.call();
       } catch (SuspendedException ex) {
         throw new RuntimeException(ex);
       }
@@ -222,16 +219,15 @@ public final class ExecutionContext {
   // TODO: Need to employ Either here
   public Object executeAsync()
           throws ExecutionException, InterruptedException {
-    final VMExecutor.Suspendable<Object> execution = this.getCallable();
     if (this.execService != null) {
       if (this.isChildContext()) {
-        return this.execService.submitInternal(VMExecutor.synchronize(execution));
+        return this.execService.submitInternal(VMExecutor.synchronize(this));
       } else {
-        return this.execService.submit(VMExecutor.synchronize(execution));
+        return this.execService.submit(VMExecutor.synchronize(this));
       }
     } else {
       try {
-        return execution.call();
+        return this.call();
       } catch (SuspendedException ex) {
         throw new RuntimeException(ex);
       }
@@ -248,43 +244,40 @@ public final class ExecutionContext {
     throw SuspendedException.INSTANCE;
   }
 
-  public VMExecutor.Suspendable<Object> getCallable() {
-    return new VMExecutor.Suspendable<Object>() {
 
-      @Override
-      public Object call()
-              throws ExecutionException, InterruptedException, SuspendedException {
-        suspendedAt = null;
-        Operator.MATH_CONTEXT.set(getMathContext());
-        Instruction[] instructions = code.getInstructions();
-        try {
-          while (!terminated) {
-            Instruction icode = instructions[ip];
-            ip += icode.execute(ExecutionContext.this);
-          }
-          if (!isStackEmpty()) {
-            Object result = popSyncStackVal();
-            syncStackVals();
-            return result;
-          } else {
-            return null;
-          }
-        } catch (SuspendedException | InterruptedException e) {
-          throw e;
-        } catch (ZExecutionException e) {
-          e.addZelFrame(new ZelFrame(code.getName(), code.getSource(),
-                  code.getDebug()[ip].getRow()));
-          throw e;
-        }
+  @Override
+  public Object call()
+          throws ExecutionException, InterruptedException, SuspendedException {
+    suspendedAt = null;
+    Operator.MATH_CONTEXT.set(getMathContext());
+    Instruction[] instructions = code.getInstructions();
+    try {
+      while (!terminated) {
+        Instruction icode = instructions[ip];
+        ip += icode.execute(ExecutionContext.this);
       }
-
-      @Override
-      public List<VMFuture<Object>> getSuspendedAt() {
-        return ExecutionContext.this.suspendedAt;
+      if (!isStackEmpty()) {
+        Object result = popSyncStackVal();
+        syncStackVals();
+        return result;
+      } else {
+        return null;
       }
-    };
+    } catch (SuspendedException | InterruptedException e) {
+      throw e;
+    } catch (ZExecutionException e) {
+      e.addZelFrame(new ZelFrame(code.getName(), code.getSource(),
+              code.getDebug()[ip].getRow()));
+      throw e;
+    }
   }
 
+  @Override
+  public List<VMFuture<Object>> getSuspendedAt() {
+    return suspendedAt;
+  }
+  
+  
   /**
    * pops object out of stack
    *
