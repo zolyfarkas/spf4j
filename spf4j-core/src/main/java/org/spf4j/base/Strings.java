@@ -677,5 +677,17 @@ public final class Strings {
         sb.append(CharBuffer.wrap(buf), charPos, charPos + nrChars);
     }
     
+    public static void appendSpaces(final Appendable to, final int nrSpaces) throws IOException {
+      for (int i = 0; i < nrSpaces; i++) {
+        to.append(' ');
+      }
+    }
+    
+    public static void appendSpaces(final StringBuilder to, final int nrSpaces) {
+      for (int i = 0; i < nrSpaces; i++) {
+        to.append(' ');
+      }
+    }
+        
     
 }
