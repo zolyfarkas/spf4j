@@ -452,6 +452,8 @@ public final class Program implements Serializable {
   }
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Program.class);
+  
+  private static volatile boolean terminated = false;
   /**
    * *
    * This allows to run ZEL in an interactive mode
@@ -461,7 +463,6 @@ public final class Program implements Serializable {
   public static void main(final String[] args) throws IOException, InterruptedException {
     LOGGER.info("ZEL Shell");
     System.out.println("ZEL Shell");
-    boolean terminated = false;
     Map<String, Integer> localSymTable = Collections.emptyMap();
     Pair<Object[], Map<String, Integer>> gmemPair = ZEL_GLOBAL_FUNC.build();
     Map<String, Integer> globalSymTable = gmemPair.getSecond();
@@ -470,6 +471,12 @@ public final class Program implements Serializable {
     ResultCache resCache = new SimpleResultCache();
     InputStreamReader inp = new InputStreamReader(System.in, Charsets.UTF_8);
     BufferedReader br = new BufferedReader(inp);
+    org.spf4j.base.Runtime.queueHookAtBeginning(new Runnable() {
+      @Override
+      public void run() {
+        terminated = true;
+      }
+    });
     while (!terminated) {
       System.out.print("zel>");
       String line = br.readLine();
@@ -486,8 +493,10 @@ public final class Program implements Serializable {
             Pair<Object, ExecutionContext> res = prog.executeX(
                     VMExecutor.Lazy.DEFAULT, System.in, System.out, System.err, resCache, mem);
             long elapsed = System.nanoTime() - startTime;
-            System.out.println("result>" + res.getFirst());
-            System.out.println("executed in " + elapsed + " ns");
+            final Object result = res.getFirst();
+            System.out.println("result>" + result);
+            System.out.println("type>" +  (result == null ? "none" : result.getClass()));
+            System.out.println("executed in>" + elapsed + " ns");
             
             final ExecutionContext execCtx = res.getSecond();
             mem = execCtx.getMem();
