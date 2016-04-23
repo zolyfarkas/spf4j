@@ -41,6 +41,8 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.Pair;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.instr.LValRef;
@@ -449,6 +451,7 @@ public final class Program implements Serializable {
     return result.toString();
   }
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(Program.class);
   /**
    * *
    * This allows to run ZEL in an interactive mode
@@ -456,6 +459,7 @@ public final class Program implements Serializable {
    * @param args
    */
   public static void main(final String[] args) throws IOException, InterruptedException {
+    LOGGER.info("ZEL Shell");
     System.out.println("ZEL Shell");
     boolean terminated = false;
     Map<String, Integer> localSymTable = Collections.emptyMap();
@@ -478,9 +482,13 @@ public final class Program implements Serializable {
             localSymTable = prog.getLocalSymbolTable();
             globalSymTable = prog.getGlobalSymbolTable();
             gmem = prog.getGlobalMem();
+            long startTime = System.nanoTime();
             Pair<Object, ExecutionContext> res = prog.executeX(
                     VMExecutor.Lazy.DEFAULT, System.in, System.out, System.err, resCache, mem);
+            long elapsed = System.nanoTime() - startTime;
             System.out.println("result>" + res.getFirst());
+            System.out.println("executed in " + elapsed + " ns");
+            
             final ExecutionContext execCtx = res.getSecond();
             mem = execCtx.getMem();
             resCache = execCtx.getResultCache();
