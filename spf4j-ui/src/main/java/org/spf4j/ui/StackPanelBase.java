@@ -17,6 +17,7 @@
  */
 package org.spf4j.ui;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -54,7 +55,7 @@ public abstract class StackPanelBase extends JPanel
     private static final long serialVersionUID = 1L;
     //CHECKSTYLE:OFF
     protected SampleNode samples;
-    protected RTree<Pair<Method, Integer>> tooltipDetail = new RTree<Pair<Method, Integer>>();
+    protected RTree<Pair<Method, Integer>> tooltipDetail = new RTree<>();
     protected int xx;
     protected int yy;
     //CHECKSTYLE:ON
@@ -182,17 +183,17 @@ public abstract class StackPanelBase extends JPanel
     }
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings
+    @SuppressFBWarnings
     public  void mouseClicked(final MouseEvent e) {
     }
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings
+    @SuppressFBWarnings
     public void mouseEntered(final MouseEvent e) {
     }
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings
+    @SuppressFBWarnings
     public void mouseExited(final MouseEvent e) {
     }
 

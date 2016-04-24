@@ -247,7 +247,8 @@ public final class ZStackPanel extends StackPanelBase {
         }
     }
 
-    private void appendEdgeInfo(final Map<SampleNode.InvocationCount, Method> incomming, final StringBuilder sb) {
+    private static void appendEdgeInfo(final Map<SampleNode.InvocationCount, Method> incomming,
+            final StringBuilder sb) {
         for (Map.Entry<SampleNode.InvocationCount, Method> entry : incomming.entrySet()) {
             int ic = entry.getKey().getValue();
             Method method = entry.getValue();
