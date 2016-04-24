@@ -29,7 +29,7 @@ import org.spf4j.stackmonitor.Method;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
- *
+ * An inverted implementation of Brendan Gregg's flame charts.
  * @author zoly
  */
 public final class FlameStackPanel extends StackPanelBase {

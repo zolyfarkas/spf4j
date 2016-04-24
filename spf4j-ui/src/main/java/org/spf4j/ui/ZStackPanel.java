@@ -36,7 +36,7 @@ import org.spf4j.stackmonitor.SampleNode;
 import static org.spf4j.ui.StackPanelBase.LINK_COLOR;
 
 /**
- *
+ * Stack panel implementation that visualizes the profile data via a "flame real graph".
  * @author zoly
  */
 @SuppressFBWarnings("SE_BAD_FIELD")
