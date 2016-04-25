@@ -430,12 +430,13 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
                 try {
                     doRun(minWaitNanos);
                 } catch (RuntimeException e) {
-                    try {
-                        this.getUncaughtExceptionHandler().uncaughtException(this, e);
-                    } catch (RuntimeException ex) {
-                        ex.addSuppressed(e);
-                        ex.printStackTrace();
-                    }
+                  final UncaughtExceptionHandler uexh = this.getUncaughtExceptionHandler();
+                  try {
+                    uexh.uncaughtException(this, e);
+                  } catch (RuntimeException ex) {
+                    ex.addSuppressed(e);
+                    throw new Error("Uncaught exception handler blew up: " + uexh, ex);
+                  }
                 } catch (Error e) {
                     org.spf4j.base.Runtime.goDownWithError(e, 666);
                 }

@@ -17,7 +17,9 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.security.AccessController;
@@ -377,13 +379,31 @@ public final class Throwables {
     }
 
     public static String toString(final Throwable t, final Detail detail) {
-        StringBuilder sb = new StringBuilder(1024);
-        try {
-            writeTo(t, sb, detail);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
+        StringBuilder sb = toStringBuilder(t, detail);
         return sb.toString();
+    }
+
+  public static StringBuilder toStringBuilder(final Throwable t, final Detail detail) {
+    StringBuilder sb = new StringBuilder(1024);
+    try {
+      writeTo(t, sb, detail);
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
+    return sb;
+  }
+    
+    @SuppressFBWarnings({ "OCP_OVERLY_CONCRETE_PARAMETER", "NOS_NON_OWNED_SYNCHRONIZATION" })
+    // I don't want this to throw a checked ex though... + I really want the coarse sync!
+    public static void writeTo(@Nonnull final Throwable t, @Nonnull final PrintStream to,
+            @Nonnull final Detail detail) {
+      try {
+        synchronized (to) {
+          writeTo(t, (Appendable) to, detail);
+        }
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
     }
 
     public static void writeTo(final Throwable t, final Appendable to, final Detail detail) throws IOException {

@@ -139,7 +139,8 @@ public final class Runtime {
         IS_WINDOWS = osName.startsWith("Windows");
         runtime.addShutdownHook(new Thread(new AbstractRunnable(false) {
             @Override
-            public void doRun() {
+            public void doRun() throws Exception {
+                Exception rex = null;
                 SortedMap<Integer, Set<Runnable>> hooks;
                 synchronized (SHUTDOWN_HOOKS) {
                     hooks = new TreeMap<>(SHUTDOWN_HOOKS);
@@ -154,7 +155,11 @@ public final class Runtime {
                             try {
                                 runnable.run();
                             } catch (RuntimeException ex) {
-                                ex.printStackTrace();
+                              if (rex == null) {
+                                rex = ex;
+                              } else {
+                                rex.addSuppressed(ex);
+                              }
                             }
                         }
                     } else if (((int) runnables.getKey()) >= Integer.MAX_VALUE) {
@@ -170,7 +175,11 @@ public final class Runtime {
                             try {
                                 thread.join(deadline - System.currentTimeMillis());
                             } catch (InterruptedException ex) {
-                                ex.printStackTrace();
+                              if (rex == null) {
+                                rex = ex;
+                              } else {
+                                rex.addSuppressed(ex);
+                              }
                             }
                         }
                     } else {
@@ -181,8 +190,12 @@ public final class Runtime {
                         for (Future<?> future : futures) {
                             try {
                                 future.get();
-                            } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                                e.printStackTrace();
+                            } catch (InterruptedException | ExecutionException | RuntimeException ex) {
+                              if (rex == null) {
+                                rex = ex;
+                              } else {
+                                rex.addSuppressed(ex);
+                              }
                             }
                         }
                     }
@@ -201,9 +214,11 @@ public final class Runtime {
                                 + java.util.Arrays.toString(thread.getStackTrace()));
                     }
                 }
+                if (rex != null) {
+                  throw rex;
+                }
             }
         }, "spf4j queued shutdown"));
-        //JAVA_PLATFORM = Version.fromSpecVersion(runtimeMxBean.getSpecVersion());
         JAVA_PLATFORM = Version.fromSpecVersion(JAVA_VERSION);
         Registry.export(Jmx.class);
     }
