@@ -23,6 +23,14 @@ public class FastMessageFormatTest {
   }
   
   @Test
+  public void testFormatter5() throws IOException {
+    StringBuilder sb = new StringBuilder();
+    MessageFormat format = new MessageFormat("{0}, {1}, {2}, {3}, {4}");
+    format.format(new Object [] {"a", "b", "c", "d", "e"}, sb, null);
+    Assert.assertEquals("a, b, c, d, e", sb.toString());
+  }  
+  
+  @Test
   public void testFormatter2() throws IOException {
     StringBuilder sb = new StringBuilder();
     MessageFormat format = new MessageFormat("bla bla bla");

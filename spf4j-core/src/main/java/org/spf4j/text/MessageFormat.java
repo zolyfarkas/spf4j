@@ -1123,16 +1123,11 @@ public final class MessageFormat extends Format {
   private StringBuilder pattern;
 
   /**
-   * The initially expected number of subformats in the format
-   */
-  private static final int INITIAL_FORMATS = 10;
-
-  /**
    * An array of formatters, which are used to format the arguments.
    *
    * @serial
    */
-  private FormatInfo[] formats = new FormatInfo[INITIAL_FORMATS];
+  private FormatInfo[] formats = {};
 
   /**
    * One less than the number of entries in <code>offsets</code>. Can also be thought of as the index of the
@@ -1307,12 +1302,6 @@ public final class MessageFormat extends Format {
     "integer"
   };
 
-  // Indices for date-time modifiers
-  private static final int MODIFIER_SHORT = 1;
-  private static final int MODIFIER_MEDIUM = 2;
-  private static final int MODIFIER_LONG = 3;
-  private static final int MODIFIER_FULL = 4;
-
   private static final String[] DATE_TIME_MODIFIER_KEYWORDS = {
     "",
     "short",
@@ -1350,7 +1339,7 @@ public final class MessageFormat extends Format {
 
     // resize format information arrays if necessary
     if (offsetNumber >= formats.length) {
-      int newLength = formats.length * 2;
+      int newLength = Math.max(4, formats.length << 2);
       FormatInfo[] newFormats = new FormatInfo[newLength];
       System.arraycopy(formats, 0, newFormats, 0, maxOffset + 1);
       formats = newFormats;
