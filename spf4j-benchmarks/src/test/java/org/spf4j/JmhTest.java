@@ -16,7 +16,7 @@ import org.spf4j.stackmonitor.JmhProfiler;
  *
  * @author zoly
  */
-//@Ignore
+@Ignore
 public final class JmhTest {
 
     @Test
