@@ -553,7 +553,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
         @Override
         public String toString() {
-            return "QueuedThread{running=" + running + ", lastRunNanos="
+            return "QueuedThread{name = " + getName() + ", running=" + running + ", lastRunNanos="
                     + lastRunNanos + ", stack =" + Arrays.toString(this.getStackTrace())
                     + ", toRun = " + toRun + '}';
         }
