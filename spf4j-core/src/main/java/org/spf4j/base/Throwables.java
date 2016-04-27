@@ -442,6 +442,17 @@ public final class Throwables {
         }
     }
 
+  public static int commonFrames(final StackTraceElement[] trace, final StackTraceElement[] enclosingTrace) {
+    int m = trace.length - 1;
+    int n = enclosingTrace.length - 1;
+    while (m >= 0 && n >= 0 && trace[m].equals(enclosingTrace[n])) {
+      m--;
+      n--;
+    }
+    return trace.length - 1 - m;
+  }
+    
+    
     private static void printEnclosedStackTrace(final Throwable t, final Appendable s,
             final StackTraceElement[] enclosingTrace,
             final String caption,
@@ -454,18 +465,12 @@ public final class Throwables {
             dejaVu.add(t);
             // Compute number of frames in common between this and enclosing trace
             StackTraceElement[] trace = t.getStackTrace();
-            int m = trace.length - 1;
-            int n = enclosingTrace.length - 1;
-            while (m >= 0 && n >= 0 && trace[m].equals(enclosingTrace[n])) {
-                m--;
-                n--;
-            }
-            int framesInCommon = trace.length - 1 - m;
-
+            int framesInCommon = commonFrames(trace, enclosingTrace);
+            int m = trace.length - framesInCommon;
             // Print our stack trace
             s.append(prefix).append(caption).append(t.toString());
             s.append('\n');
-            for (int i = 0; i <= m; i++) {
+            for (int i = 0; i < m; i++) {
                 s.append(prefix).append("\tat ");
                 writeTo(trace[i], s, detail);
                 s.append('\n');

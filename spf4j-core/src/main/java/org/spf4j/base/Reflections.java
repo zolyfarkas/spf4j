@@ -381,30 +381,41 @@ public final class Reflections {
 
   private static final PackageInfo NONE = new PackageInfo(null, null);
 
+  
+  @Nonnull
+  public static PackageInfo getPackageInfoDirect(@Nonnull final String className) {
+    Class<?> aClass;
+    try {
+      aClass = Class.forName(className);
+    } catch (ClassNotFoundException ex) {
+      return NONE;
+    }
+    return getPackageInfoDirect(aClass);
+  }
+
+  @Nonnull
+  public static PackageInfo getPackageInfoDirect(@Nonnull final Class<?> aClass) {
+    URL jarSourceUrl = Reflections.getJarSourceUrl(aClass);
+    final Package aPackage = aClass.getPackage();
+    if (aPackage == null) {
+      return NONE;
+    }
+    String version = aPackage.getImplementationVersion();
+    return new PackageInfo(jarSourceUrl, version);
+  }
+
+  @Nonnull
+  public static PackageInfo getPackageInfo(@Nonnull final String className) {
+    return CACHE.getUnchecked(className);
+  }
+
   private static final LoadingCache<String, PackageInfo> CACHE = CacheBuilder.newBuilder()
           .weakKeys().weakValues().build(new CacheLoader<String, PackageInfo>() {
 
             @Override
-            public PackageInfo load(final String key) throws Exception {
-              Class<?> aClass;
-              try {
-                aClass = Class.forName(key);
-              } catch (ClassNotFoundException ex) {
-                return NONE;
-              }
-
-              URL jarSourceUrl = Reflections.getJarSourceUrl(aClass);
-              final Package aPackage = aClass.getPackage();
-              if (aPackage == null) {
-                return NONE;
-              }
-              String version = aPackage.getImplementationVersion();
-              return new PackageInfo(jarSourceUrl, version);
+            public PackageInfo load(final String key) {
+              return getPackageInfoDirect(key);
             }
           });
-
-  public static PackageInfo getPackageInfo(final String className) {
-    return CACHE.getUnchecked(className);
-  }
-
+  
 }
