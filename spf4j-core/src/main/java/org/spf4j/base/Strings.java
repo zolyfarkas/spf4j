@@ -431,6 +431,19 @@ public final class Strings {
             return true;
         }
     }
+    
+    
+  public static int hashcode(final CharSequence cs) {
+    int h = 0;
+    int len = cs.length();
+    if (len > 0) {
+      int off = 0;
+      for (int i = 0; i < len; i++) {
+        h = 31 * h + cs.charAt(off++);
+      }
+    }
+    return h;
+  }
 
     public static CharSequence subSequence(final CharSequence seq, final int startIdx, final int endIdx) {
         if (startIdx == 0 && endIdx == seq.length()) {

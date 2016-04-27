@@ -1047,8 +1047,15 @@ public final class MessageFormat extends Format {
    * Generates a hash code for the message format object.
    */
   public int hashCode() {
-    return pattern.toString().hashCode(); // enough for reasonable distribution
+    int h = hash;
+    if (h == 0) {
+      h = Strings.hashcode(pattern);
+      hash = h;
+    }
+    return h;
   }
+  
+  private int hash = 0;
 
   @Override
   public StringBuffer format(Object obj, StringBuffer toAppendTo, FieldPosition pos) {
