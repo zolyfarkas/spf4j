@@ -338,7 +338,7 @@ public final class Throwables {
         } else {
             to.append("(Unknown Source)");
         }
-        if (detail == Detail.STANDARD) {
+        if (detail == Detail.NONE) {
             return;
         }
         PackageInfo pInfo = Reflections.getPackageInfo(element.getClassName());
@@ -347,7 +347,7 @@ public final class Throwables {
             String version = pInfo.getVersion();
             to.append('[');
             if (jarSourceUrl != null) {
-                if (detail == Detail.SHORT_PACKAGE) {
+                if (detail == Detail.SHORT_PACKAGE || detail == Detail.STANDARD) {
                     String url = jarSourceUrl.toString();
                     int lastIndexOf = url.lastIndexOf('/');
                     to.append(url, lastIndexOf + 1, url.length());
@@ -367,8 +367,10 @@ public final class Throwables {
 
 
     public enum Detail {
-
-        STANDARD, SHORT_PACKAGE, LONG_PACKAGE
+        NONE,
+        STANDARD, // equivalent with SHORT_PACKAGE
+        SHORT_PACKAGE,
+        LONG_PACKAGE
     }
 
     private static final Detail DEFAULT_DETAIL =
@@ -411,8 +413,7 @@ public final class Throwables {
         Set<Throwable> dejaVu = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
         dejaVu.add(t);
 
-        // Print our stack trace
-        to.append(t.toString());
+        toString(to, t);
         to.append('\n');
         StackTraceElement[] trace = t.getStackTrace();
 
@@ -432,6 +433,15 @@ public final class Throwables {
 
 
     }
+
+  public static void toString(final Appendable to, final Throwable t) throws IOException {
+    // Print our stack trace
+    to.append(t.getClass().getName());
+    String message = t.getMessage();
+    if (message != null) {
+      to.append(':').append(message);
+    }
+  }
 
     public static void writeTo(final StackTraceElement[] trace, final Appendable to, final Detail detail)
             throws IOException {
@@ -460,7 +470,9 @@ public final class Throwables {
             final Set<Throwable> dejaVu,
             final Detail detail) throws IOException {
         if (dejaVu.contains(t)) {
-            s.append("\t[CIRCULAR REFERENCE:").append(t.toString()).append(']');
+            s.append("\t[CIRCULAR REFERENCE:");
+            toString(s, t);
+            s.append(']');
         } else {
             dejaVu.add(t);
             // Compute number of frames in common between this and enclosing trace
@@ -468,7 +480,8 @@ public final class Throwables {
             int framesInCommon = commonFrames(trace, enclosingTrace);
             int m = trace.length - framesInCommon;
             // Print our stack trace
-            s.append(prefix).append(caption).append(t.toString());
+            s.append(prefix).append(caption);
+            toString(s, t);
             s.append('\n');
             for (int i = 0; i < m; i++) {
                 s.append(prefix).append("\tat ");

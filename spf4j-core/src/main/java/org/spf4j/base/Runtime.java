@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.ref.WeakReference;
@@ -63,6 +65,16 @@ import org.spf4j.stackmonitor.FastStackCollector;
  */
 public final class Runtime {
 
+    static {
+      // priming certain functionality to make sure it works when we need it (classes are already loaded).
+      try (final PrintStream stream = new PrintStream(new ByteArrayBuilder(), false, "UTF-8")) {
+        Throwables.writeTo(new RuntimeException("priming"), stream, Throwables.Detail.NONE);
+      } catch (UnsupportedEncodingException ex) {
+        throw new ExceptionInInitializerError(ex);
+      }
+    }
+  
+  
     private Runtime() {
     }
 
@@ -84,20 +96,21 @@ public final class Runtime {
     }
 
     // Calling Halt is the only sensible thing to do when the JVM is hosed.
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings
-    public static void goDownWithError(final Throwable t, final int exitCode) {
+    @SuppressFBWarnings("MDM_RUNTIME_EXIT_OR_HALT")
+    public static void goDownWithError(@Nullable final Throwable t, final int exitCode) {
         try {
-            Lazy.LOGGER.error("Unrecoverable Error, going down", t);
+          if (t != null) {
+            Throwables.writeTo(t, System.err, Throwables.Detail.NONE); //High probability attempt to log first
+            Throwables.writeTo(t, System.err, Throwables.Detail.STANDARD); //getting more curageous :-)
+            Lazy.LOGGER.error("Error, going down with exit code {}", exitCode, t); //Now we are pushing it...
+          } else {
+            Lazy.LOGGER.error("Error, going down with exit code {}", exitCode);
+          }
         } finally {
-            try {
-                if (t != null) {
-                    t.printStackTrace();
-                }
-            } finally {
-                java.lang.Runtime.getRuntime().halt(exitCode);
-            }
+          java.lang.Runtime.getRuntime().halt(exitCode);
         }
     }
+    
     public static final int WAIT_FOR_SHUTDOWN_MILLIS = Integer.getInteger("spf4j.waitForShutdownMillis", 30000);
     public static final String TMP_FOLDER = System.getProperty("java.io.tmpdir");
     public static final int PID;
