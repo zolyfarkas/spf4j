@@ -24,10 +24,11 @@ public final class JmhTest {
         final String destinationFolder = System.getProperty("jmh.stack.profiles",
                 org.spf4j.base.Runtime.USER_DIR);
         Options opt = new OptionsBuilder()
-                .include(".*Base64.*")
+                .include(".*MessageFormatter*.*")
                 .addProfiler(JmhProfiler.class)
                 .addProfiler(JmhFlightRecorderProfiler.class)
-                .jvmArgs("-XX:+UnlockCommercialFeatures", "-Djmh.stack.profiles=" + destinationFolder)
+                .jvmArgs("-XX:+UnlockCommercialFeatures", "-Djmh.stack.profiles=" + destinationFolder,
+                        "-DdefaultExecutor.daemon=true", "-Djmh.executor=FJP")
                 .result(destinationFolder + "/" + "benchmarkResults.csv")
                 .resultFormat(ResultFormatType.CSV)
                 .warmupIterations(10)

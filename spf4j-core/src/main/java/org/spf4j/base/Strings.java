@@ -688,6 +688,26 @@ public final class Strings {
         to.append(' ');
       }
     }
-        
-    
+
+  /**
+   * See String.regionMatches.
+   */
+  public static boolean regionMatches(final CharSequence t, final int toffset,
+          final CharSequence other, final int ooffset, final int plen) {
+    int to = toffset;
+    int po = ooffset;
+    // Note: toffset, ooffset, or len might be near -1>>>1.
+    if ((ooffset < 0) || (toffset < 0) || (toffset > (long) t.length() - plen)
+            || (ooffset > (long) other.length() - plen)) {
+      return false;
+    }
+    int len = plen;
+    while (len-- > 0) {
+      if (t.charAt(to++) != other.charAt(po++)) {
+        return false;
+      }
+    }
+    return true;
+  }
+   
 }
