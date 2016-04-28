@@ -125,13 +125,13 @@ public final class CallablesTest {
             @Override
             public Integer call(final long deadline) throws IOException {
                 count++;
-                if (count < 10) {
+                if (count < 15) {
                     throw new IOException("Aaaaaaaaaaa" + count);
                 }
 
                 return 1;
             }
-        }, 1, 10, new AdvancedRetryPredicate<Exception>() {
+        }, 1, 20, new AdvancedRetryPredicate<Exception>() {
 
             @Override
             public AdvancedAction apply(final Exception input) {
@@ -144,7 +144,7 @@ public final class CallablesTest {
         });
         long elapsedTime = System.currentTimeMillis() - startTime;
         Assert.assertEquals(1L, result.longValue());
-        Assert.assertTrue("Operation has to take at least 10 ms", elapsedTime > 10L);
+        Assert.assertTrue("Operation has to take at least 10 ms and not " + elapsedTime, elapsedTime > 10L);
     }
 
 
