@@ -65,14 +65,6 @@ import org.spf4j.stackmonitor.FastStackCollector;
  */
 public final class Runtime {
 
-    static {
-      // priming certain functionality to make sure it works when we need it (classes are already loaded).
-      try (final PrintStream stream = new PrintStream(new ByteArrayBuilder(), false, "UTF-8")) {
-        Throwables.writeTo(new RuntimeException("priming"), stream, Throwables.Detail.NONE);
-      } catch (UnsupportedEncodingException ex) {
-        throw new ExceptionInInitializerError(ex);
-      }
-    }
   
   
     private Runtime() {
@@ -235,8 +227,18 @@ public final class Runtime {
         JAVA_PLATFORM = Version.fromSpecVersion(JAVA_VERSION);
         Registry.export(Jmx.class);
     }
+    
     private static final Path FD_FOLDER = Paths.get("/proc/" + PID + "/fd");
 
+    static {
+      // priming certain functionality to make sure it works when we need it (classes are already loaded).
+      try (final PrintStream stream = new PrintStream(new ByteArrayBuilder(), false, "UTF-8")) {
+        Throwables.writeTo(new RuntimeException("priming"), stream, Throwables.Detail.NONE);
+      } catch (UnsupportedEncodingException ex) {
+        throw new ExceptionInInitializerError(ex);
+      }
+    }
+    
 
     public static boolean isMacOsx() {
         return IS_MAC_OSX;
