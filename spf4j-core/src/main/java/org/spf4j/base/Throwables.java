@@ -350,7 +350,11 @@ public final class Throwables {
                 if (detail == Detail.SHORT_PACKAGE || detail == Detail.STANDARD) {
                     String url = jarSourceUrl.toString();
                     int lastIndexOf = url.lastIndexOf('/');
-                    to.append(url, lastIndexOf + 1, url.length());
+                    if (lastIndexOf >= 0) {
+                      to.append(url, lastIndexOf + 1, url.length());
+                    } else {
+                      to.append(url);
+                    }
                 } else {
                     to.append(jarSourceUrl.toString());
                 }
