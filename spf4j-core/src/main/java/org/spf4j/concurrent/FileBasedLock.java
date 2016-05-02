@@ -267,11 +267,16 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
 
     private void writeHolderInfo() throws IOException {
         file.seek(0);
-        byte[] data = org.spf4j.base.Runtime.PROCESS_NAME.getBytes(Charsets.UTF_8);
+        byte[] data = getContextInfo().getBytes(Charsets.UTF_8);
         file.write(data);
         file.setLength(data.length);
         file.getChannel().force(true);
     }
+    
+    public static String getContextInfo() {
+      return org.spf4j.base.Runtime.PROCESS_NAME + ':' + Thread.currentThread().getName();
+    }
+    
 
     @Override
     public String toString() {

@@ -22,10 +22,10 @@ package org.spf4j.base;
  *
  * @author zoly
  */
-public interface Handler<T, E extends Exception> {
+public interface HandlerNano<T, R, E extends Exception> {
 
     // CHECKSTYLE:OFF -- checkstyle does not seem to handle generic exceptions
-    void handle(T object, long deadlineMillis) throws E;
+    R handle(T object, long deadlineNanos) throws E;
     // CHECKSTYLE:ON
     
 }
