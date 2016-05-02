@@ -26,7 +26,7 @@ public class JdbcSemaphoreTest {
     ds.setUser("sa");
     ds.setPassword("sa");
     
-    String ddl = Resources.toString(Resources.getResource("lockTable.sql"), Charsets.US_ASCII);
+    String ddl = Resources.toString(Resources.getResource("semaphoreTable.sql"), Charsets.US_ASCII);
     
     try (Connection conn = ds.getConnection()) {
       Statement stmt = conn.createStatement();
