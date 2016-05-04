@@ -108,6 +108,10 @@ public final class Runtime {
     public static final int PID;
     public static final String OS_NAME;
     public static final String PROCESS_NAME;
+    /**
+     * unique identifier identifying this process.
+     */
+    public static final String PROCESS_ID;
     public static final int NR_PROCESSORS;
     public static final String JAVA_VERSION = System.getProperty("java.version");
     public static final String USER_NAME = System.getProperty("user.name");
@@ -132,6 +136,7 @@ public final class Runtime {
         }
         String mxBeanName = runtimeMxBean.getName();
         PROCESS_NAME = mxBeanName;
+        PROCESS_ID = mxBeanName + ':' + Long.toHexString(System.currentTimeMillis());
         int atIdx = mxBeanName.indexOf('@');
         if (atIdx < 0) {
             PID = -1;

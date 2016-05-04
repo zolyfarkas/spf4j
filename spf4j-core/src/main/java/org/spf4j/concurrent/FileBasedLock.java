@@ -274,7 +274,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     }
     
     public static String getContextInfo() {
-      return org.spf4j.base.Runtime.PROCESS_NAME + ':' + Thread.currentThread().getName();
+      return org.spf4j.base.Runtime.PROCESS_ID + ':' + Thread.currentThread().getName();
     }
     
 
