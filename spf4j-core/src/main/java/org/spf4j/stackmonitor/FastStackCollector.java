@@ -18,13 +18,17 @@
 package org.spf4j.stackmonitor;
 
 import com.google.common.base.Predicate;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.set.hash.THashSet;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import org.spf4j.base.Throwables;
 
 /**
  * This is a high performance sampling collector.
@@ -110,12 +114,34 @@ public final class FastStackCollector extends AbstractStackCollector {
         }
         return stackDump;
     }
+    
+    @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION") // jdk printstreams are sync I don't want interleaving.
+    public static void dumpToPrintStream(final PrintStream stream) {
+      synchronized (stream) {
+        Thread[] threads = getThreads();
+        StackTraceElement[][] stackTraces = getStackTraces(threads);
+        for (int i = 0; i < threads.length; i++) {
+          StackTraceElement[] stackTrace = stackTraces[i];
+          if (stackTrace != null && stackTrace.length > 0) {
+            Thread thread = threads[i];
+            stream.println("Thread " + thread.getName());
+            try {
+              Throwables.writeTo(stackTrace, stream, Throwables.Detail.SHORT_PACKAGE);
+            } catch (IOException ex) {
+              throw new RuntimeException(ex);
+            }
+          }
+        }
+      }
+    }
+    
+    
 
     private Thread[] requestFor = new Thread[] {};
 
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
+    @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
     public void sample(final Thread ignore) {
             Thread[] threads = getThreads();
             final int nrThreads = threads.length;
