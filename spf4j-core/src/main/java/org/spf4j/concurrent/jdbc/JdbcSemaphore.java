@@ -33,6 +33,13 @@ import org.spf4j.jmx.Registry;
  * implemented with it... If you are already connecting to a database. this should be a reliable and low overhead (no
  * calls from DBA) implementation. (at leat that is my goal) Using a crappy database will give you crappy results.
  *
+ * There are 3 tables involved:
+ *
+ * SEMAPHORES - keep track of available and total permits by semaphore.
+ * PERMITS_BY_OWNER - keeps track of all permits by owner.
+ * HEARTBEATS - keeps heartbeats by owner to detect - dead owners.
+ *
+ *
  * @author zoly
  */
 @SuppressFBWarnings({"SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING", "NP_LOAD_OF_KNOWN_NULL_VALUE"})
@@ -86,13 +93,34 @@ public final class JdbcSemaphore {
 
   /**
    * @param dataSource - the jdbc data source with the Semaphores table. Please be sensible, no "test on borrow" pools.
+   * @param semaphoreName - number of initial permits, if semaphore already exists the existing nr of permits is kept.
+   * @param nrPermits - the number of initial permits.
+   * @throws java.sql.SQLException - A issues with the database.
+   * @throws java.lang.InterruptedException - thrown in case thread is interrupted.
    */
   public JdbcSemaphore(final DataSource dataSource, final String semaphoreName, final int nrPermits)
           throws SQLException, InterruptedException {
+    this(dataSource, semaphoreName, nrPermits, false);
+  }
+
+  /**
+   * create a JDBC Semaphore. create one instance / process.
+   * @param dataSource - the data source to use for sync.
+   * @param semaphoreName - the semaphore name.
+   * @param nrPermits - number of initial permits.
+   * @param strict - if true, if semaphore already exists and the total permits is different that param nrPermits
+   * an IllegalArgumentException will be thrown.
+   * @throws SQLException - if there are issues with the DB.
+   * @throws InterruptedException - thrown in case thread is interrupted.
+   */
+  public JdbcSemaphore(final DataSource dataSource, final String semaphoreName,
+          final int nrPermits, final boolean strict)
+          throws SQLException, InterruptedException {
     this(dataSource, new SemaphoreTablesDesc("SEMAPHORES", "SEMAPHORE_NAME", "AVAILABLE_PERMITS",
             "TOTAL_PERMITS", "LAST_UPDATED_BY", "LAST_UPDATED_AT", "PERMITS_BY_OWNER", "OWNER", "PERMITS"),
-            semaphoreName, nrPermits, 10, false);
+            semaphoreName, nrPermits, 10, strict);
   }
+
 
   @SuppressFBWarnings({ "CBX_CUSTOM_BUILT_XML", "STT_TOSTRING_STORED_IN_FIELD" }) // so sql builder (yet)
   public JdbcSemaphore(final DataSource dataSource, final SemaphoreTablesDesc semTableDesc,
@@ -113,14 +141,14 @@ public final class JdbcSemaphore {
       }
     });
     final String semaphoreTableName = semTableDesc.getSemaphoreTableName();
-    String availablePermitsColumn = semTableDesc.getAvailableReservationsColumn();
+    String availablePermitsColumn = semTableDesc.getAvailablePermitsColumn();
     String lastModifiedByColumn = semTableDesc.getLastModifiedByColumn();
     String lastModifiedAtColumn = semTableDesc.getLastModifiedAtColumn();
     String ownerColumn = semTableDesc.getOwnerColumn();
     String semaphoreNameColumn = semTableDesc.getSemNameColumn();
-    String totalPermitsColumn = semTableDesc.getMaxReservationsColumn();
+    String totalPermitsColumn = semTableDesc.getTotalPermitsColumn();
     String ownerPermitsColumn = semTableDesc.getOwnerReservationsColumn();
-    String permitsByOwnerTableName = semTableDesc.getReservationsByOwnerTableName();
+    String permitsByOwnerTableName = semTableDesc.getPermitsByOwnerTableName();
     HeartBeatTableDesc hbTableDesc = this.heartBeat.getHbTableDesc();
     String heartBeatTableName = hbTableDesc.getTableName();
     String heartBeatOwnerColumn = hbTableDesc.getOwnerColumn();
@@ -163,7 +191,7 @@ public final class JdbcSemaphore {
             + " - ?, " + lastModifiedAtColumn + " = ? WHERE "
             + ownerColumn + " = ? AND " + semaphoreNameColumn + " = ? and " + ownerPermitsColumn + " >= ?";
 
-    this.availablePermitsSql = "SELECT " + semTableDesc.getAvailableReservationsColumn()
+    this.availablePermitsSql = "SELECT " + semTableDesc.getAvailablePermitsColumn()
             + ',' + totalPermitsColumn + " FROM " + semTableDesc.getSemaphoreTableName()
             + " WHERE " + semTableDesc.getSemNameColumn() + " = ?";
 
@@ -215,8 +243,8 @@ public final class JdbcSemaphore {
     final String lastModifiedAtColumn = semTableDesc.getLastModifiedAtColumn();
     final String tableName = semTableDesc.getSemaphoreTableName();
     final String semNameColumn = semTableDesc.getSemNameColumn();
-    final String availableReservationsColumn = semTableDesc.getAvailableReservationsColumn();
-    final String maxReservationsColumn = semTableDesc.getMaxReservationsColumn();
+    final String availableReservationsColumn = semTableDesc.getAvailablePermitsColumn();
+    final String maxReservationsColumn = semTableDesc.getTotalPermitsColumn();
 
     jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
       try (final PreparedStatement stmt = conn.prepareStatement("SELECT " + availableReservationsColumn
@@ -261,7 +289,7 @@ public final class JdbcSemaphore {
     jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
 
       try (final PreparedStatement insert = conn.prepareStatement("insert into "
-              + semTableDesc.getReservationsByOwnerTableName()
+              + semTableDesc.getPermitsByOwnerTableName()
               + " (" + semTableDesc.getSemNameColumn() + ',' + semTableDesc.getOwnerColumn() + ','
               + semTableDesc.getOwnerReservationsColumn() + ','
               + semTableDesc.getLastModifiedAtColumn() + ") VALUES (?, ?, ?, ?)")) {
@@ -285,11 +313,21 @@ public final class JdbcSemaphore {
     }
   }
 
+  public void acquire(final long timeout, final TimeUnit unit)
+          throws InterruptedException, SQLException, TimeoutException {
+    acquire(timeout, unit, 1);
+  }
+
   public void acquire(final long timeout, final TimeUnit unit, final int nrReservations)
           throws InterruptedException, SQLException, TimeoutException {
     if (!tryAcquire(timeout, unit, nrReservations)) {
       throw new TimeoutException("Cannot acquire timeout after " + timeout + " " + unit);
     }
+  }
+
+  public boolean tryAcquire(final long timeout, final TimeUnit unit)
+          throws InterruptedException, SQLException {
+    return tryAcquire(timeout, unit, 1);
   }
 
   @SuppressFBWarnings("UW_UNCOND_WAIT")
@@ -363,6 +401,10 @@ public final class JdbcSemaphore {
       }
     } while (!acquired && deadlineNanos > System.nanoTime());
     return acquired;
+  }
+
+  public void release() throws SQLException, InterruptedException {
+      release(1);
   }
 
   public void release(final int nrReservations) throws SQLException, InterruptedException {

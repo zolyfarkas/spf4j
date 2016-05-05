@@ -8,26 +8,26 @@ public final class SemaphoreTablesDesc implements Serializable {
 
   private final String semaphoreTableName;
   private final String semNameColumn;
-  private final String availableReservationsColumn;
-  private final String maxReservationsColumn;
+  private final String availablePermitsColumn;
+  private final String totalPermitsColumn;
   private final String lastModifiedByColumn;
   private final String lastModifiedAtColumn;
-  private final String reservationsByOwnerTableName;
+  private final String permitsByOwnerTableName;
   private final String ownerColumn;
   private final String ownerReservationsColumn;
 
   public SemaphoreTablesDesc(final String semaphoreTableName, final String semNameColumn,
-          final String availableReservationsColumn,
+          final String availablePermitsColumn,
           final String maxReservationsColumn, final String lastModifiedColumn,
           final String lastModifiedAtColumn, final String reservationsByOwnerTableName,
           final String ownerColumn, final String ownerReservationsColumn) {
     this.semaphoreTableName = semaphoreTableName;
     this.semNameColumn = semNameColumn;
-    this.availableReservationsColumn = availableReservationsColumn;
-    this.maxReservationsColumn = maxReservationsColumn;
+    this.availablePermitsColumn = availablePermitsColumn;
+    this.totalPermitsColumn = maxReservationsColumn;
     this.lastModifiedByColumn = lastModifiedColumn;
     this.lastModifiedAtColumn = lastModifiedAtColumn;
-    this.reservationsByOwnerTableName = reservationsByOwnerTableName;
+    this.permitsByOwnerTableName = reservationsByOwnerTableName;
     this.ownerColumn = ownerColumn;
     this.ownerReservationsColumn = ownerReservationsColumn;
   }
@@ -40,12 +40,12 @@ public final class SemaphoreTablesDesc implements Serializable {
     return semNameColumn;
   }
 
-  public String getAvailableReservationsColumn() {
-    return availableReservationsColumn;
+  public String getAvailablePermitsColumn() {
+    return availablePermitsColumn;
   }
 
-  public String getMaxReservationsColumn() {
-    return maxReservationsColumn;
+  public String getTotalPermitsColumn() {
+    return totalPermitsColumn;
   }
 
   public String getLastModifiedByColumn() {
@@ -56,8 +56,8 @@ public final class SemaphoreTablesDesc implements Serializable {
     return lastModifiedAtColumn;
   }
 
-  public String getReservationsByOwnerTableName() {
-    return reservationsByOwnerTableName;
+  public String getPermitsByOwnerTableName() {
+    return permitsByOwnerTableName;
   }
 
   public String getOwnerColumn() {
@@ -71,10 +71,10 @@ public final class SemaphoreTablesDesc implements Serializable {
   @Override
   public String toString() {
     return "SemaphoreTablesDesc{" + "semaphoreTableName=" + semaphoreTableName + ", semNameColumn="
-            + semNameColumn + ", availableReservationsColumn=" + availableReservationsColumn
-            + ", maxReservationsColumn=" + maxReservationsColumn + ", lastModifiedByColumn="
+            + semNameColumn + ", availablePermitsColumn=" + availablePermitsColumn
+            + ", totalPermitsColumn=" + totalPermitsColumn + ", lastModifiedByColumn="
             + lastModifiedByColumn + ", lastModifiedAtColumn=" + lastModifiedAtColumn
-            + ", reservationsByOwnerTableName=" + reservationsByOwnerTableName + ", ownerColumn="
+            + ", permitsByOwnerTableName=" + permitsByOwnerTableName + ", ownerColumn="
             + ownerColumn + ", ownerReservationsColumn=" + ownerReservationsColumn + '}';
   }
 
