@@ -214,7 +214,8 @@ public final class JdbcSemaphore {
             + " FROM " + permitsByOwnerTableName + " RO "
             + "WHERE RO." + semaphoreNameColumn + " = ? AND  " + ownerPermitsColumn + " > 0 AND "
             + "NOT EXISTS (select H." + heartBeatOwnerColumn + " from " + heartBeatTableName
-            + " H where H." + heartBeatOwnerColumn + " = RO." + ownerColumn + ')';
+            + " H where H." + heartBeatOwnerColumn + " = RO." + ownerColumn
+            + ") ORDER BY " + ownerColumn + ',' + ownerPermitsColumn;
 
     this.deleteDeadOwerRecordSql = "DELETE FROM " + permitsByOwnerTableName + " WHERE "
             + ownerColumn + " = ? AND " + semaphoreNameColumn + " = ? AND "
@@ -497,7 +498,7 @@ public final class JdbcSemaphore {
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
-  @JmxExport(description = "Get the total permits this semaphore ca hand out")
+  @JmxExport(description = "Get the total permits this semaphore can hand out")
   public int totalPermits() throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
       try (final PreparedStatement stmt = conn.prepareStatement(totalPermitsSql)) {
@@ -542,10 +543,17 @@ public final class JdbcSemaphore {
     return result;
   }
 
+  /**
+   * Attempts to release permits for this semaphore owned by dead owners.
+   * @param wishPermits - How many permits we would like to get released.
+   * @return - the number of permits we actually released.
+   * @throws SQLException - something went wrong with the db.
+   * @throws InterruptedException - thrown if thread is interrupted.
+   */
   @JmxExport(description = "release dead owner permits")
   @CheckReturnValue
   public int releaseDeadOwnerPermits(@JmxExport(value = "wishPermits",
-          description = "how many you wich to release at minimum") final int wishPermits)
+          description = "how many we whish to release") final int wishPermits)
           throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
       List<OwnerPermits> deadOwnerPermits = getDeadOwnerPermits(conn, deadlineNanos, wishPermits);
@@ -558,7 +566,7 @@ public final class JdbcSemaphore {
           int nrPermits = permit.getNrPermits();
           stmt.setInt(3, nrPermits);
           stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
-          if (stmt.executeUpdate() == 1) { // I can release!
+          if (stmt.executeUpdate() == 1) { // I can release! if not somebody else is doing it.
             released += nrPermits;
             releaseReservations(conn, deadlineNanos, System.currentTimeMillis(), nrPermits);
             LOG.warn("Released {} reservations from dead owner {}", nrPermits, owner);
