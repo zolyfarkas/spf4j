@@ -18,10 +18,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
 import javax.sql.DataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.base.IntMath;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.jdbc.JdbcTemplate;
+import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
 
 /**
  * A jdbc table based semaphore implementation. Similar with a semaphore implemented with zookeeper, we rely on
@@ -34,6 +38,8 @@ import org.spf4j.jdbc.JdbcTemplate;
 @SuppressFBWarnings({"SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING", "NP_LOAD_OF_KNOWN_NULL_VALUE"})
 @Beta
 public final class JdbcSemaphore {
+
+  private static final Logger LOG = LoggerFactory.getLogger(JdbcSemaphore.class);
 
   private final JdbcTemplate jdbc;
 
@@ -191,6 +197,10 @@ public final class JdbcSemaphore {
       createLockRowIfNotPresent(strictReservations, maxNrReservations);
     }
     createOwnerRow();
+  }
+
+  public void registerJmx() {
+    Registry.export(JdbcSemaphore.class.getName(), semName, this);
   }
 
   private void validate() {
@@ -396,6 +406,8 @@ public final class JdbcSemaphore {
     }
   }
 
+
+  @JmxExport(description = "Get the available semaphore permits")
   public int availablePermits() throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
       try (final PreparedStatement stmt = conn.prepareStatement(availablePermitsSql)) {
@@ -416,6 +428,7 @@ public final class JdbcSemaphore {
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
+  @JmxExport(description = "get the number of permits owned by this process")
   public int permitsOwned() throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
       try (final PreparedStatement stmt = conn.prepareStatement(ownedPermitsSql)) {
@@ -437,6 +450,7 @@ public final class JdbcSemaphore {
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
+  @JmxExport(description = "Get the total permits this semaphore ca hand out")
   public int totalPermits() throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
       try (final PreparedStatement stmt = conn.prepareStatement(totalPermitsSql)) {
@@ -453,6 +467,7 @@ public final class JdbcSemaphore {
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
+  @JmxExport(description = "get a list of all dead owners which hold permits")
   public List<OwnerPermits> getDeadOwnerPermits(final int wishPermits) throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
       return getDeadOwnerPermits(conn, deadlineNanos, wishPermits);
@@ -480,14 +495,18 @@ public final class JdbcSemaphore {
     return result;
   }
 
+  @JmxExport(description = "release dead owner permits")
   @CheckReturnValue
-  public int releaseDeadOwnerPermits(final int wishPermits) throws SQLException, InterruptedException {
+  public int releaseDeadOwnerPermits(@JmxExport(value = "wishPermits",
+          description = "how many you wich to release at minimum") final int wishPermits)
+          throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
       List<OwnerPermits> deadOwnerPermits = getDeadOwnerPermits(conn, deadlineNanos, wishPermits);
       int released = 0;
       for (OwnerPermits permit : deadOwnerPermits) {
         try (final PreparedStatement stmt = conn.prepareStatement(deleteDeadOwerRecordSql)) {
-          stmt.setNString(1, permit.getOwner());
+          String owner = permit.getOwner();
+          stmt.setNString(1, owner);
           stmt.setNString(2, semName);
           int nrPermits = permit.getNrPermits();
           stmt.setInt(3, nrPermits);
@@ -495,6 +514,7 @@ public final class JdbcSemaphore {
           if (stmt.executeUpdate() == 1) { // I can release!
             released += nrPermits;
             releaseReservations(conn, deadlineNanos, System.currentTimeMillis(), nrPermits);
+            LOG.warn("Released {} reservations from dead owner {}", nrPermits, owner);
           }
         }
       }
@@ -502,6 +522,7 @@ public final class JdbcSemaphore {
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
+  @JmxExport(description = "Reduce the total available permits by the provided number")
   public void reducePermits(final int nrPermits) throws SQLException, InterruptedException {
     jdbc.transactOnConnection(new HandlerNano<Connection, Void, SQLException>() {
       @Override
@@ -525,6 +546,7 @@ public final class JdbcSemaphore {
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
+  @JmxExport(description = "Increase the total available permits by the provided number")
   public void increasePermits(final int nrPermits) throws SQLException, InterruptedException {
     jdbc.transactOnConnection(new HandlerNano<Connection, Void, SQLException>() {
       @Override

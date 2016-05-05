@@ -1,6 +1,10 @@
 package org.spf4j.concurrent.jdbc;
 
-public final class SemaphoreTablesDesc {
+import java.io.Serializable;
+
+public final class SemaphoreTablesDesc implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   private final String semaphoreTableName;
   private final String semNameColumn;
@@ -74,7 +78,7 @@ public final class SemaphoreTablesDesc {
             + ownerColumn + ", ownerReservationsColumn=" + ownerReservationsColumn + '}';
   }
 
- 
-  
-  
+
+
+
 }

@@ -4,6 +4,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +22,8 @@ import org.spf4j.base.HandlerNano;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.jdbc.JdbcTemplate;
+import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
 
 /**
  *
@@ -73,6 +78,10 @@ public final class JdbcHeartBeat {
     createHeartbeatRow();
   }
 
+  public void registerJmx() {
+    Registry.export(this);
+  }
+
   public void addFailureHook(final FailureHook hook) {
     failureHooks.add(hook);
   }
@@ -95,7 +104,8 @@ public final class JdbcHeartBeat {
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
-  public int removeDeadHeartBeatRows(final int timeoutSeconds)
+  @JmxExport(description = "Remove all dead hearbeat rows")
+  public int removeDeadHeartBeatRows(@JmxExport("timeoutSeconds") final int timeoutSeconds)
           throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
       return JdbcHeartBeat.this.removeDeadHeartBeatRows(conn, deadlineNanos);
@@ -111,6 +121,7 @@ public final class JdbcHeartBeat {
     }
   }
 
+  @JmxExport(description = "Remove all dead hearbeat rows async")
   public Future<Integer> removeDeadHeartBeatRowsAsync(final int timeoutSeconds) {
     return DefaultExecutor.INSTANCE.submit(new Callable<Integer>() {
       @Override
@@ -150,6 +161,7 @@ public final class JdbcHeartBeat {
     }, intervalMillis, intervalMillis, TimeUnit.MILLISECONDS);
   }
 
+  @JmxExport
   public void beat() throws SQLException, InterruptedException {
     jdbc.transactOnConnection(new HandlerNano<Connection, Void, SQLException>() {
       @Override
@@ -170,12 +182,19 @@ public final class JdbcHeartBeat {
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
+  @JmxExport
   public long getIntervalMillis() {
     return intervalMillis;
   }
 
+  @JmxExport
   public long getLastRun() {
     return lastRun;
+  }
+
+  @JmxExport
+  public String getLastRunDateTime() {
+    return  ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastRun), ZoneId.systemDefault()).toString();
   }
 
   private static final Map<DataSource, JdbcHeartBeat> HEARTBEATS = new IdentityHashMap<>();
@@ -188,6 +207,7 @@ public final class JdbcHeartBeat {
     if (beat == null) {
       beat = new JdbcHeartBeat(dataSource, HEARTBEAT_INTERVAL_MILLIS, 5);
       beat.scheduleHeartbeat();
+      beat.registerJmx();
       HEARTBEATS.put(dataSource, beat);
     }
     if (hook != null) {
