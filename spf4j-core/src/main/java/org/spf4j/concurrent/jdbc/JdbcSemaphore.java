@@ -90,6 +90,8 @@ public final class JdbcSemaphore {
 
   private static final Interner<String> INTERNER = Interners.newStrongInterner();
 
+  private static final int ACQUIRE_POLL_MILLIS = Integer.getInteger("spf4j.jdbc.semaphore.pollIntervalMillis", 1000);
+
 
   /**
    * @param dataSource - the jdbc data source with the Semaphores table. Please be sensible, no "test on borrow" pools.
@@ -367,6 +369,9 @@ public final class JdbcSemaphore {
               }
               return Boolean.TRUE;
             } else {
+              if (rowsUpdated > 1) {
+                throw new IllegalStateException("Too many rows updated! when trying to acquire " + nrReservations);
+              }
               return Boolean.FALSE;
             }
           }
@@ -386,10 +391,10 @@ public final class JdbcSemaphore {
         } catch (ExecutionException ex) {
           throw new SQLException(ex);
         }
-        if (releaseDeadOwnerPermits(nrReservations) <= 0) {
+        if (releaseDeadOwnerPermits(nrReservations) <= 0) { //wait of we did not find anything dead to release.
           synchronized (semName) {
             long wtimeMilis = Math.min(TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime()),
-                    Math.abs(rnd.nextInt()) % 1000);
+                    Math.abs(rnd.nextInt()) % ACQUIRE_POLL_MILLIS);
             if (wtimeMilis > 0) {
               semName.wait(wtimeMilis);
             } else {
