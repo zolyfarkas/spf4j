@@ -1,6 +1,8 @@
 package org.spf4j.concurrent.jdbc;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -73,6 +75,9 @@ public final class JdbcSemaphore {
 
   private Error heartheatFailure;
 
+  private static final Interner<String> INTERNER = Interners.newStrongInterner();
+
+
   /**
    * @param dataSource - the jdbc data source with the Semaphores table. Please be sensible, no "test on borrow" pools.
    */
@@ -88,7 +93,7 @@ public final class JdbcSemaphore {
           final String semaphoreName, final int maxNrReservations, final int jdbcTimeoutSeconds,
           final boolean strictReservations)
           throws SQLException, InterruptedException {
-    this.semName = semaphoreName.intern();
+    this.semName = INTERNER.intern(semaphoreName);
     this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;
     this.jdbc = new JdbcTemplate(dataSource);
     this.semTableDesc = semTableDesc;
