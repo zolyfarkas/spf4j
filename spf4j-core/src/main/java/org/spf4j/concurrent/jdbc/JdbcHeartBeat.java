@@ -70,7 +70,9 @@ public final class JdbcHeartBeat {
     this.hbTableDesc = hbTableDesc;
     this.updateHeartbeatSql = "UPDATE " + hbTableDesc.getTableName() + " SET "
             + hbTableDesc.getLastHeartbeatColumn() + " = ?"
-            + " WHERE " + hbTableDesc.getOwnerColumn() + " = ?";
+            + " WHERE " + hbTableDesc.getOwnerColumn() + " = ? AND "
+            + hbTableDesc.getLastHeartbeatColumn() + " + " + hbTableDesc.getIntervalColumn()
+            + " * 2 < ?";
     this.deleteSql = "DELETE FROM " + hbTableDesc.getTableName()
             + " WHERE " + hbTableDesc.getLastHeartbeatColumn() + " + " + hbTableDesc.getIntervalColumn()
             + " * 2 < ?";
@@ -169,8 +171,10 @@ public final class JdbcHeartBeat {
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(updateHeartbeatSql)) {
           stmt.setQueryTimeout(10);
-          stmt.setLong(1, System.currentTimeMillis());
+          long currentTimeMillis = System.currentTimeMillis();
+          stmt.setLong(1, currentTimeMillis);
           stmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
+          stmt.setLong(3, currentTimeMillis);
           int rowsUpdated = stmt.executeUpdate();
           if (!(rowsUpdated == 1)) {
             throw new IllegalStateException("There must be only one beat per owner "
