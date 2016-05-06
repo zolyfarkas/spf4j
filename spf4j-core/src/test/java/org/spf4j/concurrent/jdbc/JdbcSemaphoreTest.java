@@ -13,7 +13,7 @@ import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.Server;
-import org.junit.BeforeClass;
+import org.joda.time.DateTime;
 import org.junit.Test;
 
 /**
@@ -25,10 +25,13 @@ public class JdbcSemaphoreTest {
   private static String hbddl;
   private static String semddl;
 
-  @BeforeClass
-  public static void init() throws IOException {
-    hbddl = Resources.toString(Resources.getResource("heartBeats.sql"), Charsets.US_ASCII);
-    semddl = Resources.toString(Resources.getResource("semaphoreTable.sql"), Charsets.US_ASCII);
+  static {
+    try {
+      hbddl = Resources.toString(Resources.getResource("heartBeats.sql"), Charsets.US_ASCII);
+      semddl = Resources.toString(Resources.getResource("semaphoreTable.sql"), Charsets.US_ASCII);
+    } catch (IOException ex) {
+      throw new ExceptionInInitializerError(ex);
+    }
   }
 
   @Test
@@ -47,6 +50,11 @@ public class JdbcSemaphoreTest {
       try (Statement stmt = conn.createStatement()) {
         stmt.execute(semddl);
       }
+
+      JdbcHeartBeat heartbeat = JdbcHeartBeat.getHeartbeat(ds, null);
+      long lb = heartbeat.getLastRunDB();
+      System.out.println("last TS = " + lb + " " + new DateTime(lb));
+      heartbeat.beat();
 
       testReleaseAck(ds, "testSem", 2);
       testReleaseAck(ds, "testSem2", 2);

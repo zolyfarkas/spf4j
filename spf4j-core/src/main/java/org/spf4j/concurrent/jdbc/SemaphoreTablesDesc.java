@@ -1,7 +1,10 @@
 package org.spf4j.concurrent.jdbc;
 
 import java.io.Serializable;
-
+/**
+ *
+ * @author zoly
+ */
 public final class SemaphoreTablesDesc implements Serializable {
 
   private static final long serialVersionUID = 1L;

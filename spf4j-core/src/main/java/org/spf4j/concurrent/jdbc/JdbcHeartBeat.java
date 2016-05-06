@@ -3,6 +3,7 @@ package org.spf4j.concurrent.jdbc;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -59,7 +60,9 @@ public final class JdbcHeartBeat {
   private JdbcHeartBeat(final DataSource dataSource, final long intervalMillis,
           final int jdbcTimeoutSeconds) throws SQLException, InterruptedException {
     this(dataSource, new HeartBeatTableDesc("HEARTBEATS",
-            "OWNER", "INTERVAL_MILLIS", "LAST_HEARTBEAT_INSTANT_MILLIS"), intervalMillis, jdbcTimeoutSeconds);
+            "OWNER", "INTERVAL_MILLIS", "LAST_HEARTBEAT_INSTANT_MILLIS",
+            "TIMESTAMPDIFF('MILLISECOND', timestamp '1970-01-01 00:00:00', CURRENT_TIMESTAMP())"),
+            intervalMillis, jdbcTimeoutSeconds);
   }
 
   private JdbcHeartBeat(final DataSource dataSource, final HeartBeatTableDesc hbTableDesc, final long intervalMillis,
@@ -68,14 +71,16 @@ public final class JdbcHeartBeat {
     this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;
     this.intervalMillis = intervalMillis;
     this.hbTableDesc = hbTableDesc;
-    this.updateHeartbeatSql = "UPDATE " + hbTableDesc.getTableName() + " SET "
-            + hbTableDesc.getLastHeartbeatColumn() + " = ?"
-            + " WHERE " + hbTableDesc.getOwnerColumn() + " = ? AND "
-            + hbTableDesc.getLastHeartbeatColumn() + " + " + hbTableDesc.getIntervalColumn()
-            + " * 2 < ?";
-    this.deleteSql = "DELETE FROM " + hbTableDesc.getTableName()
-            + " WHERE " + hbTableDesc.getLastHeartbeatColumn() + " + " + hbTableDesc.getIntervalColumn()
-            + " * 2 < ?";
+    String hbTableName = hbTableDesc.getTableName();
+    String lastHeartbeatColumn = hbTableDesc.getLastHeartbeatColumn();
+    String currentTimeMillisFunc = hbTableDesc.getCurrentTimeMillisFunc();
+    String intervalColumn = hbTableDesc.getIntervalColumn();
+
+    this.updateHeartbeatSql = "UPDATE " + hbTableName + " SET " + lastHeartbeatColumn + " = " + currentTimeMillisFunc
+            + " WHERE " + hbTableDesc.getOwnerColumn() + " = ? AND " + lastHeartbeatColumn + " + " + intervalColumn
+            + " * 2 > " + currentTimeMillisFunc;
+    this.deleteSql = "DELETE FROM " + hbTableName + " WHERE " + lastHeartbeatColumn + " + " + intervalColumn
+            + " * 2 < " + currentTimeMillisFunc;
     this.failureHooks = new CopyOnWriteArrayList<>();
     createHeartbeatRow();
   }
@@ -95,10 +100,10 @@ public final class JdbcHeartBeat {
 
       try (final PreparedStatement insert = conn.prepareStatement("insert into " + hbTableDesc.getTableName()
               + " (" + hbTableDesc.getOwnerColumn() + ',' + hbTableDesc.getIntervalColumn() + ','
-              + hbTableDesc.getLastHeartbeatColumn() + ") VALUES (?, ?, ?)")) {
+              + hbTableDesc.getLastHeartbeatColumn() + ") VALUES (?, ?, "
+              + hbTableDesc.getCurrentTimeMillisFunc() + ")")) {
         insert.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
         insert.setLong(2, this.intervalMillis);
-        insert.setLong(3, System.currentTimeMillis());
         insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
         insert.executeUpdate();
       }
@@ -117,7 +122,6 @@ public final class JdbcHeartBeat {
   @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
   int removeDeadHeartBeatRows(final Connection conn, final long deadlineNanos) throws SQLException {
     try (final PreparedStatement stmt = conn.prepareStatement(deleteSql)) {
-      stmt.setLong(1, System.currentTimeMillis());
       stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
       return stmt.executeUpdate();
     }
@@ -171,14 +175,11 @@ public final class JdbcHeartBeat {
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(updateHeartbeatSql)) {
           stmt.setQueryTimeout(10);
-          long currentTimeMillis = System.currentTimeMillis();
-          stmt.setLong(1, currentTimeMillis);
-          stmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
-          stmt.setLong(3, currentTimeMillis);
+          stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
           int rowsUpdated = stmt.executeUpdate();
           if (rowsUpdated != 1) {
-            throw new IllegalStateException("There must be only one beat per owner "
-                    + org.spf4j.base.Runtime.PROCESS_ID);
+            throw new IllegalStateException("Broken Heartbeat for "
+                    + org.spf4j.base.Runtime.PROCESS_ID + "sql : " + updateHeartbeatSql +  " rows : " + rowsUpdated);
           }
           return null;
         }
@@ -187,17 +188,46 @@ public final class JdbcHeartBeat {
   }
 
   @JmxExport
+  public long getLastRunDB() throws SQLException, InterruptedException {
+    return jdbc.transactOnConnection(new HandlerNano<Connection, Long, SQLException>() {
+      @Override
+      @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
+      public Long handle(final Connection conn, final long deadlineNanos) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement("select " + hbTableDesc.getLastHeartbeatColumn()
+        + " FROM " + hbTableDesc.getTableName() + " where " + hbTableDesc.getOwnerColumn() + " = ?")) {
+          stmt.setQueryTimeout(10);
+          stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
+          try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+              long result =  rs.getLong(1);
+              if (rs.next()) {
+                throw new IllegalStateException("Multible beats for same owner " + org.spf4j.base.Runtime.PROCESS_ID);
+              }
+              return result;
+            } else {
+              return 0L;
+            }
+          }
+        }
+      }
+    }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
+  }
+
+
+
+
+  @JmxExport
   public long getIntervalMillis() {
     return intervalMillis;
   }
 
   @JmxExport
-  public long getLastRun() {
+  public long getLastRunOwner() {
     return lastRun;
   }
 
   @JmxExport
-  public String getLastRunDateTime() {
+  public String getLastRunDateTimeOwner() {
     return  ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastRun), ZoneId.systemDefault()).toString();
   }
 

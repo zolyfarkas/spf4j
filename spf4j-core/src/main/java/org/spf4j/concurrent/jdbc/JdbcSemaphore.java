@@ -39,6 +39,8 @@ import org.spf4j.jmx.Registry;
  * PERMITS_BY_OWNER - keeps track of all permits by owner.
  * HEARTBEATS - keeps heartbeats by owner to detect - dead owners.
  *
+ * All table names and columns are customizable to adapt this implementation to different naming conventions.
+ *
  *
  * @author zoly
  */
@@ -151,46 +153,47 @@ public final class JdbcSemaphore {
     String totalPermitsColumn = semTableDesc.getTotalPermitsColumn();
     String ownerPermitsColumn = semTableDesc.getOwnerReservationsColumn();
     String permitsByOwnerTableName = semTableDesc.getPermitsByOwnerTableName();
-    HeartBeatTableDesc hbTableDesc = this.heartBeat.getHbTableDesc();
+    HeartBeatTableDesc hbTableDesc = heartBeat.getHbTableDesc();
     String heartBeatTableName = hbTableDesc.getTableName();
     String heartBeatOwnerColumn = hbTableDesc.getOwnerColumn();
+    String currentTimeMillisFunc = hbTableDesc.getCurrentTimeMillisFunc();
 
     this.reducePermitsSql = "UPDATE " + semaphoreTableName + " SET "
             + totalPermitsColumn + " = " + totalPermitsColumn + " - ?, "
             + availablePermitsColumn + " =  CASE WHEN "
             + totalPermitsColumn + " - ? > " + availablePermitsColumn
             + " THEN " + availablePermitsColumn + " ELSE " + totalPermitsColumn + " - ? END , "
-            + lastModifiedByColumn + " = ?, " + lastModifiedAtColumn + " = ? WHERE "
+            + lastModifiedByColumn + " = ?, " + lastModifiedAtColumn + " = " + currentTimeMillisFunc + " WHERE "
             + semaphoreNameColumn + " = ? AND "
             + totalPermitsColumn + " >= ?";
 
     this.increasePermitsSql = "UPDATE " + semaphoreTableName + " SET "
             + totalPermitsColumn + " = " + totalPermitsColumn + " + ?, "
             + availablePermitsColumn + " = " + availablePermitsColumn + " + ?, "
-            + lastModifiedByColumn + " = ?, " + lastModifiedAtColumn + " = ? WHERE "
+            + lastModifiedByColumn + " = ?, " + lastModifiedAtColumn + " = " + currentTimeMillisFunc + " WHERE "
             + semaphoreNameColumn + " = ? AND "
             + totalPermitsColumn + " >= ?";
 
     this.acquireSql = "UPDATE " + semaphoreTableName + " SET "
             + availablePermitsColumn + " = " + availablePermitsColumn + " - ?, "
-            + lastModifiedByColumn + " = ?, " + lastModifiedAtColumn + " = ? WHERE "
+            + lastModifiedByColumn + " = ?, " + lastModifiedAtColumn + " = " + currentTimeMillisFunc + " WHERE "
             + semaphoreNameColumn + " = ? AND "
             + availablePermitsColumn + " >= ?";
     this.acquireByOwnerSql = "UPDATE " + permitsByOwnerTableName
             + " SET " + ownerPermitsColumn + " = " + ownerPermitsColumn + " + ?, "
-            + lastModifiedAtColumn + " = ? WHERE "
+            + lastModifiedAtColumn + " = " + currentTimeMillisFunc + " WHERE "
             + ownerColumn + " = ? AND " + semaphoreNameColumn + " = ?";
 
     this.releaseSql = "UPDATE " + semaphoreTableName + " SET "
             + availablePermitsColumn + " = CASE WHEN "
             + availablePermitsColumn + " + ? > " + totalPermitsColumn
             + " THEN " + totalPermitsColumn + " ELSE " + availablePermitsColumn + " + ? END, "
-            + lastModifiedByColumn + " = ?, " + lastModifiedAtColumn + " = ? WHERE "
+            + lastModifiedByColumn + " = ?, " + lastModifiedAtColumn + " = " + currentTimeMillisFunc + " WHERE "
             + semaphoreNameColumn + " = ?";
 
     this.releaseByOwnerSql = "UPDATE " + permitsByOwnerTableName
             + " SET " + ownerPermitsColumn + " = " + ownerPermitsColumn
-            + " - ?, " + lastModifiedAtColumn + " = ? WHERE "
+            + " - ?, " + lastModifiedAtColumn + " = " + currentTimeMillisFunc + " WHERE "
             + ownerColumn + " = ? AND " + semaphoreNameColumn + " = ? and " + ownerPermitsColumn + " >= ?";
 
     this.availablePermitsSql = "SELECT " + semTableDesc.getAvailablePermitsColumn()
@@ -259,12 +262,12 @@ public final class JdbcSemaphore {
           if (!rs.next()) {
             try (final PreparedStatement insert = conn.prepareStatement("insert into " + tableName
                     + " (" + semNameColumn + ',' + availableReservationsColumn + ',' + maxReservationsColumn
-                    + ',' + lastModifiedByColumn + ',' + lastModifiedAtColumn + ") VALUES (?, ?, ?, ?, ?)")) {
+                    + ',' + lastModifiedByColumn + ',' + lastModifiedAtColumn + ") VALUES (?, ?, ?, ?, "
+                    + heartBeat.getHbTableDesc().getCurrentTimeMillisFunc() + ')')) {
               insert.setNString(1, semName);
               insert.setInt(2, nrReservations);
               insert.setInt(3, nrReservations);
               insert.setNString(4, org.spf4j.base.Runtime.PROCESS_ID);
-              insert.setLong(5, System.currentTimeMillis());
               insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
               insert.executeUpdate();
             }
@@ -295,11 +298,11 @@ public final class JdbcSemaphore {
               + semTableDesc.getPermitsByOwnerTableName()
               + " (" + semTableDesc.getSemNameColumn() + ',' + semTableDesc.getOwnerColumn() + ','
               + semTableDesc.getOwnerReservationsColumn() + ','
-              + semTableDesc.getLastModifiedAtColumn() + ") VALUES (?, ?, ?, ?)")) {
+              + semTableDesc.getLastModifiedAtColumn() + ") VALUES (?, ?, ?, "
+              + heartBeat.getHbTableDesc().getCurrentTimeMillisFunc() + ")")) {
         insert.setNString(1, this.semName);
         insert.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
         insert.setInt(3, 0);
-        insert.setLong(4, System.currentTimeMillis());
         insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
         insert.executeUpdate();
       }
@@ -351,17 +354,14 @@ public final class JdbcSemaphore {
             stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
             stmt.setInt(1, nrReservations);
             stmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
-            long currentTimeMillis = System.currentTimeMillis();
-            stmt.setLong(3, currentTimeMillis);
-            stmt.setNString(4, semName);
-            stmt.setInt(5, nrReservations);
+            stmt.setNString(3, semName);
+            stmt.setInt(4, nrReservations);
             int rowsUpdated = stmt.executeUpdate();
             if (rowsUpdated == 1) {
               try (PreparedStatement ostmt = conn.prepareStatement(acquireByOwnerSql)) {
                 ostmt.setInt(1, nrReservations);
-                ostmt.setLong(2, currentTimeMillis);
-                ostmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
-                ostmt.setNString(4, semName);
+                ostmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
+                ostmt.setNString(3, semName);
                 ostmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
                 int nrUpdated = ostmt.executeUpdate();
                 if (nrUpdated != 1) {
@@ -417,14 +417,12 @@ public final class JdbcSemaphore {
     jdbc.transactOnConnection(new HandlerNano<Connection, Void, SQLException>() {
       @Override
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
-        long currentTimeMillis = System.currentTimeMillis();
-        releaseReservations(conn, deadlineNanos, currentTimeMillis, nrReservations);
+        releaseReservations(conn, deadlineNanos, nrReservations);
         try (PreparedStatement ostmt = conn.prepareStatement(releaseByOwnerSql)) {
           ostmt.setInt(1, nrReservations);
-          ostmt.setLong(2, currentTimeMillis);
-          ostmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
-          ostmt.setNString(4, semName);
-          ostmt.setInt(5, nrReservations);
+          ostmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
+          ostmt.setNString(3, semName);
+          ostmt.setInt(4, nrReservations);
           ostmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
           int nrUpdated = ostmt.executeUpdate();
           if (nrUpdated != 1) {
@@ -440,16 +438,14 @@ public final class JdbcSemaphore {
     }
   }
 
-  void releaseReservations(final Connection conn, final long deadlineNanos, final long currentTimeMillis,
-          final int nrReservations)
+  void releaseReservations(final Connection conn, final long deadlineNanos, final int nrReservations)
           throws SQLException {
     try (PreparedStatement stmt = conn.prepareStatement(releaseSql)) {
       stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
       stmt.setInt(1, nrReservations);
       stmt.setInt(2, nrReservations);
       stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
-      stmt.setLong(4, currentTimeMillis);
-      stmt.setNString(5, semName);
+      stmt.setNString(4, semName);
       stmt.executeUpdate(); // Since a release might or might not update a row.
     }
   }
@@ -568,7 +564,7 @@ public final class JdbcSemaphore {
           stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
           if (stmt.executeUpdate() == 1) { // I can release! if not somebody else is doing it.
             released += nrPermits;
-            releaseReservations(conn, deadlineNanos, System.currentTimeMillis(), nrPermits);
+            releaseReservations(conn, deadlineNanos, nrPermits);
             LOG.warn("Released {} reservations from dead owner {}", nrPermits, owner);
           }
         }
@@ -588,9 +584,8 @@ public final class JdbcSemaphore {
           stmt.setInt(2, nrPermits);
           stmt.setInt(3, nrPermits);
           stmt.setNString(4, org.spf4j.base.Runtime.PROCESS_ID);
-          stmt.setLong(5, System.currentTimeMillis());
-          stmt.setNString(6, semName);
-          stmt.setInt(7, nrPermits);
+          stmt.setNString(5, semName);
+          stmt.setInt(6, nrPermits);
           int rowsUpdated = stmt.executeUpdate();
           if (rowsUpdated != 1) {
             throw new IllegalArgumentException("Cannot reduce nr total permits by " + nrPermits);
@@ -611,9 +606,8 @@ public final class JdbcSemaphore {
           stmt.setInt(1, nrPermits);
           stmt.setInt(2, nrPermits);
           stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
-          stmt.setLong(4, System.currentTimeMillis());
-          stmt.setNString(5, semName);
-          stmt.setInt(6, nrPermits);
+          stmt.setNString(4, semName);
+          stmt.setInt(5, nrPermits);
           int rowsUpdated = stmt.executeUpdate();
           if (rowsUpdated != 1) {
             throw new IllegalArgumentException("Cannot reduce nr total permits by " + nrPermits);
