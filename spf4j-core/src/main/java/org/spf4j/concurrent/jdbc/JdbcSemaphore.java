@@ -62,6 +62,8 @@ public final class JdbcSemaphore {
 
   private final String increasePermitsSql;
 
+  private final String updatePermitsSql;
+
   private final String acquireSql;
 
   private final String acquireByOwnerSql;
@@ -128,9 +130,12 @@ public final class JdbcSemaphore {
 
   @SuppressFBWarnings({ "CBX_CUSTOM_BUILT_XML", "STT_TOSTRING_STORED_IN_FIELD" }) // so sql builder (yet)
   public JdbcSemaphore(final DataSource dataSource, final SemaphoreTablesDesc semTableDesc,
-          final String semaphoreName, final int maxNrReservations, final int jdbcTimeoutSeconds,
+          final String semaphoreName, final int nrPermits, final int jdbcTimeoutSeconds,
           final boolean strictReservations)
           throws SQLException, InterruptedException {
+    if (nrPermits < 0) {
+      throw new IllegalArgumentException("Permits must be positive and not " + nrPermits);
+    }
     this.semName = INTERNER.intern(semaphoreName);
     this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;
     this.jdbc = new JdbcTemplate(dataSource);
@@ -161,8 +166,8 @@ public final class JdbcSemaphore {
     this.reducePermitsSql = "UPDATE " + semaphoreTableName + " SET "
             + totalPermitsColumn + " = " + totalPermitsColumn + " - ?, "
             + availablePermitsColumn + " =  CASE WHEN "
-            + totalPermitsColumn + " - ? > " + availablePermitsColumn
-            + " THEN " + availablePermitsColumn + " ELSE " + totalPermitsColumn + " - ? END , "
+            + availablePermitsColumn + " - ? < 0 "
+            + " THEN " + 0 + " ELSE " + availablePermitsColumn + " - ? END , "
             + lastModifiedByColumn + " = ?, " + lastModifiedAtColumn + " = " + currentTimeMillisFunc + " WHERE "
             + semaphoreNameColumn + " = ? AND "
             + totalPermitsColumn + " >= ?";
@@ -171,8 +176,16 @@ public final class JdbcSemaphore {
             + totalPermitsColumn + " = " + totalPermitsColumn + " + ?, "
             + availablePermitsColumn + " = " + availablePermitsColumn + " + ?, "
             + lastModifiedByColumn + " = ?, " + lastModifiedAtColumn + " = " + currentTimeMillisFunc + " WHERE "
-            + semaphoreNameColumn + " = ? AND "
-            + totalPermitsColumn + " >= ?";
+            + semaphoreNameColumn + " = ? ";
+
+    this.updatePermitsSql = "UPDATE " + semaphoreTableName + " SET "
+            + totalPermitsColumn + " =  ?, "
+            + availablePermitsColumn + " =  CASE WHEN "
+            + " 0 > " + availablePermitsColumn + " + ?  - " + totalPermitsColumn
+            + " THEN  0  ELSE " + availablePermitsColumn + " + ? - " + totalPermitsColumn
+            + " END , "
+            + lastModifiedByColumn + " = ?, " + lastModifiedAtColumn + " = " + currentTimeMillisFunc + " WHERE "
+            + semaphoreNameColumn + " = ?";
 
     this.acquireSql = "UPDATE " + semaphoreTableName + " SET "
             + availablePermitsColumn + " = " + availablePermitsColumn + " - ?, "
@@ -225,10 +238,10 @@ public final class JdbcSemaphore {
             + ownerPermitsColumn + " = ?";
 
     try {
-      createLockRowIfNotPresent(strictReservations, maxNrReservations);
+      createLockRowIfNotPresent(strictReservations, nrPermits);
     } catch (SQLIntegrityConstraintViolationException ex) {
       // RACE condition while creating the row, will retry to validate if everything is OK.
-      createLockRowIfNotPresent(strictReservations, maxNrReservations);
+      createLockRowIfNotPresent(strictReservations, nrPermits);
     }
     createOwnerRow();
   }
@@ -243,7 +256,7 @@ public final class JdbcSemaphore {
     }
   }
 
-  void createLockRowIfNotPresent(final boolean strictReservations, final int nrReservations)
+  void createLockRowIfNotPresent(final boolean strictReservations, final int nrPermits)
           throws SQLException, InterruptedException {
     final String lastModifiedByColumn = semTableDesc.getLastModifiedByColumn();
     final String lastModifiedAtColumn = semTableDesc.getLastModifiedAtColumn();
@@ -265,17 +278,17 @@ public final class JdbcSemaphore {
                     + ',' + lastModifiedByColumn + ',' + lastModifiedAtColumn + ") VALUES (?, ?, ?, ?, "
                     + heartBeat.getHbTableDesc().getCurrentTimeMillisFunc() + ')')) {
               insert.setNString(1, semName);
-              insert.setInt(2, nrReservations);
-              insert.setInt(3, nrReservations);
+              insert.setInt(2, nrPermits);
+              insert.setInt(3, nrPermits);
               insert.setNString(4, org.spf4j.base.Runtime.PROCESS_ID);
               insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
               insert.executeUpdate();
             }
           } else if (strictReservations) { // there is a record already. for now blow up if different nr reservations.
             int existingMaxReservations = rs.getInt(2);
-            if (existingMaxReservations != nrReservations) {
+            if (existingMaxReservations != nrPermits) {
               throw new IllegalArgumentException("Semaphore " + semName + " max reservations count different "
-                      + existingMaxReservations + " != " + nrReservations + " use different semaphore");
+                      + existingMaxReservations + " != " + nrPermits + " use different semaphore");
             }
             if (rs.next()) {
               throw new IllegalStateException("Cannot have mutiple semaphores with the same name " + semName);
@@ -573,6 +586,33 @@ public final class JdbcSemaphore {
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
+  @JmxExport(description = "Change the total available permits to the provided number")
+  public void updatePermits(final int nrPermits) throws SQLException, InterruptedException {
+    if (nrPermits < 0) {
+      throw new IllegalArgumentException("Permits must be positive and not " + nrPermits);
+    }
+    jdbc.transactOnConnection(new HandlerNano<Connection, Void, SQLException>() {
+      @Override
+      public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement(updatePermitsSql)) {
+          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
+          stmt.setInt(1, nrPermits);
+          stmt.setInt(2, nrPermits);
+          stmt.setInt(3, nrPermits);
+          stmt.setNString(4, org.spf4j.base.Runtime.PROCESS_ID);
+          stmt.setNString(5, semName);
+          int rowsUpdated = stmt.executeUpdate();
+          if (rowsUpdated != 1) {
+            throw new IllegalArgumentException("Cannot reduce nr total permits by " + nrPermits);
+          }
+        }
+        return null;
+      }
+    }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
+  }
+
+
+
   @JmxExport(description = "Reduce the total available permits by the provided number")
   public void reducePermits(final int nrPermits) throws SQLException, InterruptedException {
     jdbc.transactOnConnection(new HandlerNano<Connection, Void, SQLException>() {
@@ -607,7 +647,6 @@ public final class JdbcSemaphore {
           stmt.setInt(2, nrPermits);
           stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
           stmt.setNString(4, semName);
-          stmt.setInt(5, nrPermits);
           int rowsUpdated = stmt.executeUpdate();
           if (rowsUpdated != 1) {
             throw new IllegalArgumentException("Cannot reduce nr total permits by " + nrPermits);

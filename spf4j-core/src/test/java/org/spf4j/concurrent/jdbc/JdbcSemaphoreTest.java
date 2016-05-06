@@ -35,7 +35,7 @@ public class JdbcSemaphoreTest {
   }
 
   @Test
-  public void testSingleProcess() throws SQLException, IOException, InterruptedException {
+  public void testSingleProcess() throws SQLException, IOException, InterruptedException, TimeoutException {
 
     JdbcDataSource ds = new JdbcDataSource();
     ds.setURL("jdbc:h2:mem:test");
@@ -63,8 +63,19 @@ public class JdbcSemaphoreTest {
   }
 
   public void testReleaseAck(final JdbcDataSource ds, final String semName, final int maxReservations)
-          throws SQLException, InterruptedException {
+          throws SQLException, InterruptedException, TimeoutException {
     JdbcSemaphore semaphore = new JdbcSemaphore(ds, semName, maxReservations);
+
+    // test update;
+    int totalPermits = semaphore.totalPermits();
+    int acquire = totalPermits - 1;
+    semaphore.acquire(1, TimeUnit.SECONDS, acquire);
+    semaphore.reducePermits(2);
+    Assert.assertFalse(semaphore.tryAcquire(2, TimeUnit.SECONDS));
+    semaphore.release(acquire);
+    semaphore.increasePermits(2);
+    Assert.assertEquals(totalPermits,  semaphore.totalPermits());
+
     Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS, 1));
     semaphore.release(1);
     Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS, 2));

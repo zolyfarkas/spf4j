@@ -173,19 +173,24 @@ public final class JdbcHeartBeat {
       @Override
       @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(updateHeartbeatSql)) {
-          stmt.setQueryTimeout(10);
-          stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
-          int rowsUpdated = stmt.executeUpdate();
-          if (rowsUpdated != 1) {
-            throw new IllegalStateException("Broken Heartbeat for "
-                    + org.spf4j.base.Runtime.PROCESS_ID + "sql : " + updateHeartbeatSql +  " rows : " + rowsUpdated);
-          }
-          return null;
-        }
+        beat(conn);
+        return null;
       }
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
+
+  void beat(final Connection conn) throws SQLException {
+    try (PreparedStatement stmt = conn.prepareStatement(updateHeartbeatSql)) {
+      stmt.setQueryTimeout(10);
+      stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
+      int rowsUpdated = stmt.executeUpdate();
+      if (rowsUpdated != 1) {
+        throw new IllegalStateException("Broken Heartbeat for "
+                + org.spf4j.base.Runtime.PROCESS_ID + "sql : " + updateHeartbeatSql + " rows : " + rowsUpdated);
+      }
+    }
+  }
+
 
   @JmxExport
   public long getLastRunDB() throws SQLException, InterruptedException {
