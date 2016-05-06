@@ -176,7 +176,7 @@ public final class JdbcHeartBeat {
           stmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
           stmt.setLong(3, currentTimeMillis);
           int rowsUpdated = stmt.executeUpdate();
-          if (!(rowsUpdated == 1)) {
+          if (rowsUpdated != 1) {
             throw new IllegalStateException("There must be only one beat per owner "
                     + org.spf4j.base.Runtime.PROCESS_ID);
           }
