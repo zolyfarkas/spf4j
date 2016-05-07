@@ -167,9 +167,7 @@ public final class JdbcSemaphore implements AutoCloseable {
 
     this.reducePermitsSql = "UPDATE " + semaphoreTableName + " SET "
             + totalPermitsColumn + " = " + totalPermitsColumn + " - ?, "
-            + availablePermitsColumn + " =  CASE WHEN "
-            + availablePermitsColumn + " - ? < 0 "
-            + " THEN " + 0 + " ELSE " + availablePermitsColumn + " - ? END , "
+            + availablePermitsColumn + " = " + availablePermitsColumn + " - ? , "
             + lastModifiedByColumn + " = ?, " + lastModifiedAtColumn + " = " + currentTimeMillisFunc + " WHERE "
             + semaphoreNameColumn + " = ? AND "
             + totalPermitsColumn + " >= ?";
@@ -182,10 +180,7 @@ public final class JdbcSemaphore implements AutoCloseable {
 
     this.updatePermitsSql = "UPDATE " + semaphoreTableName + " SET "
             + totalPermitsColumn + " =  ?, "
-            + availablePermitsColumn + " =  CASE WHEN "
-            + " 0 > " + availablePermitsColumn + " + ?  - " + totalPermitsColumn
-            + " THEN  0  ELSE " + availablePermitsColumn + " + ? - " + totalPermitsColumn
-            + " END , "
+            + availablePermitsColumn + " =  " + availablePermitsColumn + " + ? - " + totalPermitsColumn + ','
             + lastModifiedByColumn + " = ?, " + lastModifiedAtColumn + " = " + currentTimeMillisFunc + " WHERE "
             + semaphoreNameColumn + " = ?";
 
