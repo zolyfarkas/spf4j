@@ -1,6 +1,7 @@
 package org.spf4j.concurrent.jdbc;
 
 import java.io.Serializable;
+import org.spf4j.jdbc.DbType;
 
 /*
  * CREATE TABLE HEARTBEATS (
@@ -67,5 +68,31 @@ public final class HeartBeatTableDesc  implements Serializable {
     return "HeartbeatTableDesc{" + "tableName=" + tableName + ", ownerColun=" + ownerColumn + ", intervalColumn="
             + intervalColumn + ", lastHeartbeatColumn=" + lastHeartbeatColumn + '}';
   }
+
+
+  /**
+   * Return the SQL for a current time millis since a EPOCH...
+   *
+   * @param dbType - the database type.
+   * @return - the sql fragment taht returns the current sql millis.
+   * @throws ExceptionInInitializerError
+   */
+  public static String getCurrTSSqlFn(final DbType dbType) throws ExceptionInInitializerError {
+    switch (dbType) {
+      case H2:
+        return "TIMESTAMPDIFF('MILLISECOND', timestamp '1970-01-01 00:00:00', CURRENT_TIMESTAMP())";
+      case ORACLE:
+        return "(SYSDATE - TO_DATE('01-01-1970 00:00:00', 'DD-MM-YYYY HH24:MI:SS')) * 24 * 3600000";
+      case MSSQL:
+        return "DATEDIFF(ms, '1970-01-01 00:00:00', GETUTCDATE())";
+      default:
+        throw new ExceptionInInitializerError("Database not supported");
+    }
+  }
+
+
+  public static final HeartBeatTableDesc DEFAULT = new HeartBeatTableDesc("HEARTBEATS",
+            "OWNER", "INTERVAL_MILLIS", "LAST_HEARTBEAT_INSTANT_MILLIS",
+            getCurrTSSqlFn(DbType.DEFAULT));
 
 }

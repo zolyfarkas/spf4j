@@ -18,12 +18,14 @@ public final class SemaphoreTablesDesc implements Serializable {
   private final String permitsByOwnerTableName;
   private final String ownerColumn;
   private final String ownerReservationsColumn;
+  private final HeartBeatTableDesc heartBeatTableDesc;
 
   public SemaphoreTablesDesc(final String semaphoreTableName, final String semNameColumn,
           final String availablePermitsColumn,
           final String maxReservationsColumn, final String lastModifiedColumn,
           final String lastModifiedAtColumn, final String reservationsByOwnerTableName,
-          final String ownerColumn, final String ownerReservationsColumn) {
+          final String ownerColumn, final String ownerReservationsColumn,
+          final HeartBeatTableDesc heartBeatTableDesc) {
     this.semaphoreTableName = semaphoreTableName;
     this.semNameColumn = semNameColumn;
     this.availablePermitsColumn = availablePermitsColumn;
@@ -33,6 +35,7 @@ public final class SemaphoreTablesDesc implements Serializable {
     this.permitsByOwnerTableName = reservationsByOwnerTableName;
     this.ownerColumn = ownerColumn;
     this.ownerReservationsColumn = ownerReservationsColumn;
+    this.heartBeatTableDesc = heartBeatTableDesc;
   }
 
   public String getSemaphoreTableName() {
@@ -71,6 +74,11 @@ public final class SemaphoreTablesDesc implements Serializable {
     return ownerReservationsColumn;
   }
 
+  public HeartBeatTableDesc getHeartBeatTableDesc() {
+    return heartBeatTableDesc;
+  }
+
+
   @Override
   public String toString() {
     return "SemaphoreTablesDesc{" + "semaphoreTableName=" + semaphoreTableName + ", semNameColumn="
@@ -81,7 +89,10 @@ public final class SemaphoreTablesDesc implements Serializable {
             + ownerColumn + ", ownerReservationsColumn=" + ownerReservationsColumn + '}';
   }
 
-
+  public static final SemaphoreTablesDesc DEFAULT = new SemaphoreTablesDesc(
+          "SEMAPHORES", "SEMAPHORE_NAME", "AVAILABLE_PERMITS",
+            "TOTAL_PERMITS", "LAST_UPDATED_BY", "LAST_UPDATED_AT", "PERMITS_BY_OWNER", "OWNER", "PERMITS",
+          HeartBeatTableDesc.DEFAULT);
 
 
 }

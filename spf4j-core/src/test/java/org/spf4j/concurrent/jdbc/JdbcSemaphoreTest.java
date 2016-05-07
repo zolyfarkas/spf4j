@@ -51,7 +51,8 @@ public class JdbcSemaphoreTest {
         stmt.execute(semddl);
       }
 
-      JdbcHeartBeat heartbeat = JdbcHeartBeat.getHeartbeat(ds, null);
+      JdbcHeartBeat heartbeat = JdbcHeartBeat.getHeartBeatAndSubscribe(ds,
+              HeartBeatTableDesc.DEFAULT, (JdbcHeartBeat.FailureHook) null);
       long lb = heartbeat.getLastRunDB();
       System.out.println("last TS = " + lb + " " + new DateTime(lb));
       heartbeat.beat();

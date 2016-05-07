@@ -46,7 +46,7 @@ import org.spf4j.jmx.Registry;
  */
 @SuppressFBWarnings({"SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING", "NP_LOAD_OF_KNOWN_NULL_VALUE"})
 @Beta
-public final class JdbcSemaphore {
+public final class JdbcSemaphore implements AutoCloseable {
 
   private static final Logger LOG = LoggerFactory.getLogger(JdbcSemaphore.class);
 
@@ -96,6 +96,8 @@ public final class JdbcSemaphore {
 
   private static final int ACQUIRE_POLL_MILLIS = Integer.getInteger("spf4j.jdbc.semaphore.pollIntervalMillis", 1000);
 
+  private final JdbcHeartBeat.FailureHook failureHook;
+
 
   /**
    * @param dataSource - the jdbc data source with the Semaphores table. Please be sensible, no "test on borrow" pools.
@@ -122,9 +124,7 @@ public final class JdbcSemaphore {
   public JdbcSemaphore(final DataSource dataSource, final String semaphoreName,
           final int nrPermits, final boolean strict)
           throws SQLException, InterruptedException {
-    this(dataSource, new SemaphoreTablesDesc("SEMAPHORES", "SEMAPHORE_NAME", "AVAILABLE_PERMITS",
-            "TOTAL_PERMITS", "LAST_UPDATED_BY", "LAST_UPDATED_AT", "PERMITS_BY_OWNER", "OWNER", "PERMITS"),
-            semaphoreName, nrPermits, 10, strict);
+    this(dataSource, SemaphoreTablesDesc.DEFAULT, semaphoreName, nrPermits, 10, strict);
   }
 
 
@@ -142,13 +142,15 @@ public final class JdbcSemaphore {
     this.semTableDesc = semTableDesc;
     this.rnd = new IntMath.XorShift32();
     this.isHealthy = true;
-    this.heartBeat = JdbcHeartBeat.getHeartbeat(dataSource, new JdbcHeartBeat.FailureHook() {
+    this.failureHook = new JdbcHeartBeat.FailureHook() {
       @Override
       public void onError(final Error error) {
         heartBeatFailure = error;
         isHealthy = false;
       }
-    });
+    };
+    this.heartBeat = JdbcHeartBeat.getHeartBeatAndSubscribe(dataSource,
+            semTableDesc.getHeartBeatTableDesc(), failureHook);
     final String semaphoreTableName = semTableDesc.getSemaphoreTableName();
     String availablePermitsColumn = semTableDesc.getAvailablePermitsColumn();
     String lastModifiedByColumn = semTableDesc.getLastModifiedByColumn();
@@ -403,6 +405,7 @@ public final class JdbcSemaphore {
         try {
           fut.get(deadlineNanos - System.nanoTime(), TimeUnit.NANOSECONDS);
         } catch (TimeoutException ex) {
+          //removing dead entries did not finish in time, but continues in the background.
           break;
         } catch (ExecutionException ex) {
           throw new SQLException(ex);
@@ -689,6 +692,12 @@ public final class JdbcSemaphore {
   public String toString() {
     return "JdbcSemaphore{" + "jdbc=" + jdbc
             + ", jdbcTimeoutSeconds=" + jdbcTimeoutSeconds + ", semName=" + semName + '}';
+  }
+
+  @Override
+  public void close() {
+    this.heartBeat.removeFailureHook(failureHook);
+    isHealthy = false;
   }
 
 }

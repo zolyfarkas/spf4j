@@ -123,6 +123,10 @@ public final class JdbcHeartBeat implements AutoCloseable {
     failureHooks.add(hook);
   }
 
+  public void removeFailureHook(final FailureHook hook) {
+    failureHooks.remove(hook);
+  }
+
   void createHeartbeatRow()
           throws SQLException, InterruptedException {
 
@@ -168,12 +172,14 @@ public final class JdbcHeartBeat implements AutoCloseable {
   }
 
   private ScheduledHeartBeat heartbeatRunnable;
+
   private ScheduledHeartBeat getHeartBeatRunnable() {
     if (heartbeatRunnable == null) {
       heartbeatRunnable = new ScheduledHeartBeat();
     }
     return heartbeatRunnable;
   }
+
   public void scheduleHeartbeat() {
     synchronized (jdbc) {
       if (isClosed) {
@@ -272,11 +278,22 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   private static final int HEARTBEAT_INTERVAL_MILLIS = Integer.getInteger("spf4j.heartbeat.intervalMillis", 10000);
 
-  public static synchronized JdbcHeartBeat getHeartbeat(final DataSource dataSource, @Nullable final FailureHook hook)
+
+  /**
+   * Get a reference to the hearbeat instance.
+   * @param dataSource - the datasource the hearbeat goes against.
+   * @param hook - a hook to notify when heartbeat fails.
+   * @return - the heartbeat instance.
+   * @throws SQLException
+   * @throws InterruptedException
+   */
+  public static synchronized JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
+          final HeartBeatTableDesc hbTableDesc,
+          @Nullable final FailureHook hook)
           throws SQLException, InterruptedException {
     JdbcHeartBeat beat = HEARTBEATS.get(dataSource);
     if (beat == null) {
-      beat = new JdbcHeartBeat(dataSource, HEARTBEAT_INTERVAL_MILLIS, 5);
+      beat = new JdbcHeartBeat(dataSource, hbTableDesc, HEARTBEAT_INTERVAL_MILLIS, 5);
       beat.scheduleHeartbeat();
       beat.registerJmx();
       HEARTBEATS.put(dataSource, beat);
@@ -322,6 +339,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
             for (FailureHook hook : failureHooks) {
               hook.onError(err);
             }
+            failureHooks.clear();
             throw err;
           }
         }
@@ -336,6 +354,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
         for (FailureHook hook : failureHooks) {
           hook.onError(err);
         }
+        failureHooks.clear();
         throw err;
 
       }
