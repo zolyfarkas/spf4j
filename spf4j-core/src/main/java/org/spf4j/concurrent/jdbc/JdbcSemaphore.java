@@ -90,7 +90,7 @@ public final class JdbcSemaphore {
 
   private volatile boolean isHealthy;
 
-  private Error heartheatFailure;
+  private Error heartBeatFailure;
 
   private static final Interner<String> INTERNER = Interners.newStrongInterner();
 
@@ -145,7 +145,7 @@ public final class JdbcSemaphore {
     this.heartBeat = JdbcHeartBeat.getHeartbeat(dataSource, new JdbcHeartBeat.FailureHook() {
       @Override
       public void onError(final Error error) {
-        heartheatFailure = error;
+        heartBeatFailure = error;
         isHealthy = false;
       }
     });
@@ -252,7 +252,7 @@ public final class JdbcSemaphore {
 
   private void validate() {
     if (!isHealthy) {
-      throw new IllegalStateException("Heartbeats failed! semahore broken " + this, heartheatFailure);
+      throw new IllegalStateException("Heartbeats failed! semahore broken " + this, heartBeatFailure);
     }
   }
 
