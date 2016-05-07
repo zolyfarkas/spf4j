@@ -370,6 +370,7 @@ public final class JdbcSemaphore {
             stmt.setNString(3, semName);
             stmt.setInt(4, nrReservations);
             int rowsUpdated = stmt.executeUpdate();
+            Boolean acquired;
             if (rowsUpdated == 1) {
               try (PreparedStatement ostmt = conn.prepareStatement(acquireByOwnerSql)) {
                 ostmt.setInt(1, nrReservations);
@@ -381,13 +382,14 @@ public final class JdbcSemaphore {
                   throw new IllegalStateException("Updated " + nrUpdated + " is incorrect for " + ostmt);
                 }
               }
-              return Boolean.TRUE;
+              acquired = Boolean.TRUE;
             } else {
               if (rowsUpdated > 1) {
                 throw new IllegalStateException("Too many rows updated! when trying to acquire " + nrReservations);
               }
-              return Boolean.FALSE;
+              acquired = Boolean.FALSE;
             }
+            return acquired;
           }
         }
       }, timeout, unit);

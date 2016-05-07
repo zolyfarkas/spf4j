@@ -18,6 +18,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.concurrent.ThreadSafe;
 import javax.sql.DataSource;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.concurrent.DefaultExecutor;
@@ -27,6 +28,11 @@ import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 
 /**
+ * A class that does "heartbeats" (at a arbitrary inteval) to a database table.
+ * This is to detect the death of a process.
+ * The process is considered dead when: currentTime - lastheartbeat > beatInterval * 2
+ * When this class mechanism detects that it cannot perform the heartbeats it throws a Error.
+ * The sensible this for the process is to go down (and restart if it is a daemon).
  *
  * @author zoly
  */
@@ -34,7 +40,8 @@ import org.spf4j.jmx.Registry;
   "PMB_POSSIBLE_MEMORY_BLOAT"}, justification = "The db object names are configurable,"
         + "we for know allow heartbeats to multiple data sources, should be one mostly")
 @ParametersAreNonnullByDefault
-public final class JdbcHeartBeat {
+@ThreadSafe
+public final class JdbcHeartBeat implements AutoCloseable {
 
   private final JdbcTemplate jdbc;
 
@@ -49,6 +56,23 @@ public final class JdbcHeartBeat {
   private final String deleteSql;
 
   private volatile long lastRun;
+
+  private boolean isClosed;
+
+  private ScheduledFuture<?> scheduledHearbeat;
+
+  @Override
+  public void close() {
+    synchronized (jdbc) {
+      if (!isClosed) {
+        ScheduledFuture<?> running = scheduledHearbeat;
+        if (running != null) {
+          scheduledHearbeat.cancel(true);
+        }
+        isClosed = true;
+      }
+    }
+  }
 
   public interface FailureHook {
 
@@ -67,10 +91,16 @@ public final class JdbcHeartBeat {
 
   private JdbcHeartBeat(final DataSource dataSource, final HeartBeatTableDesc hbTableDesc, final long intervalMillis,
           final int jdbcTimeoutSeconds) throws SQLException, InterruptedException {
+    if (intervalMillis < 1000) {
+      throw new IllegalArgumentException("The heartbeat interval should be at least 1s and not "
+              + intervalMillis + " ms");
+    }
+
     this.jdbc = new JdbcTemplate(dataSource);
     this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;
     this.intervalMillis = intervalMillis;
     this.hbTableDesc = hbTableDesc;
+    this.isClosed = false;
     String hbTableName = hbTableDesc.getTableName();
     String lastHeartbeatColumn = hbTableDesc.getLastHeartbeatColumn();
     String currentTimeMillisFunc = hbTableDesc.getCurrentTimeMillisFunc();
@@ -137,34 +167,29 @@ public final class JdbcHeartBeat {
     });
   }
 
-  public ScheduledFuture<?> scheduleHeartbeat() {
-    return DefaultScheduler.INSTANCE.scheduleAtFixedRate(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          long lr = lastRun;
-          long currentTimeMillis = System.currentTimeMillis();
-          if (lr != 0
-                  && ((intervalMillis * 2) < (currentTimeMillis - lr))) {
-            Error err = new Error("System to busy to provide regular heartbeat, lastRun = " + lr
-                + ", intervalMillis = " + intervalMillis + ", currentTimeMillis = " + currentTimeMillis);
-            for (FailureHook hook : failureHooks) {
-              hook.onError(err);
-            }
-            throw err;
-          }
-          beat();
-          lastRun = currentTimeMillis;
-        } catch (RuntimeException | SQLException | InterruptedException ex) {
-          Error err = new Error("System failed heartbeat", ex);
-          for (FailureHook hook : failureHooks) {
-            hook.onError(err);
-          }
-          throw err;
-
-        }
+  private ScheduledHeartBeat heartbeatRunnable;
+  private ScheduledHeartBeat getHeartBeatRunnable() {
+    if (heartbeatRunnable == null) {
+      heartbeatRunnable = new ScheduledHeartBeat();
+    }
+    return heartbeatRunnable;
+  }
+  public void scheduleHeartbeat() {
+    synchronized (jdbc) {
+      if (isClosed) {
+        throw new IllegalStateException("Heartbeater is closed " + this);
       }
-    }, intervalMillis, intervalMillis, TimeUnit.MILLISECONDS);
+      long lr = lastRun;
+      long delay;
+      if (lr == 0) {
+        delay = intervalMillis;
+      } else if (lr > 0) {
+        delay = intervalMillis - (System.currentTimeMillis() - lr);
+      } else {
+        throw new IllegalStateException("The end of times are upon us :-) " + lr);
+      }
+      scheduledHearbeat = DefaultScheduler.INSTANCE.schedule(getHeartBeatRunnable(), delay, TimeUnit.MILLISECONDS);
+    }
   }
 
   @JmxExport
@@ -173,15 +198,21 @@ public final class JdbcHeartBeat {
       @Override
       @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
-        beat(conn);
+        beat(conn, deadlineNanos);
         return null;
       }
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
+    lastRun = System.currentTimeMillis();
   }
 
-  void beat(final Connection conn) throws SQLException {
+  void beat(final Connection conn, final long deadlineNanos) throws SQLException {
+    synchronized (jdbc) {
+      if (isClosed) {
+        throw new IllegalStateException("Heartbeater is closed " + this);
+      }
+    }
     try (PreparedStatement stmt = conn.prepareStatement(updateHeartbeatSql)) {
-      stmt.setQueryTimeout(10);
+      stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
       stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
       int rowsUpdated = stmt.executeUpdate();
       if (rowsUpdated != 1) {
@@ -189,6 +220,10 @@ public final class JdbcHeartBeat {
                 + org.spf4j.base.Runtime.PROCESS_ID + "sql : " + updateHeartbeatSql + " rows : " + rowsUpdated);
       }
     }
+  }
+
+  void updateLastRun(final long lastRunTime) {
+    lastRun = lastRunTime;
   }
 
 
@@ -199,12 +234,12 @@ public final class JdbcHeartBeat {
       @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
       public Long handle(final Connection conn, final long deadlineNanos) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement("select " + hbTableDesc.getLastHeartbeatColumn()
-        + " FROM " + hbTableDesc.getTableName() + " where " + hbTableDesc.getOwnerColumn() + " = ?")) {
+                + " FROM " + hbTableDesc.getTableName() + " where " + hbTableDesc.getOwnerColumn() + " = ?")) {
           stmt.setQueryTimeout(10);
           stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
           try (ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) {
-              long result =  rs.getLong(1);
+              long result = rs.getLong(1);
               if (rs.next()) {
                 throw new IllegalStateException("Multible beats for same owner " + org.spf4j.base.Runtime.PROCESS_ID);
               }
@@ -218,9 +253,6 @@ public final class JdbcHeartBeat {
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
-
-
-
   @JmxExport
   public long getIntervalMillis() {
     return intervalMillis;
@@ -233,7 +265,7 @@ public final class JdbcHeartBeat {
 
   @JmxExport
   public String getLastRunDateTimeOwner() {
-    return  ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastRun), ZoneId.systemDefault()).toString();
+    return ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastRun), ZoneId.systemDefault()).toString();
   }
 
   private static final Map<DataSource, JdbcHeartBeat> HEARTBEATS = new IdentityHashMap<>();
@@ -263,6 +295,51 @@ public final class JdbcHeartBeat {
   public String toString() {
     return "JdbcHeartBeat{" + "jdbc=" + jdbc + ", jdbcTimeoutSeconds=" + jdbcTimeoutSeconds + ", intervalMillis="
             + intervalMillis + ", hbTableDesc=" + hbTableDesc + ", lastRun=" + lastRun + '}';
+  }
+
+  private class ScheduledHeartBeat implements Runnable {
+
+    @Override
+    public void run() {
+      try {
+        long lr = lastRun;
+        long currentTimeMillis = System.currentTimeMillis();
+        if (lr != 0) {
+          // not first beat.
+          long millisSinceLastBeat = currentTimeMillis - lr;
+          if (millisSinceLastBeat < intervalMillis / 2) {
+            // we had a heartbeat not too long ago... weshould skip beating now and reschedule.
+            synchronized (jdbc) {
+              if (!isClosed) {
+                scheduleHeartbeat();
+              }
+            }
+            return;
+          } else if (((intervalMillis * 2) < millisSinceLastBeat)) {
+            // Unable to beat at inteval!
+            Error err = new Error("System to busy to provide regular heartbeat, lastRun = " + lr
+                    + ", intervalMillis = " + intervalMillis + ", currentTimeMillis = " + currentTimeMillis);
+            for (FailureHook hook : failureHooks) {
+              hook.onError(err);
+            }
+            throw err;
+          }
+        }
+        beat();
+        synchronized (jdbc) {
+          if (!isClosed) {
+            scheduleHeartbeat();
+          }
+        }
+      } catch (RuntimeException | SQLException | InterruptedException ex) {
+        Error err = new Error("System failed heartbeat", ex);
+        for (FailureHook hook : failureHooks) {
+          hook.onError(err);
+        }
+        throw err;
+
+      }
+    }
   }
 
 }
