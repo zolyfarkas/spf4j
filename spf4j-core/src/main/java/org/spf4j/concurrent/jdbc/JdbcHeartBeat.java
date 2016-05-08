@@ -65,6 +65,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
   public void close() {
     synchronized (jdbc) {
       if (!isClosed) {
+        unregisterJmx();
         ScheduledFuture<?> running = scheduledHearbeat;
         if (running != null) {
           scheduledHearbeat.cancel(true);
@@ -117,6 +118,10 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   public void registerJmx() {
     Registry.export(this);
+  }
+
+  public void unregisterJmx() {
+    Registry.unregister(this);
   }
 
   public void addFailureHook(final FailureHook hook) {

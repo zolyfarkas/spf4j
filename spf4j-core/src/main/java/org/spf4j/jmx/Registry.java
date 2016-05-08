@@ -76,20 +76,24 @@ public final class Registry {
         return Registry.registerMBean(ExportedValuesMBean.createObjectName(domain, name), object);
     }
 
+    @Nullable
     public static Object unregister(final Object object) {
         final Class<? extends Object> aClass = object.getClass();
         return unregister(aClass.getPackage().getName(), aClass.getSimpleName());
     }
 
+    @Nullable
     public static Object unregister(final Class<?> object) {
         return unregister(object.getPackage().getName(), object.getSimpleName());
     }
 
+    @Nullable
     public static Object unregister(final String packageName, final String mbeanName) {
         ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
         return unregister(objectName);
     }
 
+    @Nullable
     public static synchronized Object unregister(final ObjectName objectName) {
         Object result = null;
         if (MBEAN_SERVER.isRegistered(objectName)) {

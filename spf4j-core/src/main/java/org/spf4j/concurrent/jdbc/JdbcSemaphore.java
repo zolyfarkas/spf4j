@@ -247,6 +247,10 @@ public final class JdbcSemaphore implements AutoCloseable {
     Registry.export(JdbcSemaphore.class.getName(), semName, this);
   }
 
+  public void unregisterJmx() {
+    Registry.unregister(JdbcSemaphore.class.getName(), semName);
+  }
+
   private void validate() {
     if (!isHealthy) {
       throw new IllegalStateException("Heartbeats failed! semahore broken " + this, heartBeatFailure);
@@ -691,6 +695,7 @@ public final class JdbcSemaphore implements AutoCloseable {
 
   @Override
   public void close() {
+    unregisterJmx();
     this.heartBeat.removeFailureHook(failureHook);
     isHealthy = false;
   }
