@@ -36,6 +36,10 @@ public final  class MutableHolder<T> implements Comparable<MutableHolder<T>> {
         this.value = null;
     }
 
+    public static <T> MutableHolder<T> of(final T value) {
+      return (MutableHolder<T>) new MutableHolder<>(value);
+    }
+
     public T getValue() {
         return value;
     }

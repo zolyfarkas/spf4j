@@ -61,6 +61,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   private ScheduledFuture<?> scheduledHearbeat;
 
+  private final long beatDurationNanos;
+
   @Override
   public void close() {
     synchronized (jdbc) {
@@ -113,7 +115,14 @@ public final class JdbcHeartBeat implements AutoCloseable {
     this.deleteSql = "DELETE FROM " + hbTableName + " WHERE " + lastHeartbeatColumn + " + " + intervalColumn
             + " * 2 < " + currentTimeMillisFunc;
     this.failureHooks = new CopyOnWriteArrayList<>();
+    long startTimeNanos =  System.nanoTime();
     createHeartbeatRow();
+    long duration = System.nanoTime() - startTimeNanos;
+    this.beatDurationNanos = Math.max(duration, TimeUnit.MILLISECONDS.toNanos(10));
+  }
+
+  public long getBeatDurationNanos() {
+    return beatDurationNanos;
   }
 
   public void registerJmx() {
@@ -230,6 +239,15 @@ public final class JdbcHeartBeat implements AutoCloseable {
         throw new IllegalStateException("Broken Heartbeat for "
                 + org.spf4j.base.Runtime.PROCESS_ID + "sql : " + updateHeartbeatSql + " rows : " + rowsUpdated);
       }
+    }
+  }
+
+  boolean tryBeat(final Connection conn, final long deadlineNanos) throws SQLException {
+    if (System.currentTimeMillis() - lastRun > intervalMillis / 2) {
+      beat(conn, deadlineNanos);
+      return true;
+    } else {
+      return false;
     }
   }
 

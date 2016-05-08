@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.base.IntMath;
+import org.spf4j.base.MutableHolder;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.jdbc.JdbcTemplate;
 import org.spf4j.jmx.JmxExport;
@@ -359,6 +360,7 @@ public final class JdbcSemaphore implements AutoCloseable {
     }
     long deadlineNanos = System.nanoTime() + unit.toNanos(timeout);
     boolean acquired = false;
+    final MutableHolder<Boolean> beat = MutableHolder.of(Boolean.FALSE);
     do {
       validate();
       acquired = jdbc.transactOnConnection(new HandlerNano<Connection, Boolean, SQLException>() {
@@ -390,10 +392,17 @@ public final class JdbcSemaphore implements AutoCloseable {
               }
               acquired = Boolean.FALSE;
             }
+            if (deadlineNanos - System.nanoTime() > heartBeat.getBeatDurationNanos()) {
+              // do a heartbeat if have time, and if it makes sense.
+              beat.setValue(heartBeat.tryBeat(conn, deadlineNanos));
+            }
             return acquired;
           }
         }
       }, timeout, unit);
+      if (beat.getValue()) { // we did a heartbeat as part of the acquisition.
+        heartBeat.updateLastRun(System.currentTimeMillis());
+      }
       if (!acquired) {
         Future<Integer> fut = DefaultExecutor.INSTANCE.submit(new Callable<Integer>() {
           @Override
@@ -626,10 +635,9 @@ public final class JdbcSemaphore implements AutoCloseable {
           stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
           stmt.setInt(1, nrPermits);
           stmt.setInt(2, nrPermits);
-          stmt.setInt(3, nrPermits);
-          stmt.setNString(4, org.spf4j.base.Runtime.PROCESS_ID);
-          stmt.setNString(5, semName);
-          stmt.setInt(6, nrPermits);
+          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
+          stmt.setNString(4, semName);
+          stmt.setInt(5, nrPermits);
           int rowsUpdated = stmt.executeUpdate();
           if (rowsUpdated != 1) {
             throw new IllegalArgumentException("Cannot reduce nr total permits by " + nrPermits);
