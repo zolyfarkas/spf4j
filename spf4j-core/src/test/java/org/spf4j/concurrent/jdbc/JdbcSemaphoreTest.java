@@ -52,13 +52,14 @@ public class JdbcSemaphoreTest {
       }
 
       JdbcHeartBeat heartbeat = JdbcHeartBeat.getHeartBeatAndSubscribe(ds,
-              HeartBeatTableDesc.DEFAULT, (JdbcHeartBeat.FailureHook) null);
+              HeartBeatTableDesc.DEFAULT, (JdbcHeartBeat.LifecycleHook) null);
       long lb = heartbeat.getLastRunDB();
       System.out.println("last TS = " + lb + " " + new DateTime(lb));
       heartbeat.beat();
 
       testReleaseAck(ds, "testSem", 2);
       testReleaseAck(ds, "testSem2", 2);
+      heartbeat.close();
     }
 
   }
