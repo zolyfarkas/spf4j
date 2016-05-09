@@ -177,8 +177,11 @@
                 <fileset id="fileset" dir="${project.basedir}/target/generated-sources/avsc">
                         <include name="**/*.avsc"/>
                 </fileset>
-                <pathconvert refid="fileset" property="converted" pathsep=" " />
-                <exec executable="${project.basedir}/target/node/node">
+                <pathconvert refid="fileset" property="converted" pathsep=" ">
+                  <globmapper from="${project.basedir}/target/generated-sources/avsc/*" to="*" />
+                </pathconvert>
+                <exec executable="${project.basedir}/target/node/node"
+                dir = "${project.basedir}/target/generated-sources/avsc" >
                   <arg value = "${project.basedir}/target/lib/node_modules/avrodoc/bin/avrodoc"/>
                   <arg line="${converted}"/>
                   <arg value="-o${project.basedir}/target/avrodoc.html"/>
