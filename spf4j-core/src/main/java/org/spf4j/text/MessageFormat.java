@@ -13,6 +13,9 @@
  * MessageFormatterBenchmark.slf4jMessageFormatter         thrpt   10  14858871.864 ± 544079.529  ops/s
  * MessageFormatterBenchmark.spf4jMessageFormatter         thrpt   10   4674508.611 ± 108786.875  ops/s
  *
+ * An interesting note is the fact that sl4fj claim of 10x better performance is inacurate...
+ * (see claim: http://www.slf4j.org/api/org/slf4j/helpers/MessageFormatter.html)
+ * The spf4j formatter benchmarked here is actually faster than the stock slf4j formatter...
  *
  * Since its usability is better than the JDK one, a lot more performance improvement can be obtained in use.
  * The implementation is still pretty crappy
@@ -1054,7 +1057,7 @@ public final class MessageFormat extends Format {
     }
     return h;
   }
-  
+
   private int hash = 0;
 
   @Override
