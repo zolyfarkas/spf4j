@@ -360,7 +360,9 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
         @Override
         public void onClose() {
-          HEARTBEATS.remove(dataSource);
+          synchronized (JdbcHeartBeat.class) {
+            HEARTBEATS.remove(dataSource);
+          }
         }
       });
       HEARTBEATS.put(dataSource, beat);
