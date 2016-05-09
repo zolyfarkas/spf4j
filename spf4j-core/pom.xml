@@ -167,6 +167,30 @@
             </configuration>
           </execution>
           <execution>
+            <id>generate all avsc files</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                 <property name="test_classpath" refid="maven.test.classpath"/>
+
+              <apply executable="java"  force = "true">
+                <arg value="-cp"/>
+                <arg pathref="maven.test.classpath"/>
+                <arg value="org.apache.avro.tool.Main"/>
+                <arg value = "idl2schemata" />
+                <srcfile/>
+                <targetFile/>
+                <mapper type="regexp" from="^((.*/)?)([^/]+)\.avdl$$"
+                        to="${project.basedir}/target/generated-sources/avsc/\1"/>
+                <fileset dir="${project.basedir}/src/main/avdl" includes="**/*.avdl"/>
+              </apply>
+             </target>
+            </configuration>
+          </execution>
+          <execution>
             <id>generate avrodoc for all schemas</id>
             <phase>compile</phase>
             <goals>
@@ -204,61 +228,6 @@
 
         </executions>
       </plugin>
-
-      <!-- generate the avsc files from IDL -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.4.0</version>
-        <executions>
-          <execution>
-            <id>generate-tsdb</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>java</executable>
-              <arguments>
-                <argument>-classpath</argument>
-                <classpath>
-                  <dependency>org.apache.avro:avro-tools</dependency>
-                  <dependency>org.apache.avro:avro</dependency>
-                </classpath>
-                <argument>org.apache.avro.tool.Main</argument>
-                <argument>idl2schemata</argument>
-                <argument>${project.basedir}/src/main/avdl/tsdb2.avdl</argument>
-                <argument>${project.basedir}/target/generated-sources/avsc</argument>
-              </arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>generate-ssdump</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>java</executable>
-              <arguments>
-                <argument>-classpath</argument>
-                <classpath>
-                  <dependency>org.apache.avro:avro-tools</dependency>
-                  <dependency>org.apache.avro:avro</dependency>
-                </classpath>
-                <argument>org.apache.avro.tool.Main</argument>
-                <argument>idl2schemata</argument>
-                <argument>${project.basedir}/src/main/avdl/ssdump2.avdl</argument>
-                <argument>${project.basedir}/target/generated-sources/avsc</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
-        <configuration>
-          <classpathScope>test</classpathScope>
-        </configuration>
-      </plugin>
-      <!-- End generate avsc files -->
 
       <!-- Generate avrodoc -->
       <plugin>
