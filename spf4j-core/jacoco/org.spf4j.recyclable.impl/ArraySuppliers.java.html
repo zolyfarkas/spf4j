@@ -34,7 +34,7 @@ public final class ArraySuppliers {
 
 <span class="nc" id="L35">       private Objects() { }</span>
 
-<span class="nc" id="L37">       private static final SizedRecyclingSupplier.Factory FACTORY =</span>
+<span class="nc" id="L37">       private static final SizedRecyclingSupplier.Factory&lt;Object[]&gt; FACTORY =</span>
 <span class="nc" id="L38">               new SizedRecyclingSupplier.Factory&lt;Object[]&gt;() {</span>
 
             @Override
@@ -60,7 +60,7 @@ public final class ArraySuppliers {
 <span class="nc" id="L60">        private Bytes() { }</span>
 
 
-<span class="fc" id="L63">       private static final SizedRecyclingSupplier.Factory FACTORY =</span>
+<span class="fc" id="L63">       private static final SizedRecyclingSupplier.Factory&lt;byte[]&gt; FACTORY =</span>
 <span class="fc" id="L64">               new SizedRecyclingSupplier.Factory&lt;byte[]&gt;() {</span>
 
             @Override
@@ -98,6 +98,53 @@ public final class ArraySuppliers {
 
 
     }
+    
+    public static final class Chars {
+
+<span class="nc" id="L104">        private Chars() { }</span>
+
+
+<span class="fc" id="L107">       private static final SizedRecyclingSupplier.Factory&lt;char[]&gt; FACTORY =</span>
+<span class="fc" id="L108">               new SizedRecyclingSupplier.Factory&lt;char[]&gt;() {</span>
+
+            @Override
+            @SuppressFBWarnings(&quot;SUA_SUSPICIOUS_UNINITIALIZED_ARRAY&quot;)
+            public char[] create(final int size) {
+<span class="fc" id="L113">                return new char[size];</span>
+            }
+
+            @Override
+            public int size(final char[] object) {
+<span class="fc" id="L118">                return object.length;</span>
+            }
+        };
+
+<span class="fc" id="L122">      public static final SizedRecyclingSupplier&lt;char[]&gt; TL_SUPPLIER</span>
+              = new Powerof2ThreadLocalRecyclingSupplier&lt;&gt;(FACTORY, ReferenceType.SOFT);
+
+<span class="fc" id="L125">      public static final SizedRecyclingSupplier&lt;char[]&gt; GL_SUPPLIER</span>
+              = new Powerof2SizedGlobalRecyclingSupplier&lt;&gt;(FACTORY, ReferenceType.SOFT);
+
+<span class="fc" id="L128">      public static final SizedRecyclingSupplier&lt;char[]&gt; JAVA_NEW</span>
+<span class="fc" id="L129">              = new SizedRecyclingSupplier&lt;char[]&gt;() {</span>
+
+            @Override
+            @SuppressFBWarnings(&quot;SUA_SUSPICIOUS_UNINITIALIZED_ARRAY&quot;)
+            public char[] get(final int size) {
+<span class="nc" id="L134">                return new char[size];</span>
+            }
+
+            @Override
+            public void recycle(final char[] object) {
+                // Let the GC deal with this
+<span class="nc" id="L140">            }</span>
+        };
+
+
+    }
+    
+    
+    
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

@@ -18,6 +18,7 @@
 package org.spf4j.zel.instr;
 
 import org.spf4j.zel.vm.ExecutionContext;
+import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.ZExecutionException;
 
 
@@ -28,38 +29,39 @@ public final class LODX extends Instruction implements RValRef {
     
     private final String symbol;
     
-<span class="fc" id="L31">    public LODX(final String symbol) {</span>
-<span class="fc" id="L32">        this.symbol = symbol;</span>
-<span class="fc" id="L33">    }</span>
+<span class="fc" id="L32">    public LODX(final String symbol) {</span>
+<span class="fc" id="L33">        this.symbol = symbol;</span>
+<span class="fc" id="L34">    }</span>
     
     
     public static Object readFrom(final String symbol, final ExecutionContext context) throws ZExecutionException {
-<span class="fc" id="L37">        Integer addr  = context.code.getLocalSymbolTable().get(symbol);</span>
-<span class="fc bfc" id="L38" title="All 2 branches covered.">        if (addr == null) {</span>
-<span class="fc" id="L39">            addr = context.code.getGlobalSymbolTable().get(symbol);</span>
-<span class="pc bpc" id="L40" title="1 of 2 branches missed.">            if (addr == null) {</span>
-<span class="nc" id="L41">                throw new ZExecutionException(&quot;unalocated symbol encountered &quot; + symbol);</span>
+<span class="fc" id="L38">        Program code = context.getProgram();</span>
+<span class="fc" id="L39">        Integer addr  = code.getLocalSymbolTable().get(symbol);</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        if (addr == null) {</span>
+<span class="fc" id="L41">            addr = code.getGlobalSymbolTable().get(symbol);</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">            if (addr == null) {</span>
+<span class="nc" id="L43">                throw new ZExecutionException(&quot;unalocated symbol encountered &quot; + symbol);</span>
             }
-<span class="fc" id="L43">            return context.globalMem[addr];</span>
+<span class="fc" id="L45">            return context.globalPeek(addr);</span>
         } else {
-<span class="fc" id="L45">            return context.mem[addr];</span>
+<span class="fc" id="L47">            return context.localPeek(addr);</span>
         }
     }
     
     @Override
     public int execute(final ExecutionContext context) throws ZExecutionException {
-<span class="fc" id="L51">        context.push(readFrom(symbol, context));</span>
-<span class="fc" id="L52">        return 1;</span>
+<span class="fc" id="L53">        context.push(readFrom(symbol, context));</span>
+<span class="fc" id="L54">        return 1;</span>
     }
  
     @Override
     public String getSymbol() {
-<span class="fc" id="L57">        return symbol;</span>
+<span class="fc" id="L59">        return symbol;</span>
     }
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L62">        return new Object[] {symbol};</span>
+<span class="fc" id="L64">        return new Object[] {symbol};</span>
     }
     
 }

@@ -112,7 +112,7 @@ abstract class Striped64 extends Number {
 <span class="fc" id="L112">                UNSAFE = getUnsafe();</span>
 <span class="fc" id="L113">                Class&lt;?&gt; ak = Cell.class;</span>
 <span class="fc" id="L114">                valueOffset = UNSAFE.objectFieldOffset</span>
-                    (ak.getDeclaredField(&quot;value&quot;));
+<span class="fc" id="L115">                    (ak.getDeclaredField(&quot;value&quot;));</span>
 <span class="nc" id="L116">            } catch (NoSuchFieldException | SecurityException e) {</span>
 <span class="nc" id="L117">                throw new Error(e);</span>
 <span class="fc" id="L118">            }</span>
@@ -216,9 +216,9 @@ abstract class Striped64 extends Number {
             Cell[] as; Cell a; int n; long v;
 <span class="pc bpc" id="L217" title="1 of 4 branches missed.">            if ((as = cells) != null &amp;&amp; (n = as.length) &gt; 0) {</span>
 <span class="fc bfc" id="L218" title="All 2 branches covered.">                if ((a = as[(n - 1) &amp; h]) == null) {</span>
-<span class="pc bpc" id="L219" title="1 of 2 branches missed.">                    if (busy == 0) {            // Try to attach new Cell</span>
+<span class="fc bfc" id="L219" title="All 2 branches covered.">                    if (busy == 0) {            // Try to attach new Cell</span>
 <span class="fc" id="L220">                        Cell r = new Cell(x);   // Optimistically create</span>
-<span class="pc bpc" id="L221" title="2 of 4 branches missed.">                        if (busy == 0 &amp;&amp; casBusy()) {</span>
+<span class="pc bpc" id="L221" title="1 of 4 branches missed.">                        if (busy == 0 &amp;&amp; casBusy()) {</span>
 <span class="fc" id="L222">                            boolean created = false;</span>
                             try {               // Recheck under lock
                                 Cell[] rs; int m, j;
@@ -236,7 +236,7 @@ abstract class Striped64 extends Number {
                             continue;           // Slot is now non-empty
                         }
                     }
-<span class="nc" id="L239">                    collide = false;</span>
+<span class="fc" id="L239">                    collide = false;</span>
                 }
 <span class="fc bfc" id="L241" title="All 2 branches covered.">                else if (!wasUncontended)       // CAS already known to fail</span>
 <span class="fc" id="L242">                    wasUncontended = true;      // Continue after rehash</span>
@@ -263,7 +263,7 @@ abstract class Striped64 extends Number {
 <span class="fc" id="L263">                h ^= h &gt;&gt;&gt; 17;</span>
 <span class="fc" id="L264">                h ^= h &lt;&lt; 5;</span>
             }
-<span class="pc bpc" id="L266" title="2 of 6 branches missed.">            else if (busy == 0 &amp;&amp; cells == as &amp;&amp; casBusy()) {</span>
+<span class="pc bpc" id="L266" title="3 of 6 branches missed.">            else if (busy == 0 &amp;&amp; cells == as &amp;&amp; casBusy()) {</span>
 <span class="fc" id="L267">                boolean init = false;</span>
                 try {                           // Initialize table
 <span class="pc bpc" id="L269" title="1 of 2 branches missed.">                    if (cells == as) {</span>
@@ -278,8 +278,8 @@ abstract class Striped64 extends Number {
 <span class="pc bpc" id="L278" title="1 of 2 branches missed.">                if (init)</span>
 <span class="fc" id="L279">                    break;</span>
 <span class="nc" id="L280">            }</span>
-<span class="pc bpc" id="L281" title="1 of 2 branches missed.">            else if (casBase(v = base, fn(v, x)))</span>
-<span class="fc" id="L282">                break;                          // Fall back on using base</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">            else if (casBase(v = base, fn(v, x)))</span>
+<span class="nc" id="L282">                break;                          // Fall back on using base</span>
 <span class="fc" id="L283">        }</span>
 <span class="fc" id="L284">        hc.code = h;                            // Record index for next time</span>
 <span class="fc" id="L285">    }</span>
@@ -309,9 +309,9 @@ abstract class Striped64 extends Number {
 <span class="fc" id="L309">            UNSAFE = getUnsafe();</span>
 <span class="fc" id="L310">            Class&lt;?&gt; sk = Striped64.class;</span>
 <span class="fc" id="L311">            baseOffset = UNSAFE.objectFieldOffset</span>
-                (sk.getDeclaredField(&quot;base&quot;));
+<span class="fc" id="L312">                (sk.getDeclaredField(&quot;base&quot;));</span>
 <span class="fc" id="L313">            busyOffset = UNSAFE.objectFieldOffset</span>
-                (sk.getDeclaredField(&quot;busy&quot;));
+<span class="fc" id="L314">                (sk.getDeclaredField(&quot;busy&quot;));</span>
 <span class="nc" id="L315">        } catch (NoSuchFieldException | SecurityException e) {</span>
 <span class="nc" id="L316">            throw new Error(e);</span>
 <span class="fc" id="L317">        }</span>
@@ -330,17 +330,17 @@ abstract class Striped64 extends Number {
 <span class="fc" id="L330">        } catch (SecurityException se) {</span>
             try {
 <span class="fc" id="L332">                return java.security.AccessController.doPrivileged</span>
-                    (new java.security
+<span class="fc" id="L333">                    (new java.security</span>
 <span class="fc" id="L334">                     .PrivilegedExceptionAction&lt;sun.misc.Unsafe&gt;() {</span>
                         public sun.misc.Unsafe run() throws Exception {
 <span class="fc" id="L336">                            java.lang.reflect.Field f = sun.misc</span>
-                                .Unsafe.class.getDeclaredField(&quot;theUnsafe&quot;);
+<span class="fc" id="L337">                                .Unsafe.class.getDeclaredField(&quot;theUnsafe&quot;);</span>
 <span class="fc" id="L338">                            f.setAccessible(true);</span>
 <span class="fc" id="L339">                            return (sun.misc.Unsafe) f.get(null);</span>
                         }});
 <span class="nc" id="L341">            } catch (java.security.PrivilegedActionException e) {</span>
 <span class="nc" id="L342">                throw new RuntimeException(&quot;Could not initialize intrinsics&quot;,</span>
-                                           e.getCause());
+<span class="nc" id="L343">                                           e.getCause());</span>
             }
         }
     }

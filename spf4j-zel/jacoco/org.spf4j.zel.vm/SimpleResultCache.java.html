@@ -75,7 +75,7 @@ public final class SimpleResultCache implements ResultCache {
     public void putPermanentResult(final Program program,
             @Nonnull final List&lt;Object&gt; params, final Object result) {
 <span class="fc" id="L77">        final Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; resultsMap =</span>
-                cache.getUnchecked(program);
+<span class="fc" id="L78">                cache.getUnchecked(program);</span>
 <span class="pc bpc" id="L79" title="1 of 2 branches missed.">        if (result == null) {</span>
 <span class="nc" id="L80">            resultsMap.getFirst().put(params, ResultCache.NULL);</span>
         } else {
@@ -87,7 +87,7 @@ public final class SimpleResultCache implements ResultCache {
     public void putTransientResult(final Program program,
             @Nonnull final  List&lt;Object&gt; params, final Object result) {
 <span class="nc" id="L89">        final Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; resultsMap =</span>
-                cache.getUnchecked(program);
+<span class="nc" id="L90">                cache.getUnchecked(program);</span>
 <span class="nc bnc" id="L91" title="All 2 branches missed.">        if (result == null) {</span>
 <span class="nc" id="L92">            resultsMap.getSecond().put(params, ResultCache.NULL);</span>
         } else {
@@ -100,7 +100,7 @@ public final class SimpleResultCache implements ResultCache {
             @Nonnull final List&lt;Object&gt; params, final Callable&lt;Object&gt; compute)
             throws ExecutionException {
 <span class="fc" id="L102">        final Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; prCache =</span>
-                cache.getUnchecked(program);
+<span class="fc" id="L103">                cache.getUnchecked(program);</span>
 <span class="fc" id="L104">        Object result = prCache.getFirst().get(params);</span>
 <span class="fc bfc" id="L105" title="All 2 branches covered.">        if (result == null) {</span>
 <span class="fc" id="L106">            result = prCache.getSecond().get(params, new CallableNullWrapper(compute));</span>

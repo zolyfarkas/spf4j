@@ -28,53 +28,65 @@
 <a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 <a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> java.util.List;
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutorService;
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.SynchronousQueue;
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ThreadPoolExecutor;
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeUnit;
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.AbstractRunnable;
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_MILLIS;
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  @SuppressFBWarnings(<span class="jxr_string">"HES_EXECUTOR_NEVER_SHUTDOWN"</span>) <em class="jxr_comment">// THere is a shutdownhook being registered which FB does not see</em>
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/DefaultExecutor.html">DefaultExecutor</a> {
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>      <strong class="jxr_keyword">private</strong> <a href="../../../org/spf4j/concurrent/DefaultExecutor.html">DefaultExecutor</a>() {
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>      }
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>      
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> ExecutorService INSTANCE;
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">static</strong> {
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> coreThreads = Integer.getInteger(<span class="jxr_string">"defaultExecutor.coreThreads"</span>, 0);
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxIdleMillis = Integer.getInteger(<span class="jxr_string">"defaultExecutor.maxIdleMillis"</span>, 60000);
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> isDaemon = Boolean.getBoolean(<span class="jxr_string">"defaultExecutor.daemon"</span>);
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>          <strong class="jxr_keyword">if</strong> (<span class="jxr_string">"spf4j"</span>.equalsIgnoreCase(System.getProperty(<span class="jxr_string">"defaultExecutor.implementation"</span>, <span class="jxr_string">"spf4j"</span>))) {
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>              <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">LifoThreadPoolExecutorSQP</a> lifoExec = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">LifoThreadPoolExecutorSQP</a>(<span class="jxr_string">"defaultExecutor"</span>, coreThreads,
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>                      Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon, Integer.getInteger(<span class="jxr_string">"defaultExecutor.spinlockCount"</span>,
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>                              1024));
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>              lifoExec.exportJmx();
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>              INSTANCE = lifoExec;
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>          } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>              INSTANCE = <strong class="jxr_keyword">new</strong> ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>                  <strong class="jxr_keyword">new</strong> SynchronousQueue&lt;Runnable&gt;(), <strong class="jxr_keyword">new</strong> CustomThreadFactory(<span class="jxr_string">"DefaultExecutor"</span>, isDaemon));
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>          }
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>          org.spf4j.base.Runtime.queueHookAtEnd(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/base/AbstractRunnable.html">AbstractRunnable</a>(<strong class="jxr_keyword">true</strong>) {
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>  
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>              @Override
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>              <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> doRun() <strong class="jxr_keyword">throws</strong> InterruptedException {
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>                  INSTANCE.shutdown();
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>                  INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>                  List&lt;Runnable&gt; remaining = INSTANCE.shutdownNow();
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>                  <strong class="jxr_keyword">if</strong> (remaining.size() &gt; 0) {
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>                      System.err.println(<span class="jxr_string">"Remaining tasks: "</span> + remaining);
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>                  }
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>              }
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>          });
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>      }
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ForkJoinPool;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.SynchronousQueue;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ThreadPoolExecutor;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeUnit;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.AbstractRunnable;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_MILLIS;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment"> * This executor aims to be a general purpose executor for async tasks.</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment"> * (equivalent to ForkJoinPool.commonPool())</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  @SuppressFBWarnings(<span class="jxr_string">"HES_EXECUTOR_NEVER_SHUTDOWN"</span>) <em class="jxr_comment">// THere is a shutdownhook being registered which FB does not see</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/DefaultExecutor.html">DefaultExecutor</a> {
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      <strong class="jxr_keyword">private</strong> <a href="../../../org/spf4j/concurrent/DefaultExecutor.html">DefaultExecutor</a>() {
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      }
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> ExecutorService INSTANCE;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">static</strong> {
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> coreThreads = Integer.getInteger(<span class="jxr_string">"defaultExecutor.coreThreads"</span>, 0);
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxIdleMillis = Integer.getInteger(<span class="jxr_string">"defaultExecutor.maxIdleMillis"</span>, 60000);
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> isDaemon = Boolean.getBoolean(<span class="jxr_string">"defaultExecutor.daemon"</span>);
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          <strong class="jxr_keyword">final</strong> String impParam = <span class="jxr_string">"defaultExecutor.implementation"</span>;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          <strong class="jxr_keyword">final</strong> String value = System.getProperty(impParam, <span class="jxr_string">"spf4j"</span>);
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>          <strong class="jxr_keyword">switch</strong> (value) {
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>            <strong class="jxr_keyword">case</strong> <span class="jxr_string">"spf4j"</span>:
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>              <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">LifoThreadPoolExecutorSQP</a> lifoExec = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">LifoThreadPoolExecutorSQP</a>(<span class="jxr_string">"defaultExecutor"</span>, coreThreads,
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>                      Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon, Integer.getInteger(<span class="jxr_string">"defaultExecutor.spinlockCount"</span>,
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>                              1024));
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>              lifoExec.exportJmx();
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>              INSTANCE = lifoExec;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>              <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>            <strong class="jxr_keyword">case</strong> <span class="jxr_string">"fjp"</span>: <em class="jxr_comment">// EXPERIMENTAL! canceling with interrupt a future of taks submited does not seem to work!</em>
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>              INSTANCE = <strong class="jxr_keyword">new</strong> ForkJoinPool(32767);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>              <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>            <strong class="jxr_keyword">case</strong> <span class="jxr_string">"legacy"</span>:
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>              <strong class="jxr_keyword">new</strong> ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>                  <strong class="jxr_keyword">new</strong> SynchronousQueue&lt;Runnable&gt;(), <strong class="jxr_keyword">new</strong> CustomThreadFactory(<span class="jxr_string">"DefaultExecutor"</span>, isDaemon));
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>            <strong class="jxr_keyword">default</strong>:
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Ivalid setting for "</span> + impParam + <span class="jxr_string">" = "</span> + value);
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          }
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>          org.spf4j.base.Runtime.queueHookAtEnd(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/base/AbstractRunnable.html">AbstractRunnable</a>(<strong class="jxr_keyword">true</strong>) {
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>  
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>  }
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>              @Override
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>              <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> doRun() <strong class="jxr_keyword">throws</strong> InterruptedException {
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>                  INSTANCE.shutdown();
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>                  INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>                  List&lt;Runnable&gt; remaining = INSTANCE.shutdownNow();
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>                  <strong class="jxr_keyword">if</strong> (remaining.size() &gt; 0) {
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>                      System.err.println(<span class="jxr_string">"Remaining tasks: "</span> + remaining);
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>                  }
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>              }
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>          });
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      }
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2016. All rights reserved.</div>

@@ -12,25 +12,22 @@ public final class Closeables {
 
 <span class="nc" id="L13">    private Closeables() { }</span>
 
-    public static &lt;T extends Exception&gt; void closeAll(@Nullable final T throwed, final AutoCloseable ... closeables)
-    throws T {
-<span class="nc" id="L17">        T ex = throwed;</span>
+    @Nullable
+    public static Exception closeAll(final AutoCloseable ... closeables) {
+<span class="nc" id="L17">        Exception ex = null;</span>
 <span class="nc bnc" id="L18" title="All 2 branches missed.">        for (AutoCloseable closeable : closeables) {</span>
             try {
 <span class="nc" id="L20">                closeable.close();</span>
 <span class="nc" id="L21">            } catch (Exception ex1) {</span>
 <span class="nc bnc" id="L22" title="All 2 branches missed.">                if (ex == null) {</span>
-<span class="nc" id="L23">                    ex = (T) ex1;</span>
+<span class="nc" id="L23">                    ex =  ex1;</span>
                 } else {
-<span class="nc" id="L25">                    ex = (T) Throwables.suppress(ex1, ex);</span>
+<span class="nc" id="L25">                    ex = Throwables.suppress(ex1, ex);</span>
                 }
 <span class="nc" id="L27">            }</span>
         }
-<span class="nc bnc" id="L29" title="All 2 branches missed.">        if (ex != null) {</span>
-<span class="nc" id="L30">            throw ex;</span>
-        }
-
-<span class="nc" id="L33">    }</span>
+<span class="nc" id="L29">        return ex;</span>
+    }
 
 
 }

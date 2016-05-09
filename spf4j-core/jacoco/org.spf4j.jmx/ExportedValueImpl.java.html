@@ -49,10 +49,10 @@ class ExportedValueImpl implements ExportedValue&lt;Object&gt; {
 <span class="fc" id="L49">        this.setMethod = setMethod;</span>
 <span class="fc" id="L50">        this.object = object;</span>
 <span class="fc" id="L51">        this.valueClass = valueClass;</span>
-<span class="pc bpc" id="L52" title="2 of 8 branches missed.">        if (valueClass == Boolean.class</span>
+<span class="pc bpc" id="L52" title="1 of 4 branches missed.">        if (valueClass == Boolean.class</span>
                 || valueClass == String.class
-                || valueClass.isPrimitive()
-                || Number.class.isAssignableFrom(valueClass)) {
+<span class="fc bfc" id="L54" title="All 2 branches covered.">                || valueClass.isPrimitive()</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">                || Number.class.isAssignableFrom(valueClass)) {</span>
 <span class="fc" id="L56">            this.converter = null;</span>
         } else {
 <span class="fc" id="L58">            this.converter = OpenTypeConverter.getConverter(valueClass);</span>
@@ -68,11 +68,11 @@ class ExportedValueImpl implements ExportedValue&lt;Object&gt; {
     }
 
     public ExportedValueImpl withGetter(@Nonnull final Method pgetMethod, @Nonnull final String pdescription) {
-<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        if (getMethod != null) {</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (getMethod != null) {</span>
 <span class="nc" id="L72">            throw new IllegalArgumentException(&quot;duplicate value registration attemted &quot; + getMethod</span>
                     + &quot;, &quot; + pgetMethod);
         }
-<span class="fc" id="L75">        return new ExportedValueImpl(name, pdescription, pgetMethod, setMethod, object, valueClass);</span>
+<span class="nc" id="L75">        return new ExportedValueImpl(name, pdescription, pgetMethod, setMethod, object, valueClass);</span>
     }
 
     @Override

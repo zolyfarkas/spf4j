@@ -18,13 +18,17 @@
 package org.spf4j.stackmonitor;
 
 import com.google.common.base.Predicate;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.set.hash.THashSet;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import org.spf4j.base.Throwables;
 
 /**
  * This is a high performance sampling collector.
@@ -44,7 +48,7 @@ public final class FastStackCollector extends AbstractStackCollector {
     private static final java.lang.reflect.Method GET_THREADS;
     private static final java.lang.reflect.Method DUMP_THREADS;
 
-<span class="fc" id="L47">    private static final String[] IGNORED_THREADS = {</span>
+<span class="fc" id="L51">    private static final String[] IGNORED_THREADS = {</span>
             &quot;Finalizer&quot;,
             &quot;Signal Dispatcher&quot;,
             &quot;Reference Handler&quot;,
@@ -55,48 +59,48 @@ public final class FastStackCollector extends AbstractStackCollector {
     private final Predicate&lt;Thread&gt; threadFilter;
 
     public FastStackCollector(final boolean collectForMain, final String ... xtraIgnoredThreads) {
-<span class="fc" id="L58">        this(createNameBasedFilter(collectForMain, xtraIgnoredThreads));</span>
-<span class="fc" id="L59">    }</span>
+<span class="fc" id="L62">        this(createNameBasedFilter(collectForMain, xtraIgnoredThreads));</span>
+<span class="fc" id="L63">    }</span>
 
     public static Predicate&lt;Thread&gt; createNameBasedFilter(final boolean collectForMain,
             final String[] xtraIgnoredThreads) {
-<span class="fc" id="L63">        final Set&lt;String&gt; ignoredThreads = new THashSet&lt;&gt;(Arrays.asList(IGNORED_THREADS));</span>
-<span class="pc bpc" id="L64" title="1 of 2 branches missed.">        if (!collectForMain) {</span>
-<span class="fc" id="L65">            ignoredThreads.add(&quot;main&quot;);</span>
+<span class="fc" id="L67">        final Set&lt;String&gt; ignoredThreads = new THashSet&lt;&gt;(Arrays.asList(IGNORED_THREADS));</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        if (!collectForMain) {</span>
+<span class="fc" id="L69">            ignoredThreads.add(&quot;main&quot;);</span>
         }
-<span class="fc" id="L67">        ignoredThreads.addAll(Arrays.asList(xtraIgnoredThreads));</span>
+<span class="fc" id="L71">        ignoredThreads.addAll(Arrays.asList(xtraIgnoredThreads));</span>
 
-<span class="fc" id="L69">       return new PredicateImpl(ignoredThreads);</span>
+<span class="fc" id="L73">       return new PredicateImpl(ignoredThreads);</span>
     }
 
-<span class="fc" id="L72">    public FastStackCollector(final Predicate&lt;Thread&gt; threadFilter) {</span>
-<span class="fc" id="L73">        this.threadFilter = threadFilter;</span>
-<span class="fc" id="L74">    }</span>
+<span class="fc" id="L76">    public FastStackCollector(final Predicate&lt;Thread&gt; threadFilter) {</span>
+<span class="fc" id="L77">        this.threadFilter = threadFilter;</span>
+<span class="fc" id="L78">    }</span>
 
 
     static {
         try {
-<span class="fc" id="L79">            GET_THREADS = Thread.class.getDeclaredMethod(&quot;getThreads&quot;);</span>
-<span class="fc" id="L80">            DUMP_THREADS = Thread.class.getDeclaredMethod(&quot;dumpThreads&quot;, Thread[].class);</span>
-<span class="nc" id="L81">        } catch (SecurityException | NoSuchMethodException ex) {</span>
-<span class="nc" id="L82">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L83">        }</span>
-<span class="fc" id="L84">        AccessController.doPrivileged(new PrivilegedAction() {</span>
+<span class="fc" id="L83">            GET_THREADS = Thread.class.getDeclaredMethod(&quot;getThreads&quot;);</span>
+<span class="fc" id="L84">            DUMP_THREADS = Thread.class.getDeclaredMethod(&quot;dumpThreads&quot;, Thread[].class);</span>
+<span class="nc" id="L85">        } catch (SecurityException | NoSuchMethodException ex) {</span>
+<span class="nc" id="L86">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L87">        }</span>
+<span class="fc" id="L88">        AccessController.doPrivileged(new PrivilegedAction() {</span>
             @Override
             public Object run() {
-<span class="fc" id="L87">                GET_THREADS.setAccessible(true);</span>
-<span class="fc" id="L88">                DUMP_THREADS.setAccessible(true);</span>
-<span class="fc" id="L89">                return null; // nothing to return</span>
+<span class="fc" id="L91">                GET_THREADS.setAccessible(true);</span>
+<span class="fc" id="L92">                DUMP_THREADS.setAccessible(true);</span>
+<span class="fc" id="L93">                return null; // nothing to return</span>
             }
         });
 
-<span class="fc" id="L93">    }</span>
+<span class="fc" id="L97">    }</span>
 
     public static Thread[] getThreads() {
         try {
-<span class="fc" id="L97">            return (Thread[]) GET_THREADS.invoke(null);</span>
-<span class="nc" id="L98">        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
-<span class="nc" id="L99">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L101">            return (Thread[]) GET_THREADS.invoke(null);</span>
+<span class="nc" id="L102">        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
+<span class="nc" id="L103">            throw new RuntimeException(ex);</span>
         }
     }
 
@@ -104,56 +108,78 @@ public final class FastStackCollector extends AbstractStackCollector {
     public static  StackTraceElement[][] getStackTraces(final Thread... threads) {
         StackTraceElement[][] stackDump;
         try {
-<span class="fc" id="L107">            stackDump = (StackTraceElement[][]) DUMP_THREADS.invoke(null, (Object) threads);</span>
-<span class="nc" id="L108">        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
-<span class="nc" id="L109">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L110">        }</span>
-<span class="fc" id="L111">        return stackDump;</span>
+<span class="fc" id="L111">            stackDump = (StackTraceElement[][]) DUMP_THREADS.invoke(null, (Object) threads);</span>
+<span class="nc" id="L112">        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
+<span class="nc" id="L113">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L114">        }</span>
+<span class="fc" id="L115">        return stackDump;</span>
     }
+    
+    @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;) // jdk printstreams are sync I don't want interleaving.
+    public static void dumpToPrintStream(final PrintStream stream) {
+<span class="nc" id="L120">      synchronized (stream) {</span>
+<span class="nc" id="L121">        Thread[] threads = getThreads();</span>
+<span class="nc" id="L122">        StackTraceElement[][] stackTraces = getStackTraces(threads);</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        for (int i = 0; i &lt; threads.length; i++) {</span>
+<span class="nc" id="L124">          StackTraceElement[] stackTrace = stackTraces[i];</span>
+<span class="nc bnc" id="L125" title="All 4 branches missed.">          if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
+<span class="nc" id="L126">            Thread thread = threads[i];</span>
+<span class="nc" id="L127">            stream.println(&quot;Thread &quot; + thread.getName());</span>
+            try {
+<span class="nc" id="L129">              Throwables.writeTo(stackTrace, stream, Throwables.Detail.SHORT_PACKAGE);</span>
+<span class="nc" id="L130">            } catch (IOException ex) {</span>
+<span class="nc" id="L131">              throw new RuntimeException(ex);</span>
+<span class="nc" id="L132">            }</span>
+          }
+        }
+<span class="nc" id="L135">      }</span>
+<span class="nc" id="L136">    }</span>
+    
+    
 
-<span class="fc" id="L114">    private Thread[] requestFor = new Thread[] {};</span>
+<span class="fc" id="L140">    private Thread[] requestFor = new Thread[] {};</span>
 
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
+    @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
     public void sample(final Thread ignore) {
-<span class="fc" id="L120">            Thread[] threads = getThreads();</span>
-<span class="fc" id="L121">            final int nrThreads = threads.length;</span>
-<span class="fc bfc" id="L122" title="All 2 branches covered.">            if (requestFor.length &lt; nrThreads) {</span>
-<span class="fc" id="L123">                requestFor = new Thread[nrThreads];</span>
+<span class="fc" id="L146">            Thread[] threads = getThreads();</span>
+<span class="fc" id="L147">            final int nrThreads = threads.length;</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">            if (requestFor.length &lt; nrThreads) {</span>
+<span class="fc" id="L149">                requestFor = new Thread[nrThreads];</span>
             }
-<span class="fc" id="L125">            int j = 0;</span>
-<span class="fc bfc" id="L126" title="All 2 branches covered.">            for (int i = 0; i &lt; nrThreads; i++) {</span>
-<span class="fc" id="L127">                Thread th = threads[i];</span>
-<span class="fc bfc" id="L128" title="All 4 branches covered.">                if (ignore != th &amp;&amp; !threadFilter.apply(th)) { // not interested in these traces</span>
-<span class="fc" id="L129">                    requestFor[j++] = th;</span>
+<span class="fc" id="L151">            int j = 0;</span>
+<span class="fc bfc" id="L152" title="All 2 branches covered.">            for (int i = 0; i &lt; nrThreads; i++) {</span>
+<span class="fc" id="L153">                Thread th = threads[i];</span>
+<span class="fc bfc" id="L154" title="All 4 branches covered.">                if (ignore != th &amp;&amp; !threadFilter.apply(th)) { // not interested in these traces</span>
+<span class="fc" id="L155">                    requestFor[j++] = th;</span>
                 }
             }
-<span class="fc" id="L132">            Arrays.fill(requestFor, j, requestFor.length, null);</span>
-<span class="fc" id="L133">            StackTraceElement[][] stackDump = getStackTraces(requestFor);</span>
-<span class="fc bfc" id="L134" title="All 2 branches covered.">            for (int i = 0; i &lt; j; i++) {</span>
-<span class="fc" id="L135">                StackTraceElement[] stackTrace = stackDump[i];</span>
-<span class="pc bpc" id="L136" title="2 of 4 branches missed.">                if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
-<span class="fc" id="L137">                    addSample(stackTrace);</span>
+<span class="fc" id="L158">            Arrays.fill(requestFor, j, requestFor.length, null);</span>
+<span class="fc" id="L159">            StackTraceElement[][] stackDump = getStackTraces(requestFor);</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">            for (int i = 0; i &lt; j; i++) {</span>
+<span class="fc" id="L161">                StackTraceElement[] stackTrace = stackDump[i];</span>
+<span class="fc bfc" id="L162" title="All 4 branches covered.">                if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
+<span class="fc" id="L163">                    addSample(stackTrace);</span>
                 } else {
-<span class="nc" id="L139">                    addSample(new StackTraceElement[] {</span>
-                            new StackTraceElement(&quot;Thread&quot;, requestFor[i].getName(), &quot;&quot;, 0)
+<span class="fc" id="L165">                    addSample(new StackTraceElement[] {</span>
+<span class="fc" id="L166">                            new StackTraceElement(&quot;Thread&quot;, requestFor[i].getName(), &quot;&quot;, 0)</span>
                         });
                 }
             }
-<span class="fc" id="L144">    }</span>
+<span class="fc" id="L170">    }</span>
 
     public static final class PredicateImpl implements Predicate&lt;Thread&gt; {
 
         private final Set&lt;String&gt; ignoredThreadNames;
 
-<span class="fc" id="L150">        public PredicateImpl(final Set&lt;String&gt; ignoredThreadNames) {</span>
-<span class="fc" id="L151">            this.ignoredThreadNames = ignoredThreadNames;</span>
-<span class="fc" id="L152">        }</span>
+<span class="fc" id="L176">        public PredicateImpl(final Set&lt;String&gt; ignoredThreadNames) {</span>
+<span class="fc" id="L177">            this.ignoredThreadNames = ignoredThreadNames;</span>
+<span class="fc" id="L178">        }</span>
 
         @Override
         public boolean apply(@Nonnull final Thread input) {
-<span class="fc" id="L156">            return ignoredThreadNames.contains(input.getName());</span>
+<span class="fc" id="L182">            return ignoredThreadNames.contains(input.getName());</span>
         }
     }
 

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>GenericRecordAppender.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io.appenders</a> &gt; <span class="el_source">GenericRecordAppender.java</span></div><h1>GenericRecordAppender.java</h1><pre class="source lang-java linenums">
+package org.spf4j.io.appenders;
+
+import com.google.common.base.Charsets;
+import java.io.IOException;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericDatumWriter;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.JsonEncoder;
+import org.spf4j.io.AppendableOutputStream;
+import org.spf4j.io.ObjectAppender;
+
+/**
+ *
+ * @author zoly
+ */
+<span class="fc" id="L17">public final class GenericRecordAppender implements ObjectAppender&lt;GenericRecord&gt; {</span>
+    
+
+    @Override
+    public void append(final GenericRecord object, final Appendable appendTo) throws IOException {
+<span class="nc" id="L22">        try (AppendableOutputStream bos = new AppendableOutputStream(appendTo, Charsets.UTF_8)) {</span>
+<span class="nc" id="L23">            final Schema schema = object.getSchema();</span>
+<span class="nc" id="L24">            GenericDatumWriter&lt;GenericRecord&gt; writer = new GenericDatumWriter&lt;&gt;(schema);</span>
+<span class="nc" id="L25">            JsonEncoder jsonEncoder = SpecificRecordAppender.EF.jsonEncoder(schema, bos);</span>
+<span class="nc" id="L26">            writer.write(object, jsonEncoder);</span>
+<span class="nc" id="L27">            jsonEncoder.flush();</span>
+<span class="nc bnc" id="L28" title="All 8 branches missed.">        }</span>
+<span class="nc" id="L29">    }</span>
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

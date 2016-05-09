@@ -40,7 +40,7 @@ public final class LODAXF extends Instruction {
             @Override
             public void assign(final Object object) throws ZExecutionException {
 <span class="pc bpc" id="L42" title="1 of 2 branches missed.">                if (fromAddr.getScope() == Address.Scope.LOCAL) {</span>
-<span class="fc" id="L43">                    context.mem[fromAddr.getAddress()] = object;</span>
+<span class="fc" id="L43">                  context.localPoke(fromAddr.getAddress(), object);</span>
                 } else {
 <span class="nc" id="L45">                    throw new ZExecutionException(&quot;Cannot assign &quot; + object + &quot;to a global refference&quot;);</span>
                 }
@@ -49,9 +49,9 @@ public final class LODAXF extends Instruction {
             @Override
             public Object get() {
 <span class="fc bfc" id="L51" title="All 2 branches covered.">                if (fromAddr.getScope() == Address.Scope.LOCAL) {</span>
-<span class="fc" id="L52">                    return context.mem[fromAddr.getAddress()];</span>
+<span class="fc" id="L52">                    return context.localPeek(fromAddr.getAddress());</span>
                 } else {
-<span class="fc" id="L54">                    return context.globalMem[fromAddr.getAddress()];</span>
+<span class="fc" id="L54">                    return context.globalPeek(fromAddr.getAddress());</span>
                 }
             }
         });

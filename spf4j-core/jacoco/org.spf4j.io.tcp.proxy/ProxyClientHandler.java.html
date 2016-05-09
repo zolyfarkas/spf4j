@@ -73,7 +73,7 @@ public final class ProxyClientHandler implements ClientHandler {
             final ExecutorService exec, final BlockingQueue&lt;Runnable&gt; tasksToRunBySelector,
             final UpdateablePriorityQueue&lt;DeadlineAction&gt; deadlineActions)  throws IOException {
 <span class="nc" id="L75">        final InetSocketAddress socketAddress = new InetSocketAddress(</span>
-                fwdDestination.getHostText(), fwdDestination.getPort());
+<span class="nc" id="L76">                fwdDestination.getHostText(), fwdDestination.getPort());</span>
 <span class="nc" id="L77">        final SocketChannel proxyChannel = SocketChannel.open();</span>
         try {
 <span class="nc" id="L79">            proxyChannel.configureBlocking(false);</span>
@@ -87,14 +87,16 @@ public final class ProxyClientHandler implements ClientHandler {
 <span class="nc" id="L87">            UpdateablePriorityQueue.ElementRef daction = deadlineActions.add(new DeadlineAction(connectDeadline,</span>
                     new CloseChannelsOnTimeout(proxyChannel, clientChannel)));
 <span class="nc" id="L89">            new ProxyBufferTransferHandler(c2s, s2c, null, clientChannel,</span>
-                    serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();
+<span class="nc" id="L90">                    serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();</span>
 <span class="nc" id="L91">            new ProxyBufferTransferHandler(s2c, c2s, s2cSnifferFact, proxyChannel,</span>
-                    serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();
+<span class="nc" id="L92">                    serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();</span>
 <span class="nc" id="L93">        } catch (IOException ex) {</span>
-<span class="nc" id="L94">            Closeables.closeAll(ex, proxyChannel, clientChannel);</span>
-<span class="nc" id="L95">        }</span>
+<span class="nc" id="L94">            Exception exs = Closeables.closeAll(proxyChannel, clientChannel);</span>
+<span class="nc" id="L95">            ex.addSuppressed(exs);</span>
+<span class="nc" id="L96">            throw ex;</span>
+<span class="nc" id="L97">        }</span>
 
-<span class="nc" id="L97">    }</span>
+<span class="nc" id="L99">    }</span>
 
     static final class CloseChannelsOnTimeout extends AbstractRunnable {
 
@@ -102,25 +104,25 @@ public final class ProxyClientHandler implements ClientHandler {
         private final SocketChannel clientChannel;
 
         CloseChannelsOnTimeout(final SocketChannel proxyChannel, final SocketChannel clientChannel) {
-<span class="nc" id="L105">            super(true);</span>
-<span class="nc" id="L106">            this.proxyChannel = proxyChannel;</span>
-<span class="nc" id="L107">            this.clientChannel = clientChannel;</span>
-<span class="nc" id="L108">        }</span>
+<span class="nc" id="L107">            super(true);</span>
+<span class="nc" id="L108">            this.proxyChannel = proxyChannel;</span>
+<span class="nc" id="L109">            this.clientChannel = clientChannel;</span>
+<span class="nc" id="L110">        }</span>
 
         @Override
         public void doRun() throws IOException {
-<span class="nc" id="L112">            LOG.warn(&quot;Timed out connecting to {}&quot;, proxyChannel);</span>
+<span class="nc" id="L114">            LOG.warn(&quot;Timed out connecting to {}&quot;, proxyChannel);</span>
             try {
-<span class="nc" id="L114">                clientChannel.close();</span>
+<span class="nc" id="L116">                clientChannel.close();</span>
             } finally {
-<span class="nc" id="L116">                proxyChannel.close();</span>
-<span class="nc" id="L117">            }</span>
-<span class="nc" id="L118">        }</span>
+<span class="nc" id="L118">                proxyChannel.close();</span>
+<span class="nc" id="L119">            }</span>
+<span class="nc" id="L120">        }</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L123">        return &quot;ProxyClientHandler{&quot; + &quot;fwdDestination=&quot; + fwdDestination + &quot;, proxyBufferSize=&quot;</span>
+<span class="nc" id="L125">        return &quot;ProxyClientHandler{&quot; + &quot;fwdDestination=&quot; + fwdDestination + &quot;, proxyBufferSize=&quot;</span>
                 + proxyBufferSize + &quot;, connectTimeoutMillis=&quot; + connectTimeoutMillis + &quot;, c2sSnifferFact=&quot;
                 + c2sSnifferFact + &quot;, s2cSnifferFact=&quot; + s2cSnifferFact + '}';
     }

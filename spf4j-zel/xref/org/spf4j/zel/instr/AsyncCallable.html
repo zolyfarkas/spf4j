@@ -12,28 +12,27 @@
 <a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 <a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.concurrent.Callable;
 <a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.spf4j.zel.vm.ExecutionContext;
-<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.spf4j.zel.vm.Program;
-<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
-<a class="jxr_linenumber" name="L9" href="#L9">9</a>   @SuppressFBWarnings(<span class="jxr_string">"CD_CIRCULAR_DEPENDENCY"</span>)
-<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/spf4j/zel/instr/AsyncCallable.html">AsyncCallable</a> <strong class="jxr_keyword">implements</strong> Callable&lt;Object&gt; {
-<a class="jxr_linenumber" name="L11" href="#L11">11</a>  
-<a class="jxr_linenumber" name="L12" href="#L12">12</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a> nctx;
-<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
-<a class="jxr_linenumber" name="L14" href="#L14">14</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../org/spf4j/zel/instr/AsyncCallable.html">AsyncCallable</a>(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a> nctx) {
-<a class="jxr_linenumber" name="L15" href="#L15">15</a>          <strong class="jxr_keyword">this</strong>.nctx = nctx;
-<a class="jxr_linenumber" name="L16" href="#L16">16</a>      }
-<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>      @Override
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>      <strong class="jxr_keyword">public</strong> Object call() <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>          <strong class="jxr_keyword">return</strong> Program.executeAsync(nctx);
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>      }
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>      @Override
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>      <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>          <strong class="jxr_keyword">return</strong> <span class="jxr_string">"AsyncCallable{"</span> + <span class="jxr_string">"nctx="</span> + nctx + '}';
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>      }
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  }
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   @SuppressFBWarnings(<span class="jxr_string">"CD_CIRCULAR_DEPENDENCY"</span>)
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/spf4j/zel/instr/AsyncCallable.html">AsyncCallable</a> <strong class="jxr_keyword">implements</strong> Callable&lt;Object&gt; {
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a> nctx;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../org/spf4j/zel/instr/AsyncCallable.html">AsyncCallable</a>(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a> nctx) {
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>          <strong class="jxr_keyword">this</strong>.nctx = nctx;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>      }
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>      @Override
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>      <strong class="jxr_keyword">public</strong> Object call() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>          <strong class="jxr_keyword">return</strong> nctx.executeAsync();
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>      }
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>      @Override
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>      <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>          <strong class="jxr_keyword">return</strong> <span class="jxr_string">"AsyncCallable{"</span> + <span class="jxr_string">"nctx="</span> + nctx + '}';
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      }
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2016. All rights reserved.</div>

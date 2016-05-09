@@ -17,7 +17,6 @@
  */
 package org.spf4j.zel.instr;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -35,38 +34,39 @@ public final class CALLA extends Instruction {
 
     private final int nrParameters;
 
-<span class="fc" id="L38">    public CALLA(final int nrParameters) {</span>
-<span class="fc" id="L39">        this.nrParameters = nrParameters;</span>
-<span class="fc" id="L40">    }</span>
+<span class="fc" id="L37">    public CALLA(final int nrParameters) {</span>
+<span class="fc" id="L38">        this.nrParameters = nrParameters;</span>
+<span class="fc" id="L39">    }</span>
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
     public int execute(final ExecutionContext context)
             throws ExecutionException, InterruptedException, SuspendedException {
-<span class="fc" id="L46">        final Object function = context.peekFromTop(nrParameters);</span>
-<span class="fc bfc" id="L47" title="All 2 branches covered.">        if (function instanceof Program) {</span>
-<span class="fc" id="L48">            final Program p = (Program) function;</span>
+<span class="fc" id="L45">        final Object function = context.peekFromTop(nrParameters);</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (function instanceof Program) {</span>
+<span class="fc" id="L47">            final Program p = (Program) function;</span>
             final ExecutionContext nctx;
             Object obj;
             Object[] parameters;
-<span class="pc bpc" id="L52" title="2 of 3 branches missed.">            switch (p.getType()) {</span>
+<span class="pc bpc" id="L51" title="2 of 3 branches missed.">            switch (p.getType()) {</span>
                 case DETERMINISTIC:
-<span class="nc" id="L54">                    parameters = CALL.getParamsSync(context, nrParameters);</span>
-<span class="nc" id="L55">                    nctx = context.getSubProgramContext(p, parameters);</span>
-<span class="nc" id="L56">                    obj = context.resultCache.getResult(p, Arrays.asList(parameters), new AsyncCallable(nctx));</span>
+<span class="nc" id="L53">                    nctx = context.getSubProgramContext(p, nrParameters);</span>
+<span class="nc" id="L54">                    context.pop();</span>
+<span class="nc" id="L55">                    List&lt;Object&gt; params = CALL.getParameters(nctx, nrParameters);</span>
+<span class="nc" id="L56">                    obj = context.getResultCache().getResult(p, params, new AsyncCallable(nctx));</span>
 <span class="nc" id="L57">                    break;</span>
                 case NONDETERMINISTIC:
-<span class="fc" id="L59">                    parameters = CALL.getParams(context, nrParameters);</span>
-<span class="fc" id="L60">                    nctx = context.getSubProgramContext(p, parameters);</span>
-<span class="fc" id="L61">                    obj = Program.executeAsync(nctx);</span>
-<span class="fc" id="L62">                    break;</span>
+<span class="fc" id="L59">                    nctx = context.getSubProgramContext(p, nrParameters);</span>
+<span class="fc" id="L60">                    obj = nctx.executeAsync();</span>
+<span class="fc" id="L61">                    break;</span>
                 default:
-<span class="nc" id="L64">                    throw new UnsupportedOperationException(p.getType().toString());</span>
+<span class="nc" id="L63">                    throw new UnsupportedOperationException(p.getType().toString());</span>
             }
-<span class="fc" id="L66">            context.push(obj);</span>
-<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        } else if (function instanceof Method) {</span>
-<span class="fc" id="L68">            final Object[] parameters = CALL.getParamsSync(context, nrParameters);</span>
-<span class="fc" id="L69">            Future&lt;Object&gt; obj = context.execService.submit(new MethodVMExecutor(function, context, parameters));</span>
+<span class="fc" id="L65">            context.push(obj);</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        } else if (function instanceof Method) {</span>
+<span class="fc" id="L67">            Object[] parameters = context.popSyncStackVals(nrParameters);</span>
+<span class="fc" id="L68">            context.pop();</span>
+<span class="fc" id="L69">            Future&lt;Object&gt; obj = context.getExecService().submit(new MethodVMExecutor(function, context, parameters));</span>
 <span class="fc" id="L70">            context.push(obj);</span>
 <span class="fc" id="L71">        } else {</span>
 <span class="nc" id="L72">            throw new ZExecutionException(&quot;cannot invoke &quot; + function);</span>

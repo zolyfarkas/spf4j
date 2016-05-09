@@ -2,6 +2,7 @@
 package org.spf4j.io;
 
 import com.google.common.io.BaseEncoding;
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import java.io.InputStream;
 
 
@@ -9,26 +10,27 @@ import java.io.InputStream;
  *
  * @author zoly
  */
+@CleanupObligation
 public final class PushbackInputStreamEx  extends java.io.PushbackInputStream {
 
     public PushbackInputStreamEx(final InputStream in, final int size) {
-<span class="nc" id="L15">        super(in, size);</span>
-<span class="nc" id="L16">    }</span>
+<span class="nc" id="L17">        super(in, size);</span>
+<span class="nc" id="L18">    }</span>
 
     public PushbackInputStreamEx(final InputStream in) {
-<span class="nc" id="L19">        super(in);</span>
-<span class="nc" id="L20">    }</span>
+<span class="nc" id="L21">        super(in);</span>
+<span class="nc" id="L22">    }</span>
 
     @Override
     public String toString() {
-<span class="nc bnc" id="L24" title="All 2 branches missed.">        return &quot;PushbackInputStream{&quot;</span>
-                + ((buf == null) ? &quot;buf=null&quot; : &quot;buf=&quot; + BaseEncoding.base64().encode(buf))
+<span class="nc bnc" id="L26" title="All 2 branches missed.">        return &quot;PushbackInputStream{&quot;</span>
+<span class="nc" id="L27">                + ((buf == null) ? &quot;buf=null&quot; : &quot;buf=&quot; + BaseEncoding.base64().encode(buf))</span>
                 + &quot;, pos=&quot; + pos
                 + &quot;, wrapped=&quot; + this.in + '}';
     }
 
     public InputStream getUnderlyingStream() {
-<span class="nc" id="L31">        return this.in;</span>
+<span class="nc" id="L33">        return this.in;</span>
     }
 
 }

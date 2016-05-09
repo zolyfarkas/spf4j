@@ -97,7 +97,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
             final int maxSize, final int maxIdleTimeMillis,
             final int queueSizeLimit, final int spinLockCount) {
 <span class="nc" id="L99">        this(poolName, coreSize, maxSize, maxIdleTimeMillis,</span>
-                new ArrayDeque&lt;Runnable&gt;(Math.min(queueSizeLimit, LL_THRESHOLD)),
+<span class="nc" id="L100">                new ArrayDeque&lt;Runnable&gt;(Math.min(queueSizeLimit, LL_THRESHOLD)),</span>
                 queueSizeLimit, false, spinLockCount, REJECT_EXCEPTION_EXEC_HANDLER);
 <span class="nc" id="L102">    }</span>
 
@@ -130,7 +130,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 <span class="nc" id="L130">        this.threadQueue = new ZArrayDequeue&lt;&gt;(Math.min(1024, maxSize));</span>
 <span class="nc" id="L131">        this.daemonThreads = daemonThreads;</span>
 <span class="nc" id="L132">        state = new PoolState(coreSize, spinLockCount,</span>
-                new THashSet&lt;QueuedThread&gt;(Math.min(maxSize, 2048)),
+<span class="nc" id="L133">                new THashSet&lt;QueuedThread&gt;(Math.min(maxSize, 2048)),</span>
                                 maxIdleTimeMillis);
 <span class="nc" id="L135">        this.stateLock = new ReentrantLock(false);</span>
 <span class="nc" id="L136">        this.threadPriority = threadPriority;</span>
@@ -430,130 +430,131 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
                 try {
 <span class="nc" id="L431">                    doRun(minWaitNanos);</span>
 <span class="nc" id="L432">                } catch (RuntimeException e) {</span>
-                    try {
-<span class="nc" id="L434">                        this.getUncaughtExceptionHandler().uncaughtException(this, e);</span>
-<span class="nc" id="L435">                    } catch (RuntimeException ex) {</span>
-<span class="nc" id="L436">                        ex.addSuppressed(e);</span>
-<span class="nc" id="L437">                        ex.printStackTrace();</span>
-<span class="nc" id="L438">                    }</span>
-<span class="nc" id="L439">                } catch (Error e) {</span>
-<span class="nc" id="L440">                    org.spf4j.base.Runtime.goDownWithError(e, 666);</span>
-<span class="nc" id="L441">                }</span>
+<span class="nc" id="L433">                  final UncaughtExceptionHandler uexh = this.getUncaughtExceptionHandler();</span>
+                  try {
+<span class="nc" id="L435">                    uexh.uncaughtException(this, e);</span>
+<span class="nc" id="L436">                  } catch (RuntimeException ex) {</span>
+<span class="nc" id="L437">                    ex.addSuppressed(e);</span>
+<span class="nc" id="L438">                    throw new Error(&quot;Uncaught exception handler blew up: &quot; + uexh, ex);</span>
+<span class="nc" id="L439">                  }</span>
+<span class="nc" id="L440">                } catch (Error e) {</span>
+<span class="nc" id="L441">                    org.spf4j.base.Runtime.goDownWithError(e, 666);</span>
+<span class="nc" id="L442">                }</span>
 
-<span class="nc" id="L443">                final AtomicInteger tc = state.getThreadCount();</span>
-<span class="nc" id="L444">                int count = tc.decrementAndGet();</span>
-<span class="nc bnc" id="L445" title="All 2 branches missed.">                while (!state.isShutdown()) {</span>
-<span class="nc bnc" id="L446" title="All 2 branches missed.">                    if (count &gt;= state.getCoreThreads()) {</span>
-<span class="nc" id="L447">                        shouldRun = false;</span>
-<span class="nc" id="L448">                        break;</span>
-<span class="nc bnc" id="L449" title="All 2 branches missed.">                    } else if (tc.compareAndSet(count, count + 1)) {</span>
-<span class="nc" id="L450">                        this.lastRunNanos = System.nanoTime(); // update last Run time to avoid core thread spinning.</span>
-<span class="nc" id="L451">                        minWaitNanos = Math.max(CORE_MINWAIT_NANOS, state.getMaxIdleTimeNanos());</span>
-<span class="nc" id="L452">                        break;</span>
+<span class="nc" id="L444">                final AtomicInteger tc = state.getThreadCount();</span>
+<span class="nc" id="L445">                int count = tc.decrementAndGet();</span>
+<span class="nc bnc" id="L446" title="All 2 branches missed.">                while (!state.isShutdown()) {</span>
+<span class="nc bnc" id="L447" title="All 2 branches missed.">                    if (count &gt;= state.getCoreThreads()) {</span>
+<span class="nc" id="L448">                        shouldRun = false;</span>
+<span class="nc" id="L449">                        break;</span>
+<span class="nc bnc" id="L450" title="All 2 branches missed.">                    } else if (tc.compareAndSet(count, count + 1)) {</span>
+<span class="nc" id="L451">                        this.lastRunNanos = System.nanoTime(); // update last Run time to avoid core thread spinning.</span>
+<span class="nc" id="L452">                        minWaitNanos = Math.max(CORE_MINWAIT_NANOS, state.getMaxIdleTimeNanos());</span>
+<span class="nc" id="L453">                        break;</span>
                     } else {
-<span class="nc" id="L454">                        count = tc.get();</span>
+<span class="nc" id="L455">                        count = tc.get();</span>
                     }
                 }
-<span class="nc bnc" id="L457" title="All 4 branches missed.">            } while (shouldRun &amp;&amp; !state.isShutdown());</span>
+<span class="nc bnc" id="L458" title="All 4 branches missed.">            } while (shouldRun &amp;&amp; !state.isShutdown());</span>
 
-<span class="nc" id="L459">            synchronized (state) {</span>
-<span class="nc" id="L460">                state.removeThread(this);</span>
-<span class="nc" id="L461">                state.notifyAll();</span>
-<span class="nc" id="L462">            }</span>
-<span class="nc" id="L463">        }</span>
+<span class="nc" id="L460">            synchronized (state) {</span>
+<span class="nc" id="L461">                state.removeThread(this);</span>
+<span class="nc" id="L462">                state.notifyAll();</span>
+<span class="nc" id="L463">            }</span>
+<span class="nc" id="L464">        }</span>
 
         @SuppressFBWarnings({&quot;MDM_WAIT_WITHOUT_TIMEOUT&quot;, &quot;MDM_LOCK_ISLOCKED&quot;, &quot;UL_UNRELEASED_LOCK_EXCEPTION_PATH&quot; })
         public void doRun(final long minWaitNanos) {
-<span class="nc" id="L467">            running = true;</span>
+<span class="nc" id="L468">            running = true;</span>
             try {
-<span class="nc bnc" id="L469" title="All 2 branches missed.">                if (runFirst != null) {</span>
+<span class="nc bnc" id="L470" title="All 2 branches missed.">                if (runFirst != null) {</span>
                     try {
-<span class="nc" id="L471">                        run(runFirst);</span>
+<span class="nc" id="L472">                        run(runFirst);</span>
                     } finally {
-<span class="nc" id="L473">                        runFirst = null;</span>
-<span class="nc" id="L474">                    }</span>
+<span class="nc" id="L474">                        runFirst = null;</span>
+<span class="nc" id="L475">                    }</span>
                 }
-<span class="nc bnc" id="L476" title="All 2 branches missed.">                while (running) {</span>
-<span class="nc" id="L477">                    submitMonitor.lock();</span>
-<span class="nc" id="L478">                    Runnable poll = taskQueue.poll();</span>
-<span class="nc bnc" id="L479" title="All 2 branches missed.">                    if (poll == null) {</span>
-<span class="nc bnc" id="L480" title="All 2 branches missed.">                        if (state.isShutdown()) {</span>
-<span class="nc" id="L481">                            submitMonitor.unlock();</span>
-<span class="nc" id="L482">                            running = false;</span>
-<span class="nc" id="L483">                            break;</span>
+<span class="nc bnc" id="L477" title="All 2 branches missed.">                while (running) {</span>
+<span class="nc" id="L478">                    submitMonitor.lock();</span>
+<span class="nc" id="L479">                    Runnable poll = taskQueue.poll();</span>
+<span class="nc bnc" id="L480" title="All 2 branches missed.">                    if (poll == null) {</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">                        if (state.isShutdown()) {</span>
+<span class="nc" id="L482">                            submitMonitor.unlock();</span>
+<span class="nc" id="L483">                            running = false;</span>
+<span class="nc" id="L484">                            break;</span>
                         }
-<span class="nc" id="L485">                        int ptr = threadQueue.addLastAndGetPtr(this);</span>
-<span class="nc" id="L486">                        submitMonitor.unlock();</span>
+<span class="nc" id="L486">                        int ptr = threadQueue.addLastAndGetPtr(this);</span>
+<span class="nc" id="L487">                        submitMonitor.unlock();</span>
                         while (true) {
                             Runnable runnable;
                             try {
-<span class="nc" id="L490">                                final long wTime = Math.max(minWaitNanos, state.getMaxIdleTimeNanos())</span>
-                                        - (System.nanoTime() - lastRunNanos);
-<span class="nc bnc" id="L492" title="All 2 branches missed.">                                if (wTime &gt; 0) {</span>
-<span class="nc" id="L493">                                    runnable = toRun.poll(wTime, state.spinlockCount);</span>
+<span class="nc" id="L491">                                final long wTime = Math.max(minWaitNanos, state.getMaxIdleTimeNanos())</span>
+<span class="nc" id="L492">                                        - (System.nanoTime() - lastRunNanos);</span>
+<span class="nc bnc" id="L493" title="All 2 branches missed.">                                if (wTime &gt; 0) {</span>
+<span class="nc" id="L494">                                    runnable = toRun.poll(wTime, state.spinlockCount);</span>
                                 } else {
-<span class="nc" id="L495">                                    running = false;</span>
-<span class="nc" id="L496">                                    removeThreadFromQueue(ptr);</span>
-<span class="nc" id="L497">                                    break;</span>
+<span class="nc" id="L496">                                    running = false;</span>
+<span class="nc" id="L497">                                    removeThreadFromQueue(ptr);</span>
+<span class="nc" id="L498">                                    break;</span>
                                 }
-<span class="nc" id="L499">                            } catch (InterruptedException ex) {</span>
-<span class="nc" id="L500">                                interrupt();</span>
-<span class="nc" id="L501">                                running = false;</span>
-<span class="nc" id="L502">                                removeThreadFromQueue(ptr);</span>
-<span class="nc" id="L503">                                break;</span>
-<span class="nc" id="L504">                            }</span>
-<span class="nc bnc" id="L505" title="All 2 branches missed.">                            if (runnable != null) {</span>
-<span class="nc" id="L506">                                run(runnable);</span>
-<span class="nc" id="L507">                                break;</span>
+<span class="nc" id="L500">                            } catch (InterruptedException ex) {</span>
+<span class="nc" id="L501">                                interrupt();</span>
+<span class="nc" id="L502">                                running = false;</span>
+<span class="nc" id="L503">                                removeThreadFromQueue(ptr);</span>
+<span class="nc" id="L504">                                break;</span>
+<span class="nc" id="L505">                            }</span>
+<span class="nc bnc" id="L506" title="All 2 branches missed.">                            if (runnable != null) {</span>
+<span class="nc" id="L507">                                run(runnable);</span>
+<span class="nc" id="L508">                                break;</span>
                             }
-<span class="nc" id="L509">                        }</span>
-<span class="nc" id="L510">                    } else {</span>
-<span class="nc" id="L511">                        submitMonitor.unlock();</span>
-<span class="nc" id="L512">                        run(poll);</span>
+<span class="nc" id="L510">                        }</span>
+<span class="nc" id="L511">                    } else {</span>
+<span class="nc" id="L512">                        submitMonitor.unlock();</span>
+<span class="nc" id="L513">                        run(poll);</span>
                     }
-<span class="nc" id="L514">                }</span>
+<span class="nc" id="L515">                }</span>
 
-<span class="nc" id="L516">            } catch (Throwable t) {</span>
-<span class="nc" id="L517">                running = false;</span>
-<span class="nc bnc" id="L518" title="All 2 branches missed.">                if (submitMonitor.isHeldByCurrentThread()) {</span>
-<span class="nc" id="L519">                    submitMonitor.unlock();</span>
+<span class="nc" id="L517">            } catch (Throwable t) {</span>
+<span class="nc" id="L518">                running = false;</span>
+<span class="nc bnc" id="L519" title="All 2 branches missed.">                if (submitMonitor.isHeldByCurrentThread()) {</span>
+<span class="nc" id="L520">                    submitMonitor.unlock();</span>
                 }
-<span class="nc" id="L521">                throw t;</span>
+<span class="nc" id="L522">                throw t;</span>
             } finally {
-<span class="nc bnc" id="L523" title="All 4 branches missed.">                if (!interrupted()) {</span>
-<span class="nc" id="L524">                    synchronized (sync) {</span>
-<span class="nc" id="L525">                        Runnable runnable = toRun.poll();</span>
-<span class="nc bnc" id="L526" title="All 4 branches missed.">                        if (runnable != null) {</span>
-<span class="nc" id="L527">                            run(runnable);</span>
+<span class="nc bnc" id="L524" title="All 4 branches missed.">                if (!interrupted()) {</span>
+<span class="nc" id="L525">                    synchronized (sync) {</span>
+<span class="nc" id="L526">                        Runnable runnable = toRun.poll();</span>
+<span class="nc bnc" id="L527" title="All 4 branches missed.">                        if (runnable != null) {</span>
+<span class="nc" id="L528">                            run(runnable);</span>
                         }
-<span class="nc" id="L529">                    }</span>
+<span class="nc" id="L530">                    }</span>
                 }
             }
 
-<span class="nc" id="L533">        }</span>
+<span class="nc" id="L534">        }</span>
 
         @SuppressFBWarnings(&quot;MDM_WAIT_WITHOUT_TIMEOUT&quot;)
         public void removeThreadFromQueue(final int ptr) {
-<span class="nc" id="L537">            submitMonitor.lock();</span>
+<span class="nc" id="L538">            submitMonitor.lock();</span>
             try {
-<span class="nc" id="L539">                threadQueue.delete(ptr, this);</span>
+<span class="nc" id="L540">                threadQueue.delete(ptr, this);</span>
             } finally {
-<span class="nc" id="L541">                submitMonitor.unlock();</span>
-<span class="nc" id="L542">            }</span>
-<span class="nc" id="L543">        }</span>
+<span class="nc" id="L542">                submitMonitor.unlock();</span>
+<span class="nc" id="L543">            }</span>
+<span class="nc" id="L544">        }</span>
 
         public void run(final Runnable runnable) {
             try {
-<span class="nc" id="L547">                runnable.run();</span>
+<span class="nc" id="L548">                runnable.run();</span>
             } finally {
-<span class="nc" id="L549">                lastRunNanos = System.nanoTime();</span>
-<span class="nc" id="L550">            }</span>
-<span class="nc" id="L551">        }</span>
+<span class="nc" id="L550">                lastRunNanos = System.nanoTime();</span>
+<span class="nc" id="L551">            }</span>
+<span class="nc" id="L552">        }</span>
 
         @Override
         public String toString() {
-<span class="nc" id="L555">            return &quot;QueuedThread{running=&quot; + running + &quot;, lastRunNanos=&quot;</span>
-                    + lastRunNanos + &quot;, stack =&quot; + Arrays.toString(this.getStackTrace())
+<span class="nc" id="L556">            return &quot;QueuedThread{name = &quot; + getName() + &quot;, running=&quot; + running + &quot;, lastRunNanos=&quot;</span>
+<span class="nc" id="L557">                    + lastRunNanos + &quot;, stack =&quot; + Arrays.toString(this.getStackTrace())</span>
                     + &quot;, toRun = &quot; + toRun + '}';
         }
 
@@ -576,78 +577,78 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
         private final Set&lt;QueuedThread&gt; allThreads;
 
         PoolState(final int thnr, final int spinlockCount,
-<span class="nc" id="L579">                final Set&lt;QueuedThread&gt; allThreads, final int maxIdleTimeMillis) {</span>
-<span class="nc" id="L580">            this.shutdown = false;</span>
-<span class="nc" id="L581">            this.coreThreads = thnr;</span>
-<span class="nc" id="L582">            this.threadCount = new AtomicInteger(thnr);</span>
-<span class="nc" id="L583">            this.spinlockCount = spinlockCount;</span>
-<span class="nc" id="L584">            this.allThreads = allThreads;</span>
-<span class="nc" id="L585">            this.maxIdleTimeMillis = maxIdleTimeMillis;</span>
-<span class="nc" id="L586">            this.maxIdleTimeNanos = TimeUnit.NANOSECONDS.convert(maxIdleTimeMillis, TimeUnit.MILLISECONDS);</span>
-<span class="nc" id="L587">        }</span>
+<span class="nc" id="L580">                final Set&lt;QueuedThread&gt; allThreads, final int maxIdleTimeMillis) {</span>
+<span class="nc" id="L581">            this.shutdown = false;</span>
+<span class="nc" id="L582">            this.coreThreads = thnr;</span>
+<span class="nc" id="L583">            this.threadCount = new AtomicInteger(thnr);</span>
+<span class="nc" id="L584">            this.spinlockCount = spinlockCount;</span>
+<span class="nc" id="L585">            this.allThreads = allThreads;</span>
+<span class="nc" id="L586">            this.maxIdleTimeMillis = maxIdleTimeMillis;</span>
+<span class="nc" id="L587">            this.maxIdleTimeNanos = TimeUnit.NANOSECONDS.convert(maxIdleTimeMillis, TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L588">        }</span>
 
         public int getMaxIdleTimeMillis() {
-<span class="nc" id="L590">            return maxIdleTimeMillis;</span>
+<span class="nc" id="L591">            return maxIdleTimeMillis;</span>
         }
 
         public long getMaxIdleTimeNanos() {
-<span class="nc" id="L594">            return maxIdleTimeNanos;</span>
+<span class="nc" id="L595">            return maxIdleTimeNanos;</span>
         }
 
         public void setMaxIdleTimeMillis(final int maxIdleTimeMillis) {
-<span class="nc" id="L598">            this.maxIdleTimeMillis = maxIdleTimeMillis;</span>
-<span class="nc" id="L599">            this.maxIdleTimeNanos = TimeUnit.NANOSECONDS.convert(maxIdleTimeMillis, TimeUnit.MILLISECONDS);</span>
-<span class="nc" id="L600">        }</span>
+<span class="nc" id="L599">            this.maxIdleTimeMillis = maxIdleTimeMillis;</span>
+<span class="nc" id="L600">            this.maxIdleTimeNanos = TimeUnit.NANOSECONDS.convert(maxIdleTimeMillis, TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L601">        }</span>
 
 
 
         public void addThread(final QueuedThread thread) {
-<span class="nc" id="L605">            synchronized (allThreads) {</span>
-<span class="nc bnc" id="L606" title="All 2 branches missed.">                if (!allThreads.add(thread)) {</span>
-<span class="nc" id="L607">                    throw new IllegalStateException(&quot;Attempting to add a thread twice: &quot; + thread);</span>
+<span class="nc" id="L606">            synchronized (allThreads) {</span>
+<span class="nc bnc" id="L607" title="All 2 branches missed.">                if (!allThreads.add(thread)) {</span>
+<span class="nc" id="L608">                    throw new IllegalStateException(&quot;Attempting to add a thread twice: &quot; + thread);</span>
                 }
-<span class="nc" id="L609">            }</span>
-<span class="nc" id="L610">        }</span>
+<span class="nc" id="L610">            }</span>
+<span class="nc" id="L611">        }</span>
 
         public void removeThread(final QueuedThread thread) {
-<span class="nc" id="L613">            synchronized (allThreads) {</span>
-<span class="nc bnc" id="L614" title="All 2 branches missed.">                if (!allThreads.remove(thread)) {</span>
-<span class="nc" id="L615">                    throw new IllegalStateException(&quot;Removing thread failed: &quot; + thread);</span>
+<span class="nc" id="L614">            synchronized (allThreads) {</span>
+<span class="nc bnc" id="L615" title="All 2 branches missed.">                if (!allThreads.remove(thread)) {</span>
+<span class="nc" id="L616">                    throw new IllegalStateException(&quot;Removing thread failed: &quot; + thread);</span>
                 }
-<span class="nc" id="L617">            }</span>
-<span class="nc" id="L618">        }</span>
+<span class="nc" id="L618">            }</span>
+<span class="nc" id="L619">        }</span>
 
         public void interruptAll() {
-<span class="nc" id="L621">            synchronized (allThreads) {</span>
-<span class="nc bnc" id="L622" title="All 2 branches missed.">                for (Thread thread : allThreads) {</span>
-<span class="nc" id="L623">                    thread.interrupt();</span>
-<span class="nc" id="L624">                }</span>
-<span class="nc" id="L625">            }</span>
-<span class="nc" id="L626">        }</span>
+<span class="nc" id="L622">            synchronized (allThreads) {</span>
+<span class="nc bnc" id="L623" title="All 2 branches missed.">                for (Thread thread : allThreads) {</span>
+<span class="nc" id="L624">                    thread.interrupt();</span>
+<span class="nc" id="L625">                }</span>
+<span class="nc" id="L626">            }</span>
+<span class="nc" id="L627">        }</span>
 
         public int getCoreThreads() {
-<span class="nc" id="L629">            return coreThreads;</span>
+<span class="nc" id="L630">            return coreThreads;</span>
         }
 
         public int getSpinlockCount() {
-<span class="nc" id="L633">            return spinlockCount;</span>
+<span class="nc" id="L634">            return spinlockCount;</span>
         }
 
         public boolean isShutdown() {
-<span class="nc" id="L637">            return shutdown;</span>
+<span class="nc" id="L638">            return shutdown;</span>
         }
 
         public void setShutdown(final boolean shutdown) {
-<span class="nc" id="L641">            this.shutdown = shutdown;</span>
-<span class="nc" id="L642">        }</span>
+<span class="nc" id="L642">            this.shutdown = shutdown;</span>
+<span class="nc" id="L643">        }</span>
 
         public AtomicInteger getThreadCount() {
-<span class="nc" id="L645">            return threadCount;</span>
+<span class="nc" id="L646">            return threadCount;</span>
         }
 
         @Override
         public String toString() {
-<span class="nc" id="L650">            return &quot;ExecState{&quot; + &quot;shutdown=&quot; + shutdown + &quot;, threadCount=&quot;</span>
+<span class="nc" id="L651">            return &quot;ExecState{&quot; + &quot;shutdown=&quot; + shutdown + &quot;, threadCount=&quot;</span>
                     + threadCount + &quot;, spinlockCount=&quot; + spinlockCount + '}';
         }
 
@@ -655,7 +656,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
     @Override
     public String toString() {
-<span class="nc" id="L658">        return &quot;LifoThreadPoolExecutorSQP{&quot; + &quot;threadQueue=&quot; + threadQueue</span>
+<span class="nc" id="L659">        return &quot;LifoThreadPoolExecutorSQP{&quot; + &quot;threadQueue=&quot; + threadQueue</span>
                 + &quot;, maxThreadCount=&quot; + maxThreadCount + &quot;, state=&quot; + state
                 + &quot;, submitMonitor=&quot; + stateLock + &quot;, queueCapacity=&quot; + queueSizeLimit
                 + &quot;, poolName=&quot; + poolName + '}';
@@ -663,24 +664,24 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
     @Override
     public Queue&lt;Runnable&gt; getTaskQueue() {
-<span class="nc" id="L666">        return taskQueue;</span>
+<span class="nc" id="L667">        return taskQueue;</span>
     }
 
     @JmxExport
     @Override
     public int getMaxIdleTimeMillis() {
-<span class="nc" id="L672">        return state.getMaxIdleTimeMillis();</span>
+<span class="nc" id="L673">        return state.getMaxIdleTimeMillis();</span>
     }
 
 
     @JmxExport
     public void setMaxIdleTimeMillis(final int maxIdleTimeMillis) {
-<span class="nc" id="L678">        this.state.setMaxIdleTimeMillis(maxIdleTimeMillis);</span>
-<span class="nc" id="L679">    }</span>
+<span class="nc" id="L679">        this.state.setMaxIdleTimeMillis(maxIdleTimeMillis);</span>
+<span class="nc" id="L680">    }</span>
 
     @Override
     public String getPoolName() {
-<span class="nc" id="L683">        return poolName;</span>
+<span class="nc" id="L684">        return poolName;</span>
     }
 
 }

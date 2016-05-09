@@ -178,11 +178,11 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
             try {
 <span class="nc" id="L179">                long waitTime = 0;</span>
 <span class="nc" id="L180">                long maxWaitTime = unit.toMillis(time);</span>
-<span class="nc bnc" id="L181" title="All 6 branches missed.">                while (waitTime &lt; maxWaitTime</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">                while (waitTime &lt; maxWaitTime</span>
                         //CHECKSTYLE:OFF
-                        &amp;&amp; (fileLock = file.getChannel().tryLock()) == null
+<span class="nc bnc" id="L183" title="All 2 branches missed.">                        &amp;&amp; (fileLock = file.getChannel().tryLock()) == null</span>
                         //CHECKSTYLE:ON
-                        &amp;&amp; !Thread.interrupted()) {
+<span class="nc bnc" id="L185" title="All 2 branches missed.">                        &amp;&amp; !Thread.interrupted()) {</span>
 <span class="nc" id="L186">                    Thread.sleep(next(1000));</span>
 <span class="nc" id="L187">                    waitTime++;</span>
                 }
@@ -267,15 +267,20 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
 
     private void writeHolderInfo() throws IOException {
 <span class="fc" id="L269">        file.seek(0);</span>
-<span class="fc" id="L270">        byte[] data = org.spf4j.base.Runtime.PROCESS_NAME.getBytes(Charsets.UTF_8);</span>
+<span class="fc" id="L270">        byte[] data = getContextInfo().getBytes(Charsets.UTF_8);</span>
 <span class="fc" id="L271">        file.write(data);</span>
 <span class="fc" id="L272">        file.setLength(data.length);</span>
 <span class="fc" id="L273">        file.getChannel().force(true);</span>
 <span class="fc" id="L274">    }</span>
+    
+    public static String getContextInfo() {
+<span class="fc" id="L277">      return org.spf4j.base.Runtime.PROCESS_ID + ':' + Thread.currentThread().getName();</span>
+    }
+    
 
     @Override
     public String toString() {
-<span class="nc" id="L278">        return &quot;FileBasedLock{&quot; + &quot;file=&quot; + file + &quot;, owner=&quot; + owner + &quot;, reentranceCount=&quot; + reentranceCount + '}';</span>
+<span class="nc" id="L283">        return &quot;FileBasedLock{&quot; + &quot;file=&quot; + file + &quot;, owner=&quot; + owner + &quot;, reentranceCount=&quot; + reentranceCount + '}';</span>
     }
     
 

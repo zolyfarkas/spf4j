@@ -52,13 +52,13 @@
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>          Number param = (Number) context.popSyncStackVal();
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> sleepMillis = param.longValue();
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>          <strong class="jxr_keyword">if</strong> (sleepMillis &gt; 0) {
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>              <strong class="jxr_keyword">if</strong> (context.execService == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>              <strong class="jxr_keyword">if</strong> (context.getExecService() == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L48" href="#L48">48</a>                  Thread.sleep(sleepMillis);
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>              } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>                  <strong class="jxr_keyword">final</strong> VMASyncFuture&lt;Object&gt; future = <strong class="jxr_keyword">new</strong> VMASyncFuture&lt;&gt;();
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>                  DefaultScheduler.INSTANCE.schedule(
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>                          <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/instr/THROW.html">RunnableImpl</a>(context, future), sleepMillis, TimeUnit.MILLISECONDS);
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>                  context.ip++;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>                          <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/instr/SLEEP.html">RunnableImpl</a>(context, future), sleepMillis, TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>                  context.incrementInstructionPointer();
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>                  context.suspend(future);
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>              }
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>          }
@@ -78,7 +78,7 @@
 <a class="jxr_linenumber" name="L70" href="#L70">70</a>          <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a> context;
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>          <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> VMASyncFuture&lt;Object&gt; future;
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>  
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>          <a href="../../../../org/spf4j/zel/instr/THROW.html">RunnableImpl</a>(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a> context, <strong class="jxr_keyword">final</strong> VMASyncFuture&lt;Object&gt; future) {
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>          <a href="../../../../org/spf4j/zel/instr/SLEEP.html">RunnableImpl</a>(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a> context, <strong class="jxr_keyword">final</strong> VMASyncFuture&lt;Object&gt; future) {
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>              <strong class="jxr_keyword">this</strong>.context = context;
 <a class="jxr_linenumber" name="L75" href="#L75">75</a>              <strong class="jxr_keyword">this</strong>.future = future;
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>          }
@@ -87,7 +87,7 @@
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>          <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>              Object stuff;
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>              <strong class="jxr_keyword">do</strong> {
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>                  stuff = context.execService.resumeSuspendables(future);
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>                  stuff = context.getExecService().resumeSuspendables(future);
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>              } <strong class="jxr_keyword">while</strong> (stuff == <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>          }
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>      }

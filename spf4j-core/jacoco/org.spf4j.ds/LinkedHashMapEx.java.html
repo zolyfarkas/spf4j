@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>LinkedHashMapEx.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ds</a> &gt; <span class="el_source">LinkedHashMapEx.java</span></div><h1>LinkedHashMapEx.java</h1><pre class="source lang-java linenums">
-package org.spf4j.ds;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>LinkedHashMapEx.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ds</a> &gt; <span class="el_source">LinkedHashMapEx.java</span></div><h1>LinkedHashMapEx.java</h1><pre class="source lang-java linenums">package org.spf4j.ds;
 
 import java.lang.reflect.Field;
 import java.security.AccessController;
@@ -13,121 +12,71 @@ import javax.annotation.Nullable;
  * @author zoly
  */
 public final class LinkedHashMapEx&lt;K, V&gt; extends LinkedHashMap&lt;K, V&gt;
-    implements LinkedMap&lt;K, V&gt; {
+        implements LinkedMap&lt;K, V&gt; {
 
-    private static final Field HEADER;
-    private static final Field HEADER_BEFORE;
-    private static final long serialVersionUID = 1L;
+  private static final Field TAIL;
+  private static final long serialVersionUID = 1L;
 
-    static {
-<span class="fc" id="L23">        HEADER = AccessController.doPrivileged(new PrivilegedAction&lt;Field&gt;() {</span>
-            @Override
-            public Field run() {
-                try {
-<span class="fc" id="L27">                    Field field = LinkedHashMap.class.getDeclaredField(&quot;header&quot;);</span>
-<span class="fc" id="L28">                    field.setAccessible(true);</span>
-<span class="fc" id="L29">                    return field;</span>
-<span class="nc" id="L30">                } catch (NoSuchFieldException | SecurityException ex) {</span>
-<span class="nc" id="L31">                    throw new RuntimeException(ex);</span>
-                }
-            }
-        });
-<span class="fc" id="L35">        HEADER_BEFORE = AccessController.doPrivileged(new PrivilegedAction&lt;Field&gt;() {</span>
-            @Override
-            public Field run() {
-                try {
-<span class="fc" id="L39">                    Class&lt;?&gt; entryClass = Class.forName(&quot;java.util.LinkedHashMap$Entry&quot;);</span>
-<span class="fc" id="L40">                    Field field = entryClass.getDeclaredField(&quot;before&quot;);</span>
-<span class="fc" id="L41">                    field.setAccessible(true);</span>
-<span class="fc" id="L42">                    return field;</span>
-<span class="nc" id="L43">                } catch (NoSuchFieldException | SecurityException | ClassNotFoundException ex) {</span>
-<span class="nc" id="L44">                    throw new RuntimeException(ex);</span>
-                }
-            }
-        });
+  static {
 
-<span class="fc" id="L49">    }</span>
-
-    private Map.Entry&lt;K, V&gt; getHeader() {
+<span class="fc" id="L22">    TAIL = AccessController.doPrivileged(new PrivilegedAction&lt;Field&gt;() {</span>
+      @Override
+      public Field run() {
         try {
-<span class="fc" id="L53">            return (Map.Entry&lt;K, V&gt;) HEADER.get(this);</span>
-<span class="nc" id="L54">        } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
-<span class="nc" id="L55">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L26">          Field field = LinkedHashMap.class.getDeclaredField(&quot;tail&quot;);</span>
+<span class="fc" id="L27">          field.setAccessible(true);</span>
+<span class="fc" id="L28">          return field;</span>
+<span class="nc" id="L29">        } catch (NoSuchFieldException | SecurityException ex) {</span>
+<span class="nc" id="L30">          throw new RuntimeException(ex);</span>
         }
+      }
+    });
+
+<span class="fc" id="L35">  }</span>
+
+  private Map.Entry&lt;K, V&gt; getTail() {
+    try {
+<span class="fc" id="L39">      return (Map.Entry&lt;K, V&gt;) TAIL.get(this);</span>
+<span class="nc" id="L40">    } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
+<span class="nc" id="L41">      throw new RuntimeException(ex);</span>
     }
+  }
 
-    public LinkedHashMapEx() {
-<span class="nc" id="L60">        super();</span>
-<span class="nc" id="L61">        header = getHeader();</span>
-<span class="nc" id="L62">    }</span>
+  public LinkedHashMapEx() {
+<span class="nc" id="L46">    super();</span>
+<span class="nc" id="L47">  }</span>
 
+  public LinkedHashMapEx(final int initialCapacity, final float loadFactor) {
+<span class="nc" id="L50">    super(initialCapacity, loadFactor);</span>
+<span class="nc" id="L51">  }</span>
 
-    public LinkedHashMapEx(final int initialCapacity, final float loadFactor) {
-<span class="nc" id="L66">        super(initialCapacity, loadFactor);</span>
-<span class="nc" id="L67">        header = getHeader();</span>
-<span class="nc" id="L68">    }</span>
+  public LinkedHashMapEx(final int initialCapacity) {
+<span class="fc" id="L54">    super(initialCapacity);</span>
+<span class="fc" id="L55">  }</span>
 
-    public LinkedHashMapEx(final int initialCapacity) {
-<span class="fc" id="L71">        super(initialCapacity);</span>
-<span class="fc" id="L72">        header = getHeader();</span>
-<span class="fc" id="L73">    }</span>
+  public LinkedHashMapEx(final Map&lt;? extends K, ? extends V&gt; m) {
+<span class="nc" id="L58">    super(m);</span>
+<span class="nc" id="L59">  }</span>
 
+  public LinkedHashMapEx(final int initialCapacity, final float loadFactor, final boolean accessOrder) {
+<span class="nc" id="L62">    super(initialCapacity, loadFactor, accessOrder);</span>
+<span class="nc" id="L63">  }</span>
 
+  @Nullable
+  @Override
+  public Map.Entry&lt;K, V&gt; getLastEntry() {
+<span class="fc" id="L68">    return getTail();</span>
+  }
 
-    public LinkedHashMapEx(final Map&lt;? extends K, ? extends V&gt; m) {
-<span class="nc" id="L78">        super(m);</span>
-<span class="nc" id="L79">        header = getHeader();</span>
-<span class="nc" id="L80">    }</span>
-
-    public LinkedHashMapEx(final int initialCapacity, final float loadFactor, final boolean accessOrder) {
-<span class="nc" id="L83">        super(initialCapacity, loadFactor, accessOrder);</span>
-<span class="nc" id="L84">        header = getHeader();</span>
-<span class="nc" id="L85">    }</span>
-
-
-   private transient Map.Entry&lt;K, V&gt; header;
-
-   private void readObject(final java.io.ObjectInputStream s)
-        throws java.io.IOException, ClassNotFoundException {
-<span class="nc" id="L92">        s.defaultReadObject();</span>
-<span class="nc" id="L93">        header = getHeader();</span>
-<span class="nc" id="L94">   }</span>
-
-
-    private Map.Entry&lt;K, V&gt; getLastEntryInternal() {
-        try {
-<span class="fc" id="L99">            return (Map.Entry&lt;K, V&gt;) HEADER_BEFORE.get(header);</span>
-<span class="nc" id="L100">        } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
-<span class="nc" id="L101">            throw new RuntimeException(ex);</span>
-        }
+  @Nullable
+  @Override
+  public Map.Entry&lt;K, V&gt; pollLastEntry() {
+<span class="fc" id="L74">    final Entry&lt;K, V&gt; lastEntry = getTail();</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">    if (lastEntry != null) {</span>
+<span class="fc" id="L76">      remove(lastEntry.getKey());</span>
     }
-
-
-
-
-   @Nullable
-    @Override
-    public Map.Entry&lt;K, V&gt; getLastEntry() {
-<span class="fc" id="L111">        final Entry&lt;K, V&gt; lastEntry = getLastEntryInternal();</span>
-<span class="pc bpc" id="L112" title="1 of 2 branches missed.">        if (lastEntry == header) {</span>
-<span class="nc" id="L113">            return null;</span>
-        } else {
-<span class="fc" id="L115">            return lastEntry;</span>
-        }
-    }
-
-    @Nullable
-    @Override
-    public Map.Entry&lt;K, V&gt; pollLastEntry() {
-<span class="fc" id="L122">        final Entry&lt;K, V&gt; lastEntry = getLastEntryInternal();</span>
-<span class="fc bfc" id="L123" title="All 2 branches covered.">        if (lastEntry == header) {</span>
-<span class="fc" id="L124">            return null;</span>
-        } else {
-<span class="fc" id="L126">            remove(lastEntry.getKey());</span>
-<span class="fc" id="L127">            return lastEntry;</span>
-        }
-    }
-
+<span class="fc" id="L78">    return lastEntry;</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

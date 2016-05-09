@@ -32,20 +32,22 @@
 <a class="jxr_linenumber" name="L24" href="#L24">24</a>          <strong class="jxr_keyword">final</strong> String destinationFolder = System.getProperty(<span class="jxr_string">"jmh.stack.profiles"</span>,
 <a class="jxr_linenumber" name="L25" href="#L25">25</a>                  org.spf4j.base.Runtime.USER_DIR);
 <a class="jxr_linenumber" name="L26" href="#L26">26</a>          Options opt = <strong class="jxr_keyword">new</strong> OptionsBuilder()
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_comment">//                .include(".*Base64.*")</em>
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>                  .addProfiler(JmhProfiler.<strong class="jxr_keyword">class</strong>)
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>                  .addProfiler(JmhFlightRecorderProfiler.<strong class="jxr_keyword">class</strong>)
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>                  .jvmArgs(<span class="jxr_string">"-XX:+UnlockCommercialFeatures"</span>, <span class="jxr_string">"-Djmh.stack.profiles="</span> + destinationFolder)
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>                  .result(destinationFolder + <span class="jxr_string">"/"</span> + <span class="jxr_string">"benchmarkResults.csv"</span>)
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>                  .resultFormat(ResultFormatType.CSV)
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>                  .warmupIterations(10)
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>                  .measurementIterations(10)
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>                  .forks(1)
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>                  .build();
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>           <strong class="jxr_keyword">new</strong> Runner(opt).run();
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>      }
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  }
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_comment">//                .include(".*MessageFormatter*.*")</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>                  .include(<span class="jxr_string">".*"</span>)
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>                  .addProfiler(JmhProfiler.<strong class="jxr_keyword">class</strong>)
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>                  .addProfiler(JmhFlightRecorderProfiler.<strong class="jxr_keyword">class</strong>)
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>                  .jvmArgs(<span class="jxr_string">"-XX:+UnlockCommercialFeatures"</span>, <span class="jxr_string">"-Djmh.stack.profiles="</span> + destinationFolder,
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>                          <span class="jxr_string">"-DdefaultExecutor.daemon=true"</span>, <span class="jxr_string">"-Djmh.executor=FJP"</span>)
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>                  .result(destinationFolder + <span class="jxr_string">"/"</span> + <span class="jxr_string">"benchmarkResults.csv"</span>)
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>                  .resultFormat(ResultFormatType.CSV)
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>                  .warmupIterations(10)
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>                  .measurementIterations(10)
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>                  .forks(1)
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>                  .build();
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>           <strong class="jxr_keyword">new</strong> Runner(opt).run();
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      }
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2016. All rights reserved.</div>

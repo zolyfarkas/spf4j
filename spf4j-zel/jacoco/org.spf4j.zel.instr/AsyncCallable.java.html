@@ -4,25 +4,24 @@ package org.spf4j.zel.instr;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.Program;
 
 @SuppressFBWarnings(&quot;CD_CIRCULAR_DEPENDENCY&quot;)
 public final class AsyncCallable implements Callable&lt;Object&gt; {
 
     private final ExecutionContext nctx;
 
-<span class="nc" id="L14">    public AsyncCallable(final ExecutionContext nctx) {</span>
-<span class="nc" id="L15">        this.nctx = nctx;</span>
-<span class="nc" id="L16">    }</span>
+<span class="nc" id="L13">    public AsyncCallable(final ExecutionContext nctx) {</span>
+<span class="nc" id="L14">        this.nctx = nctx;</span>
+<span class="nc" id="L15">    }</span>
 
     @Override
     public Object call() throws Exception {
-<span class="nc" id="L20">        return Program.executeAsync(nctx);</span>
+<span class="nc" id="L19">        return nctx.executeAsync();</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L25">        return &quot;AsyncCallable{&quot; + &quot;nctx=&quot; + nctx + '}';</span>
+<span class="nc" id="L24">        return &quot;AsyncCallable{&quot; + &quot;nctx=&quot; + nctx + '}';</span>
     }
 
 }

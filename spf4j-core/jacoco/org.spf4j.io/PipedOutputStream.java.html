@@ -20,12 +20,12 @@ package org.spf4j.io;
 
 import com.google.common.io.BaseEncoding;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import javax.annotation.Nullable;
-import javax.annotation.WillClose;
 
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
@@ -220,7 +220,7 @@ public final class PipedOutputStream extends OutputStream {
 
 
     @Override
-    @WillClose
+    @DischargesObligation
     public void close() {
 <span class="fc" id="L225">        synchronized (sync) {</span>
 <span class="pc bpc" id="L226" title="1 of 2 branches missed.">            if (!writerClosed) {</span>
@@ -383,13 +383,13 @@ public final class PipedOutputStream extends OutputStream {
     @Override
     public String toString() {
 <span class="fc" id="L385">        synchronized (sync) {</span>
-<span class="fc bfc" id="L386" title="All 4 branches covered.">            return &quot;PipedOutputStream{&quot; + &quot;bufferLength=&quot;</span>
-                    + ((buffer == null) ? null : buffer.length) + &quot;, startIdx=&quot; + startIdx
+<span class="fc bfc" id="L386" title="All 2 branches covered.">            return &quot;PipedOutputStream{&quot; + &quot;bufferLength=&quot;</span>
+<span class="fc bfc" id="L387" title="All 2 branches covered.">                    + ((buffer == null) ? null : buffer.length) + &quot;, startIdx=&quot; + startIdx</span>
                     + &quot;, endIdx=&quot; + endIdx
                     + &quot;, readerPerceivedEndIdx=&quot; + readerPerceivedEndIdx
                     + ((writerClosed)
                         ? &quot;, closed=&quot; + writerClosed
-                        : &quot;, unread=&quot; + BaseEncoding.base64().encode(getUnreadBytesFromBuffer()))
+<span class="fc" id="L392">                        : &quot;, unread=&quot; + BaseEncoding.base64().encode(getUnreadBytesFromBuffer()))</span>
                     + '}';
 <span class="nc" id="L394">        }</span>
     }

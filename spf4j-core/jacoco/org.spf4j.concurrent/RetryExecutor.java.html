@@ -332,16 +332,16 @@ public class RetryExecutor {
     public final &lt;A, E extends Exception&gt; Future&lt;A&gt; submit(final Callables.TimeoutCallable&lt;A, E&gt; task) {
 <span class="nc" id="L333">        FutureBean&lt;?&gt; result = createFutureBean();</span>
 <span class="nc" id="L334">        executionService.execute(new RetryableCallable(task, result, null,</span>
-                resultRetryPredicateSupplier.get((Callable&lt;Object&gt;) task),
-                exceptionRetryPredicateSupplier.get((Callable&lt;Object&gt;) task)));
+<span class="nc" id="L335">                resultRetryPredicateSupplier.get((Callable&lt;Object&gt;) task),</span>
+<span class="nc" id="L336">                exceptionRetryPredicateSupplier.get((Callable&lt;Object&gt;) task)));</span>
 <span class="nc" id="L337">        return (Future&lt;A&gt;) result;</span>
     }
 
     public final &lt;A&gt; Future&lt;A&gt; submit(final Callable&lt;A&gt; task) {
 <span class="fc" id="L341">        FutureBean&lt;?&gt; result = createFutureBean();</span>
 <span class="fc" id="L342">        executionService.execute(new RetryableCallable(task, result, null,</span>
-                resultRetryPredicateSupplier.get((Callable&lt;Object&gt;) task),
-                exceptionRetryPredicateSupplier.get((Callable&lt;Object&gt;) task)));
+<span class="fc" id="L343">                resultRetryPredicateSupplier.get((Callable&lt;Object&gt;) task),</span>
+<span class="fc" id="L344">                exceptionRetryPredicateSupplier.get((Callable&lt;Object&gt;) task)));</span>
 <span class="fc" id="L345">        return (Future&lt;A&gt;) result;</span>
     }
 
@@ -350,23 +350,23 @@ public class RetryExecutor {
     public final &lt;A, E extends Exception&gt; Future&lt;A&gt; submit(final TimeoutRunnable&lt;E&gt; task, final A result) {
 <span class="nc" id="L351">        FutureBean&lt;?&gt; resultFuture = createFutureBean();</span>
 <span class="nc" id="L352">        executionService.execute(new RetryableCallable&lt;&gt;(task, result, resultFuture, null,</span>
-                resultRetryPredicateSupplier.get((Callable&lt;?&gt;) task),
-                exceptionRetryPredicateSupplier.get((Callable&lt;?&gt;) task)));
+<span class="nc" id="L353">                resultRetryPredicateSupplier.get((Callable&lt;?&gt;) task),</span>
+<span class="nc" id="L354">                exceptionRetryPredicateSupplier.get((Callable&lt;?&gt;) task)));</span>
 <span class="nc" id="L355">        return (Future&lt;A&gt;) resultFuture;</span>
     }
 
     public final &lt;E extends Exception&gt; Future&lt;?&gt; submit(final TimeoutRunnable&lt;E&gt; task) {
 <span class="nc" id="L359">        FutureBean&lt;?&gt; resultFuture = createFutureBean();</span>
 <span class="nc" id="L360">        executionService.execute(new RetryableCallable(task, null, resultFuture, null,</span>
-         resultRetryPredicateSupplier.get((Callable&lt;?&gt;) task),
-                exceptionRetryPredicateSupplier.get((Callable&lt;?&gt;) task)));
+<span class="nc" id="L361">         resultRetryPredicateSupplier.get((Callable&lt;?&gt;) task),</span>
+<span class="nc" id="L362">                exceptionRetryPredicateSupplier.get((Callable&lt;?&gt;) task)));</span>
 <span class="nc" id="L363">        return resultFuture;</span>
     }
 
     public final &lt;E extends Exception&gt; void execute(final TimeoutRunnable&lt;E&gt; command) {
 <span class="nc" id="L367">        executionService.execute(new RetryableCallable(command, null, null, null,</span>
-         resultRetryPredicateSupplier.get((Callable&lt;?&gt;) command),
-                exceptionRetryPredicateSupplier.get((Callable&lt;?&gt;) command)));
+<span class="nc" id="L368">         resultRetryPredicateSupplier.get((Callable&lt;?&gt;) command),</span>
+<span class="nc" id="L369">                exceptionRetryPredicateSupplier.get((Callable&lt;?&gt;) command)));</span>
 <span class="nc" id="L370">    }</span>
 
     @Override

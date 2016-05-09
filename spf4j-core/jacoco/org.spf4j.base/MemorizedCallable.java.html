@@ -31,26 +31,26 @@ public final class MemorizedCallable&lt;V&gt; implements Callable&lt;V&gt; {
     
     private final Callable&lt;V&gt; callable;
 
-<span class="fc" id="L34">    private static final Object NOTHING = new Object();</span>
+<span class="nc" id="L34">    private static final Object NOTHING = new Object();</span>
     
-<span class="fc" id="L36">    public MemorizedCallable(final Callable&lt;V&gt; callable) {</span>
-<span class="fc" id="L37">        this.callable = callable;</span>
-<span class="fc" id="L38">        value = (V) NOTHING;</span>
-<span class="fc" id="L39">    }</span>
+<span class="nc" id="L36">    public MemorizedCallable(final Callable&lt;V&gt; callable) {</span>
+<span class="nc" id="L37">        this.callable = callable;</span>
+<span class="nc" id="L38">        value = (V) NOTHING;</span>
+<span class="nc" id="L39">    }</span>
        
     @Override
     public V call() throws Exception {
-<span class="fc" id="L43">        V result = value;</span>
-<span class="pc bpc" id="L44" title="1 of 2 branches missed.">        if (result == NOTHING) {</span>
-<span class="fc" id="L45">            synchronized (this) {</span>
-<span class="fc" id="L46">                result = value;</span>
-<span class="pc bpc" id="L47" title="1 of 2 branches missed.">                if (result == NOTHING) {</span>
-<span class="fc" id="L48">                    result = callable.call();</span>
-<span class="fc" id="L49">                    value = result;</span>
+<span class="nc" id="L43">        V result = value;</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (result == NOTHING) {</span>
+<span class="nc" id="L45">            synchronized (this) {</span>
+<span class="nc" id="L46">                result = value;</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">                if (result == NOTHING) {</span>
+<span class="nc" id="L48">                    result = callable.call();</span>
+<span class="nc" id="L49">                    value = result;</span>
                 }
-<span class="pc" id="L51">            }</span>
+<span class="nc" id="L51">            }</span>
         }
-<span class="fc" id="L53">        return result;</span>
+<span class="nc" id="L53">        return result;</span>
     }
 
     @Override

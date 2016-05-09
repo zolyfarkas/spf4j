@@ -17,6 +17,8 @@
  */
 package org.spf4j.zel.instr.var;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.PrintStream;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 
@@ -24,19 +26,21 @@ public final class OUT implements Method {
 
     private static final long serialVersionUID = -1902851538294062563L;
 
-<span class="fc" id="L27">    private OUT() {</span>
-<span class="fc" id="L28">    }</span>
+<span class="fc" id="L29">    private OUT() {</span>
+<span class="fc" id="L30">    }</span>
 
-<span class="fc" id="L30">    public static final Method INSTANCE = new OUT();</span>
+<span class="fc" id="L32">    public static final Method INSTANCE = new OUT();</span>
 
     @Override
+    @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;)
     public Object invoke(final ExecutionContext context, final Object[] parameters) {
-<span class="fc" id="L34">        synchronized (context.out) {</span>
-<span class="fc bfc" id="L35" title="All 2 branches covered.">            for (Object obj : parameters) {</span>
-<span class="fc" id="L36">                    context.out.print(obj);</span>
+<span class="fc" id="L37">        final PrintStream out = context.getOut();</span>
+<span class="fc" id="L38">        synchronized (out) {</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">            for (Object obj : parameters) {</span>
+<span class="fc" id="L40">               out.print(obj);</span>
             }
-<span class="pc" id="L38">        }</span>
-<span class="fc" id="L39">        return null;</span>
+<span class="pc" id="L42">        }</span>
+<span class="fc" id="L43">        return null;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

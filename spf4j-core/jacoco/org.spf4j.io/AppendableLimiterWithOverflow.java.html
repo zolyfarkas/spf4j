@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>AppendableLimiterWithOverflow.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io</a> &gt; <span class="el_source">AppendableLimiterWithOverflow.java</span></div><h1>AppendableLimiterWithOverflow.java</h1><pre class="source lang-java linenums">
+package org.spf4j.io;
+
+import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import java.io.BufferedWriter;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.Charset;
+
+/**
+ * Utility class that limits the nr of characters written to a particular Appender.
+ * if nr of characters exceed the limit the character above the limit + entire message are written to
+ * the specified file.
+ * THe destination appender will contain the chars that fit the limit + a reference to the overflow file
+ * if overflow happened.
+ * @author zoly
+ */
+@Beta
+@CleanupObligation
+public final class AppendableLimiterWithOverflow implements Appendable, Closeable {
+
+  
+  private final int directWriteLimit;
+  private final int limit;
+  private final Appendable destination;
+  private int count;
+  private Writer overflowWriter;
+  private final CharSequence destinationSuffix;
+  private final StringBuilder buffer;
+  private StringBuilder asideBuffer;
+  private final OverflowSupplier owflSupplier;
+  
+  /**
+   * provide the overflow.
+   */
+  public  interface OverflowSupplier {
+    /**
+     * @return - a string that you can use to reference the overflow. (file name, url...)
+     * this string is used as a suffix for the appender that is being limited.
+     */
+    CharSequence getOverflowReference();
+    
+    /**
+     * @return - a writer to write the overflow.
+     */
+    Writer getOverflowWriter() throws IOException;
+  }
+  
+  
+  
+  public AppendableLimiterWithOverflow(final int limit, final File overflowFile,
+          final CharSequence destinationSuffix, final Charset characterSet, final Appendable destination) {
+<span class="fc" id="L60">    this(limit, destination, new OverflowSupplier() {</span>
+      @Override
+      public CharSequence getOverflowReference() {
+<span class="fc" id="L63">        String path = overflowFile.getPath();</span>
+<span class="fc" id="L64">        StringBuilder sb = new StringBuilder(path.length() + destinationSuffix.length());</span>
+<span class="fc" id="L65">        sb.append(destinationSuffix);</span>
+<span class="fc" id="L66">        sb.append(path);</span>
+<span class="fc" id="L67">        return sb;</span>
+      }
+
+      @Override
+      public Writer getOverflowWriter() throws FileNotFoundException {
+<span class="fc" id="L72">        return new BufferedWriter(</span>
+              new OutputStreamWriter(new FileOutputStream(overflowFile, false), characterSet));
+      }
+    });
+<span class="fc" id="L76">  }</span>
+  
+  public AppendableLimiterWithOverflow(final int limit, final Appendable destination,
+<span class="fc" id="L79">          final OverflowSupplier owflSupplier) {</span>
+<span class="fc" id="L80">    this.limit = limit;</span>
+<span class="fc" id="L81">    this.destinationSuffix = owflSupplier.getOverflowReference();</span>
+<span class="fc" id="L82">    final int refSize = destinationSuffix.length();</span>
+<span class="fc" id="L83">    this.directWriteLimit = limit - refSize;</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">    if (this.directWriteLimit &lt; 0) {</span>
+<span class="nc" id="L85">      throw new IllegalArgumentException(&quot;Limit too small &quot; + limit + &quot; should be at least &quot; + refSize);</span>
+    }
+<span class="fc" id="L87">    this.destination = destination;</span>
+<span class="fc" id="L88">    this.count = 0;</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">    if (destination instanceof CharSequence) {</span>
+<span class="fc" id="L90">      buffer = null;</span>
+    } else {
+<span class="nc" id="L92">      buffer = new StringBuilder(limit);</span>
+    }
+<span class="fc" id="L94">    this.overflowWriter = null;</span>
+<span class="fc" id="L95">    this.asideBuffer = null;</span>
+<span class="fc" id="L96">    this.owflSupplier = owflSupplier;</span>
+<span class="fc" id="L97">  }</span>
+
+  
+  @Override
+  public Appendable append(final CharSequence csq) throws IOException {
+<span class="fc" id="L102">    append(csq, 0, csq.length());</span>
+<span class="fc" id="L103">    return this;</span>
+  }
+
+  @Override
+  public Appendable append(final CharSequence csq, final int start, final int end) throws IOException {
+<span class="fc" id="L108">    int nrChars = end - start;</span>
+<span class="fc" id="L109">    int charsToWrite = Math.min(directWriteLimit - count, nrChars);</span>
+<span class="fc" id="L110">    int dwe = start + charsToWrite;</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">    if (charsToWrite &gt; 0) {</span>
+<span class="fc" id="L112">      destination.append(csq, start, dwe);</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">      if (buffer != null) {</span>
+<span class="nc" id="L114">        buffer.append(csq, start, charsToWrite);</span>
+      }
+<span class="fc" id="L116">      count += charsToWrite;</span>
+    }
+<span class="fc" id="L118">    int charsToWriteAside = Math.min(limit - count, end - dwe);</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">    if (charsToWriteAside &gt; 0) {</span>
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">      if (asideBuffer == null) {</span>
+<span class="fc" id="L121">        asideBuffer = new StringBuilder(limit - directWriteLimit);</span>
+      }
+<span class="fc" id="L123">      asideBuffer.append(csq, dwe, dwe + charsToWriteAside);</span>
+<span class="fc" id="L124">      count += charsToWriteAside;</span>
+    }
+<span class="fc bfc" id="L126" title="All 2 branches covered.">    if (charsToWrite + charsToWriteAside &lt; end) {</span>
+<span class="fc" id="L127">      createOverflowIfNeeded();</span>
+<span class="fc" id="L128">      overflowWriter.append(csq, charsToWrite + charsToWriteAside, end);</span>
+    }
+<span class="fc" id="L130">    return this;</span>
+  }
+  
+  @Override
+  public Appendable append(final char c) throws IOException {
+<span class="fc" id="L135">    int charsToWrite = Math.min(directWriteLimit - count, 1);</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">    if (charsToWrite &gt; 0) {</span>
+<span class="fc" id="L137">      destination.append(c);</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">      if (buffer != null) {</span>
+<span class="nc" id="L139">        buffer.append(c);</span>
+      }
+<span class="fc" id="L141">      count++;</span>
+    } else {
+<span class="nc" id="L143">      int charsToWriteAside = Math.min(limit - count, 1);</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">      if (charsToWriteAside &gt; 0) {</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        if (asideBuffer == null) {</span>
+<span class="nc" id="L146">          asideBuffer = new StringBuilder(limit - directWriteLimit);</span>
+        }
+<span class="nc" id="L148">        asideBuffer.append(c);</span>
+<span class="nc" id="L149">        count++;</span>
+      } else {
+<span class="nc" id="L151">        createOverflowIfNeeded();</span>
+<span class="nc" id="L152">        overflowWriter.append(c);</span>
+      }
+    }
+<span class="fc" id="L155">    return this;</span>
+  }
+  
+
+  public void createOverflowIfNeeded() throws IOException {
+<span class="pc bpc" id="L160" title="2 of 4 branches missed.">    if (count &gt;= limit &amp;&amp; overflowWriter == null) {</span>
+<span class="fc" id="L161">      overflowWriter = owflSupplier.getOverflowWriter();</span>
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">      if (buffer != null) {</span>
+<span class="nc" id="L163">        overflowWriter.append(buffer);</span>
+      } else {
+<span class="fc" id="L165">        CharSequence cs = (CharSequence) destination;</span>
+<span class="fc" id="L166">        final int l = cs.length();</span>
+<span class="fc" id="L167">        overflowWriter.append(cs, l - directWriteLimit, l);</span>
+      }
+<span class="fc" id="L169">      overflowWriter.append(asideBuffer);</span>
+<span class="fc" id="L170">      asideBuffer = null;</span>
+<span class="fc" id="L171">      destination.append(destinationSuffix);</span>
+    }
+<span class="fc" id="L173">  }</span>
+
+
+  @Override
+  @DischargesObligation
+  public void close() throws IOException {
+<span class="fc bfc" id="L179" title="All 2 branches covered.">    if (overflowWriter != null) {</span>
+<span class="fc" id="L180">      overflowWriter.close();</span>
+<span class="pc bpc" id="L181" title="1 of 2 branches missed.">    } else if (asideBuffer != null) {</span>
+<span class="fc" id="L182">      destination.append(asideBuffer);</span>
+    }
+<span class="fc" id="L184">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L188">    return &quot;AppendableLimiterWithOverflow{&quot; + &quot;directWriteLimit=&quot; + directWriteLimit</span>
+            + &quot;, limit=&quot; + limit + &quot;, destination=&quot; + destination + &quot;, count=&quot; + count
+            + &quot;, overflowWriter=&quot; + overflowWriter + &quot;, destinationSuffix=&quot; + destinationSuffix
+            + &quot;, buffer=&quot; + buffer + &quot;, overflow=&quot; + owflSupplier + &quot;, asideBuffer=&quot; + asideBuffer + '}';
+  }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

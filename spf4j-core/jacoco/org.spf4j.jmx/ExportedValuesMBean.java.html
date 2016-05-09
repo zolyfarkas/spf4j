@@ -76,8 +76,8 @@ public final class ExportedValuesMBean implements DynamicMBean {
         }
 <span class="fc" id="L77">        this.exportedOperations = new HashMap&lt;&gt;(operations.length + extend.exportedOperations.size());</span>
 <span class="fc" id="L78">        this.exportedOperations.putAll(extend.exportedOperations);</span>
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        for (ExportedOperation op : operations) {</span>
-<span class="nc" id="L80">            this.exportedOperations.put(op.getName(), op);</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        for (ExportedOperation op : operations) {</span>
+<span class="fc" id="L80">            this.exportedOperations.put(op.getName(), op);</span>
         }
 <span class="fc" id="L82">        this.objectName = extend.getObjectName();</span>
 <span class="fc" id="L83">        this.beanInfo = extend.beanInfo;</span>
@@ -178,10 +178,10 @@ public final class ExportedValuesMBean implements DynamicMBean {
 <span class="fc bfc" id="L178" title="All 2 branches covered.">        for (ExportedOperation op : exportedOperations.values()) {</span>
 <span class="fc" id="L179">            MBeanParameterInfo[] paramInfos = op.getParameterInfos();</span>
 <span class="fc" id="L180">            operations[i++] = new MBeanOperationInfo(op.getName(), op.getDescription(),</span>
-                    paramInfos, op.getReturnType().getName(), MBeanOperationInfo.UNKNOWN);
+<span class="fc" id="L181">                    paramInfos, op.getReturnType().getName(), MBeanOperationInfo.UNKNOWN);</span>
 <span class="fc" id="L182">        }</span>
 <span class="fc" id="L183">        return new MBeanInfo(</span>
-                this.getClass().getName(),
+<span class="fc" id="L184">                this.getClass().getName(),</span>
                 &quot;JmxMBean&quot;,
                 attrs,
                 null,  // constructors
@@ -204,15 +204,15 @@ public final class ExportedValuesMBean implements DynamicMBean {
 <span class="fc" id="L204">            type = openType.getTypeName();</span>
         }
 
-<span class="fc bfc" id="L207" title="All 2 branches covered.">        return new MBeanAttributeInfo(</span>
-                val.getName(),
+<span class="fc" id="L207">        return new MBeanAttributeInfo(</span>
+<span class="fc" id="L208">                val.getName(),</span>
                 type,
-                val.getDescription(),
+<span class="fc" id="L210">                val.getDescription(),</span>
                 true,   // isReadable
-                val.isWriteable(),  // isWritable
+<span class="fc bfc" id="L212" title="All 2 branches covered.">                val.isWriteable(),  // isWritable</span>
                 valClass == Boolean.class,
                 new ImmutableDescriptor(new String[] {&quot;openType&quot;, &quot;originalType&quot;},
-                        new Object[] {openType, oClass.getName()}));
+<span class="fc" id="L215">                        new Object[] {openType, oClass.getName()}));</span>
 
 
     }

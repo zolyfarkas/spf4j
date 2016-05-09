@@ -34,26 +34,28 @@ public final class MCTX extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context) {
-<span class="pc bpc" id="L37" title="2 of 4 branches missed.">        switch (precission) {</span>
+        MathContext mc;
+<span class="pc bpc" id="L38" title="2 of 4 branches missed.">        switch (precission) {</span>
             case 32:
-<span class="nc" id="L39">                context.mathContext = MathContext.DECIMAL32;</span>
-<span class="nc" id="L40">                break;</span>
+<span class="nc" id="L40">                mc = MathContext.DECIMAL32;</span>
+<span class="nc" id="L41">                break;</span>
             case 64:
-<span class="fc" id="L42">                context.mathContext = MathContext.DECIMAL64;</span>
-<span class="fc" id="L43">                break;</span>
+<span class="fc" id="L43">                mc = MathContext.DECIMAL64;</span>
+<span class="fc" id="L44">                break;</span>
             case 128:
-<span class="fc" id="L45">                context.mathContext = MathContext.DECIMAL128;</span>
-<span class="fc" id="L46">                break;</span>
+<span class="fc" id="L46">                mc = MathContext.DECIMAL128;</span>
+<span class="fc" id="L47">                break;</span>
             default:
-<span class="nc" id="L48">                context.mathContext = MathContext.DECIMAL128;</span>
+<span class="nc" id="L49">                mc = new MathContext(precission);</span>
         }
-<span class="fc" id="L50">        Operator.MATH_CONTEXT.set(context.mathContext);</span>
-<span class="fc" id="L51">        return 1;</span>
+<span class="fc" id="L51">        context.setMathContext(mc);</span>
+<span class="fc" id="L52">        Operator.MATH_CONTEXT.set(mc);</span>
+<span class="fc" id="L53">        return 1;</span>
     }
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L56">        return new Object[] {precission};</span>
+<span class="fc" id="L58">        return new Object[] {precission};</span>
     }
 
 }

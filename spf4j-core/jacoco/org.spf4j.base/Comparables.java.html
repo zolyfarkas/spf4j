@@ -56,5 +56,34 @@ public final class Comparables {
 <span class="nc" id="L56">        return max;</span>
     }
     
+    public static &lt;T extends Comparable&lt;T&gt;&gt; int compare(final T first, final T second) {
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        if (first == null) {</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">            return (second == null) ? 0 : 1;</span>
+        } else {
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">            return (second == null) ? -1 : first.compareTo(second);</span>
+        }
+    }
+    
+    
+    public static &lt;T extends Comparable&lt;T&gt;&gt; int compareArrays(final T[] first, final T[] second) {
+<span class="fc" id="L69">        int result = 0;</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">        if (first == second) {</span>
+<span class="nc" id="L71">            return result;</span>
+        }
+<span class="fc" id="L73">        int i = 0;</span>
+<span class="fc" id="L74">        int l1 = first.length;</span>
+<span class="fc" id="L75">        int l2 = second.length;</span>
+<span class="fc" id="L76">        int n = Math.min(l1, l2);</span>
+        do {
+<span class="fc" id="L78">            result = Comparables.compare(first[i], second[i]);</span>
+<span class="fc" id="L79">            i++;</span>
+<span class="fc bfc" id="L80" title="All 4 branches covered.">        } while (result == 0 &amp;&amp; i &lt; n);</span>
+<span class="pc bpc" id="L81" title="1 of 4 branches missed.">        if (result == 0 &amp;&amp; l1 != l2) {</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">            return (l1 &lt; l2) ? -1 : 1;</span>
+        }
+<span class="fc" id="L84">        return result;</span>
+    }
+    
+    
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

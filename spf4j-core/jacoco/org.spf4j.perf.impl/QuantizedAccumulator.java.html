@@ -112,17 +112,17 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
 <span class="fc" id="L112">                long intSize = magVal - prevVal;</span>
 <span class="fc bfc" id="L113" title="All 2 branches covered.">                for (j = 0; j &lt; quantasPerMagnitude; j++) {</span>
 <span class="fc" id="L114">                    result.add(new StringBuilder(16).append('Q').append(prevVal + intSize * j / quantasPerMagnitude)</span>
-                            .append('_').append(prevVal + intSize * (j + 1) / quantasPerMagnitude).toString());
+<span class="fc" id="L115">                            .append('_').append(prevVal + intSize * (j + 1) / quantasPerMagnitude).toString());</span>
 <span class="fc" id="L116">                    uom.add(&quot;count&quot;);</span>
                 }
 <span class="fc" id="L118">                prevVal = magVal;</span>
             }
 <span class="fc" id="L120">            result.add(new StringBuilder().append('Q').append(prevVal)</span>
-                    .append(&quot;_PI&quot;).toString());
+<span class="fc" id="L121">                    .append(&quot;_PI&quot;).toString());</span>
 <span class="fc" id="L122">            uom.add(&quot;count&quot;);</span>
         }
 <span class="fc" id="L124">        info = new MeasurementsInfoImpl(measuredEntity, description,</span>
-                result.toArray(new String[result.size()]), uom.toArray(new String[uom.size()]));
+<span class="fc" id="L125">                result.toArray(new String[result.size()]), uom.toArray(new String[uom.size()]));</span>
 
 <span class="fc" id="L127">    }</span>
 
@@ -237,10 +237,10 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
 <span class="nc" id="L237">                quantizedM[i] += lQuatizedMeas[i];</span>
             }
 <span class="nc" id="L239">            return new QuantizedAccumulator(info, factor, lowerMagnitude, higherMagnitude,</span>
-                    Math.min(minMeasurementM, otherClone.getMinMeasurement()),
-                    Math.max(maxMeasurementM, otherClone.getMaxMeasurement()),
-                    measurementCountM + otherClone.getMeasurementCount(),
-                    measurementTotalM + otherClone.getMeasurementTotal(),
+<span class="nc" id="L240">                    Math.min(minMeasurementM, otherClone.getMinMeasurement()),</span>
+<span class="nc" id="L241">                    Math.max(maxMeasurementM, otherClone.getMaxMeasurement()),</span>
+<span class="nc" id="L242">                    measurementCountM + otherClone.getMeasurementCount(),</span>
+<span class="nc" id="L243">                    measurementTotalM + otherClone.getMeasurementTotal(),</span>
                     quantasPerMagnitude, magnitudes, quantizedM);
         } else {
 <span class="nc" id="L246">            throw new IllegalArgumentException(&quot;Cannot aggregate &quot; + this + &quot; with &quot; + mSource);</span>
@@ -253,7 +253,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
     public synchronized QuantizedAccumulator createClone() {
 <span class="fc" id="L254">        return new QuantizedAccumulator(info, factor, lowerMagnitude, higherMagnitude,</span>
                 minMeasurement, maxMeasurement, measurementCount, measurementTotal,
-                quantasPerMagnitude, magnitudes, quatizedMeasurements.clone());
+<span class="fc" id="L256">                quantasPerMagnitude, magnitudes, quatizedMeasurements.clone());</span>
     }
 
     @Override
@@ -276,8 +276,8 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
 <span class="fc" id="L276">        return &quot;QuantizedRecorder{&quot; + &quot;info=&quot; + info + &quot;, minMeasurement=&quot; + minMeasurement + &quot;, maxMeasurement=&quot;</span>
                 + maxMeasurement + &quot;, measurementCount=&quot; + measurementCount + &quot;, measurementTotal=&quot;
                 + measurementTotal + &quot;, quantasPerMagnitude=&quot; + quantasPerMagnitude + &quot;, magnitudes=&quot;
-                + Arrays.toString(magnitudes) + &quot;, quatizedMeasurements=&quot;
-                + Arrays.toString(quatizedMeasurements) + '}';
+<span class="fc" id="L279">                + Arrays.toString(magnitudes) + &quot;, quatizedMeasurements=&quot;</span>
+<span class="fc" id="L280">                + Arrays.toString(quatizedMeasurements) + '}';</span>
     }
 
     public synchronized long getMaxMeasurement() {
