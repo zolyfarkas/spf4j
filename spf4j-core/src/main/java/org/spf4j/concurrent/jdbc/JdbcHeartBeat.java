@@ -1,5 +1,6 @@
 package org.spf4j.concurrent.jdbc;
 
+import com.google.common.util.concurrent.ListenableScheduledFuture;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -66,7 +67,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   private boolean isClosed;
 
-  private ScheduledFuture<?> scheduledHearbeat;
+  private ListenableScheduledFuture<?> scheduledHearbeat;
 
   private final long beatDurationNanos;
 
@@ -232,16 +233,27 @@ public final class JdbcHeartBeat implements AutoCloseable {
       if (isClosed) {
         throw new IllegalStateException("Heartbeater is closed " + this);
       }
-      long lr = lastRun;
-      long delay;
-      if (lr == 0) {
-        delay = intervalMillis;
-      } else if (lr > 0) {
-        delay = intervalMillis - (System.currentTimeMillis() - lr);
-      } else {
-        throw new IllegalStateException("The end of times are upon us :-) " + lr);
+      if (scheduledHearbeat == null) {
+        long lr = lastRun;
+        long delay;
+        if (lr == 0) {
+          delay = intervalMillis;
+        } else if (lr > 0) {
+          delay = intervalMillis - (System.currentTimeMillis() - lr);
+        } else {
+          throw new IllegalStateException("The end of times are upon us :-) " + lr);
+        }
+        scheduledHearbeat = DefaultScheduler.LISTENABLE_INSTANCE.schedule(
+                getHeartBeatRunnable(), delay, TimeUnit.MILLISECONDS);
+        scheduledHearbeat.addListener(() -> {
+          synchronized (jdbc) {
+            if (!isClosed) {
+              scheduledHearbeat = null;
+              scheduleHeartbeat();
+            }
+          }
+        }, DefaultExecutor.INSTANCE);
       }
-      scheduledHearbeat = DefaultScheduler.INSTANCE.schedule(getHeartBeatRunnable(), delay, TimeUnit.MILLISECONDS);
     }
   }
 
@@ -344,32 +356,35 @@ public final class JdbcHeartBeat implements AutoCloseable {
    * @throws SQLException
    * @throws InterruptedException
    */
-  public static synchronized JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
+  public static JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
           final HeartBeatTableDesc hbTableDesc,
           @Nullable final LifecycleHook hook)
           throws SQLException, InterruptedException {
-    JdbcHeartBeat beat = HEARTBEATS.get(dataSource);
-    if (beat == null) {
-      beat = new JdbcHeartBeat(dataSource, hbTableDesc, HEARTBEAT_INTERVAL_MILLIS, 5);
-      beat.scheduleHeartbeat();
-      beat.registerJmx();
-      beat.addLyfecycleHook(new LifecycleHook() {
-        @Override
-        public void onError(final Error error) {
-        }
-
-        @Override
-        public void onClose() {
-          synchronized (JdbcHeartBeat.class) {
-            HEARTBEATS.remove(dataSource);
+    JdbcHeartBeat beat;
+    synchronized (HEARTBEATS) {
+      beat = HEARTBEATS.get(dataSource);
+      if (beat == null) {
+        beat = new JdbcHeartBeat(dataSource, hbTableDesc, HEARTBEAT_INTERVAL_MILLIS, 5);
+        beat.registerJmx();
+        beat.addLyfecycleHook(new LifecycleHook() {
+          @Override
+          public void onError(final Error error) {
           }
-        }
-      });
-      HEARTBEATS.put(dataSource, beat);
+
+          @Override
+          public void onClose() {
+            synchronized (HEARTBEATS) {
+              HEARTBEATS.remove(dataSource);
+            }
+          }
+        });
+        HEARTBEATS.put(dataSource, beat);
+      }
     }
     if (hook != null) {
       beat.addLyfecycleHook(hook);
     }
+    beat.scheduleHeartbeat();
     return beat;
   }
 
@@ -394,12 +409,6 @@ public final class JdbcHeartBeat implements AutoCloseable {
           // not first beat.
           long millisSinceLastBeat = currentTimeMillis - lr;
           if (millisSinceLastBeat < intervalMillis / 2) {
-            // we had a heartbeat not too long ago... weshould skip beating now and reschedule.
-            synchronized (jdbc) {
-              if (!isClosed) {
-                scheduleHeartbeat();
-              }
-            }
             return;
           } else if (((intervalMillis * 2) < millisSinceLastBeat)) {
             // Unable to beat at inteval!
@@ -410,11 +419,6 @@ public final class JdbcHeartBeat implements AutoCloseable {
           }
         }
         beat();
-        synchronized (jdbc) {
-          if (!isClosed) {
-            scheduleHeartbeat();
-          }
-        }
       } catch (RuntimeException | SQLException | InterruptedException ex) {
         Error err = new Error("System failed heartbeat", ex);
         handleError(err);

@@ -473,7 +473,7 @@ public final class Callables {
         }
 
         @Override
-        public <EXX extends Exception> EXX lastException(EXX ex) throws EXX {   
+        public <EXX extends Exception> EXX lastException(EXX ex) throws EXX {
             throw ex;
         }
         //CHECKSTYLE:ON
@@ -601,6 +601,10 @@ public final class Callables {
         };
     }
 
+    /**
+     * This is a duplicate of guava Callables.threadRenaming ...
+     * will have to review for deprecation/removal.
+     */
     public static <T> Callable<T> withName(final Callable<T> callable, final String name) {
         return new Callable<T>() {
 

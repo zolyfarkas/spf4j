@@ -18,6 +18,8 @@
  */
 package org.spf4j.concurrent;
 
+import com.google.common.util.concurrent.ListeningScheduledExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -40,6 +42,9 @@ public final class DefaultScheduler {
             new ScheduledThreadPoolExecutor(Integer.getInteger("defaultScheduler.coreThreads", 2),
             new CustomThreadFactory("DefaultScheduler", Boolean.getBoolean("defaultScheduler.daemon"),
             Integer.getInteger("defaultScheduler.priority", Thread.NORM_PRIORITY)));
+
+    public static final ListeningScheduledExecutorService LISTENABLE_INSTANCE =
+            MoreExecutors.listeningDecorator(INSTANCE);
 
 
     static {
