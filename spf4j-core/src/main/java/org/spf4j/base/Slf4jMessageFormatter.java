@@ -36,21 +36,21 @@ import org.spf4j.io.ObjectAppenderSupplier;
  * the unused ones
  * 3) Lets you plug custom formatters for argument types.  (you can get better performance and more flexibility)
  * 4) Processing arguments that are arrays is sligtly faster than the slf4j formatter.
- * 
+ *
  * @author zoly
  */
 public final  class Slf4jMessageFormatter {
-    
+
     private Slf4jMessageFormatter() { }
-    
+
 
     static final char DELIM_START = '{';
     static final char DELIM_STOP = '}';
     static final String DELIM_STR = "{}";
     private static final char ESCAPE_CHAR = '\\';
-    
+
   /**
-   * slf4j message formatter.
+   * Slf4j message formatter.
    * @param to - Appendable to put formatted message to.
    * @param messagePattern - see org.slf4j.helpers.MessageFormatter for format.
    * @param argArray - the message arguments.
@@ -61,9 +61,9 @@ public final  class Slf4jMessageFormatter {
             final Object... argArray) throws IOException {
         return format(to, messagePattern, ObjectAppenderSupplier.TO_STRINGER, argArray);
     }
-    
+
   /**
-   * slf4j message formatter.
+   * Slf4j message formatter.
    * @param to - Appendable to put formatted message to.
    * @param appSupplier - a supplier that will provide the serialization method for a particular argument type.
    * @param messagePattern - see org.slf4j.helpers.MessageFormatter for format.
@@ -84,13 +84,29 @@ public final  class Slf4jMessageFormatter {
    * @param appSupplier - a supplier that will provide the serialization method for a particular argument type.
    * @param argArray - the message arguments.
    * @return - the number of arguments used in the message.
-   * @throws IOException
+   * @throws IOException - something wend wrong while writing to the appendable.
    */
     public static int format(@Nonnull final Appendable to, @Nonnull final String messagePattern,
-            @Nonnull final ObjectAppenderSupplier appSupplier, final Object... argArray) throws IOException {
+            @Nonnull final ObjectAppenderSupplier appSupplier,  final Object... argArray) throws IOException {
+      return format(0, to, messagePattern, appSupplier, argArray);
+    }
+
+  /**
+   * Slf4j message formatter.
+   * @param to - Appendable to put formatted message to.
+   * @param messagePattern - see org.slf4j.helpers.MessageFormatter for format.
+   * @param appSupplier - a supplier that will provide the serialization method for a particular argument type.
+   * @param firstArgIdx - the index of the first parameter.
+   * @param argArray - the message arguments.
+   * @return - the index of the last arguments used in the message + 1.
+   * @throws IOException - something wend wrong while writing to the appendable.
+   */
+    public static int format(final int firstArgIdx, @Nonnull final Appendable to, @Nonnull final String messagePattern,
+             @Nonnull final ObjectAppenderSupplier appSupplier, final Object... argArray)
+            throws IOException {
         int i = 0;
         final int len = argArray.length;
-        for (int k = 0; k < len; k++) {
+        for (int k = firstArgIdx; k < len; k++) {
 
             int j = messagePattern.indexOf(DELIM_STR, i);
 
@@ -131,14 +147,14 @@ public final  class Slf4jMessageFormatter {
         to.append(messagePattern, i, messagePattern.length());
         return len;
     }
-    
+
     static boolean isEscapedDelimeter(final String messagePattern, final int delimeterStartIndex) {
         if (delimeterStartIndex == 0) {
             return false;
         }
         return messagePattern.charAt(delimeterStartIndex - 1) == ESCAPE_CHAR;
     }
-    
+
     static boolean isDoubleEscaped(final String messagePattern, final int delimeterStartIndex) {
         return delimeterStartIndex >= 2 && messagePattern.charAt(delimeterStartIndex - 2) == ESCAPE_CHAR;
     }
@@ -317,6 +333,6 @@ public final  class Slf4jMessageFormatter {
         sbuf.append(']');
     }
 
-    
-    
+
+
 }

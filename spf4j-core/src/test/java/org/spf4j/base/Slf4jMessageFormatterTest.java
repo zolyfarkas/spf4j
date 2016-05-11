@@ -52,7 +52,7 @@ public class Slf4jMessageFormatterTest {
         Assert.assertEquals("Some Message", sb.toString());
         Assert.assertEquals(0, processed);
     }
-    
+
     @Test
     public void testFormatter2() throws IOException {
         ConfigurableAppenderSupplier appSupp = new ConfigurableAppenderSupplier();
@@ -67,6 +67,10 @@ public class Slf4jMessageFormatterTest {
         Assert.assertEquals("bla bla {\"declaringClass\":\"c1\",\"name\":\"m1\"}", sb.toString());
         Assert.assertEquals(1, written);
         sb.setLength(0);
+        written = Slf4jMessageFormatter.format(1, sb, "bla bla {}", appSupp,  "ifff", method);
+        Assert.assertEquals("bla bla {\"declaringClass\":\"c1\",\"name\":\"m1\"}", sb.toString());
+        Assert.assertEquals(2, written);
+        sb.setLength(0);
         written = Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp, method, "yohooo");
         System.out.println("formatted message: " + sb.toString());
         Assert.assertEquals(1, written);
@@ -78,7 +82,7 @@ public class Slf4jMessageFormatterTest {
         EscapeJsonStringAppendableWrapper escaper = new EscapeJsonStringAppendableWrapper(sb);
         Slf4jMessageFormatter.format(escaper, "bla bla {} {}", appSupp, "\n\u2013\u0010",
                 new int [] {1, 2, 3});
-        System.out.println("formatted message: " + sb.toString());        
+        System.out.println("formatted message: " + sb.toString());
         Assert.assertEquals("bla bla \\n–\\u0010 [1, 2, 3]", sb.toString());
         appSupp.replace(String.class, new Function<ObjectAppender<? super String>, ObjectAppender<? super String>>() {
           @Override
@@ -99,10 +103,10 @@ public class Slf4jMessageFormatterTest {
         Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp,
          "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
         System.out.println(sb.toString());
-        
-        
-    }    
-    
-    
-    
+
+
+    }
+
+
+
 }
