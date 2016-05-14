@@ -709,7 +709,7 @@ public final class JdbcSemaphore implements AutoCloseable {
     }
   }
 
-  public int removeDeadNotOwnedRowsOnly(final Connection conn, final long deadlineNanos) throws SQLException {
+  int removeDeadNotOwnedRowsOnly(final Connection conn, final long deadlineNanos) throws SQLException {
     try (final PreparedStatement stmt = conn.prepareStatement(deleteDeadOwnerRecordsSql)) {
       stmt.setNString(1, semName);
       stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
