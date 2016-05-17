@@ -65,8 +65,8 @@ import org.spf4j.stackmonitor.FastStackCollector;
  */
 public final class Runtime {
 
-  
-  
+
+
     private Runtime() {
     }
 
@@ -102,7 +102,7 @@ public final class Runtime {
           java.lang.Runtime.getRuntime().halt(exitCode);
         }
     }
-    
+
     public static final int WAIT_FOR_SHUTDOWN_MILLIS = Integer.getInteger("spf4j.waitForShutdownMillis", 30000);
     public static final String TMP_FOLDER = System.getProperty("java.io.tmpdir");
     public static final int PID;
@@ -232,7 +232,7 @@ public final class Runtime {
         JAVA_PLATFORM = Version.fromSpecVersion(JAVA_VERSION);
         Registry.export(Jmx.class);
     }
-    
+
     private static final Path FD_FOLDER = Paths.get("/proc/" + PID + "/fd");
 
     static {
@@ -243,7 +243,7 @@ public final class Runtime {
         throw new ExceptionInInitializerError(ex);
       }
     }
-    
+
 
     public static boolean isMacOsx() {
         return IS_MAC_OSX;
@@ -282,7 +282,7 @@ public final class Runtime {
     public static final class Ulimit {
 
         private static final File BASH = new File("/bin/bash");
-        
+
         private static final File SH = new File("/bin/sh");
 
         private static final File ULIMIT = new File("/usr/bin/ulimit");
@@ -451,7 +451,7 @@ public final class Runtime {
         int result = killProcess(proc, terminationTimeoutMillis, 5000);
         throw new ExecutionException("Error, process terminated and returned " + result, ex);
       }
-      
+
       long deadlineNanos = System.nanoTime() + TimeUnit.NANOSECONDS.convert(timeoutMillis, TimeUnit.MILLISECONDS);
       boolean isProcessFinished;
       try {
@@ -484,7 +484,7 @@ public final class Runtime {
       }
     }
   }
-  
+
   @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
   public static void throwException(final Exception ex) throws IOException, InterruptedException,
           ExecutionException, TimeoutException {
@@ -499,9 +499,9 @@ public final class Runtime {
     } else {
       throw new ExecutionException(ex);
     }
-    
+
   }
-  
+
 
     /**
      * todo: character enconding is not really don eproperly...
@@ -686,20 +686,20 @@ public final class Runtime {
         String[] command = Arrays.concat(new String[] {jvmPath, "-cp", classPath, classWithMain.getName() }, arguments);
         return run(command, timeoutMillis);
     }
-  
+
   public static final class Jmx {
-    
+
     @JmxExport
     public static Reflections.PackageInfo getPackageInfo(@JmxExport("className") final String className) {
       return Reflections.getPackageInfo(className);
     }
-  
+
   }
 
   private static class StdErrHandlerRunnable extends AbstractRunnable {
 
     private final ProcOutputHandler handler;
-    
+
     private final InputStream is;
 
     StdErrHandlerRunnable(final ProcOutputHandler handler, final InputStream is) {
@@ -725,7 +725,7 @@ public final class Runtime {
   private static class StdOutHandlerRunnable extends AbstractRunnable {
 
     private final ProcOutputHandler handler;
-    
+
     private final InputStream is;
 
     StdOutHandlerRunnable(final ProcOutputHandler handler, final InputStream is) {
@@ -747,6 +747,6 @@ public final class Runtime {
       }
     }
   }
-    
+
 
 }

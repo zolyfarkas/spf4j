@@ -3,6 +3,8 @@ package org.spf4j.base;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
@@ -17,16 +19,12 @@ import java.security.AccessController;
 import java.security.CodeSource;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spf4j.concurrent.UnboundedRacyLoadingCache;
+import org.spf4j.concurrent.UnboundedLoadingCache;
 
 @ParametersAreNonnullByDefault
 public final class Reflections {
@@ -34,9 +32,7 @@ public final class Reflections {
   private Reflections() {
   }
 
-  private static final Logger LOG = LoggerFactory.getLogger(Reflections.class);
-
-  private static final Map<Class<?>, Class<?>> PRIMITIVE_MAP = new HashMap<>(8);
+  private static final BiMap<Class<?>, Class<?>> PRIMITIVE_MAP = HashBiMap.create(8);
 
   static {
     PRIMITIVE_MAP.put(boolean.class, Boolean.class);
@@ -56,6 +52,19 @@ public final class Reflections {
       return clasz;
     }
   }
+
+  public static Class<?> wrapperToPrimitive(final Class<?> clasz) {
+    if (clasz.isPrimitive()) {
+      return clasz;
+    } else {
+      return PRIMITIVE_MAP.inverse().get(clasz);
+    }
+  }
+
+  public static boolean isWrappableOrWrapper(final Class clasz) {
+    return (PRIMITIVE_MAP.containsKey(clasz) || PRIMITIVE_MAP.containsValue(clasz));
+  }
+
 
   public static Object getAnnotationAttribute(@Nonnull final Annotation annot, @Nonnull final String attributeName) {
     for (Method method : annot.annotationType().getDeclaredMethods()) {
@@ -267,7 +276,7 @@ public final class Reflections {
   }
 
   private static final LoadingCache<MethodDesc, Method> CACHE_FAST
-          = new UnboundedRacyLoadingCache<>(64,
+          = new UnboundedLoadingCache<>(64,
                   new CacheLoader<MethodDesc, Method>() {
             @Override
             public Method load(final MethodDesc k) {
@@ -381,7 +390,7 @@ public final class Reflections {
 
   private static final PackageInfo NONE = new PackageInfo(null, null);
 
-  
+
   @Nonnull
   public static PackageInfo getPackageInfoDirect(@Nonnull final String className) {
     Class<?> aClass;
@@ -417,5 +426,5 @@ public final class Reflections {
               return getPackageInfoDirect(key);
             }
           });
-  
+
 }
