@@ -396,7 +396,7 @@ public final class Reflections {
     Class<?> aClass;
     try {
       aClass = Class.forName(className);
-    } catch (ClassNotFoundException ex) {
+    } catch (ClassNotFoundException | NoClassDefFoundError ex) { // NoClassDefFoundError if class fails during init.
       return NONE;
     }
     return getPackageInfoDirect(aClass);
