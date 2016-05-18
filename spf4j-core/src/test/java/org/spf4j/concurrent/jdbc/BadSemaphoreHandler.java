@@ -24,7 +24,7 @@ public class BadSemaphoreHandler {
     ds.setUser("sa");
     ds.setPassword("sa");
     JdbcSemaphore semaphore = new JdbcSemaphore(ds, semaphoreName, 3);
-    semaphore.acquire(1, TimeUnit.SECONDS, 1);
+    semaphore.acquire(1, 1L, TimeUnit.SECONDS);
     System.exit(0);
   }
 

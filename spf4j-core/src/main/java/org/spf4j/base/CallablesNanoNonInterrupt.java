@@ -27,6 +27,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.Callables.Action;
 import org.spf4j.base.Callables.AdvancedAction;
 import org.spf4j.base.Callables.AdvancedRetryPredicate;
@@ -40,10 +42,14 @@ import static org.spf4j.base.Callables.DEFAULT_EXCEPTION_RETRY;
 @ParametersAreNonnullByDefault
 @Beta
 //CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES
-public final class CallablesNano {
+public final class CallablesNanoNonInterrupt {
 
-    private CallablesNano() {
+    private CallablesNanoNonInterrupt() {
     }
+
+    private static final Logger LOG = LoggerFactory.getLogger(CallablesNanoNonInterrupt.class);
+
+
 
     public static final RetryPredicate<?, RuntimeException> RETRY_FOR_NULL_RESULT =
             new RetryPredicate<Object, RuntimeException>() {
@@ -70,7 +76,7 @@ public final class CallablesNano {
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
             final int nrImmediateRetries,
             final long maxRetryWaitNanos)
-            throws InterruptedException, EX, TimeoutException {
+            throws EX, TimeoutException {
         return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,
                 TimeoutRetryPredicate.NORETRY_FOR_RESULT, DEFAULT_EXCEPTION_RETRY);
     }
@@ -79,7 +85,7 @@ public final class CallablesNano {
             final int nrImmediateRetries,
             final long maxRetryWaitNanos,
             final AdvancedRetryPredicate<Exception> retryOnException)
-            throws InterruptedException, EX, TimeoutException {
+            throws EX, TimeoutException {
         return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,
                 TimeoutRetryPredicate.NORETRY_FOR_RESULT, retryOnException);
     }
@@ -95,14 +101,13 @@ public final class CallablesNano {
      * @param retryOnReturnVal - predicate to control retry on return value;
      * @param retryOnException - predicate to retry on thrown exception.
      * @return the result of the callable.
-     * @throws java.lang.InterruptedException - thrown if interrupted.
      * @throws EX - the exception declared to be thrown by the callable.
      */
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
             final int nrImmediateRetries, final long maxWaitNanos,
             final TimeoutRetryPredicate<? super T> retryOnReturnVal,
             final AdvancedRetryPredicate<Exception> retryOnException)
-            throws InterruptedException, EX, TimeoutException {
+            throws EX, TimeoutException {
         return executeWithRetry(what, retryOnReturnVal,
                 new FibonacciBackoffRetryPredicate<>(retryOnException, nrImmediateRetries,
                         maxWaitNanos / 100, maxWaitNanos, EX_TYPE_CLASS_MAPPER));
@@ -189,7 +194,7 @@ public final class CallablesNano {
 
         @Override
         @SuppressFBWarnings("MDM_THREAD_YIELD")
-        public Action apply(final T value, final long deadlineNanos) throws InterruptedException, TimeoutException {
+        public Action apply(final T value, final long deadlineNanos) throws TimeoutException {
             long currentTimeNanos = System.nanoTime();
             if (currentTimeNanos > deadlineNanos) {
                 return Action.ABORT;
@@ -210,7 +215,11 @@ public final class CallablesNano {
                     long delayNanos = Math.min(nextDelay, deadlineNanos - currentTimeNanos);
                     if (delayNanos > 0) {
                         delayNanos = Math.abs(random.nextInt()) % delayNanos;
+                      try {
                         Thread.sleep(TimeUnit.NANOSECONDS.toMillis(delayNanos));
+                      } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                      }
                     }
                     return Action.RETRY;
                 default:
@@ -242,11 +251,10 @@ public final class CallablesNano {
 
 
 
-    @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION")// findbugs s wrong.
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
             final TimeoutRetryPredicate<? super T> retryOnReturnVal,
             final TimeoutRetryPredicate<Exception> retryOnException)
-            throws InterruptedException, EX, TimeoutException {
+            throws EX, TimeoutException {
         final long deadlineNanos = what.getDeadlineNanos();
         return executeWithRetry(what,
                 new TimeoutRetryPredicate2RetryPredicate<>(deadlineNanos, retryOnReturnVal),
@@ -263,19 +271,17 @@ public final class CallablesNano {
         }
 
         @Override
-        public final T call() throws EX, InterruptedException, TimeoutException {
+        public final T call() throws EX, TimeoutException {
             return call(mdeadlineNanos);
         }
 
-        public abstract T call(final long deadlinenanos) throws EX, InterruptedException, TimeoutException;
+        public abstract T call(final long deadlinenanos) throws EX, TimeoutException;
 
         public final long getDeadlineNanos() {
             return mdeadlineNanos;
         }
 
     }
-
-
 
 
     public interface DelayPredicate<T> {
@@ -333,14 +339,18 @@ public final class CallablesNano {
 
         @Override
         @SuppressFBWarnings("MDM_THREAD_YIELD")
-        public Action apply(final T value, final long deadlineNanos) throws InterruptedException {
+        public Action apply(final T value, final long deadlineNanos) {
             long apply = predicate.apply(value, deadlineNanos);
             if (apply < 0) {
                 return Action.ABORT;
             } else if (apply == 0) {
                 return Action.RETRY;
             } else {
+              try {
                 Thread.sleep(TimeUnit.NANOSECONDS.toMillis(apply));
+              } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+              }
                 return Action.RETRY;
             }
         }
@@ -351,14 +361,14 @@ public final class CallablesNano {
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
             final TimeoutDelayPredicate<T> retryOnReturnVal,
             final TimeoutDelayPredicate<Exception> retryOnException)
-            throws InterruptedException, EX, TimeoutException {
+            throws EX, TimeoutException {
         return executeWithRetry(what, new SmartRetryPredicate2TimeoutRetryPredicate<>(retryOnReturnVal),
                 new SmartRetryPredicate2TimeoutRetryPredicate<>(retryOnException));
     }
 
    public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
             final TimeoutDelayPredicate<Exception> retryOnException)
-            throws InterruptedException, EX, TimeoutException {
+            throws EX, TimeoutException {
         return (T) executeWithRetry(what, (TimeoutDelayPredicate<T>) TimeoutDelayPredicate.NORETRY_FOR_RESULT,
                 retryOnException);
     }
@@ -366,7 +376,7 @@ public final class CallablesNano {
     public interface TimeoutRetryPredicate<T> {
 
         Action apply(T value, long deadlineNanos)
-                throws InterruptedException, TimeoutException;
+                throws TimeoutException;
 
         TimeoutRetryPredicate<Object> NORETRY_FOR_RESULT = new TimeoutRetryPredicate<Object>() {
 
@@ -394,8 +404,9 @@ public final class CallablesNano {
 
 
         @Override
-        public Action apply(final T value) throws TimeoutException, InterruptedException {
-            return predicate.apply(value, deadlineNanos);
+        @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
+        public Action apply(final T value) throws TimeoutException {
+           return predicate.apply(value, deadlineNanos);
         }
 
 
@@ -433,7 +444,10 @@ public final class CallablesNano {
 
     }
 
+    public interface RetryPredicate<T, EX extends Exception> {
 
+        Action apply(T value) throws EX;
+    }
 
     /**
      * A callable that will be retried.
@@ -450,7 +464,7 @@ public final class CallablesNano {
          * @throws java.util.concurrent.TimeoutException
          */
         @Override
-        T call() throws EX, InterruptedException, TimeoutException;
+        T call() throws EX, TimeoutException;
 
         /**
          * method to process result (after all retries exhausted).
@@ -470,14 +484,6 @@ public final class CallablesNano {
 
     }
 
-
-
-
-    public interface RetryPredicate<T, EX extends Exception> {
-
-        Action apply(T value) throws EX, InterruptedException;
-    }
-
     /**
      * Naive implementation of execution with retry logic. a callable will be executed and retry attempted in current
      * thread if the result and exception predicates. before retry, a callable can be executed that can abort the retry
@@ -489,7 +495,6 @@ public final class CallablesNano {
      * @param retryOnReturnVal - the predicate to control retry on return value.
      * @param retryOnException - the predicate to return on retry value.
      * @return the result of the retried callable if successful.
-     * @throws java.lang.InterruptedException - thrown if retry interrupted.
      * @throws EX - the exception thrown by callable.
      */
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST_OF_RETURN_VALUE")
@@ -497,29 +502,21 @@ public final class CallablesNano {
             final RetryCallable<T, EX> what,
             final RetryPredicate<? super T, EX2> retryOnReturnVal,
             final RetryPredicate<Exception, EX2> retryOnException)
-            throws InterruptedException, EX, EX2 {
+            throws EX, EX2, TimeoutException {
         T result = null;
         Exception lastEx = null; // last exception
         try {
             result = what.call();
-        } catch (InterruptedException ex1) {
-            throw what.lastException(ex1);
         } catch (Exception e) { // only EX and RuntimeException
             lastEx = e;
         }
         Exception lastExChain = lastEx; // last exception chained with all previous exceptions
         while ((lastEx != null && retryOnException.apply(lastEx) == Action.RETRY)
                 || retryOnReturnVal.apply(result) == Action.RETRY) {
-            if (Thread.interrupted()) {
-                Thread.currentThread().interrupt();
-                throw what.lastException(new InterruptedException());
-            }
             result = null;
             lastEx = null;
             try {
                 result = what.call();
-            } catch (InterruptedException ex1) {
-                throw what.lastException(ex1);
             } catch (Exception e) { // only EX and RuntimeException
                 lastEx = e;
                 if (lastExChain != null) {
@@ -538,5 +535,6 @@ public final class CallablesNano {
         }
         return what.lastReturn(result);
     }
+
 
 }

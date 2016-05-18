@@ -347,11 +347,9 @@ public final class Callables {
 
         /**
          *
-         * @param value
-         * @param deadline
+         * @param value - the value to apply the predicate for.
+         * @param deadline - the deadline in millis since EPOCH.
          * @return the number or millis of delay until the next retry, or -1 for abort.
-         * @throws InterruptedException
-         * @throws TimeoutException
          */
          int apply(T value, long deadline);
 

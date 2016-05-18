@@ -46,7 +46,7 @@ import org.spf4j.jmx.Registry;
  */
 @SuppressFBWarnings({"SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING", "NP_LOAD_OF_KNOWN_NULL_VALUE"})
 @Beta
-public final class JdbcSemaphore implements AutoCloseable {
+public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   private static final Logger LOG = LoggerFactory.getLogger(JdbcSemaphore.class);
 
@@ -153,11 +153,7 @@ public final class JdbcSemaphore implements AutoCloseable {
 
       @Override
       public void onClose() {
-        try {
           close();
-        } catch (SQLException | InterruptedException ex) {
-          throw new RuntimeException(ex);
-        }
       }
     };
     this.heartBeat = JdbcHeartBeat.getHeartBeatAndSubscribe(dataSource,
@@ -344,29 +340,33 @@ public final class JdbcSemaphore implements AutoCloseable {
     }
   }
 
+  @Override
   public void acquire(final long timeout, final TimeUnit unit)
-          throws InterruptedException, SQLException, TimeoutException {
-    acquire(timeout, unit, 1);
+          throws InterruptedException, TimeoutException {
+    acquire(1, timeout, unit);
   }
 
-  public void acquire(final long timeout, final TimeUnit unit, final int nrReservations)
-          throws InterruptedException, SQLException, TimeoutException {
-    if (!tryAcquire(timeout, unit, nrReservations)) {
+  @Override
+  public void acquire(final int nrPermits, final long timeout, final TimeUnit unit)
+          throws InterruptedException, TimeoutException {
+    if (!tryAcquire(nrPermits, timeout, unit)) {
       throw new TimeoutException("Cannot acquire timeout after " + timeout + " " + unit);
     }
   }
 
+  @Override
   public boolean tryAcquire(final long timeout, final TimeUnit unit)
-          throws InterruptedException, SQLException {
-    return tryAcquire(timeout, unit, 1);
+          throws InterruptedException {
+    return tryAcquire(1, timeout, unit);
   }
 
   @SuppressFBWarnings("UW_UNCOND_WAIT")
   @CheckReturnValue
-  public boolean tryAcquire(final long timeout, final TimeUnit unit, final int nrReservations)
-          throws InterruptedException, SQLException {
-    if (nrReservations < 1) {
-      throw new IllegalArgumentException("You should try to acquire something! not " + nrReservations);
+  @Override
+  public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit)
+          throws InterruptedException {
+    if (nrPermits < 1) {
+      throw new IllegalArgumentException("You should try to acquire something! not " + nrPermits);
     }
     synchronized (semName) {
       long deadlineNanos = System.nanoTime() + unit.toNanos(timeout);
@@ -374,43 +374,47 @@ public final class JdbcSemaphore implements AutoCloseable {
       final MutableHolder<Boolean> beat = MutableHolder.of(Boolean.FALSE);
       do {
         validate();
-        acquired = jdbc.transactOnConnection(new HandlerNano<Connection, Boolean, SQLException>() {
-          @Override
-          public Boolean handle(final Connection conn, final long deadlineNanos) throws SQLException {
-            try (PreparedStatement stmt = conn.prepareStatement(acquireSql)) {
-              stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
-              stmt.setInt(1, nrReservations);
-              stmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
-              stmt.setNString(3, semName);
-              stmt.setInt(4, nrReservations);
-              int rowsUpdated = stmt.executeUpdate();
-              Boolean acquired;
-              if (rowsUpdated == 1) {
-                try (PreparedStatement ostmt = conn.prepareStatement(acquireByOwnerSql)) {
-                  ostmt.setInt(1, nrReservations);
-                  ostmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
-                  ostmt.setNString(3, semName);
-                  ostmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
-                  int nrUpdated = ostmt.executeUpdate();
-                  if (nrUpdated != 1) {
-                    throw new IllegalStateException("Updated " + nrUpdated + " is incorrect for " + ostmt);
+        try {
+          acquired = jdbc.transactOnConnection(new HandlerNano<Connection, Boolean, SQLException>() {
+            @Override
+            public Boolean handle(final Connection conn, final long deadlineNanos) throws SQLException {
+              try (PreparedStatement stmt = conn.prepareStatement(acquireSql)) {
+                stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
+                stmt.setInt(1, nrPermits);
+                stmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
+                stmt.setNString(3, semName);
+                stmt.setInt(4, nrPermits);
+                int rowsUpdated = stmt.executeUpdate();
+                Boolean acquired;
+                if (rowsUpdated == 1) {
+                  try (PreparedStatement ostmt = conn.prepareStatement(acquireByOwnerSql)) {
+                    ostmt.setInt(1, nrPermits);
+                    ostmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
+                    ostmt.setNString(3, semName);
+                    ostmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
+                    int nrUpdated = ostmt.executeUpdate();
+                    if (nrUpdated != 1) {
+                      throw new IllegalStateException("Updated " + nrUpdated + " is incorrect for " + ostmt);
+                    }
                   }
+                  acquired = Boolean.TRUE;
+                } else {
+                  if (rowsUpdated > 1) {
+                    throw new IllegalStateException("Too many rows updated! when trying to acquire " + nrPermits);
+                  }
+                  acquired = Boolean.FALSE;
                 }
-                acquired = Boolean.TRUE;
-              } else {
-                if (rowsUpdated > 1) {
-                  throw new IllegalStateException("Too many rows updated! when trying to acquire " + nrReservations);
+                if (deadlineNanos - System.nanoTime() > heartBeat.getBeatDurationNanos()) {
+                  // do a heartbeat if have time, and if it makes sense.
+                  beat.setValue(heartBeat.tryBeat(conn, deadlineNanos));
                 }
-                acquired = Boolean.FALSE;
+                return acquired;
               }
-              if (deadlineNanos - System.nanoTime() > heartBeat.getBeatDurationNanos()) {
-                // do a heartbeat if have time, and if it makes sense.
-                beat.setValue(heartBeat.tryBeat(conn, deadlineNanos));
-              }
-              return acquired;
             }
-          }
-        }, timeout, unit);
+          }, timeout, unit);
+        } catch (SQLException ex) {
+          throw new RuntimeException(ex);
+        }
         if (beat.getValue()) { // we did a heartbeat as part of the acquisition.
           heartBeat.updateLastRun(System.currentTimeMillis());
         }
@@ -427,9 +431,9 @@ public final class JdbcSemaphore implements AutoCloseable {
             //removing dead entries did not finish in time, but continues in the background.
             break;
           } catch (ExecutionException ex) {
-            throw new SQLException(ex);
+            throw new RuntimeException(ex);
           }
-          if (releaseDeadOwnerPermits(nrReservations) <= 0) { //wait of we did not find anything dead to release.
+          if (releaseDeadOwnerPermits(nrPermits) <= 0) { //wait of we did not find anything dead to release.
             long wtimeMilis = Math.min(TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime()),
                     Math.abs(rnd.nextInt()) % ACQUIRE_POLL_MILLIS);
             if (wtimeMilis > 0) {
@@ -442,38 +446,44 @@ public final class JdbcSemaphore implements AutoCloseable {
         }
       } while (!acquired && deadlineNanos > System.nanoTime());
       if (acquired) {
-        ownedReservations += nrReservations;
+        ownedReservations += nrPermits;
       }
 
       return acquired;
     }
   }
 
-  public void release() throws SQLException, InterruptedException {
+  @Override
+  public void release() {
     release(1);
   }
 
-  public void release(final int nrReservations) throws SQLException, InterruptedException {
+  @Override
+  @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
+  public void release(final int nrReservations) {
     synchronized (semName) {
-      jdbc.transactOnConnection(new HandlerNano<Connection, Void, SQLException>() {
-        @Override
-        public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
-          releaseReservations(conn, deadlineNanos, nrReservations);
-          try (PreparedStatement ostmt = conn.prepareStatement(releaseByOwnerSql)) {
-            ostmt.setInt(1, nrReservations);
-            ostmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
-            ostmt.setNString(3, semName);
-            ostmt.setInt(4, nrReservations);
-            ostmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
-            int nrUpdated = ostmt.executeUpdate();
-            if (nrUpdated != 1) {
-              throw new IllegalStateException("Trying to release more than you own! " + ostmt);
+      try {
+        jdbc.transactOnConnectionNonInterrupt(new HandlerNano<Connection, Void, SQLException>() {
+          @Override
+          public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
+            releaseReservations(conn, deadlineNanos, nrReservations);
+            try (PreparedStatement ostmt = conn.prepareStatement(releaseByOwnerSql)) {
+              ostmt.setInt(1, nrReservations);
+              ostmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
+              ostmt.setNString(3, semName);
+              ostmt.setInt(4, nrReservations);
+              ostmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
+              int nrUpdated = ostmt.executeUpdate();
+              if (nrUpdated != 1) {
+                throw new IllegalStateException("Trying to release more than you own! " + ostmt);
+              }
             }
+            return null;
           }
-          return null;
-        }
-
-      }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
+        }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
+      } catch (SQLException ex) {
+        throw new RuntimeException(ex);
+      }
       ownedReservations -= nrReservations;
       if (ownedReservations < 0) {
         throw new IllegalStateException("Should not be trying to release more than you acquired!" + nrReservations);
@@ -482,7 +492,7 @@ public final class JdbcSemaphore implements AutoCloseable {
     }
   }
 
-  public void releaseAll() throws SQLException, InterruptedException {
+  public void releaseAll() {
     synchronized (semName) {
       release(ownedReservations);
     }
@@ -600,27 +610,31 @@ public final class JdbcSemaphore implements AutoCloseable {
   @CheckReturnValue
   public int releaseDeadOwnerPermits(@JmxExport(value = "wishPermits",
           description = "how many we whish to release") final int wishPermits)
-          throws SQLException, InterruptedException {
-    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
-      List<OwnerPermits> deadOwnerPermits = getDeadOwnerPermits(conn, deadlineNanos, wishPermits);
-      int released = 0;
-      for (OwnerPermits permit : deadOwnerPermits) {
-        try (final PreparedStatement stmt = conn.prepareStatement(deleteDeadOwerRecordSql)) {
-          String owner = permit.getOwner();
-          stmt.setNString(1, owner);
-          stmt.setNString(2, semName);
-          int nrPermits = permit.getNrPermits();
-          stmt.setInt(3, nrPermits);
-          stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
-          if (stmt.executeUpdate() == 1) { // I can release! if not somebody else is doing it.
-            released += nrPermits;
-            releaseReservations(conn, deadlineNanos, nrPermits);
-            LOG.warn("Released {} reservations from dead owner {}", nrPermits, owner);
+          throws InterruptedException {
+    try {
+      return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
+        List<OwnerPermits> deadOwnerPermits = getDeadOwnerPermits(conn, deadlineNanos, wishPermits);
+        int released = 0;
+        for (OwnerPermits permit : deadOwnerPermits) {
+          try (final PreparedStatement stmt = conn.prepareStatement(deleteDeadOwerRecordSql)) {
+            String owner = permit.getOwner();
+            stmt.setNString(1, owner);
+            stmt.setNString(2, semName);
+            int nrPermits = permit.getNrPermits();
+            stmt.setInt(3, nrPermits);
+            stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
+            if (stmt.executeUpdate() == 1) { // I can release! if not somebody else is doing it.
+              released += nrPermits;
+              releaseReservations(conn, deadlineNanos, nrPermits);
+              LOG.warn("Released {} reservations from dead owner {}", nrPermits, owner);
+            }
           }
         }
-      }
-      return released;
-    }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
+        return released;
+      }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
+    } catch (SQLException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   @JmxExport(description = "Change the total available permits to the provided number")
@@ -724,7 +738,7 @@ public final class JdbcSemaphore implements AutoCloseable {
   }
 
   @Override
-  public void close() throws SQLException, InterruptedException {
+  public void close() {
     releaseAll();
     unregisterJmx();
     this.heartBeat.removeLifecycleHook(failureHook);

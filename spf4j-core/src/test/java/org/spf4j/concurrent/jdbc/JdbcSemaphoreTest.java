@@ -71,17 +71,17 @@ public class JdbcSemaphoreTest {
     // test update;
     int totalPermits = semaphore.totalPermits();
     int acquire = totalPermits - 1;
-    semaphore.acquire(1, TimeUnit.SECONDS, acquire);
+    semaphore.acquire(acquire, 1, TimeUnit.SECONDS);
     semaphore.reducePermits(2);
     Assert.assertFalse(semaphore.tryAcquire(2, TimeUnit.SECONDS));
     semaphore.release(acquire);
     semaphore.increasePermits(2);
     Assert.assertEquals(totalPermits,  semaphore.totalPermits());
 
-    Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS, 1));
+    Assert.assertTrue(semaphore.tryAcquire(1, 10, TimeUnit.SECONDS));
     semaphore.release(1);
-    Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS, 2));
-    Assert.assertFalse(semaphore.tryAcquire(2, TimeUnit.SECONDS, 1));
+    Assert.assertTrue(semaphore.tryAcquire(2, 10, TimeUnit.SECONDS));
+    Assert.assertFalse(semaphore.tryAcquire(1, 2, TimeUnit.SECONDS));
     semaphore.release(1);
     semaphore.release(1);
     Assert.assertEquals(maxReservations, semaphore.availablePermits());
@@ -89,8 +89,8 @@ public class JdbcSemaphoreTest {
     semaphore.reducePermits(1);
     Assert.assertEquals(maxReservations - 1, semaphore.totalPermits());
     Assert.assertEquals(maxReservations - 1, semaphore.availablePermits());
-    Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS, 1));
-    Assert.assertFalse(semaphore.tryAcquire(2, TimeUnit.SECONDS, 1));
+    Assert.assertTrue(semaphore.tryAcquire(1, 10, TimeUnit.SECONDS));
+    Assert.assertFalse(semaphore.tryAcquire(1, 2, TimeUnit.SECONDS));
     semaphore.release(1);
     try {
       semaphore.release(1);
@@ -99,10 +99,10 @@ public class JdbcSemaphoreTest {
       Assert.assertTrue(ex.getMessage().contains("Trying to release more than you own"));
     }
     semaphore.increasePermits(1);
-    Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS, 2));
+    Assert.assertTrue(semaphore.tryAcquire(2, 10, TimeUnit.SECONDS));
     semaphore.reducePermits(1);
     semaphore.release(2);
-    Assert.assertFalse(semaphore.tryAcquire(10, TimeUnit.SECONDS, 2));
+    Assert.assertFalse(semaphore.tryAcquire(2, 10, TimeUnit.SECONDS));
 
   }
 
@@ -131,8 +131,8 @@ public class JdbcSemaphoreTest {
       JdbcSemaphore semaphore = new JdbcSemaphore(ds, "test_sem2", 3);
       org.spf4j.base.Runtime.jrun(BadSemaphoreHandler.class, 10000, connStr, "test_sem2");
       org.spf4j.base.Runtime.jrun(BadSemaphoreHandler.class, 10000, connStr, "test_sem2");
-      Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS, 1));
-      Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS, 1));
+      Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS));
+      Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS));
 
       server.stop();
     } finally {
