@@ -486,4 +486,4 @@ Template.doOnSupplied(new Handler<PooledObject, SomeException>() {
 
  NIO TCP proxy server: org.spf4j.io.tcp.proxy.*
 
- 
+ Distributed semaphore: org.spf4j.concurrent.jdbc.JdbcSemaphore
