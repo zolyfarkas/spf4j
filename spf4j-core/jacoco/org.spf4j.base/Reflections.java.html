@@ -3,6 +3,8 @@
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
@@ -17,57 +19,64 @@ import java.security.AccessController;
 import java.security.CodeSource;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spf4j.concurrent.UnboundedRacyLoadingCache;
+import org.spf4j.concurrent.UnboundedLoadingCache;
 
 @ParametersAreNonnullByDefault
 public final class Reflections {
 
-<span class="nc" id="L34">  private Reflections() {</span>
-<span class="nc" id="L35">  }</span>
+<span class="nc" id="L32">  private Reflections() {</span>
+<span class="nc" id="L33">  }</span>
 
-<span class="fc" id="L37">  private static final Logger LOG = LoggerFactory.getLogger(Reflections.class);</span>
-
-<span class="fc" id="L39">  private static final Map&lt;Class&lt;?&gt;, Class&lt;?&gt;&gt; PRIMITIVE_MAP = new HashMap&lt;&gt;(8);</span>
+<span class="fc" id="L35">  private static final BiMap&lt;Class&lt;?&gt;, Class&lt;?&gt;&gt; PRIMITIVE_MAP = HashBiMap.create(8);</span>
 
   static {
-<span class="fc" id="L42">    PRIMITIVE_MAP.put(boolean.class, Boolean.class);</span>
-<span class="fc" id="L43">    PRIMITIVE_MAP.put(byte.class, Byte.class);</span>
-<span class="fc" id="L44">    PRIMITIVE_MAP.put(char.class, Character.class);</span>
-<span class="fc" id="L45">    PRIMITIVE_MAP.put(short.class, Short.class);</span>
-<span class="fc" id="L46">    PRIMITIVE_MAP.put(int.class, Integer.class);</span>
-<span class="fc" id="L47">    PRIMITIVE_MAP.put(long.class, Long.class);</span>
-<span class="fc" id="L48">    PRIMITIVE_MAP.put(float.class, Float.class);</span>
-<span class="fc" id="L49">    PRIMITIVE_MAP.put(double.class, Double.class);</span>
+<span class="fc" id="L38">    PRIMITIVE_MAP.put(boolean.class, Boolean.class);</span>
+<span class="fc" id="L39">    PRIMITIVE_MAP.put(byte.class, Byte.class);</span>
+<span class="fc" id="L40">    PRIMITIVE_MAP.put(char.class, Character.class);</span>
+<span class="fc" id="L41">    PRIMITIVE_MAP.put(short.class, Short.class);</span>
+<span class="fc" id="L42">    PRIMITIVE_MAP.put(int.class, Integer.class);</span>
+<span class="fc" id="L43">    PRIMITIVE_MAP.put(long.class, Long.class);</span>
+<span class="fc" id="L44">    PRIMITIVE_MAP.put(float.class, Float.class);</span>
+<span class="fc" id="L45">    PRIMITIVE_MAP.put(double.class, Double.class);</span>
   }
 
   public static Class&lt;?&gt; primitiveToWrapper(final Class&lt;?&gt; clasz) {
-<span class="fc bfc" id="L53" title="All 2 branches covered.">    if (clasz.isPrimitive()) {</span>
-<span class="fc" id="L54">      return PRIMITIVE_MAP.get(clasz);</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">    if (clasz.isPrimitive()) {</span>
+<span class="fc" id="L50">      return PRIMITIVE_MAP.get(clasz);</span>
     } else {
-<span class="fc" id="L56">      return clasz;</span>
+<span class="fc" id="L52">      return clasz;</span>
     }
   }
 
+  public static Class&lt;?&gt; wrapperToPrimitive(final Class&lt;?&gt; clasz) {
+<span class="nc bnc" id="L57" title="All 2 branches missed.">    if (clasz.isPrimitive()) {</span>
+<span class="nc" id="L58">      return clasz;</span>
+    } else {
+<span class="nc" id="L60">      return PRIMITIVE_MAP.inverse().get(clasz);</span>
+    }
+  }
+
+  public static boolean isWrappableOrWrapper(final Class clasz) {
+<span class="nc bnc" id="L65" title="All 4 branches missed.">    return (PRIMITIVE_MAP.containsKey(clasz) || PRIMITIVE_MAP.containsValue(clasz));</span>
+  }
+
+
   public static Object getAnnotationAttribute(@Nonnull final Annotation annot, @Nonnull final String attributeName) {
-<span class="pc bpc" id="L61" title="1 of 2 branches missed.">    for (Method method : annot.annotationType().getDeclaredMethods()) {</span>
-<span class="fc bfc" id="L62" title="All 2 branches covered.">      if (method.getName().equals(attributeName)) {</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">    for (Method method : annot.annotationType().getDeclaredMethods()) {</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">      if (method.getName().equals(attributeName)) {</span>
         try {
-<span class="fc" id="L64">          return method.invoke(annot);</span>
-<span class="nc" id="L65">        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
-<span class="nc" id="L66">          throw new RuntimeException(ex);</span>
+<span class="fc" id="L73">          return method.invoke(annot);</span>
+<span class="nc" id="L74">        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
+<span class="nc" id="L75">          throw new RuntimeException(ex);</span>
         }
       }
     }
-<span class="nc" id="L70">    throw new IllegalArgumentException(attributeName + &quot; attribute is not present on annotation &quot; + annot);</span>
+<span class="nc" id="L79">    throw new IllegalArgumentException(attributeName + &quot; attribute is not present on annotation &quot; + annot);</span>
   }
 
   /**
@@ -84,14 +93,14 @@ public final class Reflections {
           final String methodName,
           final Class&lt;?&gt;... paramTypes) {
 
-<span class="fc" id="L87">    String internedName = methodName.intern();</span>
-<span class="fc bfc" id="L88" title="All 2 branches covered.">    for (Method m : c.getDeclaredMethods()) {</span>
-<span class="fc bfc" id="L89" title="All 2 branches covered.">      if (m.getName() == internedName</span>
-<span class="fc bfc" id="L90" title="All 2 branches covered.">              &amp;&amp; Arrays.equals(paramTypes, m.getParameterTypes())) {</span>
-<span class="fc" id="L91">        return m;</span>
+<span class="fc" id="L96">    String internedName = methodName.intern();</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">    for (Method m : c.getDeclaredMethods()) {</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">      if (m.getName() == internedName</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">              &amp;&amp; Arrays.equals(paramTypes, m.getParameterTypes())) {</span>
+<span class="fc" id="L100">        return m;</span>
       }
     }
-<span class="fc" id="L94">    return null;</span>
+<span class="fc" id="L103">    return null;</span>
   }
 
   /**
@@ -99,12 +108,12 @@ public final class Reflections {
    */
   @Nullable
   public static Constructor&lt;?&gt; getConstructor(final Class&lt;?&gt; c, final Class&lt;?&gt;... paramTypes) {
-<span class="fc bfc" id="L102" title="All 2 branches covered.">    for (Constructor cons : c.getDeclaredConstructors()) {</span>
-<span class="fc bfc" id="L103" title="All 2 branches covered.">      if (Arrays.equals(cons.getParameterTypes(), paramTypes)) {</span>
-<span class="fc" id="L104">        return cons;</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">    for (Constructor cons : c.getDeclaredConstructors()) {</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">      if (Arrays.equals(cons.getParameterTypes(), paramTypes)) {</span>
+<span class="fc" id="L113">        return cons;</span>
       }
     }
-<span class="fc" id="L107">    return null;</span>
+<span class="fc" id="L116">    return null;</span>
   }
 
   /**
@@ -120,91 +129,91 @@ public final class Reflections {
   public static Method getCompatibleMethod(final Class&lt;?&gt; c,
           final String methodName,
           final Class&lt;?&gt;... paramTypes) {
-<span class="fc" id="L123">    Method[] methods = c.getMethods();</span>
-<span class="pc bpc" id="L124" title="1 of 2 branches missed.">    for (Method m : methods) {</span>
+<span class="fc" id="L132">    Method[] methods = c.getMethods();</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">    for (Method m : methods) {</span>
 
-<span class="fc bfc" id="L126" title="All 2 branches covered.">      if (!methodName.equals(m.getName())) {</span>
-<span class="fc" id="L127">        continue;</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">      if (!methodName.equals(m.getName())) {</span>
+<span class="fc" id="L136">        continue;</span>
       }
 
-<span class="fc" id="L130">      Class&lt;?&gt;[] actualTypes = m.getParameterTypes();</span>
-<span class="pc bpc" id="L131" title="1 of 2 branches missed.">      if (actualTypes.length &gt; paramTypes.length) {</span>
-<span class="nc" id="L132">        continue;</span>
+<span class="fc" id="L139">      Class&lt;?&gt;[] actualTypes = m.getParameterTypes();</span>
+<span class="pc bpc" id="L140" title="1 of 2 branches missed.">      if (actualTypes.length &gt; paramTypes.length) {</span>
+<span class="nc" id="L141">        continue;</span>
       }
 
-<span class="fc" id="L135">      boolean found = true;</span>
-<span class="fc" id="L136">      int last = actualTypes.length - 1;</span>
-<span class="fc bfc" id="L137" title="All 2 branches covered.">      for (int j = 0; j &lt; actualTypes.length; j++) {</span>
-<span class="fc" id="L138">        final Class&lt;?&gt; actType = actualTypes[j];</span>
-<span class="fc" id="L139">        final Class&lt;?&gt; paramType = paramTypes[j];</span>
-<span class="fc" id="L140">        found = canAssign(actType, paramType);</span>
-<span class="pc bpc" id="L141" title="3 of 4 branches missed.">        if (!found &amp;&amp; j == last) {</span>
-<span class="nc bnc" id="L142" title="All 2 branches missed.">          if (actType.isArray()) {</span>
-<span class="nc" id="L143">            boolean matchvararg = true;</span>
-<span class="nc" id="L144">            Class&lt;?&gt; varargType = actType.getComponentType();</span>
-<span class="nc bnc" id="L145" title="All 2 branches missed.">            for (int k = j; k &lt; paramTypes.length; k++) {</span>
-<span class="nc bnc" id="L146" title="All 2 branches missed.">              if (!canAssign(varargType, paramTypes[k])) {</span>
-<span class="nc" id="L147">                matchvararg = false;</span>
-<span class="nc" id="L148">                break;</span>
+<span class="fc" id="L144">      boolean found = true;</span>
+<span class="fc" id="L145">      int last = actualTypes.length - 1;</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">      for (int j = 0; j &lt; actualTypes.length; j++) {</span>
+<span class="fc" id="L147">        final Class&lt;?&gt; actType = actualTypes[j];</span>
+<span class="fc" id="L148">        final Class&lt;?&gt; paramType = paramTypes[j];</span>
+<span class="fc" id="L149">        found = canAssign(actType, paramType);</span>
+<span class="pc bpc" id="L150" title="3 of 4 branches missed.">        if (!found &amp;&amp; j == last) {</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">          if (actType.isArray()) {</span>
+<span class="nc" id="L152">            boolean matchvararg = true;</span>
+<span class="nc" id="L153">            Class&lt;?&gt; varargType = actType.getComponentType();</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">            for (int k = j; k &lt; paramTypes.length; k++) {</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">              if (!canAssign(varargType, paramTypes[k])) {</span>
+<span class="nc" id="L156">                matchvararg = false;</span>
+<span class="nc" id="L157">                break;</span>
               }
             }
-<span class="nc" id="L151">            found = matchvararg;</span>
-<span class="nc" id="L152">          }</span>
-<span class="pc bpc" id="L153" title="1 of 4 branches missed.">        } else if (j == last &amp;&amp; actualTypes.length &lt; paramTypes.length) {</span>
-<span class="nc" id="L154">          found = false;</span>
+<span class="nc" id="L160">            found = matchvararg;</span>
+<span class="nc" id="L161">          }</span>
+<span class="pc bpc" id="L162" title="1 of 4 branches missed.">        } else if (j == last &amp;&amp; actualTypes.length &lt; paramTypes.length) {</span>
+<span class="nc" id="L163">          found = false;</span>
         }
-<span class="pc bpc" id="L156" title="1 of 2 branches missed.">        if (!found) {</span>
-<span class="nc" id="L157">          break;</span>
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">        if (!found) {</span>
+<span class="nc" id="L166">          break;</span>
         }
       }
 
-<span class="pc bpc" id="L161" title="1 of 2 branches missed.">      if (found) {</span>
-<span class="fc" id="L162">        return m;</span>
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">      if (found) {</span>
+<span class="fc" id="L171">        return m;</span>
       }
     }
-<span class="nc" id="L165">    return null;</span>
+<span class="nc" id="L174">    return null;</span>
   }
 
   public static Object invoke(final Method m, final Object object, final Object[] parameters)
           throws IllegalAccessException, InvocationTargetException {
-<span class="nc" id="L170">    int np = parameters.length;</span>
-<span class="nc bnc" id="L171" title="All 2 branches missed.">    if (np &gt; 0) {</span>
-<span class="nc" id="L172">      Class&lt;?&gt;[] actTypes = m.getParameterTypes();</span>
-<span class="nc" id="L173">      Class&lt;?&gt; lastParamClass = actTypes[actTypes.length - 1];</span>
-<span class="nc bnc" id="L174" title="All 2 branches missed.">      if (Reflections.canAssign(lastParamClass, parameters[np - 1].getClass())) {</span>
-<span class="nc" id="L175">        return m.invoke(object, parameters);</span>
-<span class="nc bnc" id="L176" title="All 2 branches missed.">      } else if (lastParamClass.isArray()) {</span>
-<span class="nc" id="L177">        int lidx = actTypes.length - 1;</span>
-<span class="nc" id="L178">        int l = np - lidx;</span>
-<span class="nc" id="L179">        Object array = Array.newInstance(lastParamClass.getComponentType(), l);</span>
-<span class="nc bnc" id="L180" title="All 2 branches missed.">        for (int k = 0; k &lt; l; k++) {</span>
-<span class="nc" id="L181">          Array.set(array, k, parameters[lidx + k]);</span>
+<span class="nc" id="L179">    int np = parameters.length;</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">    if (np &gt; 0) {</span>
+<span class="nc" id="L181">      Class&lt;?&gt;[] actTypes = m.getParameterTypes();</span>
+<span class="nc" id="L182">      Class&lt;?&gt; lastParamClass = actTypes[actTypes.length - 1];</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">      if (Reflections.canAssign(lastParamClass, parameters[np - 1].getClass())) {</span>
+<span class="nc" id="L184">        return m.invoke(object, parameters);</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">      } else if (lastParamClass.isArray()) {</span>
+<span class="nc" id="L186">        int lidx = actTypes.length - 1;</span>
+<span class="nc" id="L187">        int l = np - lidx;</span>
+<span class="nc" id="L188">        Object array = Array.newInstance(lastParamClass.getComponentType(), l);</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        for (int k = 0; k &lt; l; k++) {</span>
+<span class="nc" id="L190">          Array.set(array, k, parameters[lidx + k]);</span>
         }
-<span class="nc" id="L183">        Object[] newParams = new Object[actTypes.length];</span>
-<span class="nc" id="L184">        System.arraycopy(parameters, 0, newParams, 0, lidx);</span>
-<span class="nc" id="L185">        newParams[lidx] = array;</span>
-<span class="nc" id="L186">        return m.invoke(object, newParams);</span>
+<span class="nc" id="L192">        Object[] newParams = new Object[actTypes.length];</span>
+<span class="nc" id="L193">        System.arraycopy(parameters, 0, newParams, 0, lidx);</span>
+<span class="nc" id="L194">        newParams[lidx] = array;</span>
+<span class="nc" id="L195">        return m.invoke(object, newParams);</span>
       } else {
-<span class="nc" id="L188">        throw new IllegalStateException();</span>
+<span class="nc" id="L197">        throw new IllegalStateException();</span>
       }
     } else {
-<span class="nc" id="L191">      return m.invoke(object);</span>
+<span class="nc" id="L200">      return m.invoke(object);</span>
     }
   }
 
   public static boolean canAssign(final Class&lt;?&gt; to, final Class&lt;?&gt; from) {
-<span class="fc" id="L196">    boolean found = true;</span>
-<span class="fc bfc" id="L197" title="All 2 branches covered.">    if (!to.isAssignableFrom(from)) {</span>
-<span class="pc bpc" id="L198" title="1 of 2 branches missed.">      if (to.isPrimitive()) {</span>
-<span class="fc" id="L199">        Class&lt;?&gt; boxed = PRIMITIVE_MAP.get(to);</span>
-<span class="fc" id="L200">        found = boxed.equals(from);</span>
-<span class="pc bnc" id="L201" title="All 2 branches missed.">      } else if (from.isPrimitive()) {</span>
-<span class="nc" id="L202">        found = PRIMITIVE_MAP.get(from).equals(to);</span>
+<span class="fc" id="L205">    boolean found = true;</span>
+<span class="fc bfc" id="L206" title="All 2 branches covered.">    if (!to.isAssignableFrom(from)) {</span>
+<span class="pc bpc" id="L207" title="1 of 2 branches missed.">      if (to.isPrimitive()) {</span>
+<span class="fc" id="L208">        Class&lt;?&gt; boxed = PRIMITIVE_MAP.get(to);</span>
+<span class="fc" id="L209">        found = boxed.equals(from);</span>
+<span class="pc bnc" id="L210" title="All 2 branches missed.">      } else if (from.isPrimitive()) {</span>
+<span class="nc" id="L211">        found = PRIMITIVE_MAP.get(from).equals(to);</span>
       } else {
-<span class="nc" id="L204">        found = false;</span>
+<span class="nc" id="L213">        found = false;</span>
       }
     }
-<span class="fc" id="L207">    return found;</span>
+<span class="fc" id="L216">    return found;</span>
   }
 
   static final class MethodDesc {
@@ -216,77 +225,77 @@ public final class Reflections {
     @Nonnull
     private final Class&lt;?&gt;[] paramTypes;
 
-<span class="fc" id="L219">    MethodDesc(final Class&lt;?&gt; clasz, final String name, final Class&lt;?&gt;[] paramTypes) {</span>
-<span class="fc" id="L220">      this.clasz = clasz;</span>
-<span class="fc" id="L221">      this.name = name;</span>
-<span class="fc" id="L222">      this.paramTypes = paramTypes;</span>
-<span class="fc" id="L223">    }</span>
+<span class="fc" id="L228">    MethodDesc(final Class&lt;?&gt; clasz, final String name, final Class&lt;?&gt;[] paramTypes) {</span>
+<span class="fc" id="L229">      this.clasz = clasz;</span>
+<span class="fc" id="L230">      this.name = name;</span>
+<span class="fc" id="L231">      this.paramTypes = paramTypes;</span>
+<span class="fc" id="L232">    }</span>
 
     public Class&lt;?&gt; getClasz() {
-<span class="fc" id="L226">      return clasz;</span>
+<span class="fc" id="L235">      return clasz;</span>
     }
 
     public String getName() {
-<span class="fc" id="L230">      return name;</span>
+<span class="fc" id="L239">      return name;</span>
     }
 
     public Class&lt;?&gt;[] getParamTypes() {
-<span class="fc" id="L234">      return paramTypes;</span>
+<span class="fc" id="L243">      return paramTypes;</span>
     }
 
     @Override
     public int hashCode() {
-<span class="fc" id="L239">      return 47 * this.clasz.hashCode() + this.name.hashCode();</span>
+<span class="fc" id="L248">      return 47 * this.clasz.hashCode() + this.name.hashCode();</span>
     }
 
     @Override
     public boolean equals(final Object obj) {
-<span class="nc bnc" id="L244" title="All 2 branches missed.">      if (obj == null) {</span>
-<span class="nc" id="L245">        return false;</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">      if (obj == null) {</span>
+<span class="nc" id="L254">        return false;</span>
       }
-<span class="nc bnc" id="L247" title="All 2 branches missed.">      if (obj instanceof MethodDesc) {</span>
-<span class="nc" id="L248">        final MethodDesc other = (MethodDesc) obj;</span>
-<span class="nc bnc" id="L249" title="All 2 branches missed.">        if (!this.clasz.equals(other.clasz)) {</span>
-<span class="nc" id="L250">          return false;</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">      if (obj instanceof MethodDesc) {</span>
+<span class="nc" id="L257">        final MethodDesc other = (MethodDesc) obj;</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        if (!this.clasz.equals(other.clasz)) {</span>
+<span class="nc" id="L259">          return false;</span>
         }
-<span class="nc bnc" id="L252" title="All 2 branches missed.">        if (!this.name.equals(other.name)) {</span>
-<span class="nc" id="L253">          return false;</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">        if (!this.name.equals(other.name)) {</span>
+<span class="nc" id="L262">          return false;</span>
         }
-<span class="nc" id="L255">        return (Arrays.equals(this.paramTypes, other.paramTypes));</span>
+<span class="nc" id="L264">        return (Arrays.equals(this.paramTypes, other.paramTypes));</span>
       } else {
-<span class="nc" id="L257">        return false;</span>
+<span class="nc" id="L266">        return false;</span>
       }
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L263">      return &quot;MethodDesc{&quot; + &quot;clasz=&quot; + clasz + ','</span>
-<span class="nc" id="L264">              + &quot; name=&quot; + name + &quot;, paramTypes=&quot; + Arrays.toString(paramTypes) + '}';</span>
+<span class="nc" id="L272">      return &quot;MethodDesc{&quot; + &quot;clasz=&quot; + clasz + ','</span>
+<span class="nc" id="L273">              + &quot; name=&quot; + name + &quot;, paramTypes=&quot; + Arrays.toString(paramTypes) + '}';</span>
     }
 
   }
 
-<span class="fc" id="L269">  private static final LoadingCache&lt;MethodDesc, Method&gt; CACHE_FAST</span>
-          = new UnboundedRacyLoadingCache&lt;&gt;(64,
-<span class="fc" id="L271">                  new CacheLoader&lt;MethodDesc, Method&gt;() {</span>
+<span class="fc" id="L278">  private static final LoadingCache&lt;MethodDesc, Method&gt; CACHE_FAST</span>
+          = new UnboundedLoadingCache&lt;&gt;(64,
+<span class="fc" id="L280">                  new CacheLoader&lt;MethodDesc, Method&gt;() {</span>
             @Override
             public Method load(final MethodDesc k) {
-<span class="fc" id="L274">              final Method m = getCompatibleMethod(k.getClasz(), k.getName(), k.getParamTypes());</span>
-<span class="fc" id="L275">              AccessController.doPrivileged(new PrivilegedAction() {</span>
+<span class="fc" id="L283">              final Method m = getCompatibleMethod(k.getClasz(), k.getName(), k.getParamTypes());</span>
+<span class="fc" id="L284">              AccessController.doPrivileged(new PrivilegedAction() {</span>
                 @Override
                 public Object run() {
-<span class="fc" id="L278">                  m.setAccessible(true);</span>
-<span class="fc" id="L279">                  return null; // nothing to return</span>
+<span class="fc" id="L287">                  m.setAccessible(true);</span>
+<span class="fc" id="L288">                  return null; // nothing to return</span>
                 }
               });
-<span class="fc" id="L282">              return m;</span>
+<span class="fc" id="L291">              return m;</span>
             }
           });
 
   public static Method getCompatibleMethodCached(final Class&lt;?&gt; c,
           final String methodName,
           final Class&lt;?&gt;... paramTypes) {
-<span class="fc" id="L289">    return CACHE_FAST.getUnchecked(new MethodDesc(c, methodName, paramTypes));</span>
+<span class="fc" id="L298">    return CACHE_FAST.getUnchecked(new MethodDesc(c, methodName, paramTypes));</span>
   }
 
   /**
@@ -297,11 +306,11 @@ public final class Reflections {
    */
   @Nullable
   public static URL getJarSourceUrl(final Class&lt;?&gt; clasz) {
-<span class="fc" id="L300">    final CodeSource codeSource = clasz.getProtectionDomain().getCodeSource();</span>
-<span class="fc bfc" id="L301" title="All 2 branches covered.">    if (codeSource == null) {</span>
-<span class="fc" id="L302">      return null;</span>
+<span class="fc" id="L309">    final CodeSource codeSource = clasz.getProtectionDomain().getCodeSource();</span>
+<span class="fc bfc" id="L310" title="All 2 branches covered.">    if (codeSource == null) {</span>
+<span class="fc" id="L311">      return null;</span>
     } else {
-<span class="fc" id="L304">      return codeSource.getLocation();</span>
+<span class="fc" id="L313">      return codeSource.getLocation();</span>
     }
   }
 
@@ -315,9 +324,9 @@ public final class Reflections {
   @Nullable
   @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
   public static Manifest getManifest(@Nonnull final URL jarUrl) throws IOException {
-<span class="nc" id="L318">    try (JarInputStream jis = new JarInputStream(jarUrl.openStream())) {</span>
-<span class="nc" id="L319">      return jis.getManifest();</span>
-<span class="nc bnc" id="L320" title="All 8 branches missed.">    }</span>
+<span class="nc" id="L327">    try (JarInputStream jis = new JarInputStream(jarUrl.openStream())) {</span>
+<span class="nc" id="L328">      return jis.getManifest();</span>
+<span class="nc bnc" id="L329" title="All 8 branches missed.">    }</span>
   }
 
   public static final class PackageInfo implements Serializable {
@@ -328,95 +337,95 @@ public final class Reflections {
     private final String version;
 
     @ConstructorProperties({&quot;url&quot;, &quot;version&quot;})
-<span class="fc" id="L331">    public PackageInfo(@Nullable final URL url, @Nullable final String version) {</span>
-<span class="fc" id="L332">      this.url = url;</span>
-<span class="fc" id="L333">      this.version = version;</span>
-<span class="fc" id="L334">    }</span>
+<span class="fc" id="L340">    public PackageInfo(@Nullable final URL url, @Nullable final String version) {</span>
+<span class="fc" id="L341">      this.url = url;</span>
+<span class="fc" id="L342">      this.version = version;</span>
+<span class="fc" id="L343">    }</span>
 
     @Nullable
     public URL getUrl() {
-<span class="fc" id="L338">      return url;</span>
+<span class="fc" id="L347">      return url;</span>
     }
 
     @Nullable
     public String getVersion() {
-<span class="fc" id="L343">      return version;</span>
+<span class="fc" id="L352">      return version;</span>
     }
 
     @Override
     @SuppressFBWarnings(&quot;DMI_BLOCKING_METHODS_ON_URL&quot;)
     public int hashCode() {
-<span class="nc bnc" id="L349" title="All 2 branches missed.">      if (url != null) {</span>
-<span class="nc" id="L350">        return url.hashCode();</span>
+<span class="nc bnc" id="L358" title="All 2 branches missed.">      if (url != null) {</span>
+<span class="nc" id="L359">        return url.hashCode();</span>
       } else {
-<span class="nc" id="L352">        return 0;</span>
+<span class="nc" id="L361">        return 0;</span>
       }
     }
 
     public boolean hasInfo() {
-<span class="pc bpc" id="L357" title="1 of 4 branches missed.">      return url != null || version != null;</span>
+<span class="pc bpc" id="L366" title="1 of 4 branches missed.">      return url != null || version != null;</span>
     }
 
     @Override
     public boolean equals(final Object obj) {
-<span class="nc bnc" id="L362" title="All 2 branches missed.">      if (obj == null) {</span>
-<span class="nc" id="L363">        return false;</span>
+<span class="nc bnc" id="L371" title="All 2 branches missed.">      if (obj == null) {</span>
+<span class="nc" id="L372">        return false;</span>
       }
-<span class="nc bnc" id="L365" title="All 2 branches missed.">      if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L366">        return false;</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">      if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L375">        return false;</span>
       }
-<span class="nc" id="L368">      final PackageInfo other = (PackageInfo) obj;</span>
-<span class="nc bnc" id="L369" title="All 2 branches missed.">      if (!java.util.Objects.equals(this.url, other.url)) {</span>
-<span class="nc" id="L370">        return false;</span>
+<span class="nc" id="L377">      final PackageInfo other = (PackageInfo) obj;</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">      if (!java.util.Objects.equals(this.url, other.url)) {</span>
+<span class="nc" id="L379">        return false;</span>
       }
-<span class="nc" id="L372">      return java.util.Objects.equals(this.version, other.version);</span>
+<span class="nc" id="L381">      return java.util.Objects.equals(this.version, other.version);</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L377">      return &quot;PackageInfo{&quot; + &quot;url=&quot; + url + &quot;, version=&quot; + version + '}';</span>
+<span class="fc" id="L386">      return &quot;PackageInfo{&quot; + &quot;url=&quot; + url + &quot;, version=&quot; + version + '}';</span>
     }
 
   }
 
-<span class="fc" id="L382">  private static final PackageInfo NONE = new PackageInfo(null, null);</span>
+<span class="fc" id="L391">  private static final PackageInfo NONE = new PackageInfo(null, null);</span>
 
-  
+
   @Nonnull
   public static PackageInfo getPackageInfoDirect(@Nonnull final String className) {
     Class&lt;?&gt; aClass;
     try {
-<span class="fc" id="L389">      aClass = Class.forName(className);</span>
-<span class="nc" id="L390">    } catch (ClassNotFoundException ex) {</span>
-<span class="nc" id="L391">      return NONE;</span>
-<span class="fc" id="L392">    }</span>
-<span class="fc" id="L393">    return getPackageInfoDirect(aClass);</span>
+<span class="fc" id="L398">      aClass = Class.forName(className);</span>
+<span class="nc" id="L399">    } catch (ClassNotFoundException | NoClassDefFoundError ex) { // NoClassDefFoundError if class fails during init.</span>
+<span class="nc" id="L400">      return NONE;</span>
+<span class="fc" id="L401">    }</span>
+<span class="fc" id="L402">    return getPackageInfoDirect(aClass);</span>
   }
 
   @Nonnull
   public static PackageInfo getPackageInfoDirect(@Nonnull final Class&lt;?&gt; aClass) {
-<span class="fc" id="L398">    URL jarSourceUrl = Reflections.getJarSourceUrl(aClass);</span>
-<span class="fc" id="L399">    final Package aPackage = aClass.getPackage();</span>
-<span class="pc bpc" id="L400" title="1 of 2 branches missed.">    if (aPackage == null) {</span>
-<span class="nc" id="L401">      return NONE;</span>
+<span class="fc" id="L407">    URL jarSourceUrl = Reflections.getJarSourceUrl(aClass);</span>
+<span class="fc" id="L408">    final Package aPackage = aClass.getPackage();</span>
+<span class="pc bpc" id="L409" title="1 of 2 branches missed.">    if (aPackage == null) {</span>
+<span class="nc" id="L410">      return NONE;</span>
     }
-<span class="fc" id="L403">    String version = aPackage.getImplementationVersion();</span>
-<span class="fc" id="L404">    return new PackageInfo(jarSourceUrl, version);</span>
+<span class="fc" id="L412">    String version = aPackage.getImplementationVersion();</span>
+<span class="fc" id="L413">    return new PackageInfo(jarSourceUrl, version);</span>
   }
 
   @Nonnull
   public static PackageInfo getPackageInfo(@Nonnull final String className) {
-<span class="fc" id="L409">    return CACHE.getUnchecked(className);</span>
+<span class="fc" id="L418">    return CACHE.getUnchecked(className);</span>
   }
 
-<span class="fc" id="L412">  private static final LoadingCache&lt;String, PackageInfo&gt; CACHE = CacheBuilder.newBuilder()</span>
-<span class="fc" id="L413">          .weakKeys().weakValues().build(new CacheLoader&lt;String, PackageInfo&gt;() {</span>
+<span class="fc" id="L421">  private static final LoadingCache&lt;String, PackageInfo&gt; CACHE = CacheBuilder.newBuilder()</span>
+<span class="fc" id="L422">          .weakKeys().weakValues().build(new CacheLoader&lt;String, PackageInfo&gt;() {</span>
 
             @Override
             public PackageInfo load(final String key) {
-<span class="fc" id="L417">              return getPackageInfoDirect(key);</span>
+<span class="fc" id="L426">              return getPackageInfoDirect(key);</span>
             }
           });
-  
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

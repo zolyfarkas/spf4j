@@ -65,8 +65,8 @@ import org.spf4j.stackmonitor.FastStackCollector;
  */
 public final class Runtime {
 
-  
-  
+
+
 <span class="nc" id="L70">    private Runtime() {</span>
 <span class="nc" id="L71">    }</span>
 
@@ -102,7 +102,7 @@ public final class Runtime {
 <span class="nc" id="L102">          java.lang.Runtime.getRuntime().halt(exitCode);</span>
 <span class="nc" id="L103">        }</span>
 <span class="nc" id="L104">    }</span>
-    
+
 <span class="fc" id="L106">    public static final int WAIT_FOR_SHUTDOWN_MILLIS = Integer.getInteger(&quot;spf4j.waitForShutdownMillis&quot;, 30000);</span>
 <span class="fc" id="L107">    public static final String TMP_FOLDER = System.getProperty(&quot;java.io.tmpdir&quot;);</span>
     public static final int PID;
@@ -232,7 +232,7 @@ public final class Runtime {
 <span class="fc" id="L232">        JAVA_PLATFORM = Version.fromSpecVersion(JAVA_VERSION);</span>
 <span class="fc" id="L233">        Registry.export(Jmx.class);</span>
     }
-    
+
 <span class="fc" id="L236">    private static final Path FD_FOLDER = Paths.get(&quot;/proc/&quot; + PID + &quot;/fd&quot;);</span>
 
     static {
@@ -243,7 +243,7 @@ public final class Runtime {
 <span class="nc" id="L243">        throw new ExceptionInInitializerError(ex);</span>
 <span class="fc" id="L244">      }</span>
     }
-    
+
 
     public static boolean isMacOsx() {
 <span class="fc" id="L249">        return IS_MAC_OSX;</span>
@@ -282,7 +282,7 @@ public final class Runtime {
 <span class="nc" id="L282">    public static final class Ulimit {</span>
 
 <span class="fc" id="L284">        private static final File BASH = new File(&quot;/bin/bash&quot;);</span>
-        
+
 <span class="fc" id="L286">        private static final File SH = new File(&quot;/bin/sh&quot;);</span>
 
 <span class="fc" id="L288">        private static final File ULIMIT = new File(&quot;/usr/bin/ulimit&quot;);</span>
@@ -451,7 +451,7 @@ public final class Runtime {
 <span class="nc" id="L451">        int result = killProcess(proc, terminationTimeoutMillis, 5000);</span>
 <span class="nc" id="L452">        throw new ExecutionException(&quot;Error, process terminated and returned &quot; + result, ex);</span>
 <span class="fc" id="L453">      }</span>
-      
+
 <span class="fc" id="L455">      long deadlineNanos = System.nanoTime() + TimeUnit.NANOSECONDS.convert(timeoutMillis, TimeUnit.MILLISECONDS);</span>
       boolean isProcessFinished;
       try {
@@ -484,7 +484,7 @@ public final class Runtime {
       }
 <span class="pc bpc" id="L485" title="12 of 24 branches missed.">    }</span>
   }
-  
+
   @SuppressFBWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
   public static void throwException(final Exception ex) throws IOException, InterruptedException,
           ExecutionException, TimeoutException {
@@ -499,9 +499,9 @@ public final class Runtime {
     } else {
 <span class="nc" id="L500">      throw new ExecutionException(ex);</span>
     }
-    
+
   }
-  
+
 
     /**
      * todo: character enconding is not really don eproperly...
@@ -686,20 +686,20 @@ public final class Runtime {
 <span class="fc" id="L686">        String[] command = Arrays.concat(new String[] {jvmPath, &quot;-cp&quot;, classPath, classWithMain.getName() }, arguments);</span>
 <span class="fc" id="L687">        return run(command, timeoutMillis);</span>
     }
-  
+
 <span class="nc" id="L690">  public static final class Jmx {</span>
-    
+
     @JmxExport
     public static Reflections.PackageInfo getPackageInfo(@JmxExport(&quot;className&quot;) final String className) {
 <span class="fc" id="L694">      return Reflections.getPackageInfo(className);</span>
     }
-  
+
   }
 
   private static class StdErrHandlerRunnable extends AbstractRunnable {
 
     private final ProcOutputHandler handler;
-    
+
     private final InputStream is;
 
 <span class="fc" id="L705">    StdErrHandlerRunnable(final ProcOutputHandler handler, final InputStream is) {</span>
@@ -725,7 +725,7 @@ public final class Runtime {
   private static class StdOutHandlerRunnable extends AbstractRunnable {
 
     private final ProcOutputHandler handler;
-    
+
     private final InputStream is;
 
 <span class="fc" id="L731">    StdOutHandlerRunnable(final ProcOutputHandler handler, final InputStream is) {</span>
@@ -747,7 +747,7 @@ public final class Runtime {
 <span class="fc" id="L747">      }</span>
 <span class="fc" id="L748">    }</span>
   }
-    
+
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

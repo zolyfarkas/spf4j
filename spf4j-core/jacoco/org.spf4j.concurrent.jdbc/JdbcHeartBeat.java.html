@@ -1,5 +1,25 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>JdbcHeartBeat.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent.jdbc</a> &gt; <span class="el_source">JdbcHeartBeat.java</span></div><h1>JdbcHeartBeat.java</h1><pre class="source lang-java linenums">package org.spf4j.concurrent.jdbc;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>JdbcHeartBeat.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent.jdbc</a> &gt; <span class="el_source">JdbcHeartBeat.java</span></div><h1>JdbcHeartBeat.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
+
+package org.spf4j.concurrent.jdbc;
+
+import com.google.common.util.concurrent.ListenableScheduledFuture;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -46,7 +66,7 @@ import org.spf4j.jmx.Registry;
 @ThreadSafe
 public final class JdbcHeartBeat implements AutoCloseable {
 
-<span class="fc" id="L49">  private static final Logger LOG = LoggerFactory.getLogger(JdbcHeartBeat.class);</span>
+<span class="fc" id="L69">  private static final Logger LOG = LoggerFactory.getLogger(JdbcHeartBeat.class);</span>
 
   private final JdbcTemplate jdbc;
 
@@ -66,27 +86,27 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   private boolean isClosed;
 
-  private ScheduledFuture&lt;?&gt; scheduledHearbeat;
+  private ListenableScheduledFuture&lt;?&gt; scheduledHearbeat;
 
   private final long beatDurationNanos;
 
   @Override
   public void close() throws SQLException, InterruptedException {
-<span class="fc" id="L75">    synchronized (jdbc) {</span>
-<span class="pc bpc" id="L76" title="1 of 2 branches missed.">      if (!isClosed) {</span>
-<span class="fc" id="L77">        unregisterJmx();</span>
-<span class="fc" id="L78">        ScheduledFuture&lt;?&gt; running = scheduledHearbeat;</span>
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        if (running != null) {</span>
-<span class="fc" id="L80">          scheduledHearbeat.cancel(true);</span>
+<span class="fc" id="L95">    synchronized (jdbc) {</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">      if (!isClosed) {</span>
+<span class="fc" id="L97">        unregisterJmx();</span>
+<span class="fc" id="L98">        ScheduledFuture&lt;?&gt; running = scheduledHearbeat;</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        if (running != null) {</span>
+<span class="fc" id="L100">          scheduledHearbeat.cancel(true);</span>
         }
-<span class="fc" id="L82">        removeHeartBeatRow(jdbcTimeoutSeconds);</span>
-<span class="fc bfc" id="L83" title="All 2 branches covered.">        for (LifecycleHook hook : lifecycleHooks) {</span>
-<span class="fc" id="L84">          hook.onClose();</span>
-<span class="fc" id="L85">        }</span>
-<span class="fc" id="L86">        isClosed = true;</span>
+<span class="fc" id="L102">        removeHeartBeatRow(jdbcTimeoutSeconds);</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        for (LifecycleHook hook : lifecycleHooks) {</span>
+<span class="fc" id="L104">          hook.onClose();</span>
+<span class="fc" id="L105">        }</span>
+<span class="fc" id="L106">        isClosed = true;</span>
       }
-<span class="pc" id="L88">    }</span>
-<span class="fc" id="L89">  }</span>
+<span class="pc" id="L108">    }</span>
+<span class="fc" id="L109">  }</span>
 
   public interface LifecycleHook {
 
@@ -100,120 +120,120 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   private JdbcHeartBeat(final DataSource dataSource, final long intervalMillis,
           final int jdbcTimeoutSeconds) throws SQLException, InterruptedException {
-<span class="nc" id="L103">    this(dataSource, new HeartBeatTableDesc(&quot;HEARTBEATS&quot;,</span>
+<span class="nc" id="L123">    this(dataSource, new HeartBeatTableDesc(&quot;HEARTBEATS&quot;,</span>
             &quot;OWNER&quot;, &quot;INTERVAL_MILLIS&quot;, &quot;LAST_HEARTBEAT_INSTANT_MILLIS&quot;,
             &quot;TIMESTAMPDIFF('MILLISECOND', timestamp '1970-01-01 00:00:00', CURRENT_TIMESTAMP())&quot;),
             intervalMillis, jdbcTimeoutSeconds);
-<span class="nc" id="L107">  }</span>
+<span class="nc" id="L127">  }</span>
 
   private JdbcHeartBeat(final DataSource dataSource, final HeartBeatTableDesc hbTableDesc, final long intervalMillis,
-<span class="fc" id="L110">          final int jdbcTimeoutSeconds) throws SQLException, InterruptedException {</span>
-<span class="pc bpc" id="L111" title="1 of 2 branches missed.">    if (intervalMillis &lt; 1000) {</span>
-<span class="nc" id="L112">      throw new IllegalArgumentException(&quot;The heartbeat interval should be at least 1s and not &quot;</span>
+<span class="fc" id="L130">          final int jdbcTimeoutSeconds) throws SQLException, InterruptedException {</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">    if (intervalMillis &lt; 1000) {</span>
+<span class="nc" id="L132">      throw new IllegalArgumentException(&quot;The heartbeat interval should be at least 1s and not &quot;</span>
               + intervalMillis + &quot; ms&quot;);
     }
 
-<span class="fc" id="L116">    this.jdbc = new JdbcTemplate(dataSource);</span>
-<span class="fc" id="L117">    this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;</span>
-<span class="fc" id="L118">    this.intervalMillis = intervalMillis;</span>
-<span class="fc" id="L119">    this.hbTableDesc = hbTableDesc;</span>
-<span class="fc" id="L120">    this.isClosed = false;</span>
-<span class="fc" id="L121">    String hbTableName = hbTableDesc.getTableName();</span>
-<span class="fc" id="L122">    String lastHeartbeatColumn = hbTableDesc.getLastHeartbeatColumn();</span>
-<span class="fc" id="L123">    String currentTimeMillisFunc = hbTableDesc.getCurrentTimeMillisFunc();</span>
-<span class="fc" id="L124">    String intervalColumn = hbTableDesc.getIntervalColumn();</span>
-<span class="fc" id="L125">    String ownerColumn = hbTableDesc.getOwnerColumn();</span>
+<span class="fc" id="L136">    this.jdbc = new JdbcTemplate(dataSource);</span>
+<span class="fc" id="L137">    this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;</span>
+<span class="fc" id="L138">    this.intervalMillis = intervalMillis;</span>
+<span class="fc" id="L139">    this.hbTableDesc = hbTableDesc;</span>
+<span class="fc" id="L140">    this.isClosed = false;</span>
+<span class="fc" id="L141">    String hbTableName = hbTableDesc.getTableName();</span>
+<span class="fc" id="L142">    String lastHeartbeatColumn = hbTableDesc.getLastHeartbeatColumn();</span>
+<span class="fc" id="L143">    String currentTimeMillisFunc = hbTableDesc.getCurrentTimeMillisFunc();</span>
+<span class="fc" id="L144">    String intervalColumn = hbTableDesc.getIntervalColumn();</span>
+<span class="fc" id="L145">    String ownerColumn = hbTableDesc.getOwnerColumn();</span>
 
-<span class="fc" id="L127">    this.updateHeartbeatSql = &quot;UPDATE &quot; + hbTableName + &quot; SET &quot; + lastHeartbeatColumn + &quot; = &quot; + currentTimeMillisFunc</span>
+<span class="fc" id="L147">    this.updateHeartbeatSql = &quot;UPDATE &quot; + hbTableName + &quot; SET &quot; + lastHeartbeatColumn + &quot; = &quot; + currentTimeMillisFunc</span>
             + &quot; WHERE &quot; + ownerColumn + &quot; = ? AND &quot; + lastHeartbeatColumn + &quot; + &quot; + intervalColumn
             + &quot; * 2 &gt; &quot; + currentTimeMillisFunc;
-<span class="fc" id="L130">    this.deleteHeartBeatSql = &quot;DELETE FROM &quot; + hbTableName</span>
+<span class="fc" id="L150">    this.deleteHeartBeatSql = &quot;DELETE FROM &quot; + hbTableName</span>
             + &quot; WHERE &quot; + ownerColumn + &quot; = ?&quot;;
-<span class="fc" id="L132">    this.deleteSql = &quot;DELETE FROM &quot; + hbTableName + &quot; WHERE &quot; + lastHeartbeatColumn + &quot; + &quot; + intervalColumn</span>
+<span class="fc" id="L152">    this.deleteSql = &quot;DELETE FROM &quot; + hbTableName + &quot; WHERE &quot; + lastHeartbeatColumn + &quot; + &quot; + intervalColumn</span>
             + &quot; * 2 &lt; &quot; + currentTimeMillisFunc;
-<span class="fc" id="L134">    this.lifecycleHooks = new CopyOnWriteArrayList&lt;&gt;();</span>
-<span class="fc" id="L135">    long startTimeNanos =  System.nanoTime();</span>
-<span class="fc" id="L136">    createHeartbeatRow();</span>
-<span class="fc" id="L137">    long duration = System.nanoTime() - startTimeNanos;</span>
-<span class="fc" id="L138">    this.beatDurationNanos = Math.max(duration, TimeUnit.MILLISECONDS.toNanos(10));</span>
-<span class="fc" id="L139">  }</span>
+<span class="fc" id="L154">    this.lifecycleHooks = new CopyOnWriteArrayList&lt;&gt;();</span>
+<span class="fc" id="L155">    long startTimeNanos =  System.nanoTime();</span>
+<span class="fc" id="L156">    createHeartbeatRow();</span>
+<span class="fc" id="L157">    long duration = System.nanoTime() - startTimeNanos;</span>
+<span class="fc" id="L158">    this.beatDurationNanos = Math.max(duration, TimeUnit.MILLISECONDS.toNanos(10));</span>
+<span class="fc" id="L159">  }</span>
 
   public long getBeatDurationNanos() {
-<span class="fc" id="L142">    return beatDurationNanos;</span>
+<span class="fc" id="L162">    return beatDurationNanos;</span>
   }
 
   public void registerJmx() {
-<span class="fc" id="L146">    Registry.export(this);</span>
-<span class="fc" id="L147">  }</span>
+<span class="fc" id="L166">    Registry.export(this);</span>
+<span class="fc" id="L167">  }</span>
 
   public void unregisterJmx() {
-<span class="fc" id="L150">    Registry.unregister(this);</span>
-<span class="fc" id="L151">  }</span>
+<span class="fc" id="L170">    Registry.unregister(this);</span>
+<span class="fc" id="L171">  }</span>
 
   public void addLyfecycleHook(final LifecycleHook hook) {
-<span class="fc" id="L154">    lifecycleHooks.add(hook);</span>
-<span class="fc" id="L155">  }</span>
+<span class="fc" id="L174">    lifecycleHooks.add(hook);</span>
+<span class="fc" id="L175">  }</span>
 
   public void removeLifecycleHook(final LifecycleHook hook) {
-<span class="fc" id="L158">    lifecycleHooks.remove(hook);</span>
-<span class="fc" id="L159">  }</span>
+<span class="fc" id="L178">    lifecycleHooks.remove(hook);</span>
+<span class="fc" id="L179">  }</span>
 
   void createHeartbeatRow()
           throws SQLException, InterruptedException {
 
-<span class="fc" id="L164">    jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
+<span class="fc" id="L184">    jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
 
-<span class="pc" id="L166">      try (final PreparedStatement insert = conn.prepareStatement(&quot;insert into &quot; + hbTableDesc.getTableName()</span>
-<span class="fc" id="L167">              + &quot; (&quot; + hbTableDesc.getOwnerColumn() + ',' + hbTableDesc.getIntervalColumn() + ','</span>
-<span class="fc" id="L168">              + hbTableDesc.getLastHeartbeatColumn() + &quot;) VALUES (?, ?, &quot;</span>
-<span class="fc" id="L169">              + hbTableDesc.getCurrentTimeMillisFunc() + &quot;)&quot;)) {</span>
-<span class="fc" id="L170">        insert.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L171">        insert.setLong(2, this.intervalMillis);</span>
-<span class="fc" id="L172">        insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="fc" id="L173">        insert.executeUpdate();</span>
-<span class="pc bpc" id="L174" title="6 of 8 branches missed.">      }</span>
-<span class="fc" id="L175">      return null;</span>
+<span class="pc" id="L186">      try (final PreparedStatement insert = conn.prepareStatement(&quot;insert into &quot; + hbTableDesc.getTableName()</span>
+<span class="fc" id="L187">              + &quot; (&quot; + hbTableDesc.getOwnerColumn() + ',' + hbTableDesc.getIntervalColumn() + ','</span>
+<span class="fc" id="L188">              + hbTableDesc.getLastHeartbeatColumn() + &quot;) VALUES (?, ?, &quot;</span>
+<span class="fc" id="L189">              + hbTableDesc.getCurrentTimeMillisFunc() + &quot;)&quot;)) {</span>
+<span class="fc" id="L190">        insert.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L191">        insert.setLong(2, this.intervalMillis);</span>
+<span class="fc" id="L192">        insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
+<span class="fc" id="L193">        insert.executeUpdate();</span>
+<span class="pc bpc" id="L194" title="6 of 8 branches missed.">      }</span>
+<span class="fc" id="L195">      return null;</span>
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<span class="fc" id="L177">  }</span>
+<span class="fc" id="L197">  }</span>
 
   @JmxExport(description = &quot;Remove all dead hearbeat rows&quot;)
   public int removeDeadHeartBeatRows(@JmxExport(&quot;timeoutSeconds&quot;) final int timeoutSeconds)
           throws SQLException, InterruptedException {
-<span class="nc" id="L182">    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
-<span class="nc" id="L183">      return JdbcHeartBeat.this.removeDeadHeartBeatRows(conn, deadlineNanos);</span>
+<span class="nc" id="L202">    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
+<span class="nc" id="L203">      return JdbcHeartBeat.this.removeDeadHeartBeatRows(conn, deadlineNanos);</span>
     }, timeoutSeconds, TimeUnit.SECONDS);
   }
 
   @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
   int removeDeadHeartBeatRows(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="pc" id="L189">    try (final PreparedStatement stmt = conn.prepareStatement(deleteSql)) {</span>
-<span class="fc" id="L190">      stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="fc" id="L191">      return stmt.executeUpdate();</span>
-<span class="pc bpc" id="L192" title="6 of 8 branches missed.">    }</span>
+<span class="pc" id="L209">    try (final PreparedStatement stmt = conn.prepareStatement(deleteSql)) {</span>
+<span class="fc" id="L210">      stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
+<span class="fc" id="L211">      return stmt.executeUpdate();</span>
+<span class="pc bpc" id="L212" title="6 of 8 branches missed.">    }</span>
   }
 
   void removeHeartBeatRow(final int timeoutSeconds)
           throws SQLException, InterruptedException {
-<span class="fc" id="L197">    jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
-<span class="pc" id="L198">      try (final PreparedStatement stmt = conn.prepareStatement(deleteHeartBeatSql)) {</span>
-<span class="fc" id="L199">        stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L200">        stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="fc" id="L201">        int nrDeleted = stmt.executeUpdate();</span>
-<span class="pc bpc" id="L202" title="1 of 2 branches missed.">        if (nrDeleted != 1) {</span>
-<span class="nc" id="L203">          throw new IllegalStateException(&quot;Heartbeat rows deleted: &quot; + nrDeleted</span>
+<span class="fc" id="L217">    jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
+<span class="pc" id="L218">      try (final PreparedStatement stmt = conn.prepareStatement(deleteHeartBeatSql)) {</span>
+<span class="fc" id="L219">        stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L220">        stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
+<span class="fc" id="L221">        int nrDeleted = stmt.executeUpdate();</span>
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">        if (nrDeleted != 1) {</span>
+<span class="nc" id="L223">          throw new IllegalStateException(&quot;Heartbeat rows deleted: &quot; + nrDeleted</span>
                   + &quot; for &quot; + org.spf4j.base.Runtime.PROCESS_ID);
         }
-<span class="pc bpc" id="L206" title="6 of 8 branches missed.">      }</span>
-<span class="fc" id="L207">      return null;</span>
+<span class="pc bpc" id="L226" title="6 of 8 branches missed.">      }</span>
+<span class="fc" id="L227">      return null;</span>
     }, timeoutSeconds, TimeUnit.SECONDS);
-<span class="fc" id="L209">  }</span>
+<span class="fc" id="L229">  }</span>
 
   @JmxExport(description = &quot;Remove all dead hearbeat rows async&quot;)
   public Future&lt;Integer&gt; removeDeadHeartBeatRowsAsync(final int timeoutSeconds) {
-<span class="nc" id="L213">    return DefaultExecutor.INSTANCE.submit(new Callable&lt;Integer&gt;() {</span>
+<span class="nc" id="L233">    return DefaultExecutor.INSTANCE.submit(new Callable&lt;Integer&gt;() {</span>
       @Override
       public Integer call() throws SQLException, InterruptedException {
-<span class="nc" id="L216">        return removeDeadHeartBeatRows(timeoutSeconds);</span>
+<span class="nc" id="L236">        return removeDeadHeartBeatRows(timeoutSeconds);</span>
       }
     });
   }
@@ -221,119 +241,130 @@ public final class JdbcHeartBeat implements AutoCloseable {
   private ScheduledHeartBeat heartbeatRunnable;
 
   private ScheduledHeartBeat getHeartBeatRunnable() {
-<span class="fc bfc" id="L224" title="All 2 branches covered.">    if (heartbeatRunnable == null) {</span>
-<span class="fc" id="L225">      heartbeatRunnable = new ScheduledHeartBeat();</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">    if (heartbeatRunnable == null) {</span>
+<span class="fc" id="L245">      heartbeatRunnable = new ScheduledHeartBeat();</span>
     }
-<span class="fc" id="L227">    return heartbeatRunnable;</span>
+<span class="fc" id="L247">    return heartbeatRunnable;</span>
   }
 
   public void scheduleHeartbeat() {
-<span class="fc" id="L231">    synchronized (jdbc) {</span>
-<span class="pc bpc" id="L232" title="1 of 2 branches missed.">      if (isClosed) {</span>
-<span class="nc" id="L233">        throw new IllegalStateException(&quot;Heartbeater is closed &quot; + this);</span>
+<span class="fc" id="L251">    synchronized (jdbc) {</span>
+<span class="pc bpc" id="L252" title="1 of 2 branches missed.">      if (isClosed) {</span>
+<span class="nc" id="L253">        throw new IllegalStateException(&quot;Heartbeater is closed &quot; + this);</span>
       }
-<span class="fc" id="L235">      long lr = lastRun;</span>
-      long delay;
-<span class="fc bfc" id="L237" title="All 2 branches covered.">      if (lr == 0) {</span>
-<span class="fc" id="L238">        delay = intervalMillis;</span>
-<span class="pc bpc" id="L239" title="1 of 2 branches missed.">      } else if (lr &gt; 0) {</span>
-<span class="fc" id="L240">        delay = intervalMillis - (System.currentTimeMillis() - lr);</span>
-      } else {
-<span class="nc" id="L242">        throw new IllegalStateException(&quot;The end of times are upon us :-) &quot; + lr);</span>
+<span class="fc bfc" id="L255" title="All 2 branches covered.">      if (scheduledHearbeat == null) {</span>
+<span class="fc" id="L256">        long lr = lastRun;</span>
+        long delay;
+<span class="fc bfc" id="L258" title="All 2 branches covered.">        if (lr == 0) {</span>
+<span class="fc" id="L259">          delay = intervalMillis;</span>
+<span class="pc bpc" id="L260" title="1 of 2 branches missed.">        } else if (lr &gt; 0) {</span>
+<span class="fc" id="L261">          delay = intervalMillis - (System.currentTimeMillis() - lr);</span>
+        } else {
+<span class="nc" id="L263">          throw new IllegalStateException(&quot;The end of times are upon us :-) &quot; + lr);</span>
+        }
+<span class="fc" id="L265">        scheduledHearbeat = DefaultScheduler.LISTENABLE_INSTANCE.schedule(</span>
+<span class="fc" id="L266">                getHeartBeatRunnable(), delay, TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L267">        scheduledHearbeat.addListener(() -&gt; {</span>
+<span class="fc" id="L268">          synchronized (jdbc) {</span>
+<span class="fc bfc" id="L269" title="All 2 branches covered.">            if (!isClosed) {</span>
+<span class="fc" id="L270">              scheduledHearbeat = null;</span>
+<span class="fc" id="L271">              scheduleHeartbeat();</span>
+            }
+<span class="pc" id="L273">          }</span>
+<span class="fc" id="L274">        }, DefaultExecutor.INSTANCE);</span>
       }
-<span class="fc" id="L244">      scheduledHearbeat = DefaultScheduler.INSTANCE.schedule(getHeartBeatRunnable(), delay, TimeUnit.MILLISECONDS);</span>
-<span class="pc" id="L245">    }</span>
-<span class="fc" id="L246">  }</span>
+<span class="pc" id="L276">    }</span>
+<span class="fc" id="L277">  }</span>
 
   @JmxExport
   public void beat() throws SQLException, InterruptedException {
-<span class="fc" id="L250">    jdbc.transactOnConnection(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
+<span class="fc" id="L281">    jdbc.transactOnConnection(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
       @Override
       @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="fc" id="L254">        beat(conn, deadlineNanos);</span>
-<span class="fc" id="L255">        return null;</span>
+<span class="fc" id="L285">        beat(conn, deadlineNanos);</span>
+<span class="fc" id="L286">        return null;</span>
       }
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<span class="fc" id="L258">    lastRun = System.currentTimeMillis();</span>
-<span class="fc" id="L259">  }</span>
+<span class="fc" id="L289">    lastRun = System.currentTimeMillis();</span>
+<span class="fc" id="L290">  }</span>
 
   void beat(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="fc" id="L262">    synchronized (jdbc) {</span>
-<span class="pc bpc" id="L263" title="1 of 2 branches missed.">      if (isClosed) {</span>
-<span class="nc" id="L264">        throw new IllegalStateException(&quot;Heartbeater is closed &quot; + this);</span>
+<span class="fc" id="L293">    synchronized (jdbc) {</span>
+<span class="pc bpc" id="L294" title="1 of 2 branches missed.">      if (isClosed) {</span>
+<span class="nc" id="L295">        throw new IllegalStateException(&quot;Heartbeater is closed &quot; + this);</span>
       }
-<span class="pc" id="L266">    }</span>
-<span class="pc" id="L267">    try (PreparedStatement stmt = conn.prepareStatement(updateHeartbeatSql)) {</span>
-<span class="fc" id="L268">      stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="fc" id="L269">      stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L270">      int rowsUpdated = stmt.executeUpdate();</span>
-<span class="pc bpc" id="L271" title="1 of 2 branches missed.">      if (rowsUpdated != 1) {</span>
-<span class="nc" id="L272">        throw new IllegalStateException(&quot;Broken Heartbeat for &quot;</span>
+<span class="pc" id="L297">    }</span>
+<span class="pc" id="L298">    try (PreparedStatement stmt = conn.prepareStatement(updateHeartbeatSql)) {</span>
+<span class="fc" id="L299">      stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
+<span class="fc" id="L300">      stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L301">      int rowsUpdated = stmt.executeUpdate();</span>
+<span class="pc bpc" id="L302" title="1 of 2 branches missed.">      if (rowsUpdated != 1) {</span>
+<span class="nc" id="L303">        throw new IllegalStateException(&quot;Broken Heartbeat for &quot;</span>
                 + org.spf4j.base.Runtime.PROCESS_ID + &quot;sql : &quot; + updateHeartbeatSql + &quot; rows : &quot; + rowsUpdated);
       }
-<span class="fc" id="L275">      LOG.debug(&quot;Heart Beat for {}&quot;, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="pc bpc" id="L276" title="6 of 8 branches missed.">    }</span>
-<span class="fc" id="L277">  }</span>
+<span class="fc" id="L306">      LOG.debug(&quot;Heart Beat for {}&quot;, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="pc bpc" id="L307" title="6 of 8 branches missed.">    }</span>
+<span class="fc" id="L308">  }</span>
 
   boolean tryBeat(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="fc bfc" id="L280" title="All 2 branches covered.">    if (System.currentTimeMillis() - lastRun &gt; intervalMillis / 2) {</span>
-<span class="fc" id="L281">      beat(conn, deadlineNanos);</span>
-<span class="fc" id="L282">      return true;</span>
+<span class="fc bfc" id="L311" title="All 2 branches covered.">    if (System.currentTimeMillis() - lastRun &gt; intervalMillis / 2) {</span>
+<span class="fc" id="L312">      beat(conn, deadlineNanos);</span>
+<span class="fc" id="L313">      return true;</span>
     } else {
-<span class="fc" id="L284">      return false;</span>
+<span class="fc" id="L315">      return false;</span>
     }
   }
 
   void updateLastRun(final long lastRunTime) {
-<span class="fc" id="L289">    lastRun = lastRunTime;</span>
-<span class="fc" id="L290">  }</span>
+<span class="fc" id="L320">    lastRun = lastRunTime;</span>
+<span class="fc" id="L321">  }</span>
 
 
   @JmxExport
   public long getLastRunDB() throws SQLException, InterruptedException {
-<span class="fc" id="L295">    return jdbc.transactOnConnection(new HandlerNano&lt;Connection, Long, SQLException&gt;() {</span>
+<span class="fc" id="L326">    return jdbc.transactOnConnection(new HandlerNano&lt;Connection, Long, SQLException&gt;() {</span>
       @Override
       @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
       public Long handle(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="pc" id="L299">        try (PreparedStatement stmt = conn.prepareStatement(&quot;select &quot; + hbTableDesc.getLastHeartbeatColumn()</span>
-<span class="fc" id="L300">                + &quot; FROM &quot; + hbTableDesc.getTableName() + &quot; where &quot; + hbTableDesc.getOwnerColumn() + &quot; = ?&quot;)) {</span>
-<span class="fc" id="L301">          stmt.setQueryTimeout(10);</span>
-<span class="fc" id="L302">          stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="pc" id="L303">          try (ResultSet rs = stmt.executeQuery()) {</span>
-<span class="pc bpc" id="L304" title="1 of 2 branches missed.">            if (rs.next()) {</span>
-<span class="fc" id="L305">              long result = rs.getLong(1);</span>
-<span class="pc bpc" id="L306" title="1 of 2 branches missed.">              if (rs.next()) {</span>
-<span class="nc" id="L307">                throw new IllegalStateException(&quot;Multible beats for same owner &quot; + org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="pc" id="L330">        try (PreparedStatement stmt = conn.prepareStatement(&quot;select &quot; + hbTableDesc.getLastHeartbeatColumn()</span>
+<span class="fc" id="L331">                + &quot; FROM &quot; + hbTableDesc.getTableName() + &quot; where &quot; + hbTableDesc.getOwnerColumn() + &quot; = ?&quot;)) {</span>
+<span class="fc" id="L332">          stmt.setQueryTimeout(10);</span>
+<span class="fc" id="L333">          stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="pc" id="L334">          try (ResultSet rs = stmt.executeQuery()) {</span>
+<span class="pc bpc" id="L335" title="1 of 2 branches missed.">            if (rs.next()) {</span>
+<span class="fc" id="L336">              long result = rs.getLong(1);</span>
+<span class="pc bpc" id="L337" title="1 of 2 branches missed.">              if (rs.next()) {</span>
+<span class="nc" id="L338">                throw new IllegalStateException(&quot;Multible beats for same owner &quot; + org.spf4j.base.Runtime.PROCESS_ID);</span>
               }
-<span class="fc" id="L309">              return result;</span>
+<span class="fc" id="L340">              return result;</span>
             } else {
-<span class="nc" id="L311">              return 0L;</span>
+<span class="nc" id="L342">              return 0L;</span>
             }
-<span class="pc bpc" id="L313" title="10 of 12 branches missed.">          }</span>
-<span class="pc bpc" id="L314" title="10 of 12 branches missed.">        }</span>
+<span class="pc bpc" id="L344" title="10 of 12 branches missed.">          }</span>
+<span class="pc bpc" id="L345" title="10 of 12 branches missed.">        }</span>
       }
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
   @JmxExport
   public long getIntervalMillis() {
-<span class="nc" id="L321">    return intervalMillis;</span>
+<span class="nc" id="L352">    return intervalMillis;</span>
   }
 
   @JmxExport
   public long getLastRunOwner() {
-<span class="nc" id="L326">    return lastRun;</span>
+<span class="nc" id="L357">    return lastRun;</span>
   }
 
   @JmxExport
   public String getLastRunDateTimeOwner() {
-<span class="nc" id="L331">    return ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastRun), ZoneId.systemDefault()).toString();</span>
+<span class="nc" id="L362">    return ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastRun), ZoneId.systemDefault()).toString();</span>
   }
 
-<span class="fc" id="L334">  private static final Map&lt;DataSource, JdbcHeartBeat&gt; HEARTBEATS = new IdentityHashMap&lt;&gt;();</span>
+<span class="fc" id="L365">  private static final Map&lt;DataSource, JdbcHeartBeat&gt; HEARTBEATS = new IdentityHashMap&lt;&gt;();</span>
 
-<span class="fc" id="L336">  private static final int HEARTBEAT_INTERVAL_MILLIS = Integer.getInteger(&quot;spf4j.heartbeat.intervalMillis&quot;, 10000);</span>
+<span class="fc" id="L367">  private static final int HEARTBEAT_INTERVAL_MILLIS = Integer.getInteger(&quot;spf4j.heartbeat.intervalMillis&quot;, 10000);</span>
 
 
   /**
@@ -344,97 +375,91 @@ public final class JdbcHeartBeat implements AutoCloseable {
    * @throws SQLException
    * @throws InterruptedException
    */
-  public static synchronized JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
+  public static JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
           final HeartBeatTableDesc hbTableDesc,
           @Nullable final LifecycleHook hook)
           throws SQLException, InterruptedException {
-<span class="fc" id="L351">    JdbcHeartBeat beat = HEARTBEATS.get(dataSource);</span>
-<span class="fc bfc" id="L352" title="All 2 branches covered.">    if (beat == null) {</span>
-<span class="fc" id="L353">      beat = new JdbcHeartBeat(dataSource, hbTableDesc, HEARTBEAT_INTERVAL_MILLIS, 5);</span>
-<span class="fc" id="L354">      beat.scheduleHeartbeat();</span>
-<span class="fc" id="L355">      beat.registerJmx();</span>
-<span class="fc" id="L356">      beat.addLyfecycleHook(new LifecycleHook() {</span>
-        @Override
-        public void onError(final Error error) {
-<span class="fc" id="L359">        }</span>
+    JdbcHeartBeat beat;
+<span class="fc" id="L383">    synchronized (HEARTBEATS) {</span>
+<span class="fc" id="L384">      beat = HEARTBEATS.get(dataSource);</span>
+<span class="fc bfc" id="L385" title="All 2 branches covered.">      if (beat == null) {</span>
+<span class="fc" id="L386">        beat = new JdbcHeartBeat(dataSource, hbTableDesc, HEARTBEAT_INTERVAL_MILLIS, 5);</span>
+<span class="fc" id="L387">        beat.registerJmx();</span>
+<span class="fc" id="L388">        beat.addLyfecycleHook(new LifecycleHook() {</span>
+          @Override
+          public void onError(final Error error) {
+<span class="fc" id="L391">          }</span>
 
-        @Override
-        public void onClose() {
-<span class="fc" id="L363">          HEARTBEATS.remove(dataSource);</span>
-<span class="fc" id="L364">        }</span>
-      });
-<span class="fc" id="L366">      HEARTBEATS.put(dataSource, beat);</span>
+          @Override
+          public void onClose() {
+<span class="fc" id="L395">            synchronized (HEARTBEATS) {</span>
+<span class="fc" id="L396">              HEARTBEATS.remove(dataSource);</span>
+<span class="pc" id="L397">            }</span>
+<span class="fc" id="L398">          }</span>
+        });
+<span class="fc" id="L400">        HEARTBEATS.put(dataSource, beat);</span>
+      }
+<span class="pc" id="L402">    }</span>
+<span class="fc bfc" id="L403" title="All 2 branches covered.">    if (hook != null) {</span>
+<span class="fc" id="L404">      beat.addLyfecycleHook(hook);</span>
     }
-<span class="fc bfc" id="L368" title="All 2 branches covered.">    if (hook != null) {</span>
-<span class="fc" id="L369">      beat.addLyfecycleHook(hook);</span>
-    }
-<span class="fc" id="L371">    return beat;</span>
+<span class="fc" id="L406">    beat.scheduleHeartbeat();</span>
+<span class="fc" id="L407">    return beat;</span>
   }
 
   public HeartBeatTableDesc getHbTableDesc() {
-<span class="fc" id="L375">    return hbTableDesc;</span>
+<span class="fc" id="L411">    return hbTableDesc;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L380">    return &quot;JdbcHeartBeat{&quot; + &quot;jdbc=&quot; + jdbc + &quot;, jdbcTimeoutSeconds=&quot; + jdbcTimeoutSeconds + &quot;, intervalMillis=&quot;</span>
+<span class="nc" id="L416">    return &quot;JdbcHeartBeat{&quot; + &quot;jdbc=&quot; + jdbc + &quot;, jdbcTimeoutSeconds=&quot; + jdbcTimeoutSeconds + &quot;, intervalMillis=&quot;</span>
             + intervalMillis + &quot;, hbTableDesc=&quot; + hbTableDesc + &quot;, lastRun=&quot; + lastRun + '}';
   }
 
-<span class="fc" id="L384">  private class ScheduledHeartBeat implements Runnable {</span>
+<span class="fc" id="L420">  private class ScheduledHeartBeat implements Runnable {</span>
 
     @Override
     public void run() {
       try {
-<span class="fc" id="L389">        long lr = lastRun;</span>
-<span class="fc" id="L390">        long currentTimeMillis = System.currentTimeMillis();</span>
-<span class="pc bpc" id="L391" title="1 of 2 branches missed.">        if (lr != 0) {</span>
+<span class="fc" id="L425">        long lr = lastRun;</span>
+<span class="fc" id="L426">        long currentTimeMillis = System.currentTimeMillis();</span>
+<span class="pc bpc" id="L427" title="1 of 2 branches missed.">        if (lr != 0) {</span>
           // not first beat.
-<span class="fc" id="L393">          long millisSinceLastBeat = currentTimeMillis - lr;</span>
-<span class="fc bfc" id="L394" title="All 2 branches covered.">          if (millisSinceLastBeat &lt; intervalMillis / 2) {</span>
-            // we had a heartbeat not too long ago... weshould skip beating now and reschedule.
-<span class="fc" id="L396">            synchronized (jdbc) {</span>
-<span class="pc bpc" id="L397" title="1 of 2 branches missed.">              if (!isClosed) {</span>
-<span class="fc" id="L398">                scheduleHeartbeat();</span>
-              }
-<span class="pc" id="L400">            }</span>
-<span class="fc" id="L401">            return;</span>
-<span class="pc bpc" id="L402" title="1 of 2 branches missed.">          } else if (((intervalMillis * 2) &lt; millisSinceLastBeat)) {</span>
+<span class="fc" id="L429">          long millisSinceLastBeat = currentTimeMillis - lr;</span>
+<span class="fc bfc" id="L430" title="All 2 branches covered.">          if (millisSinceLastBeat &lt; intervalMillis / 2) {</span>
+<span class="fc" id="L431">            return;</span>
+<span class="fc bfc" id="L432" title="All 2 branches covered.">          } else if (((intervalMillis * 2) &lt; millisSinceLastBeat)) {</span>
             // Unable to beat at inteval!
-<span class="nc" id="L404">            Error err = new Error(&quot;System to busy to provide regular heartbeat, lastRun = &quot; + lr</span>
-<span class="nc" id="L405">                    + &quot;, intervalMillis = &quot; + intervalMillis + &quot;, currentTimeMillis = &quot; + currentTimeMillis);</span>
+<span class="fc" id="L434">            Error err = new Error(&quot;System to busy to provide regular heartbeat, lastRun = &quot; + lr</span>
+<span class="fc" id="L435">                    + &quot;, intervalMillis = &quot; + intervalMillis + &quot;, currentTimeMillis = &quot; + currentTimeMillis);</span>
 
-<span class="nc" id="L407">            handleError(err);</span>
+<span class="nc" id="L437">            handleError(err);</span>
           }
         }
-<span class="fc" id="L410">        beat();</span>
-<span class="fc" id="L411">        synchronized (jdbc) {</span>
-<span class="pc bpc" id="L412" title="1 of 2 branches missed.">          if (!isClosed) {</span>
-<span class="fc" id="L413">            scheduleHeartbeat();</span>
-          }
-<span class="pc" id="L415">        }</span>
-<span class="fc" id="L416">      } catch (RuntimeException | SQLException | InterruptedException ex) {</span>
-<span class="fc" id="L417">        Error err = new Error(&quot;System failed heartbeat&quot;, ex);</span>
-<span class="nc" id="L418">        handleError(err);</span>
-<span class="fc" id="L419">      }</span>
-<span class="fc" id="L420">    }</span>
+<span class="fc" id="L440">        beat();</span>
+<span class="fc" id="L441">      } catch (RuntimeException | SQLException | InterruptedException ex) {</span>
+<span class="fc" id="L442">        Error err = new Error(&quot;System failed heartbeat&quot;, ex);</span>
+<span class="nc" id="L443">        handleError(err);</span>
+<span class="fc" id="L444">      }</span>
+<span class="fc" id="L445">    }</span>
 
     public void handleError(final Error err) throws Error {
-<span class="fc bfc" id="L423" title="All 2 branches covered.">      for (LifecycleHook hook : lifecycleHooks) {</span>
-<span class="fc" id="L424">        hook.onError(err);</span>
-<span class="fc" id="L425">      }</span>
-<span class="fc" id="L426">      RuntimeException ex = Iterables.forAll(lifecycleHooks, (final LifecycleHook t) -&gt; {</span>
+<span class="fc bfc" id="L448" title="All 2 branches covered.">      for (LifecycleHook hook : lifecycleHooks) {</span>
+<span class="fc" id="L449">        hook.onError(err);</span>
+<span class="fc" id="L450">      }</span>
+<span class="fc" id="L451">      RuntimeException ex = Iterables.forAll(lifecycleHooks, (final LifecycleHook t) -&gt; {</span>
         try {
-<span class="fc" id="L428">          t.onClose();</span>
-<span class="nc" id="L429">        } catch (SQLException | InterruptedException e) {</span>
-<span class="nc" id="L430">          throw new RuntimeException(e);</span>
-<span class="fc" id="L431">        }</span>
-<span class="fc" id="L432">      });</span>
-<span class="pc bpc" id="L433" title="1 of 2 branches missed.">      if (ex != null) {</span>
-<span class="fc" id="L434">        err.addSuppressed(ex);</span>
+<span class="fc" id="L453">          t.onClose();</span>
+<span class="nc" id="L454">        } catch (SQLException | InterruptedException e) {</span>
+<span class="nc" id="L455">          throw new RuntimeException(e);</span>
+<span class="fc" id="L456">        }</span>
+<span class="fc" id="L457">      });</span>
+<span class="fc bfc" id="L458" title="All 2 branches covered.">      if (ex != null) {</span>
+<span class="fc" id="L459">        err.addSuppressed(ex);</span>
       }
-<span class="fc" id="L436">      lifecycleHooks.clear();</span>
-<span class="fc" id="L437">      throw err;</span>
+<span class="fc" id="L461">      lifecycleHooks.clear();</span>
+<span class="fc" id="L462">      throw err;</span>
     }
   }
 

@@ -79,17 +79,17 @@
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>      <em class="jxr_comment">// test update;</em>
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">int</strong> totalPermits = semaphore.totalPermits();
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>      <strong class="jxr_keyword">int</strong> acquire = totalPermits - 1;
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>      semaphore.acquire(1, TimeUnit.SECONDS, acquire);
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      semaphore.acquire(acquire, 1, TimeUnit.SECONDS);
 <a class="jxr_linenumber" name="L75" href="#L75">75</a>      semaphore.reducePermits(2);
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>      Assert.assertFalse(semaphore.tryAcquire(2, TimeUnit.SECONDS));
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>      semaphore.release(acquire);
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>      semaphore.increasePermits(2);
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>      Assert.assertEquals(totalPermits,  semaphore.totalPermits());
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>  
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>      Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS, 1));
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>      Assert.assertTrue(semaphore.tryAcquire(1, 10, TimeUnit.SECONDS));
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>      semaphore.release(1);
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>      Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS, 2));
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>      Assert.assertFalse(semaphore.tryAcquire(2, TimeUnit.SECONDS, 1));
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      Assert.assertTrue(semaphore.tryAcquire(2, 10, TimeUnit.SECONDS));
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      Assert.assertFalse(semaphore.tryAcquire(1, 2, TimeUnit.SECONDS));
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>      semaphore.release(1);
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>      semaphore.release(1);
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>      Assert.assertEquals(maxReservations, semaphore.availablePermits());
@@ -97,8 +97,8 @@
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>      semaphore.reducePermits(1);
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>      Assert.assertEquals(maxReservations - 1, semaphore.totalPermits());
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>      Assert.assertEquals(maxReservations - 1, semaphore.availablePermits());
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>      Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS, 1));
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>      Assert.assertFalse(semaphore.tryAcquire(2, TimeUnit.SECONDS, 1));
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>      Assert.assertTrue(semaphore.tryAcquire(1, 10, TimeUnit.SECONDS));
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>      Assert.assertFalse(semaphore.tryAcquire(1, 2, TimeUnit.SECONDS));
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>      semaphore.release(1);
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>      <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>        semaphore.release(1);
@@ -107,10 +107,10 @@
 <a class="jxr_linenumber" name="L99" href="#L99">99</a>        Assert.assertTrue(ex.getMessage().contains(<span class="jxr_string">"Trying to release more than you own"</span>));
 <a class="jxr_linenumber" name="L100" href="#L100">100</a>     }
 <a class="jxr_linenumber" name="L101" href="#L101">101</a>     semaphore.increasePermits(1);
-<a class="jxr_linenumber" name="L102" href="#L102">102</a>     Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS, 2));
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>     Assert.assertTrue(semaphore.tryAcquire(2, 10, TimeUnit.SECONDS));
 <a class="jxr_linenumber" name="L103" href="#L103">103</a>     semaphore.reducePermits(1);
 <a class="jxr_linenumber" name="L104" href="#L104">104</a>     semaphore.release(2);
-<a class="jxr_linenumber" name="L105" href="#L105">105</a>     Assert.assertFalse(semaphore.tryAcquire(10, TimeUnit.SECONDS, 2));
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>     Assert.assertFalse(semaphore.tryAcquire(2, 10, TimeUnit.SECONDS));
 <a class="jxr_linenumber" name="L106" href="#L106">106</a> 
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>   }
 <a class="jxr_linenumber" name="L108" href="#L108">108</a> 
@@ -139,8 +139,8 @@
 <a class="jxr_linenumber" name="L131" href="#L131">131</a>       JdbcSemaphore semaphore = <strong class="jxr_keyword">new</strong> JdbcSemaphore(ds, <span class="jxr_string">"test_sem2"</span>, 3);
 <a class="jxr_linenumber" name="L132" href="#L132">132</a>       org.spf4j.base.Runtime.jrun(BadSemaphoreHandler.<strong class="jxr_keyword">class</strong>, 10000, connStr, <span class="jxr_string">"test_sem2"</span>);
 <a class="jxr_linenumber" name="L133" href="#L133">133</a>       org.spf4j.base.Runtime.jrun(BadSemaphoreHandler.<strong class="jxr_keyword">class</strong>, 10000, connStr, <span class="jxr_string">"test_sem2"</span>);
-<a class="jxr_linenumber" name="L134" href="#L134">134</a>       Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS, 1));
-<a class="jxr_linenumber" name="L135" href="#L135">135</a>       Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS, 1));
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>       Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS));
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>       Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS));
 <a class="jxr_linenumber" name="L136" href="#L136">136</a> 
 <a class="jxr_linenumber" name="L137" href="#L137">137</a>       server.stop();
 <a class="jxr_linenumber" name="L138" href="#L138">138</a>     } <strong class="jxr_keyword">finally</strong> {

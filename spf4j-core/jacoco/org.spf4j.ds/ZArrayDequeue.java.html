@@ -355,11 +355,11 @@ import java.util.NoSuchElementException;
 <span class="fc" id="L355">        int i = head;</span>
         E x;
 <span class="pc bpc" id="L357" title="1 of 2 branches missed.">        while ( (x = elements[i]) != null) {</span>
-<span class="pc bpc" id="L358" title="1 of 2 branches missed.">            if (o.equals(x)) {</span>
+<span class="fc bfc" id="L358" title="All 2 branches covered.">            if (o.equals(x)) {</span>
 <span class="fc" id="L359">                delete(i);</span>
 <span class="fc" id="L360">                return true;</span>
             }
-<span class="nc" id="L362">            i = (i + 1) &amp; mask;</span>
+<span class="fc" id="L362">            i = (i + 1) &amp; mask;</span>
         }
 <span class="nc" id="L364">        return false;</span>
     }
@@ -547,7 +547,7 @@ import java.util.NoSuchElementException;
 <span class="nc" id="L547">	    throw new ConcurrentModificationException();</span>
 
 	// Optimize for least element motion
-<span class="pc bpc" id="L550" title="1 of 2 branches missed.">	if (front &lt; back) {</span>
+<span class="fc bfc" id="L550" title="All 2 branches covered.">	if (front &lt; back) {</span>
 <span class="pc bpc" id="L551" title="1 of 2 branches missed.">	    if (h &lt;= i) {</span>
 <span class="fc" id="L552">		System.arraycopy(elements, h, elements, h + 1, front);</span>
 	    } else { // Wrap around
@@ -559,16 +559,16 @@ import java.util.NoSuchElementException;
 <span class="fc" id="L559">	    head = (h + 1) &amp; mask;</span>
 <span class="fc" id="L560">	    return false;</span>
 	} else {
-<span class="nc bnc" id="L562" title="All 2 branches missed.">	    if (i &lt; t) { // Copy the null tail as well</span>
-<span class="nc" id="L563">		System.arraycopy(elements, i + 1, elements, i, back);</span>
-<span class="nc" id="L564">		tail = t - 1;</span>
+<span class="pc bpc" id="L562" title="1 of 2 branches missed.">	    if (i &lt; t) { // Copy the null tail as well</span>
+<span class="fc" id="L563">		System.arraycopy(elements, i + 1, elements, i, back);</span>
+<span class="fc" id="L564">		tail = t - 1;</span>
 	    } else { // Wrap around
 <span class="nc" id="L566">		System.arraycopy(elements, i + 1, elements, i, mask - i);</span>
 <span class="nc" id="L567">		elements[mask] = elements[0];</span>
 <span class="nc" id="L568">		System.arraycopy(elements, 1, elements, 0, t);</span>
 <span class="nc" id="L569">		tail = (t - 1) &amp; mask;</span>
 	    }
-<span class="nc" id="L571">	    return true;</span>
+<span class="fc" id="L571">	    return true;</span>
 	}
     }
 
@@ -601,33 +601,33 @@ import java.util.NoSuchElementException;
      * @return an iterator over the elements in this deque
      */
     public Iterator&lt;E&gt; iterator() {
-<span class="nc" id="L604">        return new DeqIterator();</span>
+<span class="fc" id="L604">        return new DeqIterator();</span>
     }
 
     public Iterator&lt;E&gt; descendingIterator() {
 <span class="nc" id="L608">        return new DescendingIterator();</span>
     }
 
-<span class="nc" id="L611">    private class DeqIterator implements Iterator&lt;E&gt; {</span>
+<span class="fc" id="L611">    private class DeqIterator implements Iterator&lt;E&gt; {</span>
         /**
          * Index of element to be returned by subsequent call to next.
          */
-<span class="nc" id="L615">        private int cursor = head;</span>
+<span class="fc" id="L615">        private int cursor = head;</span>
 
         /**
          * Tail recorded at construction (also in remove), to stop
          * iterator and also to check for comodification.
          */
-<span class="nc" id="L621">        private int fence = tail;</span>
+<span class="fc" id="L621">        private int fence = tail;</span>
 
         /**
          * Index of element returned by most recent call to next.
          * Reset to -1 if element is deleted by a call to remove.
          */
-<span class="nc" id="L627">        private int lastRet = -1;</span>
+<span class="fc" id="L627">        private int lastRet = -1;</span>
 
         public boolean hasNext() {
-<span class="nc bnc" id="L630" title="All 2 branches missed.">            return cursor != fence;</span>
+<span class="pc bpc" id="L630" title="1 of 2 branches missed.">            return cursor != fence;</span>
         }
 
         public E next() {

@@ -41,33 +41,33 @@ public final class UnboundedRacyLoadingCache&lt;K, V&gt; implements LoadingCache
     private final CacheLoader&lt;K, V&gt; loader;
 
     public UnboundedRacyLoadingCache(final int initialSize, final CacheLoader&lt;K, V&gt; loader) {
-<span class="fc" id="L44">        this(initialSize, 8, loader);</span>
-<span class="fc" id="L45">    }</span>
+<span class="nc" id="L44">        this(initialSize, 8, loader);</span>
+<span class="nc" id="L45">    }</span>
     
-<span class="fc" id="L47">    public UnboundedRacyLoadingCache(final int initialSize, final int concurrency, final CacheLoader&lt;K, V&gt; loader) {</span>
-<span class="fc" id="L48">        this.map = new ConcurrentHashMap&lt;&gt;(</span>
+<span class="nc" id="L47">    public UnboundedRacyLoadingCache(final int initialSize, final int concurrency, final CacheLoader&lt;K, V&gt; loader) {</span>
+<span class="nc" id="L48">        this.map = new ConcurrentHashMap&lt;&gt;(</span>
                 initialSize, 0.75f, concurrency);
-<span class="fc" id="L50">        this.loader = loader;</span>
-<span class="fc" id="L51">    }</span>
+<span class="nc" id="L50">        this.loader = loader;</span>
+<span class="nc" id="L51">    }</span>
 
     @Override
     public V get(final K key) throws ExecutionException {
-<span class="fc" id="L55">        V val = map.get(key);</span>
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (val == null) {</span>
+<span class="nc" id="L55">        V val = map.get(key);</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (val == null) {</span>
             try {
-<span class="fc" id="L58">                val = loader.load(key);</span>
+<span class="nc" id="L58">                val = loader.load(key);</span>
 <span class="nc" id="L59">            } catch (Exception ex) {</span>
 <span class="nc" id="L60">               throw new ExecutionException(ex);</span>
-<span class="fc" id="L61">            }</span>
-<span class="fc" id="L62">            map.put(key, val);</span>
+<span class="nc" id="L61">            }</span>
+<span class="nc" id="L62">            map.put(key, val);</span>
         }
-<span class="fc" id="L64">        return val;</span>
+<span class="nc" id="L64">        return val;</span>
     }
 
     @Override
     public V getUnchecked(final K key) {
         try {
-<span class="fc" id="L70">            return get(key);</span>
+<span class="nc" id="L70">            return get(key);</span>
 <span class="nc" id="L71">        } catch (ExecutionException ex) {</span>
 <span class="nc" id="L72">            throw new RuntimeException(ex);</span>
         }

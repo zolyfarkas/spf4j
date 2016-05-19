@@ -169,7 +169,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
     @Override
     public ObjectHolder&lt;T&gt; tryReturnObjectIfNotInUse() throws InterruptedException {
 <span class="fc" id="L171">        boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);</span>
-<span class="fc bfc" id="L172" title="All 2 branches covered.">        if (acquired) {</span>
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">        if (acquired) {</span>
             try {
 <span class="fc bfc" id="L174" title="All 2 branches covered.">                if (!localObjects.isEmpty()) {</span>
 <span class="fc" id="L175">                    return localObjects.remove();</span>
@@ -180,7 +180,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
 <span class="pc" id="L180">                lock.unlock();</span>
             }
         } else {
-<span class="fc" id="L183">            return null;</span>
+<span class="nc" id="L183">            return null;</span>
         }
     }
 
@@ -209,7 +209,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
     @Override
     public Collection&lt;ObjectHolder&lt;T&gt;&gt; tryReturnObjectsIfNotNeededAnymore() throws InterruptedException {
 <span class="fc" id="L211">        boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);</span>
-<span class="fc bfc" id="L212" title="All 2 branches covered.">        if (acquired) {</span>
+<span class="pc bpc" id="L212" title="1 of 2 branches missed.">        if (acquired) {</span>
             try {
 <span class="pc bpc" id="L214" title="1 of 2 branches missed.">                if (!thread.isAlive()) {</span>
 <span class="nc bnc" id="L215" title="All 2 branches missed.">                    if (!borrowedObjects.isEmpty()) {</span>
@@ -222,7 +222,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
 <span class="pc" id="L222">                lock.unlock();</span>
             }
         } else {
-<span class="fc" id="L225">            return null;</span>
+<span class="nc" id="L225">            return null;</span>
         }
     }
 
