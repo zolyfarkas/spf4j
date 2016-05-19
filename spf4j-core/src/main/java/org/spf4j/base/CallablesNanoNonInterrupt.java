@@ -23,7 +23,6 @@ import com.google.common.base.Predicate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -440,7 +439,7 @@ public final class CallablesNanoNonInterrupt {
 
 
         @Override
-        public abstract T call() throws EX, InterruptedException, TimeoutException;
+        public abstract T call() throws EX,  TimeoutException;
 
     }
 
@@ -454,7 +453,7 @@ public final class CallablesNanoNonInterrupt {
      * @param <T> - the type of the object returned by this callable.
      * @param <EX> - the exception type returned by this callable.
      */
-    public interface RetryCallable<T, EX extends Exception> extends Callable<T> {
+    public interface RetryCallable<T, EX extends Exception> extends CallablesNano.RetryCallable<T, EX> {
 
         /**
          * the method that is retried.
@@ -465,22 +464,6 @@ public final class CallablesNanoNonInterrupt {
          */
         @Override
         T call() throws EX, TimeoutException;
-
-        /**
-         * method to process result (after all retries exhausted).
-         * @param lastRet
-         * @return - the result to be returned.
-         */
-        T lastReturn(final T lastRet);
-
-        /**
-         * method to press the exception after all retries exhausted.
-         * @param <EXX>
-         * @param ex
-         * @return - the exception to be thrown.
-         * @throws EXX
-         */
-       <EXX extends Exception> EXX lastException(EXX ex) throws EXX;
 
     }
 
