@@ -406,11 +406,11 @@ public final class Runtime {
             final long forceTerminateTimeoutMillis)
             throws InterruptedException {
       proc.destroy();
-      if (proc.waitFor(terminateTimeoutMillis, TimeUnit.MINUTES)) {
+      if (proc.waitFor(terminateTimeoutMillis, TimeUnit.MILLISECONDS)) {
           return proc.exitValue();
       } else {
         proc.destroyForcibly();
-        if (!proc.waitFor(forceTerminateTimeoutMillis, TimeUnit.SECONDS)) {
+        if (!proc.waitFor(forceTerminateTimeoutMillis, TimeUnit.MILLISECONDS)) {
           throw new RuntimeException("Cannot terminate " + proc);
         } else {
           return proc.exitValue();
