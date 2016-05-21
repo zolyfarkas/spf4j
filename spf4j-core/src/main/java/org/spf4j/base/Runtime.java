@@ -405,6 +405,7 @@ public final class Runtime {
     public static int killProcess(final Process proc, final long terminateTimeoutMillis,
             final long forceTerminateTimeoutMillis)
             throws InterruptedException {
+
       proc.destroy();
       if (proc.waitFor(terminateTimeoutMillis, TimeUnit.MILLISECONDS)) {
           return proc.exitValue();
@@ -473,10 +474,10 @@ public final class Runtime {
           throw new IllegalStateException();
         }
       } else {
-        RuntimeException cex = Futures.cancelAll(true, osh, esh);
         int result = killProcess(proc, terminationTimeoutMillis, 5000);
+        RuntimeException cex = Futures.cancelAll(true, osh, esh);
         TimeoutException tex = new TimeoutException("Timed out while executing: " + java.util.Arrays.toString(command)
-                + ";\n process returned " + result + ";\n output handler: " + handler);
+                + ";\nprocess returned " + result + ";\nhandler:\n" + handler);
         if (cex != null) {
           tex.addSuppressed(cex);
         }
@@ -567,11 +568,12 @@ public final class Runtime {
 
         @Override
         public String toString() {
-            return new String(stdout.getBuffer(), 0, stdout.size(), charset);
+            return "OUT: " + new String(stdout.getBuffer(), 0, stdout.size(), charset)
+                    + "\nERR: " + new String(stderr.getBuffer(), 0, stderr.size(), charset);
         }
 
         public String getStdOut() {
-            return toString();
+            return new String(stdout.getBuffer(), 0, stdout.size(), charset);
         }
 
         public String getStdErr() {

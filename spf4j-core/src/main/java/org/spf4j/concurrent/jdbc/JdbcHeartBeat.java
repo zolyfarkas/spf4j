@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.base.Iterables;
+import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.jdbc.JdbcTemplate;
@@ -91,9 +92,15 @@ public final class JdbcHeartBeat implements AutoCloseable {
   private final long beatDurationNanos;
 
   @Override
-  public void close() throws SQLException, InterruptedException {
+  public void close() throws SQLException {
+    boolean weClosed = false;
     synchronized (jdbc) {
       if (!isClosed) {
+        weClosed = true;
+        isClosed = true;
+      }
+    }
+    if (weClosed) {
         unregisterJmx();
         ScheduledFuture<?> running = scheduledHearbeat;
         if (running != null) {
@@ -103,8 +110,6 @@ public final class JdbcHeartBeat implements AutoCloseable {
         for (LifecycleHook hook : lifecycleHooks) {
           hook.onClose();
         }
-        isClosed = true;
-      }
     }
   }
 
@@ -112,7 +117,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
     void onError(final Error error);
 
-    void onClose() throws SQLException, InterruptedException;
+    void onClose() throws SQLException;
 
   }
 
@@ -213,8 +218,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
   }
 
   void removeHeartBeatRow(final int timeoutSeconds)
-          throws SQLException, InterruptedException {
-    jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
+          throws SQLException {
+    jdbc.transactOnConnectionNonInterrupt((final Connection conn, final long deadlineNanos) -> {
       try (final PreparedStatement stmt = conn.prepareStatement(deleteHeartBeatSql)) {
         stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
         stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
@@ -366,6 +371,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   private static final int HEARTBEAT_INTERVAL_MILLIS = Integer.getInteger("spf4j.heartbeat.intervalMillis", 10000);
 
+  private static boolean isShuttingdown = false;
 
   /**
    * Get a reference to the hearbeat instance.
@@ -381,6 +387,9 @@ public final class JdbcHeartBeat implements AutoCloseable {
           throws SQLException, InterruptedException {
     JdbcHeartBeat beat;
     synchronized (HEARTBEATS) {
+      if (isShuttingdown) {
+        throw new IllegalStateException("Process is shutting down, no heartbeats are accepted for " + dataSource);
+      }
       beat = HEARTBEATS.get(dataSource);
       if (beat == null) {
         beat = new JdbcHeartBeat(dataSource, hbTableDesc, HEARTBEAT_INTERVAL_MILLIS, 5);
@@ -394,6 +403,23 @@ public final class JdbcHeartBeat implements AutoCloseable {
           public void onClose() {
             synchronized (HEARTBEATS) {
               HEARTBEATS.remove(dataSource);
+            }
+          }
+        });
+        final JdbcHeartBeat fbeat = beat;
+        org.spf4j.base.Runtime.queueHookAtBeginning(new Runnable() {
+          @Override
+          public void run() {
+            synchronized (HEARTBEATS) {
+              isShuttingdown = true;
+            }
+            try {
+              fbeat.close();
+            } catch (SQLException ex) {
+              // logging in shutdownhooks is not reliable.
+              System.err.println("WARN: Could not clean heartbeat record,"
+                      + " this error can be ignored since it is a best effort attempt, detail:");
+              Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
             }
           }
         });
@@ -451,7 +477,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
       RuntimeException ex = Iterables.forAll(lifecycleHooks, (final LifecycleHook t) -> {
         try {
           t.onClose();
-        } catch (SQLException | InterruptedException e) {
+        } catch (SQLException e) {
           throw new RuntimeException(e);
         }
       });

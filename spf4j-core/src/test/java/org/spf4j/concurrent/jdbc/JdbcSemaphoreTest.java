@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -34,14 +37,7 @@ public class JdbcSemaphoreTest {
     }
   }
 
-  @Test
-  public void testSingleProcess() throws SQLException, IOException, InterruptedException, TimeoutException {
-
-    JdbcDataSource ds = new JdbcDataSource();
-    ds.setURL("jdbc:h2:mem:test");
-    ds.setUser("sa");
-    ds.setPassword("sa");
-
+  static void createSchemaObjects(JdbcDataSource ds) throws SQLException {
     try (Connection conn = ds.getConnection()) {
       try (Statement stmt = conn.createStatement()) {
         stmt.execute(hbddl);
@@ -50,6 +46,19 @@ public class JdbcSemaphoreTest {
       try (Statement stmt = conn.createStatement()) {
         stmt.execute(semddl);
       }
+    }
+  }
+
+
+  @Test
+  public void testSingleProcess() throws SQLException, IOException, InterruptedException, TimeoutException {
+
+    JdbcDataSource ds = new JdbcDataSource();
+    ds.setURL("jdbc:h2:mem:test");
+    ds.setUser("sa");
+    ds.setPassword("sa");
+    try (Connection conn = ds.getConnection()) { // only to keep the schema arround in thsi section
+      createSchemaObjects(ds);
 
       JdbcHeartBeat heartbeat = JdbcHeartBeat.getHeartBeatAndSubscribe(ds,
               HeartBeatTableDesc.DEFAULT, (JdbcHeartBeat.LifecycleHook) null);
@@ -76,7 +85,7 @@ public class JdbcSemaphoreTest {
     Assert.assertFalse(semaphore.tryAcquire(2, TimeUnit.SECONDS));
     semaphore.release(acquire);
     semaphore.increasePermits(2);
-    Assert.assertEquals(totalPermits,  semaphore.totalPermits());
+    Assert.assertEquals(totalPermits, semaphore.totalPermits());
 
     Assert.assertTrue(semaphore.tryAcquire(1, 10, TimeUnit.SECONDS));
     semaphore.release(1);
@@ -118,15 +127,7 @@ public class JdbcSemaphoreTest {
       ds.setUser("sa");
       ds.setPassword("sa");
 
-      try (Connection conn = ds.getConnection()) {
-        try (Statement stmt = conn.createStatement()) {
-          stmt.execute(hbddl);
-        }
-
-        try (Statement stmt = conn.createStatement()) {
-          stmt.execute(semddl);
-        }
-      }
+      createSchemaObjects(ds);
       testReleaseAck(ds, "testSem", 2);
       JdbcSemaphore semaphore = new JdbcSemaphore(ds, "test_sem2", 3);
       org.spf4j.base.Runtime.jrun(BadSemaphoreHandler.class, 10000, connStr, "test_sem2");
@@ -137,6 +138,40 @@ public class JdbcSemaphoreTest {
       server.stop();
     } finally {
       tempDB.delete();
+    }
+  }
+
+
+  @Test
+  public void testMultiProcess2() throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
+    Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-tcpAllowOthers"}).start();
+    try  {
+    File tempDB = File.createTempFile("test", "h2db");
+    tempDB.deleteOnExit();
+    String connStr = "jdbc:h2:tcp://localhost:9123/nio:" + tempDB.getAbsolutePath() + ";AUTO_SERVER=TRUE";
+      JdbcDataSource ds = new JdbcDataSource();
+      ds.setURL(connStr);
+      ds.setUser("sa");
+      ds.setPassword("sa");
+      createSchemaObjects(ds);
+      JdbcSemaphore semaphore = new JdbcSemaphore(ds, "test_sem2", 1, true);
+      String o1 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.class, 10000, connStr, "test_sem2");
+      String o2 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.class, 10000, connStr, "test_sem2");
+      Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS));
+      Assert.assertFalse(semaphore.tryAcquire(10, TimeUnit.SECONDS));
+      System.out.println("P1:");
+      System.out.println(o1);
+      System.out.println("P2:");
+      System.out.println(o2);
+      String [] nr1 = o1.split("\n");
+      String [] nr2 = o2.split("\n");
+      int totatl = nr1.length + nr2.length;
+      Set<String> numbers = new HashSet<>(totatl);
+      numbers.addAll(Arrays.asList(nr1));
+      numbers.addAll(Arrays.asList(nr2));
+      Assert.assertEquals(totatl, numbers.size());
+    } finally {
+      server.stop();
     }
   }
 
