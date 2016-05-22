@@ -17,6 +17,9 @@
  */
 package org.spf4j.base;
 
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  *
  * @author zoly
@@ -33,6 +36,7 @@ public final class IntMath {
        return number == 0 ? 0 : 1 << (32 - Integer.numberOfLeadingZeros(number - 1));
     }
 
+    @NotThreadSafe
     public static final class XorShift32 {
         // XorShift128 PRNG with a 2^32-1 period.
         private int x = System.identityHashCode(this);
@@ -44,6 +48,23 @@ public final class IntMath {
         }
     }
 
+    @ThreadSafe
+    public static final class XorShift32ThreadSafe {
+
+        private volatile int x = System.identityHashCode(this);
+
+        public int nextInt() {
+          int xx = x;
+          xx ^= (xx << 6);
+          xx ^= (xx >>> 21);
+          int result = xx ^ (xx << 7);
+          x = result;
+          return result;
+        }
+    }
+
+
+    @NotThreadSafe
     public static final class XorShift128 {
         // XorShift128 PRNG with a 2^128-1 period.
         private int x = System.identityHashCode(this);
