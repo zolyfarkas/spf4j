@@ -47,10 +47,8 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     private volatile Thread owner;
     private int reentranceCount = 0;
 
-    private static final IntMath.XorShift32 RND = new IntMath.XorShift32();
-
     private static int next(final int maxVal) {
-        return Math.abs(Math.abs(RND.nextInt()) % maxVal);
+        return Math.abs(Math.abs(IntMath.XorShift32ThreadSafe.Singleton.INSTANCE.nextInt()) % maxVal);
     }
 
     public FileBasedLock(final File lockFile) throws IOException {
@@ -272,16 +270,16 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
         file.setLength(data.length);
         file.getChannel().force(true);
     }
-    
+
     public static String getContextInfo() {
       return org.spf4j.base.Runtime.PROCESS_ID + ':' + Thread.currentThread().getName();
     }
-    
+
 
     @Override
     public String toString() {
         return "FileBasedLock{" + "file=" + file + ", owner=" + owner + ", reentranceCount=" + reentranceCount + '}';
     }
-    
+
 
 }

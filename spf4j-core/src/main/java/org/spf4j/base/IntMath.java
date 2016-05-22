@@ -51,16 +51,26 @@ public final class IntMath {
     @ThreadSafe
     public static final class XorShift32ThreadSafe {
 
-        private volatile int x = System.identityHashCode(this);
 
-        public int nextInt() {
-          int xx = x;
-          xx ^= (xx << 6);
-          xx ^= (xx >>> 21);
-          int result = xx ^ (xx << 7);
-          x = result;
-          return result;
+      public static final class Singleton {
+
+        public static final XorShift32ThreadSafe INSTANCE = new XorShift32ThreadSafe();
+
+      }
+
+      private final ThreadLocal<XorShift32> rnd = new ThreadLocalRandom();
+
+      public int nextInt() {
+        return rnd.get().nextInt();
+      }
+
+      private static class ThreadLocalRandom extends ThreadLocal<XorShift32> {
+
+        @Override
+        protected XorShift32 initialValue() {
+          return new XorShift32();
         }
+      }
     }
 
 

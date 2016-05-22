@@ -164,7 +164,6 @@ public final class SntpClient {
         return ((seconds - OFFSET_1900_TO_1970) * 1000) + ((fraction * 1000L) / 0x100000000L);
     }
 
-    private static final IntMath.XorShift32 RANDOM = new IntMath.XorShift32();
 
     /**
      * Writes system time (milliseconds since January 1, 1970) as an NTP time stamp
@@ -188,6 +187,6 @@ public final class SntpClient {
         buffer[offset++] = (byte) (fraction >> 16);
         buffer[offset++] = (byte) (fraction >> 8);
         // low order bits should be random data
-        buffer[offset] = (byte) (RANDOM.nextInt() % 256);
+        buffer[offset] = (byte) (IntMath.XorShift32ThreadSafe.Singleton.INSTANCE.nextInt() % 256);
     }
 }
