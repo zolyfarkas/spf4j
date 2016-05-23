@@ -119,39 +119,33 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   private int ownedReservations;
 
   /**
-   * @param dataSource - the jdbc data source with the Semaphores table. Please be sensible, no "test on borrow" pools.
-   * @param semaphoreName - number of initial permits, if semaphore already exists the existing nr of permits is kept.
-   * @param nrPermits - the number of initial permits.
-   * @throws java.sql.SQLException - A issues with the database.
-   * @throws java.lang.InterruptedException - thrown in case thread is interrupted.
+   * @param dataSource  the jdbc data source with the Semaphores table. Please be sensible, no "test on borrow" pools.
+   * @param semaphoreName  number of initial permits, if semaphore already exists the existing nr of permits is kept.
+   * @param nrPermits  the number of initial permits.
    */
   public JdbcSemaphore(final DataSource dataSource, final String semaphoreName, final int nrPermits)
-          throws SQLException, InterruptedException {
+          throws InterruptedException {
     this(dataSource, semaphoreName, nrPermits, false);
   }
 
   /**
    * create a JDBC Semaphore. create one instance / process.
    *
-   * @param dataSource - the data source to use for sync.
-   * @param semaphoreName - the semaphore name.
-   * @param nrPermits - number of initial permits.
-   * @param strict - if true, if semaphore already exists and the total permits is different that param nrPermits an
+   * @param dataSource  the data source to use for sync.
+   * @param semaphoreName  the semaphore name.
+   * @param nrPermits  number of initial permits.
+   * @param strict  if true, if semaphore already exists and the total permits is different that param nrPermits an
    * IllegalArgumentException will be thrown.
-   * @throws SQLException - if there are issues with the DB.
-   * @throws InterruptedException - thrown in case thread is interrupted.
    */
   public JdbcSemaphore(final DataSource dataSource, final String semaphoreName,
-          final int nrPermits, final boolean strict)
-          throws SQLException, InterruptedException {
+          final int nrPermits, final boolean strict) throws InterruptedException {
     this(dataSource, SemaphoreTablesDesc.DEFAULT, semaphoreName, nrPermits, 10, strict);
   }
 
-  @SuppressFBWarnings({"CBX_CUSTOM_BUILT_XML", "STT_TOSTRING_STORED_IN_FIELD"}) // so sql builder (yet)
+  @SuppressFBWarnings({"CBX_CUSTOM_BUILT_XML", "STT_TOSTRING_STORED_IN_FIELD"}) // no sql builder (yet)
   public JdbcSemaphore(final DataSource dataSource, final SemaphoreTablesDesc semTableDesc,
           final String semaphoreName, final int nrPermits, final int jdbcTimeoutSeconds,
-          final boolean strictReservations)
-          throws SQLException, InterruptedException {
+          final boolean strictReservations) throws InterruptedException {
     if (nrPermits < 0) {
       throw new IllegalArgumentException("Permits must be positive and not " + nrPermits);
     }
@@ -262,10 +256,22 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     try {
       createLockRowIfNotPresent(strictReservations, nrPermits);
     } catch (SQLIntegrityConstraintViolationException ex) {
-      // RACE condition while creating the row, will retry to validate if everything is OK.
-      createLockRowIfNotPresent(strictReservations, nrPermits);
+      try {
+        // RACE condition while creating the row, will retry to validate if everything is OK.
+        createLockRowIfNotPresent(strictReservations, nrPermits);
+      } catch (SQLException ex1) {
+        RuntimeException rx = new RuntimeException(ex1);
+        rx.addSuppressed(ex);
+        throw rx;
+      }
+    } catch (SQLException ex) {
+      throw new RuntimeException(ex);
     }
-    createOwnerRow();
+    try {
+      createOwnerRow();
+    } catch (SQLException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   public void registerJmx() {

@@ -32,8 +32,8 @@ public interface Semaphore {
 
   /**
    * Acquire one permit.
-   * @param timeout - time to wait for permit to become available.
-   * @param unit - units of time.
+   * @param timeout  time to wait for permit to become available.
+   * @param unit  units of time.
    * @throws InterruptedException - operation interrupted.
    * @throws TimeoutException - timed out.
    */
@@ -54,9 +54,9 @@ public interface Semaphore {
 
   /**
    * try to acquire a permit.
-   * @param timeout - time to wait for permit to become available.
-   * @param unit - units of time.
-   * @return - true if permit acquired, false if timed out.
+   * @param timeout  time to wait for permit to become available.
+   * @param unit  units of time.
+   * @return  true if permit acquired, false if timed out.
    * @throws InterruptedException - operation interrupted.
    */
   @CheckReturnValue
@@ -65,10 +65,10 @@ public interface Semaphore {
 
   /**
    * try to acquire a number of permits.
-   * @param nrPermits - number of permits to acquire.
-   * @param timeout - time to wait for permits to become available.
-   * @param unit - units of time.
-   * @return - true if permits acquired, false if timed out.
+   * @param nrPermits  number of permits to acquire.
+   * @param timeout  time to wait for permits to become available.
+   * @param unit  units of time.
+   * @return  true if permits acquired, false if timed out.
    * @throws InterruptedException - operation interrupted.
    */
   @CheckReturnValue
@@ -82,7 +82,7 @@ public interface Semaphore {
 
   /**
    * release a number of permits.
-   * @param nrPermits - the number of permits to release.
+   * @param nrPermits  the number of permits to release.
    */
   void release(final int nrPermits);
 

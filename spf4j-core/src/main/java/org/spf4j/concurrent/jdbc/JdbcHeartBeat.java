@@ -124,7 +124,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
   private final List<LifecycleHook> lifecycleHooks;
 
   private JdbcHeartBeat(final DataSource dataSource, final long intervalMillis,
-          final int jdbcTimeoutSeconds) throws SQLException, InterruptedException {
+          final int jdbcTimeoutSeconds) throws InterruptedException {
     this(dataSource, new HeartBeatTableDesc("HEARTBEATS",
             "OWNER", "INTERVAL_MILLIS", "LAST_HEARTBEAT_INSTANT_MILLIS",
             "TIMESTAMPDIFF('MILLISECOND', timestamp '1970-01-01 00:00:00', CURRENT_TIMESTAMP())"),
@@ -132,7 +132,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
   }
 
   private JdbcHeartBeat(final DataSource dataSource, final HeartBeatTableDesc hbTableDesc, final long intervalMillis,
-          final int jdbcTimeoutSeconds) throws SQLException, InterruptedException {
+          final int jdbcTimeoutSeconds) throws InterruptedException {
     if (intervalMillis < 1000) {
       throw new IllegalArgumentException("The heartbeat interval should be at least 1s and not "
               + intervalMillis + " ms");
@@ -183,22 +183,24 @@ public final class JdbcHeartBeat implements AutoCloseable {
     lifecycleHooks.remove(hook);
   }
 
-  void createHeartbeatRow()
-          throws SQLException, InterruptedException {
+  void createHeartbeatRow() throws InterruptedException {
+    try {
+      jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
 
-    jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
-
-      try (final PreparedStatement insert = conn.prepareStatement("insert into " + hbTableDesc.getTableName()
-              + " (" + hbTableDesc.getOwnerColumn() + ',' + hbTableDesc.getIntervalColumn() + ','
-              + hbTableDesc.getLastHeartbeatColumn() + ") VALUES (?, ?, "
-              + hbTableDesc.getCurrentTimeMillisFunc() + ")")) {
-        insert.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
-        insert.setLong(2, this.intervalMillis);
-        insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
-        insert.executeUpdate();
-      }
-      return null;
-    }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
+        try (final PreparedStatement insert = conn.prepareStatement("insert into " + hbTableDesc.getTableName()
+                + " (" + hbTableDesc.getOwnerColumn() + ',' + hbTableDesc.getIntervalColumn() + ','
+                + hbTableDesc.getLastHeartbeatColumn() + ") VALUES (?, ?, "
+                + hbTableDesc.getCurrentTimeMillisFunc() + ")")) {
+          insert.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
+          insert.setLong(2, this.intervalMillis);
+          insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
+          insert.executeUpdate();
+        }
+        return null;
+      }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
+    } catch (SQLException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   @JmxExport(description = "Remove all dead hearbeat rows")
@@ -375,16 +377,14 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   /**
    * Get a reference to the hearbeat instance.
-   * @param dataSource - the datasource the hearbeat goes against.
-   * @param hook - a hook to notify when heartbeat fails.
-   * @return - the heartbeat instance.
-   * @throws SQLException
-   * @throws InterruptedException
+   * @param dataSource  the datasource the hearbeat goes against.
+   * @param hbTableDesc - heartbeat table description.
+   * @param hook  a hook to notify when heartbeat fails.
+   * @return the heartbeat instance.
    */
   public static JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
           final HeartBeatTableDesc hbTableDesc,
-          @Nullable final LifecycleHook hook)
-          throws SQLException, InterruptedException {
+          @Nullable final LifecycleHook hook) throws InterruptedException {
     JdbcHeartBeat beat;
     synchronized (HEARTBEATS) {
       if (isShuttingdown) {
