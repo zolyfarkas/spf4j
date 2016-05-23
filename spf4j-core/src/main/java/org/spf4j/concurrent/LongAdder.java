@@ -43,9 +43,11 @@ import java.io.ObjectOutputStream;
  *
  * @since 1.8
  * @author Doug Lea
+ * @deprecated please use implementation from java.util.concurrent.atomic
  */
 //CHECKSTYLE:OFF
 @SuppressFBWarnings
+@Deprecated
 public final class LongAdder extends Striped64 {
     private static final long serialVersionUID = 7249069246863182397L;
 
