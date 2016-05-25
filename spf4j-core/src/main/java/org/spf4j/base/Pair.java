@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
  *
  * @author zoly
  */
-public class Pair<A, B> implements Map.Entry<A, B> {
+public class Pair<A, B> implements Map.Entry<A, B>, Writeable {
 
     @ConstructorProperties({"first", "second" })
     public Pair(final A first, final B second) {
@@ -122,15 +122,21 @@ public class Pair<A, B> implements Map.Entry<A, B> {
     @Override
     public final String toString() {
         try {
-            StringBuilder result = new StringBuilder(32).append(PREFIX);
-            Csv.writeCsvElement(first.toString(), result);
-            result.append(',');
-            Csv.writeCsvElement(second.toString(), result);
-            result.append(SUFFIX);
+            StringBuilder result = new StringBuilder(32);
+            writeTo(result);
             return result.toString();
         } catch (IOException ex) {
            throw new RuntimeException(ex);
         }
+    }
+
+    @Override
+    public final void writeTo(final Appendable appendable) throws IOException {
+      appendable.append(PREFIX);
+      Csv.writeCsvElement(first.toString(), appendable);
+      appendable.append(',');
+      Csv.writeCsvElement(second.toString(), appendable);
+      appendable.append(SUFFIX);
     }
 
     public final List<Object> toList() {
