@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.spf4j</groupId>
     <artifactId>spf4j</artifactId>
-    <version>8.0.2-SNAPSHOT</version>
+    <version>8.0.2</version>
   </parent>
   <name>${project.artifactId}</name>
   <properties>
@@ -161,8 +161,8 @@
             </goals>
             <configuration>
               <target>
-                <echo message="creating avsc folder target/generated-sources/avsc"/>
-                <mkdir dir="target/generated-sources/avsc"/>
+                <echo message="creating avsc folder target/generated-sources/avsc" />
+                <mkdir dir="target/generated-sources/avsc" />
               </target>
             </configuration>
           </execution>
@@ -174,16 +174,15 @@
             </goals>
             <configuration>
               <target>
-              <apply executable="java"  force = "true">
-                <arg value="-cp"/>
-                <arg pathref="maven.test.classpath"/>
-                <arg value="org.apache.avro.tool.Main"/>
-                <arg value = "idl2schemata" />
-                <srcfile/>
-                <targetFile/>
-                <mapper type="regexp" from="^((.*/)?)([^/]+)\.avdl$$"
-                        to="${project.basedir}/target/generated-sources/avsc/\1"/>
-                <fileset dir="${project.basedir}/src/main/avdl" includes="**/*.avdl"/>
+              <apply executable="java" force="true">
+                <arg value="-cp" />
+                <arg pathref="maven.test.classpath" />
+                <arg value="org.apache.avro.tool.Main" />
+                <arg value="idl2schemata" />
+                <srcfile />
+                <targetFile />
+                <mapper type="regexp" from="^((.*/)?)([^/]+)\.avdl$$" to="${project.basedir}/target/generated-sources/avsc/\1" />
+                <fileset dir="${project.basedir}/src/main/avdl" includes="**/*.avdl" />
               </apply>
              </target>
             </configuration>
@@ -197,16 +196,15 @@
             <configuration>
               <target>
                 <fileset id="fileset" dir="${project.basedir}/target/generated-sources/avsc">
-                        <include name="**/*.avsc"/>
+                        <include name="**/*.avsc" />
                 </fileset>
                 <pathconvert refid="fileset" property="converted" pathsep=" ">
                   <globmapper from="${project.basedir}/target/generated-sources/avsc/*" to="*" />
                 </pathconvert>
-                <exec executable="${project.basedir}/target/node/node"
-                dir = "${project.basedir}/target/generated-sources/avsc" >
-                  <arg value = "${project.basedir}/target/lib/node_modules/avrodoc/bin/avrodoc"/>
-                  <arg line="${converted}"/>
-                  <arg value="-o${project.basedir}/target/avrodoc.html"/>
+                <exec executable="${project.basedir}/target/node/node" dir="${project.basedir}/target/generated-sources/avsc">
+                  <arg value="${project.basedir}/target/lib/node_modules/avrodoc/bin/avrodoc" />
+                  <arg line="${converted}" />
+                  <arg value="-o${project.basedir}/target/avrodoc.html" />
                 </exec>
               </target>
             </configuration>
