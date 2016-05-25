@@ -54,7 +54,7 @@ public class Slf4jMessageFormatterTest {
         sb.setLength(0);
         processed = Slf4jMessageFormatter.format(sb, "Some Message {}", new ConfigurableAppenderSupplier(),
                 Pair.of("a", "b"));
-        Assert.assertEquals("Some Message {a,b}", sb.toString());
+        Assert.assertEquals("Some Message (a,b)", sb.toString());
         Assert.assertEquals(1, processed);
     }
 
