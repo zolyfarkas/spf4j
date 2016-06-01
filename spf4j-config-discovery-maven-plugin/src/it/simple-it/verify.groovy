@@ -1,3 +1,3 @@
-File touchFile = new File( basedir, "target/touch.txt" );
+File avdlFile = new File( basedir, "target/classes/META-INF/simple-it.avdl" );
 
-assert touchFile.isFile()
+assert avdlFile.isFile()
