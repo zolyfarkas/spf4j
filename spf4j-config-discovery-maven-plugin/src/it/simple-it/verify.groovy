@@ -1,3 +1,3 @@
-File avdlFile = new File( basedir, "target/classes/META-INF/simple-it.avdl" );
+File avdlFile = new File( basedir, "target/generated-sources/avdl/simple-it.avdl" );
 
 assert avdlFile.isFile()

@@ -22,4 +22,25 @@ public class MyTestClass {
     }
 
 
+    public int method2() {
+        /**
+         * another
+         */
+        return Integer.getInteger("spf4j.custom.prop2" + 1 + ".bla", 1);
+    }
+
+
+    public void method3() {
+        /**
+         * another
+         */
+        for (int i = 0; i < 10; i++) {
+          Integer.getInteger("spf4j.custom.prop2" + i + ".bla");
+        }
+    }
+
+    public static String doSomething() {
+      return CONFIG + new MyTestClass().method();
+    }
+
 }

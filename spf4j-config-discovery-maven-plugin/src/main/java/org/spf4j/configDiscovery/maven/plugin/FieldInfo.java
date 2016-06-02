@@ -1,48 +1,42 @@
-
 package org.spf4j.configDiscovery.maven.plugin;
+
+import javax.annotation.Nullable;
 
 /**
  *
  * @author zoly
  */
-public final class FieldInfo {
+public final class FieldInfo<T> {
 
-    private final Class<?> type;
+  private final Class<T> type;
 
-    private final Object defaultValue;
+  private final Object defaultValue;
 
-    private static final Object NONE = new Object();
+  private final String doc;
 
-    public FieldInfo(final Class<?> type, final Object defaultValue) {
-        this.type = type;
-        this.defaultValue = defaultValue;
-    }
+  public FieldInfo(final String doc, final Class<T> type, final T defaultValue) {
+    this.type = type;
+    this.defaultValue = defaultValue;
+    this.doc = doc;
+  }
 
-    public FieldInfo(final Class<?> type) {
-        this.type = type;
-        this.defaultValue = NONE;
-    }
+  public Class<?> getType() {
+    return type;
+  }
 
+  @Nullable
+  public Object getDefaultValue() {
+    return defaultValue;
+  }
 
-    public Class<?> getType() {
-        return type;
-    }
+  public String getDoc() {
+    return doc;
+  }
 
-    public Object getDefaultValue() {
-        return defaultValue;
-    }
-
-    public boolean hasDefaultValue() {
-        return defaultValue != NONE;
-    }
-
-
-    @Override
-    public String toString() {
-        return "FieldInfo{" + "type=" + type + ", defaultValue=" + defaultValue + '}';
-    }
-
-
+  @Override
+  public String toString() {
+    return "FieldInfo{" + "type=" + type + ", defaultValue=" + defaultValue + ", doc=" + doc + '}';
+  }
 
 
 
