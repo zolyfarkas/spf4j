@@ -56,7 +56,7 @@ public final class Throwables {
   }
 
   private static final int MAX_THROWABLE_CHAIN
-          = Integer.getInteger("throwables.max.chain", 200);
+          = Integer.getInteger("spf4j.throwables.maxSuppressChain", 200);
 
   private static final Field CAUSE_FIELD;
 
@@ -340,7 +340,7 @@ public final class Throwables {
   }
 
   private static final Detail DEFAULT_DETAIL
-          = Detail.valueOf(System.getProperty("throwable.detail", "SHORT_PACKAGE"));
+          = Detail.valueOf(System.getProperty("spf4j.throwables.defaultStackTraceDetail", "SHORT_PACKAGE"));
 
   public static String toString(final Throwable t) {
     return toString(t, DEFAULT_DETAIL);

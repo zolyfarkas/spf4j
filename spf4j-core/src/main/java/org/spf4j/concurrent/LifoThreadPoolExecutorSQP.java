@@ -71,7 +71,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
      * I do not see that case as a useful pooling case to be worth trying to optimise it...
      */
 
-    static final long CORE_MINWAIT_NANOS = Long.getLong("lifotp.coreMaxWaitNanos", 1000000000);
+    static final long CORE_MINWAIT_NANOS = Long.getLong("spf4j.lifoTp.coreMaxWaitNanos", 1000000000);
 
     @GuardedBy("stateLock")
     private final Queue<Runnable> taskQueue;
@@ -127,7 +127,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
     }
 
 
-    private static final int LL_THRESHOLD = Integer.getInteger("lifoTp.llQueueSizeThreshold", 64000);
+    private static final int LL_THRESHOLD = Integer.getInteger("spf4j.lifoTp.llQueueSizeThreshold", 64000);
 
     public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
             final int maxSize, final int maxIdleTimeMillis,
