@@ -164,7 +164,7 @@ public class ConfigScannerMojo
             df = new FieldInfo(getPackageName(caleeClassName), df.getDoc() + '\n' + doc,
                     Map.class, Collections.EMPTY_MAP);
           }
-          objs.put("dinamic", df);
+          objs.put("dynamic", df);
         }
 
       }
@@ -192,13 +192,15 @@ public class ConfigScannerMojo
           throws IOException {
     // do subRecords first.
     String nameSpace = null;
+    Map<String, String> fieldName2Ns = new HashMap<>();
     for (Map.Entry<String, Object> entry : record.entrySet()) {
       Object value = entry.getValue();
       String ns;
       if (value instanceof Map) {
-        ns = writeRecord(w, CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, entry.getKey()) + recordSuffix,
+        String key = entry.getKey();
+        ns = writeRecord(w, CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, key) + recordSuffix,
                 (Map<String, Object>) value);
-
+        fieldName2Ns.put(key, ns);
       } else if (value instanceof FieldInfo) {
         ns = ((FieldInfo) value).getNamespace();
       } else {
@@ -209,6 +211,9 @@ public class ConfigScannerMojo
       } else {
         nameSpace = greatestCommonPrefix(nameSpace, ns);
       }
+    }
+    if (nameSpace.endsWith(".")) {
+      nameSpace = nameSpace.substring(0, nameSpace.length() - 1);
     }
     // write record
     w.write(" @namespace(\"");
@@ -248,9 +253,12 @@ public class ConfigScannerMojo
 
       } else if (value instanceof Map) {
         String key = entry.getKey();
+        String ns = fieldName2Ns.get(key);
         w.write("\n /** Category: ");
         w.write(key);
         w.write(" */\n  ");
+        w.write(ns);
+        w.write('.');
         w.write(CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, key));
         w.write(recordSuffix);
         w.write(" ");

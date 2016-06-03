@@ -1,6 +1,7 @@
 package org.spf4j.configDiscovery.maven.plugin;
 
 import javax.annotation.Nullable;
+import org.spf4j.base.asm.UnknownValue;
 
 /**
  *
@@ -19,7 +20,11 @@ public final class FieldInfo<T> {
   public FieldInfo(final String namespace, final String doc, final Class<T> type, final T defaultValue) {
     this.namespace = namespace;
     this.type = type;
-    this.defaultValue = defaultValue;
+    if (defaultValue != null && defaultValue.getClass() == UnknownValue.class) {
+      this.defaultValue = null;
+    } else {
+      this.defaultValue = defaultValue;
+    }
     this.doc = doc;
   }
 
