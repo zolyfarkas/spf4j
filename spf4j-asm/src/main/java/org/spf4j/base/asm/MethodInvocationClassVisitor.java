@@ -1,7 +1,7 @@
 package org.spf4j.base.asm;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,146 +53,193 @@ class MethodInvocationClassVisitor extends ClassVisitor {
   public MethodVisitor visitMethod(final int access, final String methodName,
           final String methodDesc, final String signature,
           final String[] exceptions) {
-    return new MethodVisitor(Opcodes.ASM5) {
-
-      private int lineNumber;
-
-      private final Stack<Object> stack = new Stack<>();
-
-      {
-        Type[] argumentTypes = Type.getArgumentTypes(methodDesc);
-        stack.addAll(Arrays.asList(argumentTypes));
-      }
-
-      @Override
-      public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc,
-              final boolean itf) {
-        final Method invokedMethod = methodStrings.get(owner + '/' + name + desc);
-        boolean isCallingtarget = invokedMethod != null;
-        Type[] parameterTypes = Type.getArgumentTypes(desc);
-        Type returnType = Type.getReturnType(desc);
-        Object[] parameters = new Object[parameterTypes.length];
-        for (int i = parameterTypes.length - 1; i >= 0; i--) {
-            parameters[i] = stack.pop();
-        }
-        if (isCallingtarget) {
-          addCaleesTo.add(new Invocation(className, methodName, methodDesc, parameters,
-                  source, lineNumber, invokedMethod));
-        }
-        if (returnType != Type.VOID_TYPE) {
-          stack.push(new UnknownValue(opcode)); // return value
-        }
-      }
-
-      @Override
-      public void visitLdcInsn(final Object o) {
-        stack.push(o); // push the constant to the stack.
-      }
-
-      @Override
-      public void visitInsn(final int opcode) {
-        switch (opcode) {
-          case Opcodes.ICONST_0:
-            stack.push(0);
-            break;
-          case Opcodes.ICONST_1:
-            stack.push(1);
-            break;
-          case Opcodes.ICONST_2:
-            stack.push(2);
-            break;
-          case Opcodes.ICONST_3:
-            stack.push(3);
-            break;
-          case Opcodes.ICONST_4:
-            stack.push(4);
-            break;
-          case Opcodes.ICONST_5:
-            stack.push(5);
-            break;
-          case Opcodes.ICONST_M1:
-            stack.push(-1);
-            break;
-          case Opcodes.LCONST_0:
-            stack.push(0L);
-            break;
-          case Opcodes.LCONST_1:
-            stack.push(1L);
-            break;
-          case Opcodes.FCONST_0:
-            stack.push(0f);
-            break;
-          case Opcodes.FCONST_1:
-            stack.push(1f);
-            break;
-          case Opcodes.FCONST_2:
-            stack.push(2f);
-            break;
-          case Opcodes.DCONST_0:
-            stack.push(0d);
-            break;
-          case Opcodes.DCONST_1:
-            stack.push(1d);
-            break;
-          case Opcodes.ACONST_NULL:
-            stack.push(null);
-            break;
-          default:
-            stack.push(new UnknownValue(opcode)); // assume something will end up on the stack
-        }
-      }
-
-      @Override
-      public void visitIntInsn(final int opcode, final int operand) {
-        switch (opcode) {
-          case Opcodes.BIPUSH:
-          case Opcodes.SIPUSH:
-            stack.push(operand);
-            break;
-          default:
-            stack.push(new UnknownValue(opcode)); // assume something will end up on the stack
-        }
-      }
-
-      @Override
-      public void visitVarInsn(final int opcode, final int var) {
-        if (opcode >= 21 && opcode <= 45) { // *LOAD* from local var instructions
-          stack.push(new UnknownValue(opcode));
-        } else if (opcode >= 54 && opcode <= 78) { // *STORE* to local var instructions
-          stack.pop();
-        } else {
-          stack.push(new UnknownValue(opcode)); // assume something will end up on the stack
-        }
-      }
-
-      @Override
-      public void visitMultiANewArrayInsn(final String desc, final int dims) {
-        stack.push(new UnknownValue(Opcodes.MULTIANEWARRAY)); // assume something will end up on the stack
-      }
-
-      @Override
-      public void visitInvokeDynamicInsn(final String name, final String desc, final Handle bsm,
-              final Object... bsmArgs) {
-        Type returnType = Type.getReturnType(desc);
-        if (returnType != Type.VOID_TYPE) {
-          stack.push(new UnknownValue(Opcodes.INVOKEDYNAMIC)); // return value
-        }
-      }
-
-
-
-      @Override
-      public void visitLineNumber(final int line, final Label start) {
-        this.lineNumber = line;
-      }
-
-    };
+    return new MethodVisitorImpl(Opcodes.ASM5, methodDesc, methodName);
   }
 
   @Override
   public String toString() {
     return "MethodInvocationClassVisitor{" + "addCaleesTo=" + addCaleesTo + ", methodStrings=" + methodStrings
             + ", className=" + className + ", source=" + source + '}';
+  }
+
+  private class MethodVisitorImpl extends MethodVisitor {
+
+    private final String methodDesc;
+    private final String methodName;
+    private int lineNumber;
+    private final Stack<Object> stack;
+
+    MethodVisitorImpl(final int api, final String methodDesc, final String methodName) {
+      super(api);
+      this.methodDesc = methodDesc;
+      this.methodName = methodName;
+      this.stack = new Stack<>();
+      Type[] argumentTypes = Type.getArgumentTypes(methodDesc);
+      for (int i = 0; i < argumentTypes.length; i++) {
+        stack.add(new UnknownValue(-1));
+      }
+    }
+
+    @Override
+    public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc,
+            final boolean itf) {
+      final Method invokedMethod = methodStrings.get(owner + '/' + name + desc);
+      Type returnType = Type.getReturnType(desc);
+      if (invokedMethod != null) {
+        Type[] parameterTypes = Type.getArgumentTypes(desc);
+        Object[] parameters = new Object[parameterTypes.length];
+        for (int i = parameterTypes.length - 1; i >= 0; i--) {
+          if (!stack.isEmpty()) {
+            parameters[i] = stack.pop();
+          } else {
+            throw new RuntimeException("Not enough params in stack for invocation of " + desc + " at "
+                    + className + '.' + methodName + '.' + lineNumber);
+          }
+        }
+        addCaleesTo.add(new Invocation(className, methodName, methodDesc, parameters,
+                source, lineNumber, invokedMethod));
+      }
+      if (returnType != Type.VOID_TYPE) {
+        stack.push(new UnknownValue(opcode)); // return value
+      }
+    }
+
+    @Override
+    public void visitLdcInsn(final Object o) {
+      stack.push(o); // push the constant to the stack.
+    }
+
+    @Override
+    public void visitTypeInsn(final int opcode, final String type) {
+      stack.push(new UnknownValue(opcode));
+    }
+
+
+
+    @Override
+    @SuppressFBWarnings({ "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "CC_CYCLOMATIC_COMPLEXITY" })
+    public void visitInsn(final int opcode) {
+      switch (opcode) {
+        case Opcodes.ICONST_0:
+          stack.push(0);
+          break;
+        case Opcodes.ICONST_1:
+          stack.push(1);
+          break;
+        case Opcodes.ICONST_2:
+          stack.push(2);
+          break;
+        case Opcodes.ICONST_3:
+          stack.push(3);
+          break;
+        case Opcodes.ICONST_4:
+          stack.push(4);
+          break;
+        case Opcodes.ICONST_5:
+          stack.push(5);
+          break;
+        case Opcodes.ICONST_M1:
+          stack.push(-1);
+          break;
+        case Opcodes.LCONST_0:
+          stack.push(0L);
+          break;
+        case Opcodes.LCONST_1:
+          stack.push(1L);
+          break;
+        case Opcodes.FCONST_0:
+          stack.push(0f);
+          break;
+        case Opcodes.FCONST_1:
+          stack.push(1f);
+          break;
+        case Opcodes.FCONST_2:
+          stack.push(2f);
+          break;
+        case Opcodes.DCONST_0:
+          stack.push(0d);
+          break;
+        case Opcodes.DCONST_1:
+          stack.push(1d);
+          break;
+        case Opcodes.ACONST_NULL:
+          stack.push(null);
+          break;
+        case Opcodes.DUP:
+        case Opcodes.DUP2: // we do not differentiate betwen types with mutiple words.
+          Object pop = stack.peek();
+          stack.push(pop);
+          break;
+        case Opcodes.DUP2_X1:
+        case Opcodes.DUP_X1:
+          Object a1 = stack.peek();
+          Object b1 = stack.peek();
+          stack.push(a1);
+          stack.push(b1);
+          stack.push(a1);
+          break;
+        case Opcodes.DUP2_X2:
+        case Opcodes.DUP_X2:
+          Object a2 = stack.peek();
+          Object b2 = stack.peek();
+          Object c2 = stack.peek();
+          stack.push(a2);
+          stack.push(c2);
+          stack.push(b2);
+          stack.push(a2);
+          break;
+        default:
+          stack.push(new UnknownValue(opcode)); // assume something will end up on the stack
+      }
+    }
+
+    @Override
+    public void visitIntInsn(final int opcode, final int operand) {
+      switch (opcode) {
+        case Opcodes.BIPUSH:
+        case Opcodes.SIPUSH:
+          stack.push(operand);
+          break;
+        default:
+          stack.push(new UnknownValue(opcode)); // assume something will end up on the stack
+      }
+    }
+
+    @Override
+    public void visitVarInsn(final int opcode, final int var) {
+      if (opcode >= 21 && opcode <= 45) { // *LOAD* from local var instructions
+        stack.push(new UnknownValue(opcode));
+      } else if (opcode >= 54 && opcode <= 78) { // *STORE* to local var instructions
+        if (!stack.isEmpty()) {
+          stack.pop();
+        }
+//        else {
+//          throw new RuntimeException("Not enough params in stack for instr " + opcode + " at "
+//                  + className + '.' + methodName + '.' + lineNumber);
+//        }
+      } else {
+        stack.push(new UnknownValue(opcode)); // assume something will end up on the stack
+      }
+    }
+
+    @Override
+    public void visitMultiANewArrayInsn(final String desc, final int dims) {
+      stack.push(new UnknownValue(Opcodes.MULTIANEWARRAY)); // assume something will end up on the stack
+    }
+
+    @Override
+    public void visitInvokeDynamicInsn(final String name, final String desc, final Handle bsm,
+            final Object... bsmArgs) {
+      Type returnType = Type.getReturnType(desc);
+      if (returnType != Type.VOID_TYPE) {
+        stack.push(new UnknownValue(Opcodes.INVOKEDYNAMIC)); // return value
+      }
+    }
+
+    @Override
+    public void visitLineNumber(final int line, final Label start) {
+      this.lineNumber = line;
+    }
   }
 
 }

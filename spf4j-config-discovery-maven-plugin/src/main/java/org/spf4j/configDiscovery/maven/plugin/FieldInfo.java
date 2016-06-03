@@ -8,13 +8,16 @@ import javax.annotation.Nullable;
  */
 public final class FieldInfo<T> {
 
+  private final String namespace;
+
   private final Class<T> type;
 
   private final Object defaultValue;
 
   private final String doc;
 
-  public FieldInfo(final String doc, final Class<T> type, final T defaultValue) {
+  public FieldInfo(final String namespace, final String doc, final Class<T> type, final T defaultValue) {
+    this.namespace = namespace;
     this.type = type;
     this.defaultValue = defaultValue;
     this.doc = doc;
@@ -33,11 +36,15 @@ public final class FieldInfo<T> {
     return doc;
   }
 
+  public String getNamespace() {
+    return namespace;
+  }
+
+
   @Override
   public String toString() {
     return "FieldInfo{" + "type=" + type + ", defaultValue=" + defaultValue + ", doc=" + doc + '}';
   }
-
 
 
 }

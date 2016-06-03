@@ -20,8 +20,10 @@ import java.util.Set;
 import com.google.common.base.Supplier;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.spf4j.base.asm.Invocation;
@@ -48,8 +50,14 @@ public class ConfigScannerMojo
   @Parameter(defaultValue = "SystemProperties")
   private String rootRecordName;
 
+  @Parameter(defaultValue = "Config")
+  private String recordSuffix;
+
   @Parameter(defaultValue = "${project.build.directory}/classes")
   private File classes;
+
+
+
 
   /**
    * target namespace of the configurations.
@@ -74,6 +82,27 @@ public class ConfigScannerMojo
       throw new RuntimeException(ex);
     }
   }
+
+  public static String greatestCommonPrefix(final String a, final String b) {
+    int minLength = Math.min(a.length(), b.length());
+    for (int i = 0; i < minLength; i++) {
+      if (a.charAt(i) != b.charAt(i)) {
+        return a.substring(0, i);
+      }
+    }
+    return a.substring(0, minLength);
+  }
+
+  @Nonnull
+  public static String getPackageName(final String className) {
+    int lastIndexOf = className.lastIndexOf('/');
+    if (lastIndexOf >= 0) {
+      return className.substring(0, lastIndexOf).replace('/', '.');
+    } else {
+      return "";
+    }
+  }
+
 
   public void processClasses(final File location, final Map<String, Object> avdlWriter) throws IOException {
     if (!location.exists()) {
@@ -101,7 +130,8 @@ public class ConfigScannerMojo
         getLog().debug("Found invocation " + invocation);
         Class<?> returnType = invocation.getInvokedMethod().getReturnType();
         Object[] parameters = invocation.getParameters();
-        String doc = invocation.getCaleeClassName()
+        String caleeClassName = invocation.getCaleeClassName();
+        String doc = caleeClassName
                 + '.' + invocation.getCaleeMethodName() + ':' + invocation.getCaleeLine();
         Object parameter = parameters[0];
         Map<String, Object> objs = avdlWriter;
@@ -120,18 +150,19 @@ public class ConfigScannerMojo
           FieldInfo fi = (FieldInfo) objs.get(fname);
           if (fi == null) {
             if (parameters.length > 1) {
-              fi = new FieldInfo(doc, returnType, parameters[1]);
+              fi = new FieldInfo(getPackageName(caleeClassName), doc, returnType, parameters[1]);
             } else {
-              fi = new FieldInfo(doc, returnType, null);
+              fi = new FieldInfo(getPackageName(caleeClassName), doc, returnType, null);
             }
             objs.put(fname, fi);
           }
         } else {
-          FieldInfo df = (FieldInfo) objs.get("dinamic");
+          FieldInfo df = (FieldInfo) objs.get("dynamic");
           if (df == null) {
-            df = new FieldInfo(doc, Map.class, Collections.EMPTY_MAP);
+            df = new FieldInfo(getPackageName(caleeClassName), doc, Map.class, Collections.EMPTY_MAP);
           } else {
-            df = new FieldInfo(df.getDoc() + '\n' + doc, Map.class, Collections.EMPTY_MAP);
+            df = new FieldInfo(getPackageName(caleeClassName), df.getDoc() + '\n' + doc,
+                    Map.class, Collections.EMPTY_MAP);
           }
           objs.put("dinamic", df);
         }
@@ -157,17 +188,32 @@ public class ConfigScannerMojo
     JAVA2AVROTYPE.put(Map.class, "map<string>");
   }
 
-  public void writeRecord(final Writer w, final String recordName, final Map<String, Object> record)
+  public String writeRecord(final Writer w, final String recordName, final Map<String, Object> record)
           throws IOException {
     // do subRecords first.
+    String nameSpace = null;
     for (Map.Entry<String, Object> entry : record.entrySet()) {
       Object value = entry.getValue();
+      String ns;
       if (value instanceof Map) {
-        writeRecord(w, CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, entry.getKey()) + "Record",
+        ns = writeRecord(w, CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, entry.getKey()) + recordSuffix,
                 (Map<String, Object>) value);
+
+      } else if (value instanceof FieldInfo) {
+        ns = ((FieldInfo) value).getNamespace();
+      } else {
+        throw new IllegalStateException("Not supported type " + value);
+      }
+      if (nameSpace == null) {
+        nameSpace = ns;
+      } else {
+        nameSpace = greatestCommonPrefix(nameSpace, ns);
       }
     }
     // write record
+    w.write(" @namespace(\"");
+    w.write(nameSpace);
+    w.write("\")\n");
     w.write(" record ");
     w.write(recordName);
     w.write(" {\n");
@@ -201,16 +247,21 @@ public class ConfigScannerMojo
         w.write(";\n");
 
       } else if (value instanceof Map) {
-        w.write("  ");
-        w.write(CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, entry.getKey()));
-        w.write("Record ");
-        w.write(entry.getKey());
+        String key = entry.getKey();
+        w.write("\n /** Category: ");
+        w.write(key);
+        w.write(" */\n  ");
+        w.write(CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, key));
+        w.write(recordSuffix);
+        w.write(" ");
+        w.write(key);
         w.write(";\n");
       } else {
         throw new IllegalStateException("Not supported type " + value);
       }
     }
     w.write(" }\n\n");
+    return nameSpace;
   }
 
   @Override
