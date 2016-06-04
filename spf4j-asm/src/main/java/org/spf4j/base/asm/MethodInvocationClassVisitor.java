@@ -85,8 +85,8 @@ class MethodInvocationClassVisitor extends ClassVisitor {
             final boolean itf) {
       final Method invokedMethod = methodStrings.get(owner + '/' + name + desc);
       Type returnType = Type.getReturnType(desc);
+      Type[] parameterTypes = Type.getArgumentTypes(desc);
       if (invokedMethod != null) {
-        Type[] parameterTypes = Type.getArgumentTypes(desc);
         Object[] parameters = new Object[parameterTypes.length];
         for (int i = parameterTypes.length - 1; i >= 0; i--) {
           if (!stack.isEmpty()) {
@@ -98,6 +98,16 @@ class MethodInvocationClassVisitor extends ClassVisitor {
         }
         addCaleesTo.add(new Invocation(className, methodName, methodDesc, parameters,
                 source, lineNumber, invokedMethod));
+      } else {
+        int length = parameterTypes.length;
+        if (opcode != Opcodes.INVOKESTATIC) {
+          length++;
+        }
+        for (int i = 0; i < length; i++) {
+          if (!stack.isEmpty()) {
+            stack.pop();
+          }
+        }
       }
       if (returnType != Type.VOID_TYPE) {
         stack.push(new UnknownValue(opcode)); // return value
@@ -230,11 +240,18 @@ class MethodInvocationClassVisitor extends ClassVisitor {
     @Override
     public void visitInvokeDynamicInsn(final String name, final String desc, final Handle bsm,
             final Object... bsmArgs) {
+      // I am not sure this classic method handling is correct
+      Type[] argumentTypes = Type.getArgumentTypes(desc);
+      for (int i = 0; i < argumentTypes.length; i++) {
+        stack.pop();
+      }
       Type returnType = Type.getReturnType(desc);
       if (returnType != Type.VOID_TYPE) {
         stack.push(new UnknownValue(Opcodes.INVOKEDYNAMIC)); // return value
       }
     }
+
+
 
     @Override
     public void visitLineNumber(final int line, final Label start) {

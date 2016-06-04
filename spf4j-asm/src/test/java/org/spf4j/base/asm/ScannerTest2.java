@@ -37,7 +37,7 @@ public class ScannerTest2 {
     Assert.assertThat(findUsages2, CoreMatchers.hasItem(
             Matchers.allOf(
                     Matchers.hasProperty("invokedMethod", Matchers.hasProperty("name", Matchers.equalTo("getProperty"))),
-                    Matchers.hasProperty("parameters", Matchers.arrayContaining("spf4j.perf.ms.defaultSsdumpFilePrefix")))));
+                    Matchers.hasProperty("parameters", Matchers.hasItemInArray("spf4j.perf.ms.defaultSsdumpFilePrefix")))));
   }
 
 }
