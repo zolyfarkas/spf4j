@@ -50,7 +50,7 @@ public final class UnitQueuePU<T> {
         }
     }
 
-    private static final int SPIN_LIMITER = Integer.getInteger("lifoTp.maxSpinning",
+    private static final int SPIN_LIMITER = Integer.getInteger("spf4j.lifoTp.maxSpinning",
             org.spf4j.base.Runtime.NR_PROCESSORS / 2);
 
     private static final Semaphore SPIN_LIMIT = new Semaphore(SPIN_LIMITER);
