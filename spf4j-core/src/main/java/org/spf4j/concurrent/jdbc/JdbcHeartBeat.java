@@ -125,10 +125,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   private JdbcHeartBeat(final DataSource dataSource, final long intervalMillis,
           final int jdbcTimeoutSeconds) throws InterruptedException {
-    this(dataSource, new HeartBeatTableDesc("HEARTBEATS",
-            "OWNER", "INTERVAL_MILLIS", "LAST_HEARTBEAT_INSTANT_MILLIS",
-            "TIMESTAMPDIFF('MILLISECOND', timestamp '1970-01-01 00:00:00', CURRENT_TIMESTAMP())"),
-            intervalMillis, jdbcTimeoutSeconds);
+    this(dataSource, HeartBeatTableDesc.DEFAULT, intervalMillis, jdbcTimeoutSeconds);
   }
 
   private JdbcHeartBeat(final DataSource dataSource, final HeartBeatTableDesc hbTableDesc, final long intervalMillis,
@@ -371,7 +368,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   private static final Map<DataSource, JdbcHeartBeat> HEARTBEATS = new IdentityHashMap<>();
 
-  private static final int HEARTBEAT_INTERVAL_MILLIS = Integer.getInteger("spf4j.heartbeat.intervalMillis", 10000);
+  private static final int HEARTBEAT_INTERVAL_MILLIS =
+          Integer.getInteger("spf4j.jdbc.heartBeats.defaultIntervalMillis", 10000);
 
   private static boolean isShuttingdown = false;
 
@@ -385,6 +383,12 @@ public final class JdbcHeartBeat implements AutoCloseable {
   public static JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
           final HeartBeatTableDesc hbTableDesc,
           @Nullable final LifecycleHook hook) throws InterruptedException {
+    return getHeartBeatAndSubscribe(dataSource, hbTableDesc, hook, HEARTBEAT_INTERVAL_MILLIS);
+  }
+
+  public static JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
+          final HeartBeatTableDesc hbTableDesc,
+          @Nullable final LifecycleHook hook, final int heartBeatIntevalMillis) throws InterruptedException {
     JdbcHeartBeat beat;
     synchronized (HEARTBEATS) {
       if (isShuttingdown) {
@@ -392,7 +396,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
       }
       beat = HEARTBEATS.get(dataSource);
       if (beat == null) {
-        beat = new JdbcHeartBeat(dataSource, hbTableDesc, HEARTBEAT_INTERVAL_MILLIS, 5);
+        beat = new JdbcHeartBeat(dataSource, hbTableDesc, heartBeatIntevalMillis, 5);
         beat.registerJmx();
         beat.addLyfecycleHook(new LifecycleHook() {
           @Override

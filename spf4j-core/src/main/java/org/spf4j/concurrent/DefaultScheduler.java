@@ -39,9 +39,10 @@ public final class DefaultScheduler {
 
 
     public static final ScheduledExecutorService INSTANCE =
-            new ScheduledThreadPoolExecutor(Integer.getInteger("defaultScheduler.coreThreads", 2),
-            new CustomThreadFactory("DefaultScheduler", Boolean.getBoolean("defaultScheduler.daemon"),
-            Integer.getInteger("defaultScheduler.priority", Thread.NORM_PRIORITY)));
+            new ScheduledThreadPoolExecutor(
+                    Integer.getInteger("spf4j.executors.defaultScheduler.coreThreads", 2),
+            new CustomThreadFactory("DefaultScheduler", Boolean.getBoolean("spf4j.executors.defaultScheduler.daemon"),
+            Integer.getInteger("spf4j.executors.defaultScheduler.priority", Thread.NORM_PRIORITY)));
 
     public static final ListeningScheduledExecutorService LISTENABLE_INSTANCE =
             MoreExecutors.listeningDecorator(INSTANCE);

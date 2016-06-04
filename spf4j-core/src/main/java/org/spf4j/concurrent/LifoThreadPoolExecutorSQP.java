@@ -127,7 +127,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
     }
 
 
-    private static final int LL_THRESHOLD = Integer.getInteger("spf4j.lifoTp.llQueueSizeThreshold", 64000);
+    static final int LL_THRESHOLD = Integer.getInteger("spf4j.lifoTp.llQueueSizeThreshold", 64000);
 
     public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
             final int maxSize, final int maxIdleTimeMillis,

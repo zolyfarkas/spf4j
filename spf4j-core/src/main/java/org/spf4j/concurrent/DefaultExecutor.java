@@ -37,19 +37,20 @@ public final class DefaultExecutor {
 
     private DefaultExecutor() {
     }
-    
+
     public static final ExecutorService INSTANCE;
 
     static {
-        final int coreThreads = Integer.getInteger("defaultExecutor.coreThreads", 0);
-        final int maxIdleMillis = Integer.getInteger("defaultExecutor.maxIdleMillis", 60000);
-        final boolean isDaemon = Boolean.getBoolean("defaultExecutor.daemon");
-        final String impParam = "defaultExecutor.implementation";
+        final int coreThreads = Integer.getInteger("spf4j.executors.defaultExecutor.coreThreads", 0);
+        final int maxIdleMillis = Integer.getInteger("spf4j.executors.defaultExecutor.maxIdleMillis", 60000);
+        final boolean isDaemon = Boolean.getBoolean("spf4j.executors.defaultExecutor.daemon");
+        final String impParam = "spf4j.executors.defaultExecutor.implementation";
         final String value = System.getProperty(impParam, "spf4j");
         switch (value) {
           case "spf4j":
             LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP("defaultExecutor", coreThreads,
-                    Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon, Integer.getInteger("defaultExecutor.spinlockCount",
+                    Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon,
+                    Integer.getInteger("spf4j.executors.defaultExecutor.spinlockCount",
                             1024));
             lifoExec.exportJmx();
             INSTANCE = lifoExec;

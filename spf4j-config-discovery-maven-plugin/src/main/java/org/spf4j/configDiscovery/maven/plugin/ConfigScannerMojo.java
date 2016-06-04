@@ -55,14 +55,11 @@ public class ConfigScannerMojo
   @Parameter(defaultValue = "${project.build.directory}/classes")
   private File classes;
 
-
-
-
   /**
    * target namespace of the configurations.
    */
-  @Parameter
-  private String namespace;
+  @Parameter(defaultValue = "")
+  private String namespace = "";
 
   private final Set<Method> methods = getSystemPropertyMethods();
 
@@ -189,40 +186,33 @@ public class ConfigScannerMojo
     JAVA2AVROTYPE.put(Map.class, "map<string>");
   }
 
-  public String writeRecord(final Writer w, final String recordName, final Map<String, Object> record)
+
+  public static String childNameSpace(final String parent, final String child) {
+    return (parent.isEmpty()) ? child : parent + '.' + child;
+  }
+
+  public void writeRecord(final Writer w, final String nameSpace,
+          final String recordName, final Map<String, Object> record)
           throws IOException {
     // do subRecords first.
-    String nameSpace = null;
-    Map<String, String> fieldName2Ns = new HashMap<>();
     for (Map.Entry<String, Object> entry : record.entrySet()) {
       Object value = entry.getValue();
       String ns;
       if (value instanceof Map) {
         String key = entry.getKey();
-        ns = writeRecord(w, CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, key) + recordSuffix,
+        writeRecord(w, childNameSpace(nameSpace, key),
+                CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, key) + recordSuffix,
                 (Map<String, Object>) value);
-        fieldName2Ns.put(key, ns);
-      } else if (value instanceof FieldInfo) {
-        ns = ((FieldInfo) value).getNamespace();
-      } else {
+      } else if (!(value instanceof FieldInfo)) {
         throw new IllegalStateException("Not supported type " + value);
       }
-      if (nameSpace == null) {
-        nameSpace = ns;
-      } else {
-        nameSpace = greatestCommonPrefix(nameSpace, ns);
-      }
-    }
-    if (nameSpace == null) {
-      throw new IllegalStateException("Record " + recordName + " must contain at least one field,..." + record);
-    }
-    if (nameSpace.endsWith(".")) {
-      nameSpace = nameSpace.substring(0, nameSpace.length() - 1);
     }
     // write record
-    w.write(" @namespace(\"");
-    w.write(nameSpace);
-    w.write("\")\n");
+    if (!nameSpace.isEmpty()) {
+      w.write(" @namespace(\"");
+      w.write(nameSpace);
+      w.write("\")\n");
+    }
     w.write(" record ");
     w.write(recordName);
     w.write(" {\n");
@@ -257,7 +247,7 @@ public class ConfigScannerMojo
 
       } else if (value instanceof Map) {
         String key = entry.getKey();
-        String ns = fieldName2Ns.get(key);
+        String ns = childNameSpace(nameSpace, key);
         w.write("\n /** Category: ");
         w.write(key);
         w.write(" */\n  ");
@@ -273,7 +263,6 @@ public class ConfigScannerMojo
       }
     }
     w.write(" }\n\n");
-    return nameSpace;
   }
 
   @Override
@@ -289,7 +278,7 @@ public class ConfigScannerMojo
     File outFile = new File(f, fileName);
     getLog().info("Creating avdl file at " + outFile);
     try (Writer w = new OutputStreamWriter(new FileOutputStream(outFile), encoding)) {
-      if (namespace != null) {
+      if (namespace != null && !namespace.isEmpty()) {
         w.write("@namespace(\"");
         w.write(namespace);
         w.write("\")\n");
@@ -300,7 +289,7 @@ public class ConfigScannerMojo
       w.write(" {\n");
       Map<String, Object> record = new HashMap<>();
       processClasses(classes, record);
-      writeRecord(w, rootRecordName, record);
+      writeRecord(w, namespace, rootRecordName, record);
       w.write("}\n");
     } catch (IOException ex) {
       throw new MojoExecutionException("Cannot generate config description", ex);

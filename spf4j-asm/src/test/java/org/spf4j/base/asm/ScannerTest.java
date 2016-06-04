@@ -2,6 +2,7 @@ package org.spf4j.base.asm;
 
 import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.util.List;
 import org.hamcrest.CoreMatchers;
@@ -30,6 +31,10 @@ public final class ScannerTest {
       return "B";
     }
   }
+
+  public static final String DEFAULT_SS_DUMP_FILE_NAME_PREFIX =
+            System.getProperty("spf4j.perf.ms.defaultSsdumpFilePrefix", ManagementFactory.getRuntimeMXBean().getName());
+
 
   @Test
   public void testSomeMethod() throws NoSuchMethodException {

@@ -109,8 +109,10 @@ public final class HeartBeatTableDesc  implements Serializable {
   }
 
 
-  public static final HeartBeatTableDesc DEFAULT = new HeartBeatTableDesc("HEARTBEATS",
-            "OWNER", "INTERVAL_MILLIS", "LAST_HEARTBEAT_INSTANT_MILLIS",
-            getCurrTSSqlFn(DbType.DEFAULT));
-
+  public static final HeartBeatTableDesc DEFAULT = new HeartBeatTableDesc(
+          System.getProperty("spf4j.jdbc.heartBeats.sql.tableName", "HEARTBEATS"),
+          System.getProperty("spf4j.jdbc.heartBeats.sql.ownerColumn", "OWNER"),
+          System.getProperty("spf4j.jdbc.heartBeats.sql.intervalMillisColumn", "INTERVAL_MILLIS"),
+          System.getProperty("spf4j.jdbc.heartBeats.sql.lastHeartBeatMillisColumn", "LAST_HEARTBEAT_INSTANT_MILLIS"),
+          System.getProperty("spf4j.jdbc.heartBeats.sql.currTsSqlFunction", getCurrTSSqlFn(DbType.DEFAULT)));
 }

@@ -91,13 +91,11 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
         this(poolName, coreSize, maxSize, maxIdleTimeMillis, queueSize, 1024);
     }
 
-    private static final int LL_THRESHOLD = Integer.getInteger("lifoTp.llQueueSizeThreshold", 64000);
-
     public MutableLifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
             final int maxSize, final int maxIdleTimeMillis,
             final int queueSizeLimit, final int spinLockCount) {
         this(poolName, coreSize, maxSize, maxIdleTimeMillis,
-                new ArrayDeque<Runnable>(Math.min(queueSizeLimit, LL_THRESHOLD)),
+                new ArrayDeque<Runnable>(Math.min(queueSizeLimit, LifoThreadPoolExecutorSQP.LL_THRESHOLD)),
                 queueSizeLimit, false, spinLockCount, REJECT_EXCEPTION_EXEC_HANDLER);
     }
 

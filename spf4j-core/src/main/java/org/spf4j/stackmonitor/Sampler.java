@@ -87,8 +87,7 @@ public final class Sampler {
 
     public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final StackCollector collector) {
         this(sampleTimeMillis, dumpTimeMillis, collector,
-                System.getProperty("perf.db.folder", System.getProperty("java.io.tmpdir")),
-                System.getProperty("perf.db.name", ManagementFactory.getRuntimeMXBean().getName()));
+                Monitor.DEFAULT_SS_DUMP_FOLDER, Monitor.DEFAULT_SS_DUMP_FILE_NAME_PREFIX);
     }
 
     public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final StackCollector collector,

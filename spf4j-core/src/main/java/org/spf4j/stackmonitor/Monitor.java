@@ -25,8 +25,6 @@ import java.util.concurrent.TimeoutException;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 
 /**
@@ -36,16 +34,20 @@ public final class Monitor {
 
     private Monitor() { }
 
-    private static final Logger LOG = LoggerFactory.getLogger(Monitor.class);
+    public static final String DEFAULT_SS_DUMP_FOLDER = System.getProperty("spf4j.perf.ms.defaultSsdumpFolder",
+                System.getProperty("java.io.tmpdir"));
+
+    public static final String DEFAULT_SS_DUMP_FILE_NAME_PREFIX =
+            System.getProperty("spf4j.perf.ms.defaultSsdumpFilePrefix", ManagementFactory.getRuntimeMXBean().getName());
 
     private static class Options {
 
         @Option(name = "-df", usage = "dump folder")
-        private String dumpFolder = System.getProperty("perf.db.folder", System.getProperty("java.io.tmpdir"));
+        private String dumpFolder = DEFAULT_SS_DUMP_FOLDER;
 
         @Option(name = "-dp", usage = "dump file prefix")
         private String dumpFilePrefix =
-                System.getProperty("perf.db.name", ManagementFactory.getRuntimeMXBean().getName());
+                System.getProperty("spf4j.perf.ms.ssdumpFilePrefix", ManagementFactory.getRuntimeMXBean().getName());
 
         @Option(name = "-main", usage = "the main class name", required = true)
         private String mainClass;

@@ -65,8 +65,9 @@ public final class RecorderFactory {
             throws IOException, ObjectCreationException {
 
         if (configuration == null || configuration.trim().isEmpty()) {
-            return new TSDBMeasurementStore(System.getProperty("perf.db.folder",
-                    System.getProperty("java.io.tmpdir")) + File.separator + System.getProperty("perf.db.name",
+            return new TSDBMeasurementStore(System.getProperty("spf4j.perf.ms.defaultTsdbFilePath",
+                    System.getProperty("java.io.tmpdir"))
+                    + File.separator + System.getProperty("spf4j.perf.ms.defaultTsdbFileNamePrefix",
                     ManagementFactory.getRuntimeMXBean().getName() + ".tsdb2"));
         }
 
@@ -116,8 +117,8 @@ public final class RecorderFactory {
 
     static {
         try {
-            MEASUREMENT_STORE = buildStoreFromConfig(System.getProperty("perf.ms.config", null));
-            Flusher.flushEvery(Integer.getInteger("perf.ms.flushIntervalMillis", 60000), MEASUREMENT_STORE);
+            MEASUREMENT_STORE = buildStoreFromConfig(System.getProperty("spf4j.perf.ms.config", null));
+            Flusher.flushEvery(Integer.getInteger("spf4j.perf.ms.flushIntervalMillis", 60000), MEASUREMENT_STORE);
         } catch (IOException | ObjectCreationException ex) {
             throw new RuntimeException(ex);
         }

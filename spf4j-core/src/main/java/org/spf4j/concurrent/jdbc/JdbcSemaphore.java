@@ -112,7 +112,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   private static final Interner<String> INTERNER = Interners.newStrongInterner();
 
-  private static final int ACQUIRE_POLL_MILLIS = Integer.getInteger("spf4j.jdbc.semaphore.pollIntervalMillis", 1000);
+  private final int acquirePollMillis;
 
   private final JdbcHeartBeat.LifecycleHook failureHook;
 
@@ -142,13 +142,22 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     this(dataSource, SemaphoreTablesDesc.DEFAULT, semaphoreName, nrPermits, 10, strict);
   }
 
-  @SuppressFBWarnings({"CBX_CUSTOM_BUILT_XML", "STT_TOSTRING_STORED_IN_FIELD"}) // no sql builder (yet)
   public JdbcSemaphore(final DataSource dataSource, final SemaphoreTablesDesc semTableDesc,
           final String semaphoreName, final int nrPermits, final int jdbcTimeoutSeconds,
           final boolean strictReservations) throws InterruptedException {
+    this(dataSource, semTableDesc, semaphoreName, nrPermits, jdbcTimeoutSeconds, strictReservations,
+            Integer.getInteger("spf4j.jdbc.semaphore.defaultMaxPollIntervalMillis", 1000));
+  }
+
+
+  @SuppressFBWarnings({"CBX_CUSTOM_BUILT_XML", "STT_TOSTRING_STORED_IN_FIELD"}) // no sql builder (yet)
+  public JdbcSemaphore(final DataSource dataSource, final SemaphoreTablesDesc semTableDesc,
+          final String semaphoreName, final int nrPermits, final int jdbcTimeoutSeconds,
+          final boolean strictReservations, final int acquirePollMillis) throws InterruptedException {
     if (nrPermits < 0) {
       throw new IllegalArgumentException("Permits must be positive and not " + nrPermits);
     }
+    this.acquirePollMillis = acquirePollMillis;
     this.semName = INTERNER.intern(semaphoreName);
     this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;
     this.jdbc = new JdbcTemplate(dataSource);
@@ -459,7 +468,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
           }
           if (releaseDeadOwnerPermits(nrPermits) <= 0) { //wait of we did not find anything dead to release.
             long wtimeMilis = Math.min(TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime()),
-                    Math.abs(rnd.nextInt()) % ACQUIRE_POLL_MILLIS);
+                    Math.abs(rnd.nextInt()) % acquirePollMillis);
             if (wtimeMilis > 0) {
               semName.wait(wtimeMilis);
             } else {

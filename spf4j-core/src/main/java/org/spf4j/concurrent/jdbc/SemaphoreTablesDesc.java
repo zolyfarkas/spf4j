@@ -38,16 +38,29 @@ public final class SemaphoreTablesDesc implements Serializable {
   private final String ownerReservationsColumn;
   private final HeartBeatTableDesc heartBeatTableDesc;
 
+  public static final SemaphoreTablesDesc DEFAULT = new SemaphoreTablesDesc(
+          System.getProperty("spf4j.jdbc.semaphore.sql.tableName", "SEMAPHORES"),
+          System.getProperty("spf4j.jdbc.semaphore.sql.semaphoreNameColumn", "SEMAPHORE_NAME"),
+          System.getProperty("spf4j.jdbc.semaphore.sql.availablePermitsColumn", "AVAILABLE_PERMITS"),
+          System.getProperty("spf4j.jdbc.semaphore.sql.totalPermitsColumn", "TOTAL_PERMITS"),
+          System.getProperty("spf4j.jdbc.semaphore.sql.lastUpdatedByColumn", "LAST_UPDATED_BY"),
+          System.getProperty("spf4j.jdbc.semaphore.sql.lastUpdatedAtColumn", "LAST_UPDATED_AT"),
+          System.getProperty("spf4j.jdbc.semaphore.sql.permitsByOwnerColumn", "PERMITS_BY_OWNER"),
+          HeartBeatTableDesc.DEFAULT.getOwnerColumn(),
+          System.getProperty("spf4j.jdbc.semaphore.sql.permitsColumn", "PERMITS"),
+          HeartBeatTableDesc.DEFAULT);
+
+
   public SemaphoreTablesDesc(final String semaphoreTableName, final String semNameColumn,
           final String availablePermitsColumn,
-          final String maxReservationsColumn, final String lastModifiedColumn,
+          final String totalPermitsColumn, final String lastModifiedColumn,
           final String lastModifiedAtColumn, final String reservationsByOwnerTableName,
           final String ownerColumn, final String ownerReservationsColumn,
           final HeartBeatTableDesc heartBeatTableDesc) {
     this.semaphoreTableName = semaphoreTableName;
     this.semNameColumn = semNameColumn;
     this.availablePermitsColumn = availablePermitsColumn;
-    this.totalPermitsColumn = maxReservationsColumn;
+    this.totalPermitsColumn = totalPermitsColumn;
     this.lastModifiedByColumn = lastModifiedColumn;
     this.lastModifiedAtColumn = lastModifiedAtColumn;
     this.permitsByOwnerTableName = reservationsByOwnerTableName;
@@ -106,11 +119,5 @@ public final class SemaphoreTablesDesc implements Serializable {
             + ", permitsByOwnerTableName=" + permitsByOwnerTableName + ", ownerColumn="
             + ownerColumn + ", ownerReservationsColumn=" + ownerReservationsColumn + '}';
   }
-
-  public static final SemaphoreTablesDesc DEFAULT = new SemaphoreTablesDesc(
-          "SEMAPHORES", "SEMAPHORE_NAME", "AVAILABLE_PERMITS",
-            "TOTAL_PERMITS", "LAST_UPDATED_BY", "LAST_UPDATED_AT", "PERMITS_BY_OWNER", "OWNER", "PERMITS",
-          HeartBeatTableDesc.DEFAULT);
-
 
 }

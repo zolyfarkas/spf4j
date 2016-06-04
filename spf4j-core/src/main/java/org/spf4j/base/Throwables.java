@@ -56,7 +56,7 @@ public final class Throwables {
   }
 
   private static final int MAX_THROWABLE_CHAIN
-          = Integer.getInteger("spf4j.throwables.maxSuppressChain", 200);
+          = Integer.getInteger("spf4j.throwables.defaultMaxSuppressChain", 200);
 
   private static final Field CAUSE_FIELD;
 
@@ -187,16 +187,20 @@ public final class Throwables {
    * @return
    */
   public static <T extends Throwable> T chain(final T t, final Throwable newRootCause) {
+    return chain(t, newRootCause, MAX_THROWABLE_CHAIN);
+  }
+
+  public static <T extends Throwable> T chain(final T t, final Throwable newRootCause, final int maxChained) {
     int chainedExNr = com.google.common.base.Throwables.getCausalChain(t).size();
-    if (chainedExNr >= MAX_THROWABLE_CHAIN) {
+    if (chainedExNr >= maxChained) {
       Lazy.LOG.warn("Trimming exception", newRootCause);
       return t;
     }
     List<Throwable> newRootCauseChain = com.google.common.base.Throwables.getCausalChain(newRootCause);
     int newChainIdx = 0;
     final int size = newRootCauseChain.size();
-    if (chainedExNr + size > MAX_THROWABLE_CHAIN) {
-      newChainIdx = size - (MAX_THROWABLE_CHAIN - chainedExNr);
+    if (chainedExNr + size > maxChained) {
+      newChainIdx = size - (maxChained - chainedExNr);
       Lazy.LOG.warn("Trimming exception at {} ", newChainIdx, newRootCause);
     }
     T result;
@@ -231,6 +235,12 @@ public final class Throwables {
    */
   @CheckReturnValue
   public static <T extends Throwable> T suppress(@Nonnull final T t, @Nonnull final Throwable suppressed) {
+    return suppress(t, suppressed, MAX_THROWABLE_CHAIN);
+  }
+
+  @CheckReturnValue
+  public static <T extends Throwable> T suppress(@Nonnull final T t, @Nonnull final Throwable suppressed,
+          final int maxSuppressed) {
     T clone;
     try {
       clone = Objects.clone(t);
@@ -239,7 +249,7 @@ public final class Throwables {
       Lazy.LOG.info("Unable to clone exception", t);
     }
     clone.addSuppressed(suppressed);
-    while (getNrRecursiveSuppressedExceptions(clone) > MAX_THROWABLE_CHAIN) {
+    while (getNrRecursiveSuppressedExceptions(clone) > maxSuppressed) {
       if (removeOldestSuppressedRecursive(clone) == null) {
         throw new IllegalArgumentException("Impossible state for " + clone);
       }
