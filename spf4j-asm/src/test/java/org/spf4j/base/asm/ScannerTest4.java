@@ -2,8 +2,6 @@ package org.spf4j.base.asm;
 
 import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Method;
 import java.util.List;
 import org.hamcrest.CoreMatchers;

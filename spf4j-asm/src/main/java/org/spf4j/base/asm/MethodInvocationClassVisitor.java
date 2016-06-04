@@ -225,6 +225,60 @@ class MethodInvocationClassVisitor extends ClassVisitor {
             stack.push(new UnknownValue(opcode));
           }
           break;
+         case Opcodes.IADD:
+          pop1 = stack.pop();
+          pop2 = stack.pop();
+          try {
+            stack.push((int) pop2 + (int) pop1);
+          } catch (RuntimeException ex) {
+            stack.push(new UnknownValue(opcode));
+          }
+          break;
+         case Opcodes.ISUB:
+          pop1 = stack.pop();
+          pop2 = stack.pop();
+          try {
+            stack.push((int) pop2 - (int) pop1);
+          } catch (RuntimeException ex) {
+            stack.push(new UnknownValue(opcode));
+          }
+          break;
+        case Opcodes.LDIV:
+          pop1 = stack.pop();
+          pop2 = stack.pop();
+          try {
+            stack.push((long) pop2 / (long) pop1);
+          } catch (RuntimeException ex) {
+            stack.push(new UnknownValue(opcode));
+          }
+          break;
+        case Opcodes.LMUL:
+          pop1 = stack.pop();
+          pop2 = stack.pop();
+          try {
+            stack.push((long) pop2 * (long) pop1);
+          } catch (RuntimeException ex) {
+            stack.push(new UnknownValue(opcode));
+          }
+          break;
+         case Opcodes.LADD:
+          pop1 = stack.pop();
+          pop2 = stack.pop();
+          try {
+            stack.push((long) pop2 + (long) pop1);
+          } catch (RuntimeException ex) {
+            stack.push(new UnknownValue(opcode));
+          }
+          break;
+         case Opcodes.LSUB:
+          pop1 = stack.pop();
+          pop2 = stack.pop();
+          try {
+            stack.push((long) pop2 - (long) pop1);
+          } catch (RuntimeException ex) {
+            stack.push(new UnknownValue(opcode));
+          }
+          break;
         default:
           stack.push(new UnknownValue(opcode)); // assume something will end up on the stack
       }

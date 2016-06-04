@@ -229,6 +229,9 @@ public class ConfigScannerMojo
         if (avroType == null) {
           throw new IllegalStateException(" No avro equivalent for " + type);
         }
+        if (type == boolean.class || type == Boolean.class) {
+          defaultValue = false;
+        }
         if (defaultValue == null) {
           w.write("  union {null, ");
           w.write(avroType);
