@@ -1,7 +1,11 @@
 package org.spf4j.base.asm;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -98,6 +102,11 @@ class MethodInvocationClassVisitor extends ClassVisitor {
         }
         addCaleesTo.add(new Invocation(className, methodName, methodDesc, parameters,
                 source, lineNumber, invokedMethod));
+        if (opcode != Opcodes.INVOKESTATIC) {
+          if (!stack.isEmpty()) {
+            stack.pop();
+          }
+        }
       } else {
         int length = parameterTypes.length;
         if (opcode != Opcodes.INVOKESTATIC) {
@@ -124,10 +133,8 @@ class MethodInvocationClassVisitor extends ClassVisitor {
       stack.push(new UnknownValue(opcode));
     }
 
-
-
     @Override
-    @SuppressFBWarnings({ "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "CC_CYCLOMATIC_COMPLEXITY" })
+    @SuppressFBWarnings({"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "CC_CYCLOMATIC_COMPLEXITY"})
     public void visitInsn(final int opcode) {
       switch (opcode) {
         case Opcodes.ICONST_0:
@@ -204,6 +211,59 @@ class MethodInvocationClassVisitor extends ClassVisitor {
     }
 
     @Override
+    public void visitFieldInsn(final int opcode, final String owner, final String name, final String desc) {
+      switch (opcode) {
+        case Opcodes.GETSTATIC:
+          Class<?> clasz;
+          try {
+            clasz = Class.forName(owner.replace('/', '.'));
+          } catch (ClassNotFoundException ex) {
+            stack.push(new UnknownValue(opcode)); // assume something will end up on the stack
+            break;
+          }
+          Field declaredField;
+          try {
+            declaredField = clasz.getDeclaredField(name);
+          } catch (NoSuchFieldException | SecurityException ex) {
+            stack.push(new UnknownValue(opcode)); // assume something will end up on the stack
+            break;
+          }
+          if ((declaredField.getModifiers() & Modifier.FINAL) == Modifier.FINAL) {
+            AccessController.doPrivileged(new PrivilegedAction<Void>() {
+              @Override
+              public Void run() {
+                declaredField.setAccessible(true);
+                return null;
+              }
+            });
+            Object value;
+            try {
+              value = declaredField.get(null);
+            } catch (IllegalArgumentException | IllegalAccessException ex) {
+              stack.push(new UnknownValue(opcode)); // assume something will end up on the stack
+              break;
+            }
+            stack.push(value);
+          } else {
+            stack.push(new UnknownValue(opcode)); // assume something will end up on the stack
+          }
+          break;
+        case Opcodes.GETFIELD:
+          stack.push(new UnknownValue(opcode)); // assume something will end up on the stack
+          break;
+        case Opcodes.PUTSTATIC:
+        case Opcodes.PUTFIELD:
+          if (!stack.isEmpty()) {
+            stack.pop();
+          }
+          break;
+        default:
+          throw new IllegalStateException(" Illegal opcode = " + opcode + " in context");
+      }
+
+    }
+
+    @Override
     public void visitIntInsn(final int opcode, final int operand) {
       switch (opcode) {
         case Opcodes.BIPUSH:
@@ -250,8 +310,6 @@ class MethodInvocationClassVisitor extends ClassVisitor {
         stack.push(new UnknownValue(Opcodes.INVOKEDYNAMIC)); // return value
       }
     }
-
-
 
     @Override
     public void visitLineNumber(final int line, final Label start) {
