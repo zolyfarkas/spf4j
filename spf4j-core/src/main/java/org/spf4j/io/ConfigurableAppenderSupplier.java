@@ -102,7 +102,7 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
       return i;
     }
   }
-  
+
   public <T> void replace(final Class<T> type,
           final Function<ObjectAppender<? super T>, ObjectAppender<? super T>> replace) {
     synchronized (registry) {
@@ -124,6 +124,7 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
   @SuppressWarnings("unchecked")
   @CheckReturnValue
   private <T> boolean register(final Class<T> type, final ObjectAppender<? super T> appender) {
+    synchronized (registry) {
       ListIterator<Pair<Class<?>, ObjectAppender<?>>> listIterator = registry.listIterator();
       while (listIterator.hasNext()) {
         Pair<Class<?>, ObjectAppender<?>> next = listIterator.next();
@@ -138,7 +139,8 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
         }
       }
       listIterator.add((Pair) Pair.of(type, appender));
-      return true;
+    }
+    return true;
   }
 
   public boolean unregister(final Class<?> type) {
