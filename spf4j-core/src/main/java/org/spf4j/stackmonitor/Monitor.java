@@ -46,8 +46,7 @@ public final class Monitor {
         private String dumpFolder = DEFAULT_SS_DUMP_FOLDER;
 
         @Option(name = "-dp", usage = "dump file prefix")
-        private String dumpFilePrefix =
-                System.getProperty("spf4j.perf.ms.ssdumpFilePrefix", ManagementFactory.getRuntimeMXBean().getName());
+        private String dumpFilePrefix = DEFAULT_SS_DUMP_FILE_NAME_PREFIX;
 
         @Option(name = "-main", usage = "the main class name", required = true)
         private String mainClass;
