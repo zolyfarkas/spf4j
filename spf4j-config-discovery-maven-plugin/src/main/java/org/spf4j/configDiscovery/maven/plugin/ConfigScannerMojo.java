@@ -20,7 +20,6 @@ import java.util.Set;
 import com.google.common.base.Supplier;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -110,8 +109,10 @@ public class ConfigScannerMojo
     }
     if (location.isDirectory()) {
       File[] listFiles = location.listFiles();
-      for (File file : listFiles) {
-        processClasses(file, avdlWriter);
+      if (listFiles != null) {
+        for (File file : listFiles) {
+          processClasses(file, avdlWriter);
+        }
       }
     } else if (location.getName().endsWith(".class")) {
       getLog().debug("Processing class " + location);
@@ -211,6 +212,9 @@ public class ConfigScannerMojo
       } else {
         nameSpace = greatestCommonPrefix(nameSpace, ns);
       }
+    }
+    if (nameSpace == null) {
+      throw new IllegalStateException("Record " + recordName + " must contain at least one field,..." + record);
     }
     if (nameSpace.endsWith(".")) {
       nameSpace = nameSpace.substring(0, nameSpace.length() - 1);
