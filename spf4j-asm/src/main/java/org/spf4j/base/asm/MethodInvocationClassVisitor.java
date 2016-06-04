@@ -136,6 +136,8 @@ class MethodInvocationClassVisitor extends ClassVisitor {
     @Override
     @SuppressFBWarnings({"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "CC_CYCLOMATIC_COMPLEXITY"})
     public void visitInsn(final int opcode) {
+      Object pop1 = null;
+      Object pop2 = null;
       switch (opcode) {
         case Opcodes.ICONST_0:
           stack.push(0);
@@ -204,6 +206,24 @@ class MethodInvocationClassVisitor extends ClassVisitor {
           stack.push(c2);
           stack.push(b2);
           stack.push(a2);
+          break;
+        case Opcodes.IDIV:
+          pop1 = stack.pop();
+          pop2 = stack.pop();
+          try {
+            stack.push((int) pop2 / (int) pop1);
+          } catch (RuntimeException ex) {
+            stack.push(new UnknownValue(opcode));
+          }
+          break;
+        case Opcodes.IMUL:
+          pop1 = stack.pop();
+          pop2 = stack.pop();
+          try {
+            stack.push((int) pop2 * (int) pop1);
+          } catch (RuntimeException ex) {
+            stack.push(new UnknownValue(opcode));
+          }
           break;
         default:
           stack.push(new UnknownValue(opcode)); // assume something will end up on the stack
