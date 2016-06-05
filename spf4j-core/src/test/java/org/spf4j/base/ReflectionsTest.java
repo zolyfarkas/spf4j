@@ -19,7 +19,7 @@ package org.spf4j.base;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**

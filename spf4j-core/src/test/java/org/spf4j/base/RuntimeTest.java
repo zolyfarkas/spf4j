@@ -36,9 +36,6 @@ import org.spf4j.concurrent.DefaultScheduler;
  */
 public final class RuntimeTest {
 
-    public RuntimeTest() {
-    }
-
     /**
      * Test of goDownWithError method, of class Runtime.
      */
@@ -93,7 +90,7 @@ public final class RuntimeTest {
                     ex.printStackTrace();
                     latch.countDown();
                 } catch (Exception ex) {
-                  ex.printStackTrace();
+                  Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
                 }
             }
         });
@@ -122,7 +119,7 @@ public final class RuntimeTest {
 
                 @Override
                 public void uncaughtException(final Thread t, final Throwable e) {
-                    e.printStackTrace();
+                    Throwables.writeTo(e, System.err, Throwables.Detail.STANDARD);
                 }
             });
             throw new RuntimeException();
@@ -136,7 +133,7 @@ public final class RuntimeTest {
 
                 @Override
                 public void uncaughtException(final Thread t, final Throwable e) {
-                    e.printStackTrace();
+                    Throwables.writeTo(e, System.err, Throwables.Detail.STANDARD);
                 }
             });
             DefaultScheduler.INSTANCE.scheduleAtFixedRate(new Runnable() {
