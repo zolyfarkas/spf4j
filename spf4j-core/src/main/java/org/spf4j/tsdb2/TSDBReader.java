@@ -160,12 +160,15 @@ public final  class TSDBReader implements Closeable {
 
 
     //CHECKSTYLE:OFF
-    public synchronized <E extends Exception>  void watch(final Handler<Either<TableDef, DataBlock>, E> handler,
+    public  <E extends Exception>  void watch(final Handler<Either<TableDef, DataBlock>, E> handler,
             final EventSensitivity es)
             throws IOException, InterruptedException, E {
         //CHECKSTYLE:ON
-        if (watch) {
-            throw new IllegalStateException("File is already watched " + file);
+        synchronized(this) {
+          if (watch) {
+              throw new IllegalStateException("File is already watched " + file);
+          }
+          watch = true;
         }
         SensitivityWatchEventModifier sensitivity;
         switch (es) {
@@ -181,17 +184,18 @@ public final  class TSDBReader implements Closeable {
             default:
                 throw new UnsupportedOperationException("Unsupported sensitivity " + es);
         }
-
-        watch = true;
-        read(handler);
         final Path path = file.getParentFile().toPath();
         try (WatchService watchService = path.getFileSystem().newWatchService()) {
             path.register(watchService, new WatchEvent.Kind[] {StandardWatchEventKinds.ENTRY_MODIFY,
                 StandardWatchEventKinds.OVERFLOW
             }, sensitivity);
+            readAll(handler);
             do {
                 WatchKey key = watchService.poll(1000, TimeUnit.MILLISECONDS);
                 if (key == null) {
+                    if (reReadSize()) {
+                        readAll(handler);
+                    }
                     continue;
                 }
                 if (!key.isValid()) {
@@ -200,7 +204,7 @@ public final  class TSDBReader implements Closeable {
                 }
                 if (!key.pollEvents().isEmpty()) {
                     if (reReadSize()) {
-                        read(handler);
+                        readAll(handler);
                     }
                 }
                 if (!key.reset()) {
@@ -214,7 +218,7 @@ public final  class TSDBReader implements Closeable {
     }
 
     //CHECKSTYLE:OFF
-    public synchronized <E extends Exception> void read(final Handler<Either<TableDef, DataBlock>, E> handler)
+    public synchronized <E extends Exception> void readAll(final Handler<Either<TableDef, DataBlock>, E> handler)
             throws IOException, E {
         //CHECKSTYLE:ON
         Either<TableDef, DataBlock> data;

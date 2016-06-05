@@ -24,16 +24,12 @@ import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.kohsuke.args4j.CmdLineException;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.ExitException;
+import org.spf4j.base.NoExitSecurityManager;
 
 public final class MonitorTest {
 
@@ -49,27 +45,24 @@ public final class MonitorTest {
         });
     }
 
-    @Test
-    @Ignore
+    @Test(expected = ExitException.class)
     public void testError() throws ClassNotFoundException, NoSuchMethodException,
-            IllegalAccessException, InvocationTargetException,
-            IOException, CmdLineException, InterruptedException, MalformedObjectNameException,
-            InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
+            IllegalAccessException, InvocationTargetException, IOException {
         String report = File.createTempFile("stackSample", ".html").getPath();
+        System.setSecurityManager(new NoExitSecurityManager());
+        try {
         Monitor.main(new String[]{"-ASDF", "-f", report, "-ss", "-si", "10", "-w", "600", "-main",
             MonitorTest.class.getName()});
-        System.out.println(report);
+        } finally {
+          System.setSecurityManager(null);
+        }
     }
 
     @Test
     public void testJmx() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException, IOException, CmdLineException,
-            InterruptedException, MalformedObjectNameException, InstanceAlreadyExistsException,
-            MBeanRegistrationException, NotCompliantMBeanException {
-        String report = File.createTempFile("stackSample", ".html").getPath();
+            InvocationTargetException, IOException {
         Monitor.main(new String[]{"-ss", "-si", "10", "-main",
             MonitorTest.class.getName()});
-        System.out.println(report);
     }
 
 
@@ -93,7 +86,7 @@ public final class MonitorTest {
                             } else {
                                 doStuff3(rnd);
                             }
-                        } 
+                        }
                 }
 
                 private double doStuff3(final double rnd) throws InterruptedException {

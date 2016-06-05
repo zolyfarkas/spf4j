@@ -196,15 +196,19 @@ public final class TSDBWriter implements Closeable, Flushable {
             bab.reset();
             this.recordWriter.write(writeBlock, this.encoder);
             raf.write(bab.getBuffer(), 0, bab.size());
-            long filePointer = raf.getFilePointer();
-            raf.seek(MAGIC.length);
-            raf.writeLong(filePointer);
-            raf.seek(filePointer);
+            updateEOFPtrPointer();
             writeBlock.values.clear();
             encoder.flush();
         }
         channel.force(true);
     }
+
+  private void updateEOFPtrPointer() throws IOException {
+    long filePointer = raf.getFilePointer();
+    raf.seek(MAGIC.length);
+    raf.writeLong(filePointer);
+    raf.seek(filePointer);
+  }
 
     public Header getHeader() {
         return header;

@@ -1,12 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package org.spf4j.recyclable.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.ReferenceType;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
@@ -18,6 +14,7 @@ import org.spf4j.recyclable.SizedRecyclingSupplier;
 public class SizedGlobalRecyclingSupplierTest {
 
     @Test
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void testSupplier() {
         SizedRecyclingSupplier<byte[]> supplier = new Powerof2SizedGlobalRecyclingSupplier<>(
                 new SizedRecyclingSupplier.Factory<byte[]>() {

@@ -2,7 +2,7 @@
 package org.spf4j.recyclable.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.ReferenceType;
 import org.spf4j.recyclable.SizedRecyclingSupplier;

@@ -1,10 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package org.spf4j.stackmonitor;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 
@@ -13,7 +10,7 @@ import org.junit.Test;
  * @author zoly
  */
 public final class MethodTest {
-    
+
 
     @Test
     public void testSomeMethod() {

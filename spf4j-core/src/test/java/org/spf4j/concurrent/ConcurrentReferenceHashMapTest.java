@@ -2,7 +2,7 @@
 package org.spf4j.concurrent;
 
 import java.util.Map;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**

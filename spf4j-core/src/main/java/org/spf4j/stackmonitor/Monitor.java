@@ -113,6 +113,7 @@ public final class Monitor {
             sampler.start();
         }
         Class.forName(options.mainClass).getMethod("main", String[].class).invoke(null, (Object) newArgs);
+        System.exit(0);
     }
 
 
