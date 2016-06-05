@@ -431,8 +431,8 @@ public final class Strings {
             return true;
         }
     }
-    
-    
+
+
   public static int hashcode(final CharSequence cs) {
     int h = 0;
     int len = cs.length();
@@ -499,7 +499,7 @@ public final class Strings {
         int start = l - with.length();
         if (start >= 0) {
             for (int i = start, j = 0; i < l; i++, j++) {
-                if (qc.charAt(i) != qc.charAt(j)) {
+                if (qc.charAt(i) != with.charAt(j)) {
                     return false;
                 }
             }
@@ -524,7 +524,7 @@ public final class Strings {
     }
 
   }
-  
+
   public static void escapeJsonString(@Nonnull final String toEscape, final Appendable jsonString) throws IOException {
     int len = toEscape.length();
     for (int i = 0; i < len; i++) {
@@ -532,7 +532,7 @@ public final class Strings {
       appendJsonStringEscapedChar(c, jsonString);
     }
   }
-  
+
 
   public static void appendJsonStringEscapedChar(final char c, final StringBuilder jsonString) {
     switch (c) {
@@ -565,8 +565,8 @@ public final class Strings {
         }
     }
   }
-  
-  
+
+
   public static void appendJsonStringEscapedChar(final char c, final Appendable jsonString) throws IOException {
     switch (c) {
       case '\\':
@@ -666,7 +666,7 @@ public final class Strings {
         }
         sb.append(buf, charPos, nrChars);
     }
-    
+
     public static void appendUnsignedStringPadded(final Appendable sb, final int nr, final int shift,
             final int padTo) throws IOException {
         long i = nr;
@@ -689,13 +689,13 @@ public final class Strings {
         }
         sb.append(CharBuffer.wrap(buf), charPos, charPos + nrChars);
     }
-    
+
     public static void appendSpaces(final Appendable to, final int nrSpaces) throws IOException {
       for (int i = 0; i < nrSpaces; i++) {
         to.append(' ');
       }
     }
-    
+
     public static void appendSpaces(final StringBuilder to, final int nrSpaces) {
       for (int i = 0; i < nrSpaces; i++) {
         to.append(' ');
@@ -722,5 +722,5 @@ public final class Strings {
     }
     return true;
   }
-   
+
 }

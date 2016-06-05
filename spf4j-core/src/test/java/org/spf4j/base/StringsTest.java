@@ -27,9 +27,6 @@ import static org.junit.Assert.assertEquals;
  */
 public final class StringsTest {
 
-    public StringsTest() {
-    }
-
     @Test
     public void testDistance() {
         assertEquals(3, Strings.distance("abc", "abcdef"));
@@ -68,9 +65,10 @@ public final class StringsTest {
     }
 
 
+    @Test
     public void testEndsWith() {
-        Assert.assertEquals(true, Strings.endsWith("dfjkshfks", ""));
         Assert.assertEquals(true, Strings.endsWith("dfjkshfks", "hfks"));
+        Assert.assertEquals(true, Strings.endsWith("dfjkshfks", ""));
         Assert.assertEquals(false, Strings.endsWith("dfjkshfks", "hfk"));
         Assert.assertEquals(true, Strings.endsWith("dfjkshfks", "dfjkshfks"));
         Assert.assertEquals(false, Strings.endsWith("dfjkshfks", "dfjkshfksu"));
@@ -83,16 +81,16 @@ public final class StringsTest {
         Assert.assertEquals(Integer.toHexString(38), sb.toString());
         System.out.println("Encoded: " + sb);
     }
-    
+
     @Test
     public void testEncoding2() {
         StringBuilder sb = new StringBuilder();
         Strings.appendUnsignedStringPadded(sb, 38, 5, 4);
         Assert.assertEquals(4, sb.length());
         System.out.println("Encoded: " + sb);
-    }    
-   
-    
+    }
+
+
     @Test
     public void testJsonEncoding() {
         StringBuilder sb = new StringBuilder();
@@ -101,8 +99,8 @@ public final class StringsTest {
         sb.append("\"");
         System.out.println("Encoded: " + sb);
         Assert.assertEquals("\"\\n\\b\\u0000abc\\\"\"", sb.toString());
-    }     
-    
-    
+    }
+
+
 
 }
