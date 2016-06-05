@@ -26,7 +26,7 @@ public class ScannerTest4 {
             Something.NRPROCS / 2);
 
   public static String getStuff(final Something bla) {
-    return "caca" + SPIN_LIMITER;
+    return "caca" + SPIN_LIMITER + bla;
   }
 
   @Test

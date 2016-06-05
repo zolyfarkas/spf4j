@@ -19,7 +19,7 @@ public class ScannerTest3 {
     BLA
   }
 
-  public static final Object[] DEFAULT = new Object[]{
+  static final Object[] DEFAULT = new Object[]{
     System.getProperty("spf4j.jdbc.heartBeats.sql.tableName", "HEARTBEATS"),
     System.getProperty("spf4j.jdbc.heartBeats.sql.ownerColumn", "OWNER"),
     System.getProperty("spf4j.jdbc.heartBeats.sql.intervalMillisColumn", "INTERVAL_MILLIS"),

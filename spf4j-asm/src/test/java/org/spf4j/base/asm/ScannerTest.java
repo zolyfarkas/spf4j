@@ -9,7 +9,6 @@ import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
-import org.objectweb.asm.Type;
 
 /**
  *
@@ -36,12 +35,7 @@ public final class ScannerTest {
             System.getProperty("spf4j.perf.ms.defaultSsdumpFilePrefix", ManagementFactory.getRuntimeMXBean().getName());
 
 
-  @Test
-  public void testSomeMethod() throws NoSuchMethodException {
-    String desc = Type.getMethodDescriptor(B.class.getDeclaredMethod("getValue"));
-    System.out.println(desc + new A().getValue());
-    String desc2 = Type.getMethodDescriptor(A.class.getDeclaredMethod("getValue"));
-    System.out.println(desc2 + ((A) new B()).getValue());
+  public void testSomeMethod() {
     // read a System property
     System.getProperty("some.property", "default value");
     Integer.getInteger("someInt.value", 3);
