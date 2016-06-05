@@ -150,7 +150,6 @@ public final class CallablesTest {
 
     @Test(expected = IOException.class)
     public void testExecuteWithRetryTimeout() throws InterruptedException, IOException {
-        System.out.println("executeWithRetryTimeout");
         Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(1000) {
             private int count;
 
@@ -169,7 +168,6 @@ public final class CallablesTest {
 
     @Test(expected = IOException.class)
     public void testExecuteWithRetryTimeout2() throws InterruptedException, IOException {
-        System.out.println("executeWithRetryTimeout2");
         Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(1000) {
             private int count;
 
