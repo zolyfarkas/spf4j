@@ -1,12 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package org.spf4j.base;
 
 import org.spf4j.ds.RTree;
 import java.util.List;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -14,7 +11,7 @@ import org.junit.Test;
  * @author zoly
  */
 public final class RTreeTest {
-    
+
     /**
      * Test of search method, of class RTree.
      */
@@ -27,7 +24,7 @@ public final class RTreeTest {
         Assert.assertEquals(2, result.size());
         List<String> result2 = rectangles.search(new float [] {1.5f, 1.5f}, new float [] {2, 2});
         Assert.assertEquals(1, result2.size());
-        
+
         RTree<String> ranges = new RTree<String>(1);
         ranges.insert(new float [] {1}, new float [] {1}, "range 1,2");
         ranges.insert(new float [] {2}, new float [] {2}, "range 2,4");
