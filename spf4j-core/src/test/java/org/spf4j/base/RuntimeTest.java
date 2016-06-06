@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.concurrent.DefaultExecutor;
@@ -43,8 +44,13 @@ public final class RuntimeTest {
     public void testSomeParams() throws IOException, InterruptedException, ExecutionException, TimeoutException {
         System.out.println("PID=" + Runtime.PID);
         System.out.println("OSNAME=" + Runtime.OS_NAME);
-        System.out.println("NR_OPEN_FILES=" + Runtime.getNrOpenFiles());
-        System.out.println("LSOF_OUT=" + Runtime.getLsofOutput());
+        int nrOpenFiles = Runtime.getNrOpenFiles();
+        System.out.println("NR_OPEN_FILES=" + nrOpenFiles);
+        Assert.assertThat(nrOpenFiles, Matchers.greaterThan(0));
+        String lsofOutput = Runtime.getLsofOutput();
+        System.out.println("LSOF_OUT=" + lsofOutput);
+        Assert.assertNotNull(lsofOutput);
+        Assert.assertThat(lsofOutput, Matchers.containsString("jar"));
         System.out.println("MAX_OPEN_FILES=" + Runtime.Ulimit.MAX_NR_OPENFILES);
     }
 
@@ -78,23 +84,27 @@ public final class RuntimeTest {
     }
 
     @Test(expected = CancellationException.class, timeout = 30000)
-    public void testExitCode5() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    public void testExitCode5() throws  InterruptedException, ExecutionException, TimeoutException {
         final CountDownLatch latch  = new CountDownLatch(1);
+        final CountDownLatch canCancel  = new CountDownLatch(1);
         Future<?> submit = DefaultExecutor.INSTANCE.submit(new AbstractRunnable() {
 
             @Override
             public void doRun() throws IOException, InterruptedException, ExecutionException, TimeoutException {
                 try {
+                    canCancel.countDown();
                     Runtime.jrun(RuntimeTest.TestError3.class, 10000);
                 } catch (InterruptedException ex) {
-                    ex.printStackTrace();
+                    Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
                     latch.countDown();
                 } catch (Exception ex) {
                   Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
                 }
             }
         });
-        Thread.sleep(1000);
+        if (!canCancel.await(3000, TimeUnit.MILLISECONDS)) {
+          Assert.fail("exec should happen");
+        }
         submit.cancel(true);
         if (!latch.await(15000, TimeUnit.SECONDS)) {
             Assert.fail("exec should be cancelled");

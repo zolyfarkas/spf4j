@@ -17,6 +17,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -24,6 +25,7 @@ import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -33,8 +35,11 @@ import org.spf4j.base.NoExitSecurityManager;
 
 public final class MonitorTest {
 
+    private static SecurityManager original;
     @BeforeClass
     public static void init() {
+        original = System.getSecurityManager();
+        System.setSecurityManager(new NoExitSecurityManager());
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
@@ -45,31 +50,40 @@ public final class MonitorTest {
         });
     }
 
+    @AfterClass
+    public static void cleanup() {
+      System.setSecurityManager(original);
+    }
+
     @Test(expected = ExitException.class)
     public void testError() throws ClassNotFoundException, NoSuchMethodException,
             IllegalAccessException, InvocationTargetException, IOException {
         String report = File.createTempFile("stackSample", ".html").getPath();
+        SecurityManager original = System.getSecurityManager();
         System.setSecurityManager(new NoExitSecurityManager());
         try {
         Monitor.main(new String[]{"-ASDF", "-f", report, "-ss", "-si", "10", "-w", "600", "-main",
             MonitorTest.class.getName()});
         } finally {
-          System.setSecurityManager(null);
+          System.setSecurityManager(original);
         }
     }
 
     @Test
     public void testJmx() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
             InvocationTargetException, IOException {
+      try {
         Monitor.main(new String[]{"-ss", "-si", "10", "-main",
             MonitorTest.class.getName()});
+      } catch (ExitException ex) {
+        Assert.assertEquals(0, ex.getExitCode());
+      }
     }
-
-
 
 
     private static volatile boolean stopped;
 
+    @SuppressFBWarnings("MDM_THREAD_YIELD")
     public static void main(final String[] args) throws InterruptedException {
         stopped = false;
         List<Thread> threads = new ArrayList<Thread>();
@@ -89,6 +103,7 @@ public final class MonitorTest {
                         }
                 }
 
+                @SuppressFBWarnings("MDM_THREAD_YIELD")
                 private double doStuff3(final double rnd) throws InterruptedException {
                     Thread.sleep(1);
                     if (rnd > 0.8) {
@@ -97,6 +112,7 @@ public final class MonitorTest {
                     return rnd * Math.pow(2, 10000);
                 }
 
+                @SuppressFBWarnings("MDM_THREAD_YIELD")
                 private double doStuff2(final double prnd) throws InterruptedException {
                     double rnd = prnd;
                     Thread.sleep(1);
@@ -106,6 +122,7 @@ public final class MonitorTest {
                     return rnd;
                 }
 
+                @SuppressFBWarnings("MDM_THREAD_YIELD")
                 private void doStuff1(final double rnd, final int depth) throws InterruptedException {
                     if (depth <= 0) {
                         Thread.sleep(10);
