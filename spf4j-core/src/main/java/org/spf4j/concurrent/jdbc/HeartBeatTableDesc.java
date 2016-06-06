@@ -49,6 +49,7 @@ public final class HeartBeatTableDesc  implements Serializable {
    * MSSQL = DATEDIFF(ms, '1970-01-01 00:00:00', GETUTCDATE())
    * ORACLE = (SYSDATE - TO_DATE('01-01-1970 00:00:00', 'DD-MM-YYYY HH24:MI:SS')) * 24 * 3600000
    * H2 = TIMESTAMPDIFF('MILLISECOND', timestamp '1970-01-01 00:00:00', CURRENT_TIMESTAMP())
+   * POSTGRES = extract(epoch FROM now()) * 1000
    */
   private final String currentTimeMillisFunc;
 
@@ -103,6 +104,10 @@ public final class HeartBeatTableDesc  implements Serializable {
         return "(SYSDATE - TO_DATE('01-01-1970 00:00:00', 'DD-MM-YYYY HH24:MI:SS')) * 24 * 3600000";
       case MSSQL:
         return "DATEDIFF(ms, '1970-01-01 00:00:00', GETUTCDATE())";
+      case POSTGRES:
+        return "extract(epoch FROM now()) * 1000";
+      case COCKROACH_DB:
+        return "extract(epoch_nanosecond from now()) / 1e6";
       default:
         throw new ExceptionInInitializerError("Database not supported");
     }

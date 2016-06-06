@@ -18,6 +18,7 @@
  */
 package org.spf4j.perf.memory;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -25,9 +26,6 @@ import org.junit.Test;
  * @author zoly
  */
 public final class GCUsageSamplerTest {
-
-    public GCUsageSamplerTest() {
-    }
 
     @Test
     public void testSomeMethod() throws InterruptedException {
@@ -40,5 +38,6 @@ public final class GCUsageSamplerTest {
         Thread.sleep(1000);
         MemoryUsageSampler.stop();
         GCUsageSampler.stop();
+        Assert.assertFalse(GCUsageSampler.isStarted());
     }
 }

@@ -17,6 +17,7 @@
  */
 package org.spf4j.recyclable.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,10 +53,10 @@ public final class ExpensiveTestObject implements Closeable {
     public void doStuff() throws IOException {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
-            throw new IOException("Connection closed");
+            throw new IOException("Connection closed for " + id);
         }
         if (nrUses > nrUsesToFailAfter) {
-            throw new IOException("Simulated random crap");
+            throw new IOException("Simulated random crap " + id);
         }
         simulateDoStuff(maxOperationMillis - minOperationMillis);
         nrUses++;
@@ -66,10 +67,10 @@ public final class ExpensiveTestObject implements Closeable {
         System.out.println("Testing object id " + id);
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
-            throw new IOException("Connection closed");
+            throw new IOException("Connection closed " + id);
         }
         if (nrUses > nrUsesToFailAfter) {
-            throw new IOException("Simulated random crap");
+            throw new IOException("Simulated random crap " + id);
         }
         simulateDoStuff(0);
         nrUses++;
@@ -81,7 +82,8 @@ public final class ExpensiveTestObject implements Closeable {
         doStuff();
     }
 
-    private void simulateDoStuff(final long time) throws RuntimeException {
+    @SuppressFBWarnings("MDM_THREAD_YIELD")
+    private void simulateDoStuff(final long time) {
         long sleepTime = (long) (Math.random() * (time));
         try {
             Thread.sleep(minOperationMillis + sleepTime);
@@ -89,4 +91,15 @@ public final class ExpensiveTestObject implements Closeable {
             throw new RuntimeException(ex);
         }
     }
+
+  @Override
+  public String toString() {
+    return "ExpensiveTestObject{" + "maxIdleMillis=" + maxIdleMillis + ", nrUsesToFailAfter="
+            + nrUsesToFailAfter + ", minOperationMillis=" + minOperationMillis + ", maxOperationMillis="
+            + maxOperationMillis + ", lastTouchedTimeMillis=" + lastTouchedTimeMillis + ", nrUses=" + nrUses
+            + ", id=" + id + '}';
+  }
+
+
+
 }
