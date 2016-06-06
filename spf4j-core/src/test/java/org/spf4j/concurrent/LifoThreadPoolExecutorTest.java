@@ -18,6 +18,7 @@
  */
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
@@ -25,9 +26,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.spf4j.base.Throwables;
 
 /**
  *
@@ -56,11 +58,12 @@ public class LifoThreadPoolExecutorTest {
         executor.execute(new Runnable() {
 
             @Override
+            @SuppressFBWarnings("MDM_THREAD_YIELD")
             public void run() {
                 try {
                     Thread.sleep(Long.MAX_VALUE);
                 } catch (InterruptedException ex) {
-                    ex.printStackTrace();
+                    Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
                 }
             }
         });
@@ -68,6 +71,7 @@ public class LifoThreadPoolExecutorTest {
         executor.execute(new Runnable() {
 
             @Override
+            @SuppressFBWarnings("MDM_THREAD_YIELD")
             public void run() {
                 try {
                     Thread.sleep(Long.MAX_VALUE);
