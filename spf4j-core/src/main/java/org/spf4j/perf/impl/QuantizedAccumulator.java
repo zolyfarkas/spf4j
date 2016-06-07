@@ -107,11 +107,13 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
 
         if (magnitudes.length > 0) {
             long prevVal = magnitudes[0];
+            StringBuilder sb = new StringBuilder(16);
             for (int i = 1; i < magnitudes.length; i++) {
                 long magVal = magnitudes[i];
                 long intSize = magVal - prevVal;
                 for (j = 0; j < quantasPerMagnitude; j++) {
-                    result.add(new StringBuilder(16).append('Q').append(prevVal + intSize * j / quantasPerMagnitude)
+                  sb.setLength(0);
+                    result.add(sb.append('Q').append(prevVal + intSize * j / quantasPerMagnitude)
                             .append('_').append(prevVal + intSize * (j + 1) / quantasPerMagnitude).toString());
                     uom.add("count");
                 }
