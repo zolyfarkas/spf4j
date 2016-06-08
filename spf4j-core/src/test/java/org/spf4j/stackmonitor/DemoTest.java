@@ -18,6 +18,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,11 +61,11 @@ public final class DemoTest {
     }
     private static volatile boolean stopped;
 
+    @SuppressFBWarnings("MDM_THREAD_YIELD")
     public static void main(final String[] args) throws InterruptedException {
         List<Thread> threads = startTestThreads(20);
         Thread.sleep(5000);
         stopTestThreads(threads);
-
     }
 
     public static void stopTestThreads(final List<Thread> threads) throws InterruptedException {
@@ -80,6 +81,7 @@ public final class DemoTest {
         for (int i = 0; i < nrThreads; i++) {
             Thread t = new Thread(new Runnable() {
                 @Override
+                @SuppressFBWarnings("MDM_THREAD_YIELD")
                 public void run() {
                     try {
                         while (!stopped) {

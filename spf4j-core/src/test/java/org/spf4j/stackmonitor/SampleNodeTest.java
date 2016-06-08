@@ -4,6 +4,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -12,13 +13,14 @@ import org.junit.Test;
  * @author zoly
  */
 public final class SampleNodeTest {
-    
+
     public SampleNodeTest() {
     }
 
     @Test
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void testSampleNode() {
-       
+
         System.out.println("sample");
         StackTraceElement[] st1 = new StackTraceElement[3];
         st1[0] = new StackTraceElement("C1", "m1", "C1.java", 10);
@@ -28,11 +30,11 @@ public final class SampleNodeTest {
         SampleNode node2 = new SampleNode(st1, st1.length - 1);
         System.out.println(node1);
         System.out.println(node2);
-        
+
         Assert.assertEquals(4, node1.getNrNodes());
         Assert.assertEquals(4, node2.getNrNodes());
 
-        
+
         StackTraceElement[] st2 = new StackTraceElement[1];
         st2[0] = new StackTraceElement("C1", "m1", "C1.java", 10);
         SampleNode.addToSampleNode(node1, st2);
@@ -60,11 +62,11 @@ public final class SampleNodeTest {
 
         SampleNode.addToSampleNode(node1, st1);
         node2.addSample(st1, st1.length - 1);
-        
+
         System.out.println("n1 = " + node1);
         System.out.println("n2 = " + node2);
         Assert.assertEquals(node1.toString(), node2.toString());
-        
+
         SampleNode agg = SampleNode.aggregate(node1, node2);
         System.out.println("n1 + n2 = " + agg);
         Assert.assertEquals(node1.getSampleCount() + node2.getSampleCount(), agg.getSampleCount());
@@ -72,6 +74,6 @@ public final class SampleNodeTest {
         Assert.assertEquals(node1.getSubNodes().get(method).getSampleCount()
                 + node2.getSubNodes().get(method).getSampleCount(),
                 agg.getSubNodes().get(method).getSampleCount());
-        
+
     }
 }

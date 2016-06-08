@@ -17,6 +17,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,6 +31,7 @@ public final class SimpleStackCollectorTest {
      * Test of sample method, of class SimpleStackCollector.
      */
     @Test
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void testSample() {
         System.out.println("sample");
         SimpleStackCollector instance = new SimpleStackCollector();
@@ -61,12 +63,13 @@ public final class SimpleStackCollectorTest {
         instance.addSample(st4);
 
         System.out.println(instance);
-        
-        Assert.assertTrue(Thread.currentThread().getStackTrace()[0].getClassName()
-                == Thread.currentThread().getStackTrace()[0].getClassName());
-        Assert.assertTrue(Thread.currentThread().getStackTrace()[0].getMethodName()
-                == Thread.currentThread().getStackTrace()[0].getMethodName());
-        
+        Thread currentThread = Thread.currentThread();
+
+        Assert.assertTrue(currentThread.getStackTrace()[0].getClassName()
+                == currentThread.getStackTrace()[0].getClassName());
+        Assert.assertTrue(currentThread.getStackTrace()[0].getMethodName()
+                == currentThread.getStackTrace()[0].getMethodName());
+
     }
-    
+
 }

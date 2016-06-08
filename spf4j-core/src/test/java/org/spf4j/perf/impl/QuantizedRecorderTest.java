@@ -99,16 +99,17 @@ public final class QuantizedRecorderTest {
     System.out.println(instance);
     Assert.assertEquals(15000, instance.getMaxMeasurement());
     Assert.assertEquals(-1, instance.getMinMeasurement());
-    Assert.assertEquals(instance.getInfo().getNumberOfMeasurements(), instance.get().length);
+    long[] vals = instance.get();
+    Assert.assertEquals(instance.getInfo().getNumberOfMeasurements(), vals.length);
     String[] measurementNames = instance.getInfo().getMeasurementNames();
     int niIdx = Arrays.indexOf(measurementNames, "QNI_0");
-    Assert.assertEquals(1, instance.get()[niIdx]);
+    Assert.assertEquals(1, vals[niIdx]);
     int q23Idx = Arrays.indexOf(measurementNames, "Q2_3");
-    Assert.assertEquals(4, instance.get()[q23Idx]);
+    Assert.assertEquals(4, vals[q23Idx]);
     int qPIIdx = Arrays.indexOf(measurementNames, "Q1000_PI");
-    Assert.assertEquals(2, instance.get()[qPIIdx]);
+    Assert.assertEquals(2, vals[qPIIdx]);
     int q2300Idx = Arrays.indexOf(measurementNames, "Q200_300");
-    Assert.assertEquals(2, instance.get()[q2300Idx]);
+    Assert.assertEquals(2, vals[q2300Idx]);
   }
 
   @Test
@@ -139,21 +140,22 @@ public final class QuantizedRecorderTest {
     System.out.println(instance);
     Assert.assertEquals(15000, instance.getMaxMeasurement());
     Assert.assertEquals(-15000, instance.getMinMeasurement());
-    Assert.assertEquals(instance.getInfo().getNumberOfMeasurements(), instance.get().length);
+    long[] vals = instance.get();
+    Assert.assertEquals(instance.getInfo().getNumberOfMeasurements(), vals.length);
     String[] measurementNames = instance.getInfo().getMeasurementNames();
     int niIdx = Arrays.indexOf(measurementNames, "QNI_-1000");
-    Assert.assertEquals(3, instance.get()[niIdx]);
+    Assert.assertEquals(3, vals[niIdx]);
     int q23Idx = Arrays.indexOf(measurementNames, "Q2_3");
-    Assert.assertEquals(4, instance.get()[q23Idx]);
+    Assert.assertEquals(4, vals[q23Idx]);
     int n10Idx = Arrays.indexOf(measurementNames, "Q-1_0");
-    Assert.assertEquals(1, instance.get()[n10Idx]);
+    Assert.assertEquals(1, vals[n10Idx]);
     int qPIIdx = Arrays.indexOf(measurementNames, "Q1000_PI");
-    long[] get = instance.get();
+    long[] get = vals;
     Assert.assertEquals(1, get[qPIIdx]);
     int q2300Idx = Arrays.indexOf(measurementNames, "Q200_300");
-    Assert.assertEquals(2, instance.get()[q2300Idx]);
+    Assert.assertEquals(2, vals[q2300Idx]);
     int nq2300Idx = Arrays.indexOf(measurementNames, "Q-300_-200");
-    Assert.assertEquals(2, instance.get()[nq2300Idx]);
+    Assert.assertEquals(2, vals[nq2300Idx]);
   }
 
   @Test
@@ -192,16 +194,17 @@ public final class QuantizedRecorderTest {
     System.out.println(instance);
     Assert.assertEquals(15000, instance.getMaxMeasurement());
     Assert.assertEquals(-15000, instance.getMinMeasurement());
-    Assert.assertEquals(instance.getInfo().getNumberOfMeasurements(), instance.get().length);
+    long[] vals = instance.get();
+    Assert.assertEquals(instance.getInfo().getNumberOfMeasurements(), vals.length);
     String[] measurementNames = instance.getInfo().getMeasurementNames();
     int niIdx = Arrays.indexOf(measurementNames, "QNI_-1000");
-    Assert.assertEquals(3, instance.get()[niIdx]);
+    Assert.assertEquals(3, vals[niIdx]);
     int niIdx2 = Arrays.indexOf(measurementNames, "Q100_400");
-    Assert.assertEquals(5, instance.get()[niIdx2]);
+    Assert.assertEquals(5, vals[niIdx2]);
     int niIdx3 = Arrays.indexOf(measurementNames, "Q400_600");
-    Assert.assertEquals(1, instance.get()[niIdx3]);
+    Assert.assertEquals(1, vals[niIdx3]);
     int niIdx4 = Arrays.indexOf(measurementNames, "Q-400_-100");
-    Assert.assertEquals(5, instance.get()[niIdx4]);
+    Assert.assertEquals(5, vals[niIdx4]);
 
 
   }
@@ -221,15 +224,16 @@ public final class QuantizedRecorderTest {
     instance.record(250);
     instance.record(15000);
     System.out.println(instance);
-    long[] result = instance.get();
+    long[] vals = instance.get();
+    long[] result = vals;
     System.out.println(java.util.Arrays.toString(result));
     String[] measurementNames = instance.getInfo().getMeasurementNames();
     int niIdx = Arrays.indexOf(measurementNames, "QNI_0");
-    Assert.assertEquals(1, instance.get()[niIdx]);
+    Assert.assertEquals(1, vals[niIdx]);
     int niIdx2 = Arrays.indexOf(measurementNames, "Q10_PI");
-    Assert.assertEquals(4, instance.get()[niIdx2]);
+    Assert.assertEquals(4, vals[niIdx2]);
     int niIdx3 = Arrays.indexOf(measurementNames, "Q2_3");
-    Assert.assertEquals(2, instance.get()[niIdx3]);
+    Assert.assertEquals(2, vals[niIdx3]);
 
   }
 
@@ -249,15 +253,16 @@ public final class QuantizedRecorderTest {
     instance.record(-10);
     instance.record(-10);
     System.out.println(instance);
-    long[] result = instance.get();
+    long[] vals = instance.get();
+    long[] result = vals;
     System.out.println(java.util.Arrays.toString(result));
     String[] measurementNames = instance.getInfo().getMeasurementNames();
     int niIdx = Arrays.indexOf(measurementNames, "QNI_-10");
-    Assert.assertEquals(1, instance.get()[niIdx]);
+    Assert.assertEquals(1, vals[niIdx]);
     int niIdx2 = Arrays.indexOf(measurementNames, "Q10_PI");
-    Assert.assertEquals(4, instance.get()[niIdx2]);
+    Assert.assertEquals(4, vals[niIdx2]);
     int niIdx3 = Arrays.indexOf(measurementNames, "Q2_3");
-    Assert.assertEquals(1, instance.get()[niIdx3]);
+    Assert.assertEquals(1, vals[niIdx3]);
   }
 
 }

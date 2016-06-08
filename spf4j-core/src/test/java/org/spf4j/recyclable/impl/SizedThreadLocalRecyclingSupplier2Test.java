@@ -15,6 +15,7 @@ public class SizedThreadLocalRecyclingSupplier2Test {
 
 
     @Test
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void testSupplier() {
         SizedRecyclingSupplier<byte[]> supplier = new Powerof2ThreadLocalRecyclingSupplier<>(
                 new SizedRecyclingSupplier.Factory<byte[]>() {
