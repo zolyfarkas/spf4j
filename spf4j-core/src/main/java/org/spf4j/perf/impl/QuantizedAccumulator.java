@@ -21,9 +21,7 @@ import com.google.common.math.IntMath;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.MeasurementAccumulator;
 import org.spf4j.perf.MeasurementsInfo;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -39,7 +37,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
   private long measurementCount;
   private long measurementTotal;
   private final int quantasPerMagnitude;
-  private final long[] magnitudes;
+  private final long[] bucketLimits;
   private final MeasurementsInfo info;
   private final int factor;
   private final int lowerMagnitude;
@@ -54,6 +52,12 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
 
   /**
    * Create a quantized accumulator.
+   * factor = 10
+   * lowMagnitude = -2
+   * higherMagnitude = 2
+   * quantasPerMagnitude = 10
+   *
+   * results in -100 -90 -80 .. -10 -9 -8  .. -1 0 1 2 .. 9 10 20 30 .. 100
    *
    * @param measuredEntity - and object representing the thing we accumulate measurements for.
    * @param description - description of the thing we accumulate measurements for.
@@ -81,7 +85,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
     measurementCount = 0;
     measurementTotal = 0;
     this.quantasPerMagnitude = quantasPerMagnitude;
-    magnitudes = createMagnitudeLimits2(factor, lowerMagnitude, higherMagnitude);
+    long[] magnitudes = createMagnitudeLimits2(factor, lowerMagnitude, higherMagnitude);
     int qm1 = quantasPerMagnitude - 1;
     int l = (magnitudes.length - 1) * qm1 + 2;
     if (lowerMagnitude < 0) {
@@ -90,46 +94,87 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
       l++;
     }
     this.quatizedMeasurements = new long[l];
-
-    final List<String> uom = new ArrayList(16);
-    final List<String> result = new ArrayList(16);
-    result.add("total");
-    uom.add(unitOfMeasurement);
-    result.add("count");
-    uom.add("count");
-    result.add("min");
-    uom.add(unitOfMeasurement);
-    result.add("max");
-    uom.add(unitOfMeasurement);
-    result.add("QNI_" + magnitudes[0]);
-    uom.add("count");
-
+    this.bucketLimits = new long[l - 1];
+    int nrm = l + 4;
+    final String[] uom = new String[nrm];
+    final String[] result = new String[nrm];
+    int m = 0;
+    result[m] = "total";
+    uom[m] = unitOfMeasurement;
+    m++;
+    result[m] = "count";
+    uom[m] = "count";
+    m++;
+    result[m] = "min";
+    uom[m] = unitOfMeasurement;
+    m++;
+    result[m] = "max";
+    uom[m] = unitOfMeasurement;
+    m++;
+    long lm = magnitudes[0];
+    result[m] = "QNI_" + lm;
+    uom[m] = "count";
+    m++;
+    int k = 1;
+    bucketLimits[0] = lm;
     if (magnitudes.length > 0) {
-      long prevVal = magnitudes[0];
+      long prevVal = lm;
       StringBuilder sb = new StringBuilder(16);
       for (int i = 1; i < magnitudes.length; i++) {
         long magVal = magnitudes[i];
-        long intSize = magVal - prevVal;
-        int nrQ = (magVal == 0 || prevVal == 0) ? quantasPerMagnitude : qm1;
-        long qsize = intSize / nrQ;
-        long pval = prevVal;
-        for (int j = 0; j < nrQ; j++) {
+        if (prevVal < 0) {
+          long qsize = -prevVal / quantasPerMagnitude;
+          int nrQ = (magVal == 0) ? quantasPerMagnitude : qm1;
+          long pval = prevVal;
+          for (int j = 0; j < nrQ - 1; j++) {
+            sb.setLength(0);
+            sb.append('Q').append(pval).append('_');
+            pval += qsize;
+            sb.append(pval);
+            result[m] = sb.toString();
+            uom[m] = "count";
+            m++;
+            bucketLimits[k++] = pval;
+          }
           sb.setLength(0);
-          sb.append('Q').append(pval)
-                  .append('_');
-          pval += qsize;
+          sb.append('Q').append(pval).append('_');
+          pval +=  magVal - pval;
           sb.append(pval);
-          result.add(sb.toString());
-          uom.add("count");
+          result[m] = sb.toString();
+          uom[m] = "count";
+          m++;
+          bucketLimits[k++] = pval;
+        } else {
+            long qsize =  magVal / quantasPerMagnitude;
+            int nrQ = (prevVal == 0) ? quantasPerMagnitude : qm1;
+            long pval = prevVal;
+            sb.setLength(0);
+            sb.append('Q').append(pval).append('_');
+            pval +=  qsize +  (pval == 0 ? 0 : qsize - pval);
+            sb.append(pval);
+            result[m] = sb.toString();
+            uom[m] = "count";
+            m++;
+            bucketLimits[k++] = pval;
+            for (int j = 0; j < nrQ - 1; j++) {
+              sb.setLength(0);
+              sb.append('Q').append(pval).append('_');
+              pval += qsize;
+              sb.append(pval);
+              result[m] = sb.toString();
+              uom[m] = "count";
+              m++;
+              bucketLimits[k++] = pval;
+            }
         }
         prevVal = magVal;
       }
-      result.add(new StringBuilder().append('Q').append(prevVal)
-              .append("_PI").toString());
-      uom.add("count");
+      sb.setLength(0);
+      result[m] = sb.append('Q').append(prevVal)
+              .append("_PI").toString();
+      uom[m] = "count";
     }
-    info = new MeasurementsInfoImpl(measuredEntity, description,
-            result.toArray(new String[result.size()]), uom.toArray(new String[uom.size()]));
+    info = new MeasurementsInfoImpl(measuredEntity, description, result, uom);
 
   }
 
@@ -183,7 +228,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
           final int lowerMagnitude, final int higherMagnitude,
           final long minMeasurement, final long maxMeasurement,
           final long measurementCount, final long measurementTotal,
-          final int quantasPerMagnitude, final long[] magnitudes, final long[] quatizedMeasurements) {
+          final int quantasPerMagnitude, final long[] bucketLimits, final long[] quatizedMeasurements) {
     //CHECKSTYLE:ON
     assert (quantasPerMagnitude <= factor);
     assert (lowerMagnitude < higherMagnitude);
@@ -196,7 +241,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
     this.measurementCount = measurementCount;
     this.measurementTotal = measurementTotal;
     this.quantasPerMagnitude = quantasPerMagnitude;
-    this.magnitudes = magnitudes;
+    this.bucketLimits = bucketLimits;
     this.quatizedMeasurements = quatizedMeasurements;
     this.info = info;
   }
@@ -204,6 +249,23 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
   public String getUnitOfMeasurement() {
     return info.getMeasurementUnit(0);
   }
+
+/**
+ * bucketLimits:  -10, -5, 0, 5, 10
+ * buckets: [< -10], [-10 <= x < -5], [-5 <= x < 0], [0 <= x < 5], [5 <= x < 10], [x >= 10]
+ * @param bucketLimits
+ * @param value
+ * @return
+ */
+  static int findBucket(final long[] bucketLimits, final long value) {
+    int idx = java.util.Arrays.binarySearch(bucketLimits, value);
+    if (idx >= 0) {
+      return idx + 1;
+    } else {
+      return -(idx + 1);
+    }
+  }
+
 
   @Override
   public synchronized void record(final long measurement) {
@@ -215,35 +277,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
     if (measurement > maxMeasurement) {
       maxMeasurement = measurement;
     }
-    long m0 = magnitudes[0];
-    if (m0 > measurement) {
-      quatizedMeasurements[0]++; //OOB
-    } else {
-      long prevMag = m0;
-      int i = 1;
-      int idx = 1;
-      for (; i < magnitudes.length; i++) {
-        long mag = magnitudes[i];
-        if (mag > measurement) {
-           long intSize = mag - prevMag;
-           int nrQ = (prevMag == 0) ? quantasPerMagnitude : quantasPerMagnitude - 1;
-           long qsize = intSize / nrQ;
-           int qidx = idx + (int) ((measurement - prevMag) / qsize);
-          quatizedMeasurements[qidx]++;
-          break;
-        } else {
-          if (mag == 0 || prevMag == 0) {
-            idx += quantasPerMagnitude;
-          } else {
-            idx += quantasPerMagnitude - 1;
-          }
-        }
-        prevMag = mag;
-      }
-      if (i == magnitudes.length) {
-        quatizedMeasurements[quatizedMeasurements.length - 1]++;
-      }
-    }
+    quatizedMeasurements[findBucket(bucketLimits, measurement)]++;
   }
 
   @Override
@@ -301,7 +335,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
               Math.max(maxMeasurementM, otherClone.getMaxMeasurement()),
               measurementCountM + otherClone.getMeasurementCount(),
               measurementTotalM + otherClone.getMeasurementTotal(),
-              quantasPerMagnitude, magnitudes, quantizedM);
+              quantasPerMagnitude, bucketLimits, quantizedM);
     } else {
       throw new IllegalArgumentException("Cannot aggregate " + this + " with " + mSource);
     }
@@ -312,7 +346,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
   public synchronized QuantizedAccumulator createClone() {
     return new QuantizedAccumulator(info, factor, lowerMagnitude, higherMagnitude,
             minMeasurement, maxMeasurement, measurementCount, measurementTotal,
-            quantasPerMagnitude, magnitudes, quatizedMeasurements.clone());
+            quantasPerMagnitude, bucketLimits, quatizedMeasurements.clone());
   }
 
   @Override
@@ -335,7 +369,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
     return "QuantizedRecorder{" + "info=" + info + ", minMeasurement=" + minMeasurement + ", maxMeasurement="
             + maxMeasurement + ", measurementCount=" + measurementCount + ", measurementTotal="
             + measurementTotal + ", quantasPerMagnitude=" + quantasPerMagnitude + ", magnitudes="
-            + Arrays.toString(magnitudes) + ", quatizedMeasurements="
+            + Arrays.toString(bucketLimits) + ", quatizedMeasurements="
             + Arrays.toString(quatizedMeasurements) + '}';
   }
 
