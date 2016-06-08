@@ -25,9 +25,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.spf4j.base.Throwables;
 
 /**
  *
@@ -64,7 +65,7 @@ public class LifoThreadPoolExecutorTestS {
                 try {
                     Thread.sleep(1);
                 } catch (InterruptedException ex) {
-                    ex.printStackTrace();
+                    Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
                 }
             }
         };

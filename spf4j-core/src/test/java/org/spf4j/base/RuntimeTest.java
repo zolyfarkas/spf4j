@@ -109,7 +109,7 @@ public final class RuntimeTest {
         if (!latch.await(15000, TimeUnit.SECONDS)) {
             Assert.fail("exec should be cancelled");
         }
-        submit.get();
+        submit.get(10000, TimeUnit.MILLISECONDS);
 
     }
 

@@ -28,9 +28,11 @@ import org.junit.Test;
  */
 public final class ReflectionsTest {
 
+
+    private static final Class<?>[] params = new Class<?>[]{String.class, Integer.class};
+
     @Test
     public void testReflections() {
-        Class<?>[] params = new Class<?>[]{String.class, Integer.class};
         Method reflect = Reflections.getCompatibleMethod(String.class, "indexOf", params);
         Method fastM = Reflections.getCompatibleMethodCached(String.class, "indexOf", params);
         Assert.assertEquals(reflect, fastM);

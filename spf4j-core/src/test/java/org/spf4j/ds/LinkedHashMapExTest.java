@@ -1,6 +1,7 @@
 
 package org.spf4j.ds;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
@@ -12,6 +13,7 @@ public final class LinkedHashMapExTest {
 
 
     @Test
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void testSomeMethod() {
         LinkedMap<Integer, Integer> map = new LinkedHashMapEx(2);
         map.put(10, 10);

@@ -29,8 +29,8 @@ import javax.management.ReflectionException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.Reflections;
-import org.spf4j.base.Runtime;
 import org.spf4j.base.Runtime.Jmx;
+import org.spf4j.base.Throwables;
 
 /**
  *
@@ -195,8 +195,9 @@ public final class RegistryTest {
         try {
             Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "doubleVal", 0.0);
+            Assert.fail();
         } catch (InvalidAttributeValueException e) {
-            e.printStackTrace();
+            Throwables.writeTo(e, System.err, Throwables.Detail.STANDARD);
         }
 
     }
@@ -258,7 +259,7 @@ public final class RegistryTest {
         Assert.assertEquals("Doing a b", ret5);
 
     }
-    
+
     @Test
     public void testClassLocator() throws IOException, InstanceNotFoundException, MBeanException, ReflectionException {
         Registry.export(Jmx.class);

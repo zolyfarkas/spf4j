@@ -9,7 +9,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
@@ -38,6 +37,7 @@ public class TSDBReaderTest {
           .build();
 
   @Test
+  @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE") // try with resources trips up findbugs.
   public void testTsdb() throws IOException {
     File TEST_FILE = File.createTempFile("test", ".tsdb2");
     long tableId;

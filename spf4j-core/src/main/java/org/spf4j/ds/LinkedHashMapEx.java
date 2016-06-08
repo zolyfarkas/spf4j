@@ -8,7 +8,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 /**
- *
+ * Linked hashmap that allows access to the Last Entry efficiently.
  * @author zoly
  */
 public final class LinkedHashMapEx<K, V> extends LinkedHashMap<K, V>
