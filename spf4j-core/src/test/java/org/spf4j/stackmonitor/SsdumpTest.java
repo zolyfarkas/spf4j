@@ -29,7 +29,7 @@ import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.spf4j.ds.Traversals;
@@ -86,7 +86,8 @@ public final class SsdumpTest {
 
                 }, true);
 
-        String report = anotherOne.dumpToFile();
+        File report = anotherOne.dumpToFile();
         System.out.println(report);
+        Assert.assertTrue(report.exists());
     }
 }

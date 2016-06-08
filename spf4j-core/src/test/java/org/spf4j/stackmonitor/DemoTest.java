@@ -18,16 +18,17 @@
  */
 package org.spf4j.stackmonitor;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.spf4j.base.Throwables;
+import org.spf4j.ssdump2.Converter;
 
 public final class DemoTest {
 
@@ -36,9 +37,7 @@ public final class DemoTest {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
-                StringWriter strw = new StringWriter();
-                e.printStackTrace(new PrintWriter(strw));
-                Assert.fail("Got Exception: " + strw.toString());
+                Throwables.writeTo(e, System.err, Throwables.Detail.NONE);
             }
         });
     }
@@ -46,10 +45,17 @@ public final class DemoTest {
     @Test
     public void testJmx() throws InterruptedException, IOException, ExecutionException, TimeoutException {
         Sampler sampler = new Sampler(new SimpleStackCollector());
+        sampler.registerJmx();
         sampler.start();
         main(new String[]{});
-        String fileName = sampler.dumpToFile();
-        System.out.println("Samples saved to " + fileName);
+        sampler.stop();
+        SampleNode original = sampler.getStackCollector().applyOnSamples((SampleNode input) -> input);
+        File file = sampler.dumpToFile();
+        System.out.println("Samples saved to " + file);
+        Assert.assertNotNull(file);
+        Assert.assertTrue(file.exists());
+        SampleNode loaded = Converter.load(file);
+        Assert.assertEquals(original, loaded);
         sampler.stop();
     }
     private static volatile boolean stopped;

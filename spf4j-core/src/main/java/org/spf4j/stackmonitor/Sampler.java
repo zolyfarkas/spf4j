@@ -169,7 +169,8 @@ public final class Sampler {
     private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();
 
     @JmxExport(description = "save stack samples to file")
-    public String dumpToFile() throws IOException {
+    @Nullable
+    public File dumpToFile() throws IOException {
         return dumpToFile(null);
     }
 
@@ -184,7 +185,7 @@ public final class Sampler {
 
     @JmxExport(value = "dumpToSpecificFile", description = "save stack samples to file")
     @Nullable
-    public synchronized String dumpToFile(
+    public synchronized File dumpToFile(
             @JmxExport(value = "fileID", description = "the ID that will be part of the file name")
             @Nullable final String id) throws IOException {
         SampleNode collected = stackCollector.clear();
@@ -192,9 +193,10 @@ public final class Sampler {
             String fileName = filePrefix + '_' + ((id == null) ? "" : id + '_')
                     + TS_FORMAT.print(lastDumpTime) + '_'
                     + TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump2";
-            Converter.save(new File(fileName), collected);
+            File file = new File(fileName);
+            Converter.save(file, collected);
             lastDumpTime = System.currentTimeMillis();
-            return fileName;
+            return file;
         } else {
             return null;
         }

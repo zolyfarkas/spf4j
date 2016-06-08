@@ -52,5 +52,10 @@ public final class TestCallable implements Callable<Integer> {
         }, pool, 5, 1000, 60000);
         return testNr;
     }
-    
+
+  @Override
+  public String toString() {
+    return "TestCallable{" + "pool=" + pool + ", testNr=" + testNr + '}';
+  }
+
 }
