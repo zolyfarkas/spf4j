@@ -8,17 +8,17 @@ import java.security.Permission;
 public final class NoExitSecurityManager extends SecurityManager {
 
   @Override
-  public void checkPermission(Permission perm) {
+  public void checkPermission(final Permission perm) {
     // allow anything.
   }
 
   @Override
-  public void checkPermission(Permission perm, Object context) {
+  public void checkPermission(final Permission perm, final Object context) {
     // allow anything.
   }
 
   @Override
-  public void checkExit(int status) {
+  public void checkExit(final int status) {
     super.checkExit(status);
     throw new ExitException(status);
   }

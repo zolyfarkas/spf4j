@@ -223,5 +223,16 @@ public final class Arrays {
     }
 
 
+    public static <T> int indexOf(final T[] array, final T content) {
+      int result = -1;
+      for (int i = 0; i < array.length; i++) {
+        if (array[i].equals(content)) {
+          return i;
+        }
+      }
+      return result;
+    }
+
+
 
 }

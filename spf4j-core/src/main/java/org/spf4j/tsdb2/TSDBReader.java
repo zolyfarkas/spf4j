@@ -160,11 +160,12 @@ public final  class TSDBReader implements Closeable {
 
 
     //CHECKSTYLE:OFF
+    @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
     public  <E extends Exception>  void watch(final Handler<Either<TableDef, DataBlock>, E> handler,
             final EventSensitivity es)
             throws IOException, InterruptedException, E {
         //CHECKSTYLE:ON
-        synchronized(this) {
+        synchronized (this) {
           if (watch) {
               throw new IllegalStateException("File is already watched " + file);
           }
