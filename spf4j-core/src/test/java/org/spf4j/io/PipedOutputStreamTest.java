@@ -76,9 +76,7 @@ public class PipedOutputStreamTest {
         try(final PipedOutputStream pos = os) {
             pos.write(123);
         } catch(IOException ex) {
-           IOException e = new IOException("Stream=" + os, ex);
-           e.printStackTrace();
-           throw e;
+           throw new IOException("Stream=" + os, ex);
         }
     }
 
@@ -88,9 +86,7 @@ public class PipedOutputStreamTest {
         try {
             pos.write(123);
         } catch(IOException ex) {
-           IOException e = new IOException("Stream=" + pos, ex);
-           e.printStackTrace();
-           throw e;
+           throw new IOException("Stream=" + pos, ex);
         } finally {
             pos.close();
         }
