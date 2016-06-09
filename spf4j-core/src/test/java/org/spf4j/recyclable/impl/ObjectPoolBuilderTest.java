@@ -37,6 +37,7 @@ import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.ParameterizedSupplier;
+import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
 
@@ -71,8 +72,8 @@ public final class ObjectPoolBuilderTest {
         RecyclingSupplier<ExpensiveTestObject> pool =
                 new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
         System.out.println(pool);
-        ExpensiveTestObject object = pool.get();
-        object = pool.get();
+        pool.get();
+        pool.get();
         System.out.println(pool);
         org.spf4j.base.Runtime.setDeadline(System.currentTimeMillis() + 1000);
         pool.dispose();
@@ -141,8 +142,9 @@ public final class ObjectPoolBuilderTest {
         runTest(pool, 0, 10000);
         try {
             pool.dispose();
+            Assert.fail();
         } catch (ObjectDisposeException ex) {
-            ex.printStackTrace();
+            Throwables.writeTo(ex, System.err, Throwables.Detail.NONE);
         }
     }
 
@@ -155,11 +157,7 @@ public final class ObjectPoolBuilderTest {
         final RecyclingSupplier<ExpensiveTestObject> pool = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory())
                 .withMaintenance(org.spf4j.concurrent.DefaultScheduler.INSTANCE, 10, true).build();
         runTest(pool, 5, 20000);
-        try {
-            pool.dispose();
-        } catch (ObjectDisposeException ex) {
-            ex.printStackTrace();
-        }
+        pool.dispose();
     }
 
     private volatile boolean isDeadlock = false;
