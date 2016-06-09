@@ -15,6 +15,8 @@ public class SizedThreadLocalRecyclingSupplierTest {
 
 
     @Test
+    @SuppressFBWarnings({ "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS",
+      "UTAO_JUNIT_ASSERTION_ODDITIES_USE_ASSERT_EQUALS" })
     public void testSupplier() {
         SizedThreadLocalRecyclingSupplier<byte[]> supplier = new SizedThreadLocalRecyclingSupplier<>(
                 new SizedRecyclingSupplier.Factory<byte[]>() {

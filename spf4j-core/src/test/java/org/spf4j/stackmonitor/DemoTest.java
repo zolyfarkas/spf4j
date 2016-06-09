@@ -71,7 +71,7 @@ public final class DemoTest {
     public static void stopTestThreads(final List<Thread> threads) throws InterruptedException {
         stopped = true;
         for (Thread t : threads) {
-            t.join();
+            t.join(3000);
         }
     }
 
@@ -84,10 +84,12 @@ public final class DemoTest {
                 @SuppressFBWarnings("MDM_THREAD_YIELD")
                 public void run() {
                     try {
+                        double d = 0;
                         while (!stopped) {
-                            doStuff();
+                            d += doStuff();
                             Thread.sleep(1);
                         }
+                        System.err.println("nr = " + d);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }

@@ -45,8 +45,8 @@ public final class ExpensiveTestObjectFactory implements RecyclingSupplier.Facto
         this(100, 10, 1, 20);
     }
 
-    
-    
+
+
     @Override
     public ExpensiveTestObject create() throws ObjectCreationException {
         return new ExpensiveTestObject(maxIdleMillis, nrUsesToFailAfter, minOperationMillis, maxOperationMillis);
@@ -63,12 +63,12 @@ public final class ExpensiveTestObjectFactory implements RecyclingSupplier.Facto
 
     @Override
     public boolean validate(final ExpensiveTestObject object, final Exception e) throws IOException {
-       if (e != null && e instanceof IOException) {
+       if (e instanceof IOException) {
            return false;
        } else {
             object.testObject();
             return true;
        }
     }
- 
+
 }

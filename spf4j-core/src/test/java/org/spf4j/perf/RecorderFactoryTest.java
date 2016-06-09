@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;

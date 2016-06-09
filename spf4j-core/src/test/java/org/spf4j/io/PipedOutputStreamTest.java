@@ -3,7 +3,7 @@ package org.spf4j.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.IntMath;
