@@ -240,8 +240,9 @@ public final class RegistryTest {
         try {
             Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "doubleVal", 0.0);
+            Assert.fail();
         } catch (InvalidAttributeValueException e) {
-            e.printStackTrace();
+          Throwables.writeTo(e, System.err, Throwables.Detail.NONE);
         }
 
         testObj2.setStringVal("cucu");

@@ -71,7 +71,7 @@ public final class MonitorTest {
 
     @Test
     public void testJmx() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException, IOException {
+            InvocationTargetException {
       try {
         Monitor.main(new String[]{"-ss", "-si", "10", "-main",
             MonitorTest.class.getName()});
@@ -138,7 +138,7 @@ public final class MonitorTest {
         Thread.sleep(5000);
         stopped = true;
         for (Thread t : threads) {
-            t.join();
+            t.join(3000);
         }
 
     }

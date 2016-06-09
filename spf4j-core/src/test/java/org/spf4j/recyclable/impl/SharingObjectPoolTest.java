@@ -1,6 +1,7 @@
 
 package org.spf4j.recyclable.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -17,6 +18,7 @@ public class SharingObjectPoolTest {
 
 
     @Test
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void testSharingPool()
             throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
 
@@ -33,6 +35,7 @@ public class SharingObjectPoolTest {
     }
 
     @Test
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void testSharingPool2()
             throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
 
@@ -47,7 +50,7 @@ public class SharingObjectPoolTest {
 
 
     public SharingObjectPool<String> createTestPool() throws ObjectCreationException {
-        SharingObjectPool<String> pool = new SharingObjectPool<>(new RecyclingSupplier.Factory<String>(){
+        return new SharingObjectPool<>(new RecyclingSupplier.Factory<String>(){
 
             int i = 0;
 
@@ -62,10 +65,9 @@ public class SharingObjectPoolTest {
 
             @Override
             public boolean validate(String object, Exception e) throws Exception {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                throw new UnsupportedOperationException("Not supported yet.");
             }
         }, 0, 4);
-        return pool;
     }
 
 }

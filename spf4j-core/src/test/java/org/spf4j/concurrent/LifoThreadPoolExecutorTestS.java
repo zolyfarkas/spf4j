@@ -19,8 +19,13 @@
 
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -28,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
 
 /**
@@ -38,7 +44,7 @@ public class LifoThreadPoolExecutorTestS {
 
 
     @Test
-    public void testLifoExecSQ() throws InterruptedException, IOException {
+    public void testLifoExecSQ() throws Exception {
         LifoThreadPoolExecutorSQP executor =
                 new LifoThreadPoolExecutorSQP("test", 2, 8, 10000, 1024, 1024);
         testPool(executor);
@@ -46,7 +52,8 @@ public class LifoThreadPoolExecutorTestS {
 
     @Test
     @Ignore
-    public void testJdkExec() throws InterruptedException, IOException {
+    @SuppressFBWarnings("HES_LOCAL_EXECUTOR_SERVICE")
+    public void testJdkExec() throws Exception {
         final LinkedBlockingQueue linkedBlockingQueue = new LinkedBlockingQueue(1024);
         ThreadPoolExecutor executor = new ThreadPoolExecutor(8, 8, 60000, TimeUnit.MILLISECONDS,
                 linkedBlockingQueue);
@@ -54,7 +61,7 @@ public class LifoThreadPoolExecutorTestS {
     }
 
     public static void testPool(final ExecutorService executor)
-            throws InterruptedException, IOException {
+            throws InterruptedException, IOException, Exception {
         final LongAdder adder = new LongAdder();
         final int testCount = 20000;
         long rejected = 0;
@@ -70,13 +77,19 @@ public class LifoThreadPoolExecutorTestS {
             }
         };
         long start = System.currentTimeMillis();
+        List<Future> futures = new ArrayList<>(testCount);
         for (int i = 0; i < testCount; i++) {
             try {
-                executor.submit(runnable);
+               futures.add(executor.submit(runnable));
             } catch (RejectedExecutionException ex) {
                 rejected++;
                 runnable.run();
             }
+        }
+        Pair<Map<Future, Object>, Exception> results = Futures.getAll(60000, futures);
+        Exception second = results.getSecond();
+        if (second != null) {
+          throw second;
         }
         executor.shutdown();
         boolean awaitTermination = executor.awaitTermination(10000, TimeUnit.MILLISECONDS);

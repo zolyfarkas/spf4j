@@ -17,7 +17,10 @@
  */
 package org.spf4j.concurrent;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -30,16 +33,18 @@ public final class UIDGeneratorTest {
     public void testSomeMethod() {
         UIDGenerator idGen = new UIDGenerator(new ScalableSequence(0, 50), System.currentTimeMillis());
         long startTime  = System.currentTimeMillis();
+        Set<String> ids = new HashSet<>(100);
         for (int i = 0; i < 100; i++) {
-            System.out.println("ID: " + idGen.next());
+            Assert.assertTrue(ids.add(idGen.next().toString()));
         }
+        ids.clear();
         long sw1 = System.currentTimeMillis();
         for (int i = 0; i < 100; i++) {
-            System.out.println("ID: " + UUID.randomUUID().toString());
+            Assert.assertTrue(ids.add(UUID.randomUUID().toString()));
         }
         long end = System.currentTimeMillis();
         System.out.println("Fast = " + (sw1 - startTime));
         System.out.println("Slow = " + (end - sw1));
     }
-    
+
 }

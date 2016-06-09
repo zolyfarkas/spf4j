@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
@@ -131,19 +132,19 @@ public class WriterOutputStreamTest {
     public void testFlush() throws IOException {
         final StringWriter writer = new StringWriter();
         final WriterOutputStream out = new WriterOutputStream(writer, "us-ascii", 1024);
-        out.write("abc".getBytes("us-ascii"));
+        out.write("abc".getBytes(StandardCharsets.US_ASCII));
         assertEquals(0, writer.getBuffer().length());
         out.flush();
         assertEquals("abc", writer.toString());
         out.close();
     }
-    
-    
+
+
     @Test
     public void testFlush2() throws IOException {
         final StringWriter writer = new StringWriter();
         final AppendableOutputStream out = new AppendableOutputStream(writer, "us-ascii", 1024);
-        out.write("abc".getBytes("us-ascii"));
+        out.write("abc".getBytes(StandardCharsets.US_ASCII));
         assertEquals(0, writer.getBuffer().length());
         out.flush();
         assertEquals("abc", writer.toString());

@@ -35,6 +35,7 @@ import org.spf4j.base.Throwables;
  *
  * @author zoly
  */
+@SuppressFBWarnings("HES_LOCAL_EXECUTOR_SERVICE")
 public class LifoThreadPoolExecutorTest {
 
     @Test

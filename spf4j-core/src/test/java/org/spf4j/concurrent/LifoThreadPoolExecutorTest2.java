@@ -19,6 +19,7 @@
 
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +31,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.spf4j.stackmonitor.FastStackCollector;
@@ -39,6 +40,7 @@ import org.spf4j.stackmonitor.FastStackCollector;
  *
  * @author zoly
  */
+@SuppressFBWarnings("HES_LOCAL_EXECUTOR_SERVICE")
 public class LifoThreadPoolExecutorTest2 {
 
 

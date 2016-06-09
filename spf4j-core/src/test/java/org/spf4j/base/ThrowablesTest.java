@@ -17,6 +17,7 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.net.SocketTimeoutException;
 import java.sql.BatchUpdateException;
 import java.sql.SQLException;
@@ -46,6 +47,7 @@ public final class ThrowablesTest {
     }
 
     @Test
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST_OF_RETURN_VALUE")
     public void testChain2() {
         System.out.println("chain");
         Throwable t = new RuntimeException("bla1",

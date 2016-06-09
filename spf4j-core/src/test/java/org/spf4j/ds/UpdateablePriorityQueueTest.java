@@ -1,6 +1,7 @@
 
 package org.spf4j.ds;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 import org.junit.Assert;
@@ -11,6 +12,7 @@ import org.spf4j.base.MutableHolder;
  *
  * @author zoly
  */
+@SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
 public final class UpdateablePriorityQueueTest {
 
 
@@ -126,10 +128,10 @@ public final class UpdateablePriorityQueueTest {
         Assert.assertEquals(value, poll);
         Assert.assertFalse(ref.remove());
         Iterator<MutableHolder<Integer>> iterator = queue.iterator();
-        MutableHolder<Integer> next = iterator.next();
-        next = iterator.next();
+        iterator.next();
+        iterator.next();
         iterator.remove();
-        next = iterator.next();
+        iterator.next();
         Assert.assertFalse(iterator.hasNext());
         Assert.assertEquals(2, queue.size());
     }

@@ -21,12 +21,10 @@ import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.Callables;
 import org.spf4j.base.ParameterizedSupplier;
-import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
-import org.spf4j.concurrent.RetryExecutor;
 
 /**
  *
@@ -34,8 +32,6 @@ import org.spf4j.concurrent.RetryExecutor;
  */
 public final class RetryExecutorTest {
 
-    public RetryExecutorTest() {
-    }
 
     @Test
     public void testSubmitCallable() throws InterruptedException, ExecutionException {

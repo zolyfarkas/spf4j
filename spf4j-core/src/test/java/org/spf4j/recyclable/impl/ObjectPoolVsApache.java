@@ -17,13 +17,11 @@
  */
 package org.spf4j.recyclable.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.base.Callables;
 import org.spf4j.concurrent.RetryExecutor;
-import org.spf4j.recyclable.ObjectBorrowException;
 import org.spf4j.recyclable.ObjectCreationException;
-import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
-import org.spf4j.recyclable.ObjectReturnException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -31,8 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeoutException;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.junit.Test;
 import org.spf4j.base.ParameterizedSupplier;
@@ -46,9 +43,8 @@ public final class ObjectPoolVsApache {
     private static final int TEST_TASKS = 1000000;
 
     @Test(timeout = 200000)
-    public void testPerformance()
-            throws ObjectCreationException, ObjectBorrowException, InterruptedException,
-            TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+    @SuppressFBWarnings("HES_LOCAL_EXECUTOR_SERVICE")
+    public void testPerformance() throws ObjectCreationException, InterruptedException, ExecutionException {
         System.out.println("poolUse");
         final RecyclingSupplier<ExpensiveTestObject> pool
                 = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory(1000, 100, 0, 1)).build();

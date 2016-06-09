@@ -20,13 +20,20 @@ public class VersionTest {
         System.out.println("version1" + javaVersion + ", " + javaVersion.getImage());
         Assert.assertTrue(javaVersion.compareTo(new Version ("1.6.0_1")) > 0);
     }
-    
+
     @Test
     public void testVersion2() {
         Version version1 = new Version("1.1");
         Version version2 = new Version("1.1.2");
         Assert.assertTrue(version1.compareTo(version2) < 0);
-    }    
-    
-     
+    }
+
+    @Test
+    public void testVersion3() {
+        Version version1 = new Version("1.8.1");
+        Version version2 = new Version("1.8.0.25p");
+        Assert.assertTrue(version1.compareTo(version2) > 0);
+    }
+
+
 }

@@ -42,9 +42,6 @@ import org.junit.Test;
  */
 public final class CsvTest {
 
-    public CsvTest() {
-    }
-
     @Test
     public void testCsvReadWrite() throws IOException {
 
@@ -94,11 +91,13 @@ public final class CsvTest {
                 return result;
             }
         });
-        Assert.assertEquals("1,3", data.get(0).get("c"));
-        Assert.assertEquals("1", data.get(0).get("d"));
-        Assert.assertEquals("1,3", data.get(1).get("d"));
-        Assert.assertEquals("\"", data.get(1).get("b"));
-        Assert.assertEquals("0\n", data.get(1).get("c"));
+      Map<String, String> d0 = data.get(0);
+      Assert.assertEquals("1,3", d0.get("c"));
+      Assert.assertEquals("1", d0.get("d"));
+      Map<String, String> d1 = data.get(1);
+      Assert.assertEquals("1,3", d1.get("d"));
+      Assert.assertEquals("\"", d1.get("b"));
+      Assert.assertEquals("0\n", d1.get("c"));
     }
 
     @Test
@@ -119,12 +118,14 @@ public final class CsvTest {
                         return result;
                     }
                 });
+      Map<String, String> d0 = data.get(0);
 
-        Assert.assertEquals("1,3", data.get(0).get("c"));
-        Assert.assertEquals("1", data.get(0).get("d"));
-        Assert.assertEquals("1,3", data.get(1).get("d"));
-        Assert.assertEquals("\"", data.get(1).get("b"));
-        Assert.assertEquals("0\n", data.get(1).get("c"));
+      Assert.assertEquals("1,3", d0.get("c"));
+      Assert.assertEquals("1", d0.get("d"));
+      Map<String, String> d1 = data.get(1);
+      Assert.assertEquals("1,3", d1.get("d"));
+      Assert.assertEquals("\"", d1.get("b"));
+      Assert.assertEquals("0\n", d1.get("c"));
     }
 
     private File createTestCsv() throws IOException {

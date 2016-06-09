@@ -37,7 +37,9 @@ public class TSDBReaderTest {
           .build();
 
   @Test
-  @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE") // try with resources trips up findbugs.
+  @SuppressFBWarnings({ "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", "RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE",
+                        "NP_LOAD_OF_KNOWN_NULL_VALUE", "CLI_CONSTANT_LIST_INDEX"})
+  // try with resources trips up findbugs sometimes.
   public void testTsdb() throws IOException {
     File TEST_FILE = File.createTempFile("test", ".tsdb2");
     long tableId;

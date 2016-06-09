@@ -17,6 +17,7 @@
  */
 package org.spf4j.recyclable.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.base.Callables;
 import org.spf4j.concurrent.RetryExecutor;
 import org.spf4j.recyclable.ObjectBorrowException;
@@ -51,9 +52,8 @@ public final class ObjectPoolBuilderTest {
      * Test of build method, of class RecyclingSupplierBuilder.
      */
     @Test
-    public void testBuild()
-            throws ObjectCreationException, ObjectBorrowException,
-            InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException {
+    public void testBuild() throws ObjectCreationException, InterruptedException,
+            ObjectBorrowException, TimeoutException, ObjectDisposeException {
         System.out.println("test=build");
         RecyclingSupplier<ExpensiveTestObject> pool =
                 new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
@@ -62,9 +62,12 @@ public final class ObjectPoolBuilderTest {
         System.out.println(pool);
         pool.recycle(object, null);
         System.out.println(pool);
+        ExpensiveTestObject object2 = pool.get();
+        Assert.assertSame(object2, object);
+        pool.dispose();
     }
 
-    @Test
+    @Test(expected = RuntimeException.class)
     public void testBuildSimple()
             throws ObjectCreationException, ObjectBorrowException,
             InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException {
@@ -77,6 +80,7 @@ public final class ObjectPoolBuilderTest {
         System.out.println(pool);
         org.spf4j.base.Runtime.setDeadline(System.currentTimeMillis() + 1000);
         pool.dispose();
+        pool.get();
         System.out.println(pool);
     }
 
@@ -102,7 +106,7 @@ public final class ObjectPoolBuilderTest {
         });
         submit.get();
         final ExpensiveTestObject object2 = pool.get();
-        Assert.assertTrue(object == object2);
+        Assert.assertSame(object, object2);
         System.out.println(pool);
     }
 
@@ -185,6 +189,7 @@ public final class ObjectPoolBuilderTest {
         return monitor;
     }
 
+   @SuppressFBWarnings("MDM_THREAD_YIELD")
    private void runTest(final RecyclingSupplier<ExpensiveTestObject> pool,
             final long sleepBetweenSubmit, final long deadlockTimeout) throws InterruptedException, ExecutionException {
         Thread monitor = startDeadlockMonitor(pool, deadlockTimeout);

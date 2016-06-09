@@ -65,10 +65,10 @@ public final class SimpleStackCollectorTest {
         System.out.println(instance);
         Thread currentThread = Thread.currentThread();
 
-        Assert.assertTrue(currentThread.getStackTrace()[0].getClassName()
-                == currentThread.getStackTrace()[0].getClassName());
-        Assert.assertTrue(currentThread.getStackTrace()[0].getMethodName()
-                == currentThread.getStackTrace()[0].getMethodName());
+        Assert.assertSame(currentThread.getStackTrace()[0].getClassName(),
+                currentThread.getStackTrace()[0].getClassName());
+        Assert.assertSame(currentThread.getStackTrace()[0].getMethodName(),
+                currentThread.getStackTrace()[0].getMethodName());
 
     }
 

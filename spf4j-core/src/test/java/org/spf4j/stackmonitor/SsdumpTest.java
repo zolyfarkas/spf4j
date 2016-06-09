@@ -45,15 +45,13 @@ public final class SsdumpTest {
             public void uncaughtException(final Thread t, final Throwable e) {
                 StringWriter strw = new StringWriter();
                 e.printStackTrace(new PrintWriter(strw));
-                Assert.fail("Got Exception: " + strw.toString());
+                Assert.fail("Got Exception: " + strw);
             }
         });
     }
 
     @Test
-    public void testProto() throws InterruptedException, MalformedObjectNameException,
-            InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException,
-            IOException, ExecutionException, TimeoutException {
+    public void testProto() throws InterruptedException, IOException, ExecutionException, TimeoutException  {
 
         Sampler sampler = new Sampler(1);
         sampler.registerJmx();
@@ -63,12 +61,15 @@ public final class SsdumpTest {
         sampler.getStackCollector().applyOnSamples(new Function<SampleNode, SampleNode>() {
             @Override
             public SampleNode apply(final SampleNode f) {
+              if (f != null) {
                 try {
                     Converter.save(serializedFile, f);
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
-                return f;
+
+              }
+              return f;
             }
         });
         sampler.stop();

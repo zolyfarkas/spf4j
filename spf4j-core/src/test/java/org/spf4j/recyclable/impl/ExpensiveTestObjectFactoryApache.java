@@ -72,5 +72,14 @@ public final class ExpensiveTestObjectFactoryApache implements PoolableObjectFac
     @Override
     public void passivateObject(final ExpensiveTestObject t) throws Exception {
     }
-    
+
+  @Override
+  public String toString() {
+    return "ExpensiveTestObjectFactoryApache{" + "maxIdleMillis=" + maxIdleMillis
+            + ", nrUsesToFailAfter=" + nrUsesToFailAfter + ", minOperationMillis="
+            + minOperationMillis + ", maxOperationMillis=" + maxOperationMillis + '}';
+  }
+
+
+
 }

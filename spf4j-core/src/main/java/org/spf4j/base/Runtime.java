@@ -466,7 +466,7 @@ public final class Runtime {
         throw ex;
       }
       if (isProcessFinished) {
-        Exception hex = Futures.getAllWithDeadline(deadlineNanos, osh, esh).getSecond();
+        Exception hex = Futures.getAllWithDeadlineNanos(deadlineNanos, osh, esh).getSecond();
         if (hex == null) {
           return proc.exitValue();
         } else {

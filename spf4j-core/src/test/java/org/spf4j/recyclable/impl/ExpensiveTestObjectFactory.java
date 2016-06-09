@@ -71,4 +71,13 @@ public final class ExpensiveTestObjectFactory implements RecyclingSupplier.Facto
        }
     }
 
+  @Override
+  public String toString() {
+    return "ExpensiveTestObjectFactory{" + "maxIdleMillis=" + maxIdleMillis
+            + ", nrUsesToFailAfter=" + nrUsesToFailAfter + ", minOperationMillis="
+            + minOperationMillis + ", maxOperationMillis=" + maxOperationMillis + '}';
+  }
+
+
+
 }

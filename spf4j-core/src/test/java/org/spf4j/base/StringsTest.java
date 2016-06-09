@@ -61,7 +61,7 @@ public final class StringsTest {
         assertEquals(0, Strings.compareTo(str.subSequence(3, 15), Strings.subSequence(str, 3, 15)));
         Assert.assertTrue(Strings.equals(str.subSequence(15, 15), Strings.subSequence(str, 15, 15)));
         Assert.assertTrue(Strings.equals(str.subSequence(0, str.length()), Strings.subSequence(str, 0, str.length())));
-        Assert.assertTrue(str.subSequence(3, 15).toString().equals(Strings.subSequence(str, 3, 15).toString()));
+        Assert.assertEquals(str.subSequence(3, 15).toString(), Strings.subSequence(str, 3, 15).toString());
     }
 
 
@@ -94,9 +94,9 @@ public final class StringsTest {
     @Test
     public void testJsonEncoding() {
         StringBuilder sb = new StringBuilder();
-        sb.append("\"");
+        sb.append('\"');
         Strings.escapeJsonString("\n\u0008\u0000abc\"", sb);
-        sb.append("\"");
+        sb.append('\"');
         System.out.println("Encoded: " + sb);
         Assert.assertEquals("\"\\n\\b\\u0000abc\\\"\"", sb.toString());
     }
