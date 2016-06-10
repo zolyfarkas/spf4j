@@ -5,6 +5,7 @@ import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
 import javax.management.ReflectionException;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.jmx.Client;
@@ -33,7 +34,7 @@ public class RecorderFactoryTest {
        String ret3 = (String) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName(), "measurementsAsString");
        System.out.println(ret3);
-       Assert.assertTrue(ret3.contains("" + sum + "," + 11));
+       Assert.assertThat(ret3, Matchers.containsString(sum + "," + 11));
     }
 
     private static final class RsTest {
@@ -46,17 +47,18 @@ public class RecorderFactoryTest {
             InstanceNotFoundException, MBeanException, AttributeNotFoundException, ReflectionException {
         MeasurementRecorderSource rec = RecorderFactory.createScalableQuantizedRecorderSource(RsTest.class,
                 "ms", 100000000, 10, 0, 6, 10);
-        rec.getRecorder("test").record(1);
+        MeasurementRecorder recorder = rec.getRecorder("test");
+        recorder.record(1);
         int sum = 1;
         for (int i = 0; i < 10; i++) {
-            rec.getRecorder("test").record(i);
+            recorder.record(i);
             sum += i;
         }
        String ret3 = (String) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName() + "_RsTest",
                 "measurementsAsString");
        System.out.println(ret3);
-       Assert.assertTrue(ret3.contains("test," + sum + "," + 11));
+       Assert.assertThat(ret3, Matchers.containsString("test," + sum + "," + 11));
     }
 
 

@@ -38,6 +38,7 @@ public final class ExpensiveTestObject implements Closeable {
     private static final AtomicInteger OBJ_COUNT = new AtomicInteger();
     private final String id;
 
+    @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
     public ExpensiveTestObject(final long maxIdleMillis, final int nrUsesToFailAfter,
             final long minOperationMillis, final long maxOperationMillis) {
         this.maxIdleMillis = maxIdleMillis;

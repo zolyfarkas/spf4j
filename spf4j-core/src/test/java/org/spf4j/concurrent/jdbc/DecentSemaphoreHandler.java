@@ -1,5 +1,6 @@
 package org.spf4j.concurrent.jdbc;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -10,13 +11,14 @@ import org.spf4j.stackmonitor.FastStackCollector;
  *
  * @author zoly
  */
-public class DecentSemaphoreHandler {
+public final class DecentSemaphoreHandler {
 
   static {
     System.setProperty("spf4j.heartbeat.intervalMillis", "2000"); // 2 second heartbeat
   }
 
-  public static void main(final String[] args) throws SQLException, InterruptedException, TimeoutException {
+  @SuppressFBWarnings("MDM_THREAD_YIELD")
+  public static void main(final String[] args) throws InterruptedException, TimeoutException {
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {

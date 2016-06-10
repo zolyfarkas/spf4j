@@ -17,6 +17,7 @@
  */
 package org.spf4j.perf;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,8 +26,9 @@ import org.junit.Test;
  *
  * @author zoly
  */
+@SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class PerformanceMonitorTest {
-    
+
 
 
     @Test
@@ -35,6 +37,7 @@ public final class PerformanceMonitorTest {
                 1, 2, new Callable<String>() {
 
             @Override
+            @SuppressFBWarnings("MDM_THREAD_YIELD")
             public String call() throws Exception {
                 System.out.println("testing");
                 Thread.sleep(3);
@@ -45,8 +48,9 @@ public final class PerformanceMonitorTest {
             public String toString() {
                 return "test";
             }
-            
+
         });
+        // TODO assert logging, will need to create my test logger component...
         Assert.assertEquals("test", result);
     }
 }

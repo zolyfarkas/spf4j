@@ -69,6 +69,7 @@ public final class FileBasedLockTest {
     }
 
     @Test
+    @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
     public void testReentrace() throws IOException {
         File tmp = File.createTempFile("bla", ".lock");
         try (FileBasedLock lock = new FileBasedLock(tmp)) {
@@ -80,9 +81,16 @@ public final class FileBasedLockTest {
                 } finally {
                     lock.unlock();
                 }
+              boolean tryLock = lock.tryLock();
+              Assert.assertTrue(tryLock);
+              lock.unlock();
             } finally {
                 lock.unlock();
             }
+        } finally {
+          if (!tmp.delete()) {
+            throw new IOException("Cannot delete " + tmp);
+          }
         }
     }
 

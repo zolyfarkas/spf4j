@@ -48,7 +48,7 @@ public final class ExpensiveTestObjectFactory implements RecyclingSupplier.Facto
 
 
     @Override
-    public ExpensiveTestObject create() throws ObjectCreationException {
+    public ExpensiveTestObject create() {
         return new ExpensiveTestObject(maxIdleMillis, nrUsesToFailAfter, minOperationMillis, maxOperationMillis);
     }
 
@@ -57,7 +57,7 @@ public final class ExpensiveTestObjectFactory implements RecyclingSupplier.Facto
         try {
             object.close();
         } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            throw new ObjectDisposeException(ex);
         }
     }
 

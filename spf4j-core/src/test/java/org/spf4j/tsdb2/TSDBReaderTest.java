@@ -14,7 +14,6 @@ import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.Either;
-import org.spf4j.base.Handler;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.DataBlock;
 import org.spf4j.tsdb2.avro.TableDef;
@@ -77,12 +76,8 @@ public class TSDBReaderTest {
             TSDBReader reader = new TSDBReader(TEST_FILE, 1024)) {
       writer.flush();
       final BlockingQueue<Either<TableDef, DataBlock>> queue = new ArrayBlockingQueue<>(100);
-      Future<Void> bgWatch = reader.bgWatch(new Handler<Either<TableDef, DataBlock>, Exception>() {
-
-        @Override
-        public void handle(Either<TableDef, DataBlock> object, long deadline) throws InterruptedException {
-          queue.put(object);
-        }
+      Future<Void> bgWatch = reader.bgWatch((Either<TableDef, DataBlock> object, long deadline) -> {
+        queue.put(object);
       }, TSDBReader.EventSensitivity.HIGH);
       long tableId = writer.writeTableDef(tableDef);
       writer.flush();

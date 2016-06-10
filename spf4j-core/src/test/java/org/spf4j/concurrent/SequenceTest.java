@@ -50,17 +50,12 @@ public final class SequenceTest {
         long startTime = System.currentTimeMillis();
         Future<Long>[] futures = new Future[org.spf4j.base.Runtime.NR_PROCESSORS];
         for (int i = 0; i < org.spf4j.base.Runtime.NR_PROCESSORS; i++) {
-            futures[i] = DefaultExecutor.INSTANCE.submit(new Callable<Long>() {
-
-                @Override
-                public Long call() {
-                    long last = -1;
-                    for (int i = 0; i < 100000; i++) {
-                        last = sequence.next();
-                    }
-                    return last;
-                }
-
+            futures[i] = DefaultExecutor.INSTANCE.submit(() -> {
+              long last = -1;
+              for (int i1 = 0; i1 < 100000; i1++) {
+                last = sequence.next();
+              }
+              return last;
             });
         }
         for (Future<Long> future : futures) {

@@ -2,6 +2,7 @@ package org.spf4j.concurrent.jdbc;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -117,6 +118,7 @@ public class JdbcSemaphoreTest {
   }
 
   @Test
+  @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
   public void testMultiProcess() throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
     Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-tcpAllowOthers"}).start();
 

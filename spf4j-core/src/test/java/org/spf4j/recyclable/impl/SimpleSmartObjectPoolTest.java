@@ -17,18 +17,23 @@
  */
 package org.spf4j.recyclable.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.recyclable.Disposable;
 import org.spf4j.recyclable.ObjectBorower;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import java.util.Collection;
+import java.util.concurrent.TimeoutException;
+import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.Either;
+import org.spf4j.recyclable.ObjectDisposeException;
 
 /**
  *
  * @author zoly
  */
+@SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmartObjectPoolTest.TestObject> {
 
     private TestObject borowedObject = null;
@@ -57,6 +62,7 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
     }
 
     @Override
+    @SuppressFBWarnings("MDM_THREAD_YIELD")
     public Either<Action, SimpleSmartObjectPoolTest.TestObject> tryRequestReturnObject() {
         if (borowedObject != null) {
             try {
@@ -121,9 +127,11 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
      * Test of get method, of class SimpleSmartObjectPool.
      */
     @Test
-    public void testPool() throws Exception {
+    public void testPool() throws InterruptedException, TimeoutException,
+            ObjectCreationException, ObjectDisposeException  {
         System.out.println("borrowObject");
         borowedObject = instance.get(this);
+        Assert.assertNotNull(borowedObject);
         instance.recycle(borowedObject, this);
         instance.dispose();
     }

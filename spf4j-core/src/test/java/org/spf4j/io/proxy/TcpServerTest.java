@@ -3,8 +3,8 @@ package org.spf4j.io.proxy;
 import com.google.common.base.Charsets;
 import org.spf4j.io.tcp.proxy.ProxyClientHandler;
 import org.spf4j.io.tcp.TcpServer;
-import com.google.common.io.ByteStreams;
 import com.google.common.net.HostAndPort;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,16 +14,19 @@ import java.nio.CharBuffer;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.CharsetDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.ds.UpdateablePriorityQueue;
+import org.spf4j.io.Streams;
 import org.spf4j.io.tcp.ClientHandler;
 import org.spf4j.io.tcp.DeadlineAction;
 import org.spf4j.io.tcp.proxy.Sniffer;
@@ -34,6 +37,7 @@ import org.spf4j.io.tcp.proxy.SnifferFactory;
  * @author zoly
  */
 @Ignore
+@SuppressFBWarnings({ "SIC_INNER_SHOULD_BE_STATIC_ANON", "MDM_THREAD_YIELD" })
 public class TcpServerTest {
 
     @Test(timeout = 1000000)
@@ -112,14 +116,15 @@ public class TcpServerTest {
     }
 
     @Test
-    public void testRestart() throws IOException, InterruptedException {
+    public void testRestart() throws IOException, InterruptedException, TimeoutException {
         ForkJoinPool pool = new ForkJoinPool(1024);
         try (TcpServer server = new TcpServer(pool,
                 new ProxyClientHandler(HostAndPort.fromParts("bla", 80), null, null, 10000, 5000),
                 1977, 10)) {
-            server.startAsync().awaitRunning();
-            server.stopAsync().awaitTerminated();
-            server.startAsync().awaitRunning();
+            server.startAsync().awaitRunning(10, TimeUnit.SECONDS);
+            server.stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
+            server.startAsync().awaitRunning(10, TimeUnit.SECONDS);
+            Assert.assertTrue(server.isRunning());
         }
     }
 
@@ -154,7 +159,7 @@ public class TcpServerTest {
                     1977, 10)) {
                 server.startAsync().awaitRunning();
                 byte[] readfromSite = readfromSite("http://localhost:1977");
-                System.out.println("Response: " + new String(readfromSite, "UTF-8"));
+                System.out.println("Response: " + new String(readfromSite, StandardCharsets.UTF_8));
             }
         }
     }
@@ -184,7 +189,7 @@ public class TcpServerTest {
         URL url = new URL(siteUrl);
         InputStream stream = url.openStream();
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ByteStreams.copy(stream, bos);
+        Streams.copy(stream, bos);
         return bos.toByteArray();
     }
 

@@ -17,6 +17,7 @@
  */
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -24,12 +25,12 @@ import java.util.concurrent.Future;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.Callables;
-import org.spf4j.base.ParameterizedSupplier;
 
 /**
  *
  * @author zoly
  */
+@SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class RetryExecutorTest {
 
 
@@ -38,19 +39,13 @@ public final class RetryExecutorTest {
         System.out.println("submit");
         final LifoThreadPoolExecutorSQP lifoThreadPoolExecutorSQP = new LifoThreadPoolExecutorSQP(10, "test");
         RetryExecutor instance = new RetryExecutor(lifoThreadPoolExecutorSQP,
-                 new ParameterizedSupplier<Callables.DelayPredicate<Exception>, Callable<Object>>() {
+                (final Callable<Object> parameter) -> new Callables.DelayPredicate<Exception>() {
 
-                    @Override
-                    public Callables.DelayPredicate<Exception> get(final Callable<Object> parameter) {
-                        return new Callables.DelayPredicate<Exception>() {
-
-                            @Override
-                            public int apply(final Exception value) {
-                                return 0;
-                            }
-                        };
-                    }
-                }, null);
+          @Override
+          public int apply(final Exception value) {
+            return 0;
+          }
+        }, null);
         Future result = instance.submit(new Callable<Integer>() {
 
             private int count;

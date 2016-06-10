@@ -25,6 +25,7 @@ import java.util.Properties;
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.InvalidAttributeValueException;
+import javax.management.JMException;
 import javax.management.MBeanException;
 import javax.management.ReflectionException;
 import org.junit.Assert;
@@ -37,6 +38,7 @@ import org.spf4j.base.Throwables;
  *
  * @author zoly
  */
+@SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class RegistryTest {
 
     public static final class JmxTest extends PropertySource {
@@ -206,9 +208,7 @@ public final class RegistryTest {
 
     @Test
     @SuppressFBWarnings("UMAC_UNCALLABLE_METHOD_OF_ANONYMOUS_CLASS") // callable via JMX :-)
-    public void testRegistry2()
-            throws InterruptedException, IOException, InstanceNotFoundException, MBeanException,
-            AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
+    public void testRegistry2() throws IOException, JMException {
         JmxTest testObj = new JmxTest();
         JmxTest2 testObj2 = new JmxTest2();
         Registry.unregister("test", "Test");
@@ -224,6 +224,7 @@ public final class RegistryTest {
 
         Registry.export("test", "Test", new Object() {
             @JmxExport("customName")
+            @SuppressFBWarnings("UMAC_UNCALLABLE_METHOD_OF_ANONYMOUS_CLASS")
             public int getMyValue() { return 13; }
         });
 

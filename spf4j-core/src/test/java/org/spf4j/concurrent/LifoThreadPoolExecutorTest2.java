@@ -75,6 +75,7 @@ public class LifoThreadPoolExecutorTest2 {
         }
     };
 
+    @SuppressFBWarnings({ "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "ITC_INHERITANCE_TYPE_CHECKING" })
     public static void testPoolThreadDynamics(final ExecutorService executor)
             throws InterruptedException, IOException, ExecutionException {
         testMaxParallel(executor, 4);
@@ -83,7 +84,7 @@ public class LifoThreadPoolExecutorTest2 {
             Assert.assertEquals(4, le.getThreadCount());
             testMaxParallel(executor, 2);
             Assert.assertEquals(2, le.getThreadCount());
-        } else {
+        } else if (executor instanceof ThreadPoolExecutor) {
             ThreadPoolExecutor tpe = (ThreadPoolExecutor) executor;
             Assert.assertEquals(4, tpe.getPoolSize());
             try {
@@ -96,6 +97,8 @@ public class LifoThreadPoolExecutorTest2 {
             Assert.assertEquals(8, tpe.getPoolSize()); // JDK thread pool is at max
             testMaxParallel(executor, 2);
             Assert.assertEquals(8, tpe.getPoolSize()); // JDK thread pool sucks.
+        } else {
+          throw new IllegalStateException("Unsupported " + executor);
         }
         executor.shutdown();
         boolean awaitTermination = executor.awaitTermination(10000, TimeUnit.MILLISECONDS);
@@ -111,6 +114,7 @@ public class LifoThreadPoolExecutorTest2 {
         long rejected = 0;
         final Runnable runnable = new Runnable() {
             @Override
+            @SuppressFBWarnings("MDM_THREAD_YIELD")
             public void run() {
                 adder.increment();
                 long sleep = (long) (50 * Math.random());

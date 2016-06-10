@@ -25,7 +25,7 @@ public class ConcurrentReferenceHashMapTest {
         int size = map.size();
         int count = 0;
         for (Map.Entry<String, String> entry : map.entrySet()) {
-            count++;
+            count+= entry.getKey() != null ? 1 : 0;
         }
         Assert.assertEquals(size, count);
 

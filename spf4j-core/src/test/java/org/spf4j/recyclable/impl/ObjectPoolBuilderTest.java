@@ -37,7 +37,6 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
-import org.spf4j.base.ParameterizedSupplier;
 import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
@@ -46,6 +45,7 @@ import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
  *
  * @author zoly
  */
+@SuppressFBWarnings({ "MDM_THREAD_YIELD", "SIC_INNER_SHOULD_BE_STATIC_ANON" })
 public final class ObjectPoolBuilderTest {
 
     /**
@@ -98,13 +98,9 @@ public final class ObjectPoolBuilderTest {
         System.out.println(pool);
         final ExpensiveTestObject object = pool.get();
         System.out.println(pool);
-        Future<Void> submit = DefaultExecutor.INSTANCE.submit(new Callable<Void>() {
-
-            @Override
-            public Void call() throws Exception {
-                pool.recycle(object, null);
-                return null;
-            }
+        Future<Void> submit = DefaultExecutor.INSTANCE.submit(() -> {
+          pool.recycle(object, null);
+          return null;
         });
         submit.get();
         final ExpensiveTestObject object2 = pool.get();
@@ -171,21 +167,17 @@ public final class ObjectPoolBuilderTest {
     private Thread startDeadlockMonitor(final RecyclingSupplier<ExpensiveTestObject> pool,
             final long deadlockTimeout) {
         isDeadlock = false;
-        Thread monitor = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(deadlockTimeout);
-                    ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
-                    System.err.println(Arrays.toString(threadMX.dumpAllThreads(true, true)));
-                    System.err.println(pool.toString());
-                    isDeadlock = true;
-                } catch (InterruptedException ex) {
-                    // terminating monitor
-                    return;
-                }
-            }
+        Thread monitor = new Thread(() -> {
+          try {
+            Thread.sleep(deadlockTimeout);
+            ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
+            System.err.println(Arrays.toString(threadMX.dumpAllThreads(true, true)));
+            System.err.println(pool.toString());
+            isDeadlock = true;
+          } catch (InterruptedException ex) {
+            // terminating monitor
+            return;
+          }
         });
         monitor.start();
         return monitor;
@@ -198,20 +190,13 @@ public final class ObjectPoolBuilderTest {
         ExecutorService execService = new LifoThreadPoolExecutorSQP("test", 10, 10,
                 5000, 1024, true);
         BlockingQueue<Future<?>> completionQueue = new LinkedBlockingDeque<>();
-        RetryExecutor exec
-                = new RetryExecutor(execService,
-                        new ParameterizedSupplier<Callables.DelayPredicate<Exception>, Callable<Object>>() {
+        RetryExecutor exec = new RetryExecutor(execService, (final Callable<Object> parameter)
+                        -> new Callables.DelayPredicate<Exception>() {
 
-                    @Override
-                    public Callables.DelayPredicate<Exception> get(final Callable<Object> parameter) {
-                        return new Callables.DelayPredicate<Exception>() {
-
-                            @Override
-                            public int apply(final Exception value) {
-                                return 0;
-                            }
-                        };
-                    }
+                  @Override
+                  public int apply(final Exception value) {
+                    return 0;
+                  }
                 }, completionQueue);
         int nrTests = 1000;
         for (int i = 0; i < nrTests; i++) {

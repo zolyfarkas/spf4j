@@ -17,6 +17,7 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,6 +31,7 @@ import org.spf4j.base.Callables.TimeoutRetryPredicate;
  *
  * @author zoly
  */
+@SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION") // fb-contrib issue,re ported.
 public final class CallablesTest {
 
   /**
@@ -143,6 +145,7 @@ public final class CallablesTest {
       private int count;
 
       @Override
+      @SuppressFBWarnings("MDM_THREAD_YIELD")
       public Integer call(final long deadline) throws IOException, InterruptedException {
         Thread.sleep(2000);
         count++;
@@ -191,13 +194,9 @@ public final class CallablesTest {
   public void testExecuteWithRetry5args3() throws Exception {
     System.out.println("executeWithRetry");
     final CallableImpl2 callableImpl = new CallableImpl2(60000);
-    Callables.executeWithRetry(callableImpl, 2, 10, new TimeoutRetryPredicate<Integer>() {
-
-      @Override
-      public Action apply(final Integer t, final long deadline) {
-        return t > 0 ? Action.RETRY : Action.ABORT;
-      }
-    }, Callables.DEFAULT_EXCEPTION_RETRY);
+    Callables.executeWithRetry(callableImpl, 2, 10,
+            (final Integer t, final long deadline)
+                    -> t > 0 ? Action.RETRY : Action.ABORT, Callables.DEFAULT_EXCEPTION_RETRY);
     Assert.assertEquals(4, callableImpl.getCount());
   }
 

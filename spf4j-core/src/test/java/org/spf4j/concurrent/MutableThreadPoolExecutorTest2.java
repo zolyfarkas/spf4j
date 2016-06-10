@@ -40,8 +40,7 @@ public class MutableThreadPoolExecutorTest2 {
     }
 
     @SuppressFBWarnings("MDM_THREAD_YIELD")
-    public static void testPoolThreadDynamics(final MutableLifoThreadPoolExecutorSQP le)
-            throws InterruptedException, IOException, ExecutionException {
+    public static void testPoolThreadDynamics(final MutableLifoThreadPoolExecutorSQP le) throws InterruptedException {
         le.setMaxIdleTimeMillis(1000);
         LifoThreadPoolExecutorTest2.testMaxParallel(le, 10);
 

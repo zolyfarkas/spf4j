@@ -4,6 +4,7 @@ package org.spf4j.ds;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  *
@@ -26,8 +27,7 @@ public final class LinkedHashMapExTest {
         assertEquals(2, map.pollLastEntry().getKey().intValue());
         assertEquals(1, map.pollLastEntry().getKey().intValue());
         assertEquals(10, map.pollLastEntry().getKey().intValue());
-        assertEquals(null, map.pollLastEntry());
-
+        assertNull(map.pollLastEntry());
     }
 
 }

@@ -1,8 +1,10 @@
 
 package org.spf4j.ds;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  *
@@ -12,6 +14,7 @@ public final class LinkedHashSetExTest {
 
 
     @Test
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void testSomeMethod() {
         LinkedSet<Integer> map = new LinkedHashSetEx(2);
         map.add(10);
@@ -26,7 +29,7 @@ public final class LinkedHashSetExTest {
         assertEquals(2, map.pollLastValue().intValue());
         assertEquals(1, map.pollLastValue().intValue());
         assertEquals(10, map.pollLastValue().intValue());
-        assertEquals(null, map.pollLastValue());
+        assertNull(map.pollLastValue());
 
     }
 

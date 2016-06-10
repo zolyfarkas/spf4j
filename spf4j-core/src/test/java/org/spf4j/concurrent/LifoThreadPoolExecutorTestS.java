@@ -61,12 +61,13 @@ public class LifoThreadPoolExecutorTestS {
     }
 
     public static void testPool(final ExecutorService executor)
-            throws InterruptedException, IOException, Exception {
+            throws Exception {
         final LongAdder adder = new LongAdder();
         final int testCount = 20000;
         long rejected = 0;
         final Runnable runnable = new Runnable() {
             @Override
+            @SuppressFBWarnings("MDM_THREAD_YIELD")
             public void run() {
                 adder.increment();
                 try {

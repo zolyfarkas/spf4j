@@ -18,6 +18,7 @@
  */
 package org.spf4j.perf.memory;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,13 +29,16 @@ import org.junit.Test;
 public final class GCUsageSamplerTest {
 
     @Test
+    @SuppressFBWarnings("MDM_THREAD_YIELD")
     public void testSomeMethod() throws InterruptedException {
         System.setProperty("perf.memory.sampleAggMillis", "1000");
         GCUsageSampler.start(100);
         MemoryUsageSampler.start(100);
+        String str = "";
         for (int i = 0; i < 100000; i++) {
-            String str = Integer.toString(i);
+            str = Integer.toString(i);
         }
+        System.out.println(str);
         Thread.sleep(1000);
         MemoryUsageSampler.stop();
         GCUsageSampler.stop();

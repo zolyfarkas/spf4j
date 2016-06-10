@@ -1,5 +1,6 @@
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -10,6 +11,7 @@ import org.junit.Test;
 public class VersionTest {
 
     @Test
+    @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
     public void testVersion() {
         Version version1 = new Version("1.u1.3");
         Version version2 = new Version("1.u10.3");

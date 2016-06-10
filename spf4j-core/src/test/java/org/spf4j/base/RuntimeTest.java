@@ -18,6 +18,7 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
@@ -73,16 +74,11 @@ public final class RuntimeTest {
     @Test(expected = InterruptedException.class, timeout = 30000)
     public void testExitCode4() throws IOException, InterruptedException, ExecutionException, TimeoutException {
         final Thread t = Thread.currentThread();
-        DefaultScheduler.INSTANCE.schedule(new Runnable() {
-
-            @Override
-            public void run() {
-                t.interrupt();
-            }
-        }, 1, TimeUnit.SECONDS);
+        DefaultScheduler.INSTANCE.schedule(() -> { t.interrupt(); }, 1, TimeUnit.SECONDS);
         Runtime.jrun(RuntimeTest.TestError3.class, 10000);
     }
 
+    @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
     @Test(expected = CancellationException.class, timeout = 30000)
     public void testExitCode5() throws  InterruptedException, ExecutionException, TimeoutException {
         final CountDownLatch latch  = new CountDownLatch(1);

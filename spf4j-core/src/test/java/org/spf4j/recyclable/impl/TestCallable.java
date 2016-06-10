@@ -17,16 +17,11 @@
  */
 package org.spf4j.recyclable.impl;
 
-import org.spf4j.recyclable.ObjectBorrowException;
-import org.spf4j.recyclable.ObjectCreationException;
-import org.spf4j.recyclable.ObjectDisposeException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.recyclable.RecyclingSupplier;
-import org.spf4j.recyclable.ObjectReturnException;
 import org.spf4j.recyclable.Template;
 import java.io.IOException;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeoutException;
-import org.spf4j.base.Handler;
 
 /**
  *
@@ -42,13 +37,10 @@ public final class TestCallable implements Callable<Integer> {
     }
 
     @Override
-    public Integer call() throws ObjectCreationException, ObjectBorrowException, InterruptedException,
-            TimeoutException, ObjectReturnException, ObjectDisposeException, IOException {
-        Template.doOnSupplied(new Handler<ExpensiveTestObject, IOException>() {
-            @Override
-            public void handle(final ExpensiveTestObject object, final long deadline) throws IOException {
-                object.doStuff();
-            }
+    @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION")
+    public Integer call() throws IOException, InterruptedException {
+        Template.doOnSupplied((final ExpensiveTestObject object, final long deadline) -> {
+          object.doStuff();
         }, pool, 5, 1000, 60000);
         return testNr;
     }

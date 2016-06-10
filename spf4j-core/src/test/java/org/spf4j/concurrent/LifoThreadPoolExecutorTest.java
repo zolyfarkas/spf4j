@@ -35,7 +35,7 @@ import org.spf4j.base.Throwables;
  *
  * @author zoly
  */
-@SuppressFBWarnings("HES_LOCAL_EXECUTOR_SERVICE")
+@SuppressFBWarnings({ "HES_LOCAL_EXECUTOR_SERVICE", "MDM_THREAD_YIELD" })
 public class LifoThreadPoolExecutorTest {
 
     @Test
@@ -56,30 +56,20 @@ public class LifoThreadPoolExecutorTest {
     public void testLifoExecSQShutdownNow() throws InterruptedException, IOException {
         LifoThreadPool executor =
                 LifoThreadPoolBuilder.newBuilder().withCoreSize(2).withMaxSize(8).withQueueSizeLimit(1024).build();
-        executor.execute(new Runnable() {
-
-            @Override
-            @SuppressFBWarnings("MDM_THREAD_YIELD")
-            public void run() {
-                try {
-                    Thread.sleep(Long.MAX_VALUE);
-                } catch (InterruptedException ex) {
-                    Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
-                }
-            }
+        executor.execute(() -> {
+          try {
+            Thread.sleep(Long.MAX_VALUE);
+          } catch (InterruptedException ex) {
+            Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
+          }
         });
 
-        executor.execute(new Runnable() {
-
-            @Override
-            @SuppressFBWarnings("MDM_THREAD_YIELD")
-            public void run() {
-                try {
-                    Thread.sleep(Long.MAX_VALUE);
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
+        executor.execute(() -> {
+          try {
+            Thread.sleep(Long.MAX_VALUE);
+          } catch (InterruptedException ex) {
+            throw new RuntimeException(ex);
+          }
         });
 
         executor.shutdown();

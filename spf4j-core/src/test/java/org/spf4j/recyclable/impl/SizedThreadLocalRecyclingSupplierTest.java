@@ -11,6 +11,7 @@ import org.spf4j.recyclable.SizedRecyclingSupplier;
  *
  * @author zoly
  */
+@SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public class SizedThreadLocalRecyclingSupplierTest {
 
 

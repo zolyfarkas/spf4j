@@ -32,12 +32,12 @@ import java.util.concurrent.LinkedBlockingDeque;
 import org.junit.Assert;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.junit.Test;
-import org.spf4j.base.ParameterizedSupplier;
 
 /**
  *
  * @author zoly
  */
+@SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class ObjectPoolVsApache {
 
     private static final int TEST_TASKS = 1000000;
@@ -53,19 +53,13 @@ public final class ObjectPoolVsApache {
         ExecutorService execService = Executors.newFixedThreadPool(10);
         BlockingQueue<Future<?>> completionQueue = new LinkedBlockingDeque<>();
         RetryExecutor exec
-                = new RetryExecutor(execService,
-                        new ParameterizedSupplier<Callables.DelayPredicate<Exception>, Callable<Object>>() {
+                = new RetryExecutor(execService, (final Callable<Object> parameter)
+                        -> new Callables.DelayPredicate<Exception>() {
 
-                    @Override
-                    public Callables.DelayPredicate<Exception> get(final Callable<Object> parameter) {
-                        return new Callables.DelayPredicate<Exception>() {
-
-                            @Override
-                            public int apply(final Exception value) {
-                                return 0;
-                            }
-                        };
-                    }
+                  @Override
+                  public int apply(final Exception value) {
+                    return 0;
+                  }
                 }, completionQueue);
         long zpooltime = testPool(exec, pool, completionQueue);
         long apooltime = testPoolApache(exec, apool, completionQueue);

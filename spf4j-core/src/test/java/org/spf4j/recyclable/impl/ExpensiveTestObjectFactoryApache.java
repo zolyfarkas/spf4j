@@ -18,6 +18,7 @@
 package org.spf4j.recyclable.impl;
 
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import org.apache.commons.pool.PoolableObjectFactory;
 
@@ -46,16 +47,17 @@ public final class ExpensiveTestObjectFactoryApache implements PoolableObjectFac
 
 
     @Override
-    public ExpensiveTestObject makeObject() throws Exception {
+    public ExpensiveTestObject makeObject() {
           return new ExpensiveTestObject(maxIdleMillis, nrUsesToFailAfter, minOperationMillis, maxOperationMillis);
     }
 
     @Override
-    public void destroyObject(final ExpensiveTestObject t) throws Exception {
+    public void destroyObject(final ExpensiveTestObject t) throws IOException {
             t.close();
     }
 
     @Override
+    @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_RETURN_FALSE")
     public boolean validateObject(final ExpensiveTestObject t) {
             try {
                 t.doStuff();
@@ -66,11 +68,11 @@ public final class ExpensiveTestObjectFactoryApache implements PoolableObjectFac
     }
 
     @Override
-    public void activateObject(final ExpensiveTestObject t) throws Exception {
+    public void activateObject(final ExpensiveTestObject t) {
     }
 
     @Override
-    public void passivateObject(final ExpensiveTestObject t) throws Exception {
+    public void passivateObject(final ExpensiveTestObject t) {
     }
 
   @Override

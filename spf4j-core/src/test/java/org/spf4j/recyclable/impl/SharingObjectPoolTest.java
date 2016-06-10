@@ -7,7 +7,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.recyclable.ObjectBorrowException;
 import org.spf4j.recyclable.ObjectCreationException;
-import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 
 /**
@@ -49,22 +48,23 @@ public class SharingObjectPoolTest {
     }
 
 
+    @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
     public SharingObjectPool<String> createTestPool() throws ObjectCreationException {
         return new SharingObjectPool<>(new RecyclingSupplier.Factory<String>(){
 
             int i = 0;
 
             @Override
-            public String create() throws ObjectCreationException {
+            public String create() {
                 return "O" + (i++);
             }
 
             @Override
-            public void dispose(String object) throws ObjectDisposeException {
+            public void dispose(String object) {
             }
 
             @Override
-            public boolean validate(String object, Exception e) throws Exception {
+            public boolean validate(String object, Exception e) {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
         }, 0, 4);

@@ -19,7 +19,7 @@
 package org.spf4j.base;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Function;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import org.junit.Assert;
@@ -34,6 +34,7 @@ import org.spf4j.ssdump2.avro.AMethod;
  *
  * @author zoly
  */
+@SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public class Slf4jMessageFormatterTest {
 
     @Test
@@ -87,21 +88,16 @@ public class Slf4jMessageFormatterTest {
         EscapeJsonStringAppendableWrapper escaper = new EscapeJsonStringAppendableWrapper(sb);
         Slf4jMessageFormatter.format(escaper, "bla bla {} {}", appSupp, "\n\u2013\u0010",
                 new int [] {1, 2, 3});
-        System.out.println("formatted message: " + sb.toString());
+        System.out.println("formatted message: " + sb);
         Assert.assertEquals("bla bla \\n–\\u0010 [1, 2, 3]", sb.toString());
-        appSupp.replace(String.class, new Function<ObjectAppender<? super String>, ObjectAppender<? super String>>() {
+        appSupp.replace(String.class, (final ObjectAppender<? super String> input) -> new ObjectAppender<String>() {
           @Override
-          public ObjectAppender<? super String> apply(final ObjectAppender<? super String> input) {
-            return new ObjectAppender<String>() {
-              @Override
-              public void append(final String object, final Appendable appendTo) throws IOException {
-                try (AppendableLimiterWithOverflow limiter =
-                        new AppendableLimiterWithOverflow(90, File.createTempFile("string", ".overflow"),
-                                "...@", Charsets.UTF_8, appendTo)) {
-                  input.append(object, limiter);
-                }
-              }
-            };
+          public void append(final String object, final Appendable appendTo) throws IOException {
+            try (AppendableLimiterWithOverflow limiter =
+                    new AppendableLimiterWithOverflow(90, File.createTempFile("string", ".overflow"),
+                            "...@", Charsets.UTF_8, appendTo)) {
+              input.append(object, limiter);
+            }
           }
         });
         sb.setLength(0);

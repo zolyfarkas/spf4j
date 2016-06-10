@@ -17,6 +17,7 @@
  */
 package org.spf4j.perf;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.impl.RecorderFactory;
 import java.io.Closeable;
 import java.io.File;
@@ -37,21 +38,19 @@ import org.spf4j.tsdb2.avro.TableDef;
  * @author zoly
  */
 @SuppressWarnings("SleepWhileInLoop")
+@SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class RecorderFactoryTest {
 
   @BeforeClass
   public static void init() {
-    Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-      @Override
-      public void uncaughtException(final Thread t, final Throwable e) {
-        StringBuilder sb = new StringBuilder(128);
-        try {
-          Throwables.writeTo(e, sb, Throwables.Detail.STANDARD);
-        } catch (IOException ex) {
-          Assert.fail("Got Exception: " + ex);
-        }
-        Assert.fail("Got Exception: " + sb.toString());
+    Thread.setDefaultUncaughtExceptionHandler((final Thread t, final Throwable e) -> {
+      StringBuilder sb = new StringBuilder(128);
+      try {
+        Throwables.writeTo(e, sb, Throwables.Detail.STANDARD);
+      } catch (IOException ex) {
+        Assert.fail("Got Exception: " + ex);
       }
+      Assert.fail("Got Exception: " + sb.toString());
     });
   }
 
@@ -74,8 +73,8 @@ public final class RecorderFactoryTest {
       result.record(i);
       Thread.sleep(20);
     }
-    ((Closeable) result).close();
-    validateData(forWhat, 124750);
+    result.close();
+    assertData(forWhat, 124750);
   }
 
   /**
@@ -94,10 +93,11 @@ public final class RecorderFactoryTest {
     MeasurementRecorderSource result = RecorderFactory.createScalableQuantizedRecorderSource(
             forWhat, unitOfMeasurement, sampleTime, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
     for (int i = 0; i < 5000; i++) {
-      result.getRecorder("X" + i % 2).record(i);
+      result.getRecorder("X" + i % 2).record(1);
       Thread.sleep(1);
     }
-    ((Closeable) result).close();
+    result.close();
+    assertData("(bla,X0)", 2500);
   }
 
   @Test
@@ -117,7 +117,7 @@ public final class RecorderFactoryTest {
       Thread.sleep(20);
     }
     ((Closeable) result).close();
-    validateData(forWhat, 5000000);
+    assertData(forWhat, 5000000);
 
   }
 
@@ -137,10 +137,11 @@ public final class RecorderFactoryTest {
       Thread.sleep(1);
     }
     ((Closeable) result).close();
-    validateData("(" + forWhat + ",X1)", 2500);
+    assertData("(" + forWhat + ",X1)", 2500);
   }
 
-  private void validateData(final String forWhat, final long expectedValue) throws IOException {
+  @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
+  public static void assertData(final String forWhat, final long expectedValue) throws IOException {
     TSDBWriter dbWriter = ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).getDBWriter();
     dbWriter.flush();
     final File file = dbWriter.getFile();

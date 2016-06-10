@@ -45,12 +45,8 @@ public class ConverterTest {
     public void test() {
         SampleNode testSample = testSample();
         final List<ASample> samples = new ArrayList<>();
-        Converter.convert(Method.ROOT, testSample, -1, 0, new Handler<ASample, RuntimeException>() {
-
-            @Override
-            public void handle(final ASample object, final long deadline) {
-                samples.add(object);
-            }
+        Converter.convert(Method.ROOT, testSample, -1, 0, (final ASample object, final long deadline) -> {
+          samples.add(object);
         });
         SampleNode back = Converter.convert(samples.iterator());
         System.out.println(back);

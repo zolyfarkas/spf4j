@@ -119,6 +119,17 @@ public final class GraphiteUdpStore implements MeasurementStore {
 
     }
 
+    /**
+     * Write with the plaintext protocol:
+     * https://graphite.readthedocs.io/en/0.9.10/feeding-carbon.html
+     *
+     * @param measurementInfo measuremrnt info
+     * @param measurementName measurement name
+     * @param measurement measurement value
+     * @param timeStampMillis  timestamp millis since epoch.
+     * @param os the output writer  to write to.
+     * @throws IOException
+     */
     public static void writeMetric(final MeasurementsInfo measurementInfo, final String measurementName,
             final long measurement, final long timeStampMillis, final Writer os)
             throws IOException {

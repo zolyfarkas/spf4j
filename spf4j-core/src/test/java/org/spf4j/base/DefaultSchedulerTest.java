@@ -1,9 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.concurrent.DefaultScheduler;
 import java.util.concurrent.ScheduledFuture;
 import org.junit.Assert;
@@ -13,9 +10,10 @@ import org.junit.Test;
  *
  * @author zoly
  */
+@SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class DefaultSchedulerTest {
 
-    
+
     private volatile boolean notAligned = false;
     /**
      * Test of scheduleAllignedAtFixedRateMillis method, of class DefaultScheduler.
@@ -32,7 +30,7 @@ public final class DefaultSchedulerTest {
         System.out.println(100.123456789012345
                 + 0.123456789012345678
                 + 0.123456789012345678);
-        
+
 
         Runnable command = new Runnable() {
             private boolean first = true;

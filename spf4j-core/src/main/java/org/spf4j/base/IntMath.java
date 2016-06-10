@@ -37,10 +37,11 @@ public final class IntMath {
     }
 
     @NotThreadSafe
-    public static final class XorShift32 {
+    public static final class XorShift32 implements IntSequence {
         // XorShift128 PRNG with a 2^32-1 period.
         private int x = System.identityHashCode(this);
 
+        @Override
         public int nextInt() {
             x ^= (x << 6);
             x ^= (x >>> 21);
@@ -49,7 +50,7 @@ public final class IntMath {
     }
 
     @ThreadSafe
-    public static final class XorShift32ThreadSafe {
+    public static final class XorShift32ThreadSafe implements IntSequence {
 
 
       public static final class Singleton {
@@ -60,6 +61,7 @@ public final class IntMath {
 
       private final ThreadLocal<XorShift32> rnd = new ThreadLocalRandom();
 
+      @Override
       public int nextInt() {
         return rnd.get().nextInt();
       }
@@ -75,13 +77,14 @@ public final class IntMath {
 
 
     @NotThreadSafe
-    public static final class XorShift128 {
+    public static final class XorShift128 implements IntSequence {
         // XorShift128 PRNG with a 2^128-1 period.
         private int x = System.identityHashCode(this);
         private int y = -938745813;
         private int z = 452465366;
         private int w = 1343246171;
 
+        @Override
         public int nextInt() {
             int t = x ^ (x << 15);
             x = y; y = z; z = w;
