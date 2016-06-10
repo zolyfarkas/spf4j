@@ -118,13 +118,11 @@ public class LifoThreadPoolExecutorTest2 {
                     exNr.increment();
                     throw new RuntimeException();
                 }
-                if (sleep > 0) {
-                    try {
-                        Thread.sleep(sleep);
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    }
-                }
+              try {
+                Thread.sleep(sleep);
+              } catch (InterruptedException ex) {
+                // do nothing
+              }
             }
         };
         long start = System.currentTimeMillis();

@@ -90,8 +90,8 @@ public final class DemoTest {
                             Thread.sleep(1);
                         }
                         System.err.println("nr = " + d);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
+                    } catch (InterruptedException e) {
+                      // do nothing
                     }
 
                 }

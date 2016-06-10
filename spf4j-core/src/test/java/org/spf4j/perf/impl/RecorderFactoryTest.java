@@ -5,7 +5,7 @@ import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
 import javax.management.ReflectionException;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.jmx.Client;
 import org.spf4j.perf.MeasurementRecorder;

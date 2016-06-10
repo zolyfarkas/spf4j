@@ -45,7 +45,7 @@ public final class MonitorTest {
             public void uncaughtException(final Thread t, final Throwable e) {
                 StringWriter strw = new StringWriter();
                 e.printStackTrace(new PrintWriter(strw));
-                Assert.fail("Got Exception: " + strw.toString());
+                Assert.fail("Got Exception: " + strw);
             }
         });
     }

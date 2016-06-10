@@ -54,15 +54,13 @@ public final class CsvTest {
 
             private final List<Map<String, String>> result = new ArrayList<>();
 
-            private List<String> header;
-            private Map<String, String> row;
+            private List<String> header = new ArrayList<>();
+            private Map<String, String> row = null;
             private int i = 0;
 
             @Override
             public void startRow() {
-                if (firstRow) {
-                    header = new ArrayList<>();
-                } else {
+                if (!firstRow) {
                     row = new HashMap<>(header.size());
                     i = 0;
                 }

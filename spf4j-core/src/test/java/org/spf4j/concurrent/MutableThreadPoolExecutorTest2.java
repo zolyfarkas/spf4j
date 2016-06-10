@@ -18,10 +18,11 @@
  */
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -38,6 +39,7 @@ public class MutableThreadPoolExecutorTest2 {
         testPoolThreadDynamics(executor);
     }
 
+    @SuppressFBWarnings("MDM_THREAD_YIELD")
     public static void testPoolThreadDynamics(final MutableLifoThreadPoolExecutorSQP le)
             throws InterruptedException, IOException, ExecutionException {
         le.setMaxIdleTimeMillis(1000);

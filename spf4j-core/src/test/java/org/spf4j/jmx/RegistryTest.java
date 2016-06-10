@@ -19,6 +19,7 @@
 
 package org.spf4j.jmx;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.Properties;
 import javax.management.AttributeNotFoundException;
@@ -54,14 +55,14 @@ public final class RegistryTest {
 
         @JmxExport
         public String [][] getMatrix() {
-            return matrix;
+            return matrix.clone();
         }
 
         private final String [] array = {"a", "b"};
 
         @JmxExport
         public String [] getArray() {
-            return array;
+            return array.clone();
         }
 
 
@@ -171,7 +172,7 @@ public final class RegistryTest {
 //        Thread.sleep(300000);
 
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
-                "test", "Test", "booleanFlag", true);
+                "test", "Test", "booleanFlag", Boolean.TRUE);
 
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "propKey", "caca");
@@ -204,6 +205,7 @@ public final class RegistryTest {
 
 
     @Test
+    @SuppressFBWarnings("UMAC_UNCALLABLE_METHOD_OF_ANONYMOUS_CLASS") // callable via JMX :-)
     public void testRegistry2()
             throws InterruptedException, IOException, InstanceNotFoundException, MBeanException,
             AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
@@ -214,7 +216,7 @@ public final class RegistryTest {
         Registry.export("test", "TestStatic", JmxTest2.class);
 
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
-                "test", "Test", "booleanFlag", true);
+                "test", "Test", "booleanFlag", Boolean.TRUE);
 
         Object ret = Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "booleanFlag");

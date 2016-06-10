@@ -31,7 +31,7 @@ public final class SimpleStackCollectorTest {
      * Test of sample method, of class SimpleStackCollector.
      */
     @Test
-    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+    @SuppressFBWarnings({ "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "ES_COMPARING_STRINGS_WITH_EQ" })
     public void testSample() {
         System.out.println("sample");
         SimpleStackCollector instance = new SimpleStackCollector();

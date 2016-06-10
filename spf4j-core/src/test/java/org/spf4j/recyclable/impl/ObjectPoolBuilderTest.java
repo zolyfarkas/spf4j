@@ -52,6 +52,7 @@ public final class ObjectPoolBuilderTest {
      * Test of build method, of class RecyclingSupplierBuilder.
      */
     @Test
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void testBuild() throws ObjectCreationException, InterruptedException,
             ObjectBorrowException, TimeoutException, ObjectDisposeException {
         System.out.println("test=build");
@@ -68,6 +69,7 @@ public final class ObjectPoolBuilderTest {
     }
 
     @Test(expected = RuntimeException.class)
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void testBuildSimple()
             throws ObjectCreationException, ObjectBorrowException,
             InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException {
@@ -87,9 +89,9 @@ public final class ObjectPoolBuilderTest {
 
 
     @Test
-    public void testBuild2()
-            throws ObjectCreationException, ObjectBorrowException,
-            InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+    public void testBuild2() throws ObjectCreationException, InterruptedException,
+            ObjectBorrowException, ExecutionException, TimeoutException {
         System.out.println("test=build2");
         final RecyclingSupplier<ExpensiveTestObject> pool =
                 new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();

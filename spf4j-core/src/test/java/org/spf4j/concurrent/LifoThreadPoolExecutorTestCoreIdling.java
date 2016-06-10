@@ -18,9 +18,10 @@
  */
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.perf.cpu.CpuUsageSampler;
 
@@ -28,6 +29,7 @@ import org.spf4j.perf.cpu.CpuUsageSampler;
  *
  * @author zoly
  */
+@SuppressFBWarnings("MDM_THREAD_YIELD")
 public class LifoThreadPoolExecutorTestCoreIdling {
 
 

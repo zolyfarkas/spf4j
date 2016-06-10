@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.sql.DataSource;
 import org.junit.Assert;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.Server;
@@ -37,7 +38,7 @@ public class JdbcSemaphoreTest {
     }
   }
 
-  static void createSchemaObjects(JdbcDataSource ds) throws SQLException {
+  static void createSchemaObjects(DataSource ds) throws SQLException {
     try (Connection conn = ds.getConnection()) {
       try (Statement stmt = conn.createStatement()) {
         stmt.execute(hbddl);
@@ -73,7 +74,7 @@ public class JdbcSemaphoreTest {
 
   }
 
-  public void testReleaseAck(final JdbcDataSource ds, final String semName, final int maxReservations)
+  public void testReleaseAck(final DataSource ds, final String semName, final int maxReservations)
           throws SQLException, InterruptedException, TimeoutException {
     JdbcSemaphore semaphore = new JdbcSemaphore(ds, semName, maxReservations);
 
@@ -137,7 +138,9 @@ public class JdbcSemaphoreTest {
 
       server.stop();
     } finally {
-      tempDB.delete();
+      if (!tempDB.delete()) {
+        throw new IOException("Cannot delete " + tempDB);
+      }
     }
   }
 

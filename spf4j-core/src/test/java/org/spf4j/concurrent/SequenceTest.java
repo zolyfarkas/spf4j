@@ -43,7 +43,7 @@ public final class SequenceTest {
 //        Assert.assertTrue("condition " + timeAtomic + " > " + timeScalable, timeAtomic > timeScalable);
         System.out.println("Atomic time "  + timeAtomic);
         System.out.println("Scalable time "  + timeScalable);
-        
+
     }
 
     public long testSeq(final Sequence sequence) throws InterruptedException, ExecutionException {
@@ -53,7 +53,7 @@ public final class SequenceTest {
             futures[i] = DefaultExecutor.INSTANCE.submit(new Callable<Long>() {
 
                 @Override
-                public Long call() throws Exception {
+                public Long call() {
                     long last = -1;
                     for (int i = 0; i < 100000; i++) {
                         last = sequence.next();

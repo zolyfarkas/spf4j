@@ -24,7 +24,7 @@ public final class UpdateablePriorityQueueTest {
         queue.add(3);
         queue.add(4);
         Assert.assertEquals(Integer.valueOf(1), queue.poll());
-        Assert.assertFalse(queue.poll().equals(4));
+        Assert.assertNotEquals(Integer.valueOf(4), queue.poll());
     }
 
     @Test
@@ -35,7 +35,7 @@ public final class UpdateablePriorityQueueTest {
         queue.add(3);
         queue.add(4);
         Assert.assertEquals(Integer.valueOf(1), queue.poll());
-        Assert.assertFalse(queue.poll().equals(4));
+        Assert.assertNotEquals(Integer.valueOf(4), queue.poll());
     }
 
     @Test
@@ -46,7 +46,7 @@ public final class UpdateablePriorityQueueTest {
         queue.add(2);
         queue.add(1);
         Assert.assertEquals(Integer.valueOf(1), queue.poll());
-        Assert.assertFalse(queue.poll().equals(4));
+        Assert.assertNotEquals(Integer.valueOf(4), queue.poll());
     }
 
 
@@ -58,7 +58,7 @@ public final class UpdateablePriorityQueueTest {
         queue.add(2);
         queue.add(3);
         Assert.assertEquals(Integer.valueOf(1), queue.poll());
-        Assert.assertFalse(queue.poll().equals(4));
+        Assert.assertNotEquals(Integer.valueOf(4), queue.poll());
     }
 
     @Test
@@ -78,7 +78,7 @@ public final class UpdateablePriorityQueueTest {
         queue.add(0);
         Assert.assertEquals(Integer.valueOf(0), queue.poll());
         Assert.assertEquals(3, queue.size());
-        Assert.assertFalse(queue.poll().equals(4));
+        Assert.assertNotEquals(Integer.valueOf(4), queue.poll());
     }
 
     @Test

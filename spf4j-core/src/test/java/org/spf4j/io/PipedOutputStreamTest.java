@@ -94,14 +94,15 @@ public class PipedOutputStreamTest {
 
     @Test(expected = IOException.class)
     public void testNoReaderBehaviour2() throws IOException {
-        final PipedOutputStream pos = new PipedOutputStream(1024);
-        try (InputStream is = pos.getInputStream()) {
-            pos.write(123);
-            pos.flush();
-            int val = is.read();
-            Assert.assertEquals(123, val);
+        try (final PipedOutputStream pos = new PipedOutputStream(1024)) {
+          try (InputStream is = pos.getInputStream()) {
+              pos.write(123);
+              pos.flush();
+              int val = is.read();
+              Assert.assertEquals(123, val);
+          }
+          pos.write(123);
         }
-        pos.write(123);
     }
 
 

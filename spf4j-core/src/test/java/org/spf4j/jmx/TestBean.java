@@ -20,25 +20,28 @@ package org.spf4j.jmx;
 
 import java.beans.ConstructorProperties;
 
-
 public final class TestBean {
 
-    private final int intVal;
-    private final String strVal;
+  private final int intVal;
+  private final String strVal;
 
-    @ConstructorProperties({"intVal", "strVal" })
-    public TestBean(final int intVal, final String strVal) {
-        this.intVal = intVal;
-        this.strVal = strVal;
-    }
+  @ConstructorProperties({"intVal", "strVal"})
+  public TestBean(final int intVal, final String strVal) {
+    this.intVal = intVal;
+    this.strVal = strVal;
+  }
 
-    public int getIntVal() {
-        return intVal;
-    }
+  public int getIntVal() {
+    return intVal;
+  }
 
-    public String getStrVal() {
-        return strVal;
-    }
-    
-    
+  public String getStrVal() {
+    return strVal;
+  }
+
+  @Override
+  public String toString() {
+    return "TestBean{" + "intVal=" + intVal + ", strVal=" + strVal + '}';
+  }
+
 }
