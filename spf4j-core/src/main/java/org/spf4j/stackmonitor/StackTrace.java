@@ -17,7 +17,7 @@
  */
 package org.spf4j.stackmonitor;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 
 /**
@@ -25,17 +25,17 @@ import java.util.Arrays;
  * @author zoly
  */
 public final class StackTrace {
-    
+
     private final StackTraceElement[] stackTrace;
-    
+
     private final int relevantFramesStart;
 
-    @SuppressWarnings("EI_EXPOSE_REP2")
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public StackTrace(final StackTraceElement[] stackTrace, final int relevantFramesStart) {
         this.stackTrace = stackTrace;
         this.relevantFramesStart = relevantFramesStart;
     }
-    
+
     public static StackTrace from(final StackTraceElement[] stackTrace, final int relevantFramesStart) {
         return new StackTrace(stackTrace, relevantFramesStart);
     }
@@ -75,7 +75,7 @@ public final class StackTrace {
         }
         return result.toString();
     }
-    
-    
-    
+
+
+
 }

@@ -18,7 +18,6 @@
 package org.spf4j.perf.aspects;
 
 
-import org.spf4j.perf.impl.RecorderFactory;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,12 +25,7 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import org.junit.Assert;
 import org.junit.Test;
-import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
-import org.spf4j.tsdb2.TSDBQuery;
-import org.spf4j.tsdb2.TSDBWriter;
-import org.spf4j.tsdb2.avro.TableDef;
 
 
 /**
@@ -39,16 +33,12 @@ import org.spf4j.tsdb2.avro.TableDef;
  */
 public final class FileMonitorAspectTest {
 
-    public FileMonitorAspectTest() {
-    }
-
-
     /**
      * Test of nioReadLong method, of class FileMonitorAspect.
      */
     @Test
     public void testFileIOMonitoring() throws Exception {
-        System.setProperty("perf.file.sampleTimeMillis", "1000");
+        System.setProperty("spf4j.perf.file.sampleTimeMillis", "1000");
         File tempFile = File.createTempFile("test", ".tmp");
         tempFile.deleteOnExit();
         try (Writer fw = new OutputStreamWriter(new FileOutputStream(tempFile))) {

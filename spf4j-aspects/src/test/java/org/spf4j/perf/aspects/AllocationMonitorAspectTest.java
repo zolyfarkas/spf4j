@@ -39,10 +39,6 @@ import org.spf4j.tsdb2.avro.TableDef;
  */
 public final class AllocationMonitorAspectTest {
 
-    public AllocationMonitorAspectTest() {
-    }
-    private final long startTime = System.currentTimeMillis();
-
     private static void testAllocInStaticContext() throws InterruptedException {
         for (int i = 0; i < 1000; i++) {
             System.err.println("S" + i + Strings.repeat("A", i % 2 * 10));
@@ -57,9 +53,7 @@ public final class AllocationMonitorAspectTest {
      */
     @Test
     public void testAfterAllocation() throws InterruptedException, IOException {
-        System.setProperty("perf.memory.sampleAggMillis", "1000");
-        System.setProperty("perf.io.openFiles.sampleAggMillis", "1000");
-        System.setProperty("perf.allocations.sampleTimeMillis", "1000");
+        System.setProperty("spf4j.perf.allocations.sampleTimeMillis", "1000");
         MemoryUsageSampler.start(500);
         OpenFilesSampler.start(500, 512, 1000, false);
         for (int i = 0; i < 1000; i++) {
@@ -74,6 +68,6 @@ public final class AllocationMonitorAspectTest {
         dbWriter.flush();
         File file = dbWriter.getFile();
         List<TableDef> tableDef = TSDBQuery.getTableDef(file, "heap-used");
-        Assert.assertTrue(!tableDef.isEmpty());
+        Assert.assertFalse(tableDef.isEmpty());
     }
 }

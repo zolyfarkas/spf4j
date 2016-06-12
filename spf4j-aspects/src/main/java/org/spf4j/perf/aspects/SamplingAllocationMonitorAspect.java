@@ -32,23 +32,22 @@ import org.spf4j.stackmonitor.StackTrace;
  * where and how much has been allocated is stored in a tsdb database.
  this class needs to remain object allocation free to work!
  this aspect will recordAt details about every x allocations done in a particular thread...
- * 
+ *
  * @author zoly
  */
 @Aspect
 public final class SamplingAllocationMonitorAspect {
 
    private static final MeasurementRecorderSource RECORDER;
-   
-   private static final int SAMPLE_COUNT = Integer.parseInt(System.getProperty("perf.allocations.sampleCount",
-           "100"));
-     
+
+   private static final int SAMPLE_COUNT = Integer.getInteger("spf4j.perf.allocations.sampleCount", 100);
+
    static {
-       int sampleTime = Integer.parseInt(System.getProperty("perf.allocations.sampleTimeMillis", "300000"));
-       RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "bytes", sampleTime);
-       
+       RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "bytes",
+               AllocationMonitorAspect.SAMPLE_TIME_MILLIS);
+
    }
-       
+
     @AfterReturning(pointcut = "call(*.new(..))", returning = "obj", argNames = "jp,obj")
     public void afterAllocation(final JoinPoint jp, final Object obj) {
         MutableInteger counter = Counter.SAMPLING_COUNTER.get();

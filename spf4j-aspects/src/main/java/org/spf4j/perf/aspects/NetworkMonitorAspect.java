@@ -38,16 +38,16 @@ import org.spf4j.perf.impl.RecorderFactory;
 public final class NetworkMonitorAspect {
 
     public static final int SAMPLE_TIME =
-            Integer.parseInt(System.getProperty("perf.network.sampleTimeMillis", "300000"));
-    
+            Integer.getInteger("spf4j.perf.network.sampleTimeMillis", 300000);
+
     private static final MeasurementRecorderSource RECORDER_READ =
             RecorderFactory.createScalableCountingRecorderSource("network-read", "bytes",
             SAMPLE_TIME);
-    
+
     private static final MeasurementRecorderSource RECORDER_WRITE =
             RecorderFactory.createScalableCountingRecorderSource("network-write", "bytes",
             SAMPLE_TIME);
-    
+
 
     @Around("call(long java.nio.channels.SocketChannel.read(..))")
     public Object nioReadLong(final ProceedingJoinPoint pjp) throws Throwable {
@@ -57,7 +57,7 @@ public final class NetworkMonitorAspect {
         }
         return result;
     }
-    
+
     @Around("call(int java.nio.channels.SocketChannel.read(..))")
     public Object nioReadInt(final ProceedingJoinPoint pjp) throws Throwable {
         Integer result = (Integer) pjp.proceed();
@@ -66,7 +66,7 @@ public final class NetworkMonitorAspect {
         }
         return result;
     }
-    
+
     @Around("call(long java.nio.channels.SocketChannel.write(..))")
     public Object nioWriteLong(final ProceedingJoinPoint pjp) throws Throwable {
         Long result = (Long) pjp.proceed();
@@ -75,7 +75,7 @@ public final class NetworkMonitorAspect {
         }
         return result;
     }
-    
+
     @Around("call(int java.nio.channels.SocketChannel.write(..))")
     public Object nioWriteInt(final ProceedingJoinPoint pjp) throws Throwable {
         Integer result = (Integer) pjp.proceed();
@@ -84,19 +84,19 @@ public final class NetworkMonitorAspect {
         }
         return result;
     }
-    
-    
+
+
     @Around("call(* java.net.Socket.getInputStream())")
     public Object socketIS(final ProceedingJoinPoint pjp) throws Throwable {
         InputStream result = (InputStream) pjp.proceed();
         return new MeasuredInputStream(result, pjp.getSourceLocation().getWithinType().getName(), RECORDER_READ);
     }
-    
+
     @Around("call(* java.net.Socket.getOutputStream())")
     public Object socketOS(final ProceedingJoinPoint pjp) throws Throwable {
         OutputStream result = (OutputStream) pjp.proceed();
         return new MeasuredOutputStream(result, pjp.getSourceLocation().getWithinType().getName(), RECORDER_WRITE);
     }
-    
-    
+
+
 }

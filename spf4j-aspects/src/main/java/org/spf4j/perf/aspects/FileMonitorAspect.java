@@ -35,8 +35,8 @@ import org.spf4j.perf.impl.RecorderFactory;
 @Aspect
 @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
 public final class FileMonitorAspect {
-    
-    public static final int SAMPLE_TIME = Integer.parseInt(System.getProperty("perf.file.sampleTimeMillis", "300000"));
+
+    public static final int SAMPLE_TIME = Integer.getInteger("spf4j.perf.file.sampleTimeMillis", 300000);
 
     private static final MeasurementRecorderSource RECORDER_READ =
             RecorderFactory.createScalableCountingRecorderSource("file-read", "bytes",
