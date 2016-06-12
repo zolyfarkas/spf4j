@@ -17,13 +17,14 @@
  */
 package org.spf4j.perf.tsdb;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.spf4j.base.MutableHolder;
@@ -35,6 +36,7 @@ import org.spf4j.tsdb2.TimeSeries;
  * @author zoly
  */
 @Ignore
+@SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class TSDBTailerTest {
 
     private static final String FILE_NAME = System.getProperty("java.io.tmpdir") + "/testdb.tsdb";
@@ -82,19 +84,15 @@ public final class TSDBTailerTest {
         Assert.assertEquals(6, result);
 
         final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
-        final String jvmPath
-                = System.getProperties().getProperty("java.home")
+        final String jvmPath = System.getProperty("java.home")
                 + File.separatorChar + "bin" + File.separatorChar + "java";
 
-        Future<Integer> result2 = DefaultExecutor.INSTANCE.submit(new Callable<Integer>() {
-            @Override
-            public Integer call() throws IOException, InterruptedException {
-                String[] command = new String[]{jvmPath, "-cp", classPath, TSDBTailerTest.class.getName(),
-                    FILE_NAME};
-                System.out.println("Running " + Arrays.toString(command));
-                Process proc = Runtime.getRuntime().exec(command);
-                return proc.waitFor();
-            }
+        Future<Integer> result2 = DefaultExecutor.INSTANCE.submit(() -> {
+          String[] command = new String[]{jvmPath, "-cp", classPath, TSDBTailerTest.class.getName(),
+            FILE_NAME};
+          System.out.println("Running " + Arrays.toString(command));
+          Process proc = Runtime.getRuntime().exec(command);
+          return proc.waitFor();
         });
         Assert.assertEquals(6, (int) result2.get());
 

@@ -17,9 +17,11 @@
  */
 package org.spf4j.perf.tsdb;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.util.Arrays;
-import junit.framework.Assert;
+import java.util.Collection;
+import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.tsdb2.TimeSeries;
 
@@ -27,6 +29,7 @@ import org.spf4j.tsdb2.TimeSeries;
  *
  * @author zoly
  */
+@SuppressFBWarnings({ "CLI_CONSTANT_LIST_INDEX", "MDM_THREAD_YIELD" })
 public final class TimeSeriesDatabaseTest {
 
     public TimeSeriesDatabaseTest() {
@@ -73,9 +76,10 @@ public final class TimeSeriesDatabaseTest {
         }
 
         TimeSeriesDatabase instanceRead = new TimeSeriesDatabase(FILE_NAME, null);
+      Collection<TSTable> tsTables = instanceRead.getTSTables();
 
-        System.out.println(instanceRead.getTSTables());
-        Assert.assertEquals(3, instanceRead.getTSTables().size());
+        System.out.println(tsTables);
+        Assert.assertEquals(3, tsTables.size());
         instanceRead.writeCsvTable("gr1", File.createTempFile("test", ".csv"));
         instanceRead.writeCsvTables(Arrays.asList("gr1", "gr2", "gr3"), File.createTempFile("testAll", ".csv"));
 
