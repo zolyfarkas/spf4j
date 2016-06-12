@@ -41,7 +41,7 @@ public final class Futures {
   }
 
   @CheckReturnValue
-  public static RuntimeException cancelAll(final boolean mayInterrupt, Iterator<Future> iterator) {
+  public static RuntimeException cancelAll(final boolean mayInterrupt, final Iterator<Future> iterator) {
     RuntimeException ex = null;
     while (iterator.hasNext()) {
       Future future = iterator.next();
