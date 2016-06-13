@@ -40,7 +40,7 @@ public final class StackTrace {
         return new StackTrace(stackTrace, relevantFramesStart);
     }
 
-    @SuppressWarnings("EI_EXPOSE_REP")
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public StackTraceElement[] getStackTrace() {
         return stackTrace;
     }
