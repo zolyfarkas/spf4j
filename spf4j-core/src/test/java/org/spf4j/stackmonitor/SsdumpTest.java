@@ -71,7 +71,7 @@ public final class SsdumpTest {
                 (final Method vertex, final Map<SampleNode.InvocationCount, Method> edges) -> {
           System.out.println("Method: " + vertex + " from " + edges);
         }, true);
-        Assert.assertNull(graph);
+        Assert.assertNotNull(graph);
 
     }
 }
