@@ -1,5 +1,6 @@
 package org.spf4j.base;
 
+import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -131,5 +132,65 @@ public final class CharSequences {
       return false;
     }
   }
+
+  public static Appendable lineNumbered(final int startLineNr, final Appendable appendable)
+          throws IOException {
+    return lineNumbered(startLineNr, appendable, IntAppender.CommentNumberAppender.INSTANCE);
+  }
+
+  public static Appendable lineNumbered(final int startLineNr, final Appendable appendable, final IntAppender ia)
+          throws IOException {
+    ia.append(startLineNr, appendable);
+    return new Appendable() {
+      private int lineNr = startLineNr + 1;
+      @Override
+      public Appendable append(final CharSequence csq) throws IOException {
+        return append(csq, 0, csq.length());
+      }
+
+      @Override
+      public Appendable append(final CharSequence csq, final int start, final int end) throws IOException {
+        int lastIdx = start;
+        for (int i = start; i < end; i++) {
+          if (csq.charAt(i) == '\n') {
+            int next = i + 1;
+            appendable.append(csq, lastIdx, next);
+            ia.append(lineNr++, appendable);
+            lastIdx = next;
+          }
+        }
+        if (lastIdx < end) {
+          appendable.append(csq, lastIdx, end);
+        }
+        return this;
+      }
+
+      @Override
+      public Appendable append(final char c) throws IOException {
+        appendable.append(c);
+        if (c == '\n') {
+          ia.append(lineNr++, appendable);
+        }
+        return this;
+      }
+    };
+  }
+
+  public static CharSequence toLineNumbered(final int startLineNr, final CharSequence source) {
+    return toLineNumbered(startLineNr, source, IntAppender.CommentNumberAppender.INSTANCE);
+  }
+
+
+  public static CharSequence toLineNumbered(final int startLineNr, final CharSequence source,  final IntAppender ia) {
+    int length = source.length();
+    StringBuilder destination = new StringBuilder(length + 6 * length / 80);
+    try {
+      lineNumbered(startLineNr, destination, ia).append(source);
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
+    return destination;
+  }
+
 
 }
