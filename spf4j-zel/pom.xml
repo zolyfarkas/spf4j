@@ -17,137 +17,272 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
+  <groupId>org.spf4j</groupId>
+  <artifactId>spf4j-zel</artifactId>
+  <packaging>jar</packaging>
+  <parent>
     <groupId>org.spf4j</groupId>
-    <artifactId>spf4j-zel</artifactId>
-    <packaging>jar</packaging>
-    <parent>
-        <groupId>org.spf4j</groupId>
-        <artifactId>spf4j</artifactId>
-        <version>8.1.0-SNAPSHOT</version>
-    </parent>
-    <name>${project.artifactId}</name>
-    <description>The ZEL language, a simple language with concurency facilities, mathematical operations...</description>
+    <artifactId>spf4j</artifactId>
+    <version>8.1.0-SNAPSHOT</version>
+  </parent>
+  <name>${project.artifactId}</name>
+  <description>The ZEL language, a simple language with concurency facilities, mathematical operations...</description>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.spf4j</groupId>
-            <artifactId>spf4j-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope> 
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <scope>test</scope>  
-            <version>${slf4j.version}</version>
-        </dependency>
-      <dependency>
-        <groupId>org.hamcrest</groupId>
-        <artifactId>hamcrest-library</artifactId>
-        <version>1.3</version>
-        <scope>test</scope>
-      </dependency>
-    </dependencies>
+  <dependencies>
+    <dependency>
+      <groupId>org.spf4j</groupId>
+      <artifactId>spf4j-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <scope>test</scope>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro-tools</artifactId>
+      <version>${avro.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
   
-    <build>
+  <build>
         
-        <plugins>  
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>javacc-maven-plugin</artifactId>
-                <configuration>
-                    <sourceDirectory>${basedir}/src/main/javacc</sourceDirectory>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>javacc</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>  
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <mainClass>org.spf4j.zel.vm.Program</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>     
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>javacc-maven-plugin</artifactId>
+        <configuration>
+          <sourceDirectory>${basedir}/src/main/javacc</sourceDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>javacc</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>org.spf4j.zel.vm.Program</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
             
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>org.spf4j.zel.vm.Program</mainClass>
-                                </transformer>
-                            </transformers>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>uber</shadedClassifierName> <!-- Any name that makes sense -->
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>                  
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>org.spf4j.zel.vm.Program</mainClass>
+                </transformer>
+              </transformers>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>uber</shadedClassifierName> <!-- Any name that makes sense -->
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
                                           
                                                                         
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-            </plugin>   
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-            </plugin>     
-        </plugins>
-    </build>
-  
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.version}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>javacc-maven-plugin</artifactId>
-                <version>2.6</version>
-            </plugin> 
-        </plugins>    
-    </reporting>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+      </plugin>
+      <!-- install avrodoc -->
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>1.0</version>
+        <!-- executions go here -->
+        <executions>
+          <execution>
+            <id>install node and npm</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>install-node-and-npm</goal>
+            </goals>
+            <configuration>
+              <nodeVersion>v4.4.4</nodeVersion>
+              <npmVersion>2.15.1</npmVersion>
+            </configuration>
+          </execution>
+          <execution>
+            <id>install AVRODOC</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <configuration>
+              <arguments>install avrodoc -g</arguments>
+            </configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <installDirectory>${project.basedir}/target</installDirectory>
+        </configuration>
+      </plugin>
 
+
+      <!-- discover system property uses -->
+      <plugin>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>spf4j-config-discovery-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <executions>
+          <execution>
+            <id>generate</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Start generated avsc files for all IDL -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>create avsc destination folder</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <echo message="creating avsc folder target/generated-sources/avsc" />
+                <mkdir dir="target/generated-sources/avsc" />
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>generate all sysprop defined files</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <apply executable="java" force="true">
+                  <arg value="-cp" />
+                  <arg pathref="maven.test.classpath" />
+                  <arg value="org.apache.avro.tool.Main" />
+                  <arg value="idl2schemata" />
+                  <srcfile />
+                  <targetFile />
+                  <mapper type="regexp" from="^((.*/)?)([^/]+)\.avdl$$" to="${project.basedir}/target/generated-sources/avsc/\1" />
+                  <fileset dir="${project.basedir}/target/generated-sources/avdl" includes="**/*.avdl" />
+                </apply>
+              </target>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>generate avrodoc for all schemas</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <fileset id="fileset" dir="${project.basedir}/target/generated-sources/avsc">
+                  <include name="**/*.avsc" />
+                </fileset>
+                <pathconvert refid="fileset" property="converted" pathsep=" ">
+                  <globmapper from="${project.basedir}/target/generated-sources/avsc/*" to="*" />
+                </pathconvert>
+                <exec executable="${project.basedir}/target/node/node" dir="${project.basedir}/target/generated-sources/avsc">
+                  <arg value="${project.basedir}/target/lib/node_modules/avrodoc/bin/avrodoc" />
+                  <arg line="${converted}" />
+                  <arg value="-o${project.basedir}/target/avrodoc.html" />
+                </exec>
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <phase>site</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <mkdir dir="target/site" />
+                <copy file="target/avrodoc.html" todir="target/site" />
+              </tasks>
+            </configuration>
+          </execution>
+
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+  
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>javacc-maven-plugin</artifactId>
+        <version>2.6</version>
+      </plugin>
+    </plugins>
+  </reporting>
   
 </project>
