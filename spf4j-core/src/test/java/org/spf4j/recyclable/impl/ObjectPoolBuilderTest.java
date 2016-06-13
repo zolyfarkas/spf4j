@@ -65,6 +65,7 @@ public final class ObjectPoolBuilderTest {
         System.out.println(pool);
         ExpensiveTestObject object2 = pool.get();
         Assert.assertSame(object2, object);
+
         pool.dispose();
     }
 
@@ -146,7 +147,7 @@ public final class ObjectPoolBuilderTest {
             pool.dispose();
             Assert.fail();
         } catch (ObjectDisposeException ex) {
-            Throwables.writeTo(ex, System.err, Throwables.Detail.NONE);
+            Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
         }
     }
 
@@ -159,7 +160,12 @@ public final class ObjectPoolBuilderTest {
         final RecyclingSupplier<ExpensiveTestObject> pool = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory())
                 .withMaintenance(org.spf4j.concurrent.DefaultScheduler.INSTANCE, 10, true).build();
         runTest(pool, 5, 20000);
-        pool.dispose();
+        try {
+          pool.dispose();
+        } catch (ObjectDisposeException ex) {
+          Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
+        }
+
     }
 
     private volatile boolean isDeadlock = false;
