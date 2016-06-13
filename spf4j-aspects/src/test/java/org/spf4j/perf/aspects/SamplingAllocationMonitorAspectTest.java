@@ -19,10 +19,9 @@
 package org.spf4j.perf.aspects;
 
 import com.google.common.base.Strings;
-import org.spf4j.perf.impl.RecorderFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import org.junit.Test;
-import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 import org.spf4j.perf.io.OpenFilesSampler;
 import org.spf4j.perf.memory.MemoryUsageSampler;
 import org.spf4j.perf.memory.TestClass;
@@ -31,11 +30,8 @@ import org.spf4j.perf.memory.TestClass;
  *
  * @author zoly
  */
+@SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class SamplingAllocationMonitorAspectTest {
-
-    public SamplingAllocationMonitorAspectTest() {
-    }
-    private final long startTime = System.currentTimeMillis();
 
     private static void testAllocInStaticContext() throws InterruptedException {
         for (int i = 0; i < 1000; i++) {
@@ -50,11 +46,9 @@ public final class SamplingAllocationMonitorAspectTest {
      * Test of afterAllocation method, of class AllocationMonitorAspect.
      */
     @Test
-    public void testAfterAllocation() throws InterruptedException, IOException {
-        System.setProperty("perf.memory.sampleAggMillis", "1000");
-        System.setProperty("perf.io.openFiles.sampleAggMillis", "1000");
-        System.setProperty("perf.allocations.sampleTimeMillis", "1000");
-        System.setProperty("perf.allocations.sampleCount", "10");
+    public void testAfterAllocation() throws InterruptedException {
+        System.setProperty("spf4j.perf.allocations.sampleTimeMillis", "1000");
+        System.setProperty("spf4j.perf.allocations.sampleCount", "10");
         MemoryUsageSampler.start(500);
         OpenFilesSampler.start(500, 512, 1000, false);
         for (int i = 0; i < 1000; i++) {

@@ -59,6 +59,18 @@
       <scope>test</scope>
       <version>${slf4j.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro-tools</artifactId>
+      <version>${avro.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   
   <build>
@@ -139,6 +151,41 @@
         <artifactId>maven-checkstyle-plugin</artifactId>
       </plugin>
 
+      <!-- install avrodoc -->
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>1.0</version>
+        <!-- executions go here -->
+        <executions>
+          <execution>
+            <id>install node and npm</id>
+            <phase>generate-resources</phase>
+            <goals>
+                <goal>install-node-and-npm</goal>
+            </goals>
+            <configuration>
+                <nodeVersion>v4.4.4</nodeVersion>
+                <npmVersion>2.15.1</npmVersion>
+            </configuration>
+         </execution>
+          <execution>
+              <id>install AVRODOC</id>
+              <phase>generate-resources</phase>
+              <goals>
+                  <goal>npm</goal>
+              </goals>
+              <configuration>
+                  <arguments>install avrodoc -g</arguments>
+              </configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <installDirectory>${project.basedir}/target</installDirectory>
+        </configuration>
+      </plugin>
+
+
       <!-- discover system property uses -->
       <plugin>
         <groupId>${project.groupId}</groupId>
@@ -154,7 +201,86 @@
           </execution>
         </executions>
       </plugin>
-            
+
+      <!-- Start generated avsc files for all IDL -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>create avsc destination folder</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <echo message="creating avsc folder target/generated-sources/avsc" />
+                <mkdir dir="target/generated-sources/avsc" />
+              </target>
+            </configuration>
+          </execution>
+         <execution>
+            <id>generate all sysprop defined files</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+              <apply executable="java" force="true">
+                <arg value="-cp" />
+                <arg pathref="maven.test.classpath" />
+                <arg value="org.apache.avro.tool.Main" />
+                <arg value="idl2schemata" />
+                <srcfile />
+                <targetFile />
+                <mapper type="regexp" from="^((.*/)?)([^/]+)\.avdl$$" to="${project.basedir}/target/generated-sources/avsc/\1" />
+                <fileset dir="${project.basedir}/target/generated-sources/avdl" includes="**/*.avdl" />
+              </apply>
+             </target>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>generate avrodoc for all schemas</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <fileset id="fileset" dir="${project.basedir}/target/generated-sources/avsc">
+                        <include name="**/*.avsc" />
+                </fileset>
+                <pathconvert refid="fileset" property="converted" pathsep=" ">
+                  <globmapper from="${project.basedir}/target/generated-sources/avsc/*" to="*" />
+                </pathconvert>
+                <exec executable="${project.basedir}/target/node/node" dir="${project.basedir}/target/generated-sources/avsc">
+                  <arg value="${project.basedir}/target/lib/node_modules/avrodoc/bin/avrodoc" />
+                  <arg line="${converted}" />
+                  <arg value="-o${project.basedir}/target/avrodoc.html" />
+                </exec>
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <phase>site</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <mkdir dir="target/site" />
+                <copy file="target/avrodoc.html" todir="target/site" />
+              </tasks>
+            </configuration>
+          </execution>
+
+        </executions>
+      </plugin>
+
     </plugins>
   </build>
 </project>

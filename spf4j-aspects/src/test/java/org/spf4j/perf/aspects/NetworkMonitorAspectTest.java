@@ -17,53 +17,44 @@
  */
 package org.spf4j.perf.aspects;
 
-import org.spf4j.perf.impl.RecorderFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.Charset;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import org.junit.Assert;
+import java.util.concurrent.TimeoutException;
 import org.junit.Test;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.DefaultExecutor;
-import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
-import org.spf4j.tsdb2.TSDBQuery;
-import org.spf4j.tsdb2.TSDBWriter;
-import org.spf4j.tsdb2.avro.TableDef;
 
 /**
  *
  * @author zoly
  */
+@SuppressFBWarnings({ "MDM_THREAD_YIELD", "DM_DEFAULT_ENCODING" })
 public final class NetworkMonitorAspectTest {
-
-
-    private final long startTime = System.currentTimeMillis();
 
     private volatile boolean terminated = false;
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
     public void runServer() throws IOException {
-        ServerSocket server;
-        try {
-            server = new ServerSocket(4321, 0, InetAddress.getLoopbackAddress());
-        } finally {
+        try (ServerSocket server = new ServerSocket(4321, 0, InetAddress.getLoopbackAddress())) {
             latch.countDown();
-        }
-        try {
             while (!terminated) {
                 Socket client = server.accept();
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(
-                        client.getInputStream())); PrintWriter out = new PrintWriter(client.getOutputStream(),
-                                true)) {
+                        client.getInputStream(), Charset.defaultCharset()));
+                        PrintWriter out = new PrintWriter(client.getOutputStream(), true)) {
                     try {
                         while (true) {
                             String line = in.readLine();
@@ -73,31 +64,33 @@ public final class NetworkMonitorAspectTest {
                             out.println(line);
                         }
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        Throwables.writeTo(e, System.err, Throwables.Detail.STANDARD);
                     }
                 }
             }
         } finally {
-            server.close();
+          latch.countDown();
         }
+
     }
 
     /**
      * Test of nioReadLong method, of class NetworkMonitorAspect.
      */
     @Test
-    public void testNetworkUsageRecording() throws Exception {
-        System.setProperty("perf.network.sampleTimeMillis", "1000");
+    public void testNetworkUsageRecording()
+            throws InterruptedException, IOException, ExecutionException, TimeoutException {
+        System.setProperty("spf4j.perf.network.sampleTimeMillis", "1000");
         Future<String> serverFuture = DefaultExecutor.INSTANCE.submit(new AbstractRunnable() {
 
             @Override
-            public void doRun() throws Exception {
+            public void doRun() throws IOException  {
                 runServer();
             }
         }, "server");
         if (!latch.await(10, TimeUnit.SECONDS)) {
             serverFuture.get(1, TimeUnit.SECONDS);
-            throw new IOException("Unable to start server in " + 10 + "seconds");
+            throw new IOException("Unable to start server in " + 10 + "seconds" + serverFuture);
         }
         for (int i = 0; i < 100; i++) {
             clientTest();
@@ -113,7 +106,7 @@ public final class NetworkMonitorAspectTest {
         try (Socket socket = new Socket("localhost", 4321);
                 PrintWriter out = new PrintWriter(socket.getOutputStream(),
                 true); BufferedReader in = new BufferedReader(new InputStreamReader(
-                        socket.getInputStream()))) {
+                        socket.getInputStream(), Charset.defaultCharset()))) {
             out.println("hello world");
             System.out.println(in.readLine());
         }

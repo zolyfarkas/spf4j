@@ -19,6 +19,7 @@
 package org.spf4j.perf.aspects;
 
 import com.google.common.base.Strings;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import org.spf4j.perf.impl.RecorderFactory;
 import java.io.IOException;
@@ -37,6 +38,7 @@ import org.spf4j.tsdb2.avro.TableDef;
  *
  * @author zoly
  */
+@SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class AllocationMonitorAspectTest {
 
     private static void testAllocInStaticContext() throws InterruptedException {

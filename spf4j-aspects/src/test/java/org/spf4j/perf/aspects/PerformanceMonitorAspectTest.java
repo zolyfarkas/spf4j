@@ -18,6 +18,7 @@
  */
 package org.spf4j.perf.aspects;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.annotations.PerformanceMonitor;
 import org.junit.Test;
 import org.spf4j.jmx.JmxExport;
@@ -27,6 +28,7 @@ import org.spf4j.jmx.Registry;
  *
  * @author zoly
  */
+@SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class PerformanceMonitorAspectTest {
 
     /**

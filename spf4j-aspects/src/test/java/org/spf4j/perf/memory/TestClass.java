@@ -19,22 +19,28 @@
 package org.spf4j.perf.memory;
 
 import com.google.common.base.Strings;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.spf4j.base.IntMath;
 
 /**
  *
  * @author zoly
  */
+@SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class TestClass {
-    
+
     private TestClass() { }
+
+
+    private static IntMath.XorShift32 RND = new IntMath.XorShift32();
 
     public static void testAllocInStaticContext() throws InterruptedException {
         for (int i = 0; i < 1000; i++) {
-            System.err.println("TS" + i + Strings.repeat("A", i % 2 * (int) (Math.random() * 10)));
+            System.err.println("TS" + i + Strings.repeat("A", i % 2 * Math.abs(RND.nextInt() % 10)));
             if (i % 100 == 0) {
                 Thread.sleep(500);
             }
         }
     }
-    
+
 }
