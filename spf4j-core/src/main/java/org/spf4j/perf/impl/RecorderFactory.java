@@ -65,7 +65,7 @@ public final class RecorderFactory {
             throws IOException, ObjectCreationException {
 
         if (configuration == null || configuration.trim().isEmpty()) {
-            return new TSDBMeasurementStore(System.getProperty("spf4j.perf.ms.defaultTsdbFilePath",
+            return new TSDBMeasurementStore(System.getProperty("spf4j.perf.ms.defaultTsdbFolderPath",
                     System.getProperty("java.io.tmpdir"))
                     + File.separator + System.getProperty("spf4j.perf.ms.defaultTsdbFileNamePrefix",
                     ManagementFactory.getRuntimeMXBean().getName() + ".tsdb2"));
