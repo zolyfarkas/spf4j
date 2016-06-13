@@ -21,10 +21,10 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.base.IntMath;
 
 /**
  *
@@ -38,7 +38,8 @@ public final class QSortTest {
                 Charsets.US_ASCII);
         Program p = Program.compile(qsort);
         System.out.println(p);
-        p.execute();
+        Integer result = (Integer) p.execute();
+        Assert.assertEquals(10000, result.intValue());
     }
 
     @Test
@@ -46,8 +47,8 @@ public final class QSortTest {
        String qsort = Resources.toString(Resources.getResource(QSortTest.class, "sortFunc.zel"),
                 Charsets.US_ASCII);
         Program p = Program.compile(qsort, "x");
-        Integer [] testArray = new Integer [100000];
-        Random random = new Random();
+        Integer [] testArray = new Integer [10000];
+        IntMath.XorShift32 random = new IntMath.XorShift32();
         for (int i = 0; i < testArray.length; i++) {
             testArray[i] = random.nextInt();
         }

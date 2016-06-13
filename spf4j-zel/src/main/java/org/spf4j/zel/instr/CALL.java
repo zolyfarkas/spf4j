@@ -47,7 +47,6 @@ public final class CALL extends Instruction {
             final Program p = (Program) function;
             final ExecutionContext nctx;
             Object obj;
-            Object[] parameters;
             switch (p.getType()) {
                 case DETERMINISTIC:
                     nctx = context.getSubProgramContext(p, nrParameters);

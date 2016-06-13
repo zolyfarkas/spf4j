@@ -18,7 +18,6 @@
 package org.spf4j.zel.instr;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
@@ -33,34 +32,42 @@ import org.spf4j.zel.vm.SuspendedException;
  */
 public abstract class Instruction implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Instruction execution
-     *
-     * @param context ExecutionContext
-     * @throws java.lang.InterruptedException
-     * @returns relative instruction pointer for next instruction.
-     */
-    public abstract int execute(ExecutionContext context)
-            throws ExecutionException, InterruptedException, SuspendedException;
+  /**
+   * Instruction execution
+   *
+   * @param context ExecutionContext
+   * @throws java.lang.InterruptedException
+   * @returns relative instruction pointer for next instruction.
+   */
+  public abstract int execute(ExecutionContext context)
+          throws ExecutionException, InterruptedException, SuspendedException;
 
-    public abstract Object[] getParameters();
+  public abstract Object[] getParameters();
 
-
-    /**
-     * Outputs Instruction Name - use for debug purposes ...
-     *
-     * @return String
-     */
-    @Override
-    public final String toString() {
-        if (getParameters().length > 0) {
-           return this.getClass().getSimpleName() + '(' + Arrays.toString(getParameters()) + ')';
-        } else {
-            return this.getClass().getSimpleName();
-        }
+  /**
+   * Outputs Instruction Name - use for debug purposes ...
+   *
+   * @return String
+   */
+  @Override
+  public final String toString() {
+    String instrName = this.getClass().getSimpleName();
+    Object[] parameters = getParameters();
+    if (parameters.length > 0) {
+      StringBuilder result = new StringBuilder(instrName.length() + parameters.length * 8);
+      result.append(instrName).append('(');
+      result.append(parameters[0]);
+      for (int i = 1; i < parameters.length; i++) {
+        result.append(',');
+        result.append(parameters[i]);
+      }
+      result.append(')');
+      return result.toString();
+    } else {
+      return instrName;
     }
-
+  }
 
 }

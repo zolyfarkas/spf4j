@@ -18,7 +18,7 @@
 package org.spf4j.zel.vm;
 
 import java.util.concurrent.ExecutionException;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**

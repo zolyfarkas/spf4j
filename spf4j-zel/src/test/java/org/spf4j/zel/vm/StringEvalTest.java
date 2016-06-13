@@ -25,7 +25,7 @@ public final class StringEvalTest {
 
 
     @Test(expected=CompileException.class)
-    public void testEscapingSimple() throws CompileException, ExecutionException, InterruptedException, IOException {
+    public void testEscapingSimple() throws CompileException, ExecutionException, InterruptedException  {
         String qsort = "\" val \\{a} and \\{b} \"";
         Program p = Program.compile(qsort, "a", "b");
         System.out.println(p);

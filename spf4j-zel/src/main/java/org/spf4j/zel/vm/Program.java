@@ -62,9 +62,9 @@ import org.spf4j.zel.vm.gen.ZCompiler;
 
 /**
  * <p> A ZEL program (function)</p>
- * 
+ *
  * This is a Turing machine a Program will always be pretty much an array of operations (instructions).
- * 
+ *
  * @author zoly
  * @version 1.0
  *
@@ -270,7 +270,9 @@ public final class Program implements Serializable {
     } catch (TokenMgrError | ParseException err) {
       throw new CompileException(err);
     }
-    return RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram("anon@root", srcId, varNames));
+    Program result = RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram("anon@root", srcId, varNames));
+    ZelFrame.annotate(srcId, result);
+    return result;
   }
 
   static Program compile(@Nonnull final String zExpr,
@@ -288,7 +290,9 @@ public final class Program implements Serializable {
     } catch (TokenMgrError | ParseException err) {
       throw new CompileException(err);
     }
-    return cc.getProgramBuilder().toProgram("anon@root", srcId, varNames, localTable);
+    Program result = cc.getProgramBuilder().toProgram("anon@root", srcId, varNames, localTable);
+    ZelFrame.annotate(srcId, result);
+    return result;
   }
 
   public Object execute() throws ExecutionException, InterruptedException {
@@ -452,7 +456,7 @@ public final class Program implements Serializable {
   }
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Program.class);
-  
+
   private static volatile boolean terminated = false;
   /**
    * *
@@ -497,7 +501,7 @@ public final class Program implements Serializable {
             System.out.println("result>" + result);
             System.out.println("type>" +  (result == null ? "none" : result.getClass()));
             System.out.println("executed in>" + elapsed + " ns");
-            
+
             final ExecutionContext execCtx = res.getSecond();
             mem = execCtx.getMem();
             resCache = execCtx.getResultCache();

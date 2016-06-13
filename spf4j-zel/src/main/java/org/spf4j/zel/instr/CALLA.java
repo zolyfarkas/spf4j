@@ -39,7 +39,7 @@ public final class CALLA extends Instruction {
     }
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public int execute(final ExecutionContext context)
             throws ExecutionException, InterruptedException, SuspendedException {
         final Object function = context.peekFromTop(nrParameters);
@@ -47,7 +47,6 @@ public final class CALLA extends Instruction {
             final Program p = (Program) function;
             final ExecutionContext nctx;
             Object obj;
-            Object[] parameters;
             switch (p.getType()) {
                 case DETERMINISTIC:
                     nctx = context.getSubProgramContext(p, nrParameters);
@@ -57,6 +56,7 @@ public final class CALLA extends Instruction {
                     break;
                 case NONDETERMINISTIC:
                     nctx = context.getSubProgramContext(p, nrParameters);
+                    context.pop();
                     obj = nctx.executeAsync();
                     break;
                 default:

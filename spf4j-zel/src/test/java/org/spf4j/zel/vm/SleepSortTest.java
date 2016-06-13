@@ -25,6 +25,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.base.IntMath;
 
 /**
  *
@@ -40,7 +41,7 @@ public final class SleepSortTest {
         Program p = Program.compile(sort, "x");
         System.out.println(Arrays.toString(p.getCode()));
         Integer [] testArray = new Integer [100];
-        Random random = new Random();
+        IntMath.XorShift32 random = new IntMath.XorShift32();
         for (int i = 0; i < testArray.length; i++) {
             testArray[i] = Math.abs(random.nextInt()) % 100;
         }

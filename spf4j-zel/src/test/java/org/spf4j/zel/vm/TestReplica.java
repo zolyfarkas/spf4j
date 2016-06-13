@@ -21,6 +21,8 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -33,8 +35,11 @@ public final class TestReplica {
     public void test() throws CompileException, ExecutionException, InterruptedException, IOException {
         String replicas = Resources.toString(Resources.getResource(TestZelMultiThreaded.class, "replicas.zel"),
                 Charsets.US_ASCII);
-        Program fibZel = Program.compile(replicas);
-        fibZel.execute();
+        Program p = Program.compile(replicas);
+        Integer result = (Integer) p.execute();
+        Assert.assertThat(result, Matchers.anyOf(Matchers.equalTo(1),
+                Matchers.equalTo(2),
+                Matchers.equalTo(3)));
 
     }
 }

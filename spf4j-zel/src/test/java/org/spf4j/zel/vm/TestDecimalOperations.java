@@ -19,7 +19,7 @@ package org.spf4j.zel.vm;
 
 import java.math.BigDecimal;
 import java.util.concurrent.ExecutionException;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -33,23 +33,25 @@ public final  class TestDecimalOperations {
     public void test() throws CompileException, ExecutionException, InterruptedException {
         Program prog = Program.compile("use dec 64; 1.0/3");
         BigDecimal result = (BigDecimal) prog.execute();
-        System.out.println(result.toPlainString());
-        Assert.assertTrue(result.toPlainString().length() == 18);
+        String psRes = result.toPlainString();
+        System.out.println(psRes);
+        Assert.assertEquals(18, psRes.length());
     }
 
     @Test
     public void test2() throws CompileException, ExecutionException, InterruptedException {
         Program prog = Program.compile("use dec 128; 1.0/3");
         BigDecimal result = (BigDecimal) prog.execute();
-        System.out.println(result.toPlainString());
-        Assert.assertTrue(result.toPlainString().length() == 36);
+        String psRes = result.toPlainString();
+        System.out.println(psRes);
+        Assert.assertEquals(36, psRes.length());
     }
 
     @Test
     public void test3() throws CompileException, ExecutionException, InterruptedException {
         BigDecimal result = (BigDecimal) Program.compile("use dec 128; (1.0/3) * 3 + (1 - 1.0/3*3)").execute();
         System.out.println(result.toPlainString());
-        Assert.assertTrue(BigDecimal.ONE.compareTo(result) == 0);
+        Assert.assertEquals(0, BigDecimal.ONE.compareTo(result));
     }
 
 

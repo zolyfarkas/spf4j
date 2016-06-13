@@ -17,7 +17,11 @@
  */
 package org.spf4j.zel.vm;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -28,28 +32,16 @@ public final  class ChannelTest {
 
 
     @Test
-    public void test() throws CompileException, ExecutionException, InterruptedException {
+    public void test() throws CompileException, ExecutionException, InterruptedException, IOException {
 
-        String prog = "ch = channel();"
-                    + "func prod(ch) { for i = 0; i < 100 ; i++ { ch.write(i) }; ch.close()}; "
-                    + "func cons(ch, nr) "
-                    + "{ sum = 0; "
-                    + "for c = ch.read(); c != EOF; c = ch.read() {"
-                    + " out(c, \",\"); sum++ };"
-                    + " out(\"fin(\", nr, \",\", sum,\")\") };"
-                    + "prod(ch)&; "
-                    + "for i = 0; i < 10; i++ { cons(ch, i)& } ";
+        String ctest = Resources.toString(Resources.getResource(ChannelTest.class, "channel.zel"),
+                Charsets.US_ASCII);
 
-//        String prog =
-//                     "func prod(ch) { out(\"A\"); for i = 0; i < 10 ; i++ { out(i); ch.write(i) }; out(\"B\")}; "
-//                    + "func cons(ch) { out(ch.read()) };"
-//                    + "prod(channel()) ";
-//                    + "for i = 0; i < 10; i++ { cons(ch) } ";
-
-
-        Program p = Program.compile(prog);
+        Program p = Program.compile(ctest);
         System.out.println(p);
-        p.execute();
+        Integer result = (Integer) p.execute();
+        System.out.println("result = " + result);
+        Assert.assertEquals(4950, result.intValue());
 
     }
 }

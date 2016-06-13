@@ -5,6 +5,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -16,11 +17,12 @@ public final class CommentsTest {
 
     @Test
     public void testEx() throws CompileException, ExecutionException, InterruptedException, IOException {
-        String qsort = Resources.toString(Resources.getResource(CommentsTest.class, "comments.zel"),
+        String ctest = Resources.toString(Resources.getResource(CommentsTest.class, "comments.zel"),
                 Charsets.US_ASCII);
-        Program p = Program.compile(qsort);
+        Program p = Program.compile(ctest);
         System.out.println(p);
-        p.execute();
+        Integer result = (Integer) p.execute();
+        Assert.assertEquals(1, result.intValue());
     }
 
 

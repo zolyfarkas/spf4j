@@ -17,7 +17,12 @@
  */
 package org.spf4j.zel.vm;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,12 +34,16 @@ import org.junit.Test;
  *
  * @author zoly
  */
+@SuppressFBWarnings("HES_LOCAL_EXECUTOR_SERVICE")
 public final class ZelTest {
 
     @Test
     public void helloWorld()
-            throws CompileException, ExecutionException, InterruptedException {
-        Program.compile("out(\"Hello World\")").execute();
+            throws CompileException, ExecutionException, InterruptedException, UnsupportedEncodingException {
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      Program.compile("out(\"Hello World\")").execute(System.in,
+                new PrintStream(bos, true, StandardCharsets.UTF_8.toString()), System.err);
+      Assert.assertEquals("Hello World", new String(bos.toByteArray(), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -179,6 +188,7 @@ public final class ZelTest {
 
 
     @Test
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void testCond() throws CompileException, ExecutionException, InterruptedException {
         Boolean result = (Boolean) Program.compile("x == 1", "x").execute(1);
         Assert.assertTrue(result);
@@ -217,6 +227,7 @@ public final class ZelTest {
         newFixedThreadPool.shutdown();
     }
 
+    @SuppressFBWarnings("MDM_THREAD_YIELD")
     private static class TestF {
         public static int f(final int a, final int b) throws InterruptedException {
             Thread.sleep(1000);
@@ -271,6 +282,7 @@ public final class ZelTest {
     }
 
     @Test
+    @SuppressFBWarnings("SACM_STATIC_ARRAY_CREATED_IN_METHOD")
     public void testSwap() throws CompileException, ExecutionException, InterruptedException {
        Program p = Program.compile("x[0] <-> x[1]; x[1]", "x");
        System.out.println(p);

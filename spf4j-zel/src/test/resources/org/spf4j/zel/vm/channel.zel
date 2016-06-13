@@ -1,0 +1,24 @@
+ch = channel();
+func prod(ch) {
+ for i = 0; i < 100 ; i++ {
+   ch.write(i)
+ };
+ ch.close()
+};
+func cons(ch, nr) {
+ sum = 0;
+ for c = ch.read(); c != EOF; c = ch.read() {
+    out(c, ",");
+    sum = sum + c
+ };
+ out("fin(", nr, ",", sum, ")");
+ return sum
+};
+arr = array(10);
+prod(ch)&;
+for i = 0; i < 10; i++ {
+ arr[i] = cons(ch, i)&
+};
+sum = 0;
+for i = 0; i < 10; i++ { sum = sum + arr[i] };
+return sum

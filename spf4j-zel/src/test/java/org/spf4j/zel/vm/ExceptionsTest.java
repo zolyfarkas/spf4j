@@ -2,7 +2,9 @@
 package org.spf4j.zel.vm;
 
 import java.util.concurrent.ExecutionException;
+import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.base.Throwables;
 
 /**
  *
@@ -16,10 +18,10 @@ public final class ExceptionsTest {
        Program p = Program.compile("throw 3");
        try {
         p.execute();
+        Assert.fail();
        } catch (ZExecutionException ex) {
-           ex.printStackTrace();
+           Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
        }
-       //Assert.assertEquals(2, result.intValue());
     }
 
     @Test
@@ -27,10 +29,10 @@ public final class ExceptionsTest {
        Program p = Program.compile("a = func { throw 5 };\n b = 1 + 1;\n a();\n return b ");
        try {
         p.execute();
+        Assert.fail();
        } catch (ZExecutionException ex) {
-           ex.printStackTrace();
+           Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
        }
-       //Assert.assertEquals(2, result.intValue());
     }
 
 
