@@ -23,11 +23,11 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -37,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.spf4j.base.AbstractRunnable;
@@ -83,6 +84,12 @@ public final class GraphiteUdpStoreTest {
     System.out.println("measurements received " + line);
     Assert.assertEquals("bla/val3 5 1", line);
   }
+
+  @Before
+  public void beforeTest() {
+    queue.drainTo(new ArrayList<String>());
+  }
+
 
   @Test
   @SuppressFBWarnings("MDM_THREAD_YIELD")
