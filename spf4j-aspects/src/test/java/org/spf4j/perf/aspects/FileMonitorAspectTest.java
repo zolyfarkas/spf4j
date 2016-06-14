@@ -27,7 +27,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -73,9 +75,10 @@ public final class FileMonitorAspectTest {
     final File file = dbWriter.getFile();
     ListMultimap<String, TableDefEx> allTables = TSDBQuery.getAllTablesWithDataRanges(file);
     System.out.println("Tables" +  allTables);
-    Assert.assertThat(allTables.asMap(), (Matcher)
+    Map<String, Collection<TableDefEx>> asMap = allTables.asMap();
+    Assert.assertThat(asMap, (Matcher)
             Matchers.hasKey("(file-write,class org.spf4j.perf.aspects.FileMonitorAspectTest)"));
-    Assert.assertThat(allTables.asMap(), (Matcher)
+    Assert.assertThat(asMap, (Matcher)
             Matchers.hasKey("(file-read,class org.spf4j.perf.aspects.FileMonitorAspectTest)"));
     List<TableDefEx> get = allTables.get("(file-write,class org.spf4j.perf.aspects.FileMonitorAspectTest)");
     Assert.assertTrue(get.get(0).getStartTime() != 0);
