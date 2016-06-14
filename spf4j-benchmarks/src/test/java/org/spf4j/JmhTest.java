@@ -2,16 +2,13 @@
 package org.spf4j;
 
 import java.io.IOException;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.spf4j.stackmonitor.JmhFlightRecorderProfiler;
-import org.spf4j.stackmonitor.JmhProfiler;
 
 /**
  *
@@ -25,14 +22,17 @@ public final class JmhTest {
         final String destinationFolder = System.getProperty("jmh.stack.profiles",
                 org.spf4j.base.Runtime.USER_DIR);
         Options opt = new OptionsBuilder()
-                .include(".*Appendable.*")
+                .include(".*spf4jAppendable.*")
 //                .include(".*")
 //                .addProfiler(JmhProfiler.class)
-//                .addProfiler(JmhFlightRecorderProfiler.class)
+                .addProfiler(JmhFlightRecorderProfiler.class)
+                //"-XX:+PrintCompilation","-Djmh.executor=FJP"
                 .jvmArgs("-XX:+UnlockCommercialFeatures", "-Djmh.stack.profiles=" + destinationFolder,
-                        "-Dspf4j.executors.defaultExecutor.daemon=true", "-Djmh.executor=FJP")
+                        "-Dspf4j.executors.defaultExecutor.daemon=true")
                 .result(destinationFolder + "/" + "benchmarkResults.csv")
                 .resultFormat(ResultFormatType.CSV)
+                //.measurementTime(TimeValue.seconds(5))
+//                .warmupBatchSize(100)
 //                .measurementBatchSize(100)
 //                .mode(Mode.All)
                 .warmupIterations(10)

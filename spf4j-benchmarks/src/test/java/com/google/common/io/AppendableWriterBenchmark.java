@@ -8,7 +8,6 @@ import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
-import org.spf4j.base.IntMath;
 
 /**
  *
@@ -16,16 +15,16 @@ import org.spf4j.base.IntMath;
  */
 @State(Scope.Benchmark)
 @Fork(2)
-@Threads(value = 4)
+@Threads(value = 8)
 public class AppendableWriterBenchmark {
 
     public static final char[] TEST_CHARS;
 
+
     static {
-        IntMath.XorShift32 rnd = new IntMath.XorShift32();
         StringBuilder builder = new StringBuilder(1000);
         for (int i = 0; i < 1000; i++) {
-            builder.append('A' + Math.abs(rnd.nextInt()) % 22);
+            builder.append('A');
         }
         TEST_CHARS = builder.toString().toCharArray();
     }
@@ -53,5 +52,18 @@ public class AppendableWriterBenchmark {
     }
 
 
+  public static void main(String[] args) throws IOException {
+    AppendableWriterBenchmark benchmark = new AppendableWriterBenchmark();
+    for (int k = 0; k < 20; k++) {
+      long start = System.nanoTime();
+      StringBuilder result = null;
+      for (int i = 0; i < 100000; i++) {
+        result = benchmark.spf4jAppendable();
+      }
+      long elapsed = System.nanoTime() - start;
+      System.out.println("Ops/s: "
+              +  ((double) 100000 / ((double) elapsed / 1000000000)) + result.charAt(0));
+    }
+  }
 
 }
