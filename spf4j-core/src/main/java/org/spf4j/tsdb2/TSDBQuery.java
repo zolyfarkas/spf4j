@@ -122,6 +122,11 @@ public final class TSDBQuery {
             this.endTime = endTime;
         }
 
+      @Override
+      public String toString() {
+        return "TableDefEx{" + "tableDef=" + tableDef + ", startTime=" + startTime + ", endTime=" + endTime + '}';
+      }
+
     }
 
     public static ListMultimap<String, TableDefEx> getAllTablesWithDataRanges(final File tsdbFile) throws IOException {
