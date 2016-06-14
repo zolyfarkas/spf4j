@@ -2,7 +2,6 @@
 package com.google.common.io;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
@@ -32,7 +31,7 @@ public class AppendableWriterBenchmark {
     }
 
     @Benchmark
-    public final StringBuilder guavaAppendable() throws UnsupportedEncodingException, IOException {
+    public final StringBuilder guavaAppendable() throws  IOException {
       final StringBuilder stringBuilder = new StringBuilder(100000);
       Writer writer = new AppendableWriter(stringBuilder);
       for (int i = 0; i < 100; i++) {
@@ -44,13 +43,13 @@ public class AppendableWriterBenchmark {
 
     @Benchmark
     public final StringBuilder spf4jAppendable() throws IOException {
-            final StringBuilder stringBuilder = new StringBuilder(100000);
+      final StringBuilder stringBuilder = new StringBuilder(100000);
       Writer writer = new  org.spf4j.io.AppendableWriter(stringBuilder);
       for (int i = 0; i < 100; i++) {
         writer.write(TEST_CHARS);
       }
       writer.close();
-      return stringBuilder;        
+      return stringBuilder;
     }
 
 
