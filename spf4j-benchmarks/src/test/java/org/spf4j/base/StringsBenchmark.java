@@ -1,7 +1,6 @@
 
 package org.spf4j.base;
 
-import com.google.common.io.BaseEncoding;
 import java.io.UnsupportedEncodingException;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
@@ -32,12 +31,12 @@ public class StringsBenchmark {
 
     @Benchmark
     public final byte [] optimizedSubStringDecode() throws UnsupportedEncodingException {
-        return BaseEncoding.base64().decode(CharSequences.subSequence(TEST_STRING, 10, TEST_STRING.length()));
+        return Base64.decodeBase64(CharSequences.subSequence(TEST_STRING, 10, TEST_STRING.length()));
     }
 
     @Benchmark
     public final byte [] subStringDecode() {
-        return BaseEncoding.base64().decode(TEST_STRING.subSequence(10, TEST_STRING.length()));
+        return Base64.decodeBase64(TEST_STRING.subSequence(10, TEST_STRING.length()));
     }
 
 
