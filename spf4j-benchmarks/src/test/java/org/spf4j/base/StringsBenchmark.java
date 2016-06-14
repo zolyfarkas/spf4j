@@ -32,7 +32,7 @@ public class StringsBenchmark {
 
     @Benchmark
     public final byte [] optimizedSubStringDecode() throws UnsupportedEncodingException {
-        return BaseEncoding.base64().decode(Strings.subSequence(TEST_STRING, 10, TEST_STRING.length()));
+        return BaseEncoding.base64().decode(CharSequences.subSequence(TEST_STRING, 10, TEST_STRING.length()));
     }
 
     @Benchmark
