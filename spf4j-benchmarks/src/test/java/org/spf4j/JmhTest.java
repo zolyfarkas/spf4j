@@ -4,6 +4,7 @@ package org.spf4j;
 import java.io.IOException;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -16,7 +17,7 @@ import org.spf4j.stackmonitor.JmhProfiler;
  *
  * @author zoly
  */
-@Ignore
+//@Ignore
 public final class JmhTest {
 
     @Test
@@ -24,13 +25,16 @@ public final class JmhTest {
         final String destinationFolder = System.getProperty("jmh.stack.profiles",
                 org.spf4j.base.Runtime.USER_DIR);
         Options opt = new OptionsBuilder()
-                .include(".*MessageFormatter*.*")
-                .addProfiler(JmhProfiler.class)
-                .addProfiler(JmhFlightRecorderProfiler.class)
+                .include(".*Appendable.*")
+//                .include(".*")
+//                .addProfiler(JmhProfiler.class)
+//                .addProfiler(JmhFlightRecorderProfiler.class)
                 .jvmArgs("-XX:+UnlockCommercialFeatures", "-Djmh.stack.profiles=" + destinationFolder,
-                        "-DdefaultExecutor.daemon=true", "-Djmh.executor=FJP")
+                        "-Dspf4j.executors.defaultExecutor.daemon=true", "-Djmh.executor=FJP")
                 .result(destinationFolder + "/" + "benchmarkResults.csv")
                 .resultFormat(ResultFormatType.CSV)
+//                .measurementBatchSize(100)
+//                .mode(Mode.All)
                 .warmupIterations(10)
                 .measurementIterations(10)
                 .forks(1)
