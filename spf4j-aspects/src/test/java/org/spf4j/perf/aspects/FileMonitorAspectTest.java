@@ -32,13 +32,11 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
-import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.impl.RecorderFactory;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 import org.spf4j.tsdb2.TSDBQuery;
 import org.spf4j.tsdb2.TSDBQuery.TableDefEx;
 import org.spf4j.tsdb2.TSDBWriter;
-import org.spf4j.tsdb2.avro.TableDef;
 
 /**
  * @author zoly
@@ -75,9 +73,9 @@ public final class FileMonitorAspectTest {
     final File file = dbWriter.getFile();
     ListMultimap<String, TableDefEx> allTables = TSDBQuery.getAllTablesWithDataRanges(file);
     System.out.println("Tables" +  allTables);
-    Assert.assertThat(allTables, (Matcher)
+    Assert.assertThat(allTables.asMap(), (Matcher)
             Matchers.hasKey("(file-write,class org.spf4j.perf.aspects.FileMonitorAspectTest)"));
-    Assert.assertThat(allTables, (Matcher)
+    Assert.assertThat(allTables.asMap(), (Matcher)
             Matchers.hasKey("(file-read,class org.spf4j.perf.aspects.FileMonitorAspectTest)"));
     List<TableDefEx> get = allTables.get("(file-write,class org.spf4j.perf.aspects.FileMonitorAspectTest)");
     Assert.assertTrue(get.get(0).getStartTime() != 0);
