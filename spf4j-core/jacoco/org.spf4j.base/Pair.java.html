@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
  *
  * @author zoly
  */
-public class Pair&lt;A, B&gt; implements Map.Entry&lt;A, B&gt; {
+public class Pair&lt;A, B&gt; implements Map.Entry&lt;A, B&gt;, Writeable {
 
     @ConstructorProperties({&quot;first&quot;, &quot;second&quot; })
 <span class="fc" id="L38">    public Pair(final A first, final B second) {</span>
@@ -122,42 +122,48 @@ public class Pair&lt;A, B&gt; implements Map.Entry&lt;A, B&gt; {
     @Override
     public final String toString() {
         try {
-<span class="fc" id="L125">            StringBuilder result = new StringBuilder(32).append(PREFIX);</span>
-<span class="fc" id="L126">            Csv.writeCsvElement(first.toString(), result);</span>
-<span class="fc" id="L127">            result.append(',');</span>
-<span class="fc" id="L128">            Csv.writeCsvElement(second.toString(), result);</span>
-<span class="fc" id="L129">            result.append(SUFFIX);</span>
-<span class="fc" id="L130">            return result.toString();</span>
-<span class="nc" id="L131">        } catch (IOException ex) {</span>
-<span class="nc" id="L132">           throw new RuntimeException(ex);</span>
+<span class="fc" id="L125">            StringBuilder result = new StringBuilder(32);</span>
+<span class="fc" id="L126">            writeTo(result);</span>
+<span class="fc" id="L127">            return result.toString();</span>
+<span class="nc" id="L128">        } catch (IOException ex) {</span>
+<span class="nc" id="L129">           throw new RuntimeException(ex);</span>
         }
     }
 
+    @Override
+    public final void writeTo(final Appendable appendable) throws IOException {
+<span class="fc" id="L135">      appendable.append(PREFIX);</span>
+<span class="fc" id="L136">      Csv.writeCsvElement(first.toString(), appendable);</span>
+<span class="fc" id="L137">      appendable.append(',');</span>
+<span class="fc" id="L138">      Csv.writeCsvElement(second.toString(), appendable);</span>
+<span class="fc" id="L139">      appendable.append(SUFFIX);</span>
+<span class="fc" id="L140">    }</span>
+
     public final List&lt;Object&gt; toList() {
-<span class="nc" id="L137">        return java.util.Arrays.asList(first, second);</span>
+<span class="nc" id="L143">        return java.util.Arrays.asList(first, second);</span>
     }
 
     public static &lt;K, V extends Object&gt; Map&lt;K, V&gt; asMap(final Pair&lt;K, ? extends V&gt; ... pairs) {
-<span class="fc" id="L141">        Map&lt;K, V&gt; result = new LinkedHashMap&lt;&gt;(pairs.length);</span>
-<span class="fc bfc" id="L142" title="All 2 branches covered.">        for (Pair&lt;K, ? extends V&gt; pair : pairs) {</span>
-<span class="fc" id="L143">            result.put(pair.getFirst(), pair.getSecond());</span>
+<span class="fc" id="L147">        Map&lt;K, V&gt; result = new LinkedHashMap&lt;&gt;(pairs.length);</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">        for (Pair&lt;K, ? extends V&gt; pair : pairs) {</span>
+<span class="fc" id="L149">            result.put(pair.getFirst(), pair.getSecond());</span>
         }
-<span class="fc" id="L145">        return result;</span>
+<span class="fc" id="L151">        return result;</span>
     }
 
     @Override
     public final A getKey() {
-<span class="fc" id="L150">        return first;</span>
+<span class="fc" id="L156">        return first;</span>
     }
 
     @Override
     public final B getValue() {
-<span class="fc" id="L155">        return second;</span>
+<span class="fc" id="L161">        return second;</span>
     }
 
     @Override
     public final B setValue(final B value) {
-<span class="nc" id="L160">        throw new UnsupportedOperationException(&quot;Object not mutable&quot;);</span>
+<span class="nc" id="L166">        throw new UnsupportedOperationException(&quot;Object not mutable&quot;);</span>
     }
 
 }

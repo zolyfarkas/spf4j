@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>UpdateResult.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">UpdateResult.java</span></div><h1>UpdateResult.java</h1><pre class="source lang-java linenums">
+package org.spf4j.concurrent;
+
+/**
+ *
+ * @author zoly
+ */
+public final class UpdateResult&lt;T&gt; {
+
+  private final boolean objectUpdated;
+
+  private final T obj;
+
+<span class="nc" id="L14">  private UpdateResult(final boolean objectUpdated, final T obj) {</span>
+<span class="nc" id="L15">    this.objectUpdated = objectUpdated;</span>
+<span class="nc" id="L16">    this.obj = obj;</span>
+<span class="nc" id="L17">  }</span>
+
+  public static &lt;T&gt; UpdateResult&lt;T&gt; updated(final T object) {
+<span class="nc" id="L20">    return new UpdateResult&lt;&gt;(true, object);</span>
+  }
+
+  public static &lt;T&gt; UpdateResult&lt;T&gt; same(final T object) {
+<span class="nc" id="L24">    return new UpdateResult&lt;&gt;(false, object);</span>
+  }
+
+  public boolean isObjectUpdated() {
+<span class="nc" id="L28">    return objectUpdated;</span>
+  }
+
+  public T getObj() {
+<span class="nc" id="L32">    return obj;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L37">    return &quot;UpdateResult{&quot; + &quot;objectUpdated=&quot; + objectUpdated + &quot;, obj=&quot; + obj + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

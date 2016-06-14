@@ -401,113 +401,30 @@ public final class Strings {
 <span class="fc" id="L401">        return encode(UTF8_ENCODER.get(), chars, 0, chars.length);</span>
     }
 
-    public static int compareTo(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
-<span class="fc" id="L405">        int i = 0;</span>
-<span class="fc" id="L406">        final int sl = s.length();</span>
-<span class="fc" id="L407">        final int tl = t.length();</span>
-<span class="pc bpc" id="L408" title="1 of 4 branches missed.">        while (i &lt; sl &amp;&amp; i &lt; tl) {</span>
-<span class="fc" id="L409">            char a = s.charAt(i);</span>
-<span class="fc" id="L410">            char b = t.charAt(i);</span>
-<span class="fc" id="L411">            int diff = a - b;</span>
-<span class="pc bpc" id="L412" title="1 of 2 branches missed.">            if (diff != 0) {</span>
-<span class="nc" id="L413">                return diff;</span>
-            }
-<span class="fc" id="L415">            i++;</span>
-<span class="fc" id="L416">        }</span>
-<span class="fc" id="L417">        return sl - tl;</span>
-    }
-
-    public static boolean equals(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
-<span class="fc" id="L421">        final int sl = s.length();</span>
-<span class="fc" id="L422">        final int tl = t.length();</span>
-<span class="fc bfc" id="L423" title="All 2 branches covered.">        if (sl != tl) {</span>
-<span class="fc" id="L424">            return false;</span>
-        } else {
-<span class="fc bfc" id="L426" title="All 2 branches covered.">            for (int i = 0; i &lt; sl; i++) {</span>
-<span class="fc bfc" id="L427" title="All 2 branches covered.">                if (s.charAt(i) != t.charAt(i)) {</span>
-<span class="fc" id="L428">                    return false;</span>
-                }
-            }
-<span class="fc" id="L431">            return true;</span>
-        }
-    }
-    
-    
-  public static int hashcode(final CharSequence cs) {
-<span class="nc" id="L437">    int h = 0;</span>
-<span class="nc" id="L438">    int len = cs.length();</span>
-<span class="nc bnc" id="L439" title="All 2 branches missed.">    if (len &gt; 0) {</span>
-<span class="nc" id="L440">      int off = 0;</span>
-<span class="nc bnc" id="L441" title="All 2 branches missed.">      for (int i = 0; i &lt; len; i++) {</span>
-<span class="nc" id="L442">        h = 31 * h + cs.charAt(off++);</span>
-      }
-    }
-<span class="nc" id="L445">    return h;</span>
+  @Deprecated
+  public static int compareTo(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
+<span class="fc" id="L406">    return CharSequences.compareTo(s, t);</span>
   }
 
-    public static CharSequence subSequence(final CharSequence seq, final int startIdx, final int endIdx) {
-<span class="pc bpc" id="L449" title="1 of 4 branches missed.">        if (startIdx == 0 &amp;&amp; endIdx == seq.length()) {</span>
-<span class="fc" id="L450">            return seq;</span>
-<span class="fc bfc" id="L451" title="All 2 branches covered.">        } else if (startIdx &gt;= endIdx) {</span>
-<span class="fc" id="L452">            return &quot;&quot;;</span>
-        } else {
-<span class="fc" id="L454">            return new SubSequence(seq, endIdx - startIdx, startIdx);</span>
-        }
-    }
+  @Deprecated
+  public static boolean equals(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
+<span class="fc" id="L411">    return CharSequences.equals(s, t);</span>
+  }
 
-    private static final class SubSequence implements CharSequence {
+  @Deprecated
+  public static int hashcode(final CharSequence cs) {
+<span class="nc" id="L416">    return CharSequences.hashcode(cs);</span>
+  }
 
-        private final CharSequence underlyingSequence;
-        private final int length;
-        private final int startIdx;
+  @Deprecated
+  public static CharSequence subSequence(final CharSequence seq, final int startIdx, final int endIdx) {
+<span class="fc" id="L421">    return CharSequences.subSequence(seq, startIdx, endIdx);</span>
+  }
 
-<span class="fc" id="L464">        SubSequence(final CharSequence underlyingSequence, final int length, final int startIdx) {</span>
-<span class="fc" id="L465">            this.underlyingSequence = underlyingSequence;</span>
-<span class="fc" id="L466">            this.length = length;</span>
-<span class="fc" id="L467">            this.startIdx = startIdx;</span>
-<span class="fc" id="L468">        }</span>
-
-        @Override
-        public int length() {
-<span class="fc" id="L472">            return length;</span>
-        }
-
-        @Override
-        public char charAt(final int index) {
-<span class="fc" id="L477">            return underlyingSequence.charAt(startIdx + index);</span>
-        }
-
-        @Override
-        public CharSequence subSequence(final int start, final int end) {
-<span class="nc" id="L482">            return Strings.subSequence(underlyingSequence, startIdx + start, startIdx + end);</span>
-        }
-
-        @Override
-        public String toString() {
-<span class="fc" id="L487">            char[] chars = new char[length];</span>
-<span class="fc" id="L488">            int idx = startIdx;</span>
-<span class="fc bfc" id="L489" title="All 2 branches covered.">            for (int i = 0; i &lt; length; i++, idx++) {</span>
-<span class="fc" id="L490">                chars[i] = underlyingSequence.charAt(idx);</span>
-            }
-<span class="fc" id="L492">            return Strings.wrap(chars);</span>
-        }
-
-    }
-
-    public static boolean endsWith(final CharSequence qc, final CharSequence with) {
-<span class="nc" id="L498">        int l = qc.length();</span>
-<span class="nc" id="L499">        int start = l - with.length();</span>
-<span class="nc bnc" id="L500" title="All 2 branches missed.">        if (start &gt;= 0) {</span>
-<span class="nc bnc" id="L501" title="All 2 branches missed.">            for (int i = start, j = 0; i &lt; l; i++, j++) {</span>
-<span class="nc bnc" id="L502" title="All 2 branches missed.">                if (qc.charAt(i) != qc.charAt(j)) {</span>
-<span class="nc" id="L503">                    return false;</span>
-                }
-            }
-<span class="nc" id="L506">            return true;</span>
-        } else {
-<span class="nc" id="L508">            return false;</span>
-        }
-    }
+  @Deprecated
+  public static boolean endsWith(final CharSequence qc, final CharSequence with) {
+<span class="fc" id="L426">    return CharSequences.endsWith(qc, with);</span>
+  }
 
   /**
    * Utility method to escape java strings to json strings.
@@ -517,89 +434,89 @@ public final class Strings {
    */
   public static void escapeJsonString(@Nonnull final String toEscape, final StringBuilder jsonString) {
 
-<span class="fc" id="L520">    int len = toEscape.length();</span>
-<span class="fc bfc" id="L521" title="All 2 branches covered.">    for (int i = 0; i &lt; len; i++) {</span>
-<span class="fc" id="L522">      char c = toEscape.charAt(i);</span>
-<span class="fc" id="L523">      appendJsonStringEscapedChar(c, jsonString);</span>
+<span class="fc" id="L437">    int len = toEscape.length();</span>
+<span class="fc bfc" id="L438" title="All 2 branches covered.">    for (int i = 0; i &lt; len; i++) {</span>
+<span class="fc" id="L439">      char c = toEscape.charAt(i);</span>
+<span class="fc" id="L440">      appendJsonStringEscapedChar(c, jsonString);</span>
     }
 
-<span class="fc" id="L526">  }</span>
-  
+<span class="fc" id="L443">  }</span>
+
   public static void escapeJsonString(@Nonnull final String toEscape, final Appendable jsonString) throws IOException {
-<span class="nc" id="L529">    int len = toEscape.length();</span>
-<span class="nc bnc" id="L530" title="All 2 branches missed.">    for (int i = 0; i &lt; len; i++) {</span>
-<span class="nc" id="L531">      char c = toEscape.charAt(i);</span>
-<span class="nc" id="L532">      appendJsonStringEscapedChar(c, jsonString);</span>
+<span class="nc" id="L446">    int len = toEscape.length();</span>
+<span class="nc bnc" id="L447" title="All 2 branches missed.">    for (int i = 0; i &lt; len; i++) {</span>
+<span class="nc" id="L448">      char c = toEscape.charAt(i);</span>
+<span class="nc" id="L449">      appendJsonStringEscapedChar(c, jsonString);</span>
     }
-<span class="nc" id="L534">  }</span>
-  
+<span class="nc" id="L451">  }</span>
+
 
   public static void appendJsonStringEscapedChar(final char c, final StringBuilder jsonString) {
-<span class="pc bpc" id="L538" title="3 of 7 branches missed.">    switch (c) {</span>
+<span class="pc bpc" id="L455" title="3 of 7 branches missed.">    switch (c) {</span>
       case '\\':
       case '&quot;':
-<span class="fc" id="L541">        jsonString.append('\\');</span>
-<span class="fc" id="L542">        jsonString.append(c);</span>
-<span class="fc" id="L543">        break;</span>
+<span class="fc" id="L458">        jsonString.append('\\');</span>
+<span class="fc" id="L459">        jsonString.append(c);</span>
+<span class="fc" id="L460">        break;</span>
       case '\b':
-<span class="fc" id="L545">        jsonString.append(&quot;\\b&quot;);</span>
-<span class="fc" id="L546">        break;</span>
+<span class="fc" id="L462">        jsonString.append(&quot;\\b&quot;);</span>
+<span class="fc" id="L463">        break;</span>
       case '\t':
-<span class="nc" id="L548">        jsonString.append(&quot;\\t&quot;);</span>
-<span class="nc" id="L549">        break;</span>
+<span class="nc" id="L465">        jsonString.append(&quot;\\t&quot;);</span>
+<span class="nc" id="L466">        break;</span>
       case '\n':
-<span class="fc" id="L551">        jsonString.append(&quot;\\n&quot;);</span>
-<span class="fc" id="L552">        break;</span>
+<span class="fc" id="L468">        jsonString.append(&quot;\\n&quot;);</span>
+<span class="fc" id="L469">        break;</span>
       case '\f':
-<span class="nc" id="L554">        jsonString.append(&quot;\\f&quot;);</span>
-<span class="nc" id="L555">        break;</span>
+<span class="nc" id="L471">        jsonString.append(&quot;\\f&quot;);</span>
+<span class="nc" id="L472">        break;</span>
       case '\r':
-<span class="nc" id="L557">        jsonString.append(&quot;\\r&quot;);</span>
-<span class="nc" id="L558">        break;</span>
+<span class="nc" id="L474">        jsonString.append(&quot;\\r&quot;);</span>
+<span class="nc" id="L475">        break;</span>
       default:
-<span class="fc bfc" id="L560" title="All 2 branches covered.">        if (c &lt; ' ') {</span>
-<span class="fc" id="L561">          jsonString.append(&quot;\\u&quot;);</span>
-<span class="fc" id="L562">          appendUnsignedStringPadded(jsonString, (int) c, 4, 4);</span>
+<span class="fc bfc" id="L477" title="All 2 branches covered.">        if (c &lt; ' ') {</span>
+<span class="fc" id="L478">          jsonString.append(&quot;\\u&quot;);</span>
+<span class="fc" id="L479">          appendUnsignedStringPadded(jsonString, (int) c, 4, 4);</span>
         } else {
-<span class="fc" id="L564">          jsonString.append(c);</span>
+<span class="fc" id="L481">          jsonString.append(c);</span>
         }
     }
-<span class="fc" id="L567">  }</span>
-  
-  
-  public static void appendJsonStringEscapedChar(final char c, final Appendable jsonString) throws IOException {
-<span class="pc bpc" id="L571" title="5 of 7 branches missed.">    switch (c) {</span>
-      case '\\':
-      case '&quot;':
-<span class="nc" id="L574">        jsonString.append('\\');</span>
-<span class="nc" id="L575">        jsonString.append(c);</span>
-<span class="nc" id="L576">        break;</span>
-      case '\b':
-<span class="nc" id="L578">        jsonString.append(&quot;\\b&quot;);</span>
-<span class="nc" id="L579">        break;</span>
-      case '\t':
-<span class="nc" id="L581">        jsonString.append(&quot;\\t&quot;);</span>
-<span class="nc" id="L582">        break;</span>
-      case '\n':
-<span class="fc" id="L584">        jsonString.append(&quot;\\n&quot;);</span>
-<span class="fc" id="L585">        break;</span>
-      case '\f':
-<span class="nc" id="L587">        jsonString.append(&quot;\\f&quot;);</span>
-<span class="nc" id="L588">        break;</span>
-      case '\r':
-<span class="nc" id="L590">        jsonString.append(&quot;\\r&quot;);</span>
-<span class="nc" id="L591">        break;</span>
-      default:
-<span class="fc bfc" id="L593" title="All 2 branches covered.">        if (c &lt; ' ') {</span>
-<span class="fc" id="L594">          jsonString.append(&quot;\\u&quot;);</span>
-<span class="fc" id="L595">          appendUnsignedStringPadded(jsonString, (int) c, 4, 4);</span>
-        } else {
-<span class="fc" id="L597">          jsonString.append(c);</span>
-        }
-    }
-<span class="fc" id="L600">  }</span>
+<span class="fc" id="L484">  }</span>
 
-<span class="fc" id="L602">    private static final char[] DIGITS = {</span>
+
+  public static void appendJsonStringEscapedChar(final char c, final Appendable jsonString) throws IOException {
+<span class="pc bpc" id="L488" title="5 of 7 branches missed.">    switch (c) {</span>
+      case '\\':
+      case '&quot;':
+<span class="nc" id="L491">        jsonString.append('\\');</span>
+<span class="nc" id="L492">        jsonString.append(c);</span>
+<span class="nc" id="L493">        break;</span>
+      case '\b':
+<span class="nc" id="L495">        jsonString.append(&quot;\\b&quot;);</span>
+<span class="nc" id="L496">        break;</span>
+      case '\t':
+<span class="nc" id="L498">        jsonString.append(&quot;\\t&quot;);</span>
+<span class="nc" id="L499">        break;</span>
+      case '\n':
+<span class="fc" id="L501">        jsonString.append(&quot;\\n&quot;);</span>
+<span class="fc" id="L502">        break;</span>
+      case '\f':
+<span class="nc" id="L504">        jsonString.append(&quot;\\f&quot;);</span>
+<span class="nc" id="L505">        break;</span>
+      case '\r':
+<span class="nc" id="L507">        jsonString.append(&quot;\\r&quot;);</span>
+<span class="nc" id="L508">        break;</span>
+      default:
+<span class="fc bfc" id="L510" title="All 2 branches covered.">        if (c &lt; ' ') {</span>
+<span class="fc" id="L511">          jsonString.append(&quot;\\u&quot;);</span>
+<span class="fc" id="L512">          appendUnsignedStringPadded(jsonString, (int) c, 4, 4);</span>
+        } else {
+<span class="fc" id="L514">          jsonString.append(c);</span>
+        }
+    }
+<span class="fc" id="L517">  }</span>
+
+<span class="fc" id="L519">    private static final char[] DIGITS = {</span>
         '0', '1', '2', '3', '4', '5',
         '6', '7', '8', '9', 'a', 'b',
         'c', 'd', 'e', 'f', 'g', 'h',
@@ -608,120 +525,120 @@ public final class Strings {
         'u', 'v', 'w', 'x', 'y', 'z'
     };
 
-<span class="fc" id="L611">    private static final ThreadLocal&lt;char[]&gt; BUFF = new ThreadLocal&lt;char[]&gt;() {</span>
+<span class="fc" id="L528">    private static final ThreadLocal&lt;char[]&gt; BUFF = new ThreadLocal&lt;char[]&gt;() {</span>
 
         @Override
         @SuppressFBWarnings(&quot;SUA_SUSPICIOUS_UNINITIALIZED_ARRAY&quot;)
         protected char[] initialValue() {
-<span class="fc" id="L616">            return new char[64];</span>
+<span class="fc" id="L533">            return new char[64];</span>
         }
 
     };
 
     public static void appendUnsignedString(final StringBuilder sb, final long nr, final int shift) {
-<span class="fc" id="L622">        long i = nr;</span>
-<span class="fc" id="L623">        char[] buf = BUFF.get();</span>
-<span class="fc" id="L624">        int charPos = 64;</span>
-<span class="fc" id="L625">        int radix = 1 &lt;&lt; shift;</span>
-<span class="fc" id="L626">        long mask = radix - 1;</span>
+<span class="fc" id="L539">        long i = nr;</span>
+<span class="fc" id="L540">        char[] buf = BUFF.get();</span>
+<span class="fc" id="L541">        int charPos = 64;</span>
+<span class="fc" id="L542">        int radix = 1 &lt;&lt; shift;</span>
+<span class="fc" id="L543">        long mask = radix - 1;</span>
         do {
-<span class="fc" id="L628">            buf[--charPos] = DIGITS[(int) (i &amp; mask)];</span>
-<span class="fc" id="L629">            i &gt;&gt;&gt;= shift;</span>
-<span class="fc bfc" id="L630" title="All 2 branches covered.">        } while (i != 0);</span>
-<span class="fc" id="L631">        sb.append(buf, charPos, 64 - charPos);</span>
-<span class="fc" id="L632">    }</span>
+<span class="fc" id="L545">            buf[--charPos] = DIGITS[(int) (i &amp; mask)];</span>
+<span class="fc" id="L546">            i &gt;&gt;&gt;= shift;</span>
+<span class="fc bfc" id="L547" title="All 2 branches covered.">        } while (i != 0);</span>
+<span class="fc" id="L548">        sb.append(buf, charPos, 64 - charPos);</span>
+<span class="fc" id="L549">    }</span>
 
     public static void appendUnsignedString(final StringBuilder sb, final int nr, final int shift) {
-<span class="fc" id="L635">        long i = nr;</span>
-<span class="fc" id="L636">        char[] buf = BUFF.get();</span>
-<span class="fc" id="L637">        int charPos = 32;</span>
-<span class="fc" id="L638">        int radix = 1 &lt;&lt; shift;</span>
-<span class="fc" id="L639">        long mask = radix - 1;</span>
+<span class="fc" id="L552">        long i = nr;</span>
+<span class="fc" id="L553">        char[] buf = BUFF.get();</span>
+<span class="fc" id="L554">        int charPos = 32;</span>
+<span class="fc" id="L555">        int radix = 1 &lt;&lt; shift;</span>
+<span class="fc" id="L556">        long mask = radix - 1;</span>
         do {
-<span class="fc" id="L641">            buf[--charPos] = DIGITS[(int) (i &amp; mask)];</span>
-<span class="fc" id="L642">            i &gt;&gt;&gt;= shift;</span>
-<span class="fc bfc" id="L643" title="All 2 branches covered.">        } while (i != 0);</span>
-<span class="fc" id="L644">        sb.append(buf, charPos, 32 - charPos);</span>
-<span class="fc" id="L645">    }</span>
+<span class="fc" id="L558">            buf[--charPos] = DIGITS[(int) (i &amp; mask)];</span>
+<span class="fc" id="L559">            i &gt;&gt;&gt;= shift;</span>
+<span class="fc bfc" id="L560" title="All 2 branches covered.">        } while (i != 0);</span>
+<span class="fc" id="L561">        sb.append(buf, charPos, 32 - charPos);</span>
+<span class="fc" id="L562">    }</span>
 
     public static void appendUnsignedStringPadded(final StringBuilder sb, final int nr, final int shift,
             final int padTo) {
-<span class="fc" id="L649">        long i = nr;</span>
-<span class="fc" id="L650">        char[] buf = BUFF.get();</span>
-<span class="fc" id="L651">        int charPos = 32;</span>
-<span class="fc" id="L652">        int radix = 1 &lt;&lt; shift;</span>
-<span class="fc" id="L653">        long mask = radix - 1;</span>
+<span class="fc" id="L566">        long i = nr;</span>
+<span class="fc" id="L567">        char[] buf = BUFF.get();</span>
+<span class="fc" id="L568">        int charPos = 32;</span>
+<span class="fc" id="L569">        int radix = 1 &lt;&lt; shift;</span>
+<span class="fc" id="L570">        long mask = radix - 1;</span>
         do {
-<span class="fc" id="L655">            buf[--charPos] = DIGITS[(int) (i &amp; mask)];</span>
-<span class="fc" id="L656">            i &gt;&gt;&gt;= shift;</span>
-<span class="fc bfc" id="L657" title="All 2 branches covered.">        } while (i != 0);</span>
-<span class="fc" id="L658">        final int nrChars = 32 - charPos;</span>
-<span class="pc bpc" id="L659" title="1 of 2 branches missed.">        if (nrChars &gt; padTo) {</span>
-<span class="nc" id="L660">            throw new IllegalArgumentException(&quot;Your pad to value &quot; + padTo</span>
+<span class="fc" id="L572">            buf[--charPos] = DIGITS[(int) (i &amp; mask)];</span>
+<span class="fc" id="L573">            i &gt;&gt;&gt;= shift;</span>
+<span class="fc bfc" id="L574" title="All 2 branches covered.">        } while (i != 0);</span>
+<span class="fc" id="L575">        final int nrChars = 32 - charPos;</span>
+<span class="pc bpc" id="L576" title="1 of 2 branches missed.">        if (nrChars &gt; padTo) {</span>
+<span class="nc" id="L577">            throw new IllegalArgumentException(&quot;Your pad to value &quot; + padTo</span>
                     + &quot; is to small, must be at least &quot; + nrChars);
         } else {
-<span class="fc bfc" id="L663" title="All 2 branches covered.">            for (int j = 0, n = padTo - nrChars; j &lt; n; j++) {</span>
-<span class="fc" id="L664">                sb.append('0');</span>
+<span class="fc bfc" id="L580" title="All 2 branches covered.">            for (int j = 0, n = padTo - nrChars; j &lt; n; j++) {</span>
+<span class="fc" id="L581">                sb.append('0');</span>
             }
         }
-<span class="fc" id="L667">        sb.append(buf, charPos, nrChars);</span>
-<span class="fc" id="L668">    }</span>
-    
+<span class="fc" id="L584">        sb.append(buf, charPos, nrChars);</span>
+<span class="fc" id="L585">    }</span>
+
     public static void appendUnsignedStringPadded(final Appendable sb, final int nr, final int shift,
             final int padTo) throws IOException {
-<span class="fc" id="L672">        long i = nr;</span>
-<span class="fc" id="L673">        char[] buf = BUFF.get();</span>
-<span class="fc" id="L674">        int charPos = 32;</span>
-<span class="fc" id="L675">        int radix = 1 &lt;&lt; shift;</span>
-<span class="fc" id="L676">        long mask = radix - 1;</span>
+<span class="fc" id="L589">        long i = nr;</span>
+<span class="fc" id="L590">        char[] buf = BUFF.get();</span>
+<span class="fc" id="L591">        int charPos = 32;</span>
+<span class="fc" id="L592">        int radix = 1 &lt;&lt; shift;</span>
+<span class="fc" id="L593">        long mask = radix - 1;</span>
         do {
-<span class="fc" id="L678">            buf[--charPos] = DIGITS[(int) (i &amp; mask)];</span>
-<span class="fc" id="L679">            i &gt;&gt;&gt;= shift;</span>
-<span class="fc bfc" id="L680" title="All 2 branches covered.">        } while (i != 0);</span>
-<span class="fc" id="L681">        final int nrChars = 32 - charPos;</span>
-<span class="pc bpc" id="L682" title="1 of 2 branches missed.">        if (nrChars &gt; padTo) {</span>
-<span class="nc" id="L683">            throw new IllegalArgumentException(&quot;Your pad to value &quot; + padTo</span>
+<span class="fc" id="L595">            buf[--charPos] = DIGITS[(int) (i &amp; mask)];</span>
+<span class="fc" id="L596">            i &gt;&gt;&gt;= shift;</span>
+<span class="fc bfc" id="L597" title="All 2 branches covered.">        } while (i != 0);</span>
+<span class="fc" id="L598">        final int nrChars = 32 - charPos;</span>
+<span class="pc bpc" id="L599" title="1 of 2 branches missed.">        if (nrChars &gt; padTo) {</span>
+<span class="nc" id="L600">            throw new IllegalArgumentException(&quot;Your pad to value &quot; + padTo</span>
                     + &quot; is to small, must be at least &quot; + nrChars);
         } else {
-<span class="fc bfc" id="L686" title="All 2 branches covered.">            for (int j = 0, n = padTo - nrChars; j &lt; n; j++) {</span>
-<span class="fc" id="L687">                sb.append('0');</span>
+<span class="fc bfc" id="L603" title="All 2 branches covered.">            for (int j = 0, n = padTo - nrChars; j &lt; n; j++) {</span>
+<span class="fc" id="L604">                sb.append('0');</span>
             }
         }
-<span class="fc" id="L690">        sb.append(CharBuffer.wrap(buf), charPos, charPos + nrChars);</span>
-<span class="fc" id="L691">    }</span>
-    
+<span class="fc" id="L607">        sb.append(CharBuffer.wrap(buf), charPos, charPos + nrChars);</span>
+<span class="fc" id="L608">    }</span>
+
     public static void appendSpaces(final Appendable to, final int nrSpaces) throws IOException {
-<span class="nc bnc" id="L694" title="All 2 branches missed.">      for (int i = 0; i &lt; nrSpaces; i++) {</span>
-<span class="nc" id="L695">        to.append(' ');</span>
+<span class="nc bnc" id="L611" title="All 2 branches missed.">      for (int i = 0; i &lt; nrSpaces; i++) {</span>
+<span class="nc" id="L612">        to.append(' ');</span>
       }
-<span class="nc" id="L697">    }</span>
-    
+<span class="nc" id="L614">    }</span>
+
     public static void appendSpaces(final StringBuilder to, final int nrSpaces) {
-<span class="nc bnc" id="L700" title="All 2 branches missed.">      for (int i = 0; i &lt; nrSpaces; i++) {</span>
-<span class="nc" id="L701">        to.append(' ');</span>
+<span class="nc bnc" id="L617" title="All 2 branches missed.">      for (int i = 0; i &lt; nrSpaces; i++) {</span>
+<span class="nc" id="L618">        to.append(' ');</span>
       }
-<span class="nc" id="L703">    }</span>
+<span class="nc" id="L620">    }</span>
 
   /**
    * See String.regionMatches.
    */
   public static boolean regionMatches(final CharSequence t, final int toffset,
           final CharSequence other, final int ooffset, final int plen) {
-<span class="nc" id="L710">    int to = toffset;</span>
-<span class="nc" id="L711">    int po = ooffset;</span>
+<span class="nc" id="L627">    int to = toffset;</span>
+<span class="nc" id="L628">    int po = ooffset;</span>
     // Note: toffset, ooffset, or len might be near -1&gt;&gt;&gt;1.
-<span class="nc bnc" id="L713" title="All 6 branches missed.">    if ((ooffset &lt; 0) || (toffset &lt; 0) || (toffset &gt; (long) t.length() - plen)</span>
-<span class="nc bnc" id="L714" title="All 2 branches missed.">            || (ooffset &gt; (long) other.length() - plen)) {</span>
-<span class="nc" id="L715">      return false;</span>
+<span class="nc bnc" id="L630" title="All 6 branches missed.">    if ((ooffset &lt; 0) || (toffset &lt; 0) || (toffset &gt; (long) t.length() - plen)</span>
+<span class="nc bnc" id="L631" title="All 2 branches missed.">            || (ooffset &gt; (long) other.length() - plen)) {</span>
+<span class="nc" id="L632">      return false;</span>
     }
-<span class="nc" id="L717">    int len = plen;</span>
-<span class="nc bnc" id="L718" title="All 2 branches missed.">    while (len-- &gt; 0) {</span>
-<span class="nc bnc" id="L719" title="All 2 branches missed.">      if (t.charAt(to++) != other.charAt(po++)) {</span>
-<span class="nc" id="L720">        return false;</span>
+<span class="nc" id="L634">    int len = plen;</span>
+<span class="nc bnc" id="L635" title="All 2 branches missed.">    while (len-- &gt; 0) {</span>
+<span class="nc bnc" id="L636" title="All 2 branches missed.">      if (t.charAt(to++) != other.charAt(po++)) {</span>
+<span class="nc" id="L637">        return false;</span>
       }
     }
-<span class="nc" id="L723">    return true;</span>
+<span class="nc" id="L640">    return true;</span>
   }
-   
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

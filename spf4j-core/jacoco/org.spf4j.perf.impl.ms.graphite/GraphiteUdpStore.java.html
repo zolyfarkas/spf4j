@@ -32,7 +32,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
     @Override
     public void flush() {
         // No buffering yet
-<span class="nc" id="L35">    }</span>
+<span class="fc" id="L35">    }</span>
 
     private static class DatagramChannelSupplierFactory implements RecyclingSupplier.Factory&lt;DatagramChannel&gt; {
 
@@ -119,32 +119,43 @@ public final class GraphiteUdpStore implements MeasurementStore {
 
 <span class="fc" id="L120">    }</span>
 
+    /**
+     * Write with the plaintext protocol:
+     * https://graphite.readthedocs.io/en/0.9.10/feeding-carbon.html
+     *
+     * @param measurementInfo measuremrnt info
+     * @param measurementName measurement name
+     * @param measurement measurement value
+     * @param timeStampMillis  timestamp millis since epoch.
+     * @param os the output writer  to write to.
+     * @throws IOException
+     */
     public static void writeMetric(final MeasurementsInfo measurementInfo, final String measurementName,
             final long measurement, final long timeStampMillis, final Writer os)
             throws IOException {
-<span class="fc" id="L125">        Strings.writeReplaceWhitespaces(measurementInfo.getMeasuredEntity().toString(), '-', os);</span>
-<span class="fc" id="L126">        os.append('/');</span>
-<span class="fc" id="L127">        Strings.writeReplaceWhitespaces(measurementName, '-', os);</span>
-<span class="fc" id="L128">        os.append(' ');</span>
-<span class="fc" id="L129">        os.append(Long.toString(measurement));</span>
-<span class="fc" id="L130">        os.append(' ');</span>
-<span class="fc" id="L131">        os.append(Long.toString(timeStampMillis));</span>
-<span class="fc" id="L132">        os.append('\n');</span>
-<span class="fc" id="L133">    }</span>
+<span class="fc" id="L136">        Strings.writeReplaceWhitespaces(measurementInfo.getMeasuredEntity().toString(), '-', os);</span>
+<span class="fc" id="L137">        os.append('/');</span>
+<span class="fc" id="L138">        Strings.writeReplaceWhitespaces(measurementName, '-', os);</span>
+<span class="fc" id="L139">        os.append(' ');</span>
+<span class="fc" id="L140">        os.append(Long.toString(measurement));</span>
+<span class="fc" id="L141">        os.append(' ');</span>
+<span class="fc" id="L142">        os.append(Long.toString(timeStampMillis));</span>
+<span class="fc" id="L143">        os.append('\n');</span>
+<span class="fc" id="L144">    }</span>
 
     @Override
     public String toString() {
-<span class="fc" id="L137">        return &quot;GraphiteUdpStore{address=&quot; + address + '}';</span>
+<span class="fc" id="L148">        return &quot;GraphiteUdpStore{address=&quot; + address + '}';</span>
     }
 
     @Override
     public void close() {
         try {
-<span class="nc" id="L143">            datagramChannelSupplier.dispose();</span>
-<span class="nc" id="L144">        } catch (ObjectDisposeException | InterruptedException ex) {</span>
-<span class="nc" id="L145">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L146">        }</span>
-<span class="nc" id="L147">    }</span>
+<span class="nc" id="L154">            datagramChannelSupplier.dispose();</span>
+<span class="nc" id="L155">        } catch (ObjectDisposeException | InterruptedException ex) {</span>
+<span class="nc" id="L156">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L157">        }</span>
+<span class="nc" id="L158">    }</span>
 
     private static class HandlerImpl implements Handler&lt;DatagramChannel, IOException&gt; {
 
@@ -153,38 +164,38 @@ public final class GraphiteUdpStore implements MeasurementStore {
         private final long timeStampMillis;
 
         HandlerImpl(final long[] measurements, final MeasurementsInfo measurementInfo,
-<span class="fc" id="L156">                final long timeStampMillis) {</span>
-<span class="fc" id="L157">            this.measurements = measurements;</span>
-<span class="fc" id="L158">            this.measurementInfo = measurementInfo;</span>
-<span class="fc" id="L159">            this.timeStampMillis = timeStampMillis;</span>
-<span class="fc" id="L160">        }</span>
+<span class="fc" id="L167">                final long timeStampMillis) {</span>
+<span class="fc" id="L168">            this.measurements = measurements;</span>
+<span class="fc" id="L169">            this.measurementInfo = measurementInfo;</span>
+<span class="fc" id="L170">            this.timeStampMillis = timeStampMillis;</span>
+<span class="fc" id="L171">        }</span>
 
         @Override
         public void handle(final DatagramChannel datagramChannel, final long deadline) throws IOException {
-<span class="pc" id="L164">            try (ByteArrayBuilder bos = new ByteArrayBuilder();</span>
-<span class="fc" id="L165">            OutputStreamWriter os = new OutputStreamWriter(bos, Charsets.UTF_8)) {</span>
+<span class="pc" id="L175">            try (ByteArrayBuilder bos = new ByteArrayBuilder();</span>
+<span class="fc" id="L176">            OutputStreamWriter os = new OutputStreamWriter(bos, Charsets.UTF_8)) {</span>
 
-<span class="fc" id="L167">                int msgStart = 0, msgEnd = 0, prevEnd = 0;</span>
+<span class="fc" id="L178">                int msgStart = 0, msgEnd = 0, prevEnd = 0;</span>
 
-<span class="fc bfc" id="L169" title="All 2 branches covered.">                for (int i = 0; i &lt; measurements.length; i++) {</span>
-<span class="fc" id="L170">                    writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),</span>
+<span class="fc bfc" id="L180" title="All 2 branches covered.">                for (int i = 0; i &lt; measurements.length; i++) {</span>
+<span class="fc" id="L181">                    writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),</span>
                             measurements[i], timeStampMillis, os);
-<span class="fc" id="L172">                    os.flush();</span>
-<span class="fc" id="L173">                    msgEnd = bos.size();</span>
-<span class="fc" id="L174">                    int length = msgEnd - msgStart;</span>
-<span class="fc bfc" id="L175" title="All 2 branches covered.">                    if (length &gt; MAX_UDP_MSG_SIZE) {</span>
-<span class="fc" id="L176">                        ByteBuffer byteBuffer = ByteBuffer.wrap(bos.getBuffer(), msgStart, prevEnd - msgStart);</span>
-<span class="fc" id="L177">                        datagramChannel.write(byteBuffer);</span>
-<span class="fc" id="L178">                        msgStart = prevEnd;</span>
+<span class="fc" id="L183">                    os.flush();</span>
+<span class="fc" id="L184">                    msgEnd = bos.size();</span>
+<span class="fc" id="L185">                    int length = msgEnd - msgStart;</span>
+<span class="fc bfc" id="L186" title="All 2 branches covered.">                    if (length &gt; MAX_UDP_MSG_SIZE) {</span>
+<span class="fc" id="L187">                        ByteBuffer byteBuffer = ByteBuffer.wrap(bos.getBuffer(), msgStart, prevEnd - msgStart);</span>
+<span class="fc" id="L188">                        datagramChannel.write(byteBuffer);</span>
+<span class="fc" id="L189">                        msgStart = prevEnd;</span>
                     }
-<span class="fc" id="L180">                    prevEnd = msgEnd;</span>
+<span class="fc" id="L191">                    prevEnd = msgEnd;</span>
                 }
-<span class="pc bpc" id="L182" title="1 of 2 branches missed.">                if (msgEnd &gt; msgStart) {</span>
-<span class="fc" id="L183">                    ByteBuffer byteBuffer = ByteBuffer.wrap(bos.getBuffer(), msgStart, msgEnd - msgStart);</span>
-<span class="fc" id="L184">                    datagramChannel.write(byteBuffer);</span>
+<span class="pc bpc" id="L193" title="1 of 2 branches missed.">                if (msgEnd &gt; msgStart) {</span>
+<span class="fc" id="L194">                    ByteBuffer byteBuffer = ByteBuffer.wrap(bos.getBuffer(), msgStart, msgEnd - msgStart);</span>
+<span class="fc" id="L195">                    datagramChannel.write(byteBuffer);</span>
                 }
-<span class="pc bpc" id="L186" title="12 of 16 branches missed.">            }</span>
-<span class="fc" id="L187">        }</span>
+<span class="pc bpc" id="L197" title="12 of 16 branches missed.">            }</span>
+<span class="fc" id="L198">        }</span>
     }
 
 }

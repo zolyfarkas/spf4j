@@ -71,7 +71,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
      * I do not see that case as a useful pooling case to be worth trying to optimise it...
      */
 
-<span class="fc" id="L74">    static final long CORE_MINWAIT_NANOS = Long.getLong(&quot;lifotp.coreMaxWaitNanos&quot;, 1000000000);</span>
+<span class="fc" id="L74">    static final long CORE_MINWAIT_NANOS = Long.getLong(&quot;spf4j.lifoTp.coreMaxWaitNanos&quot;, 1000000000);</span>
 
     @GuardedBy(&quot;stateLock&quot;)
     private final Queue&lt;Runnable&gt; taskQueue;
@@ -127,7 +127,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 <span class="fc" id="L127">    }</span>
 
 
-<span class="fc" id="L130">    private static final int LL_THRESHOLD = Integer.getInteger(&quot;lifoTp.llQueueSizeThreshold&quot;, 64000);</span>
+<span class="fc" id="L130">    static final int LL_THRESHOLD = Integer.getInteger(&quot;spf4j.lifoTp.llQueueSizeThreshold&quot;, 64000);</span>
 
     public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
             final int maxSize, final int maxIdleTimeMillis,
@@ -191,7 +191,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
             justification = &quot;no blocking is done while holding the lock,&quot;
                     + &quot; lock is released on all paths, findbugs just cannot figure it out...&quot;)
     public void execute(final Runnable command) {
-<span class="fc bfc" id="L194" title="All 2 branches covered.">        if (state.isShutdown()) {</span>
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">        if (state.isShutdown()) {</span>
             // if shutting down, reject
 <span class="nc" id="L196">            this.rejectionHandler.rejectedExecution(command, this);</span>
         }
@@ -452,13 +452,13 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 <span class="fc bfc" id="L452" title="All 2 branches covered.">                    if (count &gt;= state.getCoreThreads()) { // plenty of core threads left, retire</span>
 <span class="fc" id="L453">                        shouldRun = false;</span>
 <span class="fc" id="L454">                        break;</span>
-<span class="pc bpc" id="L455" title="1 of 2 branches missed.">                    } else if (tc.compareAndSet(count, count + 1)) { // keep this as core thread.</span>
+<span class="fc bfc" id="L455" title="All 2 branches covered.">                    } else if (tc.compareAndSet(count, count + 1)) { // keep this as core thread.</span>
 <span class="fc" id="L456">                        this.lastRunNanos = System.nanoTime(); // update last Run time to avoid core thread spinning.</span>
                         // there must be a minimal wait time for a core thread to avoid spinning.
 <span class="fc" id="L458">                        maxIdleNanos = Math.max(origNanosWait, CORE_MINWAIT_NANOS);</span>
 <span class="fc" id="L459">                        break;</span>
                     } else { // count changes happened refresh, and retry.
-<span class="nc" id="L461">                        count = tc.get();</span>
+<span class="fc" id="L461">                        count = tc.get();</span>
                     }
                 }
 <span class="fc bfc" id="L464" title="All 4 branches covered.">            } while (shouldRun &amp;&amp; !state.isShutdown());</span>
@@ -631,7 +631,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
         @Override
         public String toString() {
-<span class="fc" id="L634">            return &quot;ExecState{&quot; + &quot;shutdown=&quot; + shutdown + &quot;, threadCount=&quot;</span>
+<span class="nc" id="L634">            return &quot;ExecState{&quot; + &quot;shutdown=&quot; + shutdown + &quot;, threadCount=&quot;</span>
                     + threadCount + &quot;, spinlockCount=&quot; + spinlockCount + '}';
         }
 
@@ -639,7 +639,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
     @Override
     public String toString() {
-<span class="fc" id="L642">        return &quot;LifoThreadPoolExecutorSQP{&quot; + &quot;threadQueue=&quot; + threadQueue + &quot;, maxIdleTimeMillis=&quot;</span>
+<span class="nc" id="L642">        return &quot;LifoThreadPoolExecutorSQP{&quot; + &quot;threadQueue=&quot; + threadQueue + &quot;, maxIdleTimeMillis=&quot;</span>
                 + maxIdleTimeMillis + &quot;, maxThreadCount=&quot; + maxThreadCount + &quot;, state=&quot; + state
                 + &quot;, submitMonitor=&quot; + stateLock + &quot;, queueCapacity=&quot; + queueSizeLimit
                 + &quot;, poolName=&quot; + poolName + '}';

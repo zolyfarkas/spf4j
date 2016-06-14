@@ -43,22 +43,24 @@ import java.io.ObjectOutputStream;
  *
  * @since 1.8
  * @author Doug Lea
+ * @deprecated please use implementation from java.util.concurrent.atomic
  */
 //CHECKSTYLE:OFF
 @SuppressFBWarnings
+@Deprecated
 public final class LongAdder extends Striped64 {
     private static final long serialVersionUID = 7249069246863182397L;
 
     /**
      * Version of plus for use in retryUpdate
      */
-<span class="fc" id="L55">    final long fn(long v, long x) { return v + x; }</span>
+<span class="fc" id="L57">    final long fn(long v, long x) { return v + x; }</span>
 
     /**
      * Creates a new adder with initial sum of zero.
      */
-<span class="fc" id="L60">    public LongAdder() {</span>
-<span class="fc" id="L61">    }</span>
+<span class="fc" id="L62">    public LongAdder() {</span>
+<span class="fc" id="L63">    }</span>
 
     /**
      * Adds the given value.
@@ -67,29 +69,29 @@ public final class LongAdder extends Striped64 {
      */
     public void add(long x) {
         Cell[] as; long b, v; HashCode hc; Cell a; int n;
-<span class="fc bfc" id="L70" title="All 4 branches covered.">        if ((as = cells) != null || !casBase(b = base, b + x)) {</span>
-<span class="fc" id="L71">            boolean uncontended = true;</span>
-<span class="fc" id="L72">            int h = (hc = threadHashCode.get()).code;</span>
-<span class="pc bpc" id="L73" title="1 of 6 branches missed.">            if (as == null || (n = as.length) &lt; 1 ||</span>
+<span class="fc bfc" id="L72" title="All 4 branches covered.">        if ((as = cells) != null || !casBase(b = base, b + x)) {</span>
+<span class="fc" id="L73">            boolean uncontended = true;</span>
+<span class="fc" id="L74">            int h = (hc = threadHashCode.get()).code;</span>
+<span class="pc bpc" id="L75" title="1 of 6 branches missed.">            if (as == null || (n = as.length) &lt; 1 ||</span>
                 (a = as[(n - 1) &amp; h]) == null ||
-<span class="fc bfc" id="L75" title="All 2 branches covered.">                !(uncontended = a.cas(v = a.value, v + x)))</span>
-<span class="fc" id="L76">                retryUpdate(x, hc, uncontended);</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">                !(uncontended = a.cas(v = a.value, v + x)))</span>
+<span class="fc" id="L78">                retryUpdate(x, hc, uncontended);</span>
         }
-<span class="fc" id="L78">    }</span>
+<span class="fc" id="L80">    }</span>
 
     /**
      * Equivalent to {@code add(1)}.
      */
     public void increment() {
-<span class="fc" id="L84">        add(1L);</span>
-<span class="fc" id="L85">    }</span>
+<span class="fc" id="L86">        add(1L);</span>
+<span class="fc" id="L87">    }</span>
 
     /**
      * Equivalent to {@code add(-1)}.
      */
     public void decrement() {
-<span class="nc" id="L91">        add(-1L);</span>
-<span class="nc" id="L92">    }</span>
+<span class="nc" id="L93">        add(-1L);</span>
+<span class="nc" id="L94">    }</span>
 
     /**
      * Returns the current sum.  The returned value is &lt;em&gt;NOT&lt;/em&gt; an
@@ -101,17 +103,17 @@ public final class LongAdder extends Striped64 {
      * @return the sum
      */
     public long sum() {
-<span class="fc" id="L104">        long sum = base;</span>
-<span class="fc" id="L105">        Cell[] as = cells;</span>
-<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (as != null) {</span>
-<span class="fc" id="L107">            int n = as.length;</span>
-<span class="fc bfc" id="L108" title="All 2 branches covered.">            for (int i = 0; i &lt; n; ++i) {</span>
-<span class="fc" id="L109">                Cell a = as[i];</span>
-<span class="pc bpc" id="L110" title="1 of 2 branches missed.">                if (a != null)</span>
-<span class="fc" id="L111">                    sum += a.value;</span>
+<span class="fc" id="L106">        long sum = base;</span>
+<span class="fc" id="L107">        Cell[] as = cells;</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        if (as != null) {</span>
+<span class="fc" id="L109">            int n = as.length;</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">            for (int i = 0; i &lt; n; ++i) {</span>
+<span class="fc" id="L111">                Cell a = as[i];</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">                if (a != null)</span>
+<span class="fc" id="L113">                    sum += a.value;</span>
             }
         }
-<span class="fc" id="L114">        return sum;</span>
+<span class="fc" id="L116">        return sum;</span>
     }
 
     /**
@@ -122,8 +124,8 @@ public final class LongAdder extends Striped64 {
      * known that no threads are concurrently updating.
      */
     public void reset() {
-<span class="nc" id="L125">        internalReset(0L);</span>
-<span class="nc" id="L126">    }</span>
+<span class="nc" id="L127">        internalReset(0L);</span>
+<span class="nc" id="L128">    }</span>
 
     /**
      * Equivalent in effect to {@link #sum} followed by {@link
@@ -136,20 +138,20 @@ public final class LongAdder extends Striped64 {
      * @return the sum
      */
     public long sumThenReset() {
-<span class="nc" id="L139">        long sum = base;</span>
-<span class="nc" id="L140">        Cell[] as = cells;</span>
-<span class="nc" id="L141">        base = 0L;</span>
-<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (as != null) {</span>
-<span class="nc" id="L143">            int n = as.length;</span>
-<span class="nc bnc" id="L144" title="All 2 branches missed.">            for (int i = 0; i &lt; n; ++i) {</span>
-<span class="nc" id="L145">                Cell a = as[i];</span>
-<span class="nc bnc" id="L146" title="All 2 branches missed.">                if (a != null) {</span>
-<span class="nc" id="L147">                    sum += a.value;</span>
-<span class="nc" id="L148">                    a.value = 0L;</span>
+<span class="nc" id="L141">        long sum = base;</span>
+<span class="nc" id="L142">        Cell[] as = cells;</span>
+<span class="nc" id="L143">        base = 0L;</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        if (as != null) {</span>
+<span class="nc" id="L145">            int n = as.length;</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">            for (int i = 0; i &lt; n; ++i) {</span>
+<span class="nc" id="L147">                Cell a = as[i];</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">                if (a != null) {</span>
+<span class="nc" id="L149">                    sum += a.value;</span>
+<span class="nc" id="L150">                    a.value = 0L;</span>
                 }
             }
         }
-<span class="nc" id="L152">        return sum;</span>
+<span class="nc" id="L154">        return sum;</span>
     }
 
     /**
@@ -157,7 +159,7 @@ public final class LongAdder extends Striped64 {
      * @return the String representation of the {@link #sum}
      */
     public String toString() {
-<span class="nc" id="L160">        return Long.toString(sum());</span>
+<span class="nc" id="L162">        return Long.toString(sum());</span>
     }
 
     /**
@@ -166,7 +168,7 @@ public final class LongAdder extends Striped64 {
      * @return the sum
      */
     public long longValue() {
-<span class="nc" id="L169">        return sum();</span>
+<span class="nc" id="L171">        return sum();</span>
     }
 
     /**
@@ -174,7 +176,7 @@ public final class LongAdder extends Striped64 {
      * primitive conversion.
      */
     public int intValue() {
-<span class="nc" id="L177">        return (int)sum();</span>
+<span class="nc" id="L179">        return (int)sum();</span>
     }
 
     /**
@@ -182,7 +184,7 @@ public final class LongAdder extends Striped64 {
      * after a widening primitive conversion.
      */
     public float floatValue() {
-<span class="nc" id="L185">        return (float)sum();</span>
+<span class="nc" id="L187">        return (float)sum();</span>
     }
 
     /**
@@ -190,22 +192,22 @@ public final class LongAdder extends Striped64 {
      * primitive conversion.
      */
     public double doubleValue() {
-<span class="nc" id="L193">        return (double)sum();</span>
+<span class="nc" id="L195">        return (double)sum();</span>
     }
 
     private void writeObject(ObjectOutputStream s)
         throws java.io.IOException {
-<span class="nc" id="L198">        s.defaultWriteObject();</span>
-<span class="nc" id="L199">        s.writeLong(sum());</span>
-<span class="nc" id="L200">    }</span>
+<span class="nc" id="L200">        s.defaultWriteObject();</span>
+<span class="nc" id="L201">        s.writeLong(sum());</span>
+<span class="nc" id="L202">    }</span>
 
     private void readObject(ObjectInputStream s)
         throws IOException, ClassNotFoundException {
-<span class="nc" id="L204">        s.defaultReadObject();</span>
-<span class="nc" id="L205">        busy = 0;</span>
-<span class="nc" id="L206">        cells = null;</span>
-<span class="nc" id="L207">        base = s.readLong();</span>
-<span class="nc" id="L208">    }</span>
+<span class="nc" id="L206">        s.defaultReadObject();</span>
+<span class="nc" id="L207">        busy = 0;</span>
+<span class="nc" id="L208">        cells = null;</span>
+<span class="nc" id="L209">        base = s.readLong();</span>
+<span class="nc" id="L210">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

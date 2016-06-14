@@ -37,46 +37,47 @@ public final class DefaultExecutor {
 
 <span class="nc" id="L38">    private DefaultExecutor() {</span>
 <span class="nc" id="L39">    }</span>
-    
+
     public static final ExecutorService INSTANCE;
 
     static {
-<span class="fc" id="L44">        final int coreThreads = Integer.getInteger(&quot;defaultExecutor.coreThreads&quot;, 0);</span>
-<span class="fc" id="L45">        final int maxIdleMillis = Integer.getInteger(&quot;defaultExecutor.maxIdleMillis&quot;, 60000);</span>
-<span class="fc" id="L46">        final boolean isDaemon = Boolean.getBoolean(&quot;defaultExecutor.daemon&quot;);</span>
-<span class="fc" id="L47">        final String impParam = &quot;defaultExecutor.implementation&quot;;</span>
+<span class="fc" id="L44">        final int coreThreads = Integer.getInteger(&quot;spf4j.executors.defaultExecutor.coreThreads&quot;, 0);</span>
+<span class="fc" id="L45">        final int maxIdleMillis = Integer.getInteger(&quot;spf4j.executors.defaultExecutor.maxIdleMillis&quot;, 60000);</span>
+<span class="fc" id="L46">        final boolean isDaemon = Boolean.getBoolean(&quot;spf4j.executors.defaultExecutor.daemon&quot;);</span>
+<span class="fc" id="L47">        final String impParam = &quot;spf4j.executors.defaultExecutor.implementation&quot;;</span>
 <span class="fc" id="L48">        final String value = System.getProperty(impParam, &quot;spf4j&quot;);</span>
 <span class="pc bpc" id="L49" title="11 of 14 branches missed.">        switch (value) {</span>
           case &quot;spf4j&quot;:
 <span class="fc" id="L51">            LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP(&quot;defaultExecutor&quot;, coreThreads,</span>
-<span class="fc" id="L52">                    Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon, Integer.getInteger(&quot;defaultExecutor.spinlockCount&quot;,</span>
+                    Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon,
+<span class="fc" id="L53">                    Integer.getInteger(&quot;spf4j.executors.defaultExecutor.spinlockCount&quot;,</span>
                             1024));
-<span class="fc" id="L54">            lifoExec.exportJmx();</span>
-<span class="fc" id="L55">            INSTANCE = lifoExec;</span>
-<span class="fc" id="L56">            break;</span>
+<span class="fc" id="L55">            lifoExec.exportJmx();</span>
+<span class="fc" id="L56">            INSTANCE = lifoExec;</span>
+<span class="fc" id="L57">            break;</span>
           case &quot;fjp&quot;: // EXPERIMENTAL! canceling with interrupt a future of taks submited does not seem to work!
-<span class="nc" id="L58">            INSTANCE = new ForkJoinPool(32767);</span>
-<span class="nc" id="L59">            break;</span>
+<span class="nc" id="L59">            INSTANCE = new ForkJoinPool(32767);</span>
+<span class="nc" id="L60">            break;</span>
           case &quot;legacy&quot;:
-<span class="nc" id="L61">            new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,</span>
+<span class="nc" id="L62">            new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,</span>
                 new SynchronousQueue&lt;Runnable&gt;(), new CustomThreadFactory(&quot;DefaultExecutor&quot;, isDaemon));
           default:
-<span class="nc" id="L64">            throw new IllegalArgumentException(&quot;Ivalid setting for &quot; + impParam + &quot; = &quot; + value);</span>
+<span class="nc" id="L65">            throw new IllegalArgumentException(&quot;Ivalid setting for &quot; + impParam + &quot; = &quot; + value);</span>
         }
 
-<span class="fc" id="L67">        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {</span>
+<span class="fc" id="L68">        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {</span>
 
             @Override
             public void doRun() throws InterruptedException {
-<span class="fc" id="L71">                INSTANCE.shutdown();</span>
-<span class="fc" id="L72">                INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);</span>
-<span class="fc" id="L73">                List&lt;Runnable&gt; remaining = INSTANCE.shutdownNow();</span>
-<span class="pc bpc" id="L74" title="1 of 2 branches missed.">                if (remaining.size() &gt; 0) {</span>
-<span class="nc" id="L75">                    System.err.println(&quot;Remaining tasks: &quot; + remaining);</span>
+<span class="fc" id="L72">                INSTANCE.shutdown();</span>
+<span class="fc" id="L73">                INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L74">                List&lt;Runnable&gt; remaining = INSTANCE.shutdownNow();</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">                if (remaining.size() &gt; 0) {</span>
+<span class="nc" id="L76">                    System.err.println(&quot;Remaining tasks: &quot; + remaining);</span>
                 }
-<span class="fc" id="L77">            }</span>
+<span class="fc" id="L78">            }</span>
         });
-<span class="fc" id="L79">    }</span>
+<span class="fc" id="L80">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

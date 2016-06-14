@@ -39,7 +39,7 @@ public final class CALLA extends Instruction {
 <span class="fc" id="L39">    }</span>
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
     public int execute(final ExecutionContext context)
             throws ExecutionException, InterruptedException, SuspendedException {
 <span class="fc" id="L45">        final Object function = context.peekFromTop(nrParameters);</span>
@@ -47,16 +47,16 @@ public final class CALLA extends Instruction {
 <span class="fc" id="L47">            final Program p = (Program) function;</span>
             final ExecutionContext nctx;
             Object obj;
-            Object[] parameters;
-<span class="pc bpc" id="L51" title="2 of 3 branches missed.">            switch (p.getType()) {</span>
+<span class="pc bpc" id="L50" title="2 of 3 branches missed.">            switch (p.getType()) {</span>
                 case DETERMINISTIC:
-<span class="nc" id="L53">                    nctx = context.getSubProgramContext(p, nrParameters);</span>
-<span class="nc" id="L54">                    context.pop();</span>
-<span class="nc" id="L55">                    List&lt;Object&gt; params = CALL.getParameters(nctx, nrParameters);</span>
-<span class="nc" id="L56">                    obj = context.getResultCache().getResult(p, params, new AsyncCallable(nctx));</span>
-<span class="nc" id="L57">                    break;</span>
+<span class="nc" id="L52">                    nctx = context.getSubProgramContext(p, nrParameters);</span>
+<span class="nc" id="L53">                    context.pop();</span>
+<span class="nc" id="L54">                    List&lt;Object&gt; params = CALL.getParameters(nctx, nrParameters);</span>
+<span class="nc" id="L55">                    obj = context.getResultCache().getResult(p, params, new AsyncCallable(nctx));</span>
+<span class="nc" id="L56">                    break;</span>
                 case NONDETERMINISTIC:
-<span class="fc" id="L59">                    nctx = context.getSubProgramContext(p, nrParameters);</span>
+<span class="fc" id="L58">                    nctx = context.getSubProgramContext(p, nrParameters);</span>
+<span class="fc" id="L59">                    context.pop();</span>
 <span class="fc" id="L60">                    obj = nctx.executeAsync();</span>
 <span class="fc" id="L61">                    break;</span>
                 default:

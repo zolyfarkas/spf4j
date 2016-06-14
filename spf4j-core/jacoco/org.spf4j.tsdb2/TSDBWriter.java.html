@@ -196,23 +196,27 @@ public final class TSDBWriter implements Closeable, Flushable {
 <span class="fc" id="L196">            bab.reset();</span>
 <span class="fc" id="L197">            this.recordWriter.write(writeBlock, this.encoder);</span>
 <span class="fc" id="L198">            raf.write(bab.getBuffer(), 0, bab.size());</span>
-<span class="fc" id="L199">            long filePointer = raf.getFilePointer();</span>
-<span class="fc" id="L200">            raf.seek(MAGIC.length);</span>
-<span class="fc" id="L201">            raf.writeLong(filePointer);</span>
-<span class="fc" id="L202">            raf.seek(filePointer);</span>
-<span class="fc" id="L203">            writeBlock.values.clear();</span>
-<span class="fc" id="L204">            encoder.flush();</span>
+<span class="fc" id="L199">            updateEOFPtrPointer();</span>
+<span class="fc" id="L200">            writeBlock.values.clear();</span>
+<span class="fc" id="L201">            encoder.flush();</span>
         }
-<span class="fc" id="L206">        channel.force(true);</span>
-<span class="fc" id="L207">    }</span>
+<span class="fc" id="L203">        channel.force(true);</span>
+<span class="fc" id="L204">    }</span>
+
+  private void updateEOFPtrPointer() throws IOException {
+<span class="fc" id="L207">    long filePointer = raf.getFilePointer();</span>
+<span class="fc" id="L208">    raf.seek(MAGIC.length);</span>
+<span class="fc" id="L209">    raf.writeLong(filePointer);</span>
+<span class="fc" id="L210">    raf.seek(filePointer);</span>
+<span class="fc" id="L211">  }</span>
 
     public Header getHeader() {
-<span class="nc" id="L210">        return header;</span>
+<span class="nc" id="L214">        return header;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L215">        return &quot;TSDBWriter{&quot; + &quot;file=&quot; + file + &quot;, raf=&quot; + raf + '}';</span>
+<span class="fc" id="L219">        return &quot;TSDBWriter{&quot; + &quot;file=&quot; + file + &quot;, raf=&quot; + raf + '}';</span>
     }
 
 

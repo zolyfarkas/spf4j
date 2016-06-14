@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>UnboundedLoadingCache2.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">UnboundedLoadingCache2.java</span></div><h1>UnboundedLoadingCache2.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.concurrent;
+
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.CacheStats;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
+import javax.annotation.ParametersAreNonnullByDefault;
+
+/**
+ * Simple adapter that adapts a java ConcurrentMap to a guava cache.
+ * See UnboundedLoadingCache for rationale and benchmark data to see
+ * why this is not the default implementation.
+ * 
+ * @author zoly
+ */
+@ParametersAreNonnullByDefault
+public final class UnboundedLoadingCache2&lt;K, V&gt; implements LoadingCache&lt;K, V&gt; {
+
+    private final ConcurrentMap&lt;K, V&gt; map;
+
+    private final CacheLoader&lt;K, V&gt; loader;
+
+    private final  Function&lt;K, V&gt; computer;
+
+    public UnboundedLoadingCache2(final int initialSize, final CacheLoader&lt;K, V&gt; loader) {
+<span class="nc" id="L48">        this(initialSize, 8, loader);</span>
+<span class="nc" id="L49">    }</span>
+
+
+<span class="nc" id="L52">    public UnboundedLoadingCache2(final int initialSize, final int concurrency, final CacheLoader&lt;K, V&gt; loader) {</span>
+<span class="nc" id="L53">        this.map = new ConcurrentHashMap&lt;&gt;(</span>
+                initialSize, 0.75f, concurrency);
+<span class="nc" id="L55">        this.loader = loader;</span>
+<span class="nc" id="L56">        this.computer = new Function&lt;K, V&gt;() {</span>
+          @Override
+          public V apply(final K t) {
+            try {
+<span class="nc" id="L60">              return loader.load(t);</span>
+<span class="nc" id="L61">            } catch (Exception ex) {</span>
+<span class="nc" id="L62">              throw new RuntimeException(ex);</span>
+            }
+          }
+        };
+<span class="nc" id="L66">    }</span>
+
+
+    @Override
+    public V get(final K key) {
+<span class="nc" id="L71">        return map.computeIfAbsent(key, computer);</span>
+    }
+
+    @Override
+    public V getUnchecked(final K key) {
+<span class="nc" id="L76">      return get(key);</span>
+    }
+
+    @Override
+    public ImmutableMap&lt;K, V&gt; getAll(final Iterable&lt;? extends K&gt; keys) {
+<span class="nc" id="L81">        ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        for (K key : keys) {</span>
+<span class="nc" id="L83">            builder.put(key, get(key));</span>
+<span class="nc" id="L84">        }</span>
+<span class="nc" id="L85">        return builder.build();</span>
+    }
+
+    @Override
+    public V apply(final K key) {
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (key == null) {</span>
+<span class="nc" id="L91">            throw new IllegalArgumentException(&quot;key cannot be null for &quot; + this);</span>
+        } else {
+<span class="nc" id="L93">            return getUnchecked(key);</span>
+        }
+    }
+
+    @Override
+    public void refresh(final K key) {
+<span class="nc" id="L99">        getUnchecked(key);</span>
+<span class="nc" id="L100">    }</span>
+
+    @Override
+    public ConcurrentMap&lt;K, V&gt; asMap() {
+<span class="nc" id="L104">        throw new UnsupportedOperationException();</span>
+    }
+
+    @Override
+    public V getIfPresent(final Object key) {
+<span class="nc" id="L109">        return map.get(key);</span>
+    }
+
+    @Override
+    public V get(final K key, final Callable&lt;? extends V&gt; valueLoader) {
+<span class="nc" id="L114">        return map.computeIfAbsent(key, new Function&lt;K, V&gt;() {</span>
+          @Override
+          public V apply(final K t) {
+            try {
+<span class="nc" id="L118">              return valueLoader.call();</span>
+<span class="nc" id="L119">            } catch (Exception ex) {</span>
+<span class="nc" id="L120">              throw new RuntimeException(ex);</span>
+            }
+          }
+        });
+    }
+
+    @Override
+    public ImmutableMap&lt;K, V&gt; getAllPresent(final Iterable&lt;?&gt; keys) {
+<span class="nc" id="L128">        ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        for (K key : (Iterable&lt;K&gt;) keys) {</span>
+<span class="nc" id="L130">            V val = getIfPresent(key);</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">            if (val != null) {</span>
+<span class="nc" id="L132">                builder.put(key, val);</span>
+            }
+<span class="nc" id="L134">        }</span>
+<span class="nc" id="L135">        return builder.build();</span>
+    }
+
+    @Override
+    public void put(final K key, final V value) {
+<span class="nc" id="L140">        map.put(key, value);</span>
+<span class="nc" id="L141">    }</span>
+
+    @Override
+    public void putAll(final Map&lt;? extends K, ? extends V&gt; m) {
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        for (Map.Entry&lt;? extends K, ? extends V&gt; entry : m.entrySet()) {</span>
+<span class="nc" id="L146">            put(entry.getKey(), entry.getValue());</span>
+<span class="nc" id="L147">        }</span>
+<span class="nc" id="L148">    }</span>
+
+    @Override
+    public void invalidate(final Object key) {
+<span class="nc" id="L152">        map.remove(key);</span>
+<span class="nc" id="L153">    }</span>
+
+    @Override
+    public void invalidateAll(final Iterable&lt;?&gt; keys) {
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        for (K key : (Iterable&lt;K&gt;) keys) {</span>
+<span class="nc" id="L158">            invalidate(key);</span>
+<span class="nc" id="L159">        }</span>
+<span class="nc" id="L160">    }</span>
+
+    @Override
+    public void invalidateAll() {
+<span class="nc" id="L164">        map.clear();</span>
+<span class="nc" id="L165">    }</span>
+
+    @Override
+    public long size() {
+<span class="nc" id="L169">        return map.size();</span>
+    }
+
+    @Override
+    public CacheStats stats() {
+<span class="nc" id="L174">        throw new UnsupportedOperationException(&quot;Not supported&quot;);</span>
+    }
+
+    @Override
+    public void cleanUp() {
+<span class="nc" id="L179">        map.clear();</span>
+<span class="nc" id="L180">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L184">        return &quot;UnboundedLoadingCache{&quot; + &quot;map=&quot; + map + &quot;, loader=&quot; + loader + '}';</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

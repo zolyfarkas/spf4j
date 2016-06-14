@@ -102,7 +102,7 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
 <span class="fc" id="L102">      return i;</span>
 <span class="nc" id="L103">    }</span>
   }
-  
+
   public &lt;T&gt; void replace(final Class&lt;T&gt; type,
           final Function&lt;ObjectAppender&lt;? super T&gt;, ObjectAppender&lt;? super T&gt;&gt; replace) {
 <span class="fc" id="L108">    synchronized (registry) {</span>
@@ -124,63 +124,65 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
   @SuppressWarnings(&quot;unchecked&quot;)
   @CheckReturnValue
   private &lt;T&gt; boolean register(final Class&lt;T&gt; type, final ObjectAppender&lt;? super T&gt; appender) {
-<span class="fc" id="L127">      ListIterator&lt;Pair&lt;Class&lt;?&gt;, ObjectAppender&lt;?&gt;&gt;&gt; listIterator = registry.listIterator();</span>
-<span class="fc bfc" id="L128" title="All 2 branches covered.">      while (listIterator.hasNext()) {</span>
-<span class="fc" id="L129">        Pair&lt;Class&lt;?&gt;, ObjectAppender&lt;?&gt;&gt; next = listIterator.next();</span>
-<span class="fc" id="L130">        final Class&lt;?&gt; nType = next.getFirst();</span>
-<span class="fc bfc" id="L131" title="All 2 branches covered.">        if (nType.isAssignableFrom(type)) {</span>
-<span class="pc bpc" id="L132" title="1 of 2 branches missed.">          if (nType == type) {</span>
-<span class="nc" id="L133">            return false;</span>
+<span class="fc" id="L127">    synchronized (registry) {</span>
+<span class="fc" id="L128">      ListIterator&lt;Pair&lt;Class&lt;?&gt;, ObjectAppender&lt;?&gt;&gt;&gt; listIterator = registry.listIterator();</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">      while (listIterator.hasNext()) {</span>
+<span class="fc" id="L130">        Pair&lt;Class&lt;?&gt;, ObjectAppender&lt;?&gt;&gt; next = listIterator.next();</span>
+<span class="fc" id="L131">        final Class&lt;?&gt; nType = next.getFirst();</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">        if (nType.isAssignableFrom(type)) {</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">          if (nType == type) {</span>
+<span class="nc" id="L134">            return false;</span>
           }
-<span class="fc" id="L135">          listIterator.previous();</span>
-<span class="fc" id="L136">          listIterator.add((Pair) Pair.of(type, appender));</span>
-<span class="fc" id="L137">          return true;</span>
+<span class="fc" id="L136">          listIterator.previous();</span>
+<span class="fc" id="L137">          listIterator.add((Pair) Pair.of(type, appender));</span>
+<span class="fc" id="L138">          return true;</span>
         }
-<span class="fc" id="L139">      }</span>
-<span class="fc" id="L140">      listIterator.add((Pair) Pair.of(type, appender));</span>
-<span class="fc" id="L141">      return true;</span>
+<span class="fc" id="L140">      }</span>
+<span class="fc" id="L141">      listIterator.add((Pair) Pair.of(type, appender));</span>
+<span class="pc" id="L142">    }</span>
+<span class="fc" id="L143">    return true;</span>
   }
 
   public boolean unregister(final Class&lt;?&gt; type) {
-<span class="nc" id="L145">    synchronized (registry) {</span>
-<span class="nc" id="L146">      ListIterator&lt;Pair&lt;Class&lt;?&gt;, ObjectAppender&lt;?&gt;&gt;&gt; listIterator = registry.listIterator();</span>
-<span class="nc bnc" id="L147" title="All 2 branches missed.">      while (listIterator.hasNext()) {</span>
-<span class="nc" id="L148">        Pair&lt;Class&lt;?&gt;, ObjectAppender&lt;?&gt;&gt; item = listIterator.next();</span>
-<span class="nc bnc" id="L149" title="All 2 branches missed.">          if (item.getFirst() == type) {</span>
-<span class="nc" id="L150">            listIterator.remove();</span>
-<span class="nc" id="L151">            lookup.clear();</span>
-<span class="nc" id="L152">            return true;</span>
+<span class="nc" id="L147">    synchronized (registry) {</span>
+<span class="nc" id="L148">      ListIterator&lt;Pair&lt;Class&lt;?&gt;, ObjectAppender&lt;?&gt;&gt;&gt; listIterator = registry.listIterator();</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">      while (listIterator.hasNext()) {</span>
+<span class="nc" id="L150">        Pair&lt;Class&lt;?&gt;, ObjectAppender&lt;?&gt;&gt; item = listIterator.next();</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">          if (item.getFirst() == type) {</span>
+<span class="nc" id="L152">            listIterator.remove();</span>
+<span class="nc" id="L153">            lookup.clear();</span>
+<span class="nc" id="L154">            return true;</span>
           }
-<span class="nc" id="L154">      }</span>
-<span class="nc" id="L155">      return false;</span>
-<span class="nc" id="L156">    }</span>
+<span class="nc" id="L156">      }</span>
+<span class="nc" id="L157">      return false;</span>
+<span class="nc" id="L158">    }</span>
   }
 
   @Override
   @SuppressWarnings(&quot;unchecked&quot;)
   public &lt;T&gt; ObjectAppender&lt;? super T&gt; get(final Class&lt;T&gt; type) {
-<span class="fc" id="L162">    ObjectAppender&lt;?&gt; appender = lookup.get(type);</span>
-<span class="fc bfc" id="L163" title="All 2 branches covered.">    if (appender != null) {</span>
-<span class="fc" id="L164">      return (ObjectAppender) appender;</span>
+<span class="fc" id="L164">    ObjectAppender&lt;?&gt; appender = lookup.get(type);</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">    if (appender != null) {</span>
+<span class="fc" id="L166">      return (ObjectAppender) appender;</span>
     } else {
-<span class="fc" id="L166">      synchronized (registry) {</span>
-<span class="fc bfc" id="L167" title="All 2 branches covered.">        for (Map.Entry&lt;Class&lt;?&gt;, ObjectAppender&lt;?&gt;&gt; entry : registry) {</span>
-<span class="fc" id="L168">          Class&lt;?&gt; clasz = entry.getKey();</span>
-<span class="fc bfc" id="L169" title="All 2 branches covered.">          if (clasz.isAssignableFrom(type)) {</span>
-<span class="fc" id="L170">            ObjectAppender&lt;?&gt; value = entry.getValue();</span>
-<span class="fc" id="L171">            lookup.put(type, value);</span>
-<span class="fc" id="L172">            return (ObjectAppender) value;</span>
+<span class="fc" id="L168">      synchronized (registry) {</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">        for (Map.Entry&lt;Class&lt;?&gt;, ObjectAppender&lt;?&gt;&gt; entry : registry) {</span>
+<span class="fc" id="L170">          Class&lt;?&gt; clasz = entry.getKey();</span>
+<span class="fc bfc" id="L171" title="All 2 branches covered.">          if (clasz.isAssignableFrom(type)) {</span>
+<span class="fc" id="L172">            ObjectAppender&lt;?&gt; value = entry.getValue();</span>
+<span class="fc" id="L173">            lookup.put(type, value);</span>
+<span class="fc" id="L174">            return (ObjectAppender) value;</span>
           }
-<span class="fc" id="L174">        }</span>
-<span class="pc" id="L175">      }</span>
-<span class="fc" id="L176">      lookup.put(type, ObjectAppender.TOSTRING_APPENDER);</span>
-<span class="fc" id="L177">      return ObjectAppender.TOSTRING_APPENDER;</span>
+<span class="fc" id="L176">        }</span>
+<span class="pc" id="L177">      }</span>
+<span class="fc" id="L178">      lookup.put(type, ObjectAppender.TOSTRING_APPENDER);</span>
+<span class="fc" id="L179">      return ObjectAppender.TOSTRING_APPENDER;</span>
     }
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L183">    return &quot;ConfigurableAppenderSupplier{&quot; + &quot;lookup=&quot; + lookup + &quot;, registry=&quot; + registry + '}';</span>
+<span class="fc" id="L185">    return &quot;ConfigurableAppenderSupplier{&quot; + &quot;lookup=&quot; + lookup + &quot;, registry=&quot; + registry + '}';</span>
   }
 
 }

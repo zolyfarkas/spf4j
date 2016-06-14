@@ -204,28 +204,32 @@
 <a class="jxr_linenumber" name="L196" href="#L196">196</a>             bab.reset();
 <a class="jxr_linenumber" name="L197" href="#L197">197</a>             <strong class="jxr_keyword">this</strong>.recordWriter.write(writeBlock, <strong class="jxr_keyword">this</strong>.encoder);
 <a class="jxr_linenumber" name="L198" href="#L198">198</a>             raf.write(bab.getBuffer(), 0, bab.size());
-<a class="jxr_linenumber" name="L199" href="#L199">199</a>             <strong class="jxr_keyword">long</strong> filePointer = raf.getFilePointer();
-<a class="jxr_linenumber" name="L200" href="#L200">200</a>             raf.seek(MAGIC.length);
-<a class="jxr_linenumber" name="L201" href="#L201">201</a>             raf.writeLong(filePointer);
-<a class="jxr_linenumber" name="L202" href="#L202">202</a>             raf.seek(filePointer);
-<a class="jxr_linenumber" name="L203" href="#L203">203</a>             writeBlock.values.clear();
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>             encoder.flush();
-<a class="jxr_linenumber" name="L205" href="#L205">205</a>         }
-<a class="jxr_linenumber" name="L206" href="#L206">206</a>         channel.force(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L207" href="#L207">207</a>     }
-<a class="jxr_linenumber" name="L208" href="#L208">208</a> 
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>     <strong class="jxr_keyword">public</strong> Header getHeader() {
-<a class="jxr_linenumber" name="L210" href="#L210">210</a>         <strong class="jxr_keyword">return</strong> header;
-<a class="jxr_linenumber" name="L211" href="#L211">211</a>     }
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>             updateEOFPtrPointer();
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>             writeBlock.values.clear();
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>             encoder.flush();
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>         }
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>         channel.force(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>     }
+<a class="jxr_linenumber" name="L205" href="#L205">205</a> 
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> updateEOFPtrPointer() <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>     <strong class="jxr_keyword">long</strong> filePointer = raf.getFilePointer();
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>     raf.seek(MAGIC.length);
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>     raf.writeLong(filePointer);
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>     raf.seek(filePointer);
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>   }
 <a class="jxr_linenumber" name="L212" href="#L212">212</a> 
-<a class="jxr_linenumber" name="L213" href="#L213">213</a>     @Override
-<a class="jxr_linenumber" name="L214" href="#L214">214</a>     <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L215" href="#L215">215</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"TSDBWriter{"</span> + <span class="jxr_string">"file="</span> + file + <span class="jxr_string">", raf="</span> + raf + '}';
-<a class="jxr_linenumber" name="L216" href="#L216">216</a>     }
-<a class="jxr_linenumber" name="L217" href="#L217">217</a> 
-<a class="jxr_linenumber" name="L218" href="#L218">218</a> 
-<a class="jxr_linenumber" name="L219" href="#L219">219</a> 
-<a class="jxr_linenumber" name="L220" href="#L220">220</a> }
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>     <strong class="jxr_keyword">public</strong> Header getHeader() {
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>         <strong class="jxr_keyword">return</strong> header;
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>     }
+<a class="jxr_linenumber" name="L216" href="#L216">216</a> 
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>     @Override
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>     <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"TSDBWriter{"</span> + <span class="jxr_string">"file="</span> + file + <span class="jxr_string">", raf="</span> + raf + '}';
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>     }
+<a class="jxr_linenumber" name="L221" href="#L221">221</a> 
+<a class="jxr_linenumber" name="L222" href="#L222">222</a> 
+<a class="jxr_linenumber" name="L223" href="#L223">223</a> 
+<a class="jxr_linenumber" name="L224" href="#L224">224</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2016. All rights reserved.</div>

@@ -49,41 +49,42 @@ public final class HeartBeatTableDesc  implements Serializable {
    * MSSQL = DATEDIFF(ms, '1970-01-01 00:00:00', GETUTCDATE())
    * ORACLE = (SYSDATE - TO_DATE('01-01-1970 00:00:00', 'DD-MM-YYYY HH24:MI:SS')) * 24 * 3600000
    * H2 = TIMESTAMPDIFF('MILLISECOND', timestamp '1970-01-01 00:00:00', CURRENT_TIMESTAMP())
+   * POSTGRES = extract(epoch FROM now()) * 1000
    */
   private final String currentTimeMillisFunc;
 
   public HeartBeatTableDesc(final String tableName, final String ownerColun,
-<span class="fc" id="L56">          final String intervalColumn, final String lastHeartbeatColumn, final String currentTimeMillisFunc) {</span>
-<span class="fc" id="L57">    this.tableName = tableName;</span>
-<span class="fc" id="L58">    this.ownerColumn = ownerColun;</span>
-<span class="fc" id="L59">    this.intervalColumn = intervalColumn;</span>
-<span class="fc" id="L60">    this.lastHeartbeatColumn = lastHeartbeatColumn;</span>
-<span class="fc" id="L61">    this.currentTimeMillisFunc = currentTimeMillisFunc;</span>
-<span class="fc" id="L62">  }</span>
+<span class="fc" id="L57">          final String intervalColumn, final String lastHeartbeatColumn, final String currentTimeMillisFunc) {</span>
+<span class="fc" id="L58">    this.tableName = tableName;</span>
+<span class="fc" id="L59">    this.ownerColumn = ownerColun;</span>
+<span class="fc" id="L60">    this.intervalColumn = intervalColumn;</span>
+<span class="fc" id="L61">    this.lastHeartbeatColumn = lastHeartbeatColumn;</span>
+<span class="fc" id="L62">    this.currentTimeMillisFunc = currentTimeMillisFunc;</span>
+<span class="fc" id="L63">  }</span>
 
   public String getTableName() {
-<span class="fc" id="L65">    return tableName;</span>
+<span class="fc" id="L66">    return tableName;</span>
   }
 
   public String getOwnerColumn() {
-<span class="fc" id="L69">    return ownerColumn;</span>
+<span class="fc" id="L70">    return ownerColumn;</span>
   }
 
   public String getIntervalColumn() {
-<span class="fc" id="L73">    return intervalColumn;</span>
+<span class="fc" id="L74">    return intervalColumn;</span>
   }
 
   public String getLastHeartbeatColumn() {
-<span class="fc" id="L77">    return lastHeartbeatColumn;</span>
+<span class="fc" id="L78">    return lastHeartbeatColumn;</span>
   }
 
   public String getCurrentTimeMillisFunc() {
-<span class="fc" id="L81">    return currentTimeMillisFunc;</span>
+<span class="fc" id="L82">    return currentTimeMillisFunc;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L86">    return &quot;HeartbeatTableDesc{&quot; + &quot;tableName=&quot; + tableName + &quot;, ownerColun=&quot; + ownerColumn + &quot;, intervalColumn=&quot;</span>
+<span class="nc" id="L87">    return &quot;HeartbeatTableDesc{&quot; + &quot;tableName=&quot; + tableName + &quot;, ownerColun=&quot; + ownerColumn + &quot;, intervalColumn=&quot;</span>
             + intervalColumn + &quot;, lastHeartbeatColumn=&quot; + lastHeartbeatColumn + '}';
   }
 
@@ -96,22 +97,28 @@ public final class HeartBeatTableDesc  implements Serializable {
    * @throws ExceptionInInitializerError
    */
   public static String getCurrTSSqlFn(final DbType dbType) throws ExceptionInInitializerError {
-<span class="pc bpc" id="L99" title="3 of 4 branches missed.">    switch (dbType) {</span>
+<span class="pc bpc" id="L100" title="5 of 6 branches missed.">    switch (dbType) {</span>
       case H2:
-<span class="fc" id="L101">        return &quot;TIMESTAMPDIFF('MILLISECOND', timestamp '1970-01-01 00:00:00', CURRENT_TIMESTAMP())&quot;;</span>
+<span class="fc" id="L102">        return &quot;TIMESTAMPDIFF('MILLISECOND', timestamp '1970-01-01 00:00:00', CURRENT_TIMESTAMP())&quot;;</span>
       case ORACLE:
-<span class="nc" id="L103">        return &quot;(SYSDATE - TO_DATE('01-01-1970 00:00:00', 'DD-MM-YYYY HH24:MI:SS')) * 24 * 3600000&quot;;</span>
+<span class="nc" id="L104">        return &quot;(SYSDATE - TO_DATE('01-01-1970 00:00:00', 'DD-MM-YYYY HH24:MI:SS')) * 24 * 3600000&quot;;</span>
       case MSSQL:
-<span class="nc" id="L105">        return &quot;DATEDIFF(ms, '1970-01-01 00:00:00', GETUTCDATE())&quot;;</span>
+<span class="nc" id="L106">        return &quot;DATEDIFF(ms, '1970-01-01 00:00:00', GETUTCDATE())&quot;;</span>
+      case POSTGRES:
+<span class="nc" id="L108">        return &quot;extract(epoch FROM now()) * 1000&quot;;</span>
+      case COCKROACH_DB:
+<span class="nc" id="L110">        return &quot;extract(epoch_nanosecond from now()) / 1e6&quot;;</span>
       default:
-<span class="nc" id="L107">        throw new ExceptionInInitializerError(&quot;Database not supported&quot;);</span>
+<span class="nc" id="L112">        throw new ExceptionInInitializerError(&quot;Database not supported&quot;);</span>
     }
   }
 
 
-<span class="fc" id="L112">  public static final HeartBeatTableDesc DEFAULT = new HeartBeatTableDesc(&quot;HEARTBEATS&quot;,</span>
-            &quot;OWNER&quot;, &quot;INTERVAL_MILLIS&quot;, &quot;LAST_HEARTBEAT_INSTANT_MILLIS&quot;,
-<span class="fc" id="L114">            getCurrTSSqlFn(DbType.DEFAULT));</span>
-
+<span class="fc" id="L117">  public static final HeartBeatTableDesc DEFAULT = new HeartBeatTableDesc(</span>
+<span class="fc" id="L118">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.tableName&quot;, &quot;HEARTBEATS&quot;),</span>
+<span class="fc" id="L119">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.ownerColumn&quot;, &quot;OWNER&quot;),</span>
+<span class="fc" id="L120">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.intervalMillisColumn&quot;, &quot;INTERVAL_MILLIS&quot;),</span>
+<span class="fc" id="L121">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.lastHeartBeatMillisColumn&quot;, &quot;LAST_HEARTBEAT_INSTANT_MILLIS&quot;),</span>
+<span class="fc" id="L122">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.currTsSqlFunction&quot;, getCurrTSSqlFn(DbType.DEFAULT)));</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

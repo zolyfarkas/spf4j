@@ -85,13 +85,13 @@ public final  class TSDBReader implements Closeable {
      * @throws IOException
      */
     public synchronized boolean reReadSize() throws IOException {
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (raf == null) {</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (raf == null) {</span>
 <span class="fc" id="L89">            raf = new RandomAccessFile(file, &quot;r&quot;);</span>
         }
 <span class="fc" id="L91">        raf.seek(TSDBWriter.MAGIC.length);</span>
 <span class="fc" id="L92">        long old = size;</span>
 <span class="fc" id="L93">        size = raf.readLong();</span>
-<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        return size != old;</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">        return size != old;</span>
     }
 
 
@@ -160,72 +160,77 @@ public final  class TSDBReader implements Closeable {
 
 
     //CHECKSTYLE:OFF
-    public synchronized &lt;E extends Exception&gt;  void watch(final Handler&lt;Either&lt;TableDef, DataBlock&gt;, E&gt; handler,
+    @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;)
+    public  &lt;E extends Exception&gt;  void watch(final Handler&lt;Either&lt;TableDef, DataBlock&gt;, E&gt; handler,
             final EventSensitivity es)
             throws IOException, InterruptedException, E {
         //CHECKSTYLE:ON
-<span class="pc bpc" id="L167" title="1 of 2 branches missed.">        if (watch) {</span>
-<span class="nc" id="L168">            throw new IllegalStateException(&quot;File is already watched &quot; + file);</span>
-        }
+<span class="fc" id="L168">        synchronized (this) {</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">          if (watch) {</span>
+<span class="nc" id="L170">              throw new IllegalStateException(&quot;File is already watched &quot; + file);</span>
+          }
+<span class="fc" id="L172">          watch = true;</span>
+<span class="pc" id="L173">        }</span>
         SensitivityWatchEventModifier sensitivity;
-<span class="pc bpc" id="L171" title="3 of 4 branches missed.">        switch (es) {</span>
+<span class="pc bpc" id="L175" title="3 of 4 branches missed.">        switch (es) {</span>
             case LOW:
-<span class="nc" id="L173">                sensitivity = SensitivityWatchEventModifier.LOW;</span>
-<span class="nc" id="L174">                break;</span>
+<span class="nc" id="L177">                sensitivity = SensitivityWatchEventModifier.LOW;</span>
+<span class="nc" id="L178">                break;</span>
             case MEDIUM:
-<span class="nc" id="L176">                sensitivity = SensitivityWatchEventModifier.MEDIUM;</span>
-<span class="nc" id="L177">                break;</span>
+<span class="nc" id="L180">                sensitivity = SensitivityWatchEventModifier.MEDIUM;</span>
+<span class="nc" id="L181">                break;</span>
             case HIGH:
-<span class="fc" id="L179">                sensitivity = SensitivityWatchEventModifier.HIGH;</span>
-<span class="fc" id="L180">                break;</span>
+<span class="fc" id="L183">                sensitivity = SensitivityWatchEventModifier.HIGH;</span>
+<span class="fc" id="L184">                break;</span>
             default:
-<span class="nc" id="L182">                throw new UnsupportedOperationException(&quot;Unsupported sensitivity &quot; + es);</span>
+<span class="nc" id="L186">                throw new UnsupportedOperationException(&quot;Unsupported sensitivity &quot; + es);</span>
         }
-
-<span class="fc" id="L185">        watch = true;</span>
-<span class="fc" id="L186">        read(handler);</span>
-<span class="fc" id="L187">        final Path path = file.getParentFile().toPath();</span>
-<span class="pc" id="L188">        try (WatchService watchService = path.getFileSystem().newWatchService()) {</span>
-<span class="fc" id="L189">            path.register(watchService, new WatchEvent.Kind[] {StandardWatchEventKinds.ENTRY_MODIFY,</span>
+<span class="fc" id="L188">        final Path path = file.getParentFile().toPath();</span>
+<span class="pc" id="L189">        try (WatchService watchService = path.getFileSystem().newWatchService()) {</span>
+<span class="fc" id="L190">            path.register(watchService, new WatchEvent.Kind[] {StandardWatchEventKinds.ENTRY_MODIFY,</span>
                 StandardWatchEventKinds.OVERFLOW
             }, sensitivity);
+<span class="fc" id="L193">            readAll(handler);</span>
             do {
-<span class="fc" id="L193">                WatchKey key = watchService.poll(1000, TimeUnit.MILLISECONDS);</span>
-<span class="fc bfc" id="L194" title="All 2 branches covered.">                if (key == null) {</span>
-<span class="fc" id="L195">                    continue;</span>
+<span class="fc" id="L195">                WatchKey key = watchService.poll(1000, TimeUnit.MILLISECONDS);</span>
+<span class="fc bfc" id="L196" title="All 2 branches covered.">                if (key == null) {</span>
+<span class="fc bfc" id="L197" title="All 2 branches covered.">                    if (reReadSize()) {</span>
+<span class="fc" id="L198">                        readAll(handler);</span>
+                    }
+                    continue;
                 }
-<span class="pc bpc" id="L197" title="1 of 2 branches missed.">                if (!key.isValid()) {</span>
-<span class="nc" id="L198">                    key.cancel();</span>
-<span class="nc" id="L199">                    break;</span>
+<span class="pc bpc" id="L202" title="1 of 2 branches missed.">                if (!key.isValid()) {</span>
+<span class="nc" id="L203">                    key.cancel();</span>
+<span class="nc" id="L204">                    break;</span>
                 }
-<span class="pc bpc" id="L201" title="1 of 2 branches missed.">                if (!key.pollEvents().isEmpty()) {</span>
-<span class="pc bpc" id="L202" title="1 of 2 branches missed.">                    if (reReadSize()) {</span>
-<span class="fc" id="L203">                        read(handler);</span>
+<span class="pc bpc" id="L206" title="1 of 2 branches missed.">                if (!key.pollEvents().isEmpty()) {</span>
+<span class="pc bpc" id="L207" title="1 of 2 branches missed.">                    if (reReadSize()) {</span>
+<span class="fc" id="L208">                        readAll(handler);</span>
                     }
                 }
-<span class="pc bpc" id="L206" title="1 of 2 branches missed.">                if (!key.reset()) {</span>
-<span class="nc" id="L207">                    key.cancel();</span>
-<span class="nc" id="L208">                    break;</span>
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">                if (!key.reset()) {</span>
+<span class="nc" id="L212">                    key.cancel();</span>
+<span class="nc" id="L213">                    break;</span>
                 }
-<span class="fc bfc" id="L210" title="All 2 branches covered.">            } while (watch);</span>
-<span class="pc bpc" id="L211" title="6 of 8 branches missed.">        } finally {</span>
-<span class="pc" id="L212">            watch = false;</span>
-<span class="fc" id="L213">        }</span>
-<span class="fc" id="L214">    }</span>
+<span class="fc bfc" id="L215" title="All 2 branches covered.">            } while (watch);</span>
+<span class="pc bpc" id="L216" title="6 of 8 branches missed.">        } finally {</span>
+<span class="pc" id="L217">            watch = false;</span>
+<span class="fc" id="L218">        }</span>
+<span class="fc" id="L219">    }</span>
 
     //CHECKSTYLE:OFF
-    public synchronized &lt;E extends Exception&gt; void read(final Handler&lt;Either&lt;TableDef, DataBlock&gt;, E&gt; handler)
+    public synchronized &lt;E extends Exception&gt; void readAll(final Handler&lt;Either&lt;TableDef, DataBlock&gt;, E&gt; handler)
             throws IOException, E {
         //CHECKSTYLE:ON
         Either&lt;TableDef, DataBlock&gt; data;
-<span class="fc bfc" id="L221" title="All 2 branches covered.">        while ((data = read()) != null) {</span>
-<span class="fc" id="L222">            handler.handle(data, Long.MAX_VALUE);</span>
+<span class="fc bfc" id="L226" title="All 2 branches covered.">        while ((data = read()) != null) {</span>
+<span class="fc" id="L227">            handler.handle(data, Long.MAX_VALUE);</span>
         }
-<span class="fc" id="L224">    }</span>
+<span class="fc" id="L229">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L228">        return &quot;TSDBReader{&quot; + &quot;size=&quot; + size + &quot;, raf=&quot; + raf + &quot;, file=&quot; + file + '}';</span>
+<span class="nc" id="L233">        return &quot;TSDBReader{&quot; + &quot;size=&quot; + size + &quot;, raf=&quot; + raf + &quot;, file=&quot; + file + '}';</span>
     }
 
 }

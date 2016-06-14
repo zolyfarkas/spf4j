@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>CharSequences.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">CharSequences.java</span></div><h1>CharSequences.java</h1><pre class="source lang-java linenums">package org.spf4j.base;
+
+import java.io.IOException;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+/**
+ * Special methods to use for character sequences...
+ * @author zoly
+ */
+public final class CharSequences {
+
+<span class="nc" id="L13">  private CharSequences() {</span>
+<span class="nc" id="L14">  }</span>
+
+  public static int compareTo(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
+<span class="fc" id="L17">    int i = 0;</span>
+<span class="fc" id="L18">    final int sl = s.length();</span>
+<span class="fc" id="L19">    final int tl = t.length();</span>
+<span class="pc bpc" id="L20" title="1 of 4 branches missed.">    while (i &lt; sl &amp;&amp; i &lt; tl) {</span>
+<span class="fc" id="L21">      char a = s.charAt(i);</span>
+<span class="fc" id="L22">      char b = t.charAt(i);</span>
+<span class="fc" id="L23">      int diff = a - b;</span>
+<span class="pc bpc" id="L24" title="1 of 2 branches missed.">      if (diff != 0) {</span>
+<span class="nc" id="L25">        return diff;</span>
+      }
+<span class="fc" id="L27">      i++;</span>
+<span class="fc" id="L28">    }</span>
+<span class="fc" id="L29">    return sl - tl;</span>
+  }
+
+  public static boolean equalsNullables(@Nullable final CharSequence s, @Nullable final CharSequence t) {
+<span class="nc bnc" id="L33" title="All 2 branches missed.">    if (s == null) {</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">      return null == t;</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">    } else if (t == null) {</span>
+<span class="nc" id="L36">      return true;</span>
+    } else {
+<span class="nc" id="L38">      return equals(s, t);</span>
+    }
+  }
+
+  public static boolean equals(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
+<span class="fc" id="L43">    final int sl = s.length();</span>
+<span class="fc" id="L44">    final int tl = t.length();</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">    if (sl != tl) {</span>
+<span class="fc" id="L46">      return false;</span>
+    } else {
+<span class="fc bfc" id="L48" title="All 2 branches covered.">      for (int i = 0; i &lt; sl; i++) {</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (s.charAt(i) != t.charAt(i)) {</span>
+<span class="fc" id="L50">          return false;</span>
+        }
+      }
+<span class="fc" id="L53">      return true;</span>
+    }
+  }
+
+  public static int hashcode(@Nonnull final CharSequence cs) {
+<span class="nc bnc" id="L58" title="All 2 branches missed.">    if (cs instanceof String) {</span>
+<span class="nc" id="L59">      return ((String) cs).hashCode();</span>
+    }
+<span class="nc" id="L61">    int h = 0;</span>
+<span class="nc" id="L62">    int len = cs.length();</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc" id="L64">      int off = 0;</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">      for (int i = 0; i &lt; len; i++) {</span>
+<span class="nc" id="L66">        h = 31 * h + cs.charAt(off++);</span>
+      }
+    }
+<span class="nc" id="L69">    return h;</span>
+  }
+
+  public static CharSequence subSequence(@Nonnull final CharSequence seq, final int startIdx, final int endIdx) {
+<span class="pc bpc" id="L73" title="1 of 4 branches missed.">    if (startIdx == 0 &amp;&amp; endIdx == seq.length()) {</span>
+<span class="fc" id="L74">      return seq;</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">    } else if (startIdx &gt;= endIdx) {</span>
+<span class="fc" id="L76">      return &quot;&quot;;</span>
+    } else {
+<span class="fc" id="L78">      return new SubSequence(seq, endIdx - startIdx, startIdx);</span>
+    }
+  }
+
+  private static final class SubSequence implements CharSequence {
+
+    private final CharSequence underlyingSequence;
+    private final int length;
+    private final int startIdx;
+
+<span class="fc" id="L88">    SubSequence(final CharSequence underlyingSequence, final int length, final int startIdx) {</span>
+<span class="fc" id="L89">      this.underlyingSequence = underlyingSequence;</span>
+<span class="fc" id="L90">      this.length = length;</span>
+<span class="fc" id="L91">      this.startIdx = startIdx;</span>
+<span class="fc" id="L92">    }</span>
+
+    @Override
+    public int length() {
+<span class="fc" id="L96">      return length;</span>
+    }
+
+    @Override
+    public char charAt(final int index) {
+<span class="fc" id="L101">      return underlyingSequence.charAt(startIdx + index);</span>
+    }
+
+    @Override
+    public CharSequence subSequence(final int start, final int end) {
+<span class="nc" id="L106">      return CharSequences.subSequence(underlyingSequence, startIdx + start, startIdx + end);</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="fc" id="L111">      char[] chars = new char[length];</span>
+<span class="fc" id="L112">      int idx = startIdx;</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">      for (int i = 0; i &lt; length; i++, idx++) {</span>
+<span class="fc" id="L114">        chars[i] = underlyingSequence.charAt(idx);</span>
+      }
+<span class="fc" id="L116">      return Strings.wrap(chars);</span>
+    }
+
+  }
+
+  public static boolean endsWith(final CharSequence qc, final CharSequence with) {
+<span class="fc" id="L122">    int l = qc.length();</span>
+<span class="fc" id="L123">    int start = l - with.length();</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">    if (start &gt;= 0) {</span>
+<span class="fc bfc" id="L125" title="All 2 branches covered.">      for (int i = start, j = 0; i &lt; l; i++, j++) {</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">        if (qc.charAt(i) != with.charAt(j)) {</span>
+<span class="fc" id="L127">          return false;</span>
+        }
+      }
+<span class="fc" id="L130">      return true;</span>
+    } else {
+<span class="fc" id="L132">      return false;</span>
+    }
+  }
+
+  public static Appendable lineNumbered(final int startLineNr, final Appendable appendable)
+          throws IOException {
+<span class="nc" id="L138">    return lineNumbered(startLineNr, appendable, IntAppender.CommentNumberAppender.INSTANCE);</span>
+  }
+
+  public static Appendable lineNumbered(final int startLineNr, final Appendable appendable, final IntAppender ia)
+          throws IOException {
+<span class="fc" id="L143">    ia.append(startLineNr, appendable);</span>
+<span class="fc" id="L144">    return new Appendable() {</span>
+<span class="fc" id="L145">      private int lineNr = startLineNr + 1;</span>
+      @Override
+      public Appendable append(final CharSequence csq) throws IOException {
+<span class="fc" id="L148">        return append(csq, 0, csq.length());</span>
+      }
+
+      @Override
+      public Appendable append(final CharSequence csq, final int start, final int end) throws IOException {
+<span class="fc" id="L153">        int lastIdx = start;</span>
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        for (int i = start; i &lt; end; i++) {</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">          if (csq.charAt(i) == '\n') {</span>
+<span class="fc" id="L156">            int next = i + 1;</span>
+<span class="fc" id="L157">            appendable.append(csq, lastIdx, next);</span>
+<span class="fc" id="L158">            ia.append(lineNr++, appendable);</span>
+<span class="fc" id="L159">            lastIdx = next;</span>
+          }
+        }
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">        if (lastIdx &lt; end) {</span>
+<span class="fc" id="L163">          appendable.append(csq, lastIdx, end);</span>
+        }
+<span class="fc" id="L165">        return this;</span>
+      }
+
+      @Override
+      public Appendable append(final char c) throws IOException {
+<span class="nc" id="L170">        appendable.append(c);</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (c == '\n') {</span>
+<span class="nc" id="L172">          ia.append(lineNr++, appendable);</span>
+        }
+<span class="nc" id="L174">        return this;</span>
+      }
+    };
+  }
+
+  public static CharSequence toLineNumbered(final int startLineNr, final CharSequence source) {
+<span class="fc" id="L180">    return toLineNumbered(startLineNr, source, IntAppender.CommentNumberAppender.INSTANCE);</span>
+  }
+
+
+  public static CharSequence toLineNumbered(final int startLineNr, final CharSequence source,  final IntAppender ia) {
+<span class="fc" id="L185">    int length = source.length();</span>
+<span class="fc" id="L186">    StringBuilder destination = new StringBuilder(length + 6 * length / 80);</span>
+    try {
+<span class="fc" id="L188">      lineNumbered(startLineNr, destination, ia).append(source);</span>
+<span class="nc" id="L189">    } catch (IOException ex) {</span>
+<span class="nc" id="L190">      throw new RuntimeException(ex);</span>
+<span class="fc" id="L191">    }</span>
+<span class="fc" id="L192">    return destination;</span>
+  }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

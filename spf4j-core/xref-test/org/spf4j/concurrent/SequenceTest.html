@@ -51,33 +51,28 @@
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_comment">//        Assert.assertTrue("condition " + timeAtomic + " &gt; " + timeScalable, timeAtomic &gt; timeScalable);</em>
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>          System.out.println(<span class="jxr_string">"Atomic time "</span>  + timeAtomic);
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>          System.out.println(<span class="jxr_string">"Scalable time "</span>  + timeScalable);
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>          
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  
 <a class="jxr_linenumber" name="L47" href="#L47">47</a>      }
 <a class="jxr_linenumber" name="L48" href="#L48">48</a>  
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">long</strong> testSeq(<strong class="jxr_keyword">final</strong> Sequence sequence) <strong class="jxr_keyword">throws</strong> InterruptedException, ExecutionException {
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>          <strong class="jxr_keyword">long</strong> startTime = System.currentTimeMillis();
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>          Future&lt;Long&gt;[] futures = <strong class="jxr_keyword">new</strong> Future[org.spf4j.base.Runtime.NR_PROCESSORS];
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; org.spf4j.base.Runtime.NR_PROCESSORS; i++) {
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>              futures[i] = DefaultExecutor.INSTANCE.submit(<strong class="jxr_keyword">new</strong> Callable&lt;Long&gt;() {
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>  
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>                  @Override
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>                  <strong class="jxr_keyword">public</strong> Long call() <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>                      <strong class="jxr_keyword">long</strong> last = -1;
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>                      <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; 100000; i++) {
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>                          last = sequence.next();
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>                      }
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>                      <strong class="jxr_keyword">return</strong> last;
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>                  }
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>  
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>              });
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>          }
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>          <strong class="jxr_keyword">for</strong> (Future&lt;Long&gt; future : futures) {
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>              System.out.println(<span class="jxr_string">"Seq"</span> + sequence.getClass() + <span class="jxr_string">" "</span> + future.get());
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>          }
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>          <strong class="jxr_keyword">return</strong> System.currentTimeMillis() - startTime;
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>      }
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>  
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>  }
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>              futures[i] = DefaultExecutor.INSTANCE.submit(() -&gt; {
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>                <strong class="jxr_keyword">long</strong> last = -1;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>                <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i1 = 0; i1 &lt; 100000; i1++) {
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>                  last = sequence.next();
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>                }
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>                <strong class="jxr_keyword">return</strong> last;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>              });
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          }
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          <strong class="jxr_keyword">for</strong> (Future&lt;Long&gt; future : futures) {
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>              System.out.println(<span class="jxr_string">"Seq"</span> + sequence.getClass() + <span class="jxr_string">" "</span> + future.get());
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          }
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          <strong class="jxr_keyword">return</strong> System.currentTimeMillis() - startTime;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      }
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2016. All rights reserved.</div>

@@ -87,8 +87,8 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
 <span class="fc" id="L87">                borrowedObjects.put(borower, object);</span>
 <span class="fc" id="L88">                return object;</span>
             } else {
-<span class="pc bpc" id="L90" title="3 of 4 branches missed.">                if (borrowedObjects.isEmpty() &amp;&amp; availableObjects.isEmpty()) {</span>
-<span class="nc" id="L91">                    throw new RuntimeException(</span>
+<span class="pc bpc" id="L90" title="1 of 4 branches missed.">                if (borrowedObjects.isEmpty() &amp;&amp; availableObjects.isEmpty()) {</span>
+<span class="fc" id="L91">                    throw new RuntimeException(</span>
                             &quot;Pool is probably closing down or is missconfigured with size 0 &quot; + this);
                 }
 <span class="pc bpc" id="L94" title="1 of 2 branches missed.">                while (borrowedObjects.isEmpty()) {</span>
@@ -102,11 +102,11 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
 <span class="pc bpc" id="L102" title="1 of 2 branches missed.">                    if (borower != b) {</span>
 <span class="fc" id="L103">                        T object = b.tryReturnObjectIfNotInUse();</span>
 <span class="fc bfc" id="L104" title="All 2 branches covered.">                        if (object != null) {</span>
-<span class="nc bnc" id="L105" title="All 2 branches missed.">                            if (!borrowedObjects.remove(b, object)) {</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">                            if (!borrowedObjects.remove(b, object)) {</span>
 <span class="nc" id="L106">                                throw new IllegalStateException(&quot;Returned Object hasn't been borrowed &quot; + object);</span>
                             }
-<span class="nc" id="L108">                            borrowedObjects.put(borower, object);</span>
-<span class="nc" id="L109">                            return object;</span>
+<span class="fc" id="L108">                            borrowedObjects.put(borower, object);</span>
+<span class="fc" id="L109">                            return object;</span>
                         }
                     }
 <span class="fc" id="L112">                }</span>
@@ -255,19 +255,19 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
 <span class="fc bfc" id="L255" title="All 2 branches covered.">        for (T obj : availableObjects) {</span>
             try {
 <span class="fc" id="L257">                factory.dispose(obj);</span>
-<span class="nc" id="L258">            } catch (ObjectDisposeException ex) {</span>
-<span class="nc bnc" id="L259" title="All 2 branches missed.">                if (result == null) {</span>
-<span class="nc" id="L260">                    result = ex;</span>
+<span class="fc" id="L258">            } catch (ObjectDisposeException ex) {</span>
+<span class="fc bfc" id="L259" title="All 2 branches covered.">                if (result == null) {</span>
+<span class="fc" id="L260">                    result = ex;</span>
                 } else {
-<span class="nc" id="L262">                    result = Throwables.suppress(ex, result);</span>
+<span class="fc" id="L262">                    result = Throwables.suppress(ex, result);</span>
                 }
-<span class="fc" id="L264">            } catch (Exception ex) {</span>
-<span class="fc bfc" id="L265" title="All 2 branches covered.">                if (result == null) {</span>
-<span class="fc" id="L266">                    result = new ObjectDisposeException(ex);</span>
+<span class="nc" id="L264">            } catch (Exception ex) {</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                if (result == null) {</span>
+<span class="nc" id="L266">                    result = new ObjectDisposeException(ex);</span>
                 } else {
-<span class="fc" id="L268">                    result = Throwables.suppress(new ObjectDisposeException(ex), result);</span>
+<span class="nc" id="L268">                    result = Throwables.suppress(new ObjectDisposeException(ex), result);</span>
                 }
-<span class="pc" id="L270">            }</span>
+<span class="fc" id="L270">            }</span>
 <span class="fc" id="L271">        }</span>
 <span class="fc" id="L272">        availableObjects.clear();</span>
 <span class="fc" id="L273">        return result;</span>

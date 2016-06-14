@@ -21,38 +21,39 @@ import org.objectweb.asm.ClassReader;
 public final class Scanner {
 
 
-<span class="nc" id="L24">    private Scanner() { }</span>
+
+<span class="nc" id="L25">    private Scanner() { }</span>
 
 
     @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;) // Findbugs does not like try with resources.
     public static List&lt;Invocation&gt; findUsages(final Supplier&lt;InputStream&gt; classSupplier,
             final Set&lt;Method&gt; invokedMethods)
                         throws IOException {
-<span class="pc" id="L31">        try (InputStream is = classSupplier.get()) {</span>
-<span class="fc" id="L32">            ClassReader reader = new ClassReader(is);</span>
-<span class="fc" id="L33">            List&lt;Invocation&gt; result = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L34">            reader.accept(new MethodInvocationClassVisitor(result, invokedMethods), 0);</span>
-<span class="fc" id="L35">            return result;</span>
-<span class="pc bpc" id="L36" title="6 of 8 branches missed.">        }</span>
+<span class="pc" id="L32">        try (InputStream is = classSupplier.get()) {</span>
+<span class="fc" id="L33">            ClassReader reader = new ClassReader(is);</span>
+<span class="fc" id="L34">            List&lt;Invocation&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L35">            reader.accept(new MethodInvocationClassVisitor(result, invokedMethods), 0);</span>
+<span class="fc" id="L36">            return result;</span>
+<span class="pc bpc" id="L37" title="6 of 8 branches missed.">        }</span>
     }
 
     public static List&lt;Invocation&gt; findUsages(final Class&lt;?&gt; clasz, final Set&lt;Method&gt; invokedMethods) {
-<span class="fc" id="L40">        return findUsages(clasz.getClassLoader(), clasz.getName().replaceAll(&quot;\\.&quot;, &quot;/&quot;) + &quot;.class&quot;, invokedMethods);</span>
+<span class="fc" id="L41">        return findUsages(clasz.getClassLoader(), clasz.getName().replaceAll(&quot;\\.&quot;, &quot;/&quot;) + &quot;.class&quot;, invokedMethods);</span>
     }
 
     public static List&lt;Invocation&gt; findUsages(final ClassLoader cl,
             final String claszResourcePath, final Set&lt;Method&gt; invokedMethods) {
-<span class="fc" id="L45">        Supplier&lt;InputStream&gt; supplier = new Supplier&lt;InputStream&gt;() {</span>
+<span class="fc" id="L46">        Supplier&lt;InputStream&gt; supplier = new Supplier&lt;InputStream&gt;() {</span>
 
             @Override
             public InputStream get() {
-<span class="fc" id="L49">                return new BufferedInputStream(cl.getResourceAsStream(claszResourcePath));</span>
+<span class="fc" id="L50">                return new BufferedInputStream(cl.getResourceAsStream(claszResourcePath));</span>
             }
         };
         try {
-<span class="fc" id="L53">            return findUsages(supplier, invokedMethods);</span>
-<span class="nc" id="L54">        } catch (IOException ex) {</span>
-<span class="nc" id="L55">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L54">            return findUsages(supplier, invokedMethods);</span>
+<span class="nc" id="L55">        } catch (IOException ex) {</span>
+<span class="nc" id="L56">            throw new RuntimeException(ex);</span>
         }
     }
 
@@ -60,16 +61,16 @@ public final class Scanner {
 
     public static List&lt;Invocation&gt; findUsages(final String packageName, final Set&lt;Method&gt; invokedMethods)
             throws IOException {
-<span class="fc" id="L63">        final ClassLoader cl = ClassLoader.getSystemClassLoader();</span>
-<span class="fc" id="L64">        ClassPath cp = ClassPath.from(cl);</span>
-<span class="fc" id="L65">        ImmutableSet&lt;ClassPath.ClassInfo&gt; classes = cp.getAllClasses();</span>
-<span class="fc" id="L66">        List&lt;Invocation&gt; result = new ArrayList();</span>
-<span class="fc bfc" id="L67" title="All 2 branches covered.">        for (ClassPath.ClassInfo info : classes) {</span>
-<span class="fc bfc" id="L68" title="All 2 branches covered.">            if (info.getName().startsWith(packageName)) {</span>
-<span class="fc" id="L69">                result.addAll(findUsages(cl, info.getResourceName(), invokedMethods));</span>
+<span class="fc" id="L64">        final ClassLoader cl = ClassLoader.getSystemClassLoader();</span>
+<span class="fc" id="L65">        ClassPath cp = ClassPath.from(cl);</span>
+<span class="fc" id="L66">        ImmutableSet&lt;ClassPath.ClassInfo&gt; classes = cp.getAllClasses();</span>
+<span class="fc" id="L67">        List&lt;Invocation&gt; result = new ArrayList();</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        for (ClassPath.ClassInfo info : classes) {</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">            if (info.getName().startsWith(packageName)) {</span>
+<span class="fc" id="L70">                result.addAll(findUsages(cl, info.getResourceName(), invokedMethods));</span>
             }
-<span class="fc" id="L71">        }</span>
-<span class="fc" id="L72">        return result;</span>
+<span class="fc" id="L72">        }</span>
+<span class="fc" id="L73">        return result;</span>
     }
 
 

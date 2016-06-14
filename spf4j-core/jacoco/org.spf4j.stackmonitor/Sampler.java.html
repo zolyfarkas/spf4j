@@ -87,90 +87,90 @@ public final class Sampler {
 
     public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final StackCollector collector) {
 <span class="fc" id="L89">        this(sampleTimeMillis, dumpTimeMillis, collector,</span>
-<span class="fc" id="L90">                System.getProperty(&quot;perf.db.folder&quot;, System.getProperty(&quot;java.io.tmpdir&quot;)),</span>
-<span class="fc" id="L91">                System.getProperty(&quot;perf.db.name&quot;, ManagementFactory.getRuntimeMXBean().getName()));</span>
-<span class="fc" id="L92">    }</span>
+                Monitor.DEFAULT_SS_DUMP_FOLDER, Monitor.DEFAULT_SS_DUMP_FILE_NAME_PREFIX);
+<span class="fc" id="L91">    }</span>
 
     public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final StackCollector collector,
-<span class="fc" id="L95">            final String dumpFolder, final String dumpFilePrefix) {</span>
-<span class="fc" id="L96">        stopped = true;</span>
-<span class="fc" id="L97">        this.sampleTimeMillis = sampleTimeMillis;</span>
-<span class="fc" id="L98">        this.dumpTimeMillis = dumpTimeMillis;</span>
-<span class="fc" id="L99">        this.stackCollector = collector;</span>
-<span class="fc" id="L100">        this.filePrefix = dumpFolder + File.separator + dumpFilePrefix;</span>
-<span class="fc" id="L101">    }</span>
+<span class="fc" id="L94">            final String dumpFolder, final String dumpFilePrefix) {</span>
+<span class="fc" id="L95">        stopped = true;</span>
+<span class="fc" id="L96">        this.sampleTimeMillis = sampleTimeMillis;</span>
+<span class="fc" id="L97">        this.dumpTimeMillis = dumpTimeMillis;</span>
+<span class="fc" id="L98">        this.stackCollector = collector;</span>
+<span class="fc" id="L99">        this.filePrefix = dumpFolder + File.separator + dumpFilePrefix;</span>
+<span class="fc" id="L100">    }</span>
 
     public void registerJmx() {
-<span class="fc" id="L104">        Registry.export(this);</span>
-<span class="fc" id="L105">    }</span>
+<span class="fc" id="L103">        Registry.export(this);</span>
+<span class="fc" id="L104">    }</span>
 
-<span class="fc" id="L107">    private static final StackTraceElement[] GC_FAKE_STACK = new StackTraceElement[] {</span>
+<span class="fc" id="L106">    private static final StackTraceElement[] GC_FAKE_STACK = new StackTraceElement[] {</span>
         new StackTraceElement(&quot;java.lang.System&quot;, &quot;gc&quot;, &quot;System.java&quot;, -1)
     };
 
-<span class="fc" id="L111">    private final IntMath.XorShift32 random = new IntMath.XorShift32();</span>
+<span class="fc" id="L110">    private final IntMath.XorShift32 random = new IntMath.XorShift32();</span>
 
     private static final int STOP_FLAG_READ_MILLIS = 2000;
 
     @JmxExport(description = &quot;start stack sampling&quot;)
     public synchronized void start() {
-<span class="pc bpc" id="L117" title="1 of 2 branches missed.">        if (stopped) {</span>
-<span class="fc" id="L118">            stopped = false;</span>
-<span class="fc" id="L119">            final int stMillis = sampleTimeMillis;</span>
-<span class="fc" id="L120">            final List&lt;GarbageCollectorMXBean&gt; gcBeans = ManagementFactory.getGarbageCollectorMXBeans();</span>
-<span class="fc" id="L121">            samplingThread = DefaultExecutor.INSTANCE.submit(new AbstractRunnable(&quot;SPF4J-Sampling-Thread&quot;) {</span>
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">        if (stopped) {</span>
+<span class="fc" id="L117">            stopped = false;</span>
+<span class="fc" id="L118">            final int stMillis = sampleTimeMillis;</span>
+<span class="fc" id="L119">            final List&lt;GarbageCollectorMXBean&gt; gcBeans = ManagementFactory.getGarbageCollectorMXBeans();</span>
+<span class="fc" id="L120">            samplingThread = DefaultExecutor.INSTANCE.submit(new AbstractRunnable(&quot;SPF4J-Sampling-Thread&quot;) {</span>
 
                 @SuppressWarnings(&quot;SleepWhileInLoop&quot;)
                 @SuppressFBWarnings(&quot;MDM_THREAD_YIELD&quot;)
                 @Override
                 public void doRun() throws IOException, InterruptedException {
-<span class="fc" id="L127">                    final Thread samplerThread = Thread.currentThread();</span>
-<span class="fc" id="L128">                    int dumpCounterMs = 0;</span>
-<span class="fc" id="L129">                    int coarseCounter = 0;</span>
-<span class="fc" id="L130">                    int coarseCount = STOP_FLAG_READ_MILLIS / stMillis;</span>
-<span class="fc" id="L131">                    boolean lstopped = stopped;</span>
-<span class="fc" id="L132">                    long prevGcTime = 0;</span>
-<span class="fc" id="L133">                    int sleepTime = 0;</span>
-<span class="fc bfc" id="L134" title="All 2 branches covered.">                    while (!lstopped) {</span>
-<span class="fc" id="L135">                        stackCollector.sample(samplerThread);</span>
-<span class="fc" id="L136">                        dumpCounterMs += sleepTime;</span>
-<span class="fc" id="L137">                        coarseCounter++;</span>
-<span class="fc bfc" id="L138" title="All 2 branches covered.">                        if (coarseCounter &gt;= coarseCount) {</span>
-<span class="fc" id="L139">                            coarseCounter = 0;</span>
-<span class="fc" id="L140">                            lstopped = stopped;</span>
-<span class="fc" id="L141">                            long gcTime = GCUsageSampler.getGCTime(gcBeans);</span>
-<span class="fc bfc" id="L142" title="All 2 branches covered.">                            if (gcTime &gt; prevGcTime) {</span>
-<span class="fc" id="L143">                                int fakeSamples = (int) ((gcTime - prevGcTime)) / stMillis;</span>
-<span class="fc bfc" id="L144" title="All 2 branches covered.">                                for (int i = 0; i &lt; fakeSamples; i++) { // can be optimized</span>
-<span class="fc" id="L145">                                    stackCollector.addSample(GC_FAKE_STACK);</span>
+<span class="fc" id="L126">                    final Thread samplerThread = Thread.currentThread();</span>
+<span class="fc" id="L127">                    int dumpCounterMs = 0;</span>
+<span class="fc" id="L128">                    int coarseCounter = 0;</span>
+<span class="fc" id="L129">                    int coarseCount = STOP_FLAG_READ_MILLIS / stMillis;</span>
+<span class="fc" id="L130">                    boolean lstopped = stopped;</span>
+<span class="fc" id="L131">                    long prevGcTime = 0;</span>
+<span class="fc" id="L132">                    int sleepTime = 0;</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">                    while (!lstopped) {</span>
+<span class="fc" id="L134">                        stackCollector.sample(samplerThread);</span>
+<span class="fc" id="L135">                        dumpCounterMs += sleepTime;</span>
+<span class="fc" id="L136">                        coarseCounter++;</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">                        if (coarseCounter &gt;= coarseCount) {</span>
+<span class="fc" id="L138">                            coarseCounter = 0;</span>
+<span class="fc" id="L139">                            lstopped = stopped;</span>
+<span class="fc" id="L140">                            long gcTime = GCUsageSampler.getGCTime(gcBeans);</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">                            if (gcTime &gt; prevGcTime) {</span>
+<span class="fc" id="L142">                                int fakeSamples = (int) ((gcTime - prevGcTime)) / stMillis;</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">                                for (int i = 0; i &lt; fakeSamples; i++) { // can be optimized</span>
+<span class="fc" id="L144">                                    stackCollector.addSample(GC_FAKE_STACK);</span>
                                 }
-<span class="fc" id="L147">                                prevGcTime = gcTime;</span>
+<span class="fc" id="L146">                                prevGcTime = gcTime;</span>
                             }
                         }
-<span class="pc bpc" id="L150" title="1 of 2 branches missed.">                        if (dumpCounterMs &gt;= dumpTimeMillis) {</span>
-<span class="nc" id="L151">                            long timeSinceLastDump = System.currentTimeMillis() - lastDumpTime;</span>
-<span class="nc bnc" id="L152" title="All 2 branches missed.">                            if (timeSinceLastDump &gt;= dumpTimeMillis) {</span>
-<span class="nc" id="L153">                                dumpCounterMs = 0;</span>
-<span class="nc" id="L154">                                dumpToFile();</span>
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">                        if (dumpCounterMs &gt;= dumpTimeMillis) {</span>
+<span class="nc" id="L150">                            long timeSinceLastDump = System.currentTimeMillis() - lastDumpTime;</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">                            if (timeSinceLastDump &gt;= dumpTimeMillis) {</span>
+<span class="nc" id="L152">                                dumpCounterMs = 0;</span>
+<span class="nc" id="L153">                                dumpToFile();</span>
                             } else {
-<span class="nc" id="L156">                                dumpCounterMs -= dumpTimeMillis - timeSinceLastDump;</span>
+<span class="nc" id="L155">                                dumpCounterMs -= dumpTimeMillis - timeSinceLastDump;</span>
                             }
                         }
-<span class="fc" id="L159">                        sleepTime = stMillis + (random.nextInt() % stMillis);</span>
-<span class="fc" id="L160">                        Thread.sleep(sleepTime);</span>
+<span class="fc" id="L158">                        sleepTime = stMillis + (random.nextInt() % stMillis);</span>
+<span class="fc" id="L159">                        Thread.sleep(sleepTime);</span>
                    }
-<span class="fc" id="L162">                }</span>
+<span class="fc" id="L161">                }</span>
             });
-<span class="fc" id="L164">        } else {</span>
-<span class="nc" id="L165">            throw new IllegalStateException(&quot;Sampling can only be started once for &quot; + this);</span>
+<span class="fc" id="L163">        } else {</span>
+<span class="nc" id="L164">            throw new IllegalStateException(&quot;Sampling can only be started once for &quot; + this);</span>
         }
 
-<span class="fc" id="L168">    }</span>
+<span class="fc" id="L167">    }</span>
 
-<span class="fc" id="L170">    private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();</span>
+<span class="fc" id="L169">    private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();</span>
 
     @JmxExport(description = &quot;save stack samples to file&quot;)
-    public String dumpToFile() throws IOException {
+    @Nullable
+    public File dumpToFile() throws IOException {
 <span class="fc" id="L174">        return dumpToFile(null);</span>
     }
 
@@ -185,77 +185,78 @@ public final class Sampler {
 
     @JmxExport(value = &quot;dumpToSpecificFile&quot;, description = &quot;save stack samples to file&quot;)
     @Nullable
-    public synchronized String dumpToFile(
+    public synchronized File dumpToFile(
             @JmxExport(value = &quot;fileID&quot;, description = &quot;the ID that will be part of the file name&quot;)
             @Nullable final String id) throws IOException {
 <span class="fc" id="L191">        SampleNode collected = stackCollector.clear();</span>
-<span class="fc bfc" id="L192" title="All 2 branches covered.">        if (collected != null) {</span>
+<span class="pc bpc" id="L192" title="1 of 2 branches missed.">        if (collected != null) {</span>
 <span class="pc bpc" id="L193" title="1 of 2 branches missed.">            String fileName = filePrefix + '_' + ((id == null) ? &quot;&quot; : id + '_')</span>
 <span class="fc" id="L194">                    + TS_FORMAT.print(lastDumpTime) + '_'</span>
 <span class="fc" id="L195">                    + TS_FORMAT.print(System.currentTimeMillis()) + &quot;.ssdump2&quot;;</span>
-<span class="fc" id="L196">            Converter.save(new File(fileName), collected);</span>
-<span class="fc" id="L197">            lastDumpTime = System.currentTimeMillis();</span>
-<span class="fc" id="L198">            return fileName;</span>
+<span class="fc" id="L196">            File file = new File(fileName);</span>
+<span class="fc" id="L197">            Converter.save(file, collected);</span>
+<span class="fc" id="L198">            lastDumpTime = System.currentTimeMillis();</span>
+<span class="fc" id="L199">            return file;</span>
         } else {
-<span class="fc" id="L200">            return null;</span>
+<span class="nc" id="L201">            return null;</span>
         }
     }
 
     @JmxExport(description = &quot;stop stack sampling&quot;)
     public synchronized void stop() throws InterruptedException, ExecutionException, TimeoutException {
-<span class="pc bpc" id="L206" title="1 of 2 branches missed.">        if (!stopped) {</span>
-<span class="fc" id="L207">            stopped = true;</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">        if (!stopped) {</span>
+<span class="fc" id="L208">            stopped = true;</span>
             try {
-<span class="fc" id="L209">                samplingThread.get(STOP_FLAG_READ_MILLIS &lt;&lt; 2, TimeUnit.MILLISECONDS);</span>
-<span class="nc" id="L210">            } catch (TimeoutException ex) {</span>
-<span class="nc" id="L211">                samplingThread.cancel(true);</span>
-<span class="nc" id="L212">                throw ex;</span>
-<span class="fc" id="L213">            }</span>
+<span class="fc" id="L210">                samplingThread.get(STOP_FLAG_READ_MILLIS &lt;&lt; 2, TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L211">            } catch (TimeoutException ex) {</span>
+<span class="nc" id="L212">                samplingThread.cancel(true);</span>
+<span class="nc" id="L213">                throw ex;</span>
+<span class="fc" id="L214">            }</span>
         }
-<span class="fc" id="L215">    }</span>
+<span class="fc" id="L216">    }</span>
 
     @JmxExport(description = &quot;stack sample time in milliseconds&quot;)
     public int getSampleTimeMillis() {
-<span class="nc" id="L219">        return sampleTimeMillis;</span>
+<span class="nc" id="L220">        return sampleTimeMillis;</span>
     }
 
     @JmxExport
     public void setSampleTimeMillis(final int sampleTimeMillis) {
-<span class="nc" id="L224">        this.sampleTimeMillis = sampleTimeMillis;</span>
-<span class="nc" id="L225">    }</span>
+<span class="nc" id="L225">        this.sampleTimeMillis = sampleTimeMillis;</span>
+<span class="nc" id="L226">    }</span>
 
     @JmxExport(description = &quot;is the stack sampling stopped&quot;)
     public boolean isStopped() {
-<span class="nc" id="L229">        return stopped;</span>
+<span class="nc" id="L230">        return stopped;</span>
     }
 
 
     @JmxExport(description = &quot;clear in memeory collected stack samples&quot;)
     public void clear() {
-<span class="nc" id="L235">        stackCollector.clear();</span>
-<span class="nc" id="L236">    }</span>
+<span class="nc" id="L236">        stackCollector.clear();</span>
+<span class="nc" id="L237">    }</span>
 
     public StackCollector getStackCollector() {
-<span class="fc" id="L239">        return stackCollector;</span>
+<span class="fc" id="L240">        return stackCollector;</span>
     }
 
     @PreDestroy
     public void dispose() throws InterruptedException, ExecutionException, TimeoutException {
-<span class="nc" id="L244">        stop();</span>
-<span class="nc" id="L245">        Registry.unregister(this);</span>
-<span class="nc" id="L246">    }</span>
+<span class="nc" id="L245">        stop();</span>
+<span class="nc" id="L246">        Registry.unregister(this);</span>
+<span class="nc" id="L247">    }</span>
 
 
 
     @JmxExport(description = &quot;interval in milliseconds to save stack stamples periodically&quot;)
     public int getDumpTimeMillis() {
-<span class="nc" id="L252">        return dumpTimeMillis;</span>
+<span class="nc" id="L253">        return dumpTimeMillis;</span>
     }
 
     @JmxExport
     public void setDumpTimeMillis(final int dumpTimeMillis) {
-<span class="nc" id="L257">        this.dumpTimeMillis = dumpTimeMillis;</span>
-<span class="nc" id="L258">    }</span>
+<span class="nc" id="L258">        this.dumpTimeMillis = dumpTimeMillis;</span>
+<span class="nc" id="L259">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
