@@ -32,7 +32,8 @@ public final class JmhTest {
                 .addProfiler(JmhFlightRecorderProfiler.class)
 //                .addProfiler(GCProfiler.class)
                 //"-XX:+PrintCompilation", "-XX:+UseG1GC",
-                .jvmArgs("-XX:+UseG1GC", "-Xmx256m", "-Xms256m", "-XX:+UnlockCommercialFeatures", "-Djmh.stack.profiles=" + destinationFolder,
+                .jvmArgs("-XX:+UseG1GC", "-Xmx256m", "-Xms256m", "-XX:+UnlockCommercialFeatures",
+                        "-Djmh.stack.profiles=" + destinationFolder,
                         "-Dspf4j.executors.defaultExecutor.daemon=true", "-Djmh.executor=FJP",
                         "-Djmh.fr.options=defaultrecording=true,settings=" + profile)
                 .result(destinationFolder + "/" + "benchmarkResults.csv")
