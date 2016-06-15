@@ -452,13 +452,13 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 <span class="fc bfc" id="L452" title="All 2 branches covered.">                    if (count &gt;= state.getCoreThreads()) { // plenty of core threads left, retire</span>
 <span class="fc" id="L453">                        shouldRun = false;</span>
 <span class="fc" id="L454">                        break;</span>
-<span class="fc bfc" id="L455" title="All 2 branches covered.">                    } else if (tc.compareAndSet(count, count + 1)) { // keep this as core thread.</span>
+<span class="pc bpc" id="L455" title="1 of 2 branches missed.">                    } else if (tc.compareAndSet(count, count + 1)) { // keep this as core thread.</span>
 <span class="fc" id="L456">                        this.lastRunNanos = System.nanoTime(); // update last Run time to avoid core thread spinning.</span>
                         // there must be a minimal wait time for a core thread to avoid spinning.
 <span class="fc" id="L458">                        maxIdleNanos = Math.max(origNanosWait, CORE_MINWAIT_NANOS);</span>
 <span class="fc" id="L459">                        break;</span>
                     } else { // count changes happened refresh, and retry.
-<span class="fc" id="L461">                        count = tc.get();</span>
+<span class="nc" id="L461">                        count = tc.get();</span>
                     }
                 }
 <span class="fc bfc" id="L464" title="All 4 branches covered.">            } while (shouldRun &amp;&amp; !state.isShutdown());</span>
