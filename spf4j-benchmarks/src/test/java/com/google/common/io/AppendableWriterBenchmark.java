@@ -18,10 +18,10 @@ import org.openjdk.jmh.annotations.Threads;
 @Threads(value = 8)
 public class AppendableWriterBenchmark {
 
-    public static final char[] TEST_CHARS;
+    public  final char[] TEST_CHARS;
 
 
-    static {
+    {
         StringBuilder builder = new StringBuilder(1000);
         for (int i = 0; i < 1000; i++) {
             builder.append('A');
