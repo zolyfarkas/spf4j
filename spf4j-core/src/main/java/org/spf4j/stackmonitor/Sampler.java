@@ -231,7 +231,7 @@ public final class Sampler {
     }
 
 
-    @JmxExport(description = "clear in memeory collected stack samples")
+    @JmxExport(description = "clear in memory collected stack samples")
     public void clear() {
         stackCollector.clear();
     }
