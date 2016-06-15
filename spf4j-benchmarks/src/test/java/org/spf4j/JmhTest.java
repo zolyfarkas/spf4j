@@ -20,16 +20,21 @@ public final class JmhTest {
 
     @Test
     public void runJmh() throws RunnerException, IOException {
-        final String destinationFolder = System.getProperty("jmh.stack.profiles",
-                org.spf4j.base.Runtime.USER_DIR);
+        final String destinationFolder = System.getProperty("basedir",
+                org.spf4j.base.Runtime.USER_DIR) + "/target";
+        final String profile = System.getProperty("basedir",
+                org.spf4j.base.Runtime.USER_DIR) + "/src/main/jfc/profile.jfc";
         Options opt = new OptionsBuilder()
-                .include(".*Appendable.*")
+                .include(".*spf4jAppendable.*")
 //                .include(".*")
-//                .addProfiler(JmhProfiler.class)
+                .addProfiler(JmhProfiler.class)
+//                .addProfiler(CompilerProfiler.class)
                 .addProfiler(JmhFlightRecorderProfiler.class)
-                //"-XX:+PrintCompilation",
-                .jvmArgs("-XX:+UseG1GC", "-XX:+UnlockCommercialFeatures", "-Djmh.stack.profiles=" + destinationFolder,
-                        "-Dspf4j.executors.defaultExecutor.daemon=true", "-Djmh.executor=FJP")
+//                .addProfiler(GCProfiler.class)
+                //"-XX:+PrintCompilation", "-XX:+UseG1GC",
+                .jvmArgs("-Xmx1g", "-Xms1g", "-XX:+UnlockCommercialFeatures", "-Djmh.stack.profiles=" + destinationFolder,
+                        "-Dspf4j.executors.defaultExecutor.daemon=true", "-Djmh.executor=FJP",
+                        "-Djmh.fr.options=defaultrecording=true,settings=" + profile)
                 .result(destinationFolder + "/" + "benchmarkResults.csv")
                 .resultFormat(ResultFormatType.CSV)
                 .warmupIterations(10)
