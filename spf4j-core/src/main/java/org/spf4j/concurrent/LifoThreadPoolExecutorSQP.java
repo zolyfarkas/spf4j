@@ -375,13 +375,13 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
         private final PoolState state;
 
-        private volatile boolean running;
-
         private long lastRunNanos;
 
         private final Object sync;
 
         private final ReentrantLock submitMonitor;
+
+        private volatile boolean running;
 
         QueuedThread(final String nameBase, final ZArrayDequeue<QueuedThread> threadQueue,
                 final Queue<Runnable> taskQueue, final int maxIdleTimeMillis,
