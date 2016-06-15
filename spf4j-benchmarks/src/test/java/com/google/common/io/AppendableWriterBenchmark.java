@@ -1,4 +1,3 @@
-
 package com.google.common.io;
 
 import java.io.IOException;
@@ -13,57 +12,51 @@ import org.openjdk.jmh.annotations.Threads;
  *
  * @author zoly
  */
-@State(Scope.Benchmark)
 @Fork(2)
 @Threads(value = 8)
 public class AppendableWriterBenchmark {
 
-    public  final char[] TEST_CHARS;
+  @State(Scope.Benchmark)
+  public static class BenchmarkState {
 
+    public final char[] TEST_CHARS;
 
     {
-        StringBuilder builder = new StringBuilder(1000);
-        for (int i = 0; i < 1000; i++) {
-            builder.append('A');
-        }
-        TEST_CHARS = builder.toString().toCharArray();
-    }
-
-    @Benchmark
-    public final StringBuilder guavaAppendable() throws  IOException {
-      final StringBuilder stringBuilder = new StringBuilder(100000);
-      Writer writer = new AppendableWriter(stringBuilder);
-      for (int i = 0; i < 100; i++) {
-        writer.write(TEST_CHARS);
+      StringBuilder builder = new StringBuilder(1000);
+      for (int i = 0; i < 1000; i++) {
+        builder.append('A');
       }
-      writer.close();
-      return stringBuilder;
+      TEST_CHARS = builder.toString().toCharArray();
     }
+  }
 
-    @Benchmark
-    public final StringBuilder spf4jAppendable() throws IOException {
-      final StringBuilder stringBuilder = new StringBuilder(100000);
-      Writer writer = new  org.spf4j.io.AppendableWriter(stringBuilder);
-      for (int i = 0; i < 100; i++) {
-        writer.write(TEST_CHARS);
-      }
-      writer.close();
-      return stringBuilder;
+  @State(Scope.Thread)
+  public static class ThreadState {
+    public final StringBuilder sb = new StringBuilder(100000);
+  }
+
+  @Benchmark
+  public final StringBuilder guavaAppendable(final BenchmarkState bs, final ThreadState ts) throws IOException {
+    StringBuilder stringBuilder = ts.sb;
+    stringBuilder.setLength(0);
+    Writer writer = new AppendableWriter(stringBuilder);
+    for (int i = 0; i < 100; i++) {
+      writer.write(bs.TEST_CHARS);
     }
+    writer.close();
+    return stringBuilder;
+  }
 
-
-  public static void main(String[] args) throws IOException {
-    AppendableWriterBenchmark benchmark = new AppendableWriterBenchmark();
-    for (int k = 0; k < 20; k++) {
-      long start = System.nanoTime();
-      StringBuilder result = null;
-      for (int i = 0; i < 100000; i++) {
-        result = benchmark.spf4jAppendable();
-      }
-      long elapsed = System.nanoTime() - start;
-      System.out.println("Ops/s: "
-              +  ((double) 100000 / ((double) elapsed / 1000000000)) + result.charAt(0));
+  @Benchmark
+  public final StringBuilder spf4jAppendable(final BenchmarkState bs, final ThreadState ts) throws IOException {
+    StringBuilder stringBuilder = ts.sb;
+    stringBuilder.setLength(0);
+    Writer writer = new org.spf4j.io.AppendableWriter(stringBuilder);
+    for (int i = 0; i < 100; i++) {
+      writer.write(bs.TEST_CHARS);
     }
+    writer.close();
+    return stringBuilder;
   }
 
 }
