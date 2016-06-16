@@ -193,7 +193,12 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
           throw new RuntimeException("Should not aggregate " + benchmark + " with " + obenchmark);
         }
         try {
-          agg = SampleNode.aggregate(agg, result.getSamples());
+          SampleNode sss = result.getSamples();
+          if (agg == null) {
+            agg = sss;
+          } else if (sss != null) {
+            agg = SampleNode.aggregate(agg, sss);
+          }
         } catch (IOException ex) {
           throw new RuntimeException(ex);
         }
