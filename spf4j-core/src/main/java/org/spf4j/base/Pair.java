@@ -26,6 +26,7 @@ import java.io.StringReader;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -35,12 +36,12 @@ import javax.annotation.Nullable;
 public class Pair<A, B> implements Map.Entry<A, B>, Writeable {
 
     @ConstructorProperties({"first", "second" })
-    public Pair(final A first, final B second) {
+    public Pair(@Nullable final A first, @Nullable final B second) {
         this.first = first;
         this.second = second;
     }
 
-    public static <A, B> Pair<A, B> of(final A first, final B second) {
+    public static <A, B> Pair<A, B> of(@Nullable final A first, @Nullable final B second) {
         return new Pair<>(first, second);
     }
 
@@ -51,7 +52,7 @@ public class Pair<A, B> implements Map.Entry<A, B>, Writeable {
      * @return null if this is not a pair.
      */
     @Nullable
-    public static Pair<String, String> from(final String stringPair) {
+    public static Pair<String, String> from(@Nonnull final String stringPair) {
         final int lastCharIdx = stringPair.length() - 1;
         if (!(stringPair.charAt(0) == PREFIX) || !(stringPair.charAt(lastCharIdx) == SUFFIX)) {
             return null;
@@ -86,8 +87,10 @@ public class Pair<A, B> implements Map.Entry<A, B>, Writeable {
     private static final char PREFIX = '(';
 
     //CHECKSTYLE:OFF
+    @Nullable
     protected final A first;
 
+    @Nullable
     protected final B second;
     //CHECKSTYLE:ON
 
@@ -133,9 +136,9 @@ public class Pair<A, B> implements Map.Entry<A, B>, Writeable {
     @Override
     public final void writeTo(final Appendable appendable) throws IOException {
       appendable.append(PREFIX);
-      Csv.writeCsvElement(first.toString(), appendable);
+      Csv.writeCsvElement(first == null ? "" : first.toString(), appendable);
       appendable.append(',');
-      Csv.writeCsvElement(second.toString(), appendable);
+      Csv.writeCsvElement(second == null ? "" : second.toString(), appendable);
       appendable.append(SUFFIX);
     }
 
