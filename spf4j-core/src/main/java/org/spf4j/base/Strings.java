@@ -640,4 +640,13 @@ public final class Strings {
     return true;
   }
 
+  public static String truncate(@Nonnull final String value, final int length) {
+    if (value.length() > length) {
+      return value.substring(0, length);
+    } else {
+      return value;
+    }
+  }
+
+
 }
