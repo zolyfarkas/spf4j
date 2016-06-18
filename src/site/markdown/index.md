@@ -42,6 +42,9 @@
   it should outperform all competing libraries on any modern JVM(implementing biased locking)
   running on a CCNUMA system.
 
+  To achieve the lowest overhead we utilize Thread Local Counters, for a good evaluation see:
+  [Concurrent counters by numbers](http://psy-lob-saw.blogspot.com/2013/06/java-concurrent-counters-by-numbers.html)
+
 ### 4.2. How to record measurements?
 
 #### 4.2.1 Via API
