@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.Nullable;
 import org.openjdk.jmh.infra.BenchmarkParams;
 import org.openjdk.jmh.infra.IterationParams;
 import org.openjdk.jmh.profile.InternalProfiler;
@@ -124,13 +125,17 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
 
     private final String id;
 
-    public StackResult(final SampleNode samples, final String benchmark, final String iterationId)
+    public StackResult(@Nullable final SampleNode samples, final String benchmark, final String iterationId)
             throws IOException {
       super(ResultRole.SECONDARY, "@stack", of(Double.NaN), "---", AggregationPolicy.AVG);
       this.id = iterationId;
       this.benchmark = benchmark;
-      this.perfDataFile = new File(DUMP_FOLDER + '/' + benchmark + '_' + iterationId + ".ssdump2");
-      Converter.save(this.perfDataFile, samples);
+      if (samples != null) {
+        this.perfDataFile = new File(DUMP_FOLDER + '/' + benchmark + '_' + iterationId + ".ssdump2");
+        Converter.save(this.perfDataFile, samples);
+      } else {
+        this.perfDataFile = null;
+      }
     }
 
     public String getId() {
@@ -138,7 +143,11 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
     }
 
     public SampleNode getSamples() throws IOException {
-      return Converter.load(perfDataFile);
+      if (this.perfDataFile == null) {
+        return null;
+      } else {
+        return Converter.load(perfDataFile);
+      }
     }
 
     public String getBenchmark() {
