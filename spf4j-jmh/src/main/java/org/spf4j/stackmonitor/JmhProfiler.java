@@ -144,7 +144,9 @@ public final class JmhProfiler implements InternalProfiler {
         public StackResult aggregate(final Collection<StackResult> results) {
             if (results.isEmpty()) {
                 throw new IllegalArgumentException("Nothig to aggregate: " + results);
-            }
+          } else if (results.size() == 1) {
+            return results.iterator().next();
+          }
             Iterator<StackResult> it = results.iterator();
             StackResult result = it.next();
             SampleNode agg = result.getSamples();
