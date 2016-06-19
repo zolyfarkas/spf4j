@@ -71,9 +71,13 @@ public final class CountingAccumulator
         if (mSource instanceof CountingAccumulator) {
             CountingAccumulator other = (CountingAccumulator) mSource;
             long[] measurements = other.get();
-            synchronized (this) {
-                return new CountingAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),
-                        getUnitOfMeasurement(), counter + measurements[0], total + measurements[1]);
+            if (measurements != null) {
+              synchronized (this) {
+                  return new CountingAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),
+                          getUnitOfMeasurement(), counter + measurements[0], total + measurements[1]);
+              }
+            } else {
+              return this.createClone();
             }
         } else {
             throw new IllegalArgumentException("Cannot aggregate " + this + " with " + mSource);
