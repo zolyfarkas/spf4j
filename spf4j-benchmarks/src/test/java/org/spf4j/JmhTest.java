@@ -10,6 +10,7 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.spf4j.stackmonitor.JmhFlightRecorderProfiler;
 import org.spf4j.stackmonitor.JmhProfiler;
+import org.spf4j.stackmonitor.Spf4jJmhProfiler;
 
 /**
  *
@@ -27,12 +28,16 @@ public final class JmhTest {
         Options opt = new OptionsBuilder()
                 .include(".*Appendable.*")
 //                .include(".*")
-                .addProfiler(JmhProfiler.class)
+//                .addProfiler(JmhProfiler.class)
 //                .addProfiler(CompilerProfiler.class)
                 .addProfiler(JmhFlightRecorderProfiler.class)
+//                .addProfiler(Spf4jJmhProfiler.class)
 //                .addProfiler(GCProfiler.class)
-                //"-XX:+PrintCompilation", "-XX:+UseG1GC",
-                .jvmArgs("-XX:+UseG1GC", "-Xmx256m", "-Xms256m", "-XX:+UnlockCommercialFeatures",
+                //"-XX:+PrintCompilation", "-XX:+UseG1GC", "-XX:MinTLABSize=1m", "-XX:MaxInlineLevel=12"
+                // "-XX:+PrintInlining", "-XX:+TraceDeoptimization", "-XX:+DebugDeoptimization", "-XX:+LogEvents"
+                //"-XX:+UnlockDiagnosticVMOptions", "-XX:+LogEvents", "-XX:+PrintCodeCache", "-XX:MaxInlineLevel=12",
+                //         "-XX:+PrintInlining", "-XX:+PrintCompilation",
+                .jvmArgs("-XX:MaxInlineLevel=12", "-Xmx256m", "-Xms256m", "-XX:+UnlockCommercialFeatures",
                         "-Djmh.stack.profiles=" + destinationFolder,
                         "-Dspf4j.executors.defaultExecutor.daemon=true", "-Djmh.executor=FJP",
                         "-Djmh.fr.options=defaultrecording=true,settings=" + profile)
