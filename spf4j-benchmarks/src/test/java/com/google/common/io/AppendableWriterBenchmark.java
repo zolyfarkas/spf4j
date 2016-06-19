@@ -7,6 +7,7 @@ import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
+import org.spf4j.base.IntMath;
 
 /**
  *
@@ -19,20 +20,22 @@ public class AppendableWriterBenchmark {
   @State(Scope.Benchmark)
   public static class BenchmarkState {
 
-    public final char[] TEST_CHARS;
+    public final char[] testChars;
 
     {
-      StringBuilder builder = new StringBuilder(1000);
-      for (int i = 0; i < 1000; i++) {
+      StringBuilder builder = new StringBuilder(4096);
+      for (int i = 0; i < 4096; i++) { // simulating a 8k buffer.
         builder.append('A');
       }
-      TEST_CHARS = builder.toString().toCharArray();
+      testChars = builder.toString().toCharArray();
     }
+
   }
 
   @State(Scope.Thread)
   public static class ThreadState {
     public final StringBuilder sb = new StringBuilder(100000);
+    public final IntMath.XorShift32 random = new IntMath.XorShift32();
   }
 
   @Benchmark
@@ -40,8 +43,8 @@ public class AppendableWriterBenchmark {
     StringBuilder stringBuilder = ts.sb;
     stringBuilder.setLength(0);
     Writer writer = new AppendableWriter(stringBuilder);
-    for (int i = 0; i < 100; i++) {
-      writer.write(bs.TEST_CHARS);
+    for (int i = 0; i < 25; i++) {
+      writer.write(bs.testChars, 0, Math.abs(ts.random.nextInt()) % 4096);
     }
     writer.close();
     return stringBuilder;
@@ -52,8 +55,8 @@ public class AppendableWriterBenchmark {
     StringBuilder stringBuilder = ts.sb;
     stringBuilder.setLength(0);
     Writer writer = new org.spf4j.io.AppendableWriter(stringBuilder);
-    for (int i = 0; i < 100; i++) {
-      writer.write(bs.TEST_CHARS);
+    for (int i = 0; i < 25; i++) {
+      writer.write(bs.testChars, 0, Math.abs(ts.random.nextInt()) % 4096);
     }
     writer.close();
     return stringBuilder;
