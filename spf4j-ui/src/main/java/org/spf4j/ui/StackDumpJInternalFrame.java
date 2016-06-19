@@ -58,6 +58,9 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
         } else {
             samples = org.spf4j.ssdump2.Converter.load(new File(sampleFile));
         }
+        if (samples == null) {
+          samples = new SampleNode(new StackTraceElement[] {new StackTraceElement("NO SAMPLES", "", "", -1)}, 0);
+        }
         if (isPro) {
             ssScrollPanel.setViewportView(new ZStackPanel(samples));
         } else {
