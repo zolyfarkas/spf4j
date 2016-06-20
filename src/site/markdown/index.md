@@ -25,6 +25,14 @@
 
  Look for latest releases [at](http://search.maven.org/#search|ga|1|spf4j)
 
+ Spf4j is available in the maven central repository, so adding it to your project is as easy as:
+
+        <dependency>
+            <groupId>org.spf4j</groupId>
+            <artifactId>spf4j-core</artifactId>
+            <version>8.1.0</version>
+        </dependency>
+
  Download snapshot and release artifacts [from] (https://oss.sonatype.org/content/groups/public)
 
  More info can be found on the [blog] (https://blogs.zoltran.com)
