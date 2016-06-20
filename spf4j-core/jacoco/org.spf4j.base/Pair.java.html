@@ -26,6 +26,7 @@ import java.io.StringReader;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -35,13 +36,13 @@ import javax.annotation.Nullable;
 public class Pair&lt;A, B&gt; implements Map.Entry&lt;A, B&gt;, Writeable {
 
     @ConstructorProperties({&quot;first&quot;, &quot;second&quot; })
-<span class="fc" id="L38">    public Pair(final A first, final B second) {</span>
-<span class="fc" id="L39">        this.first = first;</span>
-<span class="fc" id="L40">        this.second = second;</span>
-<span class="fc" id="L41">    }</span>
+<span class="fc" id="L39">    public Pair(@Nullable final A first, @Nullable final B second) {</span>
+<span class="fc" id="L40">        this.first = first;</span>
+<span class="fc" id="L41">        this.second = second;</span>
+<span class="fc" id="L42">    }</span>
 
-    public static &lt;A, B&gt; Pair&lt;A, B&gt; of(final A first, final B second) {
-<span class="fc" id="L44">        return new Pair&lt;&gt;(first, second);</span>
+    public static &lt;A, B&gt; Pair&lt;A, B&gt; of(@Nullable final A first, @Nullable final B second) {
+<span class="fc" id="L45">        return new Pair&lt;&gt;(first, second);</span>
     }
 
     /**
@@ -51,119 +52,121 @@ public class Pair&lt;A, B&gt; implements Map.Entry&lt;A, B&gt;, Writeable {
      * @return null if this is not a pair.
      */
     @Nullable
-    public static Pair&lt;String, String&gt; from(final String stringPair) {
-<span class="fc" id="L55">        final int lastCharIdx = stringPair.length() - 1;</span>
-<span class="pc bpc" id="L56" title="2 of 4 branches missed.">        if (!(stringPair.charAt(0) == PREFIX) || !(stringPair.charAt(lastCharIdx) == SUFFIX)) {</span>
-<span class="nc" id="L57">            return null;</span>
+    public static Pair&lt;String, String&gt; from(@Nonnull final String stringPair) {
+<span class="fc" id="L56">        final int lastCharIdx = stringPair.length() - 1;</span>
+<span class="pc bpc" id="L57" title="2 of 4 branches missed.">        if (!(stringPair.charAt(0) == PREFIX) || !(stringPair.charAt(lastCharIdx) == SUFFIX)) {</span>
+<span class="nc" id="L58">            return null;</span>
         }
-<span class="fc" id="L59">        int commaIdx = stringPair.indexOf(',');</span>
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        if (commaIdx &lt; 0) {</span>
-<span class="nc" id="L61">            return null;</span>
+<span class="fc" id="L60">        int commaIdx = stringPair.indexOf(',');</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        if (commaIdx &lt; 0) {</span>
+<span class="nc" id="L62">            return null;</span>
         }
 
-<span class="fc" id="L64">        StringReader sr = new StringReader(</span>
-<span class="fc" id="L65">                stringPair.substring(1, lastCharIdx));</span>
-<span class="fc" id="L66">        StringBuilder first = new StringBuilder();</span>
-<span class="fc" id="L67">        StringBuilder second = new StringBuilder();</span>
+<span class="fc" id="L65">        StringReader sr = new StringReader(</span>
+<span class="fc" id="L66">                stringPair.substring(1, lastCharIdx));</span>
+<span class="fc" id="L67">        StringBuilder first = new StringBuilder();</span>
+<span class="fc" id="L68">        StringBuilder second = new StringBuilder();</span>
         int comma;
         try {
-<span class="fc" id="L70">            comma = Csv.readCsvElement(sr, first);</span>
-<span class="pc bpc" id="L71" title="1 of 2 branches missed.">            if (comma != ',') {</span>
-<span class="nc" id="L72">                return null;</span>
+<span class="fc" id="L71">            comma = Csv.readCsvElement(sr, first);</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">            if (comma != ',') {</span>
+<span class="nc" id="L73">                return null;</span>
             }
 
-<span class="fc" id="L75">            int last = Csv.readCsvElement(sr, second);</span>
-<span class="pc bpc" id="L76" title="1 of 2 branches missed.">            if (last &gt;= 0) {</span>
-<span class="nc" id="L77">                return null;</span>
+<span class="fc" id="L76">            int last = Csv.readCsvElement(sr, second);</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">            if (last &gt;= 0) {</span>
+<span class="nc" id="L78">                return null;</span>
             }
-<span class="nc" id="L79">        } catch (IOException ex) {</span>
-<span class="nc" id="L80">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L81">        }</span>
-<span class="fc" id="L82">        return Pair.of(first.toString(), second.toString());</span>
+<span class="nc" id="L80">        } catch (IOException ex) {</span>
+<span class="nc" id="L81">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L82">        }</span>
+<span class="fc" id="L83">        return Pair.of(first.toString(), second.toString());</span>
     }
     private static final char SUFFIX = ')';
 
     private static final char PREFIX = '(';
 
     //CHECKSTYLE:OFF
+    @Nullable
     protected final A first;
 
+    @Nullable
     protected final B second;
     //CHECKSTYLE:ON
 
     public final A getFirst() {
-<span class="fc" id="L95">        return first;</span>
+<span class="fc" id="L98">        return first;</span>
     }
 
     public final B getSecond() {
-<span class="fc" id="L99">        return second;</span>
+<span class="fc" id="L102">        return second;</span>
     }
 
     @Override
     public final boolean equals(final Object obj) {
-<span class="pc bpc" id="L104" title="1 of 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L105">            return false;</span>
-        }
-<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (obj == null) {</span>
 <span class="nc" id="L108">            return false;</span>
         }
-<span class="fc" id="L110">        final Pair&lt;A, B&gt; other = (Pair&lt;A, B&gt;) obj;</span>
-<span class="pc bpc" id="L111" title="3 of 6 branches missed.">        if (this.first != other.first &amp;&amp; (this.first == null || !this.first.equals(other.first))) {</span>
-<span class="nc" id="L112">            return false;</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L111">            return false;</span>
         }
-<span class="pc bpc" id="L114" title="3 of 6 branches missed.">        return (!(this.second != other.second &amp;&amp; (this.second == null || !this.second.equals(other.second))));</span>
+<span class="fc" id="L113">        final Pair&lt;A, B&gt; other = (Pair&lt;A, B&gt;) obj;</span>
+<span class="pc bpc" id="L114" title="3 of 6 branches missed.">        if (this.first != other.first &amp;&amp; (this.first == null || !this.first.equals(other.first))) {</span>
+<span class="nc" id="L115">            return false;</span>
+        }
+<span class="pc bpc" id="L117" title="3 of 6 branches missed.">        return (!(this.second != other.second &amp;&amp; (this.second == null || !this.second.equals(other.second))));</span>
     }
 
     @Override
     public final int hashCode() {
-<span class="fc" id="L119">        return Objects.hashCode(first, second);</span>
+<span class="fc" id="L122">        return Objects.hashCode(first, second);</span>
     }
 
     @Override
     public final String toString() {
         try {
-<span class="fc" id="L125">            StringBuilder result = new StringBuilder(32);</span>
-<span class="fc" id="L126">            writeTo(result);</span>
-<span class="fc" id="L127">            return result.toString();</span>
-<span class="nc" id="L128">        } catch (IOException ex) {</span>
-<span class="nc" id="L129">           throw new RuntimeException(ex);</span>
+<span class="fc" id="L128">            StringBuilder result = new StringBuilder(32);</span>
+<span class="fc" id="L129">            writeTo(result);</span>
+<span class="fc" id="L130">            return result.toString();</span>
+<span class="nc" id="L131">        } catch (IOException ex) {</span>
+<span class="nc" id="L132">           throw new RuntimeException(ex);</span>
         }
     }
 
     @Override
     public final void writeTo(final Appendable appendable) throws IOException {
-<span class="fc" id="L135">      appendable.append(PREFIX);</span>
-<span class="fc" id="L136">      Csv.writeCsvElement(first.toString(), appendable);</span>
-<span class="fc" id="L137">      appendable.append(',');</span>
-<span class="fc" id="L138">      Csv.writeCsvElement(second.toString(), appendable);</span>
-<span class="fc" id="L139">      appendable.append(SUFFIX);</span>
-<span class="fc" id="L140">    }</span>
+<span class="fc" id="L138">      appendable.append(PREFIX);</span>
+<span class="fc bfc" id="L139" title="All 2 branches covered.">      Csv.writeCsvElement(first == null ? &quot;&quot; : first.toString(), appendable);</span>
+<span class="fc" id="L140">      appendable.append(',');</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">      Csv.writeCsvElement(second == null ? &quot;&quot; : second.toString(), appendable);</span>
+<span class="fc" id="L142">      appendable.append(SUFFIX);</span>
+<span class="fc" id="L143">    }</span>
 
     public final List&lt;Object&gt; toList() {
-<span class="nc" id="L143">        return java.util.Arrays.asList(first, second);</span>
+<span class="fc" id="L146">        return java.util.Arrays.asList(first, second);</span>
     }
 
     public static &lt;K, V extends Object&gt; Map&lt;K, V&gt; asMap(final Pair&lt;K, ? extends V&gt; ... pairs) {
-<span class="fc" id="L147">        Map&lt;K, V&gt; result = new LinkedHashMap&lt;&gt;(pairs.length);</span>
-<span class="fc bfc" id="L148" title="All 2 branches covered.">        for (Pair&lt;K, ? extends V&gt; pair : pairs) {</span>
-<span class="fc" id="L149">            result.put(pair.getFirst(), pair.getSecond());</span>
+<span class="fc" id="L150">        Map&lt;K, V&gt; result = new LinkedHashMap&lt;&gt;(pairs.length);</span>
+<span class="fc bfc" id="L151" title="All 2 branches covered.">        for (Pair&lt;K, ? extends V&gt; pair : pairs) {</span>
+<span class="fc" id="L152">            result.put(pair.getFirst(), pair.getSecond());</span>
         }
-<span class="fc" id="L151">        return result;</span>
+<span class="fc" id="L154">        return result;</span>
     }
 
     @Override
     public final A getKey() {
-<span class="fc" id="L156">        return first;</span>
+<span class="fc" id="L159">        return first;</span>
     }
 
     @Override
     public final B getValue() {
-<span class="fc" id="L161">        return second;</span>
+<span class="fc" id="L164">        return second;</span>
     }
 
     @Override
     public final B setValue(final B value) {
-<span class="nc" id="L166">        throw new UnsupportedOperationException(&quot;Object not mutable&quot;);</span>
+<span class="nc" id="L169">        throw new UnsupportedOperationException(&quot;Object not mutable&quot;);</span>
     }
 
 }
