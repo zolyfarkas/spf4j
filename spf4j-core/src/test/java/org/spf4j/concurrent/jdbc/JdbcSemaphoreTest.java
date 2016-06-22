@@ -83,6 +83,7 @@ public class JdbcSemaphoreTest {
     int totalPermits = semaphore.totalPermits();
     int acquire = totalPermits - 1;
     semaphore.acquire(acquire, 1, TimeUnit.SECONDS);
+    Assert.assertEquals(1, semaphore.permitsOwned());
     semaphore.reducePermits(2);
     Assert.assertFalse(semaphore.tryAcquire(2, TimeUnit.SECONDS));
     semaphore.release(acquire);

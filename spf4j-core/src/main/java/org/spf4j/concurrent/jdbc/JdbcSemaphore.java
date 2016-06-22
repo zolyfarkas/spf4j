@@ -243,7 +243,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
             + " WHERE " + semTableDesc.getSemNameColumn() + " = ?";
 
     this.ownedPermitsSql = "SELECT " + ownerPermitsColumn + " FROM "
-            + permitsByOwnerTableName + "WHERE "
+            + permitsByOwnerTableName + " WHERE "
             + ownerColumn + " = ? AND " + semaphoreNameColumn + " = ?";
 
     this.deleteDeadOwnerRecordsSql = "DELETE FROM " + permitsByOwnerTableName + " RO "
