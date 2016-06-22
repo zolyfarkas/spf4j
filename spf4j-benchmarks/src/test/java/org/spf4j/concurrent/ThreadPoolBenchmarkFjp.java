@@ -1,4 +1,3 @@
-
 package org.spf4j.concurrent;
 
 import java.io.IOException;
@@ -12,29 +11,25 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Threads;
 
-@State(Scope.Benchmark)
 @Fork(2)
 @Threads(value = 8)
 public class ThreadPoolBenchmarkFjp {
 
+  @State(Scope.Benchmark)
+  public static class LazyFjp {
 
-   private static final class LazyFjp {
-       public static final ExecutorService EX = new ForkJoinPool(8);
-   }
-
+    public final ExecutorService EX = new ForkJoinPool(8);
 
     @TearDown
     public void close() {
-        LazyFjp.EX.shutdown();
-        DefaultExecutor.INSTANCE.shutdown();
+      EX.shutdown();
+      DefaultExecutor.INSTANCE.shutdown();
     }
+  }
 
-
-    @Benchmark
-    public final void fjpBenchmark() throws InterruptedException, IOException, ExecutionException {
-        ThreadPoolBenchmark.testPool(LazyFjp.EX);
-    }
-
-
+  @Benchmark
+  public final long fjpBenchmark(final LazyFjp exec) throws InterruptedException, IOException, ExecutionException {
+    return ThreadPoolBenchmark.testPool(exec.EX);
+  }
 
 }
