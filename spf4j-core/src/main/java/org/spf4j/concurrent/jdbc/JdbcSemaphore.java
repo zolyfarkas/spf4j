@@ -682,9 +682,8 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
           stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
           stmt.setInt(1, nrPermits);
           stmt.setInt(2, nrPermits);
-          stmt.setInt(3, nrPermits);
-          stmt.setNString(4, org.spf4j.base.Runtime.PROCESS_ID);
-          stmt.setNString(5, semName);
+          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
+          stmt.setNString(4, semName);
           int rowsUpdated = stmt.executeUpdate();
           if (rowsUpdated != 1) {
             throw new IllegalArgumentException("Cannot reduce nr total permits by " + nrPermits);

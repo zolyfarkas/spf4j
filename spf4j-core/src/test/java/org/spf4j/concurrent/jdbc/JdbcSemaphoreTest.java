@@ -75,6 +75,7 @@ public class JdbcSemaphoreTest {
 
   }
 
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   public void testReleaseAck(final DataSource ds, final String semName, final int maxReservations)
           throws SQLException, InterruptedException, TimeoutException {
     JdbcSemaphore semaphore = new JdbcSemaphore(ds, semName, maxReservations);
@@ -84,6 +85,11 @@ public class JdbcSemaphoreTest {
     int acquire = totalPermits - 1;
     semaphore.acquire(acquire, 1, TimeUnit.SECONDS);
     Assert.assertEquals(1, semaphore.permitsOwned());
+    int nrPermits = semaphore.totalPermits();
+    semaphore.updatePermits(nrPermits + 1);
+    Assert.assertEquals(nrPermits + 1, semaphore.totalPermits());
+    semaphore.updatePermits(nrPermits);
+    Assert.assertEquals(nrPermits, semaphore.totalPermits());
     semaphore.reducePermits(2);
     Assert.assertFalse(semaphore.tryAcquire(2, TimeUnit.SECONDS));
     semaphore.release(acquire);
