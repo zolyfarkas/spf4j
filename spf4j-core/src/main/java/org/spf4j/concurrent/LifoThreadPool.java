@@ -17,7 +17,6 @@
  */
 package org.spf4j.concurrent;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
@@ -41,7 +40,6 @@ public interface LifoThreadPool extends ExecutorService {
     int getMaxThreadCount();
 
     @JmxExport
-    @SuppressFBWarnings(value = "MDM_WAIT_WITHOUT_TIMEOUT", justification = "Holders of this lock will not block")
     int getNrQueuedTasks();
 
     @JmxExport
