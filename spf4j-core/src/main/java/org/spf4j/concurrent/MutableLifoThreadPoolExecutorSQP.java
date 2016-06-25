@@ -18,6 +18,7 @@
  */
 package org.spf4j.concurrent;
 
+import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.set.hash.THashSet;
 import java.util.ArrayDeque;
@@ -62,6 +63,7 @@ import org.spf4j.jmx.Registry;
  */
 @ParametersAreNonnullByDefault
 @SuppressFBWarnings("MDM_THREAD_PRIORITIES")
+@Beta
 public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorService implements LifoThreadPool {
 
     private final Queue<Runnable> taskQueue;

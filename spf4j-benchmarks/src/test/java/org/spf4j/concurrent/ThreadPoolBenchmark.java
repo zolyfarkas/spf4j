@@ -30,9 +30,26 @@ public class ThreadPoolBenchmark {
 
   }
 
+  @State(Scope.Benchmark)
+  public static class MutableLazySpf {
+
+    public final ExecutorService EX = LifoThreadPoolBuilder.newBuilder()
+            .withQueueSizeLimit(10000)
+            .mutable()
+            .withMaxSize(8).build();
+
+    @TearDown
+    public void close() {
+      EX.shutdown();
+      DefaultExecutor.INSTANCE.shutdown();
+    }
+
+  }
+
+
   public static long testPool(final ExecutorService executor)
           throws InterruptedException, IOException, ExecutionException {
-    final LongAdder adder = new LongAdder();
+    final java.util.concurrent.atomic.LongAdder adder = new java.util.concurrent.atomic.LongAdder();
     final int testCount = 1000;
     final Runnable runnable = new Runnable() {
       @Override
@@ -58,5 +75,11 @@ public class ThreadPoolBenchmark {
   public final long spfLifoTpBenchmark(final LazySpf exec) throws InterruptedException, IOException, ExecutionException {
     return testPool(exec.EX);
   }
+
+  @Benchmark
+  public final long mutaleSpfLifoTpBenchmark(final MutableLazySpf exec) throws InterruptedException, IOException, ExecutionException {
+    return testPool(exec.EX);
+  }
+
 
 }

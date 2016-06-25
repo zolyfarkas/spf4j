@@ -20,7 +20,6 @@
 package org.spf4j.concurrent;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +61,7 @@ public class LifoThreadPoolExecutorTestS {
 
     public static void testPool(final ExecutorService executor)
             throws Exception {
-        final LongAdder adder = new LongAdder();
+        final java.util.concurrent.atomic.LongAdder adder = new java.util.concurrent.atomic.LongAdder();
         final int testCount = 20000;
         long rejected = 0;
         final Runnable runnable = new Runnable() {
