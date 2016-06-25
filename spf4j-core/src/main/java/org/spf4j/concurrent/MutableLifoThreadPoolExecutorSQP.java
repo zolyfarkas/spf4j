@@ -153,10 +153,12 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
             justification = "no blocking is done while holding the lock,"
                     + " lock is released on all paths, findbugs just cannot figure it out...")
     public void execute(final Runnable command) {
-        if (state.isShutdown()) {
-            this.rejectionHandler.rejectedExecution(command, this);
-        }
         stateLock.lock();
+        if (state.isShutdown()) {
+            stateLock.unlock();
+            this.rejectionHandler.rejectedExecution(command, this);
+            return;
+        }
         try {
             do {
                 QueuedThread nqt = threadQueue.pollLast();

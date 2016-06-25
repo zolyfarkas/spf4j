@@ -83,6 +83,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
     private final int maxThreadCount;
 
+    @GuardedBy("stateLock")
     private final PoolState state;
 
     private final ReentrantLock stateLock;
@@ -191,12 +192,14 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
             justification = "no blocking is done while holding the lock,"
                     + " lock is released on all paths, findbugs just cannot figure it out...")
     public void execute(final Runnable command) {
-        if (state.isShutdown()) {
-            // if shutting down, reject
-            this.rejectionHandler.rejectedExecution(command, this);
-        }
         stateLock.lock();
         try {
+            if (state.isShutdown()) {
+                // if shutting down, reject
+                stateLock.unlock();
+                this.rejectionHandler.rejectedExecution(command, this);
+                return;
+            }
             do { // See if we have Threads available to run the task and do so if any
                 QueuedThread nqt = threadQueue.pollLast();
                 if (nqt != null) {
