@@ -13,37 +13,43 @@ import org.openjdk.jmh.annotations.Threads;
  *
  * @author zoly
  */
-@State(Scope.Benchmark)
 @Fork(2)
 @Threads(value = 4)
 public class EncodingBenchmark {
 
-    private static final String TEST_STRING =
-            "dfjgdjshfgsjdhgfskhdfkdshf\ndfs@#$%^&*($%^&*()(*&^%$#@!>::><>?{PLKJHGFDEWSDFG";
 
-    private static final byte [] TEST_BYTES;
-    static {
-        TEST_BYTES = TEST_STRING.getBytes(StandardCharsets.UTF_8);
+    @State(Scope.Benchmark)
+    public static class TestData {
+
+    private final String testString =
+            "dfjgdjshfgsjdhgfskhdfkdshf\ndfs@#$%^&*($%^&*()(*&^%$#@!>::><>?{PLKJHGFDEWSDFGh"
+            + "dfhgsjhdgfjadghfkjasdklghkjdshgkadhskgjhslfdhgkjadhgjkhalkjdshgfkjadshkfgjalhdskjg"
+            + "kdfjhgakjdshglsdhfgkahdlghjadfjklghkjlsdfhgksdlfhlgkhjsdkfljhgkdjsfhsgkjsdfhklgj";
+
+    private final byte [] testBytes;
+      {
+        testBytes = testString.getBytes(StandardCharsets.UTF_8);
+      }
     }
 
     @Benchmark
-    public final byte [] stringEncode() throws UnsupportedEncodingException {
-        return TEST_STRING.getBytes("UTF-8");
+    public final byte [] stringEncode(final TestData testData) throws UnsupportedEncodingException {
+        return testData.testString.getBytes("UTF-8");
     }
 
     @Benchmark
-    public final byte [] fastStringEncode() {
-        return Strings.toUtf8(TEST_STRING);
+    public final byte [] fastStringEncode(final TestData testData) {
+        return Strings.toUtf8(testData.testString);
     }
 
     @Benchmark
-    public final String stringDecode() throws UnsupportedEncodingException {
-       return new String(TEST_BYTES, "UTF8");
+    public final String stringDecode(final TestData testData) throws UnsupportedEncodingException {
+       return new String(testData.testBytes, "UTF8");
     }
 
     @Benchmark
-    public final String fastStringDecode() {
-        return Strings.fromUtf8(TEST_BYTES);
+    public final String fastStringDecode(final TestData testData) {
+        return Strings.fromUtf8(testData.testBytes);
     }
 
 
