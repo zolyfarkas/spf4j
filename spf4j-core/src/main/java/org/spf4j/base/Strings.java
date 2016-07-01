@@ -290,12 +290,19 @@ public final class Strings {
         }
     }
 
+    private static final boolean LENIENT_CODING  = Boolean.getBoolean("spf4j.encoding.lenient");
+
     private static final ThreadLocal<CharsetEncoder> UTF8_ENCODER = new ThreadLocal<CharsetEncoder>() {
 
         @Override
         protected CharsetEncoder initialValue() {
-            return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
+            if (LENIENT_CODING) {
+              return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
                     .onUnmappableCharacter(CodingErrorAction.REPLACE);
+            } else {
+              return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT);
+            }
         }
 
     };
@@ -304,8 +311,13 @@ public final class Strings {
 
         @Override
         protected CharsetDecoder initialValue() {
+          if (LENIENT_CODING) {
             return Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
                     .onUnmappableCharacter(CodingErrorAction.REPLACE);
+          } else {
+            return Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT);
+          }
         }
 
     };
