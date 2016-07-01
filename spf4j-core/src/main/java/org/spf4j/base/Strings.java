@@ -388,6 +388,19 @@ public final class Strings {
         return new String(ca, 0, cb.position());
     }
 
+    /**
+     * Optimized UTF8 decoder.
+     *
+     * Here is a benchmark comparison with the JDK implementation
+     * (see EncodingBenchmark.java in the benchmark project):
+     *
+     * EncodingBenchmark.stringDecode             thrpt   10  16759798.463 ± 343505.144  ops/s
+     * EncodingBenchmark.fastStringDecode         thrpt   10  17413298.464 ± 301756.867  ops/s
+     *
+     *
+     * @param bytes
+     * @return
+     */
     public static String fromUtf8(final byte[] bytes) {
         return decode(UTF8_DECODER.get(), bytes, 0, bytes.length);
     }
@@ -396,6 +409,18 @@ public final class Strings {
         return decode(UTF8_DECODER.get(), bytes, startIdx, length);
     }
 
+    /**
+     * Optimized UTF8 string encoder.
+     *
+     * comparison with the stock JDK implementation
+     * (see EncodingBenchmark.java in the benchmark project):
+     *
+     * EncodingBenchmark.stringEncode             thrpt   10   9481668.776 ± 252543.135  ops/s
+     * EncodingBenchmark.fastStringEncode         thrpt   10  22469383.612 ± 898677.892  ops/s
+     *
+     * @param str
+     * @return
+     */
     public static byte[] toUtf8(final String str) {
         final char[] chars = steal(str);
         return encode(UTF8_ENCODER.get(), chars, 0, chars.length);
