@@ -296,31 +296,39 @@ public final class Strings {
 
         @Override
         protected CharsetEncoder initialValue() {
-            if (LENIENT_CODING) {
-              return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
-                    .onUnmappableCharacter(CodingErrorAction.REPLACE);
-            } else {
-              return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPORT)
-                    .onUnmappableCharacter(CodingErrorAction.REPORT);
-            }
+            return createUtf8Encoder();
         }
 
     };
+
+  public static CharsetEncoder createUtf8Encoder() {
+    if (LENIENT_CODING) {
+      return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
+              .onUnmappableCharacter(CodingErrorAction.REPLACE);
+    } else {
+      return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPORT)
+              .onUnmappableCharacter(CodingErrorAction.REPORT);
+    }
+  }
 
     private static final ThreadLocal<CharsetDecoder> UTF8_DECODER = new ThreadLocal<CharsetDecoder>() {
 
         @Override
         protected CharsetDecoder initialValue() {
-          if (LENIENT_CODING) {
-            return Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
-                    .onUnmappableCharacter(CodingErrorAction.REPLACE);
-          } else {
-            return Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
-                    .onUnmappableCharacter(CodingErrorAction.REPORT);
-          }
+          return createUtf8Decoder();
         }
 
     };
+
+  public static CharsetDecoder createUtf8Decoder() {
+    if (LENIENT_CODING) {
+      return Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
+              .onUnmappableCharacter(CodingErrorAction.REPLACE);
+    } else {
+      return Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+              .onUnmappableCharacter(CodingErrorAction.REPORT);
+    }
+  }
 
     public static CharsetEncoder getUTF8CharsetEncoder() {
         return UTF8_ENCODER.get();
