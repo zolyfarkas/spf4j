@@ -145,6 +145,7 @@ import org.spf4j.jmx.Registry;
 
         @Override
         public void doRun() throws Exception {
+            long time = System.currentTimeMillis();
             int nrOf = Runtime.getNrOpenFiles();
             if (nrOf > errorThreshold) {
                 lastWarnLsof = Runtime.getLsofOutput();
@@ -157,9 +158,13 @@ import org.spf4j.jmx.Registry;
                 lastWarnLsof = Runtime.getLsofOutput();
                 LOG.warn("Nr open files is {} and exceeds warn threshold {}, detail:\n{} ",
                         nrOf, warnThreshold, lastWarnLsof);
-                Runtime.gc(60000); // this is to ameliorate a leak.
+                if (!Runtime.gc(60000)) {
+                  LOG.warn("Unable to trigger GC although running low on file resources");
+                } else {
+                  LOG.warn("gc executed nr open files reduced by {} files", nrOf - Runtime.getNrOpenFiles());
+                }
             }
-            this.nrOpenFiles.record(nrOf);
+            this.nrOpenFiles.recordAt(time, nrOf);
         }
 
         @Override
