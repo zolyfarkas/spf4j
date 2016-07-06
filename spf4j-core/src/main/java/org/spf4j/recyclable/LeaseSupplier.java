@@ -1,8 +1,9 @@
 
 package org.spf4j.recyclable;
 
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
+
 
 public interface LeaseSupplier<T> extends Supplier<Lease<T>> {
-    
+
 }

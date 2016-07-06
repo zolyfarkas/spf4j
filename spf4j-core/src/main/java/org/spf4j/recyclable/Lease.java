@@ -1,12 +1,13 @@
 
 package org.spf4j.recyclable;
 
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
+
 
 /**
  *
  * @author zoly
  */
 public interface Lease<T> extends Supplier<T>, AutoCloseable {
-    
+
 }
