@@ -23,7 +23,6 @@ import gnu.trove.set.hash.THashSet;
 import java.io.IOException;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import org.slf4j.helpers.Util;
 import org.spf4j.io.ObjectAppenderSupplier;
 
 /**
@@ -51,10 +50,10 @@ public final  class Slf4jMessageFormatter {
 
   /**
    * Slf4j message formatter.
-   * @param to - Appendable to put formatted message to.
-   * @param messagePattern - see org.slf4j.helpers.MessageFormatter for format.
-   * @param argArray - the message arguments.
-   * @return - the number of arguments used in the message.
+   * @param to  Appendable to put formatted message to.
+   * @param messagePattern  see org.slf4j.helpers.MessageFormatter for format.
+   * @param argArray the message arguments.
+   * @return the number of arguments used in the message.
    * @throws IOException
    */
     public static int format(@Nonnull final Appendable to, @Nonnull final String messagePattern,
@@ -64,11 +63,11 @@ public final  class Slf4jMessageFormatter {
 
   /**
    * Slf4j message formatter.
-   * @param to - Appendable to put formatted message to.
-   * @param appSupplier - a supplier that will provide the serialization method for a particular argument type.
-   * @param messagePattern - see org.slf4j.helpers.MessageFormatter for format.
-   * @param argArray - the message arguments.
-   * @return - the number of arguments used in the message.
+   * @param to Appendable to put formatted message to.
+   * @param appSupplier a supplier that will provide the serialization method for a particular argument type.
+   * @param messagePattern see org.slf4j.helpers.MessageFormatter for format.
+   * @param argArray the message arguments.
+   * @return the number of arguments used in the message.
    * @throws IOException
    */
     public static int format(@Nonnull final Appendable to,
@@ -79,29 +78,48 @@ public final  class Slf4jMessageFormatter {
 
   /**
    * slf4j message formatter.
-   * @param to - Appendable to put formatted message to.
-   * @param messagePattern - see org.slf4j.helpers.MessageFormatter for format.
-   * @param appSupplier - a supplier that will provide the serialization method for a particular argument type.
-   * @param argArray - the message arguments.
-   * @return - the number of arguments used in the message.
-   * @throws IOException - something wend wrong while writing to the appendable.
+   * @param to Appendable to put formatted message to.
+   * @param messagePattern see org.slf4j.helpers.MessageFormatter for format.
+   * @param appSupplier a supplier that will provide the serialization method for a particular argument type.
+   * @param argArray the message arguments.
+   * @return the number of arguments used in the message.
+   * @throws IOException something wend wrong while writing to the appendable.
    */
     public static int format(@Nonnull final Appendable to, @Nonnull final String messagePattern,
             @Nonnull final ObjectAppenderSupplier appSupplier,  final Object... argArray) throws IOException {
       return format(0, to, messagePattern, appSupplier, argArray);
     }
 
+
   /**
    * Slf4j message formatter.
-   * @param to - Appendable to put formatted message to.
-   * @param messagePattern - see org.slf4j.helpers.MessageFormatter for format.
-   * @param appSupplier - a supplier that will provide the serialization method for a particular argument type.
-   * @param firstArgIdx - the index of the first parameter.
-   * @param argArray - the message arguments.
-   * @return - the index of the last arguments used in the message + 1.
-   * @throws IOException - something wend wrong while writing to the appendable.
+   * @param to Appendable to put formatted message to.
+   * @param messagePattern  see org.slf4j.helpers.MessageFormatter for format.
+   * @param appSupplier  a supplier that will provide the serialization method for a particular argument type.
+   * @param firstArgIdx  the index of the first parameter.
+   * @param argArray  the message arguments.
+   * @return the index of the last arguments used in the message + 1.
+   * @throws IOException something wend wrong while writing to the appendable.
    */
     public static int format(final int firstArgIdx, @Nonnull final Appendable to, @Nonnull final String messagePattern,
+             @Nonnull final ObjectAppenderSupplier appSupplier, final Object... argArray) throws IOException {
+            return format(true, firstArgIdx, to, messagePattern, appSupplier, argArray);
+    }
+
+  /**
+   * Slf4j message formatter.
+   * @param safe - if true recoverable exception will be caught when writing arguments,
+   * and a error will be appended instead.
+   * @param to  Appendable to put formatted message to.
+   * @param messagePattern  see org.slf4j.helpers.MessageFormatter for format.
+   * @param appSupplier  a supplier that will provide the serialization method for a particular argument type.
+   * @param firstArgIdx  the index of the first parameter.
+   * @param argArray  the message arguments.
+   * @return  the index of the last arguments used in the message + 1.
+   * @throws IOException something wend wrong while writing to the appendable.
+   */
+    public static int format(final boolean safe, final int firstArgIdx,
+             @Nonnull final Appendable to, @Nonnull final String messagePattern,
              @Nonnull final ObjectAppenderSupplier appSupplier, final Object... argArray)
             throws IOException {
         int i = 0;
@@ -132,13 +150,13 @@ public final  class Slf4jMessageFormatter {
                         // itself escaped: "abc x:\\{}"
                         // we have to consume one backward slash
                         to.append(messagePattern, i, j - 1);
-                        deeplyAppendParameter(to, argArray[k], new THashSet<Object[]>(), appSupplier);
+                        deeplyAppendParameter(safe, to, argArray[k], new THashSet<>(), appSupplier);
                         i = j + 2;
                     }
                 } else {
                     // normal case
                     to.append(messagePattern, i, j);
-                    deeplyAppendParameter(to, argArray[k], new THashSet<Object[]>(), appSupplier);
+                    deeplyAppendParameter(safe, to, argArray[k], new THashSet<>(), appSupplier);
                     i = j + 2;
                 }
             }
@@ -161,14 +179,14 @@ public final  class Slf4jMessageFormatter {
 
     // special treatment of array values was suggested by 'lizongbo'
     @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
-    private static void deeplyAppendParameter(final Appendable sbuf, final Object o,
+    private static void deeplyAppendParameter(final boolean safe, final Appendable sbuf, final Object o,
             final Set<Object[]> seen, final ObjectAppenderSupplier appSupplier) throws IOException {
         if (o == null) {
             sbuf.append("null");
             return;
         }
         if (!o.getClass().isArray()) {
-            safeObjectAppend(sbuf, o, appSupplier);
+          safeObjectAppend(safe, sbuf, o, appSupplier);
         } else {
             // check for primitive array types because they
             // unfortunately cannot be cast to Object[]
@@ -189,36 +207,48 @@ public final  class Slf4jMessageFormatter {
             } else if (o instanceof double[]) {
                 doubleArrayAppend(sbuf, (double[]) o);
             } else {
-                objectArrayAppend(sbuf, (Object[]) o, seen, appSupplier);
+                objectArrayAppend(safe, sbuf, (Object[]) o, seen, appSupplier);
             }
         }
     }
 
     @SuppressWarnings("unchecked")
-    private static void safeObjectAppend(final Appendable sbuf, final Object obj,
+    public static void safeObjectAppend(final boolean safe, final Appendable sbuf, final Object obj,
             final ObjectAppenderSupplier appSupplier) throws IOException {
         try {
             appSupplier.get((Class) obj.getClass()).append(obj, sbuf);
-        } catch (Throwable t) {
-            Util.report("SLF4J: Failed toString() invocation on an object of type ["
-                    + obj.getClass().getName() + "]", t);
-            sbuf.append("[FAILED toString()]");
+        } catch (IOException | RuntimeException | StackOverflowError t) {
+            if (safe) {
+              String className = obj.getClass().getName();
+              synchronized (System.err) {
+                System.err.print("SPF4J: Failed toString() invocation on an object of type [");
+                System.err.print(className);
+                System.err.println(']');
+              }
+              Throwables.writeTo(t, System.err, Throwables.Detail.STANDARD);
+              sbuf.append("[FAILED toString() for ");
+              sbuf.append(className);
+              sbuf.append(']');
+            } else {
+              throw t;
+            }
         }
 
     }
 
     @SuppressFBWarnings("ABC_ARRAY_BASED_COLLECTIONS")
-    private static void objectArrayAppend(final Appendable sbuf, final Object[] a, final Set<Object[]> seen,
+    private static void objectArrayAppend(final boolean safe, final Appendable sbuf,
+            final Object[] a, final Set<Object[]> seen,
             final ObjectAppenderSupplier appSupplier) throws IOException {
         sbuf.append('[');
         if (!seen.contains(a)) {
             seen.add(a);
             final int len = a.length;
             if (len > 0) {
-                deeplyAppendParameter(sbuf, a[0], seen, appSupplier);
+                deeplyAppendParameter(safe, sbuf, a[0], seen, appSupplier);
                 for (int i = 1; i < len; i++) {
                     sbuf.append(", ");
-                    deeplyAppendParameter(sbuf, a[i], seen, appSupplier);
+                    deeplyAppendParameter(safe, sbuf, a[i], seen, appSupplier);
                 }
             }
             // allow repeats in siblings
