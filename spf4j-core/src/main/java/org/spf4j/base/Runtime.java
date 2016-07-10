@@ -215,7 +215,8 @@ public final class Runtime {
                 Thread current = Thread.currentThread();
                 boolean first = true;
                 for (Thread thread : threads) {
-                    if (thread.isAlive() && !thread.isDaemon() && !thread.equals(current)) {
+                    if (thread.isAlive() && !thread.isDaemon() && !thread.equals(current)
+                            && !thread.getName().contains("DestroyJavaVM")) {
                         if (first) {
                             System.err.println("Non daemon threads still running:");
                             first = false;
