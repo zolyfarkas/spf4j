@@ -20,6 +20,7 @@
 
 package org.spf4j.io;
 
+import com.google.common.annotations.Beta;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkPositionIndexes;
@@ -48,7 +49,12 @@ import java.util.Arrays;
  * controlled, async APIs.
  *
  * @author Chris Nokleberg
+ *
+ * Notes by Z: THis class in its current state is not ready for prime time. Here is why:
+ * 1) Since it buffers, there needs to be capability to access the unconsumed bytes/chars.
+ * 2) Buffer sizing could be smarter? char buffer and byte buffers are not "byte size equivalent"(just made this up :-))
  */
+@Beta
 public final class ReaderInputStream extends InputStream {
   private final Reader reader;
   private final CharsetEncoder encoder;
