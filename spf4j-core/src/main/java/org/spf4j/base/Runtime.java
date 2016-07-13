@@ -87,6 +87,16 @@ public final class Runtime {
         private static final Logger LOGGER = LoggerFactory.getLogger(Lazy.class);
     }
 
+    public static void goDownWithError(final SysExits exitCode) {
+      goDownWithError(null, exitCode.exitCode());
+    }
+
+
+    public static void goDownWithError(@Nullable final Throwable t, final SysExits exitCode) {
+      goDownWithError(t, exitCode.exitCode());
+    }
+
+
     // Calling Halt is the only sensible thing to do when the JVM is hosed.
     @SuppressFBWarnings("MDM_RUNTIME_EXIT_OR_HALT")
     public static void goDownWithError(@Nullable final Throwable t, final int exitCode) {

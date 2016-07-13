@@ -35,6 +35,7 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.GuardedBy;
+import org.spf4j.base.SysExits;
 import static org.spf4j.concurrent.RejectedExecutionHandler.REJECT_EXCEPTION_EXEC_HANDLER;
 import org.spf4j.ds.ZArrayDequeue;
 import org.spf4j.jmx.JmxExport;
@@ -466,7 +467,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
           }
         } catch (Error e) {
           /** from sysexits.h EX_SOFTWARE = 70 */
-          org.spf4j.base.Runtime.goDownWithError(e, 70);
+          org.spf4j.base.Runtime.goDownWithError(e, SysExits.EX_SOFTWARE);
         }
         poolStateLock.lock();
         try {

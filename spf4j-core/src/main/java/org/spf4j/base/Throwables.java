@@ -31,6 +31,7 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -488,6 +489,59 @@ public final class Throwables {
    * Caption for labeling causative exception stack traces
    */
   public static final String CAUSE_CAPTION = "Caused by: ";
+
+  public static boolean isNonRecoverable(@Nonnull final Throwable t) {
+    return nrPredicate.test(t);
+  }
+
+  public static boolean containsNonRecoverable(@Nonnull final Throwable t) {
+    return contains(t, nrPredicate);
+  }
+
+  public static boolean contains(@Nonnull final Throwable t, final Predicate<Throwable> predicate) {
+    if (predicate.test(t)) {
+      return true;
+    } else {
+      Throwable cause = t.getCause();
+      if (cause != null && contains(cause, predicate)) {
+        return true;
+      }
+      for (Throwable supp : t.getSuppressed()) {
+        if (contains(supp, predicate)) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+
+  public static Predicate<Throwable> getNonRecoverablePredicate() {
+    return nrPredicate;
+  }
+
+  public static void setNonRecoverablePredicate(final Predicate<Throwable> predicate) {
+    Throwables.nrPredicate = predicate;
+  }
+
+  private static volatile Predicate<Throwable> nrPredicate = new Predicate<Throwable>() {
+    @Override
+    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+    public boolean test(final Throwable t) {
+      if (t instanceof Error && !(t instanceof StackOverflowError)) {
+        return true;
+      }
+      if (t instanceof IOException) {
+        String message = t.getMessage();
+        if (message != null && message.contains("Too many open files")) {
+          return true;
+        }
+      }
+      return false;
+    }
+  };
+
+
+
 
 //    public static final class RepeatingStack {
 //        private final int count;

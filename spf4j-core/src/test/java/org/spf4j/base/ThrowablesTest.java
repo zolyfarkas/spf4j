@@ -18,6 +18,7 @@
 package org.spf4j.base;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.sql.BatchUpdateException;
 import java.sql.SQLException;
@@ -95,7 +96,20 @@ public final class ThrowablesTest {
             exs = Throwables.suppress(new Exception("test"  + i), exs);
         }
         Assert.assertEquals(200, Throwables.getNrRecursiveSuppressedExceptions(exs));
+    }
 
+    @Test
+    public void testRecoverable() {
+      Throwable t =  new RuntimeException();
+      Assert.assertFalse(Throwables.containsNonRecoverable(t));
+      t.addSuppressed(new IOException());
+      Assert.assertFalse(Throwables.containsNonRecoverable(t));
+      t.addSuppressed(new OutOfMemoryError());
+      Assert.assertTrue(Throwables.containsNonRecoverable(t));
+      t = new RuntimeException(new RuntimeException(new IOException("Too many open files")));
+      Assert.assertTrue(Throwables.containsNonRecoverable(t));
+      t = new RuntimeException(new RuntimeException(new StackOverflowError()));
+      Assert.assertFalse(Throwables.containsNonRecoverable(t));
     }
 
 

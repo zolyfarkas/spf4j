@@ -17,7 +17,6 @@
  */
 package org.spf4j.base;
 
-import com.google.common.base.Throwables;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,8 +61,8 @@ public abstract class AbstractRunnable implements Runnable {
         this(false, null);
     }
 
-    /** from sysexits.h EX_SOFTWARE = 70 */
-    public static final int ERROR_EXIT_CODE = 70;
+    @Deprecated
+    public static final int ERROR_EXIT_CODE = SysExits.EX_SOFTWARE.exitCode();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRunnable.class);
 
@@ -80,8 +79,8 @@ public abstract class AbstractRunnable implements Runnable {
         try {
             doRun();
         } catch (Exception ex) {
-            if (Throwables.getRootCause(ex) instanceof Error) {
-                Runtime.goDownWithError(ex, ERROR_EXIT_CODE);
+            if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {
+                Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);
             }
             if (lenient) {
                 LOGGER.error("Exception in runnable: ", ex);
@@ -89,7 +88,10 @@ public abstract class AbstractRunnable implements Runnable {
                 throw new RuntimeException(ex);
             }
         } catch (Throwable ex) {
-           Runtime.goDownWithError(ex, ERROR_EXIT_CODE);
+            if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {
+                Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);
+            }
+            throw ex;
         } finally {
             if (thread != null) {
                thread.setName(origName);

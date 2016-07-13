@@ -31,6 +31,7 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.Runtime;
+import org.spf4j.base.SysExits;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 
@@ -152,8 +153,7 @@ import org.spf4j.jmx.Registry;
                 LOG.error("Nr open files is {} and exceeds error threshold {}, detail:\n{}",
                         nrOf, errorThreshold, lastWarnLsof);
                 if (shutdownOnError) {
-                    /** from sysexits.h EX_IOERR = 74 */
-                    Runtime.goDownWithError(null, 74);
+                    Runtime.goDownWithError(null, SysExits.EX_IOERR);
                 }
             } else if (nrOf > warnThreshold) {
                 lastWarnLsof = Runtime.getLsofOutput();

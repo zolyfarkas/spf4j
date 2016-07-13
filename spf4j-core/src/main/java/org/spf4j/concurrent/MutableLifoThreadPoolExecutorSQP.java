@@ -36,6 +36,7 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.GuardedBy;
+import org.spf4j.base.SysExits;
 import static org.spf4j.concurrent.LifoThreadPoolExecutorSQP.CORE_MINWAIT_NANOS;
 import static org.spf4j.concurrent.RejectedExecutionHandler.REJECT_EXCEPTION_EXEC_HANDLER;
 import org.spf4j.ds.ZArrayDequeue;
@@ -510,7 +511,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
           }
         } catch (Error e) {
           /** from sysexits.h EX_SOFTWARE = 70 */
-          org.spf4j.base.Runtime.goDownWithError(e, 70);
+          org.spf4j.base.Runtime.goDownWithError(e, SysExits.EX_SOFTWARE);
         }
         submitMonitor.lock();
         try {
