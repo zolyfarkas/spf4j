@@ -35,7 +35,7 @@ public abstract class AbstractRunnable implements Runnable {
 
     /**
      * Create runnable lenient or not with a specific thread name during its execution.
-     * 
+     *
      * @param lenient - If lenient is true, it means that nobody is waiting for this runnable's result(finish)
      * so To not loose the exception, the runnable will LOG it as an error, and not retrow it
      * @param threadName - the thread name during the execution of this runnable.
@@ -62,7 +62,8 @@ public abstract class AbstractRunnable implements Runnable {
         this(false, null);
     }
 
-    public static final int ERROR_EXIT_CODE = 666;
+    /** from sysexits.h EX_SOFTWARE = 70 */
+    public static final int ERROR_EXIT_CODE = 70;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRunnable.class);
 

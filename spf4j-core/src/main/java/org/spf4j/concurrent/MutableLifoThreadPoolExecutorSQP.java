@@ -509,7 +509,8 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
             throw new Error("Uncaught exception handler blew up: " + uexh, ex);
           }
         } catch (Error e) {
-          org.spf4j.base.Runtime.goDownWithError(e, 666);
+          /** from sysexits.h EX_SOFTWARE = 70 */
+          org.spf4j.base.Runtime.goDownWithError(e, 70);
         }
         submitMonitor.lock();
         try {

@@ -152,7 +152,8 @@ import org.spf4j.jmx.Registry;
                 LOG.error("Nr open files is {} and exceeds error threshold {}, detail:\n{}",
                         nrOf, errorThreshold, lastWarnLsof);
                 if (shutdownOnError) {
-                    Runtime.goDownWithError(null, 666);
+                    /** from sysexits.h EX_IOERR = 74 */
+                    Runtime.goDownWithError(null, 74);
                 }
             } else if (nrOf > warnThreshold) {
                 lastWarnLsof = Runtime.getLsofOutput();
