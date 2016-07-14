@@ -24,6 +24,7 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -498,22 +499,33 @@ public final class Throwables {
     return contains(t, nrPredicate);
   }
 
+  /**
+   * checks in the throwable + children (both causal and suppressed) contain a throwable that
+   * respects the Predicate.
+   * @param t the throwable
+   * @param predicate the predicate
+   * @return true if a Throwable matching the predicate is found.
+   */
   public static boolean contains(@Nonnull final Throwable t, final Predicate<Throwable> predicate) {
-    if (predicate.test(t)) {
-      return true;
-    } else {
-      Throwable cause = t.getCause();
-      if (cause != null && contains(cause, predicate)) {
+    ArrayDeque<Throwable> toScan =  new ArrayDeque<>();
+    toScan.addFirst(t);
+    Throwable th;
+    while ((th = toScan.pollFirst()) != null) {
+      if (predicate.test(th)) {
         return true;
-      }
-      for (Throwable supp : t.getSuppressed()) {
-        if (contains(supp, predicate)) {
-          return true;
+      } else {
+        Throwable cause = t.getCause();
+        if (cause != null) {
+          toScan.addFirst(t);
+        }
+        for (Throwable supp : t.getSuppressed()) {
+          toScan.addLast(supp);
         }
       }
-      return false;
     }
+    return false;
   }
+
 
   public static Predicate<Throwable> getNonRecoverablePredicate() {
     return nrPredicate;
