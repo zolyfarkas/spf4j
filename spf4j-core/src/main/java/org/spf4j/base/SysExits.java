@@ -26,10 +26,15 @@ import javax.annotation.Nullable;
 /**
  * some "standard" process exit codes from:
  * https://www.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD+4.3-RELEASE&format=html
- *
+ * http://journal.thobe.org/2013/02/jvms-and-kill-signals.html
  * @author zoly
  */
 public enum SysExits {
+
+  /**
+   * Everything is OK.
+   */
+  OK(0),
 
   /**
    * The command was used incorrectly, e.g., with the wrong number of arguments, a bad flag, a bad syntax in a
@@ -99,7 +104,43 @@ public enum SysExits {
   /**
    * Something was found in an unconfigured or misconfigured state.
    */
-  EX_CONFIG(78);
+  EX_CONFIG(78),
+
+  /**
+   * Section caused by exit due to signal.
+   * where signal name is same on Linux, Solaris and MacOS enum has the appropriate name.
+   */
+  EX_SIG_HUP(129),
+  EX_SIG_INT(130),
+  EX_SIG_QUIT(131),
+  EX_SIG_ILL(132),
+  EX_SIG_TRAP(133),
+  EX_SIG_ABRT(134),
+  EX_SIG_7(135),
+  EX_SIG_FPE(136),
+  EX_SIG_KILL(137),
+  EX_SIG_10(138),
+  EX_SIG_11(139),
+  EX_SIG_12(140),
+  EX_SIG_PIPE(141),
+  EX_SIG_ALRM(142),
+  EX_SIG_TERM(143),
+  EX_SIG_16(144),
+  EX_SIG_17(145),
+  EX_SIG_18(146),
+  EX_SIG_19(147),
+  EX_SIG_20(148),
+  EX_SIG_21(149),
+  EX_SIG_22(150),
+  EX_SIG_23(151),
+  EX_SIG_24(152),
+  EX_SIG_25(153),
+  EX_SIG_26(154),
+  EX_SIG_27(155),
+  EX_SIG_28(156),
+  EX_SIG_29(157),
+  EX_SIG_30(158),
+  EX_SIG_31(159);
 
   SysExits(final int code) {
     this.exitCode = code;
@@ -111,17 +152,32 @@ public enum SysExits {
     return exitCode;
   }
 
+  public boolean isOk() {
+    return exitCode == 0;
+  }
+
+  public boolean isError() {
+    return exitCode != 0;
+  }
+
   private static final TIntObjectMap<SysExits> CODE2ENUM;
 
   static {
     SysExits[] values = SysExits.values();
     TIntObjectMap<SysExits> c2e = new TIntObjectHashMap<>(values.length);
     for (SysExits e : values) {
-      c2e.put(e.exitCode(), e);
+      if (c2e.put(e.exitCode(), e) != null) {
+        throw new ExceptionInInitializerError("Duplicate exit code " + e);
+      }
     }
     CODE2ENUM = c2e;
   }
 
+
+  /**
+   * @param exitCode
+   * @return null if do not have a coresponding enum.
+   */
   @Nullable
   public static SysExits fromCode(final int exitCode) {
     return CODE2ENUM.get(exitCode);
