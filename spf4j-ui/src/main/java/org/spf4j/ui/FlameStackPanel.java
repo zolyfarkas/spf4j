@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import org.spf4j.base.EqualsPredicate;
 import org.spf4j.base.Pair;
-import org.spf4j.stackmonitor.Method;
+import org.spf4j.base.Method;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -54,7 +54,7 @@ public final class FlameStackPanel extends StackPanelBase {
         setElementColor(depth, g2);
         g2.setClip(x, y, width, height);
         g2.fillRect(x, y, width, height);
-        tooltipDetail.insert(new float[]{x, y}, new float[]{width, height}, Pair.of(method, sampleCount));
+        insert(x, y, width, height, new Sampled<>(method, sampleCount));
         g2.setPaint(Color.BLACK);
         g2.drawString(val, x, y + height - 1);
         g2.setClip(null);
@@ -85,10 +85,10 @@ public final class FlameStackPanel extends StackPanelBase {
     @Override
     @SuppressFBWarnings("ISB_TOSTRING_APPENDING")
     public String getDetail(final Point location) {
-        List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{location.x, location.y}, new float[]{0, 0});
+        List<Sampled<Method>> tips = search(location.x, location.y, 0, 0);
         if (tips.size() >= 1) {
-            final Pair<Method, Integer> m = tips.get(0);
-            return m.getFirst().toString() + '-' + m.getSecond();
+            final Sampled<Method> m = tips.get(0);
+            return m.getObj().toString() + '-' + m.getNrSamples();
         } else {
             return null;
         }
@@ -96,7 +96,7 @@ public final class FlameStackPanel extends StackPanelBase {
 
     @Override
     public void filter() {
-        List<Pair<Method, Integer>> tips = tooltipDetail.search(new float[]{xx, yy}, new float[]{0, 0});
+        List<Pair<Method, Integer>> tips = search(xx, yy, 0, 0);
         if (tips.size() >= 1) {
             final Method value = tips.get(0).getFirst();
             samples = samples.filteredBy(new EqualsPredicate<Method>(value));

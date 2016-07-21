@@ -22,7 +22,7 @@ import gnu.trove.map.hash.THashMap;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import org.spf4j.stackmonitor.Method;
+import org.spf4j.base.Method;
 import org.spf4j.stackmonitor.SampleNode;
 import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
 import java.util.List;

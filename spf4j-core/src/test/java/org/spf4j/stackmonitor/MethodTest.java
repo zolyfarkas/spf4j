@@ -1,6 +1,7 @@
 
 package org.spf4j.stackmonitor;
 
+import org.spf4j.base.Method;
 import org.junit.Assert;
 import org.junit.Test;
 

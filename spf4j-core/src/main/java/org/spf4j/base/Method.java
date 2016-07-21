@@ -15,10 +15,11 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.spf4j.stackmonitor;
+package org.spf4j.base;
 
 import com.google.common.escape.Escaper;
 import com.google.common.html.HtmlEscapers;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.hash.THashMap;
 import java.io.IOException;
 import java.io.Serializable;
@@ -33,38 +34,26 @@ import javax.annotation.concurrent.Immutable;
  */
 @Immutable
 // using racy single check idiom makes findbugs think the Method obejct is mutable...
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("JCIP_FIELD_ISNT_FINAL_IN_IMMUTABLE_CLASS")
+@SuppressFBWarnings("JCIP_FIELD_ISNT_FINAL_IN_IMMUTABLE_CLASS")
 public final class Method implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     private final String declaringClass;
     private final String methodName;
-    private final int id;
     private int hash;
 
     public Method(final StackTraceElement elem) {
-        this.declaringClass = elem.getClassName();
-        this.methodName = elem.getMethodName();
-        this.id = 0;
+      this(elem.getClassName(), elem.getMethodName());
     }
 
     public Method(final Class<?> clasz, final String methodName) {
-        this.declaringClass = clasz.getName();
-        this.methodName = methodName;
-        this.id = 0;
+      this(clasz.getName(), methodName);
     }
 
     public Method(final String declaringClass, final String methodName) {
         this.declaringClass = declaringClass;
         this.methodName = methodName;
-        this.id = 0;
-    }
-
-    private Method(final String declaringClass, final String methodName, final int id) {
-        this.declaringClass = declaringClass;
-        this.methodName = methodName;
-        this.id = id;
     }
 
     public String getDeclaringClass() {
@@ -81,7 +70,6 @@ public final class Method implements Serializable {
             int nhash = 3;
             nhash = 47 * nhash + (this.declaringClass != null ? this.declaringClass.hashCode() : 0);
             nhash = 47 * nhash + (this.methodName != null ? this.methodName.hashCode() : 0);
-            nhash = 47 * nhash + this.id;
             hash = nhash;
         }
         return hash;
@@ -106,7 +94,7 @@ public final class Method implements Serializable {
         if ((this.methodName == null) ? (other.methodName != null) : !this.methodName.equals(other.methodName)) {
             return false;
         }
-        return this.id == other.id;
+        return true;
     }
 
     @Override
@@ -123,15 +111,7 @@ public final class Method implements Serializable {
         w.append(htmlEscaper.escape(methodName)).append(htmlEscaper.escape("@")).
                 append(htmlEscaper.escape(declaringClass));
     }
-    public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), "ROOT", 0);
-
-    public Method withId(final int pid) {
-        return new Method(declaringClass, methodName, pid);
-    }
-
-    public Method withNewId() {
-        return new Method(declaringClass, methodName, id + 1);
-    }
+    public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), "ROOT");
 
 
     private static final Map<String, Map<String, Method>> INSTANCE_REPO = new THashMap<>(1024);
@@ -146,7 +126,7 @@ public final class Method implements Serializable {
      * not thread safe, use with care, see description for suppressed findbugs bug for more detail.
      */
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_POSSIBLE_MEMORY")
+    @SuppressFBWarnings("PMB_POSSIBLE_MEMORY")
     public static Method getMethod(final String className, final String methodName) {
         Map<String, Method> mtom = INSTANCE_REPO.get(className);
         Method result;

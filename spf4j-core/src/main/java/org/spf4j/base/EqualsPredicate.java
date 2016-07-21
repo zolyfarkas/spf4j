@@ -17,9 +17,9 @@
  */
 package org.spf4j.base;
 
-import com.google.common.base.Predicate;
+
+import java.util.function.Predicate;
 import javax.annotation.Nonnull;
-import org.spf4j.stackmonitor.Method;
 
 /**
  *
@@ -34,7 +34,7 @@ public final class EqualsPredicate<T> implements Predicate<Method> {
     }
 
     @Override
-    public boolean apply(@Nonnull final Method t) {
+    public boolean test(@Nonnull final Method t) {
         return value.equals(t);
     }
 
@@ -42,6 +42,6 @@ public final class EqualsPredicate<T> implements Predicate<Method> {
     public String toString() {
         return "EqualsPredicate{" + "value=" + value + '}';
     }
-    
-    
+
+
 }

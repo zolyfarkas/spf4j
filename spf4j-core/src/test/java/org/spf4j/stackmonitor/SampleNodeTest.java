@@ -4,6 +4,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import org.spf4j.base.Method;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Assert;
 import org.junit.Test;
@@ -70,7 +71,7 @@ public final class SampleNodeTest {
         SampleNode agg = SampleNode.aggregate(node1, node2);
         System.out.println("n1 + n2 = " + agg);
         Assert.assertEquals(node1.getSampleCount() + node2.getSampleCount(), agg.getSampleCount());
-        final Method method = new Method("C1", "m3");
+        final Method method = Method.getMethod("C1", "m3");
         Assert.assertEquals(node1.getSubNodes().get(method).getSampleCount()
                 + node2.getSubNodes().get(method).getSampleCount(),
                 agg.getSubNodes().get(method).getSampleCount());

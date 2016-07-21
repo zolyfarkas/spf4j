@@ -26,7 +26,7 @@ import org.spf4j.io.MemorizingBufferedInputStream;
 import org.spf4j.ssdump2.avro.AMethod;
 import org.spf4j.stackmonitor.SampleNode;
 import org.spf4j.ssdump2.avro.ASample;
-import org.spf4j.stackmonitor.Method;
+import org.spf4j.base.Method;
 
 /**
  *

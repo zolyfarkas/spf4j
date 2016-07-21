@@ -17,7 +17,7 @@
  */
 package org.spf4j.stackmonitor;
 
-import com.google.common.base.Predicate;
+import org.spf4j.base.Method;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.procedure.TObjectObjectProcedure;
@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -242,7 +243,7 @@ public final class SampleNode implements Serializable {
             for (Map.Entry<Method, SampleNode> entry : this.subNodes.entrySet()) {
                 Method method = entry.getKey();
                 SampleNode sn = entry.getValue();
-                if (predicate.apply(method)) {
+                if (predicate.test(method)) {
                     newCount -= sn.getSampleCount();
                 } else {
                     if (sns == null) {
@@ -323,23 +324,27 @@ public final class SampleNode implements Serializable {
     }
 
     @Nonnull
-    public static Graph<Method, InvocationCount> toGraph(final SampleNode rootNode) {
-        final HashMapGraph<Method, InvocationCount> result = new HashMapGraph<>();
+    public static Graph<InvokedMethod, InvocationCount> toGraph(final SampleNode rootNode) {
+        final HashMapGraph<InvokedMethod, InvocationCount> result = new HashMapGraph<>();
 
         rootNode.forEach(new InvocationHandler() {
             @Override
             public void handle(final Method pfrom, final Method pto, final int count,
                     final Map<Method, Integer> ancestors) {
 
-                Method from = pfrom;
-                Method to = pto;
-                Integer val = ancestors.get(from);
+                InvokedMethod from;
+                InvokedMethod to;
+                Integer val = ancestors.get(pfrom);
                 if (val != null) {
-                    from = from.withId(val - 1);
+                    from =  new InvokedMethod(pfrom, val - 1);
+                } else {
+                    from =  new InvokedMethod(pfrom, 0);
                 }
-                val = ancestors.get(to);
+                val = ancestors.get(pto);
                 if (val != null) {
-                    to = to.withId(val);
+                    to = new InvokedMethod(pto, val);
+                } else {
+                    to = new InvokedMethod(pto, 0);
                 }
 
                 InvocationCount ic = result.getEdge(from, to);

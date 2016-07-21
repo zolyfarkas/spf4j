@@ -37,13 +37,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.ToolTipManager;
-import org.spf4j.base.Pair;
 import org.spf4j.ds.RTree;
-import org.spf4j.stackmonitor.Method;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -55,7 +54,7 @@ public abstract class StackPanelBase extends JPanel
     private static final long serialVersionUID = 1L;
     //CHECKSTYLE:OFF
     protected SampleNode samples;
-    protected RTree<Pair<Method, Integer>> tooltipDetail = new RTree<>();
+    private RTree<Sampled<?>> tooltipDetail = new RTree<>();
     protected int xx;
     protected int yy;
     //CHECKSTYLE:ON
@@ -73,9 +72,26 @@ public abstract class StackPanelBase extends JPanel
         addMouseListener(this);
     }
 
+    public final List search(final int x, final int y, final int w, final int h) {
+      return tooltipDetail.search(new float[]{x, y}, new float[]{w, h});
+    }
+
+    public final List search(final double x, final double y, final double w, final double h) {
+      return tooltipDetail.search(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h});
+    }
+
+
+    public final void insert(final int x, final int y, final int w, final int h, final Sampled sampled) {
+      tooltipDetail.insert(new float[]{x, y}, new float[]{w, h}, sampled);
+    }
+
+    public final void insert(final double x, final double y, final double w, final double h, final Sampled sampled) {
+      tooltipDetail.insert(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h}, sampled);
+    }
+
 
         // disable finbugs since I don't care about internationalization for now.
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings
     private static JPopupMenu buildPopupMenu(final ActionListener listener) {
         JPopupMenu result = new JPopupMenu("Actions");
         JMenuItem filter = new JMenuItem("Filter");

@@ -17,6 +17,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import org.spf4j.base.Method;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -66,9 +67,9 @@ public final class SsdumpTest {
         });
         sampler.stop();
         final SampleNode samples = Converter.load(serializedFile);
-        Graph<Method, SampleNode.InvocationCount> graph = SampleNode.toGraph(samples);
-        Traversals.traverse(graph, Method.ROOT,
-                (final Method vertex, final Map<SampleNode.InvocationCount, Method> edges) -> {
+        Graph<InvokedMethod, SampleNode.InvocationCount> graph = SampleNode.toGraph(samples);
+        Traversals.traverse(graph, InvokedMethod.ROOT,
+                (final InvokedMethod vertex, final Map<SampleNode.InvocationCount, InvokedMethod> edges) -> {
           System.out.println("Method: " + vertex + " from " + edges);
         }, true);
         Assert.assertNotNull(graph);
