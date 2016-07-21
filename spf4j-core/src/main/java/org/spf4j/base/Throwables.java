@@ -18,6 +18,7 @@
 package org.spf4j.base;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.set.hash.THashSet;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
@@ -510,18 +511,23 @@ public final class Throwables {
     ArrayDeque<Throwable> toScan =  new ArrayDeque<>();
     toScan.addFirst(t);
     Throwable th;
+    THashSet<Throwable> seen = new IdentityHashSet();
     while ((th = toScan.pollFirst()) != null) {
+      if (seen.contains(th)) {
+        continue;
+      }
       if (predicate.test(th)) {
         return true;
       } else {
-        Throwable cause = t.getCause();
+        Throwable cause = th.getCause();
         if (cause != null) {
-          toScan.addFirst(t);
+          toScan.addFirst(cause);
         }
-        for (Throwable supp : t.getSuppressed()) {
+        for (Throwable supp : th.getSuppressed()) {
           toScan.addLast(supp);
         }
       }
+      seen.add(th);
     }
     return false;
   }
@@ -591,4 +597,20 @@ public final class Throwables {
 //            }
 //        }
 //    }
+
+  public static final class IdentityHashSet extends THashSet<Throwable> {
+
+    public IdentityHashSet() {
+    }
+
+    @Override
+    protected int hash(final Object notnull) {
+      return System.identityHashCode(notnull);
+    }
+
+    @Override
+    protected boolean equals(final Object notnull, final Object two) {
+      return notnull == two;
+    }
+  }
 }
