@@ -27,6 +27,7 @@ import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -39,7 +40,10 @@ public final class Method implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @Nonnull
     private final String declaringClass;
+
+    @Nonnull
     private final String methodName;
     private int hash;
 
@@ -47,19 +51,21 @@ public final class Method implements Serializable {
       this(elem.getClassName(), elem.getMethodName());
     }
 
-    public Method(final Class<?> clasz, final String methodName) {
+    public Method(final Class<?> clasz, @Nonnull final String methodName) {
       this(clasz.getName(), methodName);
     }
 
-    public Method(final String declaringClass, final String methodName) {
+    public Method(@Nonnull final String declaringClass, @Nonnull final String methodName) {
         this.declaringClass = declaringClass;
         this.methodName = methodName;
     }
 
+    @Nonnull
     public String getDeclaringClass() {
         return declaringClass;
     }
 
+    @Nonnull
     public String getMethodName() {
         return methodName;
     }
@@ -67,10 +73,8 @@ public final class Method implements Serializable {
     @Override
     public int hashCode() {
         if (hash == 0) {
-            int nhash = 3;
-            nhash = 47 * nhash + (this.declaringClass != null ? this.declaringClass.hashCode() : 0);
-            nhash = 47 * nhash + (this.methodName != null ? this.methodName.hashCode() : 0);
-            hash = nhash;
+            int nhash = 47 + this.declaringClass.hashCode();
+            hash = 47 * nhash + this.methodName.hashCode();
         }
         return hash;
     }
@@ -87,11 +91,10 @@ public final class Method implements Serializable {
             return false;
         }
         final Method other = (Method) obj;
-        if ((this.declaringClass == null)
-                ? (other.declaringClass != null) : !this.declaringClass.equals(other.declaringClass)) {
+        if (!this.declaringClass.equals(other.declaringClass)) {
             return false;
         }
-        if ((this.methodName == null) ? (other.methodName != null) : !this.methodName.equals(other.methodName)) {
+        if (!this.methodName.equals(other.methodName)) {
             return false;
         }
         return true;
@@ -125,7 +128,6 @@ public final class Method implements Serializable {
      * this function is to allow reuse of Method instances.
      * not thread safe, use with care, see description for suppressed findbugs bug for more detail.
      */
-
     @SuppressFBWarnings("PMB_POSSIBLE_MEMORY")
     public static Method getMethod(final String className, final String methodName) {
         Map<String, Method> mtom = INSTANCE_REPO.get(className);
