@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
-import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
@@ -45,7 +44,6 @@ public final class Method implements Serializable {
 
     @Nonnull
     private final String methodName;
-    private int hash;
 
     public Method(final StackTraceElement elem) {
       this(elem.getClassName(), elem.getMethodName());
@@ -72,11 +70,7 @@ public final class Method implements Serializable {
 
     @Override
     public int hashCode() {
-        if (hash == 0) {
-            int nhash = 47 + this.declaringClass.hashCode();
-            hash = 47 * nhash + this.methodName.hashCode();
-        }
-        return hash;
+        return 47 * declaringClass.hashCode() + methodName.hashCode();
     }
 
     @Override
@@ -129,11 +123,11 @@ public final class Method implements Serializable {
      * not thread safe, use with care, see description for suppressed findbugs bug for more detail.
      */
     @SuppressFBWarnings("PMB_POSSIBLE_MEMORY")
-    public static Method getMethod(final String className, final String methodName) {
+    public static synchronized Method getMethod(final String className, final String methodName) {
         Map<String, Method> mtom = INSTANCE_REPO.get(className);
         Method result;
         if (mtom == null) {
-            mtom = new HashMap<>(4);
+            mtom = new THashMap<>(4);
             result = new Method(className, methodName);
             mtom.put(methodName, result);
             INSTANCE_REPO.put(className, mtom);
