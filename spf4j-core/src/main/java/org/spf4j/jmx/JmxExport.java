@@ -25,9 +25,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation to mark setters and getters of attributes to export.
- * Only setters and getters are supported.
- * name of the jmx attribute exported will be extracted from sette/getter name.
+ * Annotation to mark setters and getters of attributes to export via JMX,
+ * Any other methods that do not respect get/set/is naming conventions will be exported as JMX operation.
+ * Any method parameters annotated with JMXExport allows you to provide names and descriptions to your
+ * operation parameters.
+ * Names are inferred from the method names, but can be customized further with JmxExport.value.
+ *
+ *
  * attribute description can be added to the annotation.
  *
  * @author zoly
