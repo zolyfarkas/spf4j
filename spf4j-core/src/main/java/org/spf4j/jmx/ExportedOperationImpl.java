@@ -24,7 +24,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import javax.management.MBeanParameterInfo;
-import org.spf4j.base.Reflections;
 
 /**
  *
@@ -57,8 +56,9 @@ final class ExportedOperationImpl implements ExportedOperation {
             String pdesc = "";
             for (Annotation annot : annotations) {
                 if (annot.annotationType() == JmxExport.class) {
-                    pname = (String) Reflections.getAnnotationAttribute(annot, "value");
-                    pdesc = (String) Reflections.getAnnotationAttribute(annot, "description");
+                    JmxExport eAnn = (JmxExport) annot;
+                    pname = eAnn.value();
+                    pdesc = eAnn.description();
                 }
             }
             if ("".equals(pname)) {

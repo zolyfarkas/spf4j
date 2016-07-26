@@ -34,7 +34,6 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
-import org.spf4j.base.Reflections;
 import org.spf4j.base.Strings;
 
 public final class Registry {
@@ -150,7 +149,7 @@ public final class Registry {
                         Annotation[] annotations = method.getAnnotations();
                         for (Annotation annot : annotations) {
                             if (annot.annotationType() == JmxExport.class) {
-                                exportMethod(method, null, exportedAttributes, exportedOps, annot);
+                                exportMethod(method, null, exportedAttributes, exportedOps, (JmxExport) annot);
                             }
                         }
                     }
@@ -164,7 +163,7 @@ public final class Registry {
                     Annotation[] annotations = method.getAnnotations();
                     for (Annotation annot : annotations) {
                         if (annot.annotationType() == JmxExport.class) {
-                            exportMethod(method, object, exportedAttributes, exportedOps, annot);
+                            exportMethod(method, object, exportedAttributes, exportedOps, (JmxExport) annot);
                         }
                     }
                 }
@@ -197,7 +196,7 @@ public final class Registry {
 
     private static void exportMethod(final Method method,
             @Nullable final Object object, final Map<String, ExportedValue> exportedAttributes,
-            final Map<String, ExportedOperationImpl> exportedOps, final Annotation annot) {
+            final Map<String, ExportedOperationImpl> exportedOps, final JmxExport annot) {
         method.setAccessible(true); // this is to speed up invocation
         String methodName = method.getName();
         int nrParams = method.getParameterTypes().length;
@@ -213,12 +212,12 @@ public final class Registry {
             addSetter(methodName, exportedAttributes, method, object, annot);
         } else {
             String opName = methodName;
-            String nameOverwrite = (String) Reflections.getAnnotationAttribute(annot, "value");
+            String nameOverwrite = annot.value();
             if (!"".equals(nameOverwrite)) {
                 opName = nameOverwrite;
             }
             ExportedOperationImpl existing = exportedOps.put(opName, new ExportedOperationImpl(opName,
-                    (String) Reflections.getAnnotationAttribute(annot, "description"), method, object));
+                    annot.description(), method, object));
             if (existing != null) {
                 throw new IllegalArgumentException("exporting operations with same name not supported: " + opName);
             }
@@ -226,8 +225,8 @@ public final class Registry {
     }
 
     private static void addSetter(final String methodName, final Map<String, ExportedValue> exportedAttributes,
-            final Method method, final Object object, final Annotation annot) {
-        String customName = (String) Reflections.getAnnotationAttribute(annot, "value");
+            final Method method, final Object object, final JmxExport annot) {
+        String customName = annot.value();
         String valueName;
         if ("".equals(customName)) {
             valueName = methodName.substring("set".length());
@@ -252,21 +251,20 @@ public final class Registry {
 
     private static void addGetter(final String pvalueName,
             final Map<String, ExportedValue> exported,
-            final Annotation annot, final Method method, final Object object) {
-        String customName = (String) Reflections.getAnnotationAttribute(annot, "value");
+            final JmxExport annot, final Method method, final Object object) {
+        String customName = annot.value();
         String valueName = "".equals(customName) ? pvalueName : customName;
         ExportedValueImpl existing = (ExportedValueImpl) exported.get(valueName);
         if (existing == null) {
             existing = new ExportedValueImpl(
-                    valueName, (String) Reflections.getAnnotationAttribute(annot, "description"),
+                    valueName, annot.description(),
                     method, null, object, method.getReturnType());
         } else {
             if (existing.getValueClass() != method.getReturnType()) {
                 throw new IllegalArgumentException(
                         "Getter and setter icorrectly defined " + existing + ' ' + method);
             }
-            existing = existing.withGetter(method,
-                    (String) Reflections.getAnnotationAttribute(annot, "description"));
+            existing = existing.withGetter(method, annot.description());
         }
         exported.put(valueName, existing);
     }
