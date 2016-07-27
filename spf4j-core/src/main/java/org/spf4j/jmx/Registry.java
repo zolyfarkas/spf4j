@@ -20,7 +20,6 @@
 package org.spf4j.jmx;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -146,12 +145,10 @@ public final class Registry {
                         continue;
                     }
                     if (Modifier.isStatic(method.getModifiers())) {
-                        Annotation[] annotations = method.getAnnotations();
-                        for (Annotation annot : annotations) {
-                            if (annot.annotationType() == JmxExport.class) {
-                                exportMethod(method, null, exportedAttributes, exportedOps, (JmxExport) annot);
-                            }
-                        }
+                      JmxExport annot = method.getAnnotation(JmxExport.class);
+                      if (annot != null) {
+                        exportMethod(method, null, exportedAttributes, exportedOps, annot);
+                      }
                     }
                 }
             } else {
@@ -160,11 +157,9 @@ public final class Registry {
                     if (method.isSynthetic()) {
                         continue;
                     }
-                    Annotation[] annotations = method.getAnnotations();
-                    for (Annotation annot : annotations) {
-                        if (annot.annotationType() == JmxExport.class) {
-                            exportMethod(method, object, exportedAttributes, exportedOps, (JmxExport) annot);
-                        }
+                    JmxExport annot = method.getAnnotation(JmxExport.class);
+                    if (annot != null) {
+                      exportMethod(method, object, exportedAttributes, exportedOps, annot);
                     }
                 }
             }

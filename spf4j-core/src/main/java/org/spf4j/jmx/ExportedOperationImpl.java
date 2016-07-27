@@ -59,6 +59,7 @@ final class ExportedOperationImpl implements ExportedOperation {
                     JmxExport eAnn = (JmxExport) annot;
                     pname = eAnn.value();
                     pdesc = eAnn.description();
+                    break;
                 }
             }
             if ("".equals(pname)) {
@@ -67,10 +68,6 @@ final class ExportedOperationImpl implements ExportedOperation {
             paramInfos[i] = new MBeanParameterInfo(pname, parameterTypes[i].getName(), pdesc);
         }
     }
-
-
-
-
 
     @Override
     public String getName() {
