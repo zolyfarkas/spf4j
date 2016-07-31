@@ -54,10 +54,10 @@ public final class ExpensiveTestObject implements Closeable {
     public void doStuff() throws IOException {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
-            throw new IOException("Connection closed for " + id);
+            throw new IOExceptionImpl("Connection closed for " + id);
         }
         if (nrUses > nrUsesToFailAfter) {
-            throw new IOException("Simulated random crap " + id);
+            throw new IOExceptionImpl("Simulated random crap " + id);
         }
         simulateDoStuff(maxOperationMillis - minOperationMillis);
         nrUses++;
@@ -65,13 +65,13 @@ public final class ExpensiveTestObject implements Closeable {
     }
 
     public void testObject() throws IOException {
-        System.out.println("Testing object id " + id);
+        System.out.println("Test oid " + id);
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
             throw new IOException("Connection closed " + id);
         }
         if (nrUses > nrUsesToFailAfter) {
-            throw new IOException("Simulated random crap " + id);
+            throw new IOExceptionImpl("Simulated random crap " + id);
         }
         simulateDoStuff(0);
         nrUses++;
@@ -99,6 +99,18 @@ public final class ExpensiveTestObject implements Closeable {
             + nrUsesToFailAfter + ", minOperationMillis=" + minOperationMillis + ", maxOperationMillis="
             + maxOperationMillis + ", lastTouchedTimeMillis=" + lastTouchedTimeMillis + ", nrUses=" + nrUses
             + ", id=" + id + '}';
+  }
+
+  private static final class IOExceptionImpl extends IOException {
+
+    public IOExceptionImpl(String message) {
+      super(message);
+    }
+
+    @Override
+    public Throwable fillInStackTrace() {
+      return this;
+    }
   }
 
 
