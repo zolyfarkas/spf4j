@@ -22,6 +22,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Strings;
@@ -36,7 +37,7 @@ import static org.spf4j.base.Strings.appendUnsignedString;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class UIDGenerator {
+public final class UIDGenerator implements Supplier<CharSequence> {
 
     private final Sequence sequence;
 
@@ -106,11 +107,16 @@ public final class UIDGenerator {
         return result;
     }
 
-    
+
 
     @Override
     public String toString() {
         return "UIDGenerator{" + "sequence=" + sequence + ", base=" + base + ", maxSize=" + maxSize + '}';
+    }
+
+    @Override
+    public CharSequence get() {
+      return next();
     }
 
 
