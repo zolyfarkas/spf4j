@@ -126,7 +126,7 @@ public final class MonitorTest {
                 private void doStuff1(final double rnd, final int depth) throws InterruptedException {
                     if (depth <= 0) {
                         Thread.sleep(10);
-                        System.out.println("Rnd:" + rnd);
+//                        System.out.println("Rnd:" + rnd);
                     } else {
                         doStuff1(rnd, depth - 1);
                     }
