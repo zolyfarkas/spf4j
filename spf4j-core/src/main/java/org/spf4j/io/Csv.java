@@ -130,10 +130,12 @@ public final class Csv {
     public static void writeCsvRow(final Writer writer, final Iterable<?> elems) throws IOException {
         Iterator<?> it = elems.iterator();
         if (it.hasNext()) {
-            writeCsvElement(it.next().toString(), writer);
+            Object next = it.next();
+            writeCsvElement(next == null ? "" : next.toString(), writer);
             while (it.hasNext()) {
                 writer.write(',');
-                writeCsvElement(it.next().toString(), writer);
+                next = it.next();
+                writeCsvElement(next == null ? "" : next.toString(), writer);
             }
         }
         writer.write('\n');
