@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -83,7 +82,7 @@ public final class Csv {
     }
 
 
-    public static void writeCsvRow(final Writer writer, final Object... elems) throws IOException {
+    public static void writeCsvRow(final Appendable writer, final Object... elems) throws IOException {
         if (elems.length > 0) {
             int i = 0;
             Object elem = elems[i++];
@@ -91,56 +90,68 @@ public final class Csv {
                 writeCsvElement(elem.toString(), writer);
             }
             while (i < elems.length) {
-                writer.write(',');
+                writer.append(',');
                 elem = elems[i++];
                 if (elem != null) {
                     writeCsvElement(elem.toString(), writer);
                 }
             }
         }
-        writer.write('\n');
+        writer.append('\n');
     }
 
 
-    public static void writeCsvRow2(final Writer writer, final Object obj, final Object... elems) throws IOException {
+    public static void writeCsvRow2(final Appendable writer, final Object obj, final Object... elems)
+            throws IOException {
         if (obj != null) {
             writeCsvElement(obj.toString(), writer);
         }
         for (Object elem : elems) {
-            writer.write(',');
+            writer.append(',');
             if (elem != null) {
                 writeCsvElement(elem.toString(), writer);
             }
         }
-        writer.write('\n');
+        writer.append('\n');
     }
 
-    public static void writeCsvRow(final Writer writer, final long... elems) throws IOException {
-        if (elems.length > 0) {
-            int i = 0;
-            writer.write(Long.toString(elems[i++]));
-            while (i < elems.length) {
-                writer.write(',');
-                writer.write(Long.toString(elems[i++]));
-            }
+    public static void writeCsvRow(final Appendable writer, final long... elems) throws IOException {
+       writeCsvRowNoEol(elems, writer);
+       writer.append('\n');
+    }
+
+    public static void writeCsvRowNoEol(final long[] elems, final Appendable writer) throws IOException {
+      if (elems.length > 0) {
+        int i = 0;
+        writer.append(Long.toString(elems[i++]));
+        while (i < elems.length) {
+          writer.append(',');
+          writer.append(Long.toString(elems[i++]));
         }
-        writer.write('\n');
+      }
     }
 
-    public static void writeCsvRow(final Writer writer, final Iterable<?> elems) throws IOException {
-        Iterator<?> it = elems.iterator();
-        if (it.hasNext()) {
-            Object next = it.next();
-            writeCsvElement(next == null ? "" : next.toString(), writer);
-            while (it.hasNext()) {
-                writer.write(',');
-                next = it.next();
-                writeCsvElement(next == null ? "" : next.toString(), writer);
-            }
+    public static void writeCsvRow(final Appendable writer, final Iterable<?> elems) throws IOException {
+        writeCsvRowNoEOL(elems, writer);
+        writer.append('\n');
+    }
+
+    public static void writeCsvRowNoEOL(final Iterable<?> elems, final Appendable writer) throws IOException {
+      Iterator<?> it = elems.iterator();
+      if (it.hasNext()) {
+        Object next = it.next();
+        if (next != null) {
+          writeCsvElement(next.toString(), writer);
         }
-        writer.write('\n');
+        while (it.hasNext()) {
+          writer.append(',');
+          next = it.next();
+          if (next != null) {
+            writeCsvElement(next.toString(), writer);
+          }
+        }
+      }
     }
-
 
     public static <T> T read(final File file, final Charset charset,
             final CsvMapHandler<T> handler) throws IOException {
