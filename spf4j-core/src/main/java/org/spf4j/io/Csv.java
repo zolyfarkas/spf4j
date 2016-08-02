@@ -116,11 +116,11 @@ public final class Csv {
     }
 
     public static void writeCsvRow(final Appendable writer, final long... elems) throws IOException {
-       writeCsvRowNoEol(elems, writer);
+       writeCsvRowNoEOL(elems, writer);
        writer.append('\n');
     }
 
-    public static void writeCsvRowNoEol(final long[] elems, final Appendable writer) throws IOException {
+    public static void writeCsvRowNoEOL(final long[] elems, final Appendable writer) throws IOException {
       if (elems.length > 0) {
         int i = 0;
         writer.append(Long.toString(elems[i++]));
