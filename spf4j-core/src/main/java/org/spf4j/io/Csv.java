@@ -276,7 +276,7 @@ public final class Csv {
             final CsvHandler<T> handler) throws IOException {
         PushbackReader reader = new PushbackReader(preader);
         int firstChar = reader.read();
-        if (firstChar != UTF_BOM) {
+        if (firstChar != UTF_BOM && firstChar >= 0) {
             reader.unread(firstChar);
         }
         return readNoBom(reader, handler);

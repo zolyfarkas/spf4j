@@ -112,5 +112,12 @@ public final class ThrowablesTest {
       Assert.assertFalse(Throwables.containsNonRecoverable(t));
     }
 
+//
+//    @Test
+//    public void testDuplicate() {
+//      Exception e1  = new Exception(); Exception e2  = new Exception();
+//      //Assert.assertEquals(e1, e2);
+//    }
+
 
 }

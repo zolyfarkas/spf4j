@@ -80,7 +80,11 @@ public final class PushbackReader extends FilterReader {
         if (pos == 0) {
             throw new IOException("Pushback buffer overflow " + this);
         }
-        buf[--pos] = (char) c;
+        if (c >= 0) {
+          buf[--pos] = (char) c;
+        } else {
+          throw new IllegalArgumentException("pushing back invalid character " + c);
+        }
     }
 
     public void unread(final char[] cbuf, final int off, final int len) throws IOException {

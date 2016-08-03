@@ -18,6 +18,7 @@
 package org.spf4j.io;
 
 import com.google.common.base.Charsets;
+import com.google.common.io.CharSource;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -29,6 +30,8 @@ import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -189,5 +192,19 @@ public final class CsvTest {
         Assert.assertEquals(3173959L, count);
         }
     }
+
+    @Test
+    public void testCsvRowParsing() throws IOException {
+      List<CharSequence> readRow = Csv.readRow(new StringReader(""));
+      Assert.assertEquals(Arrays.asList(""), readRow);
+    }
+
+    @Test
+    public void testCsvRowParsing2() throws IOException {
+      List<CharSequence> readRow = Csv.readRow(CharSource.wrap("").openStream());
+      Assert.assertEquals(Arrays.asList(""), readRow);
+    }
+
+
 
 }
