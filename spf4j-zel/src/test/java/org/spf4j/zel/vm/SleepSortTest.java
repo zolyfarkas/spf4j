@@ -21,7 +21,6 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -50,9 +49,6 @@ public final class SleepSortTest {
         Integer [] original = testArray.clone();
         p.execute(new Object [] {resutlSt});
         Arrays.sort(testArray);
-        System.out.println(Arrays.toString(original));
-        System.out.println(Arrays.toString(testArray));
-        System.out.println(Arrays.toString(resutlSt));
         Assert.assertArrayEquals(testArray, (Object []) resutlSt);
     }
 
