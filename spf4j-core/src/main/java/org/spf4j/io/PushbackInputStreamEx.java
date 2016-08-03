@@ -3,11 +3,12 @@ package org.spf4j.io;
 
 import com.google.common.io.BaseEncoding;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import java.io.IOException;
 import java.io.InputStream;
 
 
 /**
- *
+ * a extended implementation that improves the safety of unread and provides a better toString.
  * @author zoly
  */
 @CleanupObligation
@@ -32,5 +33,16 @@ public final class PushbackInputStreamEx  extends java.io.PushbackInputStream {
     public InputStream getUnderlyingStream() {
         return this.in;
     }
+
+  @Override
+  public void unread(final int b) throws IOException {
+    if (b < 0) {
+      throw new IllegalArgumentException("Unread int must be positive and not " + b);
+    }
+    super.unread(b);
+  }
+
+
+
 
 }
