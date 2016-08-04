@@ -46,7 +46,6 @@ public final class SleepSortTest {
         }
 
         Integer [] resutlSt = testArray.clone();
-        Integer [] original = testArray.clone();
         p.execute(new Object [] {resutlSt});
         Arrays.sort(testArray);
         Assert.assertArrayEquals(testArray, (Object []) resutlSt);
