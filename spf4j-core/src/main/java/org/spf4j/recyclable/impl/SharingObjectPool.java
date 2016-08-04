@@ -169,10 +169,12 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
     private synchronized void returnToQueue(final T object) {
         // object is valid
         UpdateablePriorityQueue<SharedObject<T>>.ElementRef ref = o2QueueRefMap.get(object);
-        final SharedObject<T> elem = ref.getElem();
-        elem.dec();
-        this.notifyAll();
-        ref.elementMutated();
+        if (ref != null) { // elem can already be removed if it fails validation.
+          final SharedObject<T> elem = ref.getElem();
+          elem.dec();
+          this.notifyAll();
+          ref.elementMutated();
+        }
     }
 
     @Override
