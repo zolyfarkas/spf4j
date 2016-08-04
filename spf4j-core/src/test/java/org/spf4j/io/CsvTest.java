@@ -146,8 +146,8 @@ public final class CsvTest {
 
     @Test
     public void testReadRow() throws IOException {
-        List<CharSequence> row = Csv.readRow(new StringReader("a,b,\",c\",d"));
-        Assert.assertEquals("a", row.get(0).toString());
+        List<String> row = Csv.readRow(new StringReader("a,b,\",c\",d"));
+        Assert.assertEquals("a", row.get(0));
     }
 
 
@@ -195,13 +195,13 @@ public final class CsvTest {
 
     @Test
     public void testCsvRowParsing() throws IOException {
-      List<CharSequence> readRow = Csv.readRow(new StringReader(""));
+      List<String> readRow = Csv.readRow(new StringReader(""));
       Assert.assertEquals(Arrays.asList(""), readRow);
     }
 
     @Test
     public void testCsvRowParsing2() throws IOException {
-      List<CharSequence> readRow = Csv.readRow(CharSource.wrap("").openStream());
+      List<String> readRow = Csv.readRow(CharSource.wrap("").openStream());
       Assert.assertEquals(Arrays.asList(""), readRow);
     }
 

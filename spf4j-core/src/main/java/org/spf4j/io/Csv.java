@@ -231,10 +231,10 @@ public final class Csv {
         });
     }
 
-    public static List<CharSequence> readRow(final Reader reader) throws IOException {
-        return readRow(reader, new CsvRowHandler<List<CharSequence>>() {
+    public static List<String> readRow(final Reader reader) throws IOException {
+        return readRow(reader, new CsvRowHandler<List<String>>() {
 
-            private final List<CharSequence> result = new ArrayList<>();
+            private final List<String> result = new ArrayList<>();
 
             @Override
             public void element(final CharSequence elem) {
@@ -242,7 +242,7 @@ public final class Csv {
             }
 
             @Override
-            public List<CharSequence> eof() {
+            public List<String> eof() {
                 return result;
             }
         });
@@ -299,6 +299,7 @@ public final class Csv {
     public static <T> T readNoBom(final PushbackReader reader, final CsvHandler<T> handler) throws IOException {
         boolean start = true;
         StringBuilder strB = new StringBuilder();
+        boolean loop = true;
         do {
             if (start) {
                 handler.startRow();
@@ -307,22 +308,115 @@ public final class Csv {
             strB.setLength(0);
             int c = readCsvElement(reader, strB);
             handler.element(strB);
-            if (c == '\r') {
+            switch (c) {
+              case '\r':
                 handler.endRow();
                 start = true;
                 int c2 = reader.read();
                 if (c2 != '\n') {
                     reader.unread(c2);
                 }
-            } else if (c == '\n') {
+                break;
+              case '\n':
                 handler.endRow();
                 start = true;
-            } else if (c < 0) {
                 break;
+              case ',':
+                break;
+              default:
+               if (c < 0) {
+                loop = false;
+               } else {
+                 throw new IOException("Unexpected character " + c);
+               }
             }
-        } while (true);
+        } while (loop);
+        out:
         return handler.eof();
     }
+
+//    public static ElementIterator iterator(final PushbackReader reader) throws IOException {
+//      return new ElementIterator() {
+//
+//        // MUST be at least size 2.
+//        private static final int TBUFF_SIZE = 2;
+//
+//        private final StringBuilder [] values = new StringBuilder[TBUFF_SIZE];
+//
+//        private TokenType [] tokens = new TokenType[TBUFF_SIZE];
+//
+//        private int readIdx = -1;
+//
+//        {
+//
+//        }
+//
+//
+//        private void read() throws IOException {
+//          if
+//          sb.setLength(0);
+//          int next = readCsvElement(reader, sb);
+//          tokens[0] = TokenType.ELEMENT;
+//          switch (next) {
+//              case '\r':
+//                int c2 = reader.read();
+//                if (c2 != '\n') {
+//                    reader.unread(c2);
+//                }
+//                nextToken = TokenType.END_ROW;
+//                break;
+//              case '\n':
+//                nextToken = TokenType.END_ROW;
+//                break;
+//              case ',':
+//                break;
+//              default:
+//               if (next < 0) {
+//                nextToken = TokenType.END_DOCUMENT;
+//               } else {
+//                 throw new IOException("Unexpected character " + c);
+//               }
+//            }
+//
+//        }
+//
+//
+//        @Override
+//        public boolean hasNext() {
+//        }
+//
+//        @Override
+//        public void next() throws IOException {
+//        }
+//
+//        @Override
+//        public TokenType getType() {
+//          return currentToken;
+//        }
+//
+//        @Override
+//        public CharSequence getElement() {
+//          return sb;
+//        }
+//      };
+//    }
+//
+//    public enum TokenType {
+//      ELEMENT, END_ROW, END_DOCUMENT
+//    }
+//
+//
+//    public interface ElementIterator {
+//
+//        boolean hasNext();
+//
+//        void next() throws IOException;
+//
+//        TokenType getType();
+//
+//        CharSequence getElement();
+//
+//    }
 
     private static final char[] TO_ESCAPE = new char[]{',', '\n', '\r', '"'};
 
