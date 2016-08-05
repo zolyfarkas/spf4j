@@ -31,7 +31,6 @@ import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -203,6 +202,77 @@ public final class CsvTest {
     public void testCsvRowParsing2() throws IOException {
       List<String> readRow = Csv.readRow(CharSource.wrap("").openStream());
       Assert.assertEquals(Arrays.asList(""), readRow);
+    }
+
+    @Test
+    public void testCsvStream1() throws IOException {
+      Csv.CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader("")));
+      Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
+      Assert.assertEquals("", reader.getElement().toString());
+      Assert.assertEquals(Csv.TokenType.END_DOCUMENT, reader.next());
+      Assert.assertEquals(Csv.TokenType.END_DOCUMENT, reader.next());
+    }
+
+    @Test
+    public void testCsvStream1_1() throws IOException {
+      Csv.CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader(",")));
+      Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
+      Assert.assertEquals("", reader.getElement().toString());
+      Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
+      Assert.assertEquals("", reader.getElement().toString());
+      Assert.assertEquals(Csv.TokenType.END_DOCUMENT, reader.next());
+      Assert.assertEquals(Csv.TokenType.END_DOCUMENT, reader.next());
+    }
+
+    @Test
+    public void testCsvStream2() throws IOException {
+      Csv.CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader("bla")));
+      Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
+      Assert.assertEquals("bla", reader.getElement().toString());
+      Assert.assertEquals(Csv.TokenType.END_DOCUMENT, reader.next());
+      Assert.assertEquals(Csv.TokenType.END_DOCUMENT, reader.next());
+    }
+
+    @Test
+    public void testCsvStream3() throws IOException {
+      Csv.CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader("\"bla\"")));
+      Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
+      Assert.assertEquals("bla", reader.getElement().toString());
+      Assert.assertEquals(Csv.TokenType.END_DOCUMENT, reader.next());
+      Assert.assertEquals(Csv.TokenType.END_DOCUMENT, reader.next());
+    }
+
+    @Test
+    public void testCsvStream4() throws IOException {
+      Csv.CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader("bla,\"bla\"\n")));
+      Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
+      Assert.assertEquals("bla", reader.getElement().toString());
+      Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
+      Assert.assertEquals("bla", reader.getElement().toString());
+      Assert.assertEquals(Csv.TokenType.END_ROW, reader.next());
+      Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
+      Assert.assertEquals("", reader.getElement().toString());
+      Assert.assertEquals(Csv.TokenType.END_DOCUMENT, reader.next());
+      Assert.assertEquals(Csv.TokenType.END_DOCUMENT, reader.next());
+    }
+
+    @Test
+    public void testCsvStream5() throws IOException {
+      Csv.CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader("bla,\"bla\"\nuhu,uhu2\n")));
+      Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
+      Assert.assertEquals("bla", reader.getElement().toString());
+      Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
+      Assert.assertEquals("bla", reader.getElement().toString());
+      Assert.assertEquals(Csv.TokenType.END_ROW, reader.next());
+      Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
+      Assert.assertEquals("uhu", reader.getElement().toString());
+      Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
+      Assert.assertEquals("uhu2", reader.getElement().toString());
+      Assert.assertEquals(Csv.TokenType.END_ROW, reader.next());
+      Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
+      Assert.assertEquals("", reader.getElement().toString());
+      Assert.assertEquals(Csv.TokenType.END_DOCUMENT, reader.next());
+      Assert.assertEquals(Csv.TokenType.END_DOCUMENT, reader.next());
     }
 
 

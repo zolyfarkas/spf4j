@@ -313,6 +313,10 @@ public final class Csv {
                 handler.endRow();
                 start = true;
                 int c2 = reader.read();
+                if (c2 < 0) {
+                  loop = false;
+                  break;
+                }
                 if (c2 != '\n') {
                     reader.unread(c2);
                 }
@@ -335,88 +339,98 @@ public final class Csv {
         return handler.eof();
     }
 
-//    public static ElementIterator iterator(final PushbackReader reader) throws IOException {
-//      return new ElementIterator() {
-//
-//        // MUST be at least size 2.
-//        private static final int TBUFF_SIZE = 2;
-//
-//        private final StringBuilder [] values = new StringBuilder[TBUFF_SIZE];
-//
-//        private TokenType [] tokens = new TokenType[TBUFF_SIZE];
-//
-//        private int readIdx = -1;
-//
-//        {
-//
-//        }
-//
-//
-//        private void read() throws IOException {
-//          if
-//          sb.setLength(0);
-//          int next = readCsvElement(reader, sb);
-//          tokens[0] = TokenType.ELEMENT;
-//          switch (next) {
-//              case '\r':
-//                int c2 = reader.read();
-//                if (c2 != '\n') {
-//                    reader.unread(c2);
-//                }
-//                nextToken = TokenType.END_ROW;
-//                break;
-//              case '\n':
-//                nextToken = TokenType.END_ROW;
-//                break;
-//              case ',':
-//                break;
-//              default:
-//               if (next < 0) {
-//                nextToken = TokenType.END_DOCUMENT;
-//               } else {
-//                 throw new IOException("Unexpected character " + c);
-//               }
-//            }
-//
-//        }
-//
-//
-//        @Override
-//        public boolean hasNext() {
-//        }
-//
-//        @Override
-//        public void next() throws IOException {
-//        }
-//
-//        @Override
-//        public TokenType getType() {
-//          return currentToken;
-//        }
-//
-//        @Override
-//        public CharSequence getElement() {
-//          return sb;
-//        }
-//      };
-//    }
-//
-//    public enum TokenType {
-//      ELEMENT, END_ROW, END_DOCUMENT
-//    }
-//
-//
-//    public interface ElementIterator {
-//
-//        boolean hasNext();
-//
-//        void next() throws IOException;
-//
-//        TokenType getType();
-//
-//        CharSequence getElement();
-//
-//    }
+    public static CsvReader reader(final Reader preader) throws IOException {
+        PushbackReader reader = new PushbackReader(preader);
+        int firstChar = reader.read();
+        if (firstChar != UTF_BOM && firstChar >= 0) {
+            reader.unread(firstChar);
+        }
+        return readerNoBOM(reader);
+    }
+
+    public static CsvReader readerNoBOM(final PushbackReader reader)  {
+      return new CsvReader() {
+
+        private final StringBuilder  currentElement = new StringBuilder();
+
+        private TokenType currentToken;
+
+        private TokenType nextToken;
+
+        private void readCurrentElement() throws IOException {
+          currentElement.setLength(0);
+          int next = readCsvElement(reader, currentElement);
+          currentToken = TokenType.ELEMENT;
+          switch (next) {
+              case '\r':
+                int c2 = reader.read();
+                if (c2 < 0) {
+                  nextToken = TokenType.END_DOCUMENT;
+                  break;
+                }
+                if (c2 != '\n') {
+                  reader.unread(c2);
+                }
+                nextToken = TokenType.END_ROW;
+                break;
+              case '\n':
+                nextToken = TokenType.END_ROW;
+                break;
+              case ',':
+                break;
+              default:
+               if (next < 0) {
+                nextToken = TokenType.END_DOCUMENT;
+               } else {
+                 throw new IOException("Unexpected character " + next);
+               }
+            }
+
+        }
+
+
+        @Override
+        public TokenType next() throws IOException {
+          if (currentToken == null) {
+            if (nextToken == null) {
+              readCurrentElement();
+              TokenType result = currentToken;
+              if (result != TokenType.END_DOCUMENT) {
+                currentToken = null;
+              }
+              return result;
+            } else {
+              TokenType result = nextToken;
+              if (result != TokenType.END_DOCUMENT) {
+                nextToken = null;
+              }
+              return result;
+            }
+          } else {
+            return currentToken;
+          }
+        }
+
+
+        @Override
+        public CharSequence getElement() {
+          return currentElement;
+        }
+      };
+    }
+
+    public enum TokenType {
+      ELEMENT, END_ROW, END_DOCUMENT
+    }
+
+
+    public interface CsvReader {
+
+        TokenType next() throws IOException;
+
+        CharSequence getElement();
+
+    }
 
     private static final char[] TO_ESCAPE = new char[]{',', '\n', '\r', '"'};
 
