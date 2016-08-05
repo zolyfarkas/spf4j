@@ -258,7 +258,7 @@ public final class CsvTest {
 
     @Test
     public void testCsvStream5() throws IOException {
-      Csv.CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader("bla,\"bla\"\nuhu,uhu2\n")));
+      Csv.CsvReader reader = Csv.reader(new StringReader("bla,\"bla\"\nuhu,uhu2\n"));
       Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
       Assert.assertEquals("bla", reader.getElement().toString());
       Assert.assertEquals(Csv.TokenType.ELEMENT, reader.next());
@@ -273,6 +273,16 @@ public final class CsvTest {
       Assert.assertEquals("", reader.getElement().toString());
       Assert.assertEquals(Csv.TokenType.END_DOCUMENT, reader.next());
       Assert.assertEquals(Csv.TokenType.END_DOCUMENT, reader.next());
+    }
+
+    @Test
+    public void testLineIteration() {
+      int nr = 0;
+      for(List<String> line : Csv.asIterable(new StringReader("bla,\"bla\"\nuhu,uhu2\n"))) {
+        System.out.println(line);
+        nr++;
+      };
+      Assert.assertEquals(3, nr);
     }
 
 
