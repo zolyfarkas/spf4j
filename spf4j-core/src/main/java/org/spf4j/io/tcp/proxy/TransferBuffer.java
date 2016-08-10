@@ -20,6 +20,8 @@ package org.spf4j.io.tcp.proxy;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -27,122 +29,167 @@ import java.nio.channels.SocketChannel;
  */
 public final class TransferBuffer {
 
-    public enum Operation { READ, WRITE };
+  public enum Operation {
+    READ, WRITE
+  };
 
+  private final ByteBuffer buffer;
 
-    private final ByteBuffer buffer;
+  private Operation lastOperation;
 
+  private boolean isEof;
 
-    private Operation lastOperation;
+  private Runnable isDataInBufferHook;
 
-    private boolean isEof;
+  private Runnable isRoomInBufferHook;
 
-    private Runnable isDataInBufferHook;
+  private Sniffer incomingSniffer;
 
-    private Runnable isRoomInBufferHook;
+  private IOException readException;
 
-    private Sniffer incomingSniffer;
+  private IOException writeException;
 
+  public TransferBuffer(final int bufferSize) {
+    buffer = ByteBuffer.allocateDirect(bufferSize);
+    lastOperation = Operation.READ;
+    isEof = false;
+    this.isDataInBufferHook = null;
+    this.isRoomInBufferHook = null;
+    this.readException = null;
+    this.writeException = null;
+  }
 
-    public TransferBuffer(final int bufferSize) {
-        buffer = ByteBuffer.allocateDirect(bufferSize);
-        lastOperation = Operation.READ;
-        isEof = false;
-        this.isDataInBufferHook = null;
-        this.isRoomInBufferHook = null;
-    }
+  private static final Logger LOG = LoggerFactory.getLogger(TransferBuffer.class);
 
-    public synchronized int read(final SocketChannel channel) throws IOException {
-        if (lastOperation == Operation.WRITE) {
-            buffer.compact();
-            lastOperation = Operation.READ;
-        }
-        int nrRead;
+  public synchronized int read(final SocketChannel channel) {
+    if (lastOperation == Operation.WRITE) {
+      if (writeException != null) {
         try {
-          nrRead = channel.read(buffer);
-          if (incomingSniffer != null && (nrRead != 0)) {
-              nrRead = incomingSniffer.received(buffer, nrRead);
-          }
+          channel.socket().shutdownInput();
         } catch (IOException ex) {
-          IOException nex = incomingSniffer.received(ex);
-          if (nex != null) {
-            throw nex;
-          } else {
-            nrRead = 0;
-          }
+          writeException.addSuppressed(ex);
         }
-        if (nrRead < 0) {
-            isEof = true;
-            channel.socket().shutdownInput(); // ? is this really necessary?
-        } else if (buffer.hasRemaining()) {
-            isRoomInBufferHook.run();
-        }
-        if (buffer.position() > 0 || isEof) {
-            isDataInBufferHook.run();
-        }
-        return nrRead;
+        LOG.debug("Closed channel {} due to write exception", channel, writeException);
+        return -1;
+      }
+      buffer.compact();
+      lastOperation = Operation.READ;
     }
-
-    public synchronized int write(final SocketChannel channel) throws IOException {
-        if (lastOperation == Operation.READ) {
-            buffer.flip();
-            lastOperation = Operation.WRITE;
+    int nrRead;
+    try {
+      nrRead = channel.read(buffer);
+      if (incomingSniffer != null && (nrRead != 0)) {
+        nrRead = incomingSniffer.received(buffer, nrRead);
+      }
+    } catch (IOException ex) {
+      LOG.debug("Exception while reading from {}", channel, ex);
+      readException = incomingSniffer.received(ex);
+      try {
+        channel.close();
+      } catch (IOException ex1) {
+        if (readException != null) {
+          readException.addSuppressed(ex1);
         }
-        int nrWritten = channel.write(buffer);
-        final boolean hasRemaining = buffer.hasRemaining();
-        if (!hasRemaining && isEof) {
-            channel.socket().shutdownOutput();
-            return nrWritten;
+      }
+      nrRead = 0;
+    }
+    if (nrRead < 0) {
+      isEof = true;
+      try {
+        channel.socket().shutdownInput(); // ? is this really necessary?
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
+    } else if (buffer.hasRemaining()) {
+      isRoomInBufferHook.run();
+    }
+    if (buffer.position() > 0 || isEof) {
+      isDataInBufferHook.run();
+    }
+    return nrRead;
+  }
+
+  public synchronized int write(final SocketChannel channel) {
+    if (lastOperation == Operation.READ) {
+      if (readException != null) {
+        try {
+          channel.socket().shutdownOutput();
+        } catch (IOException ex) {
+          readException.addSuppressed(ex);
         }
-        if (!isEof && buffer.position() > 0) {
-           isRoomInBufferHook.run();
-        }
-        if (hasRemaining) {
-           isDataInBufferHook.run();
-        }
-        return nrWritten;
+        LOG.debug("Closed channel {} due to read exception", channel, readException);
+        return 0;
+      }
+      buffer.flip();
+      lastOperation = Operation.WRITE;
     }
-
-
-    public static int transfer(final SocketChannel in, final SocketChannel out, final ByteBuffer buffer)
-            throws IOException {
-        int read = 0;
-        //CHECKSTYLE:OFF
-        while ((in.finishConnect() && ((read = in.read(buffer)) > 0)) || (buffer.position() > 0)) {
-            //CHECKSTYLE:ON
-          buffer.flip();
-          if (!out.finishConnect()) {
-              break;
-          }
-          int writen = out.write(buffer);
-          buffer.compact();
-          if (writen <= 0) {
-            break;
-          }
-        }
-        return read;
+    int nrWritten;
+    try {
+      nrWritten = channel.write(buffer);
+    } catch (IOException ex) {
+      try {
+        channel.close();
+      } catch (IOException ex1) {
+        ex.addSuppressed(ex1);
+      }
+      LOG.debug("Exception while writing to {}", channel, ex);
+      writeException = ex;
+      nrWritten = 0;
     }
-
-
-    public synchronized void setIsDataInBufferHook(final Runnable isDataInBufferHook) {
-        this.isDataInBufferHook = isDataInBufferHook;
+    final boolean hasRemaining = buffer.hasRemaining();
+    if (!hasRemaining && isEof) {
+      try {
+        channel.socket().shutdownOutput();
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
+      return nrWritten;
     }
-
-    public synchronized void setIsRoomInBufferHook(final Runnable isRoomInBufferHook) {
-        this.isRoomInBufferHook = isRoomInBufferHook;
+    if (!isEof && buffer.position() > 0) {
+      isRoomInBufferHook.run();
     }
-
-    public synchronized void setIncomingSniffer(final Sniffer incomingSniffer) {
-        this.incomingSniffer = incomingSniffer;
+    if (hasRemaining) {
+      isDataInBufferHook.run();
     }
+    return nrWritten;
+  }
 
-    @Override
-    public String toString() {
-        return "TransferBuffer{" + "buffer=" + buffer + ", lastOperation=" + lastOperation
-                + ", isEof=" + isEof + ", isDataInBufferHook=" + isDataInBufferHook
-                + ", isRoomInBufferHook=" + isRoomInBufferHook + '}';
+  public static int transfer(final SocketChannel in, final SocketChannel out, final ByteBuffer buffer)
+          throws IOException {
+    int read = 0;
+    //CHECKSTYLE:OFF
+    while ((in.finishConnect() && ((read = in.read(buffer)) > 0)) || (buffer.position() > 0)) {
+      //CHECKSTYLE:ON
+      buffer.flip();
+      if (!out.finishConnect()) {
+        break;
+      }
+      int writen = out.write(buffer);
+      buffer.compact();
+      if (writen <= 0) {
+        break;
+      }
     }
+    return read;
+  }
 
+  public synchronized void setIsDataInBufferHook(final Runnable isDataInBufferHook) {
+    this.isDataInBufferHook = isDataInBufferHook;
+  }
 
+  public synchronized void setIsRoomInBufferHook(final Runnable isRoomInBufferHook) {
+    this.isRoomInBufferHook = isRoomInBufferHook;
+  }
+
+  public synchronized void setIncomingSniffer(final Sniffer incomingSniffer) {
+    this.incomingSniffer = incomingSniffer;
+  }
+
+  @Override
+  public String toString() {
+    return "TransferBuffer{" + "buffer=" + buffer + ", lastOperation=" + lastOperation
+            + ", isEof=" + isEof + ", isDataInBufferHook=" + isDataInBufferHook
+            + ", isRoomInBufferHook=" + isRoomInBufferHook + '}';
+  }
 
 }

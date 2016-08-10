@@ -209,22 +209,11 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
             this.channel = channel;
         }
 
-        @Override
-        public void doRun() throws IOException, InterruptedException {
-            try {
-                int read = in.read(channel);
-                LOG.debug("Read {} bytes from {}", read, channel);
-            } catch (IOException ex) {
-//                connected = false;
-                try {
-                    channel.close();
-                } catch (IOException ex1) {
-                    ex1.addSuppressed(ex);
-                    throw ex1;
-                }
-                throw new IOException("Error while reading from " + channel, ex);
-            }
-        }
+      @Override
+      public void doRun() {
+        int read = in.read(channel);
+        LOG.debug("Read {} bytes from {}", read, channel);
+      }
     }
 
     private static class WriteToChannel extends AbstractRunnable {
@@ -239,20 +228,9 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
         }
 
         @Override
-        public void doRun() throws IOException, InterruptedException {
-            try {
+        public void doRun() {
                 int written = out.write(channel);
                 LOG.debug("Written {} bytes to {}", written, channel);
-            } catch (IOException ex) {
-//                connected = false;
-                try {
-                    channel.close();
-                } catch (IOException ex1) {
-                    ex1.addSuppressed(ex);
-                    throw ex1;
-                }
-                throw new IOException("Error while writing to " + channel, ex);
-            }
         }
     }
 
