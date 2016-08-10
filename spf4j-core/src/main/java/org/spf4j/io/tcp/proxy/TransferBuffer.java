@@ -63,27 +63,25 @@ public final class TransferBuffer {
 
   public synchronized int read(final SocketChannel channel) {
     if (lastOperation == Operation.WRITE) {
-      if (writeException != null) {
-        try {
-          channel.socket().shutdownInput();
-        } catch (IOException ex) {
-          writeException.addSuppressed(ex);
-        }
-        LOG.debug("Closed channel {} due to write exception", channel, writeException);
-        return -1;
-      }
       buffer.compact();
       lastOperation = Operation.READ;
     }
     int nrRead;
+    IOException oex = null;
     try {
       nrRead = channel.read(buffer);
       if (incomingSniffer != null && (nrRead != 0)) {
         nrRead = incomingSniffer.received(buffer, nrRead);
       }
     } catch (IOException ex) {
-      LOG.debug("Exception while reading from {}", channel, ex);
+      oex = ex;
       readException = incomingSniffer.received(ex);
+      if (readException != null) {
+        LOG.debug("Exception while reading from {}", channel, ex);
+        nrRead = -1;
+      } else {
+        nrRead = 0; // sniffer filters exception, behave a s no data received.
+      }
       try {
         channel.close();
       } catch (IOException ex1) {
@@ -91,7 +89,6 @@ public final class TransferBuffer {
           readException.addSuppressed(ex1);
         }
       }
-      nrRead = 0;
     }
     if (nrRead < 0) {
       isEof = true;
@@ -100,7 +97,7 @@ public final class TransferBuffer {
       } catch (IOException ex) {
         throw new RuntimeException(ex);
       }
-    } else if (buffer.hasRemaining()) {
+    } else if (oex == null && buffer.hasRemaining()) {
       isRoomInBufferHook.run();
     }
     if (buffer.position() > 0 || isEof) {
@@ -111,15 +108,6 @@ public final class TransferBuffer {
 
   public synchronized int write(final SocketChannel channel) {
     if (lastOperation == Operation.READ) {
-      if (readException != null) {
-        try {
-          channel.socket().shutdownOutput();
-        } catch (IOException ex) {
-          readException.addSuppressed(ex);
-        }
-        LOG.debug("Closed channel {} due to read exception", channel, readException);
-        return 0;
-      }
       buffer.flip();
       lastOperation = Operation.WRITE;
     }
@@ -137,18 +125,28 @@ public final class TransferBuffer {
       nrWritten = 0;
     }
     final boolean hasRemaining = buffer.hasRemaining();
-    if (!hasRemaining && isEof) {
-      try {
-        channel.socket().shutdownOutput();
-      } catch (IOException ex) {
-        throw new RuntimeException(ex);
+    if (!hasRemaining) {
+      if (isEof) {
+        try {
+          channel.socket().shutdownOutput();
+        } catch (IOException ex) {
+          throw new RuntimeException(ex);
+        }
+        return nrWritten;
+      } else if (readException != null) {
+        try {
+          channel.socket().shutdownOutput();
+        } catch (IOException ex) {
+          readException.addSuppressed(ex);
+        }
+        LOG.debug("Closed channel {} due to read exception", channel, readException);
+        return nrWritten;
       }
-      return nrWritten;
     }
     if (!isEof && buffer.position() > 0) {
       isRoomInBufferHook.run();
     }
-    if (hasRemaining) {
+    if (hasRemaining && writeException != null) {
       isDataInBufferHook.run();
     }
     return nrWritten;

@@ -36,13 +36,13 @@ import org.spf4j.io.tcp.proxy.SnifferFactory;
  *
  * @author zoly
  */
-@Ignore
+//@Ignore
 @SuppressFBWarnings({ "SIC_INNER_SHOULD_BE_STATIC_ANON", "MDM_THREAD_YIELD" })
 public class TcpServerTest {
 
     @Test(timeout = 1000000)
     public void testProxy() throws IOException, InterruptedException {
-        String testSite = "www.zoltran.com";//"www.google.com"; //charizard.homeunix.net
+        String testSite = "charizard.homeunix.net";//"www.google.com"; //charizard.homeunix.net
         ForkJoinPool pool = new ForkJoinPool(1024);
         try (TcpServer server = new TcpServer(pool,
                 new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), null, null, 10000, 5000),
@@ -61,7 +61,7 @@ public class TcpServerTest {
 
     @Test
     public void testProxySimple() throws IOException, InterruptedException {
-        String testSite = "www.zoltran.com";//"www.google.com"; //charizard.homeunix.net
+        String testSite = "charizard.homeunix.net";//"www.google.com"; //charizard.homeunix.net www.zoltran.com
         ForkJoinPool pool = new ForkJoinPool(1024);
 
         SnifferFactory fact = new SnifferFactory() {
