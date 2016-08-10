@@ -36,7 +36,7 @@ public final class TransferBuffer {
     private Operation lastOperation;
 
     private boolean isEof;
-    
+
     private Runnable isDataInBufferHook;
 
     private Runnable isRoomInBufferHook;
@@ -59,7 +59,7 @@ public final class TransferBuffer {
         }
         int nrRead = channel.read(buffer);
         if (incomingSniffer != null && (nrRead != 0)) {
-            incomingSniffer.received(buffer, nrRead);
+            nrRead = incomingSniffer.received(buffer, nrRead);
         }
         if (nrRead < 0) {
             isEof = true;
@@ -132,7 +132,7 @@ public final class TransferBuffer {
                 + ", isEof=" + isEof + ", isDataInBufferHook=" + isDataInBufferHook
                 + ", isRoomInBufferHook=" + isRoomInBufferHook + '}';
     }
-    
+
 
 
 }

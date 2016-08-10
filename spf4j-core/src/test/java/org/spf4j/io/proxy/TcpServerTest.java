@@ -72,11 +72,11 @@ public class TcpServerTest {
                     CharsetDecoder asciiDecoder = Charsets.US_ASCII.newDecoder();
 
                     @Override
-                    public void received(ByteBuffer data, int nrBytes) {
+                    public int received(ByteBuffer data, int nrBytes) {
                         // Naive printout using ASCII
                         if (nrBytes < 0) {
                             System.err.println("EOF");
-                            return;
+                            return nrBytes;
                         }
                         ByteBuffer duplicate = data.duplicate();
                         duplicate.position(data.position() - nrBytes);
@@ -87,6 +87,7 @@ public class TcpServerTest {
                         asciiDecoder.decode(duplicate, cb, true);
                         cb.flip();
                         System.err.print(cb.toString());
+                        return nrBytes;
                     }
                 };
             }

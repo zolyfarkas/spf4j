@@ -30,7 +30,8 @@ public interface Sniffer {
      * @param data - the byte buffer containing the data.
      * @param nrBytes - number of bytes in the buffer. The data in the buffer is from position-nrBytes to position.
      * nrBytes will be -1 on EOF.
+     * @return new nrReadValue if we aim to motate buffer
      */
-    void received(ByteBuffer data, int nrBytes);
+    int received(ByteBuffer data, int nrBytes);
 
 }
