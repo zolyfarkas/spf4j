@@ -89,6 +89,11 @@ public class TcpServerTest {
                         System.err.print(cb.toString());
                         return nrBytes;
                     }
+
+                  @Override
+                  public IOException received(IOException ex) {
+                    return ex;
+                  }
                 };
             }
         };

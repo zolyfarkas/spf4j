@@ -57,9 +57,19 @@ public final class TransferBuffer {
             buffer.compact();
             lastOperation = Operation.READ;
         }
-        int nrRead = channel.read(buffer);
-        if (incomingSniffer != null && (nrRead != 0)) {
-            nrRead = incomingSniffer.received(buffer, nrRead);
+        int nrRead;
+        try {
+          nrRead = channel.read(buffer);
+          if (incomingSniffer != null && (nrRead != 0)) {
+              nrRead = incomingSniffer.received(buffer, nrRead);
+          }
+        } catch (IOException ex) {
+          IOException nex = incomingSniffer.received(ex);
+          if (nex != null) {
+            throw nex;
+          } else {
+            nrRead = 0;
+          }
         }
         if (nrRead < 0) {
             isEof = true;

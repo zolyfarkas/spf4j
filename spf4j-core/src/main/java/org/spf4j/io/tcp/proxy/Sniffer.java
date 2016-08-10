@@ -17,7 +17,9 @@
  */
 package org.spf4j.io.tcp.proxy;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -33,5 +35,14 @@ public interface Sniffer {
      * @return new nrReadValue if we aim to motate buffer
      */
     int received(ByteBuffer data, int nrBytes);
+
+
+    /**
+     * Allows to intercept read errors and change them.
+     * @param ex
+     * @return
+     */
+    @Nullable
+    IOException received(IOException ex);
 
 }
