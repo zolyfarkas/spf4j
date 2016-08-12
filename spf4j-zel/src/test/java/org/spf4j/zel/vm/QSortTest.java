@@ -22,6 +22,7 @@ import com.google.common.io.Resources;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.IntMath;
@@ -65,7 +66,7 @@ public final class QSortTest {
         for (int i = 0; i < 3; i++) {
             long startTime = System.currentTimeMillis();
             resultSt = testArray.clone();
-            p.executeSingleThreaded(new Object [] {resultSt});
+            p.execute(Executors.newSingleThreadExecutor(), new Object [] {resultSt});
             System.out.println("ST exec time = " + (System.currentTimeMillis() - startTime));
         }
 
