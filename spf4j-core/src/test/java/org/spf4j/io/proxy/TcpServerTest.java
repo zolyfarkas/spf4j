@@ -36,7 +36,7 @@ import org.spf4j.io.tcp.proxy.SnifferFactory;
  *
  * @author zoly
  */
-@Ignore
+@Ignore // travis CI env is restricted, this will not work.
 @SuppressFBWarnings({ "SIC_INNER_SHOULD_BE_STATIC_ANON", "MDM_THREAD_YIELD" })
 public class TcpServerTest {
 
