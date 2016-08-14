@@ -15,16 +15,17 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * IMPORTANT: This file are also Licensed with the BDS license.
+ * IMPORTANT: This file is also Licensed with the BDS license.
  */
 package org.spf4j.base;
 
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 /**
  * some "standard" process exit codes from:
+ * http://tldp.org/LDP/abs/html/index.html
  * https://www.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD+4.3-RELEASE&format=html
  * http://journal.thobe.org/2013/02/jvms-and-kill-signals.html
  * @author zoly
@@ -35,6 +36,16 @@ public enum SysExits {
    * Everything is OK.
    */
   OK(0),
+
+  /**
+   * Catch all for general errors.
+   */
+  EX_GENERAL(1),
+
+  /**
+   * Shell build in miss-use.
+   */
+  EX_SHELL_BUILTIN_MISSUSE(2),
 
   /**
    * The command was used incorrectly, e.g., with the wrong number of arguments, a bad flag, a bad syntax in a
@@ -106,9 +117,27 @@ public enum SysExits {
    */
   EX_CONFIG(78),
 
+
+  /**
+   * cannot execute invoked command.
+   */
+  EX_CANNOT_EXEC_CMD(126),
+
+  /**
+   * Command not found.
+   */
+  EX_CMD_NOT_FOUND(127),
+
+  /**
+   * Invalid argument to exit.
+   */
+  EX_INVALID_ARG_TO_EXIT(128),
+
   /**
    * Section caused by exit due to signal.
    * where signal name is same on Linux, Solaris and MacOS enum has the appropriate name.
+   * for linux see: http://man7.org/linux/man-pages/man7/signal.7.html
+   * or run man signal on you OS of choice.
    */
   EX_SIG_HUP(129),
   EX_SIG_INT(130),
@@ -140,7 +169,13 @@ public enum SysExits {
   EX_SIG_28(156),
   EX_SIG_29(157),
   EX_SIG_30(158),
-  EX_SIG_31(159);
+  EX_SIG_31(159),
+
+  EX_STATUS_OUT_OF_RANGE(255),
+  /**
+   * Any return codes not explicitly defined will be associated with "EX_UNKNOWN"
+   */
+  EX_UNKNOWN(-1);
 
   SysExits(final int code) {
     this.exitCode = code;
@@ -176,11 +211,16 @@ public enum SysExits {
 
   /**
    * @param exitCode
-   * @return null if do not have a coresponding enum.
+   * @return corresponding enum.
    */
-  @Nullable
+  @Nonnull
   public static SysExits fromCode(final int exitCode) {
-    return CODE2ENUM.get(exitCode);
+    SysExits result =  CODE2ENUM.get(exitCode);
+    if (result == null) {
+      return SysExits.EX_UNKNOWN;
+    } else {
+      return result;
+    }
   }
 
 }
