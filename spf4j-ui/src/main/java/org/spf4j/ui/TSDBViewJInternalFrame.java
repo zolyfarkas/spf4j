@@ -45,10 +45,11 @@ import org.spf4j.perf.tsdb.TSTable;
 import org.spf4j.perf.tsdb.TimeSeriesDatabase;
 
 /**
- *
+ * @deprecated tsdb has been deprecated in favor of tsdb2.
  * @author zoly
  */
 @SuppressFBWarnings({"FCBL_FIELD_COULD_BE_LOCAL", "SE_BAD_FIELD"})
+@Deprecated
 public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
     private static final long serialVersionUID = 1L;
 
