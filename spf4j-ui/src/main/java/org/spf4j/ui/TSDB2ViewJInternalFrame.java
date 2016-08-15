@@ -23,7 +23,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -223,7 +222,7 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("UP_UNUSED_PARAMETER")
+    @SuppressFBWarnings("UP_UNUSED_PARAMETER")
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         TreePath[] selectionPaths = measurementTree.getSelectionPaths();
         JPanel content = new JPanel();
@@ -240,7 +239,7 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
         chartPannel.repaint();
     }//GEN-LAST:event_jButton1ActionPerformed
 
-        @edu.umd.cs.findbugs.annotations.SuppressWarnings("UP_UNUSED_PARAMETER")
+    @SuppressFBWarnings("UP_UNUSED_PARAMETER")
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         TreePath[] selectionPaths = measurementTree.getSelectionPaths();
         Set<String> selectedTables = getSelectedTables(selectionPaths);
@@ -272,7 +271,7 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
     private javax.swing.JSpinner startDate;
     // End of variables declaration//GEN-END:variables
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("CLI_CONSTANT_LIST_INDEX")
+    @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
     private static Set<String> getSelectedTables(@Nullable final TreePath[] selectionPaths) {
         if (selectionPaths == null) {
             return Collections.EMPTY_SET;
