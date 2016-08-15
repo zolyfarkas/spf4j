@@ -42,7 +42,7 @@ import org.spf4j.jmx.Registry;
  */
 @ThreadSafe
 // a recorder instance is tipically alive for the entire life of the process
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
+@SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
 public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumulator {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);
@@ -54,7 +54,6 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     private final Persister persister;
     private final Runnable shutdownHook;
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
     ScalableMeasurementRecorder(final MeasurementAccumulator processor, final int sampleTimeMillis,
             final MeasurementStore measurementStore) {
         if (sampleTimeMillis < 1000) {

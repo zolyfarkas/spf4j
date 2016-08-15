@@ -46,7 +46,7 @@ import org.spf4j.perf.MeasurementRecorderSource;
 
 @ThreadSafe
 // a recorder instance is tipically alive for the entire life of the process
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
+@SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
 public final class ScalableMeasurementRecorderSource implements
         MeasurementRecorderSource, MeasurementsSource, Closeable {
 
@@ -295,6 +295,6 @@ public final class ScalableMeasurementRecorderSource implements
                 + ", tableIds=" + tableIds + ", persister=" + persister + ", shutdownHook=" + shutdownHook + '}';
     }
 
-    
+
 
 }
