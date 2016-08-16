@@ -35,4 +35,13 @@ public interface RejectedExecutionHandler {
         }
     };
 
+    RejectedExecutionHandler RUN_IN_CALLER_EXEC_HANDLER = new RejectedExecutionHandler() {
+
+        @Override
+        public void rejectedExecution(final Runnable r, final LifoThreadPool executor) {
+            r.run();
+        }
+    };
+
+
 }
