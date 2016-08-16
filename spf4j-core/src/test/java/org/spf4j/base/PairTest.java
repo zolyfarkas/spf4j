@@ -1,11 +1,24 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
+
 package org.spf4j.base;
 
 import java.util.List;
-import org.hamcrest.Matchers;
 import org.joda.time.LocalDate;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,7 +46,7 @@ public final class PairTest {
     @Test
     public void testNull() {
         Pair<String, String> pair1 = Pair.of(null, null);
-        Assert.assertEquals("(,)", pair1.toString());
+        Assert.assertEquals(",", pair1.toString());
          List<Object> toList = pair1.toList();
         Assert.assertNull(toList.get(0));
         Assert.assertNull(toList.get(1));

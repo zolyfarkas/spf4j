@@ -46,24 +46,21 @@ public class Pair<A, B> implements Map.Entry<A, B>, Writeable {
     }
 
     /**
-     * Creates a pair from a (str1,str2) pair.
+     * Creates a pair from a str1,str2 pair.
      *
      * @param stringPair - pair in the format (a,b) csv pair.
      * @return null if this is not a pair.
      */
     @Nullable
     public static Pair<String, String> from(@Nonnull final String stringPair) {
-        final int lastCharIdx = stringPair.length() - 1;
-        if (!(stringPair.charAt(0) == PREFIX) || !(stringPair.charAt(lastCharIdx) == SUFFIX)) {
-            return null;
+        if (stringPair.isEmpty()) {
+          return null;
         }
         int commaIdx = stringPair.indexOf(',');
         if (commaIdx < 0) {
             return null;
         }
-
-        StringReader sr = new StringReader(
-                stringPair.substring(1, lastCharIdx));
+        StringReader sr = new StringReader(stringPair);
         StringBuilder first = new StringBuilder();
         StringBuilder second = new StringBuilder();
         int comma;
@@ -72,7 +69,6 @@ public class Pair<A, B> implements Map.Entry<A, B>, Writeable {
             if (comma != ',') {
                 return null;
             }
-
             int last = Csv.readCsvElement(sr, second);
             if (last >= 0) {
                 return null;
@@ -82,9 +78,10 @@ public class Pair<A, B> implements Map.Entry<A, B>, Writeable {
         }
         return Pair.of(first.toString(), second.toString());
     }
-    private static final char SUFFIX = ')';
 
-    private static final char PREFIX = '(';
+    public static final char SUFFIX = ')';
+
+    public static final char PREFIX = '(';
 
     //CHECKSTYLE:OFF
     @Nullable
@@ -135,11 +132,9 @@ public class Pair<A, B> implements Map.Entry<A, B>, Writeable {
 
     @Override
     public final void writeTo(final Appendable appendable) throws IOException {
-      appendable.append(PREFIX);
       Csv.writeCsvElement(first == null ? "" : first.toString(), appendable);
       appendable.append(',');
       Csv.writeCsvElement(second == null ? "" : second.toString(), appendable);
-      appendable.append(SUFFIX);
     }
 
     public final List<Object> toList() {

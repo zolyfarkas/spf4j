@@ -520,13 +520,13 @@ public final class Csv {
 
   public static void writeCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
     if (Strings.contains(elem, TO_ESCAPE)) {
-      writeEscaped(elem, writer);
+      writeQuotedCsvElement(elem, writer);
     } else {
       writer.append(elem);
     }
   }
 
-  private static void writeEscaped(final CharSequence elem, final Appendable writer) throws IOException {
+  public static void writeQuotedCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
     int length = elem.length();
     writer.append('"');
     for (int i = 0; i < length; i++) {
@@ -544,7 +544,7 @@ public final class Csv {
     if (Strings.contains(elem, TO_ESCAPE)) {
       StringWriter sw = new StringWriter(elem.length() - 1);
       try {
-        writeEscaped(elem, sw);
+        writeQuotedCsvElement(elem, sw);
       } catch (IOException ex) {
         throw new RuntimeException(ex);
       }
@@ -559,7 +559,7 @@ public final class Csv {
    *
    * @param reader
    * @param addElemTo
-   * @return
+   * @return - next character or -1 if eof has been reached.
    * @throws IOException
    */
   @CheckReturnValue
