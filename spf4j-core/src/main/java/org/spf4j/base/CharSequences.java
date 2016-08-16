@@ -193,4 +193,153 @@ public final class CharSequences {
   }
 
 
+  /**
+   * A more flexible version of Integer.parseInt.
+   * @see java.lang.Integer.parseInt
+   */
+  public static int parseInt(final CharSequence s) {
+    return parseInt(s, 10);
+  }
+
+  /**
+   * A more flexible version of Integer.parseInt.
+   * @see java.lang.Integer.parseInt
+   */
+  public static int parseInt(final CharSequence cs, final int radix) {
+    /*
+         * WARNING: This method may be invoked early during VM initialization
+         * before IntegerCache is initialized. Care must be taken to not use
+         * the valueOf method.
+     */
+
+    if (cs == null) {
+      throw new NumberFormatException("cs is null for radix = " + radix);
+    }
+
+    if (radix < Character.MIN_RADIX) {
+      throw new NumberFormatException("radix " + radix
+              + " less than Character.MIN_RADIX");
+    }
+
+    if (radix > Character.MAX_RADIX) {
+      throw new NumberFormatException("radix " + radix
+              + " greater than Character.MAX_RADIX");
+    }
+
+    int result = 0;
+    boolean negative = false;
+    int i = 0, len = cs.length();
+    int limit = -Integer.MAX_VALUE;
+    int multmin;
+    int digit;
+
+    if (len > 0) {
+      char firstChar = cs.charAt(0);
+      if (firstChar < '0') { // Possible leading "+" or "-"
+        if (firstChar == '-') {
+          negative = true;
+          limit = Integer.MIN_VALUE;
+        } else if (firstChar != '+') {
+          throw new NumberFormatException("For input char sequence: \"" + cs + '\"');
+        }
+
+        if (len == 1) { // Cannot have lone "+" or "-"
+          throw new NumberFormatException("For input char sequence: \"" + cs + '\"');
+        }
+        i++;
+      }
+      multmin = limit / radix;
+      while (i < len) {
+        // Accumulating negatively avoids surprises near MAX_VALUE
+        digit = Character.digit(cs.charAt(i++), radix);
+        if (digit < 0) {
+          throw new NumberFormatException("For input char sequence: \"" + cs + '\"');
+        }
+        if (result < multmin) {
+          throw new NumberFormatException("For input char sequence: \"" + cs + '\"');
+        }
+        result *= radix;
+        if (result < limit + digit) {
+          throw new NumberFormatException("For input char sequence: \"" + cs + '\"');
+        }
+        result -= digit;
+      }
+    } else {
+      throw new NumberFormatException("For input char sequence: \"" + cs + '\"');
+    }
+    return negative ? result : -result;
+  }
+
+
+  /**
+   * A more flexible version of Long.parseLong.
+   * @see java.lang.Long.parseLong
+   */
+  public static long parseLong(final CharSequence cs) {
+    return parseLong(cs, 10);
+  }
+
+  /**
+   * A more flexible version of Long.parseLong.
+   * @see java.lang.Long.parseLong
+   */
+  public static long parseLong(final CharSequence cs, final int radix) {
+    if (cs == null) {
+      throw new NumberFormatException("cs is null for radix = " + radix);
+    }
+
+    if (radix < Character.MIN_RADIX) {
+      throw new NumberFormatException("radix " + radix
+              + " less than Character.MIN_RADIX");
+    }
+    if (radix > Character.MAX_RADIX) {
+      throw new NumberFormatException("radix " + radix
+              + " greater than Character.MAX_RADIX");
+    }
+
+    long result = 0;
+    boolean negative = false;
+    int i = 0, len = cs.length();
+    long limit = -Long.MAX_VALUE;
+    long multmin;
+    int digit;
+
+    if (len > 0) {
+      char firstChar = cs.charAt(0);
+      if (firstChar < '0') { // Possible leading "+" or "-"
+        if (firstChar == '-') {
+          negative = true;
+          limit = Long.MIN_VALUE;
+        } else if (firstChar != '+') {
+          throw new NumberFormatException("For input char sequence: \"" + cs + '\"');
+        }
+
+        if (len == 1) { // Cannot have lone "+" or "-"
+          throw new NumberFormatException("For input char sequence: \"" + cs + '\"');
+        }
+        i++;
+      }
+      multmin = limit / radix;
+      while (i < len) {
+        // Accumulating negatively avoids surprises near MAX_VALUE
+        digit = Character.digit(cs.charAt(i++), radix);
+        if (digit < 0) {
+          throw new NumberFormatException("For input char sequence: \"" + cs + '\"');
+        }
+        if (result < multmin) {
+          throw new NumberFormatException("For input char sequence: \"" + cs + '\"');
+        }
+        result *= radix;
+        if (result < limit + digit) {
+          throw new NumberFormatException("For input char sequence: \"" + cs + '\"');
+        }
+        result -= digit;
+      }
+    } else {
+      throw new NumberFormatException("For input char sequence: \"" + cs + '\"');
+    }
+    return negative ? result : -result;
+  }
+
+
 }
