@@ -26,6 +26,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -51,6 +53,24 @@ public class LifoThreadPoolExecutorTest {
                 new LifoThreadPoolExecutorSQP("test", 0, 16, 60000, 0, 1024);
         testPool(executor);
     }
+
+  @Test(expected = RejectedExecutionException.class)
+  public void testRejectZeroQueueSizeTp() {
+    LifoThreadPool executor
+            = LifoThreadPoolBuilder.newBuilder().withCoreSize(0).withMaxSize(1).withQueueSizeLimit(0).build();
+    try {
+    executor.execute(() -> {
+      try {
+        Thread.sleep(10000);
+      } catch (InterruptedException ex) {
+        Thread.interrupted();
+      }
+    });
+    executor.execute(() -> {});
+    } finally {
+      executor.shutdownNow();
+    }
+  }
 
     @Test
     public void testLifoExecSQShutdownNow() throws InterruptedException, IOException {
