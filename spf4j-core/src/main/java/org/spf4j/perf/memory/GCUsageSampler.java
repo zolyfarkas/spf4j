@@ -105,7 +105,7 @@ public final class GCUsageSampler {
         return gcTime;
     }
 
-    @JmxExport
+    @JmxExport(description = "Get the total GC time in millis since the JVM started")
     public static long getGCTime() {
         return getGCTime(MBEANS);
     }
