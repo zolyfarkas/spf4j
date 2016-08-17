@@ -27,8 +27,8 @@ public final class DirectRecorderSourceTest {
             recorder2.recordAt(time + (long) i * 1000, i);
         }
         recorderSource.close();
-        org.spf4j.perf.RecorderFactoryTest.assertData("(test,A)", 4950);
-        org.spf4j.perf.RecorderFactoryTest.assertData("(test,B)", 4950);
+        org.spf4j.perf.RecorderFactoryTest.assertData("test,A", 4950);
+        org.spf4j.perf.RecorderFactoryTest.assertData("test,B", 4950);
     }
 
 }
