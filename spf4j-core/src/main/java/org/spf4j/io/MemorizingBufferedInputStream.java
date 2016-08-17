@@ -210,8 +210,11 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         if (wrapArround > 0) {
             read = super.read(memory, 0, wrapArround);
             if (read < 0) {
-                isEof = true;
-                return;
+              if (endIdx >= memory.length) {
+                endIdx = 0;
+              }
+              isEof = true;
+              return;
             }
             endIdx = read;
         } else if (endIdx >= memory.length) {

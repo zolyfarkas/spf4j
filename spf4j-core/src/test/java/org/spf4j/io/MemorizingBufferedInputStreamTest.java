@@ -2,8 +2,12 @@
 package org.spf4j.io;
 
 import com.google.common.base.Charsets;
+import com.google.common.io.CharStreams;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,6 +28,41 @@ public class MemorizingBufferedInputStreamTest {
 
     private static final String TSTR =
             "This is a super \u00EF cool, mega dupper test string for testing piping..........E";
+
+    @Test
+    @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
+    public void testBuffering() throws IOException {
+      byte [] bytes = new byte[16384];
+      for (int i = 0; i< bytes.length; i++) {
+        bytes[i] = (byte) ('a' + i % 10);
+      }
+      ByteArrayInputStream bis = new ByteArrayInputStream(bytes) {
+        private boolean first = true;
+        @Override
+        public synchronized int read(byte[] b, int off, int len) {
+          if (first && len > 260) {
+            first = false;
+            return super.read(b, off, 260);
+          } else {
+            return super.read(b, off, len);
+          }
+        }
+
+      };
+      try (MemorizingBufferedInputStream mbis = new MemorizingBufferedInputStream(bis)) {
+        StringBuilder sb = new StringBuilder();
+        PushbackInputStreamEx pushbackInputStreamEx = new PushbackInputStreamEx(mbis);
+        int read = pushbackInputStreamEx.read();
+        pushbackInputStreamEx.unread(read);
+        CharStreams.copy(new InputStreamReader(pushbackInputStreamEx, StandardCharsets.UTF_8), sb);
+        Assert.assertEquals(16384, sb.length());
+        Assert.assertEquals(new String(bytes, StandardCharsets.US_ASCII), sb.toString());
+      }
+    }
+
+
+
+
 
     @Test
     public void testSimpleStreamBuffering() throws IOException {
