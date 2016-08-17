@@ -97,7 +97,7 @@ public final class RecorderFactoryTest {
       Thread.sleep(1);
     }
     result.close();
-    assertData("(bla,X0)", 2500);
+    assertData("bla,X0", 2500);
   }
 
   @Test
@@ -137,7 +137,7 @@ public final class RecorderFactoryTest {
       Thread.sleep(1);
     }
     ((Closeable) result).close();
-    assertData("(" + forWhat + ",X1)", 2500);
+    assertData(forWhat + ",X1", 2500);
   }
 
   @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
