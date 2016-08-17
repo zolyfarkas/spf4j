@@ -77,9 +77,9 @@ public final class FileMonitorAspectTest {
     System.out.println("Tables" +  allTables);
     Map<String, Collection<TableDefEx>> asMap = allTables.asMap();
     Assert.assertThat(asMap, (Matcher)
-            Matchers.hasKey("(file-write,class org.spf4j.perf.aspects.FileMonitorAspectTest)"));
+            Matchers.hasKey("file-write,class org.spf4j.perf.aspects.FileMonitorAspectTest"));
     Assert.assertThat(asMap, (Matcher)
-            Matchers.hasKey("(file-read,class org.spf4j.perf.aspects.FileMonitorAspectTest)"));
+            Matchers.hasKey("file-read,class org.spf4j.perf.aspects.FileMonitorAspectTest"));
     List<TableDefEx> get = allTables.get("(file-write,class org.spf4j.perf.aspects.FileMonitorAspectTest)");
     Assert.assertTrue(get.get(0).getStartTime() != 0);
   }
