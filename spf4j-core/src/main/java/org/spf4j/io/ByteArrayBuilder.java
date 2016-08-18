@@ -159,9 +159,10 @@ public final class ByteArrayBuilder extends OutputStream {
      */
     @Override
     public synchronized void write(final int b) {
-        ensureCapacity(count + 1);
+        int cp1 = count + 1;
+        ensureCapacity(cp1);
         buf[count] = (byte) b;
-        count += 1;
+        count = cp1;
     }
 
     /**
@@ -177,9 +178,10 @@ public final class ByteArrayBuilder extends OutputStream {
         if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) - b.length > 0)) {
             throw new IndexOutOfBoundsException();
         }
-        ensureCapacity(count + len);
+        int cpl = count + len;
+        ensureCapacity(cpl);
         System.arraycopy(b, off, buf, count, len);
-        count += len;
+        count = cpl;
     }
 
     /**
