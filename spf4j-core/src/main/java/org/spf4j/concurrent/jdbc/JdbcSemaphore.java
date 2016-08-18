@@ -777,4 +777,15 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     isHealthy = false;
   }
 
+  @JmxExport
+  public int getJdbcTimeoutSeconds() {
+    return jdbcTimeoutSeconds;
+  }
+
+  @JmxExport
+  public boolean isIsHealthy() {
+    return isHealthy;
+  }
+
+
 }
