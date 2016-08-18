@@ -156,7 +156,7 @@ public final class FastStackCollector extends AbstractStackCollector {
             Thread[] threads = getThreads();
             final int nrThreads = threads.length;
             if (requestFor.length < nrThreads) {
-                requestFor = new Thread[nrThreads];
+                requestFor = new Thread[nrThreads - 1];
             }
             int j = 0;
             for (int i = 0; i < nrThreads; i++) {
