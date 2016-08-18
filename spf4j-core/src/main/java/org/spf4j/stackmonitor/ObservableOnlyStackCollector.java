@@ -18,27 +18,20 @@
 package org.spf4j.stackmonitor;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.Predicate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
+import org.spf4j.base.ArrayBuilder;
 
 @Beta
-public final class ObservableFastStackCollector extends AbstractStackCollector {
-
-  private final Predicate<Thread> threadFilter;
+public final class ObservableOnlyStackCollector extends AbstractStackCollector {
 
   private final ConcurrentMap<Thread, Consumer<StackTraceElement[]>> stConsumers;
 
-  public ObservableFastStackCollector(final boolean collectForMain, final String... xtraIgnoredThreads) {
-    this(FastStackCollector.createNameBasedFilter(collectForMain, xtraIgnoredThreads));
-  }
 
-  public ObservableFastStackCollector(final Predicate<Thread> threadFilter) {
-    this.threadFilter = threadFilter;
+  public ObservableOnlyStackCollector() {
     this.stConsumers = new ConcurrentHashMap<>();
   }
 
@@ -52,27 +45,20 @@ public final class ObservableFastStackCollector extends AbstractStackCollector {
     return stConsumers.remove(thread);
   }
 
-  private Thread[] requestFor = new Thread[]{};
+  private ArrayBuilder<Thread> requestFor = new ArrayBuilder<>(8, Thread.class);
 
   @Override
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   public void sample(final Thread ignore) {
-    Thread[] threads = FastStackCollector.getThreads();
-    final int nrThreads = threads.length;
-    if (requestFor.length < nrThreads) {
-      requestFor = new Thread[nrThreads - 1];
+    requestFor.clear();
+    for (Thread t : stConsumers.keySet()) {
+      requestFor.add(t);
     }
-    int j = 0;
-    for (int i = 0; i < nrThreads; i++) {
-      Thread th = threads[i];
-      if (ignore != th && !threadFilter.apply(th)) { // not interested in these traces
-        requestFor[j++] = th;
-      }
-    }
-    Arrays.fill(requestFor, j, requestFor.length, null);
-    StackTraceElement[][] stackDump = FastStackCollector.getStackTraces(requestFor);
-    for (int i = 0; i < j; i++) {
-      Thread t = requestFor[i];
+    Thread[] rfArray = requestFor.getArray();
+    StackTraceElement[][] stackDump = FastStackCollector.getStackTraces(rfArray);
+    int size = requestFor.getSize();
+    for (int i = 0; i < size; i++) {
+      Thread t = rfArray[i];
       StackTraceElement[] stackTrace = stackDump[i];
       Consumer<StackTraceElement[]> consumer = this.stConsumers.get(t);
       if (consumer != null) {

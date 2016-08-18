@@ -17,6 +17,7 @@
  */
 package org.spf4j.base;
 
+import com.google.common.annotations.Beta;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.Array;
 
@@ -232,6 +233,37 @@ public final class Arrays {
       }
       return result;
     }
+
+    /**
+     * Implementation currently fast for large arrays only
+     */
+    @Beta
+    public static void fill(final byte[] array, final byte value) {
+      int len = array.length;
+      if (len > 0) {
+        array[0] = value;
+        for (int i = 1; i < len; i += i) {
+          System.arraycopy(array, 0, array, i, ((len - i) < i) ? (len - i) : i);
+        }
+      }
+    }
+
+
+    /**
+     * Implementation currently fast for large arrays only
+     */
+    @Beta
+    public static <T> void fill(final T[] array, final int startIdx, final int endIdx, final T value) {
+      int len = endIdx - startIdx;
+      if (len > 0) {
+        array[startIdx] = value;
+        for (int i = 1; i < len; i += i) {
+          System.arraycopy(array, startIdx, array, startIdx + i, ((len - i) < i) ? (len - i) : i);
+        }
+      }
+    }
+
+
 
 
 
