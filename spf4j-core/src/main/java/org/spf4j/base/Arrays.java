@@ -235,31 +235,82 @@ public final class Arrays {
     }
 
     /**
-     * Implementation currently fast for large arrays only
+     * implementation which significantly faster for large arrays (> 500).
      */
     @Beta
-    public static void fill(final byte[] array, final byte value) {
-      int len = array.length;
+    public static void fill(final byte[] array, final int startIdx, final int endIdx, final byte value) {
+      int len = endIdx - startIdx;
       if (len > 0) {
-        array[0] = value;
-        for (int i = 1; i < len; i += i) {
-          System.arraycopy(array, 0, array, i, ((len - i) < i) ? (len - i) : i);
+        if (len <= ARR_CPY_THR) {
+          for (int i = startIdx; i < endIdx; i++) {
+            array[i] = value;
+          }
+        } else {
+          int fillEnd = startIdx + ARR_CPY_THR;
+          for (int i = startIdx; i < fillEnd; i++) {
+            array[i] = value;
+          }
+          array[startIdx] = value;
+          for (int i = ARR_CPY_THR; i < len; i += i) {
+            int lmi = len - i;
+            int from = startIdx + i;
+            if (lmi < i) {
+              if (lmi < ARR_CPY_THR) {
+                int xe = from + lmi;
+                for (int j = from; j < xe; j++) {
+                  array[j] = value;
+                }
+              } else {
+                System.arraycopy(array, startIdx, array, from, lmi);
+              }
+            } else {
+              System.arraycopy(array, startIdx, array, from, i);
+            }
+          }
         }
+      } else if (len < 0) {
+        throw new IllegalArgumentException("Illegal rage from " + startIdx + " to " + endIdx);
       }
     }
 
+    private static final int ARR_CPY_THR = 128;
 
     /**
-     * Implementation currently fast for large arrays only
+     * implementation which significantly faster for large arrays (> 500).
      */
     @Beta
     public static <T> void fill(final T[] array, final int startIdx, final int endIdx, final T value) {
       int len = endIdx - startIdx;
       if (len > 0) {
-        array[startIdx] = value;
-        for (int i = 1; i < len; i += i) {
-          System.arraycopy(array, startIdx, array, startIdx + i, ((len - i) < i) ? (len - i) : i);
+        if (len <= ARR_CPY_THR) {
+          for (int i = startIdx; i < endIdx; i++) {
+            array[i] = value;
+          }
+        } else {
+          int fillEnd = startIdx + ARR_CPY_THR;
+          for (int i = startIdx; i < fillEnd; i++) {
+            array[i] = value;
+          }
+          array[startIdx] = value;
+          for (int i = ARR_CPY_THR; i < len; i += i) {
+            int lmi = len - i;
+            int from = startIdx + i;
+            if (lmi < i) {
+              if (lmi < ARR_CPY_THR) {
+                int xe = from + lmi;
+                for (int j = from; j < xe; j++) {
+                  array[j] = value;
+                }
+              } else {
+                System.arraycopy(array, startIdx, array, from, lmi);
+              }
+            } else {
+              System.arraycopy(array, startIdx, array, from, i);
+            }
+          }
         }
+      } else if (len < 0) {
+        throw new IllegalArgumentException("Illegal rage from " + startIdx + " to " + endIdx);
       }
     }
 
