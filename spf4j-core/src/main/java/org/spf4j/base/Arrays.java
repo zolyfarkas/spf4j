@@ -241,6 +241,9 @@ public final class Arrays {
     public static void fill(final byte[] array, final int startIdx, final int endIdx, final byte value) {
       int len = endIdx - startIdx;
       if (len > 0) {
+        if (endIdx > array.length || startIdx < 0) {
+          throw new IllegalArgumentException("Illegal range from " + startIdx + " to " + endIdx);
+        }
         if (len <= ARR_CPY_THR) {
           for (int i = startIdx; i < endIdx; i++) {
             array[i] = value;
@@ -269,7 +272,7 @@ public final class Arrays {
           }
         }
       } else if (len < 0) {
-        throw new IllegalArgumentException("Illegal rage from " + startIdx + " to " + endIdx);
+        throw new IllegalArgumentException("Illegal range from " + startIdx + " to " + endIdx);
       }
     }
 
@@ -282,6 +285,9 @@ public final class Arrays {
     public static <T> void fill(final T[] array, final int startIdx, final int endIdx, final T value) {
       int len = endIdx - startIdx;
       if (len > 0) {
+        if (endIdx > array.length || startIdx < 0) {
+          throw new IllegalArgumentException("Illegal range from " + startIdx + " to " + endIdx);
+        }
         if (len <= ARR_CPY_THR) {
           for (int i = startIdx; i < endIdx; i++) {
             array[i] = value;
@@ -310,7 +316,7 @@ public final class Arrays {
           }
         }
       } else if (len < 0) {
-        throw new IllegalArgumentException("Illegal rage from " + startIdx + " to " + endIdx);
+        throw new IllegalArgumentException("Illegal range from " + startIdx + " to " + endIdx);
       }
     }
 
