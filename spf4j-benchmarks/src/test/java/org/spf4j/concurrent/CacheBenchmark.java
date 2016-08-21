@@ -32,7 +32,7 @@ public class CacheBenchmark {
             .build(TEST_LOADER);
     private static final LoadingCache<String, String> SPF4J = new UnboundedLoadingCache<>(16, 16, TEST_LOADER);
 
-    private static final LoadingCache<String, String> SPF4J2 = new UnboundedLoadingCache<>(16, 16, TEST_LOADER);
+    private static final LoadingCache<String, String> SPF4J2 = new UnboundedLoadingCache2<>(16, 16, TEST_LOADER);
 
     private static final LoadingCache<String, String> SPF4J_RACY =
             new UnboundedRacyLoadingCache<>(16, 16, TEST_LOADER);
