@@ -21,7 +21,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- *
  * @author zoly
  */
 public final class IntMath {
@@ -36,6 +35,12 @@ public final class IntMath {
        return number == 0 ? 0 : 1 << (32 - Integer.numberOfLeadingZeros(number - 1));
     }
 
+    /**
+     * A very fast Pseudo random generator.
+     * use of this random is appropriate when you need the fastest random that you plan to use in a single
+     * thread.
+     * If you need a thread-safe random, please use JDK ThreadLocalRandom, which will be your best option.
+     */
     @NotThreadSafe
     public static final class XorShift32 implements IntSequence {
         // XorShift128 PRNG with a 2^32-1 period.
@@ -49,7 +54,13 @@ public final class IntMath {
         }
     }
 
+    /**
+     * @deprecated please use JDK java.util.concurrent.ThreadLocalRandom instead.
+     * The JDK implementation uses local fields in the Thread class instead of a classic ThreadLocal,
+     * which makes it faster...
+     */
     @ThreadSafe
+    @Deprecated
     public static final class XorShift32ThreadSafe implements IntSequence {
 
 

@@ -4,12 +4,12 @@ package org.spf4j.concurrent;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import java.util.concurrent.ThreadLocalRandom;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
-import org.spf4j.base.IntMath;
 
 @State(Scope.Benchmark)
 @Fork(2)
@@ -38,26 +38,24 @@ public class CacheBenchmark {
             new UnboundedRacyLoadingCache<>(16, 16, TEST_LOADER);
 
 
-    private static final IntMath.XorShift32ThreadSafe RND = new IntMath.XorShift32ThreadSafe();
-
     @Benchmark
     public final String spf4jCache() {
-        return SPF4J.getUnchecked("key" + (RND.nextInt() % 100));
+        return SPF4J.getUnchecked("key" + (ThreadLocalRandom.current().nextInt(100)));
     }
 
     @Benchmark
     public final String spf4j2Cache() {
-        return SPF4J2.getUnchecked("key" + (RND.nextInt() % 100));
+        return SPF4J2.getUnchecked("key" + (ThreadLocalRandom.current().nextInt(100)));
     }
 
     @Benchmark
     public final String spf4jRacyCache() {
-        return SPF4J_RACY.getUnchecked("key" + (RND.nextInt() % 100));
+        return SPF4J_RACY.getUnchecked("key" + (ThreadLocalRandom.current().nextInt(100)));
     }
 
     @Benchmark
     public final String guavaCache() {
-        return GUAVA.getUnchecked("key" + (RND.nextInt() % 100));
+        return GUAVA.getUnchecked("key" + (ThreadLocalRandom.current().nextInt(100)));
     }
 
 

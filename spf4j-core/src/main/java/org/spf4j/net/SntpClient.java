@@ -15,7 +15,6 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.net;
 
 
@@ -25,8 +24,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.concurrent.ThreadLocalRandom;
 import org.spf4j.base.Callables;
-import org.spf4j.base.IntMath;
 
 /**
  * Simple NTP client. Inspired by Android Sntp client.
@@ -187,6 +186,6 @@ public final class SntpClient {
         buffer[offset++] = (byte) (fraction >> 16);
         buffer[offset++] = (byte) (fraction >> 8);
         // low order bits should be random data
-        buffer[offset] = (byte) (IntMath.XorShift32ThreadSafe.Singleton.INSTANCE.nextInt() % 256);
+        buffer[offset] = (byte) (ThreadLocalRandom.current().nextInt() % 256);
     }
 }

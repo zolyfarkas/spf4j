@@ -21,6 +21,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -38,8 +39,6 @@ public class WriterOutputStreamTest {
         LARGE_TEST_STRING = buffer.toString();
     }
 
-    private final IntMath.XorShift32ThreadSafe random = new IntMath.XorShift32ThreadSafe();
-
     private void testWithSingleByteWrite(final String testString, final String charsetName) throws IOException {
         final byte[] bytes = testString.getBytes(charsetName);
         final StringWriter writer = new StringWriter();
@@ -56,8 +55,9 @@ public class WriterOutputStreamTest {
         final StringWriter writer = new StringWriter();
         final WriterOutputStream out = new WriterOutputStream(writer, charsetName);
         int offset = 0;
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
         while (offset < expected.length) {
-            final int length = Math.min(Math.abs(random.nextInt() % 128), expected.length - offset);
+            final int length = Math.min(Math.abs(rnd.nextInt() % 128), expected.length - offset);
             out.write(expected, offset, length);
             offset += length;
         }
