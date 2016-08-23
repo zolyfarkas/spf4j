@@ -20,6 +20,10 @@ package org.spf4j.concurrent;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -105,4 +109,19 @@ public final class FileBasedLockTest {
         }
         System.exit(0);
     }
+
+    @Test(expected = OverlappingFileLockException.class)
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+    public void testFileLock() throws IOException {
+      File tmp = File.createTempFile("test", ".lock");
+      tmp.deleteOnExit();
+      RandomAccessFile file = new RandomAccessFile(tmp, "rws");
+      FileChannel channel = file.getChannel();
+      FileLock lock = channel.lock();
+      FileLock lock1 = channel.lock();
+      Assert.fail();
+      lock1.release();
+      lock.release();
+    }
+
 }
