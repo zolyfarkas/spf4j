@@ -5,7 +5,7 @@ import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.util.concurrent.Callable;
-import javax.annotation.Nullable;
+import java.util.function.Consumer;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.Pair;
@@ -18,16 +18,11 @@ import org.spf4j.base.Pair;
 @CleanupObligation
 @ParametersAreNonnullByDefault
 @ThreadSafe
-public interface TraceScope extends AutoCloseable {
+public interface TraceScope extends AutoCloseable, Consumer<StackTraceElement[]> {
 
   void log(LogLevel level, String format, Object ... arguments);
 
   void log(LogLevel level, Pair<String, Object> ... data);
-
-  @Nullable
-  TraceScope getParent();
-
-  void addSample(final long ts, StackTraceElement [] sample);
 
   @DischargesObligation
   void close();

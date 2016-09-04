@@ -5,7 +5,7 @@ package org.spf4j.trace;
  *
  * @author zoly
  */
-public interface Trace extends Span {
+public interface Trace {
 
 
   enum TraceMandate {
@@ -14,6 +14,8 @@ public interface Trace extends Span {
 
   CharSequence getTraceId();
 
-  boolean getMandate();
+  Span getRootSpan();
+
+  TraceMandate getMandate();
 
 }

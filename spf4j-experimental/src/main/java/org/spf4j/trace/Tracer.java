@@ -11,15 +11,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface Tracer {
 
-  TraceScope startTrace(CharSequence rootSpanName);
-
-  TraceScope startSpan(CharSequence spanName);
-
-  TraceScope startTraceOrSpan(CharSequence spanName);
-
   TraceScope getTraceScope();
 
   TraceScope continueOrNewTrace(CharSequence spanName, @Nullable CharSequence traceId);
-
 
 }

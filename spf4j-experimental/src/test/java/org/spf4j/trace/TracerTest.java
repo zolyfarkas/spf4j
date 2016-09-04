@@ -3,10 +3,7 @@ package org.spf4j.trace;
 
 import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.junit.Test;
 import org.spf4j.concurrent.DefaultExecutor;
 
@@ -21,7 +18,7 @@ public class TracerTest {
 
   @Test
   public void testTrace() throws InterruptedException {
-    try (TraceScope trace = TRACER.startTrace("myTrace")) {
+    try (TraceScope trace = TRACER.continueOrNewTrace("myTrace", null)) {
      doSomething(1);
     }
   }
