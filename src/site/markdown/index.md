@@ -30,7 +30,7 @@
         <dependency>
             <groupId>org.spf4j</groupId>
             <artifactId>spf4j-core</artifactId>
-            <version>8.1.0</version>
+            <version>8.1.5</version>
         </dependency>
 
  Download snapshot and release artifacts [from] (https://oss.sonatype.org/content/groups/public)
