@@ -17,6 +17,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import org.spf4j.base.Method;
 import com.google.common.html.HtmlEscapers;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
@@ -27,64 +28,64 @@ import java.util.Map;
  * utility class to generate svg and html out of stack samples.
  * @author zoly
  */
-@edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;CBX_CUSTOM_BUILT_XML&quot;)
+@SuppressFBWarnings(&quot;CBX_CUSTOM_BUILT_XML&quot;)
 public final class StackVisualizer {
 
-<span class="nc" id="L33">    private StackVisualizer() {</span>
-<span class="nc" id="L34">    }</span>
+<span class="nc" id="L34">    private StackVisualizer() {</span>
+<span class="nc" id="L35">    }</span>
 
-<span class="nc" id="L36">    private static final String[] COLORS = {&quot;#CCE01B&quot;,</span>
+<span class="nc" id="L37">    private static final String[] COLORS = {&quot;#CCE01B&quot;,</span>
         &quot;#DDE01B&quot;, &quot;#EEE01B&quot;, &quot;#FFE01B&quot;, &quot;#FFD01B&quot;,
         &quot;#FFC01B&quot;, &quot;#FFA01B&quot;, &quot;#FF901B&quot;, &quot;#FF801B&quot;,
         &quot;#FF701B&quot;, &quot;#FF601B&quot;, &quot;#FF501B&quot;, &quot;#FF401B&quot;};
 
     public static void generateHtmlTable(final Writer writer, final Method m,
             final SampleNode node, final int tableWidth, final int maxDepth) throws IOException {
-<span class="nc" id="L43">        Map&lt;Method, SampleNode&gt; subNodes = node.getSubNodes();</span>
-<span class="nc" id="L44">        writer.append(&quot;&lt;table border=\&quot;0\&quot; cellpadding=\&quot;0\&quot; cellspacing=\&quot;0\&quot; &quot;</span>
+<span class="nc" id="L44">        Map&lt;Method, SampleNode&gt; subNodes = node.getSubNodes();</span>
+<span class="nc" id="L45">        writer.append(&quot;&lt;table border=\&quot;0\&quot; cellpadding=\&quot;0\&quot; cellspacing=\&quot;0\&quot; &quot;</span>
                 + &quot;style=\&quot;overflow:hidden;table-layout:fixed;width:&quot;).
-<span class="nc" id="L46">                append(Integer.toString(tableWidth)).append(&quot;px\&quot;&gt;\n&quot;);</span>
-<span class="nc" id="L47">        int totalSamples = node.getSampleCount();</span>
+<span class="nc" id="L47">                append(Integer.toString(tableWidth)).append(&quot;px\&quot;&gt;\n&quot;);</span>
+<span class="nc" id="L48">        int totalSamples = node.getSampleCount();</span>
 
-<span class="nc bnc" id="L49" title="All 4 branches missed.">        if (subNodes != null &amp;&amp; maxDepth &gt; 0) {</span>
-<span class="nc" id="L50">            writer.append(&quot;&lt;tr style=\&quot;height:1em\&quot;&gt;&quot;);</span>
-<span class="nc bnc" id="L51" title="All 2 branches missed.">            for (Map.Entry&lt;Method, SampleNode&gt; entry : subNodes.entrySet()) {</span>
-<span class="nc" id="L52">                int width = entry.getValue().getSampleCount() * tableWidth / totalSamples;</span>
-<span class="nc" id="L53">                writer.append(&quot;&lt;td style=\&quot;vertical-align:bottom; width:&quot;).</span>
-<span class="nc" id="L54">                        append(Integer.toString(width)).append(&quot;px\&quot;&gt;&quot;);</span>
-<span class="nc" id="L55">                generateHtmlTable(writer, entry.getKey(), entry.getValue(), width, maxDepth - 1);</span>
-<span class="nc" id="L56">                writer.append(&quot;&lt;/td&gt;&quot;);</span>
-<span class="nc" id="L57">            }</span>
-<span class="nc" id="L58">            writer.append(&quot;&lt;td&gt;&lt;/td&gt;&quot;);</span>
-<span class="nc" id="L59">            writer.append(&quot;&lt;/tr&gt;\n&quot;);</span>
+<span class="nc bnc" id="L50" title="All 4 branches missed.">        if (subNodes != null &amp;&amp; maxDepth &gt; 0) {</span>
+<span class="nc" id="L51">            writer.append(&quot;&lt;tr style=\&quot;height:1em\&quot;&gt;&quot;);</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">            for (Map.Entry&lt;Method, SampleNode&gt; entry : subNodes.entrySet()) {</span>
+<span class="nc" id="L53">                int width = entry.getValue().getSampleCount() * tableWidth / totalSamples;</span>
+<span class="nc" id="L54">                writer.append(&quot;&lt;td style=\&quot;vertical-align:bottom; width:&quot;).</span>
+<span class="nc" id="L55">                        append(Integer.toString(width)).append(&quot;px\&quot;&gt;&quot;);</span>
+<span class="nc" id="L56">                generateHtmlTable(writer, entry.getKey(), entry.getValue(), width, maxDepth - 1);</span>
+<span class="nc" id="L57">                writer.append(&quot;&lt;/td&gt;&quot;);</span>
+<span class="nc" id="L58">            }</span>
+<span class="nc" id="L59">            writer.append(&quot;&lt;td&gt;&lt;/td&gt;&quot;);</span>
+<span class="nc" id="L60">            writer.append(&quot;&lt;/tr&gt;\n&quot;);</span>
         }
-<span class="nc" id="L61">        writer.append(&quot;&lt;tr style=\&quot;height:1em\&quot; &gt;&lt;td &quot;);</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (subNodes != null) {</span>
-<span class="nc" id="L63">            writer.append(&quot;colspan=\&quot;&quot;).append(Integer.toString(subNodes.size() + 1)).append(&quot;\&quot; &quot;);</span>
+<span class="nc" id="L62">        writer.append(&quot;&lt;tr style=\&quot;height:1em\&quot; &gt;&lt;td &quot;);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (subNodes != null) {</span>
+<span class="nc" id="L64">            writer.append(&quot;colspan=\&quot;&quot;).append(Integer.toString(subNodes.size() + 1)).append(&quot;\&quot; &quot;);</span>
         }
-<span class="nc" id="L65">        writer.append(&quot; title=\&quot;&quot;);</span>
-<span class="nc" id="L66">        m.toHtmlWriter(writer);</span>
-<span class="nc" id="L67">        writer.append(&quot;:&quot;);</span>
-<span class="nc" id="L68">        writer.append(Integer.toString(node.getSampleCount()));</span>
-<span class="nc" id="L69">        writer.append(&quot;\&quot; style=\&quot;overflow:hidden;width:100%;vertical-align:bottom ;background:&quot;).</span>
-<span class="nc" id="L70">                append(COLORS[(int) (Math.random() * COLORS.length)]).append(&quot;\&quot;&gt;&quot;);</span>
-<span class="nc" id="L71">        m.toHtmlWriter(writer);</span>
-<span class="nc" id="L72">        writer.append(&quot;:&quot;);</span>
-<span class="nc" id="L73">        writer.append(Integer.toString(totalSamples));</span>
-<span class="nc" id="L74">        writer.append(&quot;&lt;/td&gt;&lt;/tr&gt;\n&quot;);</span>
+<span class="nc" id="L66">        writer.append(&quot; title=\&quot;&quot;);</span>
+<span class="nc" id="L67">        m.toHtmlWriter(writer);</span>
+<span class="nc" id="L68">        writer.append(&quot;:&quot;);</span>
+<span class="nc" id="L69">        writer.append(Integer.toString(node.getSampleCount()));</span>
+<span class="nc" id="L70">        writer.append(&quot;\&quot; style=\&quot;overflow:hidden;width:100%;vertical-align:bottom ;background:&quot;).</span>
+<span class="nc" id="L71">                append(COLORS[(int) (Math.random() * COLORS.length)]).append(&quot;\&quot;&gt;&quot;);</span>
+<span class="nc" id="L72">        m.toHtmlWriter(writer);</span>
+<span class="nc" id="L73">        writer.append(&quot;:&quot;);</span>
+<span class="nc" id="L74">        writer.append(Integer.toString(totalSamples));</span>
+<span class="nc" id="L75">        writer.append(&quot;&lt;/td&gt;&lt;/tr&gt;\n&quot;);</span>
 
-<span class="nc" id="L76">        writer.append(&quot;&lt;/table&gt;\n&quot;);</span>
-<span class="nc" id="L77">    }</span>
+<span class="nc" id="L77">        writer.append(&quot;&lt;/table&gt;\n&quot;);</span>
+<span class="nc" id="L78">    }</span>
 
     public static void generateSvg(final Writer writer, final Method m,
             final SampleNode node, final int x, final int y,
             final int width, final int maxDepth, final String idPfx) throws IOException {
-<span class="nc bnc" id="L82" title="All 2 branches missed.">        if (width &lt; 200) {</span>
-<span class="nc" id="L83">            throw new IllegalArgumentException(&quot;width must be greater than 200, it is &quot; + width);</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (width &lt; 200) {</span>
+<span class="nc" id="L84">            throw new IllegalArgumentException(&quot;width must be greater than 200, it is &quot; + width);</span>
         }
-<span class="nc" id="L85">        writer.append(&quot;&lt;svg width=\&quot;&quot; + width + &quot;\&quot; height= \&quot;&quot; + (15 * node.height() + 15) + &quot;\&quot; onload=\&quot;&quot;</span>
+<span class="nc" id="L86">        writer.append(&quot;&lt;svg width=\&quot;&quot; + width + &quot;\&quot; height= \&quot;&quot; + (15 * node.height() + 15) + &quot;\&quot; onload=\&quot;&quot;</span>
                 + idPfx + &quot;init(evt)\&quot; &gt;\n&quot;);
-<span class="nc" id="L87">        writer.append(&quot;&lt;script type=\&quot;text/ecmascript\&quot;&gt;\n&quot;</span>
+<span class="nc" id="L88">        writer.append(&quot;&lt;script type=\&quot;text/ecmascript\&quot;&gt;\n&quot;</span>
                 + &quot;&lt;![CDATA[\n&quot;
                 + &quot;var &quot; + idPfx + &quot;tooltip;\n&quot;
                 + &quot;var &quot; + idPfx + &quot;tooltip_bg;\n&quot;
@@ -116,48 +117,48 @@ public final class StackVisualizer {
                 + &quot;}]]&gt;&quot;
                 + &quot;&lt;/script&gt;&quot;);
 
-<span class="nc" id="L119">        generateSubSvg(writer, m, node, x, y + 15, width - 100, maxDepth, idPfx);</span>
+<span class="nc" id="L120">        generateSubSvg(writer, m, node, x, y + 15, width - 100, maxDepth, idPfx);</span>
 
-<span class="nc" id="L121">        writer.append(&quot;&lt;rect fill=\&quot;rgb(255,255,255)\&quot; id=\&quot;&quot; + idPfx + &quot;tooltip_bg\&quot;\n&quot;</span>
+<span class="nc" id="L122">        writer.append(&quot;&lt;rect fill=\&quot;rgb(255,255,255)\&quot; id=\&quot;&quot; + idPfx + &quot;tooltip_bg\&quot;\n&quot;</span>
                 + &quot;      x=\&quot;0\&quot; y=\&quot;0\&quot; rx=\&quot;4\&quot; ry=\&quot;4\&quot;\n&quot;
                 + &quot;      width=\&quot;55\&quot; height=\&quot;17\&quot; visibility=\&quot;hidden\&quot;/&gt;&quot;);
-<span class="nc" id="L124">        writer.append(&quot;&lt;text font-size=\&quot;12\&quot; font-family=\&quot;Verdana\&quot; fill=\&quot;rgb(0,0,0)\&quot;  id=\&quot;&quot;</span>
+<span class="nc" id="L125">        writer.append(&quot;&lt;text font-size=\&quot;12\&quot; font-family=\&quot;Verdana\&quot; fill=\&quot;rgb(0,0,0)\&quot;  id=\&quot;&quot;</span>
                 + idPfx + &quot;tooltip\&quot; x=\&quot;0\&quot; y=\&quot;0\&quot; visibility=\&quot;hidden\&quot;&gt;Tooltip&lt;/text&gt;&quot;);
-<span class="nc" id="L126">        writer.append(&quot;&lt;/svg&gt;\n&quot;);</span>
-<span class="nc" id="L127">    }</span>
+<span class="nc" id="L127">        writer.append(&quot;&lt;/svg&gt;\n&quot;);</span>
+<span class="nc" id="L128">    }</span>
 
     @SuppressFBWarnings(&quot;ISB_TOSTRING_APPENDING&quot;)
     public static void generateSubSvg(final Writer writer, final Method m, final SampleNode node,
             final int x, final int y, final int width, final int maxDepth, final String idPfx) throws IOException {
 
 
-<span class="nc" id="L134">        Map&lt;Method, SampleNode&gt; subNodes = node.getSubNodes();</span>
+<span class="nc" id="L135">        Map&lt;Method, SampleNode&gt; subNodes = node.getSubNodes();</span>
 
-<span class="nc" id="L136">        int totalSamples = node.getSampleCount();</span>
-<span class="nc" id="L137">        String id = idPfx + &quot;ix&quot; + x + 'y' + y;</span>
-<span class="nc" id="L138">        String content = HtmlEscapers.htmlEscaper().escape(m.toString() + ':' + totalSamples);</span>
-<span class="nc" id="L139">        writer.append(&quot;&lt;g onmouseover=\&quot;&quot; + idPfx + &quot;ss(evt,'&quot; + content + &quot;',&quot; + x + &quot;, &quot;</span>
+<span class="nc" id="L137">        int totalSamples = node.getSampleCount();</span>
+<span class="nc" id="L138">        String id = idPfx + &quot;ix&quot; + x + 'y' + y;</span>
+<span class="nc" id="L139">        String content = HtmlEscapers.htmlEscaper().escape(m.toString() + ':' + totalSamples);</span>
+<span class="nc" id="L140">        writer.append(&quot;&lt;g onmouseover=\&quot;&quot; + idPfx + &quot;ss(evt,'&quot; + content + &quot;',&quot; + x + &quot;, &quot;</span>
                 + y + &quot; )\&quot; onmouseout=\&quot;&quot; + idPfx + &quot;hh()\&quot;&gt;&quot;);
-<span class="nc" id="L141">        writer.append(&quot;&lt;rect id=\&quot;&quot; + id + &quot;\&quot; x=\&quot;&quot; + x + &quot;\&quot; y=\&quot;&quot; + y + &quot;\&quot; width=\&quot;&quot; + width</span>
+<span class="nc" id="L142">        writer.append(&quot;&lt;rect id=\&quot;&quot; + id + &quot;\&quot; x=\&quot;&quot; + x + &quot;\&quot; y=\&quot;&quot; + y + &quot;\&quot; width=\&quot;&quot; + width</span>
                 + &quot;\&quot; height=\&quot;15\&quot; fill=\&quot;&quot;
-<span class="nc" id="L143">                + COLORS[(int) (Math.random() * COLORS.length)] + &quot;\&quot;  /&gt;&quot;);</span>
+<span class="nc" id="L144">                + COLORS[(int) (Math.random() * COLORS.length)] + &quot;\&quot;  /&gt;&quot;);</span>
 
-<span class="nc" id="L145">        writer.append(&quot;&lt;text x=\&quot;&quot; + x + &quot;\&quot; y=\&quot;&quot; + (y + 13)</span>
+<span class="nc" id="L146">        writer.append(&quot;&lt;text x=\&quot;&quot; + x + &quot;\&quot; y=\&quot;&quot; + (y + 13)</span>
                 + &quot;\&quot; font-size=\&quot;12\&quot; font-family=\&quot;Verdana\&quot; fill=\&quot;rgb(0,0,0)\&quot; &quot;
                 + &quot; &gt;&quot;);
-<span class="nc" id="L148">        writer.append(content.substring(0, Math.min(width / 9, content.length())));</span>
-<span class="nc" id="L149">        writer.append(&quot;&lt;/text&gt;\n&quot;);</span>
-<span class="nc" id="L150">        writer.append(&quot;&lt;/g&gt;&quot;);</span>
+<span class="nc" id="L149">        writer.append(content.substring(0, Math.min(width / 9, content.length())));</span>
+<span class="nc" id="L150">        writer.append(&quot;&lt;/text&gt;\n&quot;);</span>
+<span class="nc" id="L151">        writer.append(&quot;&lt;/g&gt;&quot;);</span>
 
-<span class="nc bnc" id="L152" title="All 4 branches missed.">        if (subNodes != null &amp;&amp; maxDepth &gt; 0) {</span>
-<span class="nc" id="L153">            int rx = 0;</span>
-<span class="nc bnc" id="L154" title="All 2 branches missed.">            for (Map.Entry&lt;Method, SampleNode&gt; entry : subNodes.entrySet()) {</span>
-<span class="nc" id="L155">                int cwidth = (int) (((long) entry.getValue().getSampleCount()) * width / totalSamples);</span>
-<span class="nc" id="L156">                generateSubSvg(writer, entry.getKey(), entry.getValue(), rx + x, y + 15, cwidth, maxDepth - 1, idPfx);</span>
-<span class="nc" id="L157">                rx += cwidth;</span>
-<span class="nc" id="L158">            }</span>
+<span class="nc bnc" id="L153" title="All 4 branches missed.">        if (subNodes != null &amp;&amp; maxDepth &gt; 0) {</span>
+<span class="nc" id="L154">            int rx = 0;</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">            for (Map.Entry&lt;Method, SampleNode&gt; entry : subNodes.entrySet()) {</span>
+<span class="nc" id="L156">                int cwidth = (int) (((long) entry.getValue().getSampleCount()) * width / totalSamples);</span>
+<span class="nc" id="L157">                generateSubSvg(writer, entry.getKey(), entry.getValue(), rx + x, y + 15, cwidth, maxDepth - 1, idPfx);</span>
+<span class="nc" id="L158">                rx += cwidth;</span>
+<span class="nc" id="L159">            }</span>
 
         }
-<span class="nc" id="L161">    }</span>
+<span class="nc" id="L162">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

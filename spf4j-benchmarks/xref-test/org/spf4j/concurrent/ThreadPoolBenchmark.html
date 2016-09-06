@@ -6,71 +6,91 @@
 </head>
 <body>
 <div id="overview"><a href="../../../../testapidocs/org/spf4j/concurrent/ThreadPoolBenchmark.html">View Javadoc</a></div><pre>
-<a class="jxr_linenumber" name="L1" href="#L1">1</a>   
-<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <strong class="jxr_keyword">package</strong> org.spf4j.concurrent;
-<a class="jxr_linenumber" name="L3" href="#L3">3</a>   
-<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.io.IOException;
-<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.ArrayList;
-<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> java.util.List;
-<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutionException;
-<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutorService;
-<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> java.util.concurrent.Future;
-<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.openjdk.jmh.annotations.Benchmark;
-<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.openjdk.jmh.annotations.Fork;
-<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.openjdk.jmh.annotations.Scope;
-<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.openjdk.jmh.annotations.State;
-<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.openjdk.jmh.annotations.TearDown;
-<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.openjdk.jmh.annotations.Threads;
-<a class="jxr_linenumber" name="L16" href="#L16">16</a>  
-<a class="jxr_linenumber" name="L17" href="#L17">17</a>  @State(Scope.Benchmark)
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>  @Fork(2)
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  @Threads(value = 8)
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/ThreadPoolBenchmark.html">ThreadPoolBenchmark</a> {
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/ThreadPoolBenchmark.html">LazySpf</a> {
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> ExecutorService EX = LifoThreadPoolBuilder.newBuilder()
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>                 .withQueueSizeLimit(10000)
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>                 .withMaxSize(8).build();
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>     }
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>      @TearDown
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() {
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>          LazySpf.EX.shutdown();
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>          DefaultExecutor.INSTANCE.shutdown();
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>      }
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.spf4j.concurrent;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutionException;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutorService;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> java.util.concurrent.Future;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.openjdk.jmh.annotations.Benchmark;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> org.openjdk.jmh.annotations.Fork;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.openjdk.jmh.annotations.Scope;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.openjdk.jmh.annotations.State;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.openjdk.jmh.annotations.TearDown;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.openjdk.jmh.annotations.Threads;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  @Fork(2)
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  @Threads(value = 8)
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/ThreadPoolBenchmark.html">ThreadPoolBenchmark</a> {
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>    @State(Scope.Benchmark)
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/ThreadPoolBenchmark.html">LazySpf</a> {
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> ExecutorService EX = LifoThreadPoolBuilder.newBuilder()
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>              .withQueueSizeLimit(10000)
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>              .withMaxSize(8).build();
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      @TearDown
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() {
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>        EX.shutdown();
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>        DefaultExecutor.INSTANCE.shutdown();
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      }
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>    }
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>    @State(Scope.Benchmark)
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/ThreadPoolBenchmark.html">MutableLazySpf</a> {
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> testPool(<strong class="jxr_keyword">final</strong> ExecutorService executor)
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>              <strong class="jxr_keyword">throws</strong> InterruptedException, IOException, ExecutionException {
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>          <strong class="jxr_keyword">final</strong> LongAdder adder = <strong class="jxr_keyword">new</strong> LongAdder();
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> testCount = 1000;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>          <strong class="jxr_keyword">final</strong> Runnable runnable = <strong class="jxr_keyword">new</strong> Runnable() {
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>              @Override
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>              <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>                  adder.increment();
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>              }
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>          };
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>          List&lt;Future&lt;?&gt;&gt; futures = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(testCount);
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; testCount; i++) {
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>              futures.add(executor.submit(runnable));
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>          }
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>          <strong class="jxr_keyword">for</strong> (Future&lt;?&gt; future : futures) {
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>              future.get();
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>          }
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>          <strong class="jxr_keyword">if</strong> (adder.longValue() != (<strong class="jxr_keyword">long</strong>) testCount) {
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Something is wrong with thread pool "</span> + adder.longValue());
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>          }
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>     }
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>  
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>      @Benchmark
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">void</strong> spfLifoTpBenchmark() <strong class="jxr_keyword">throws</strong> InterruptedException, IOException, ExecutionException {
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>          testPool(LazySpf.EX);
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>      }
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>  
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>  
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>  }
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> ExecutorService EX = LifoThreadPoolBuilder.newBuilder()
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>              .withQueueSizeLimit(10000)
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>              .mutable()
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>              .withMaxSize(8).build();
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      @TearDown
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() {
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>        EX.shutdown();
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>        DefaultExecutor.INSTANCE.shutdown();
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      }
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>    }
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">long</strong> testPool(<strong class="jxr_keyword">final</strong> ExecutorService executor)
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>            <strong class="jxr_keyword">throws</strong> InterruptedException, IOException, ExecutionException {
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">final</strong> java.util.concurrent.atomic.LongAdder adder = <strong class="jxr_keyword">new</strong> java.util.concurrent.atomic.LongAdder();
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> testCount = 1000;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">final</strong> Runnable runnable = <strong class="jxr_keyword">new</strong> Runnable() {
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>        @Override
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>        <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          adder.increment();
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>        }
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      };
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      Future[] futures = <strong class="jxr_keyword">new</strong> Future[testCount];
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; testCount; i++) {
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>        futures[i] = executor.submit(runnable);
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      }
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <strong class="jxr_keyword">for</strong> (Future&lt;?&gt; future : futures) {
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>        future.get();
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      }
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      <strong class="jxr_keyword">long</strong> longValue = adder.longValue();
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      <strong class="jxr_keyword">if</strong> (longValue != (<strong class="jxr_keyword">long</strong>) testCount) {
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>        <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Something is wrong with thread pool "</span> + longValue);
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      }
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      <strong class="jxr_keyword">return</strong> longValue;
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>    }
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>    @Benchmark
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> spfLifoTpBenchmark(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/ThreadPoolBenchmark.html">LazySpf</a> exec) <strong class="jxr_keyword">throws</strong> InterruptedException, IOException, ExecutionException {
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <strong class="jxr_keyword">return</strong> testPool(exec.EX);
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>    }
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>    @Benchmark
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> mutaleSpfLifoTpBenchmark(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/ThreadPoolBenchmark.html">MutableLazySpf</a> exec) <strong class="jxr_keyword">throws</strong> InterruptedException, IOException, ExecutionException {
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>      <strong class="jxr_keyword">return</strong> testPool(exec.EX);
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>    }
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2016. All rights reserved.</div>

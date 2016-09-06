@@ -26,12 +26,12 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.WillClose;
-import org.spf4j.base.IntMath;
 
 /**
  * File based Lock implementation, that can be used as IPC method.
@@ -48,7 +48,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
 <span class="fc" id="L48">    private int reentranceCount = 0;</span>
 
     private static int next(final int maxVal) {
-<span class="nc" id="L51">        return Math.abs(Math.abs(IntMath.XorShift32ThreadSafe.Singleton.INSTANCE.nextInt()) % maxVal);</span>
+<span class="nc" id="L51">        return Math.abs(Math.abs(ThreadLocalRandom.current().nextInt()) % maxVal);</span>
     }
 
 <span class="fc" id="L54">    public FileBasedLock(final File lockFile) throws IOException {</span>

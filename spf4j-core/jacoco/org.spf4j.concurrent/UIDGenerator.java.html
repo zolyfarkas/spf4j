@@ -22,6 +22,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Strings;
@@ -36,7 +37,7 @@ import static org.spf4j.base.Strings.appendUnsignedString;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class UIDGenerator {
+public final class UIDGenerator implements Supplier&lt;CharSequence&gt; {
 
     private final Sequence sequence;
 
@@ -45,17 +46,17 @@ public final class UIDGenerator {
     private final int maxSize;
 
     public UIDGenerator(final Sequence sequence) {
-<span class="nc" id="L48">        this(sequence, 0);</span>
-<span class="nc" id="L49">    }</span>
+<span class="nc" id="L49">        this(sequence, 0);</span>
+<span class="nc" id="L50">    }</span>
 
     public UIDGenerator(final Sequence sequence, final String prefix) {
-<span class="nc" id="L52">        this(sequence, BaseEncoding.base64Url(), 0, '.', prefix);</span>
-<span class="nc" id="L53">    }</span>
+<span class="nc" id="L53">        this(sequence, BaseEncoding.base64Url(), 0, '.', prefix);</span>
+<span class="nc" id="L54">    }</span>
 
 
     public UIDGenerator(final Sequence sequence, final long customEpoch) {
-<span class="fc" id="L57">        this(sequence, BaseEncoding.base64Url(), customEpoch, '.', &quot;&quot;);</span>
-<span class="fc" id="L58">    }</span>
+<span class="fc" id="L58">        this(sequence, BaseEncoding.base64Url(), customEpoch, '.', &quot;&quot;);</span>
+<span class="fc" id="L59">    }</span>
 
     /**
      * Construct a UID Generator
@@ -64,53 +65,58 @@ public final class UIDGenerator {
      */
     @SuppressFBWarnings(&quot;STT_TOSTRING_STORED_IN_FIELD&quot;)
     public UIDGenerator(final Sequence sequence, @Nullable final BaseEncoding baseEncoding,
-<span class="fc" id="L67">            final long customEpoch, final char separator, final String prefix) {</span>
-<span class="fc" id="L68">        this.sequence = sequence;</span>
-<span class="fc" id="L69">        StringBuilder sb = new StringBuilder(16 + prefix.length());</span>
-<span class="fc" id="L70">        sb.append(prefix);</span>
-<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        if (baseEncoding != null) {</span>
+<span class="fc" id="L68">            final long customEpoch, final char separator, final String prefix) {</span>
+<span class="fc" id="L69">        this.sequence = sequence;</span>
+<span class="fc" id="L70">        StringBuilder sb = new StringBuilder(16 + prefix.length());</span>
+<span class="fc" id="L71">        sb.append(prefix);</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        if (baseEncoding != null) {</span>
             byte[] intfMac;
             try {
-<span class="fc" id="L74">                Enumeration&lt;NetworkInterface&gt; networkInterfaces = NetworkInterface.getNetworkInterfaces();</span>
-<span class="pc bpc" id="L75" title="2 of 4 branches missed.">                if (networkInterfaces != null &amp;&amp; networkInterfaces.hasMoreElements()) {</span>
+<span class="fc" id="L75">                Enumeration&lt;NetworkInterface&gt; networkInterfaces = NetworkInterface.getNetworkInterfaces();</span>
+<span class="pc bpc" id="L76" title="2 of 4 branches missed.">                if (networkInterfaces != null &amp;&amp; networkInterfaces.hasMoreElements()) {</span>
                     do {
-<span class="fc" id="L77">                        intfMac = networkInterfaces.nextElement().getHardwareAddress();</span>
-<span class="pc bpc" id="L78" title="2 of 6 branches missed.">                    } while ((intfMac == null || intfMac.length == 0) &amp;&amp; networkInterfaces.hasMoreElements());</span>
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">                    if (intfMac == null) {</span>
-<span class="nc" id="L80">                        intfMac = new byte[] {0};</span>
+<span class="fc" id="L78">                        intfMac = networkInterfaces.nextElement().getHardwareAddress();</span>
+<span class="pc bpc" id="L79" title="2 of 6 branches missed.">                    } while ((intfMac == null || intfMac.length == 0) &amp;&amp; networkInterfaces.hasMoreElements());</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">                    if (intfMac == null) {</span>
+<span class="nc" id="L81">                        intfMac = new byte[] {0};</span>
                     }
                 } else {
-<span class="nc" id="L83">                    intfMac = new byte[] {0};</span>
+<span class="nc" id="L84">                    intfMac = new byte[] {0};</span>
                 }
-<span class="nc" id="L85">            } catch (SocketException ex) {</span>
-<span class="nc" id="L86">                throw new RuntimeException(ex);</span>
-<span class="fc" id="L87">            }</span>
-<span class="fc" id="L88">            sb.append(baseEncoding.encode(intfMac)).append(separator);</span>
+<span class="nc" id="L86">            } catch (SocketException ex) {</span>
+<span class="nc" id="L87">                throw new RuntimeException(ex);</span>
+<span class="fc" id="L88">            }</span>
+<span class="fc" id="L89">            sb.append(baseEncoding.encode(intfMac)).append(separator);</span>
         }
-<span class="fc" id="L90">        appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);</span>
-<span class="fc" id="L91">        sb.append(separator);</span>
-<span class="fc" id="L92">        appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);</span>
-<span class="fc" id="L93">        sb.append(separator);</span>
-<span class="fc" id="L94">        base = sb;</span>
-<span class="fc" id="L95">        maxSize = base.length() + 16;</span>
-<span class="fc" id="L96">    }</span>
+<span class="fc" id="L91">        appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);</span>
+<span class="fc" id="L92">        sb.append(separator);</span>
+<span class="fc" id="L93">        appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);</span>
+<span class="fc" id="L94">        sb.append(separator);</span>
+<span class="fc" id="L95">        base = sb;</span>
+<span class="fc" id="L96">        maxSize = base.length() + 16;</span>
+<span class="fc" id="L97">    }</span>
 
     public int getMaxSize() {
-<span class="nc" id="L99">        return maxSize;</span>
+<span class="nc" id="L100">        return maxSize;</span>
     }
 
     public CharSequence next() {
-<span class="fc" id="L103">        StringBuilder result = new StringBuilder(maxSize);</span>
-<span class="fc" id="L104">        result.append(base);</span>
-<span class="fc" id="L105">        Strings.appendUnsignedString(result, sequence.next(), 5);</span>
-<span class="fc" id="L106">        return result;</span>
+<span class="fc" id="L104">        StringBuilder result = new StringBuilder(maxSize);</span>
+<span class="fc" id="L105">        result.append(base);</span>
+<span class="fc" id="L106">        Strings.appendUnsignedString(result, sequence.next(), 5);</span>
+<span class="fc" id="L107">        return result;</span>
     }
 
-    
+
 
     @Override
     public String toString() {
-<span class="nc" id="L113">        return &quot;UIDGenerator{&quot; + &quot;sequence=&quot; + sequence + &quot;, base=&quot; + base + &quot;, maxSize=&quot; + maxSize + '}';</span>
+<span class="nc" id="L114">        return &quot;UIDGenerator{&quot; + &quot;sequence=&quot; + sequence + &quot;, base=&quot; + base + &quot;, maxSize=&quot; + maxSize + '}';</span>
+    }
+
+    @Override
+    public CharSequence get() {
+<span class="nc" id="L119">      return next();</span>
     }
 
 

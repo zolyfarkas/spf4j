@@ -15,7 +15,6 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.net;
 
 
@@ -25,8 +24,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.concurrent.ThreadLocalRandom;
 import org.spf4j.base.Callables;
-import org.spf4j.base.IntMath;
 
 /**
  * Simple NTP client. Inspired by Android Sntp client.
@@ -36,7 +35,7 @@ import org.spf4j.base.IntMath;
 
 public final class SntpClient {
 
-<span class="nc" id="L39">    private SntpClient() { }</span>
+<span class="nc" id="L38">    private SntpClient() { }</span>
 
     private static final int ORIGINATE_TIME_OFFSET = 24;
     private static final int RECEIVE_TIME_OFFSET = 32;
@@ -54,7 +53,7 @@ public final class SntpClient {
     private static final int MAX_SOCKET_TIMEOUT = 1000; // 5 seconds
     public static Timing requestTimeHA(final int timeoutMillis, final String ... hosts)
             throws IOException, InterruptedException {
-<span class="nc" id="L57">        return requestTimeHA(timeoutMillis, MAX_SOCKET_TIMEOUT, hosts);</span>
+<span class="nc" id="L56">        return requestTimeHA(timeoutMillis, MAX_SOCKET_TIMEOUT, hosts);</span>
     }
 
     /**
@@ -71,16 +70,16 @@ public final class SntpClient {
     @SuppressFBWarnings(&quot;BED_BOGUS_EXCEPTION_DECLARATION&quot;) //findbugs nonsense
     public static Timing requestTimeHA(final int timeoutMillis, final int ntpResponseTimeout, final String ... hosts)
             throws IOException, InterruptedException {
-<span class="nc" id="L74">        return Callables.executeWithRetry(new Callables.TimeoutCallable&lt;Timing, IOException&gt;(timeoutMillis) {</span>
+<span class="nc" id="L73">        return Callables.executeWithRetry(new Callables.TimeoutCallable&lt;Timing, IOException&gt;(timeoutMillis) {</span>
 
-<span class="nc" id="L76">            private int i = 0;</span>
+<span class="nc" id="L75">            private int i = 0;</span>
 
             @Override
             @SuppressFBWarnings(&quot;BED_BOGUS_EXCEPTION_DECLARATION&quot;) //findbugs nonsense
             public Timing call(final long deadline) throws IOException {
-<span class="nc" id="L81">                int hostIdx = Math.abs(i++) % hosts.length;</span>
-<span class="nc" id="L82">                return requestTime(hosts[hostIdx],</span>
-<span class="nc" id="L83">                        Math.min((int) (deadline - System.currentTimeMillis()), ntpResponseTimeout));</span>
+<span class="nc" id="L80">                int hostIdx = Math.abs(i++) % hosts.length;</span>
+<span class="nc" id="L81">                return requestTime(hosts[hostIdx],</span>
+<span class="nc" id="L82">                        Math.min((int) (deadline - System.currentTimeMillis()), ntpResponseTimeout));</span>
             }
         }, 3, 1000);
     }
@@ -95,34 +94,34 @@ public final class SntpClient {
     @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;) // false positive
     public static Timing requestTime(final String host, final int timeoutMillis) throws IOException {
 
-<span class="nc" id="L98">        try (DatagramSocket socket = new DatagramSocket()) {</span>
-<span class="nc" id="L99">            socket.setSoTimeout(timeoutMillis);</span>
-<span class="nc" id="L100">            InetAddress address = InetAddress.getByName(host);</span>
-<span class="nc" id="L101">            byte[] buffer = new byte[NTP_PACKET_SIZE];</span>
-<span class="nc" id="L102">            DatagramPacket request = new DatagramPacket(buffer, buffer.length, address, NTP_PORT);</span>
+<span class="nc" id="L97">        try (DatagramSocket socket = new DatagramSocket()) {</span>
+<span class="nc" id="L98">            socket.setSoTimeout(timeoutMillis);</span>
+<span class="nc" id="L99">            InetAddress address = InetAddress.getByName(host);</span>
+<span class="nc" id="L100">            byte[] buffer = new byte[NTP_PACKET_SIZE];</span>
+<span class="nc" id="L101">            DatagramPacket request = new DatagramPacket(buffer, buffer.length, address, NTP_PORT);</span>
 
             // set mode = 3 (client) and version = 3
             // mode is in low 3 bits of first byte
             // version is in bits 3-5 of first byte
-<span class="nc" id="L107">            buffer[0] = NTP_MODE_CLIENT | (NTP_VERSION &lt;&lt; 3);</span>
+<span class="nc" id="L106">            buffer[0] = NTP_MODE_CLIENT | (NTP_VERSION &lt;&lt; 3);</span>
             // Allocate response.
-<span class="nc" id="L109">            DatagramPacket response = new DatagramPacket(buffer, buffer.length);</span>
+<span class="nc" id="L108">            DatagramPacket response = new DatagramPacket(buffer, buffer.length);</span>
             // get current nanotime.
-<span class="nc" id="L111">            long requestTicks = System.nanoTime() / 1000000L;</span>
+<span class="nc" id="L110">            long requestTicks = System.nanoTime() / 1000000L;</span>
             // get current time and write it to the request packet
-<span class="nc" id="L113">            long requestTime = System.currentTimeMillis();</span>
-<span class="nc" id="L114">            writeTimeStamp(buffer, TRANSMIT_TIME_OFFSET, requestTime);</span>
-<span class="nc" id="L115">            socket.send(request);</span>
+<span class="nc" id="L112">            long requestTime = System.currentTimeMillis();</span>
+<span class="nc" id="L113">            writeTimeStamp(buffer, TRANSMIT_TIME_OFFSET, requestTime);</span>
+<span class="nc" id="L114">            socket.send(request);</span>
             // read the response
-<span class="nc" id="L117">            socket.receive(response);</span>
-<span class="nc" id="L118">            long responseTicks = System.nanoTime() / 1000000L;</span>
-<span class="nc" id="L119">            long responseTime = requestTime + (responseTicks - requestTicks);</span>
+<span class="nc" id="L116">            socket.receive(response);</span>
+<span class="nc" id="L117">            long responseTicks = System.nanoTime() / 1000000L;</span>
+<span class="nc" id="L118">            long responseTime = requestTime + (responseTicks - requestTicks);</span>
 
             // extract the results
-<span class="nc" id="L122">            long originateTime = readTimeStamp(buffer, ORIGINATE_TIME_OFFSET);</span>
-<span class="nc" id="L123">            long receiveTime = readTimeStamp(buffer, RECEIVE_TIME_OFFSET);</span>
-<span class="nc" id="L124">            long transmitTime = readTimeStamp(buffer, TRANSMIT_TIME_OFFSET);</span>
-<span class="nc" id="L125">            long roundTripTime = responseTicks - requestTicks - (transmitTime - receiveTime);</span>
+<span class="nc" id="L121">            long originateTime = readTimeStamp(buffer, ORIGINATE_TIME_OFFSET);</span>
+<span class="nc" id="L122">            long receiveTime = readTimeStamp(buffer, RECEIVE_TIME_OFFSET);</span>
+<span class="nc" id="L123">            long transmitTime = readTimeStamp(buffer, TRANSMIT_TIME_OFFSET);</span>
+<span class="nc" id="L124">            long roundTripTime = responseTicks - requestTicks - (transmitTime - receiveTime);</span>
             // receiveTime = originateTime + transit + skew
             // responseTime = transmitTime + transit - skew
             // clockOffset = ((receiveTime - originateTime) + (transmitTime - responseTime))/2
@@ -131,27 +130,27 @@ public final class SntpClient {
             //             = ((transit + skew) + (transmitTime - transmitTime - transit + skew))/2
             //             = (transit + skew - transit + skew)/2
             //             = (2 * skew)/2 = skew
-<span class="nc" id="L134">            long clockOffset = ((receiveTime - originateTime) + (transmitTime - responseTime)) / 2;</span>
-<span class="nc" id="L135">            return new Timing(responseTime + clockOffset, responseTicks, roundTripTime);</span>
-<span class="nc bnc" id="L136" title="All 8 branches missed.">        }</span>
+<span class="nc" id="L133">            long clockOffset = ((receiveTime - originateTime) + (transmitTime - responseTime)) / 2;</span>
+<span class="nc" id="L134">            return new Timing(responseTime + clockOffset, responseTicks, roundTripTime);</span>
+<span class="nc bnc" id="L135" title="All 8 branches missed.">        }</span>
     }
 
     /**
      * Reads an unsigned 32 bit big endian number from the given offset in the buffer.
      */
     private static long read32(final byte[] buffer, final int offset) {
-<span class="nc" id="L143">        byte b0 = buffer[offset];</span>
-<span class="nc" id="L144">        byte b1 = buffer[offset + 1];</span>
-<span class="nc" id="L145">        byte b2 = buffer[offset + 2];</span>
-<span class="nc" id="L146">        byte b3 = buffer[offset + 3];</span>
+<span class="nc" id="L142">        byte b0 = buffer[offset];</span>
+<span class="nc" id="L143">        byte b1 = buffer[offset + 1];</span>
+<span class="nc" id="L144">        byte b2 = buffer[offset + 2];</span>
+<span class="nc" id="L145">        byte b3 = buffer[offset + 3];</span>
 
         // convert signed bytes to unsigned values
-<span class="nc bnc" id="L149" title="All 2 branches missed.">        int i0 = ((b0 &amp; 0x80) == 0x80 ? (b0 &amp; 0x7F) + 0x80 : b0);</span>
-<span class="nc bnc" id="L150" title="All 2 branches missed.">        int i1 = ((b1 &amp; 0x80) == 0x80 ? (b1 &amp; 0x7F) + 0x80 : b1);</span>
-<span class="nc bnc" id="L151" title="All 2 branches missed.">        int i2 = ((b2 &amp; 0x80) == 0x80 ? (b2 &amp; 0x7F) + 0x80 : b2);</span>
-<span class="nc bnc" id="L152" title="All 2 branches missed.">        int i3 = ((b3 &amp; 0x80) == 0x80 ? (b3 &amp; 0x7F) + 0x80 : b3);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        int i0 = ((b0 &amp; 0x80) == 0x80 ? (b0 &amp; 0x7F) + 0x80 : b0);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        int i1 = ((b1 &amp; 0x80) == 0x80 ? (b1 &amp; 0x7F) + 0x80 : b1);</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        int i2 = ((b2 &amp; 0x80) == 0x80 ? (b2 &amp; 0x7F) + 0x80 : b2);</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        int i3 = ((b3 &amp; 0x80) == 0x80 ? (b3 &amp; 0x7F) + 0x80 : b3);</span>
 
-<span class="nc" id="L154">        return ((long) i0 &lt;&lt; 24) + ((long) i1 &lt;&lt; 16) + ((long) i2 &lt;&lt; 8) + (long) i3;</span>
+<span class="nc" id="L153">        return ((long) i0 &lt;&lt; 24) + ((long) i1 &lt;&lt; 16) + ((long) i2 &lt;&lt; 8) + (long) i3;</span>
     }
 
     /**
@@ -159,9 +158,9 @@ public final class SntpClient {
      * it as a system time (milliseconds since January 1, 1970).
      */
     private static long readTimeStamp(final byte[] buffer, final int offset) {
-<span class="nc" id="L162">        long seconds = read32(buffer, offset);</span>
-<span class="nc" id="L163">        long fraction = read32(buffer, offset + 4);</span>
-<span class="nc" id="L164">        return ((seconds - OFFSET_1900_TO_1970) * 1000) + ((fraction * 1000L) / 0x100000000L);</span>
+<span class="nc" id="L161">        long seconds = read32(buffer, offset);</span>
+<span class="nc" id="L162">        long fraction = read32(buffer, offset + 4);</span>
+<span class="nc" id="L163">        return ((seconds - OFFSET_1900_TO_1970) * 1000) + ((fraction * 1000L) / 0x100000000L);</span>
     }
 
 
@@ -170,24 +169,24 @@ public final class SntpClient {
      * at the given offset in the buffer.
      */
     private static void writeTimeStamp(final byte[] buffer, final int poffset, final long time) {
-<span class="nc" id="L173">        int offset = poffset;</span>
-<span class="nc" id="L174">        long seconds = time / 1000L;</span>
-<span class="nc" id="L175">        long milliseconds = time - seconds * 1000L;</span>
-<span class="nc" id="L176">        seconds += OFFSET_1900_TO_1970;</span>
+<span class="nc" id="L172">        int offset = poffset;</span>
+<span class="nc" id="L173">        long seconds = time / 1000L;</span>
+<span class="nc" id="L174">        long milliseconds = time - seconds * 1000L;</span>
+<span class="nc" id="L175">        seconds += OFFSET_1900_TO_1970;</span>
 
         // write seconds in big endian format
-<span class="nc" id="L179">        buffer[offset++] = (byte) (seconds &gt;&gt; 24);</span>
-<span class="nc" id="L180">        buffer[offset++] = (byte) (seconds &gt;&gt; 16);</span>
-<span class="nc" id="L181">        buffer[offset++] = (byte) (seconds &gt;&gt; 8);</span>
-<span class="nc" id="L182">        buffer[offset++] = (byte) (seconds);</span>
+<span class="nc" id="L178">        buffer[offset++] = (byte) (seconds &gt;&gt; 24);</span>
+<span class="nc" id="L179">        buffer[offset++] = (byte) (seconds &gt;&gt; 16);</span>
+<span class="nc" id="L180">        buffer[offset++] = (byte) (seconds &gt;&gt; 8);</span>
+<span class="nc" id="L181">        buffer[offset++] = (byte) (seconds);</span>
 
-<span class="nc" id="L184">        long fraction = milliseconds * 0x100000000L / 1000L;</span>
+<span class="nc" id="L183">        long fraction = milliseconds * 0x100000000L / 1000L;</span>
         // write fraction in big endian format
-<span class="nc" id="L186">        buffer[offset++] = (byte) (fraction &gt;&gt; 24);</span>
-<span class="nc" id="L187">        buffer[offset++] = (byte) (fraction &gt;&gt; 16);</span>
-<span class="nc" id="L188">        buffer[offset++] = (byte) (fraction &gt;&gt; 8);</span>
+<span class="nc" id="L185">        buffer[offset++] = (byte) (fraction &gt;&gt; 24);</span>
+<span class="nc" id="L186">        buffer[offset++] = (byte) (fraction &gt;&gt; 16);</span>
+<span class="nc" id="L187">        buffer[offset++] = (byte) (fraction &gt;&gt; 8);</span>
         // low order bits should be random data
-<span class="nc" id="L190">        buffer[offset] = (byte) (IntMath.XorShift32ThreadSafe.Singleton.INSTANCE.nextInt() % 256);</span>
-<span class="nc" id="L191">    }</span>
+<span class="nc" id="L189">        buffer[offset] = (byte) (ThreadLocalRandom.current().nextInt() % 256);</span>
+<span class="nc" id="L190">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

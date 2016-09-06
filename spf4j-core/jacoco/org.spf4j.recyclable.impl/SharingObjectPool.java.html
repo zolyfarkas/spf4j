@@ -169,52 +169,54 @@ public final class SharingObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&
     private synchronized void returnToQueue(final T object) {
         // object is valid
 <span class="fc" id="L171">        UpdateablePriorityQueue&lt;SharedObject&lt;T&gt;&gt;.ElementRef ref = o2QueueRefMap.get(object);</span>
-<span class="fc" id="L172">        final SharedObject&lt;T&gt; elem = ref.getElem();</span>
-<span class="fc" id="L173">        elem.dec();</span>
-<span class="fc" id="L174">        this.notifyAll();</span>
-<span class="fc" id="L175">        ref.elementMutated();</span>
-<span class="fc" id="L176">    }</span>
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">        if (ref != null) { // elem can already be removed if it fails validation.</span>
+<span class="fc" id="L173">          final SharedObject&lt;T&gt; elem = ref.getElem();</span>
+<span class="fc" id="L174">          elem.dec();</span>
+<span class="fc" id="L175">          this.notifyAll();</span>
+<span class="fc" id="L176">          ref.elementMutated();</span>
+        }
+<span class="fc" id="L178">    }</span>
 
     @Override
     public void recycle(final T object) {
-<span class="fc" id="L180">        recycle(object, null);</span>
-<span class="fc" id="L181">    }</span>
+<span class="fc" id="L182">        recycle(object, null);</span>
+<span class="fc" id="L183">    }</span>
 
     @Override
     public synchronized void dispose() throws ObjectDisposeException, InterruptedException {
-<span class="nc bnc" id="L185" title="All 2 branches missed.">        if (!closed) {</span>
-<span class="nc" id="L186">            closed = true;</span>
-<span class="nc" id="L187">            ObjectDisposeException exres = null;</span>
-<span class="nc" id="L188">            Iterator&lt;SharedObject&lt;T&gt;&gt; iterator = pooledObjects.iterator();</span>
-<span class="nc bnc" id="L189" title="All 2 branches missed.">            while (iterator.hasNext()) {</span>
-<span class="nc" id="L190">                SharedObject&lt;T&gt; so = iterator.next();</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        if (!closed) {</span>
+<span class="nc" id="L188">            closed = true;</span>
+<span class="nc" id="L189">            ObjectDisposeException exres = null;</span>
+<span class="nc" id="L190">            Iterator&lt;SharedObject&lt;T&gt;&gt; iterator = pooledObjects.iterator();</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">            while (iterator.hasNext()) {</span>
+<span class="nc" id="L192">                SharedObject&lt;T&gt; so = iterator.next();</span>
                 try {
-<span class="nc bnc" id="L192" title="All 2 branches missed.">                    while (so.getNrTimesShared() &gt; 0) {</span>
-<span class="nc" id="L193">                        this.wait(5000);</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">                    while (so.getNrTimesShared() &gt; 0) {</span>
+<span class="nc" id="L195">                        this.wait(5000);</span>
                     }
-<span class="nc" id="L195">                    T o = so.getObject();</span>
-<span class="nc" id="L196">                    o2QueueRefMap.remove(o);</span>
-<span class="nc" id="L197">                    iterator.remove();</span>
-<span class="nc" id="L198">                    nrObjects--;</span>
-<span class="nc" id="L199">                    factory.dispose(o);</span>
-<span class="nc" id="L200">                } catch (ObjectDisposeException ex) {</span>
-<span class="nc bnc" id="L201" title="All 2 branches missed.">                    if (exres == null) {</span>
-<span class="nc" id="L202">                        exres = ex;</span>
+<span class="nc" id="L197">                    T o = so.getObject();</span>
+<span class="nc" id="L198">                    o2QueueRefMap.remove(o);</span>
+<span class="nc" id="L199">                    iterator.remove();</span>
+<span class="nc" id="L200">                    nrObjects--;</span>
+<span class="nc" id="L201">                    factory.dispose(o);</span>
+<span class="nc" id="L202">                } catch (ObjectDisposeException ex) {</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">                    if (exres == null) {</span>
+<span class="nc" id="L204">                        exres = ex;</span>
                     } else {
-<span class="nc" id="L204">                        ex.addSuppressed(exres);</span>
-<span class="nc" id="L205">                        exres = ex;</span>
+<span class="nc" id="L206">                        ex.addSuppressed(exres);</span>
+<span class="nc" id="L207">                        exres = ex;</span>
                     }
-<span class="nc" id="L207">                }</span>
-<span class="nc" id="L208">            }</span>
-<span class="nc bnc" id="L209" title="All 2 branches missed.">            if (exres != null) {</span>
-<span class="nc" id="L210">                throw exres;</span>
+<span class="nc" id="L209">                }</span>
+<span class="nc" id="L210">            }</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">            if (exres != null) {</span>
+<span class="nc" id="L212">                throw exres;</span>
             }
         }
-<span class="nc" id="L213">    }</span>
+<span class="nc" id="L215">    }</span>
 
     @Override
     public synchronized String toString() {
-<span class="nc" id="L217">        return &quot;SharingObjectPool{&quot; + &quot;factory=&quot; + factory + &quot;, pooledObjects=&quot; + pooledObjects + '}';</span>
+<span class="nc" id="L219">        return &quot;SharingObjectPool{&quot; + &quot;factory=&quot; + factory + &quot;, pooledObjects=&quot; + pooledObjects + '}';</span>
     }
 
 }

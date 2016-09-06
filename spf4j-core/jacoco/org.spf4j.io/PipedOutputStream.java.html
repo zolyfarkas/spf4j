@@ -380,19 +380,26 @@ public final class PipedOutputStream extends OutputStream {
     }
 
 
-    @Override
-    public String toString() {
-<span class="fc" id="L385">        synchronized (sync) {</span>
-<span class="fc bfc" id="L386" title="All 2 branches covered.">            return &quot;PipedOutputStream{&quot; + &quot;bufferLength=&quot;</span>
-<span class="fc bfc" id="L387" title="All 2 branches covered.">                    + ((buffer == null) ? null : buffer.length) + &quot;, startIdx=&quot; + startIdx</span>
-                    + &quot;, endIdx=&quot; + endIdx
-                    + &quot;, readerPerceivedEndIdx=&quot; + readerPerceivedEndIdx
-                    + ((writerClosed)
+  @Override
+  public String toString() {
+<span class="fc" id="L385">    synchronized (sync) {</span>
+<span class="fc bfc" id="L386" title="All 2 branches covered.">      if (buffer == null) {</span>
+<span class="fc" id="L387">        return &quot;PipedOutputStream{&quot; + &quot;, startIdx=&quot; + startIdx</span>
+                + &quot;, endIdx=&quot; + endIdx
+                + &quot;, readerPerceivedEndIdx=&quot; + readerPerceivedEndIdx
+                + &quot;, closed=&quot; + writerClosed + '}';
+      } else {
+<span class="pc bpc" id="L392" title="1 of 2 branches missed.">        return &quot;PipedOutputStream{&quot; + &quot;bufferLength=&quot;</span>
+                + buffer.length + &quot;, startIdx=&quot; + startIdx
+                + &quot;, endIdx=&quot; + endIdx
+                + &quot;, readerPerceivedEndIdx=&quot; + readerPerceivedEndIdx
+                + ((writerClosed)
                         ? &quot;, closed=&quot; + writerClosed
-<span class="fc" id="L392">                        : &quot;, unread=&quot; + BaseEncoding.base64().encode(getUnreadBytesFromBuffer()))</span>
-                    + '}';
-<span class="nc" id="L394">        }</span>
-    }
+<span class="fc" id="L398">                        : &quot;, unread=&quot; + BaseEncoding.base64().encode(getUnreadBytesFromBuffer()))</span>
+                + '}';
+      }
+<span class="nc" id="L401">    }</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

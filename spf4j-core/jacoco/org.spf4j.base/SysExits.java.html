@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SysExits.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">SysExits.java</span></div><h1>SysExits.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * IMPORTANT: This file is also Licensed with the BDS license.
+ */
+package org.spf4j.base;
+
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import javax.annotation.Nonnull;
+
+/**
+ * some &quot;standard&quot; process exit codes from:
+ * http://tldp.org/LDP/abs/html/index.html
+ * https://www.freebsd.org/cgi/man.cgi?query=sysexits&amp;apropos=0&amp;sektion=0&amp;manpath=FreeBSD+4.3-RELEASE&amp;format=html
+ * http://journal.thobe.org/2013/02/jvms-and-kill-signals.html
+ * @author zoly
+ */
+<span class="pc" id="L33">public enum SysExits {</span>
+
+  /**
+   * Everything is OK.
+   */
+<span class="fc" id="L38">  OK(0),</span>
+
+  /**
+   * Catch all for general errors.
+   */
+<span class="fc" id="L43">  EX_GENERAL(1),</span>
+
+  /**
+   * Shell build in miss-use.
+   */
+<span class="fc" id="L48">  EX_SHELL_BUILTIN_MISSUSE(2),</span>
+
+  /**
+   * The command was used incorrectly, e.g., with the wrong number of arguments, a bad flag, a bad syntax in a
+   * parameter, or whatever.
+   */
+<span class="fc" id="L54">  EX_USAGE(64),</span>
+  /**
+   * The input data was incorrect in some way. This should only be used for user's data and not system files.
+   */
+<span class="fc" id="L58">  EX_DATAERR(65),</span>
+  /**
+   * An input file (not a system file) did not exist or was not readable. This could also include errors like ``No
+   * message'' to a mailer (if it cared to catch it).
+   */
+<span class="fc" id="L63">  EX_NOINPUT(66),</span>
+  /**
+   * The user specified did not exist. This might be used for mail addresses or remote logins.
+   */
+<span class="fc" id="L67">  EX_NOUSER(67),</span>
+  /**
+   * The host specified did not exist. This is used in mail addresses or network requests.
+   */
+<span class="fc" id="L71">  EX_NOHOST(68),</span>
+  /**
+   * A service is unavailable. This can occur if a support program or file does not exist. This can also be used as a
+   * catchall message when something you wanted to do doesn't work, but you don't know why.
+   */
+<span class="fc" id="L76">  EX_UNAVAILABLE(69),</span>
+  /**
+   * An internal software error has been detected. This should be limited to non-operating system related errors as
+   * possible.
+   */
+<span class="fc" id="L81">  EX_SOFTWARE(70),</span>
+  /**
+   * An operating system error has been detected. This is intended to be used for such things as ``cannot fork'',
+   * ``cannot create pipe'', or the like. It includes things like getuid returning a user that does not exist in the
+   * passwd file.
+   */
+<span class="fc" id="L87">  EX_OSERR(71),</span>
+  /**
+   * Some system file (e.g., /etc/passwd, /var/run/utmp,etc.) does not exist, cannot be opened, or has some sort of
+   * error (e.g., syntax error).
+   */
+<span class="fc" id="L92">  EX_OSFILE(72),</span>
+  /**
+   * A (user specified) output file cannot be created.
+   */
+<span class="fc" id="L96">  EX_CANTCREAT(73),</span>
+  /**
+   * An error occurred while doing I/O on some file.
+   */
+<span class="fc" id="L100">  EX_IOERR(74),</span>
+  /**
+   * Temporary failure, indicating something that is not really an error. In sendmail, this means that a mailer (e.g.)
+   * could not create a connection, and the request should be reattempted later.
+   */
+<span class="fc" id="L105">  EX_TEMPFAIL(75),</span>
+  /**
+   * The remote system returned something that was ``not possible'' during a protocol exchange.
+   */
+<span class="fc" id="L109">  EX_PROTOCOL(76),</span>
+  /**
+   * You did not have sufficient permission to perform the operation. This is not intended for file system problems,
+   * which should use EX_NOINPUT or EX_CANTCREAT, but rather for higher level permissions.
+   */
+<span class="fc" id="L114">  EX_NOPERM(77),</span>
+  /**
+   * Something was found in an unconfigured or misconfigured state.
+   */
+<span class="fc" id="L118">  EX_CONFIG(78),</span>
+
+
+  /**
+   * cannot execute invoked command.
+   */
+<span class="fc" id="L124">  EX_CANNOT_EXEC_CMD(126),</span>
+
+  /**
+   * Command not found.
+   */
+<span class="fc" id="L129">  EX_CMD_NOT_FOUND(127),</span>
+
+  /**
+   * Invalid argument to exit.
+   */
+<span class="fc" id="L134">  EX_INVALID_ARG_TO_EXIT(128),</span>
+
+  /**
+   * Section caused by exit due to signal.
+   * where signal name is same on Linux, Solaris and MacOS enum has the appropriate name.
+   * for linux see: http://man7.org/linux/man-pages/man7/signal.7.html
+   * or run man signal on you OS of choice.
+   */
+<span class="fc" id="L142">  EX_SIG_HUP(129),</span>
+<span class="fc" id="L143">  EX_SIG_INT(130),</span>
+<span class="fc" id="L144">  EX_SIG_QUIT(131),</span>
+<span class="fc" id="L145">  EX_SIG_ILL(132),</span>
+<span class="fc" id="L146">  EX_SIG_TRAP(133),</span>
+<span class="fc" id="L147">  EX_SIG_ABRT(134),</span>
+<span class="fc" id="L148">  EX_SIG_7(135),</span>
+<span class="fc" id="L149">  EX_SIG_FPE(136),</span>
+<span class="fc" id="L150">  EX_SIG_KILL(137),</span>
+<span class="fc" id="L151">  EX_SIG_10(138),</span>
+<span class="fc" id="L152">  EX_SIG_11(139),</span>
+<span class="fc" id="L153">  EX_SIG_12(140),</span>
+<span class="fc" id="L154">  EX_SIG_PIPE(141),</span>
+<span class="fc" id="L155">  EX_SIG_ALRM(142),</span>
+<span class="fc" id="L156">  EX_SIG_TERM(143),</span>
+<span class="fc" id="L157">  EX_SIG_16(144),</span>
+<span class="fc" id="L158">  EX_SIG_17(145),</span>
+<span class="fc" id="L159">  EX_SIG_18(146),</span>
+<span class="fc" id="L160">  EX_SIG_19(147),</span>
+<span class="fc" id="L161">  EX_SIG_20(148),</span>
+<span class="fc" id="L162">  EX_SIG_21(149),</span>
+<span class="fc" id="L163">  EX_SIG_22(150),</span>
+<span class="fc" id="L164">  EX_SIG_23(151),</span>
+<span class="fc" id="L165">  EX_SIG_24(152),</span>
+<span class="fc" id="L166">  EX_SIG_25(153),</span>
+<span class="fc" id="L167">  EX_SIG_26(154),</span>
+<span class="fc" id="L168">  EX_SIG_27(155),</span>
+<span class="fc" id="L169">  EX_SIG_28(156),</span>
+<span class="fc" id="L170">  EX_SIG_29(157),</span>
+<span class="fc" id="L171">  EX_SIG_30(158),</span>
+<span class="fc" id="L172">  EX_SIG_31(159),</span>
+
+<span class="fc" id="L174">  EX_STATUS_OUT_OF_RANGE(255),</span>
+  /**
+   * Any return codes not explicitly defined will be associated with &quot;EX_UNKNOWN&quot;
+   */
+<span class="fc" id="L178">  EX_UNKNOWN(-1);</span>
+
+<span class="fc" id="L180">  SysExits(final int code) {</span>
+<span class="fc" id="L181">    this.exitCode = code;</span>
+<span class="fc" id="L182">  }</span>
+
+  final int exitCode;
+
+  public int exitCode() {
+<span class="fc" id="L187">    return exitCode;</span>
+  }
+
+  public boolean isOk() {
+<span class="nc bnc" id="L191" title="All 2 branches missed.">    return exitCode == 0;</span>
+  }
+
+  public boolean isError() {
+<span class="nc bnc" id="L195" title="All 2 branches missed.">    return exitCode != 0;</span>
+  }
+
+  private static final TIntObjectMap&lt;SysExits&gt; CODE2ENUM;
+
+  static {
+<span class="fc" id="L201">    SysExits[] values = SysExits.values();</span>
+<span class="fc" id="L202">    TIntObjectMap&lt;SysExits&gt; c2e = new TIntObjectHashMap&lt;&gt;(values.length);</span>
+<span class="fc bfc" id="L203" title="All 2 branches covered.">    for (SysExits e : values) {</span>
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">      if (c2e.put(e.exitCode(), e) != null) {</span>
+<span class="nc" id="L205">        throw new ExceptionInInitializerError(&quot;Duplicate exit code &quot; + e);</span>
+      }
+    }
+<span class="fc" id="L208">    CODE2ENUM = c2e;</span>
+<span class="fc" id="L209">  }</span>
+
+
+  /**
+   * @param exitCode
+   * @return corresponding enum.
+   */
+  @Nonnull
+  public static SysExits fromCode(final int exitCode) {
+<span class="nc" id="L218">    SysExits result =  CODE2ENUM.get(exitCode);</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">    if (result == null) {</span>
+<span class="nc" id="L220">      return SysExits.EX_UNKNOWN;</span>
+    } else {
+<span class="nc" id="L222">      return result;</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

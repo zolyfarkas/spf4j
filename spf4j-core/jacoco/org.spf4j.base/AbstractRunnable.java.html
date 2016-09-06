@@ -17,7 +17,6 @@
  */
 package org.spf4j.base;
 
-import com.google.common.base.Throwables;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,15 +34,15 @@ public abstract class AbstractRunnable implements Runnable {
 
     /**
      * Create runnable lenient or not with a specific thread name during its execution.
-     * 
+     *
      * @param lenient - If lenient is true, it means that nobody is waiting for this runnable's result(finish)
      * so To not loose the exception, the runnable will LOG it as an error, and not retrow it
      * @param threadName - the thread name during the execution of this runnable.
      */
-<span class="fc" id="L43">    public AbstractRunnable(final boolean lenient, @Nullable final String threadName) {</span>
-<span class="fc" id="L44">        this.lenient = lenient;</span>
-<span class="fc" id="L45">        this.threadName = threadName;</span>
-<span class="fc" id="L46">    }</span>
+<span class="fc" id="L42">    public AbstractRunnable(final boolean lenient, @Nullable final String threadName) {</span>
+<span class="fc" id="L43">        this.lenient = lenient;</span>
+<span class="fc" id="L44">        this.threadName = threadName;</span>
+<span class="fc" id="L45">    }</span>
 
     /**
      * create runnable.
@@ -51,18 +50,19 @@ public abstract class AbstractRunnable implements Runnable {
      * so To not loose the exception, the runnable will LOG it as an error, and not retrow it
      */
     public AbstractRunnable(final boolean lenient) {
-<span class="fc" id="L54">       this(lenient, null);</span>
-<span class="fc" id="L55">    }</span>
+<span class="fc" id="L53">       this(lenient, null);</span>
+<span class="fc" id="L54">    }</span>
 
     public AbstractRunnable() {
-<span class="fc" id="L58">        this(false, null);</span>
-<span class="fc" id="L59">    }</span>
+<span class="fc" id="L57">        this(false, null);</span>
+<span class="fc" id="L58">    }</span>
 
     public AbstractRunnable(final String threadName) {
-<span class="fc" id="L62">        this(false, null);</span>
-<span class="fc" id="L63">    }</span>
+<span class="fc" id="L61">        this(false, null);</span>
+<span class="fc" id="L62">    }</span>
 
-    public static final int ERROR_EXIT_CODE = 666;
+    @Deprecated
+<span class="fc" id="L65">    public static final int ERROR_EXIT_CODE = SysExits.EX_SOFTWARE.exitCode();</span>
 
 <span class="fc" id="L67">    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRunnable.class);</span>
 
@@ -79,8 +79,8 @@ public abstract class AbstractRunnable implements Runnable {
         try {
 <span class="fc" id="L80">            doRun();</span>
 <span class="fc" id="L81">        } catch (Exception ex) {</span>
-<span class="pc bpc" id="L82" title="1 of 2 branches missed.">            if (Throwables.getRootCause(ex) instanceof Error) {</span>
-<span class="nc" id="L83">                Runtime.goDownWithError(ex, ERROR_EXIT_CODE);</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">            if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {</span>
+<span class="nc" id="L83">                Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);</span>
             }
 <span class="pc bpc" id="L85" title="1 of 2 branches missed.">            if (lenient) {</span>
 <span class="fc" id="L86">                LOGGER.error(&quot;Exception in runnable: &quot;, ex);</span>
@@ -88,13 +88,16 @@ public abstract class AbstractRunnable implements Runnable {
 <span class="nc" id="L88">                throw new RuntimeException(ex);</span>
             }
 <span class="nc" id="L90">        } catch (Throwable ex) {</span>
-<span class="nc" id="L91">           Runtime.goDownWithError(ex, ERROR_EXIT_CODE);</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {</span>
+<span class="nc" id="L92">                Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);</span>
+            }
+<span class="nc" id="L94">            throw ex;</span>
         } finally {
-<span class="pc bpc" id="L93" title="6 of 8 branches missed.">            if (thread != null) {</span>
-<span class="nc" id="L94">               thread.setName(origName);</span>
+<span class="pc bpc" id="L96" title="4 of 6 branches missed.">            if (thread != null) {</span>
+<span class="nc" id="L97">               thread.setName(origName);</span>
             }
         }
-<span class="fc" id="L97">    }</span>
+<span class="fc" id="L100">    }</span>
 
     public abstract void doRun() throws Exception;
 

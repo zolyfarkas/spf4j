@@ -80,73 +80,77 @@ public final class PushbackReader extends FilterReader {
 <span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (pos == 0) {</span>
 <span class="nc" id="L81">            throw new IOException(&quot;Pushback buffer overflow &quot; + this);</span>
         }
-<span class="fc" id="L83">        buf[--pos] = (char) c;</span>
-<span class="fc" id="L84">    }</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (c &gt;= 0) {</span>
+<span class="fc" id="L84">          buf[--pos] = (char) c;</span>
+        } else {
+<span class="nc" id="L86">          throw new IllegalArgumentException(&quot;pushing back invalid character &quot; + c);</span>
+        }
+<span class="fc" id="L88">    }</span>
 
     public void unread(final char[] cbuf, final int off, final int len) throws IOException {
-<span class="nc" id="L87">        ensureOpen();</span>
-<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (len &gt; pos) {</span>
-<span class="nc" id="L89">            throw new IOException(&quot;Pushback buffer overflow &quot; + this);</span>
+<span class="nc" id="L91">        ensureOpen();</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (len &gt; pos) {</span>
+<span class="nc" id="L93">            throw new IOException(&quot;Pushback buffer overflow &quot; + this);</span>
         }
-<span class="nc" id="L91">        pos -= len;</span>
-<span class="nc" id="L92">        System.arraycopy(cbuf, off, buf, pos, len);</span>
-<span class="nc" id="L93">    }</span>
+<span class="nc" id="L95">        pos -= len;</span>
+<span class="nc" id="L96">        System.arraycopy(cbuf, off, buf, pos, len);</span>
+<span class="nc" id="L97">    }</span>
 
     public void unread(final char[] cbuf) throws IOException {
-<span class="nc" id="L96">        unread(cbuf, 0, cbuf.length);</span>
-<span class="nc" id="L97">    }</span>
+<span class="nc" id="L100">        unread(cbuf, 0, cbuf.length);</span>
+<span class="nc" id="L101">    }</span>
 
     @Override
     public boolean ready() throws IOException {
-<span class="nc" id="L101">        ensureOpen();</span>
-<span class="nc bnc" id="L102" title="All 4 branches missed.">        return (pos &lt; buf.length) || super.ready();</span>
+<span class="nc" id="L105">        ensureOpen();</span>
+<span class="nc bnc" id="L106" title="All 4 branches missed.">        return (pos &lt; buf.length) || super.ready();</span>
     }
 
     @Override
     public void mark(final int readAheadLimit) throws IOException {
-<span class="nc" id="L107">        throw new IOException(&quot;mark/reset not supported &quot; + this);</span>
+<span class="nc" id="L111">        throw new IOException(&quot;mark/reset not supported &quot; + this);</span>
     }
 
     @Override
     public void reset() throws IOException {
-<span class="nc" id="L112">        throw new IOException(&quot;mark/reset not supported &quot; + this);</span>
+<span class="nc" id="L116">        throw new IOException(&quot;mark/reset not supported &quot; + this);</span>
     }
 
     @Override
     public boolean markSupported() {
-<span class="nc" id="L117">        return false;</span>
+<span class="nc" id="L121">        return false;</span>
     }
 
     @Override
     @DischargesObligation
     public void close() throws IOException {
-<span class="nc" id="L123">        super.close();</span>
-<span class="nc" id="L124">        buf = null;</span>
-<span class="nc" id="L125">    }</span>
+<span class="nc" id="L127">        super.close();</span>
+<span class="nc" id="L128">        buf = null;</span>
+<span class="nc" id="L129">    }</span>
 
     @Override
     public long skip(final long pn) throws IOException {
-<span class="nc" id="L129">        long n = pn;</span>
-<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (n &lt; 0L) {</span>
-<span class="nc" id="L131">            throw new IllegalArgumentException(&quot;skip value is negative &quot; + pn);</span>
+<span class="nc" id="L133">        long n = pn;</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (n &lt; 0L) {</span>
+<span class="nc" id="L135">            throw new IllegalArgumentException(&quot;skip value is negative &quot; + pn);</span>
         }
-<span class="nc" id="L133">        ensureOpen();</span>
-<span class="nc" id="L134">        int avail = buf.length - pos;</span>
-<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (avail &gt; 0) {</span>
-<span class="nc bnc" id="L136" title="All 2 branches missed.">            if (n &lt;= avail) {</span>
-<span class="nc" id="L137">                pos += n;</span>
-<span class="nc" id="L138">                return n;</span>
+<span class="nc" id="L137">        ensureOpen();</span>
+<span class="nc" id="L138">        int avail = buf.length - pos;</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (avail &gt; 0) {</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            if (n &lt;= avail) {</span>
+<span class="nc" id="L141">                pos += n;</span>
+<span class="nc" id="L142">                return n;</span>
             } else {
-<span class="nc" id="L140">                pos = buf.length;</span>
-<span class="nc" id="L141">                n -= avail;</span>
+<span class="nc" id="L144">                pos = buf.length;</span>
+<span class="nc" id="L145">                n -= avail;</span>
             }
         }
-<span class="nc" id="L144">        return avail + super.skip(n);</span>
+<span class="nc" id="L148">        return avail + super.skip(n);</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L149">        return &quot;PushbackReader{&quot; + &quot;buf=&quot; + new String(buf)</span>
+<span class="nc" id="L153">        return &quot;PushbackReader{&quot; + &quot;buf=&quot; + new String(buf)</span>
                 + &quot;, pos=&quot; + pos + &quot;, wrapped=&quot; + super.in + '}';
     }
 

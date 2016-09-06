@@ -209,22 +209,11 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
 <span class="nc" id="L209">            this.channel = channel;</span>
 <span class="nc" id="L210">        }</span>
 
-        @Override
-        public void doRun() throws IOException, InterruptedException {
-            try {
-<span class="nc" id="L215">                int read = in.read(channel);</span>
-<span class="nc" id="L216">                LOG.debug(&quot;Read {} bytes from {}&quot;, read, channel);</span>
-<span class="nc" id="L217">            } catch (IOException ex) {</span>
-//                connected = false;
-                try {
-<span class="nc" id="L220">                    channel.close();</span>
-<span class="nc" id="L221">                } catch (IOException ex1) {</span>
-<span class="nc" id="L222">                    ex1.addSuppressed(ex);</span>
-<span class="nc" id="L223">                    throw ex1;</span>
-<span class="nc" id="L224">                }</span>
-<span class="nc" id="L225">                throw new IOException(&quot;Error while reading from &quot; + channel, ex);</span>
-<span class="nc" id="L226">            }</span>
-<span class="nc" id="L227">        }</span>
+      @Override
+      public void doRun() {
+<span class="nc" id="L214">        int read = in.read(channel);</span>
+<span class="nc" id="L215">        LOG.debug(&quot;Read {} bytes from {}&quot;, read, channel);</span>
+<span class="nc" id="L216">      }</span>
     }
 
     private static class WriteToChannel extends AbstractRunnable {
@@ -233,32 +222,21 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
         private final SocketChannel channel;
 
         WriteToChannel(final TransferBuffer out, final SocketChannel channel) {
-<span class="nc" id="L236">            super(true);</span>
-<span class="nc" id="L237">            this.out = out;</span>
-<span class="nc" id="L238">            this.channel = channel;</span>
-<span class="nc" id="L239">        }</span>
+<span class="nc" id="L225">            super(true);</span>
+<span class="nc" id="L226">            this.out = out;</span>
+<span class="nc" id="L227">            this.channel = channel;</span>
+<span class="nc" id="L228">        }</span>
 
         @Override
-        public void doRun() throws IOException, InterruptedException {
-            try {
-<span class="nc" id="L244">                int written = out.write(channel);</span>
-<span class="nc" id="L245">                LOG.debug(&quot;Written {} bytes to {}&quot;, written, channel);</span>
-<span class="nc" id="L246">            } catch (IOException ex) {</span>
-//                connected = false;
-                try {
-<span class="nc" id="L249">                    channel.close();</span>
-<span class="nc" id="L250">                } catch (IOException ex1) {</span>
-<span class="nc" id="L251">                    ex1.addSuppressed(ex);</span>
-<span class="nc" id="L252">                    throw ex1;</span>
-<span class="nc" id="L253">                }</span>
-<span class="nc" id="L254">                throw new IOException(&quot;Error while writing to &quot; + channel, ex);</span>
-<span class="nc" id="L255">            }</span>
-<span class="nc" id="L256">        }</span>
+        public void doRun() {
+<span class="nc" id="L232">                int written = out.write(channel);</span>
+<span class="nc" id="L233">                LOG.debug(&quot;Written {} bytes to {}&quot;, written, channel);</span>
+<span class="nc" id="L234">        }</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L261">        return &quot;ProxyBufferTransferHandler{&quot; + &quot;channel=&quot; + channel + &quot;, selector=&quot; + selector</span>
+<span class="nc" id="L239">        return &quot;ProxyBufferTransferHandler{&quot; + &quot;channel=&quot; + channel + &quot;, selector=&quot; + selector</span>
                 + &quot;, connected=&quot; + connected + &quot;, in=&quot; + in + &quot;, out=&quot; + out + '}';
     }
 

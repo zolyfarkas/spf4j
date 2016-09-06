@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ThreadLocalBufferedConsumer.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">ThreadLocalBufferedConsumer.java</span></div><h1>ThreadLocalBufferedConsumer.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.concurrent;
+
+import com.google.common.annotations.Beta;
+import java.io.Closeable;
+import java.io.Flushable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+
+/**
+ *
+ * @author zoly
+ */
+@Beta
+public final class ThreadLocalBufferedConsumer&lt;T&gt; implements Flushable, Closeable {
+
+  private final ThreadLocal&lt;List&lt;T&gt;&gt; localBuffer;
+
+  private final Map&lt;Thread, List&lt;T&gt;&gt; buffers;
+
+  private final Consumer&lt;List&lt;T&gt;&gt; consumer;
+
+  private final int localSize;
+
+  private final ScheduledFuture&lt;?&gt; schedule;
+
+<span class="nc" id="L49">  public ThreadLocalBufferedConsumer(final int localSize, final Consumer&lt;List&lt;T&gt;&gt; consumer, final int delayMillis) {</span>
+<span class="nc" id="L50">    this.localSize = localSize;</span>
+<span class="nc" id="L51">    buffers = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="nc" id="L52">    this.consumer = consumer;</span>
+<span class="nc" id="L53">    localBuffer = new ThreadLocal&lt;List&lt;T&gt;&gt;() {</span>
+      @Override
+      protected List&lt;T&gt; initialValue() {
+<span class="nc" id="L56">        List&lt;T&gt; result = new ArrayList&lt;&gt;(localSize);</span>
+<span class="nc" id="L57">        buffers.put(Thread.currentThread(), result);</span>
+<span class="nc" id="L58">        return result;</span>
+      }
+    };
+<span class="nc" id="L61">    this.schedule = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(this::flush,</span>
+            delayMillis, delayMillis, TimeUnit.MILLISECONDS);
+<span class="nc" id="L63">  }</span>
+
+  public void write(final T value) {
+<span class="nc" id="L66">    List&lt;T&gt; lb = localBuffer.get();</span>
+<span class="nc" id="L67">    synchronized (lb) {</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">      if (lb.size() &gt;= localSize) {</span>
+<span class="nc" id="L69">        this.consumer.accept(lb);</span>
+<span class="nc" id="L70">        lb.clear();</span>
+      }
+<span class="nc" id="L72">      lb.add(value);</span>
+<span class="nc" id="L73">    }</span>
+<span class="nc" id="L74">  }</span>
+
+  @Override
+  public void flush() {
+<span class="nc" id="L78">    Iterator&lt;Map.Entry&lt;Thread, List&lt;T&gt;&gt;&gt; iterator = buffers.entrySet().iterator();</span>
+<span class="nc" id="L79">    List&lt;T&gt; toWrite = new ArrayList&lt;&gt;(localSize);</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">    while (iterator.hasNext()) {</span>
+<span class="nc" id="L81">      Map.Entry&lt;Thread, List&lt;T&gt;&gt; entry = iterator.next();</span>
+<span class="nc" id="L82">      Thread thread = entry.getKey();</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">      if (!thread.isAlive()) {</span>
+<span class="nc" id="L84">        iterator.remove();</span>
+      }
+<span class="nc" id="L86">      List&lt;T&gt; lb = entry.getValue();</span>
+<span class="nc" id="L87">      synchronized (lb) {</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (!lb.isEmpty()) {</span>
+<span class="nc" id="L89">          toWrite.addAll(lb);</span>
+        }
+<span class="nc" id="L91">        lb.clear();</span>
+<span class="nc" id="L92">      }</span>
+<span class="nc" id="L93">    }</span>
+<span class="nc" id="L94">    this.consumer.accept(toWrite);</span>
+<span class="nc" id="L95">  }</span>
+
+  @Override
+  public synchronized void close() {
+<span class="nc bnc" id="L99" title="All 2 branches missed.">    if (!schedule.isCancelled()) {</span>
+<span class="nc" id="L100">      schedule.cancel(false);</span>
+<span class="nc" id="L101">      flush();</span>
+    }
+<span class="nc" id="L103">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L107">    return &quot;ThreadLocalBufferedConsumer{ consumer=&quot; + consumer + &quot;, localSize=&quot;</span>
+            + localSize + &quot;, schedule=&quot; + schedule + '}';
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

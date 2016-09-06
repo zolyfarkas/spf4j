@@ -251,7 +251,7 @@
 <a class="jxr_linenumber" name="L243" href="#L243">243</a>             + <span class="jxr_string">" WHERE "</span> + semTableDesc.getSemNameColumn() + <span class="jxr_string">" = ?"</span>;
 <a class="jxr_linenumber" name="L244" href="#L244">244</a> 
 <a class="jxr_linenumber" name="L245" href="#L245">245</a>     <strong class="jxr_keyword">this</strong>.ownedPermitsSql = <span class="jxr_string">"SELECT "</span> + ownerPermitsColumn + <span class="jxr_string">" FROM "</span>
-<a class="jxr_linenumber" name="L246" href="#L246">246</a>             + permitsByOwnerTableName + <span class="jxr_string">"WHERE "</span>
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>             + permitsByOwnerTableName + <span class="jxr_string">" WHERE "</span>
 <a class="jxr_linenumber" name="L247" href="#L247">247</a>             + ownerColumn + <span class="jxr_string">" = ? AND "</span> + semaphoreNameColumn + <span class="jxr_string">" = ?"</span>;
 <a class="jxr_linenumber" name="L248" href="#L248">248</a> 
 <a class="jxr_linenumber" name="L249" href="#L249">249</a>     <strong class="jxr_keyword">this</strong>.deleteDeadOwnerRecordsSql = <span class="jxr_string">"DELETE FROM "</span> + permitsByOwnerTableName + <span class="jxr_string">" RO "</span>
@@ -690,103 +690,113 @@
 <a class="jxr_linenumber" name="L682" href="#L682">682</a>           stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
 <a class="jxr_linenumber" name="L683" href="#L683">683</a>           stmt.setInt(1, nrPermits);
 <a class="jxr_linenumber" name="L684" href="#L684">684</a>           stmt.setInt(2, nrPermits);
-<a class="jxr_linenumber" name="L685" href="#L685">685</a>           stmt.setInt(3, nrPermits);
-<a class="jxr_linenumber" name="L686" href="#L686">686</a>           stmt.setNString(4, org.spf4j.base.Runtime.PROCESS_ID);
-<a class="jxr_linenumber" name="L687" href="#L687">687</a>           stmt.setNString(5, semName);
-<a class="jxr_linenumber" name="L688" href="#L688">688</a>           <strong class="jxr_keyword">int</strong> rowsUpdated = stmt.executeUpdate();
-<a class="jxr_linenumber" name="L689" href="#L689">689</a>           <strong class="jxr_keyword">if</strong> (rowsUpdated != 1) {
-<a class="jxr_linenumber" name="L690" href="#L690">690</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Cannot reduce nr total permits by "</span> + nrPermits);
-<a class="jxr_linenumber" name="L691" href="#L691">691</a>           }
-<a class="jxr_linenumber" name="L692" href="#L692">692</a>         }
-<a class="jxr_linenumber" name="L693" href="#L693">693</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L694" href="#L694">694</a>       }
-<a class="jxr_linenumber" name="L695" href="#L695">695</a>     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<a class="jxr_linenumber" name="L696" href="#L696">696</a>   }
-<a class="jxr_linenumber" name="L697" href="#L697">697</a> 
-<a class="jxr_linenumber" name="L698" href="#L698">698</a>   @JmxExport(description = <span class="jxr_string">"Reduce the total available permits by the provided number"</span>)
-<a class="jxr_linenumber" name="L699" href="#L699">699</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> reducePermits(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nrPermits) <strong class="jxr_keyword">throws</strong> SQLException, InterruptedException {
-<a class="jxr_linenumber" name="L700" href="#L700">700</a>     jdbc.transactOnConnection(<strong class="jxr_keyword">new</strong> HandlerNano&lt;Connection, Void, SQLException&gt;() {
-<a class="jxr_linenumber" name="L701" href="#L701">701</a>       @Override
-<a class="jxr_linenumber" name="L702" href="#L702">702</a>       <strong class="jxr_keyword">public</strong> Void handle(<strong class="jxr_keyword">final</strong> Connection conn, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadlineNanos) <strong class="jxr_keyword">throws</strong> SQLException {
-<a class="jxr_linenumber" name="L703" href="#L703">703</a>         <strong class="jxr_keyword">try</strong> (PreparedStatement stmt = conn.prepareStatement(reducePermitsSql)) {
-<a class="jxr_linenumber" name="L704" href="#L704">704</a>           stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
-<a class="jxr_linenumber" name="L705" href="#L705">705</a>           stmt.setInt(1, nrPermits);
-<a class="jxr_linenumber" name="L706" href="#L706">706</a>           stmt.setInt(2, nrPermits);
-<a class="jxr_linenumber" name="L707" href="#L707">707</a>           stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
-<a class="jxr_linenumber" name="L708" href="#L708">708</a>           stmt.setNString(4, semName);
-<a class="jxr_linenumber" name="L709" href="#L709">709</a>           stmt.setInt(5, nrPermits);
-<a class="jxr_linenumber" name="L710" href="#L710">710</a>           <strong class="jxr_keyword">int</strong> rowsUpdated = stmt.executeUpdate();
-<a class="jxr_linenumber" name="L711" href="#L711">711</a>           <strong class="jxr_keyword">if</strong> (rowsUpdated != 1) {
-<a class="jxr_linenumber" name="L712" href="#L712">712</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Cannot reduce nr total permits by "</span> + nrPermits);
-<a class="jxr_linenumber" name="L713" href="#L713">713</a>           }
-<a class="jxr_linenumber" name="L714" href="#L714">714</a>         }
-<a class="jxr_linenumber" name="L715" href="#L715">715</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L716" href="#L716">716</a>       }
-<a class="jxr_linenumber" name="L717" href="#L717">717</a>     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<a class="jxr_linenumber" name="L718" href="#L718">718</a>   }
-<a class="jxr_linenumber" name="L719" href="#L719">719</a> 
-<a class="jxr_linenumber" name="L720" href="#L720">720</a>   @JmxExport(description = <span class="jxr_string">"Increase the total available permits by the provided number"</span>)
-<a class="jxr_linenumber" name="L721" href="#L721">721</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> increasePermits(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nrPermits) <strong class="jxr_keyword">throws</strong> SQLException, InterruptedException {
-<a class="jxr_linenumber" name="L722" href="#L722">722</a>     jdbc.transactOnConnection(<strong class="jxr_keyword">new</strong> HandlerNano&lt;Connection, Void, SQLException&gt;() {
-<a class="jxr_linenumber" name="L723" href="#L723">723</a>       @Override
-<a class="jxr_linenumber" name="L724" href="#L724">724</a>       <strong class="jxr_keyword">public</strong> Void handle(<strong class="jxr_keyword">final</strong> Connection conn, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadlineNanos) <strong class="jxr_keyword">throws</strong> SQLException {
-<a class="jxr_linenumber" name="L725" href="#L725">725</a>         <strong class="jxr_keyword">try</strong> (PreparedStatement stmt = conn.prepareStatement(increasePermitsSql)) {
-<a class="jxr_linenumber" name="L726" href="#L726">726</a>           stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
-<a class="jxr_linenumber" name="L727" href="#L727">727</a>           stmt.setInt(1, nrPermits);
-<a class="jxr_linenumber" name="L728" href="#L728">728</a>           stmt.setInt(2, nrPermits);
-<a class="jxr_linenumber" name="L729" href="#L729">729</a>           stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
-<a class="jxr_linenumber" name="L730" href="#L730">730</a>           stmt.setNString(4, semName);
-<a class="jxr_linenumber" name="L731" href="#L731">731</a>           <strong class="jxr_keyword">int</strong> rowsUpdated = stmt.executeUpdate();
-<a class="jxr_linenumber" name="L732" href="#L732">732</a>           <strong class="jxr_keyword">if</strong> (rowsUpdated != 1) {
-<a class="jxr_linenumber" name="L733" href="#L733">733</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Cannot reduce nr total permits by "</span> + nrPermits);
-<a class="jxr_linenumber" name="L734" href="#L734">734</a>           }
-<a class="jxr_linenumber" name="L735" href="#L735">735</a>         }
-<a class="jxr_linenumber" name="L736" href="#L736">736</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L737" href="#L737">737</a>       }
-<a class="jxr_linenumber" name="L738" href="#L738">738</a>     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<a class="jxr_linenumber" name="L739" href="#L739">739</a>   }
-<a class="jxr_linenumber" name="L740" href="#L740">740</a> 
-<a class="jxr_linenumber" name="L741" href="#L741">741</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> removeDeadHeartBeatAndNotOwnerRows(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> timeoutSeconds) <strong class="jxr_keyword">throws</strong> SQLException, InterruptedException {
-<a class="jxr_linenumber" name="L742" href="#L742">742</a>     <strong class="jxr_keyword">return</strong> jdbc.transactOnConnection(<strong class="jxr_keyword">new</strong> HandlerNano&lt;Connection, Integer, SQLException&gt;() {
-<a class="jxr_linenumber" name="L743" href="#L743">743</a>       @Override
-<a class="jxr_linenumber" name="L744" href="#L744">744</a>       <strong class="jxr_keyword">public</strong> Integer handle(<strong class="jxr_keyword">final</strong> Connection conn, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadlineNanos) <strong class="jxr_keyword">throws</strong> SQLException {
-<a class="jxr_linenumber" name="L745" href="#L745">745</a>         <strong class="jxr_keyword">return</strong> removeDeadHeartBeatAndNotOwnerRows(conn, deadlineNanos);
-<a class="jxr_linenumber" name="L746" href="#L746">746</a>       }
-<a class="jxr_linenumber" name="L747" href="#L747">747</a>     }, timeoutSeconds, TimeUnit.SECONDS);
-<a class="jxr_linenumber" name="L748" href="#L748">748</a>   }
-<a class="jxr_linenumber" name="L749" href="#L749">749</a> 
-<a class="jxr_linenumber" name="L750" href="#L750">750</a>   <strong class="jxr_keyword">int</strong> removeDeadHeartBeatAndNotOwnerRows(<strong class="jxr_keyword">final</strong> Connection conn, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadlineNanos) <strong class="jxr_keyword">throws</strong> SQLException {
-<a class="jxr_linenumber" name="L751" href="#L751">751</a>     <strong class="jxr_keyword">int</strong> removedDeadHeartBeatRows = <strong class="jxr_keyword">this</strong>.heartBeat.removeDeadHeartBeatRows(conn, deadlineNanos);
-<a class="jxr_linenumber" name="L752" href="#L752">752</a>     <strong class="jxr_keyword">if</strong> (removedDeadHeartBeatRows &gt; 0) {
-<a class="jxr_linenumber" name="L753" href="#L753">753</a>       <strong class="jxr_keyword">return</strong> removeDeadNotOwnedRowsOnly(conn, deadlineNanos);
-<a class="jxr_linenumber" name="L754" href="#L754">754</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L755" href="#L755">755</a>       <strong class="jxr_keyword">return</strong> 0;
-<a class="jxr_linenumber" name="L756" href="#L756">756</a>     }
-<a class="jxr_linenumber" name="L757" href="#L757">757</a>   }
-<a class="jxr_linenumber" name="L758" href="#L758">758</a> 
-<a class="jxr_linenumber" name="L759" href="#L759">759</a>   <strong class="jxr_keyword">int</strong> removeDeadNotOwnedRowsOnly(<strong class="jxr_keyword">final</strong> Connection conn, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadlineNanos) <strong class="jxr_keyword">throws</strong> SQLException {
-<a class="jxr_linenumber" name="L760" href="#L760">760</a>     <strong class="jxr_keyword">try</strong> (<strong class="jxr_keyword">final</strong> PreparedStatement stmt = conn.prepareStatement(deleteDeadOwnerRecordsSql)) {
-<a class="jxr_linenumber" name="L761" href="#L761">761</a>       stmt.setNString(1, semName);
-<a class="jxr_linenumber" name="L762" href="#L762">762</a>       stmt.setQueryTimeout((<strong class="jxr_keyword">int</strong>) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
-<a class="jxr_linenumber" name="L763" href="#L763">763</a>       <strong class="jxr_keyword">return</strong> stmt.executeUpdate();
-<a class="jxr_linenumber" name="L764" href="#L764">764</a>     }
-<a class="jxr_linenumber" name="L765" href="#L765">765</a>   }
-<a class="jxr_linenumber" name="L766" href="#L766">766</a> 
-<a class="jxr_linenumber" name="L767" href="#L767">767</a>   @Override
-<a class="jxr_linenumber" name="L768" href="#L768">768</a>   <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L769" href="#L769">769</a>     <strong class="jxr_keyword">return</strong> <span class="jxr_string">"JdbcSemaphore{"</span> + <span class="jxr_string">"jdbc="</span> + jdbc
-<a class="jxr_linenumber" name="L770" href="#L770">770</a>             + <span class="jxr_string">", jdbcTimeoutSeconds="</span> + jdbcTimeoutSeconds + <span class="jxr_string">", semName="</span> + semName + '}';
-<a class="jxr_linenumber" name="L771" href="#L771">771</a>   }
-<a class="jxr_linenumber" name="L772" href="#L772">772</a> 
-<a class="jxr_linenumber" name="L773" href="#L773">773</a>   @Override
-<a class="jxr_linenumber" name="L774" href="#L774">774</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() {
-<a class="jxr_linenumber" name="L775" href="#L775">775</a>     releaseAll();
-<a class="jxr_linenumber" name="L776" href="#L776">776</a>     unregisterJmx();
-<a class="jxr_linenumber" name="L777" href="#L777">777</a>     <strong class="jxr_keyword">this</strong>.heartBeat.removeLifecycleHook(failureHook);
-<a class="jxr_linenumber" name="L778" href="#L778">778</a>     isHealthy = false;
-<a class="jxr_linenumber" name="L779" href="#L779">779</a>   }
-<a class="jxr_linenumber" name="L780" href="#L780">780</a> 
-<a class="jxr_linenumber" name="L781" href="#L781">781</a> }
+<a class="jxr_linenumber" name="L685" href="#L685">685</a>           stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
+<a class="jxr_linenumber" name="L686" href="#L686">686</a>           stmt.setNString(4, semName);
+<a class="jxr_linenumber" name="L687" href="#L687">687</a>           <strong class="jxr_keyword">int</strong> rowsUpdated = stmt.executeUpdate();
+<a class="jxr_linenumber" name="L688" href="#L688">688</a>           <strong class="jxr_keyword">if</strong> (rowsUpdated != 1) {
+<a class="jxr_linenumber" name="L689" href="#L689">689</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Cannot reduce nr total permits by "</span> + nrPermits);
+<a class="jxr_linenumber" name="L690" href="#L690">690</a>           }
+<a class="jxr_linenumber" name="L691" href="#L691">691</a>         }
+<a class="jxr_linenumber" name="L692" href="#L692">692</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L693" href="#L693">693</a>       }
+<a class="jxr_linenumber" name="L694" href="#L694">694</a>     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
+<a class="jxr_linenumber" name="L695" href="#L695">695</a>   }
+<a class="jxr_linenumber" name="L696" href="#L696">696</a> 
+<a class="jxr_linenumber" name="L697" href="#L697">697</a>   @JmxExport(description = <span class="jxr_string">"Reduce the total available permits by the provided number"</span>)
+<a class="jxr_linenumber" name="L698" href="#L698">698</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> reducePermits(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nrPermits) <strong class="jxr_keyword">throws</strong> SQLException, InterruptedException {
+<a class="jxr_linenumber" name="L699" href="#L699">699</a>     jdbc.transactOnConnection(<strong class="jxr_keyword">new</strong> HandlerNano&lt;Connection, Void, SQLException&gt;() {
+<a class="jxr_linenumber" name="L700" href="#L700">700</a>       @Override
+<a class="jxr_linenumber" name="L701" href="#L701">701</a>       <strong class="jxr_keyword">public</strong> Void handle(<strong class="jxr_keyword">final</strong> Connection conn, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadlineNanos) <strong class="jxr_keyword">throws</strong> SQLException {
+<a class="jxr_linenumber" name="L702" href="#L702">702</a>         <strong class="jxr_keyword">try</strong> (PreparedStatement stmt = conn.prepareStatement(reducePermitsSql)) {
+<a class="jxr_linenumber" name="L703" href="#L703">703</a>           stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
+<a class="jxr_linenumber" name="L704" href="#L704">704</a>           stmt.setInt(1, nrPermits);
+<a class="jxr_linenumber" name="L705" href="#L705">705</a>           stmt.setInt(2, nrPermits);
+<a class="jxr_linenumber" name="L706" href="#L706">706</a>           stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
+<a class="jxr_linenumber" name="L707" href="#L707">707</a>           stmt.setNString(4, semName);
+<a class="jxr_linenumber" name="L708" href="#L708">708</a>           stmt.setInt(5, nrPermits);
+<a class="jxr_linenumber" name="L709" href="#L709">709</a>           <strong class="jxr_keyword">int</strong> rowsUpdated = stmt.executeUpdate();
+<a class="jxr_linenumber" name="L710" href="#L710">710</a>           <strong class="jxr_keyword">if</strong> (rowsUpdated != 1) {
+<a class="jxr_linenumber" name="L711" href="#L711">711</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Cannot reduce nr total permits by "</span> + nrPermits);
+<a class="jxr_linenumber" name="L712" href="#L712">712</a>           }
+<a class="jxr_linenumber" name="L713" href="#L713">713</a>         }
+<a class="jxr_linenumber" name="L714" href="#L714">714</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L715" href="#L715">715</a>       }
+<a class="jxr_linenumber" name="L716" href="#L716">716</a>     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
+<a class="jxr_linenumber" name="L717" href="#L717">717</a>   }
+<a class="jxr_linenumber" name="L718" href="#L718">718</a> 
+<a class="jxr_linenumber" name="L719" href="#L719">719</a>   @JmxExport(description = <span class="jxr_string">"Increase the total available permits by the provided number"</span>)
+<a class="jxr_linenumber" name="L720" href="#L720">720</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> increasePermits(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nrPermits) <strong class="jxr_keyword">throws</strong> SQLException, InterruptedException {
+<a class="jxr_linenumber" name="L721" href="#L721">721</a>     jdbc.transactOnConnection(<strong class="jxr_keyword">new</strong> HandlerNano&lt;Connection, Void, SQLException&gt;() {
+<a class="jxr_linenumber" name="L722" href="#L722">722</a>       @Override
+<a class="jxr_linenumber" name="L723" href="#L723">723</a>       <strong class="jxr_keyword">public</strong> Void handle(<strong class="jxr_keyword">final</strong> Connection conn, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadlineNanos) <strong class="jxr_keyword">throws</strong> SQLException {
+<a class="jxr_linenumber" name="L724" href="#L724">724</a>         <strong class="jxr_keyword">try</strong> (PreparedStatement stmt = conn.prepareStatement(increasePermitsSql)) {
+<a class="jxr_linenumber" name="L725" href="#L725">725</a>           stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
+<a class="jxr_linenumber" name="L726" href="#L726">726</a>           stmt.setInt(1, nrPermits);
+<a class="jxr_linenumber" name="L727" href="#L727">727</a>           stmt.setInt(2, nrPermits);
+<a class="jxr_linenumber" name="L728" href="#L728">728</a>           stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
+<a class="jxr_linenumber" name="L729" href="#L729">729</a>           stmt.setNString(4, semName);
+<a class="jxr_linenumber" name="L730" href="#L730">730</a>           <strong class="jxr_keyword">int</strong> rowsUpdated = stmt.executeUpdate();
+<a class="jxr_linenumber" name="L731" href="#L731">731</a>           <strong class="jxr_keyword">if</strong> (rowsUpdated != 1) {
+<a class="jxr_linenumber" name="L732" href="#L732">732</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Cannot reduce nr total permits by "</span> + nrPermits);
+<a class="jxr_linenumber" name="L733" href="#L733">733</a>           }
+<a class="jxr_linenumber" name="L734" href="#L734">734</a>         }
+<a class="jxr_linenumber" name="L735" href="#L735">735</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L736" href="#L736">736</a>       }
+<a class="jxr_linenumber" name="L737" href="#L737">737</a>     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
+<a class="jxr_linenumber" name="L738" href="#L738">738</a>   }
+<a class="jxr_linenumber" name="L739" href="#L739">739</a> 
+<a class="jxr_linenumber" name="L740" href="#L740">740</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> removeDeadHeartBeatAndNotOwnerRows(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> timeoutSeconds) <strong class="jxr_keyword">throws</strong> SQLException, InterruptedException {
+<a class="jxr_linenumber" name="L741" href="#L741">741</a>     <strong class="jxr_keyword">return</strong> jdbc.transactOnConnection(<strong class="jxr_keyword">new</strong> HandlerNano&lt;Connection, Integer, SQLException&gt;() {
+<a class="jxr_linenumber" name="L742" href="#L742">742</a>       @Override
+<a class="jxr_linenumber" name="L743" href="#L743">743</a>       <strong class="jxr_keyword">public</strong> Integer handle(<strong class="jxr_keyword">final</strong> Connection conn, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadlineNanos) <strong class="jxr_keyword">throws</strong> SQLException {
+<a class="jxr_linenumber" name="L744" href="#L744">744</a>         <strong class="jxr_keyword">return</strong> removeDeadHeartBeatAndNotOwnerRows(conn, deadlineNanos);
+<a class="jxr_linenumber" name="L745" href="#L745">745</a>       }
+<a class="jxr_linenumber" name="L746" href="#L746">746</a>     }, timeoutSeconds, TimeUnit.SECONDS);
+<a class="jxr_linenumber" name="L747" href="#L747">747</a>   }
+<a class="jxr_linenumber" name="L748" href="#L748">748</a> 
+<a class="jxr_linenumber" name="L749" href="#L749">749</a>   <strong class="jxr_keyword">int</strong> removeDeadHeartBeatAndNotOwnerRows(<strong class="jxr_keyword">final</strong> Connection conn, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadlineNanos) <strong class="jxr_keyword">throws</strong> SQLException {
+<a class="jxr_linenumber" name="L750" href="#L750">750</a>     <strong class="jxr_keyword">int</strong> removedDeadHeartBeatRows = <strong class="jxr_keyword">this</strong>.heartBeat.removeDeadHeartBeatRows(conn, deadlineNanos);
+<a class="jxr_linenumber" name="L751" href="#L751">751</a>     <strong class="jxr_keyword">if</strong> (removedDeadHeartBeatRows &gt; 0) {
+<a class="jxr_linenumber" name="L752" href="#L752">752</a>       <strong class="jxr_keyword">return</strong> removeDeadNotOwnedRowsOnly(conn, deadlineNanos);
+<a class="jxr_linenumber" name="L753" href="#L753">753</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L754" href="#L754">754</a>       <strong class="jxr_keyword">return</strong> 0;
+<a class="jxr_linenumber" name="L755" href="#L755">755</a>     }
+<a class="jxr_linenumber" name="L756" href="#L756">756</a>   }
+<a class="jxr_linenumber" name="L757" href="#L757">757</a> 
+<a class="jxr_linenumber" name="L758" href="#L758">758</a>   <strong class="jxr_keyword">int</strong> removeDeadNotOwnedRowsOnly(<strong class="jxr_keyword">final</strong> Connection conn, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadlineNanos) <strong class="jxr_keyword">throws</strong> SQLException {
+<a class="jxr_linenumber" name="L759" href="#L759">759</a>     <strong class="jxr_keyword">try</strong> (<strong class="jxr_keyword">final</strong> PreparedStatement stmt = conn.prepareStatement(deleteDeadOwnerRecordsSql)) {
+<a class="jxr_linenumber" name="L760" href="#L760">760</a>       stmt.setNString(1, semName);
+<a class="jxr_linenumber" name="L761" href="#L761">761</a>       stmt.setQueryTimeout((<strong class="jxr_keyword">int</strong>) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
+<a class="jxr_linenumber" name="L762" href="#L762">762</a>       <strong class="jxr_keyword">return</strong> stmt.executeUpdate();
+<a class="jxr_linenumber" name="L763" href="#L763">763</a>     }
+<a class="jxr_linenumber" name="L764" href="#L764">764</a>   }
+<a class="jxr_linenumber" name="L765" href="#L765">765</a> 
+<a class="jxr_linenumber" name="L766" href="#L766">766</a>   @Override
+<a class="jxr_linenumber" name="L767" href="#L767">767</a>   <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L768" href="#L768">768</a>     <strong class="jxr_keyword">return</strong> <span class="jxr_string">"JdbcSemaphore{"</span> + <span class="jxr_string">"jdbc="</span> + jdbc
+<a class="jxr_linenumber" name="L769" href="#L769">769</a>             + <span class="jxr_string">", jdbcTimeoutSeconds="</span> + jdbcTimeoutSeconds + <span class="jxr_string">", semName="</span> + semName + '}';
+<a class="jxr_linenumber" name="L770" href="#L770">770</a>   }
+<a class="jxr_linenumber" name="L771" href="#L771">771</a> 
+<a class="jxr_linenumber" name="L772" href="#L772">772</a>   @Override
+<a class="jxr_linenumber" name="L773" href="#L773">773</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() {
+<a class="jxr_linenumber" name="L774" href="#L774">774</a>     releaseAll();
+<a class="jxr_linenumber" name="L775" href="#L775">775</a>     unregisterJmx();
+<a class="jxr_linenumber" name="L776" href="#L776">776</a>     <strong class="jxr_keyword">this</strong>.heartBeat.removeLifecycleHook(failureHook);
+<a class="jxr_linenumber" name="L777" href="#L777">777</a>     isHealthy = false;
+<a class="jxr_linenumber" name="L778" href="#L778">778</a>   }
+<a class="jxr_linenumber" name="L779" href="#L779">779</a> 
+<a class="jxr_linenumber" name="L780" href="#L780">780</a>   @JmxExport
+<a class="jxr_linenumber" name="L781" href="#L781">781</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getJdbcTimeoutSeconds() {
+<a class="jxr_linenumber" name="L782" href="#L782">782</a>     <strong class="jxr_keyword">return</strong> jdbcTimeoutSeconds;
+<a class="jxr_linenumber" name="L783" href="#L783">783</a>   }
+<a class="jxr_linenumber" name="L784" href="#L784">784</a> 
+<a class="jxr_linenumber" name="L785" href="#L785">785</a>   @JmxExport
+<a class="jxr_linenumber" name="L786" href="#L786">786</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isIsHealthy() {
+<a class="jxr_linenumber" name="L787" href="#L787">787</a>     <strong class="jxr_keyword">return</strong> isHealthy;
+<a class="jxr_linenumber" name="L788" href="#L788">788</a>   }
+<a class="jxr_linenumber" name="L789" href="#L789">789</a> 
+<a class="jxr_linenumber" name="L790" href="#L790">790</a> 
+<a class="jxr_linenumber" name="L791" href="#L791">791</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2016. All rights reserved.</div>

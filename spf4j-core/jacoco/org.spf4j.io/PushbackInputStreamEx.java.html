@@ -3,35 +3,47 @@ package org.spf4j.io;
 
 import com.google.common.io.BaseEncoding;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import java.io.IOException;
 import java.io.InputStream;
 
 
 /**
- *
+ * a extended implementation that improves the safety of unread and provides a better toString.
  * @author zoly
  */
 @CleanupObligation
 public final class PushbackInputStreamEx  extends java.io.PushbackInputStream {
 
     public PushbackInputStreamEx(final InputStream in, final int size) {
-<span class="nc" id="L17">        super(in, size);</span>
-<span class="nc" id="L18">    }</span>
+<span class="nc" id="L18">        super(in, size);</span>
+<span class="nc" id="L19">    }</span>
 
     public PushbackInputStreamEx(final InputStream in) {
-<span class="nc" id="L21">        super(in);</span>
-<span class="nc" id="L22">    }</span>
+<span class="fc" id="L22">        super(in);</span>
+<span class="fc" id="L23">    }</span>
 
     @Override
     public String toString() {
-<span class="nc bnc" id="L26" title="All 2 branches missed.">        return &quot;PushbackInputStream{&quot;</span>
-<span class="nc" id="L27">                + ((buf == null) ? &quot;buf=null&quot; : &quot;buf=&quot; + BaseEncoding.base64().encode(buf))</span>
+<span class="nc bnc" id="L27" title="All 2 branches missed.">        return &quot;PushbackInputStream{&quot;</span>
+<span class="nc" id="L28">                + ((buf == null) ? &quot;buf=null&quot; : &quot;buf=&quot; + BaseEncoding.base64().encode(buf))</span>
                 + &quot;, pos=&quot; + pos
                 + &quot;, wrapped=&quot; + this.in + '}';
     }
 
     public InputStream getUnderlyingStream() {
-<span class="nc" id="L33">        return this.in;</span>
+<span class="nc" id="L34">        return this.in;</span>
     }
+
+  @Override
+  public void unread(final int b) throws IOException {
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">    if (b &lt; 0) {</span>
+<span class="nc" id="L40">      throw new IllegalArgumentException(&quot;Unread int must be positive and not &quot; + b);</span>
+    }
+<span class="fc" id="L42">    super.unread(b);</span>
+<span class="fc" id="L43">  }</span>
+
+
+
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

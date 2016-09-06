@@ -159,10 +159,11 @@ public final class ByteArrayBuilder extends OutputStream {
      */
     @Override
     public synchronized void write(final int b) {
-<span class="fc" id="L162">        ensureCapacity(count + 1);</span>
-<span class="fc" id="L163">        buf[count] = (byte) b;</span>
-<span class="fc" id="L164">        count += 1;</span>
-<span class="fc" id="L165">    }</span>
+<span class="fc" id="L162">        int cp1 = count + 1;</span>
+<span class="fc" id="L163">        ensureCapacity(cp1);</span>
+<span class="fc" id="L164">        buf[count] = (byte) b;</span>
+<span class="fc" id="L165">        count = cp1;</span>
+<span class="fc" id="L166">    }</span>
 
     /**
      * Writes &lt;code&gt;len&lt;/code&gt; bytes from the specified byte array
@@ -174,13 +175,14 @@ public final class ByteArrayBuilder extends OutputStream {
      */
     @Override
     public synchronized void write(final byte[] b, final int off, final int len) {
-<span class="pc bpc" id="L177" title="4 of 8 branches missed.">        if ((off &lt; 0) || (off &gt; b.length) || (len &lt; 0) || ((off + len) - b.length &gt; 0)) {</span>
-<span class="nc" id="L178">            throw new IndexOutOfBoundsException();</span>
+<span class="pc bpc" id="L178" title="4 of 8 branches missed.">        if ((off &lt; 0) || (off &gt; b.length) || (len &lt; 0) || ((off + len) - b.length &gt; 0)) {</span>
+<span class="nc" id="L179">            throw new IndexOutOfBoundsException();</span>
         }
-<span class="fc" id="L180">        ensureCapacity(count + len);</span>
-<span class="fc" id="L181">        System.arraycopy(b, off, buf, count, len);</span>
-<span class="fc" id="L182">        count += len;</span>
-<span class="fc" id="L183">    }</span>
+<span class="fc" id="L181">        int cpl = count + len;</span>
+<span class="fc" id="L182">        ensureCapacity(cpl);</span>
+<span class="fc" id="L183">        System.arraycopy(b, off, buf, count, len);</span>
+<span class="fc" id="L184">        count = cpl;</span>
+<span class="fc" id="L185">    }</span>
 
     /**
      * Writes the complete contents of this byte array output stream to
@@ -191,8 +193,8 @@ public final class ByteArrayBuilder extends OutputStream {
      * @exception  IOException  if an I/O error occurs.
      */
     public synchronized void writeTo(final OutputStream out) throws IOException {
-<span class="nc" id="L194">        out.write(buf, 0, count);</span>
-<span class="nc" id="L195">    }</span>
+<span class="nc" id="L196">        out.write(buf, 0, count);</span>
+<span class="nc" id="L197">    }</span>
 
     /**
      * Resets the &lt;code&gt;count&lt;/code&gt; field of this byte array output
@@ -203,8 +205,8 @@ public final class ByteArrayBuilder extends OutputStream {
      * @see     java.io.ByteArrayInputStream#count
      */
     public synchronized void reset() {
-<span class="fc" id="L206">        count = 0;</span>
-<span class="fc" id="L207">    }</span>
+<span class="fc" id="L208">        count = 0;</span>
+<span class="fc" id="L209">    }</span>
 
     /**
      * Creates a newly allocated byte array. Its size is the current
@@ -215,7 +217,7 @@ public final class ByteArrayBuilder extends OutputStream {
      * @see     java.io.ByteArrayOutputStream#size()
      */
     public synchronized byte toByteArray()[] {
-<span class="nc" id="L218">        return Arrays.copyOf(buf, count);</span>
+<span class="nc" id="L220">        return Arrays.copyOf(buf, count);</span>
     }
 
     /**
@@ -226,7 +228,7 @@ public final class ByteArrayBuilder extends OutputStream {
      * @see     java.io.ByteArrayOutputStream#count
      */
     public synchronized int size() {
-<span class="fc" id="L229">        return count;</span>
+<span class="fc" id="L231">        return count;</span>
     }
 
     /**
@@ -245,12 +247,12 @@ public final class ByteArrayBuilder extends OutputStream {
      */
     @Override
     public synchronized String toString() {
-<span class="nc" id="L248">        return toString(Charsets.UTF_8);</span>
+<span class="nc" id="L250">        return toString(Charsets.UTF_8);</span>
     }
 
 
     public synchronized String toString(final Charset charset) {
-<span class="nc" id="L253">        return new String(buf, 0, count, charset);</span>
+<span class="nc" id="L255">        return new String(buf, 0, count, charset);</span>
     }
 
 
@@ -262,10 +264,10 @@ public final class ByteArrayBuilder extends OutputStream {
     @DischargesObligation
     @Override
     public synchronized void close() {
-<span class="pc bpc" id="L265" title="1 of 2 branches missed.">        if (arraySupplier != null) {</span>
-<span class="fc" id="L266">            arraySupplier.recycle(buf);</span>
+<span class="pc bpc" id="L267" title="1 of 2 branches missed.">        if (arraySupplier != null) {</span>
+<span class="fc" id="L268">            arraySupplier.recycle(buf);</span>
         }
-<span class="fc" id="L268">    }</span>
+<span class="fc" id="L270">    }</span>
 
 
 }

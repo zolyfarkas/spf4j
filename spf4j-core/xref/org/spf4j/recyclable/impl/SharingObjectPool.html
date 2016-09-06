@@ -177,55 +177,57 @@
 <a class="jxr_linenumber" name="L169" href="#L169">169</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">void</strong> returnToQueue(<strong class="jxr_keyword">final</strong> T object) {
 <a class="jxr_linenumber" name="L170" href="#L170">170</a>         <em class="jxr_comment">// object is valid</em>
 <a class="jxr_linenumber" name="L171" href="#L171">171</a>         UpdateablePriorityQueue&lt;SharedObject&lt;T&gt;&gt;.ElementRef ref = o2QueueRefMap.get(object);
-<a class="jxr_linenumber" name="L172" href="#L172">172</a>         <strong class="jxr_keyword">final</strong> SharedObject&lt;T&gt; elem = ref.getElem();
-<a class="jxr_linenumber" name="L173" href="#L173">173</a>         elem.dec();
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>         <strong class="jxr_keyword">this</strong>.notifyAll();
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>         ref.elementMutated();
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>     }
-<a class="jxr_linenumber" name="L177" href="#L177">177</a> 
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>     @Override
-<a class="jxr_linenumber" name="L179" href="#L179">179</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> recycle(<strong class="jxr_keyword">final</strong> T object) {
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>         recycle(object, <strong class="jxr_keyword">null</strong>);
-<a class="jxr_linenumber" name="L181" href="#L181">181</a>     }
-<a class="jxr_linenumber" name="L182" href="#L182">182</a> 
-<a class="jxr_linenumber" name="L183" href="#L183">183</a>     @Override
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">void</strong> dispose() <strong class="jxr_keyword">throws</strong> ObjectDisposeException, InterruptedException {
-<a class="jxr_linenumber" name="L185" href="#L185">185</a>         <strong class="jxr_keyword">if</strong> (!closed) {
-<a class="jxr_linenumber" name="L186" href="#L186">186</a>             closed = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>             <a href="../../../../org/spf4j/recyclable/ObjectDisposeException.html">ObjectDisposeException</a> exres = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>             Iterator&lt;SharedObject&lt;T&gt;&gt; iterator = pooledObjects.iterator();
-<a class="jxr_linenumber" name="L189" href="#L189">189</a>             <strong class="jxr_keyword">while</strong> (iterator.hasNext()) {
-<a class="jxr_linenumber" name="L190" href="#L190">190</a>                 SharedObject&lt;T&gt; so = iterator.next();
-<a class="jxr_linenumber" name="L191" href="#L191">191</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L192" href="#L192">192</a>                     <strong class="jxr_keyword">while</strong> (so.getNrTimesShared() &gt; 0) {
-<a class="jxr_linenumber" name="L193" href="#L193">193</a>                         <strong class="jxr_keyword">this</strong>.wait(5000);
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>                     }
-<a class="jxr_linenumber" name="L195" href="#L195">195</a>                     T o = so.getObject();
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>                     o2QueueRefMap.remove(o);
-<a class="jxr_linenumber" name="L197" href="#L197">197</a>                     iterator.remove();
-<a class="jxr_linenumber" name="L198" href="#L198">198</a>                     nrObjects--;
-<a class="jxr_linenumber" name="L199" href="#L199">199</a>                     factory.dispose(o);
-<a class="jxr_linenumber" name="L200" href="#L200">200</a>                 } <strong class="jxr_keyword">catch</strong> (ObjectDisposeException ex) {
-<a class="jxr_linenumber" name="L201" href="#L201">201</a>                     <strong class="jxr_keyword">if</strong> (exres == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L202" href="#L202">202</a>                         exres = ex;
-<a class="jxr_linenumber" name="L203" href="#L203">203</a>                     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>                         ex.addSuppressed(exres);
-<a class="jxr_linenumber" name="L205" href="#L205">205</a>                         exres = ex;
-<a class="jxr_linenumber" name="L206" href="#L206">206</a>                     }
-<a class="jxr_linenumber" name="L207" href="#L207">207</a>                 }
-<a class="jxr_linenumber" name="L208" href="#L208">208</a>             }
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>             <strong class="jxr_keyword">if</strong> (exres != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L210" href="#L210">210</a>                 <strong class="jxr_keyword">throw</strong> exres;
-<a class="jxr_linenumber" name="L211" href="#L211">211</a>             }
-<a class="jxr_linenumber" name="L212" href="#L212">212</a>         }
-<a class="jxr_linenumber" name="L213" href="#L213">213</a>     }
-<a class="jxr_linenumber" name="L214" href="#L214">214</a> 
-<a class="jxr_linenumber" name="L215" href="#L215">215</a>     @Override
-<a class="jxr_linenumber" name="L216" href="#L216">216</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> String toString() {
-<a class="jxr_linenumber" name="L217" href="#L217">217</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"SharingObjectPool{"</span> + <span class="jxr_string">"factory="</span> + factory + <span class="jxr_string">", pooledObjects="</span> + pooledObjects + '}';
-<a class="jxr_linenumber" name="L218" href="#L218">218</a>     }
-<a class="jxr_linenumber" name="L219" href="#L219">219</a> 
-<a class="jxr_linenumber" name="L220" href="#L220">220</a> }
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>         <strong class="jxr_keyword">if</strong> (ref != <strong class="jxr_keyword">null</strong>) { <em class="jxr_comment">// elem can already be removed if it fails validation.</em>
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>           <strong class="jxr_keyword">final</strong> SharedObject&lt;T&gt; elem = ref.getElem();
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>           elem.dec();
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>           <strong class="jxr_keyword">this</strong>.notifyAll();
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>           ref.elementMutated();
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>         }
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>     }
+<a class="jxr_linenumber" name="L179" href="#L179">179</a> 
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>     @Override
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> recycle(<strong class="jxr_keyword">final</strong> T object) {
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>         recycle(object, <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>     }
+<a class="jxr_linenumber" name="L184" href="#L184">184</a> 
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>     @Override
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">void</strong> dispose() <strong class="jxr_keyword">throws</strong> ObjectDisposeException, InterruptedException {
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         <strong class="jxr_keyword">if</strong> (!closed) {
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>             closed = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>             <a href="../../../../org/spf4j/recyclable/ObjectDisposeException.html">ObjectDisposeException</a> exres = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>             Iterator&lt;SharedObject&lt;T&gt;&gt; iterator = pooledObjects.iterator();
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>             <strong class="jxr_keyword">while</strong> (iterator.hasNext()) {
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>                 SharedObject&lt;T&gt; so = iterator.next();
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>                     <strong class="jxr_keyword">while</strong> (so.getNrTimesShared() &gt; 0) {
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>                         <strong class="jxr_keyword">this</strong>.wait(5000);
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>                     }
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>                     T o = so.getObject();
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>                     o2QueueRefMap.remove(o);
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>                     iterator.remove();
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>                     nrObjects--;
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>                     factory.dispose(o);
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>                 } <strong class="jxr_keyword">catch</strong> (ObjectDisposeException ex) {
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>                     <strong class="jxr_keyword">if</strong> (exres == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>                         exres = ex;
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>                     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>                         ex.addSuppressed(exres);
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>                         exres = ex;
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>                     }
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>                 }
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>             }
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>             <strong class="jxr_keyword">if</strong> (exres != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>                 <strong class="jxr_keyword">throw</strong> exres;
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>             }
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>         }
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>     }
+<a class="jxr_linenumber" name="L216" href="#L216">216</a> 
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>     @Override
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> String toString() {
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"SharingObjectPool{"</span> + <span class="jxr_string">"factory="</span> + factory + <span class="jxr_string">", pooledObjects="</span> + pooledObjects + '}';
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>     }
+<a class="jxr_linenumber" name="L221" href="#L221">221</a> 
+<a class="jxr_linenumber" name="L222" href="#L222">222</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2016. All rights reserved.</div>

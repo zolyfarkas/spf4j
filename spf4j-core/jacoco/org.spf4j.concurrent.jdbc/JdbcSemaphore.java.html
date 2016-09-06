@@ -243,7 +243,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 <span class="fc" id="L243">            + &quot; WHERE &quot; + semTableDesc.getSemNameColumn() + &quot; = ?&quot;;</span>
 
 <span class="fc" id="L245">    this.ownedPermitsSql = &quot;SELECT &quot; + ownerPermitsColumn + &quot; FROM &quot;</span>
-            + permitsByOwnerTableName + &quot;WHERE &quot;
+            + permitsByOwnerTableName + &quot; WHERE &quot;
             + ownerColumn + &quot; = ? AND &quot; + semaphoreNameColumn + &quot; = ?&quot;;
 
 <span class="fc" id="L249">    this.deleteDeadOwnerRecordsSql = &quot;DELETE FROM &quot; + permitsByOwnerTableName + &quot; RO &quot;</span>
@@ -566,23 +566,23 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   @JmxExport(description = &quot;get the number of permits owned by this process&quot;)
   public int permitsOwned() throws SQLException, InterruptedException {
-<span class="nc" id="L569">    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
-<span class="nc" id="L570">      try (final PreparedStatement stmt = conn.prepareStatement(ownedPermitsSql)) {</span>
-<span class="nc" id="L571">        stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="nc" id="L572">        stmt.setNString(2, semName);</span>
-<span class="nc" id="L573">        stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="nc" id="L574">        try (final ResultSet rs = stmt.executeQuery()) {</span>
-<span class="nc bnc" id="L575" title="All 2 branches missed.">          if (!rs.next()) {</span>
+<span class="fc" id="L569">    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
+<span class="pc" id="L570">      try (final PreparedStatement stmt = conn.prepareStatement(ownedPermitsSql)) {</span>
+<span class="fc" id="L571">        stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L572">        stmt.setNString(2, semName);</span>
+<span class="fc" id="L573">        stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
+<span class="pc" id="L574">        try (final ResultSet rs = stmt.executeQuery()) {</span>
+<span class="pc bpc" id="L575" title="1 of 2 branches missed.">          if (!rs.next()) {</span>
 <span class="nc" id="L576">            throw new IllegalStateException();</span>
           } else {
-<span class="nc" id="L578">            int result = rs.getInt(1);</span>
-<span class="nc bnc" id="L579" title="All 2 branches missed.">            if (rs.next()) {</span>
+<span class="fc" id="L578">            int result = rs.getInt(1);</span>
+<span class="pc bpc" id="L579" title="1 of 2 branches missed.">            if (rs.next()) {</span>
 <span class="nc" id="L580">              throw new IllegalStateException();</span>
             }
-<span class="nc" id="L582">            return result;</span>
+<span class="fc" id="L582">            return result;</span>
           }
-<span class="nc bnc" id="L584" title="All 8 branches missed.">        }</span>
-<span class="nc bnc" id="L585" title="All 8 branches missed.">      }</span>
+<span class="pc bpc" id="L584" title="6 of 8 branches missed.">        }</span>
+<span class="pc bpc" id="L585" title="6 of 8 branches missed.">      }</span>
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
@@ -672,111 +672,121 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   @JmxExport(description = &quot;Change the total available permits to the provided number&quot;)
   public void updatePermits(final int nrPermits) throws SQLException, InterruptedException {
-<span class="nc bnc" id="L675" title="All 2 branches missed.">    if (nrPermits &lt; 0) {</span>
+<span class="pc bpc" id="L675" title="1 of 2 branches missed.">    if (nrPermits &lt; 0) {</span>
 <span class="nc" id="L676">      throw new IllegalArgumentException(&quot;Permits must be positive and not &quot; + nrPermits);</span>
     }
-<span class="nc" id="L678">    jdbc.transactOnConnection(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
+<span class="fc" id="L678">    jdbc.transactOnConnection(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
       @Override
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="nc" id="L681">        try (PreparedStatement stmt = conn.prepareStatement(updatePermitsSql)) {</span>
-<span class="nc" id="L682">          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="nc" id="L683">          stmt.setInt(1, nrPermits);</span>
-<span class="nc" id="L684">          stmt.setInt(2, nrPermits);</span>
-<span class="nc" id="L685">          stmt.setInt(3, nrPermits);</span>
-<span class="nc" id="L686">          stmt.setNString(4, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="nc" id="L687">          stmt.setNString(5, semName);</span>
-<span class="nc" id="L688">          int rowsUpdated = stmt.executeUpdate();</span>
-<span class="nc bnc" id="L689" title="All 2 branches missed.">          if (rowsUpdated != 1) {</span>
-<span class="nc" id="L690">            throw new IllegalArgumentException(&quot;Cannot reduce nr total permits by &quot; + nrPermits);</span>
+<span class="pc" id="L681">        try (PreparedStatement stmt = conn.prepareStatement(updatePermitsSql)) {</span>
+<span class="fc" id="L682">          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));</span>
+<span class="fc" id="L683">          stmt.setInt(1, nrPermits);</span>
+<span class="fc" id="L684">          stmt.setInt(2, nrPermits);</span>
+<span class="fc" id="L685">          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L686">          stmt.setNString(4, semName);</span>
+<span class="fc" id="L687">          int rowsUpdated = stmt.executeUpdate();</span>
+<span class="pc bpc" id="L688" title="1 of 2 branches missed.">          if (rowsUpdated != 1) {</span>
+<span class="nc" id="L689">            throw new IllegalArgumentException(&quot;Cannot reduce nr total permits by &quot; + nrPermits);</span>
           }
-<span class="nc bnc" id="L692" title="All 8 branches missed.">        }</span>
-<span class="nc" id="L693">        return null;</span>
+<span class="pc bpc" id="L691" title="6 of 8 branches missed.">        }</span>
+<span class="fc" id="L692">        return null;</span>
       }
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<span class="nc" id="L696">  }</span>
+<span class="fc" id="L695">  }</span>
 
   @JmxExport(description = &quot;Reduce the total available permits by the provided number&quot;)
   public void reducePermits(final int nrPermits) throws SQLException, InterruptedException {
-<span class="fc" id="L700">    jdbc.transactOnConnection(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
+<span class="fc" id="L699">    jdbc.transactOnConnection(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
       @Override
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="pc" id="L703">        try (PreparedStatement stmt = conn.prepareStatement(reducePermitsSql)) {</span>
-<span class="fc" id="L704">          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="fc" id="L705">          stmt.setInt(1, nrPermits);</span>
-<span class="fc" id="L706">          stmt.setInt(2, nrPermits);</span>
-<span class="fc" id="L707">          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L708">          stmt.setNString(4, semName);</span>
-<span class="fc" id="L709">          stmt.setInt(5, nrPermits);</span>
-<span class="fc" id="L710">          int rowsUpdated = stmt.executeUpdate();</span>
-<span class="pc bpc" id="L711" title="1 of 2 branches missed.">          if (rowsUpdated != 1) {</span>
-<span class="nc" id="L712">            throw new IllegalArgumentException(&quot;Cannot reduce nr total permits by &quot; + nrPermits);</span>
+<span class="pc" id="L702">        try (PreparedStatement stmt = conn.prepareStatement(reducePermitsSql)) {</span>
+<span class="fc" id="L703">          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));</span>
+<span class="fc" id="L704">          stmt.setInt(1, nrPermits);</span>
+<span class="fc" id="L705">          stmt.setInt(2, nrPermits);</span>
+<span class="fc" id="L706">          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L707">          stmt.setNString(4, semName);</span>
+<span class="fc" id="L708">          stmt.setInt(5, nrPermits);</span>
+<span class="fc" id="L709">          int rowsUpdated = stmt.executeUpdate();</span>
+<span class="pc bpc" id="L710" title="1 of 2 branches missed.">          if (rowsUpdated != 1) {</span>
+<span class="nc" id="L711">            throw new IllegalArgumentException(&quot;Cannot reduce nr total permits by &quot; + nrPermits);</span>
           }
-<span class="pc bpc" id="L714" title="6 of 8 branches missed.">        }</span>
-<span class="fc" id="L715">        return null;</span>
+<span class="pc bpc" id="L713" title="6 of 8 branches missed.">        }</span>
+<span class="fc" id="L714">        return null;</span>
       }
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<span class="fc" id="L718">  }</span>
+<span class="fc" id="L717">  }</span>
 
   @JmxExport(description = &quot;Increase the total available permits by the provided number&quot;)
   public void increasePermits(final int nrPermits) throws SQLException, InterruptedException {
-<span class="fc" id="L722">    jdbc.transactOnConnection(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
+<span class="fc" id="L721">    jdbc.transactOnConnection(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
       @Override
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="pc" id="L725">        try (PreparedStatement stmt = conn.prepareStatement(increasePermitsSql)) {</span>
-<span class="fc" id="L726">          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="fc" id="L727">          stmt.setInt(1, nrPermits);</span>
-<span class="fc" id="L728">          stmt.setInt(2, nrPermits);</span>
-<span class="fc" id="L729">          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L730">          stmt.setNString(4, semName);</span>
-<span class="fc" id="L731">          int rowsUpdated = stmt.executeUpdate();</span>
-<span class="pc bpc" id="L732" title="1 of 2 branches missed.">          if (rowsUpdated != 1) {</span>
-<span class="nc" id="L733">            throw new IllegalArgumentException(&quot;Cannot reduce nr total permits by &quot; + nrPermits);</span>
+<span class="pc" id="L724">        try (PreparedStatement stmt = conn.prepareStatement(increasePermitsSql)) {</span>
+<span class="fc" id="L725">          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));</span>
+<span class="fc" id="L726">          stmt.setInt(1, nrPermits);</span>
+<span class="fc" id="L727">          stmt.setInt(2, nrPermits);</span>
+<span class="fc" id="L728">          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L729">          stmt.setNString(4, semName);</span>
+<span class="fc" id="L730">          int rowsUpdated = stmt.executeUpdate();</span>
+<span class="pc bpc" id="L731" title="1 of 2 branches missed.">          if (rowsUpdated != 1) {</span>
+<span class="nc" id="L732">            throw new IllegalArgumentException(&quot;Cannot reduce nr total permits by &quot; + nrPermits);</span>
           }
-<span class="pc bpc" id="L735" title="6 of 8 branches missed.">        }</span>
-<span class="fc" id="L736">        return null;</span>
+<span class="pc bpc" id="L734" title="6 of 8 branches missed.">        }</span>
+<span class="fc" id="L735">        return null;</span>
       }
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<span class="fc" id="L739">  }</span>
+<span class="fc" id="L738">  }</span>
 
   public int removeDeadHeartBeatAndNotOwnerRows(final int timeoutSeconds) throws SQLException, InterruptedException {
-<span class="fc" id="L742">    return jdbc.transactOnConnection(new HandlerNano&lt;Connection, Integer, SQLException&gt;() {</span>
+<span class="fc" id="L741">    return jdbc.transactOnConnection(new HandlerNano&lt;Connection, Integer, SQLException&gt;() {</span>
       @Override
       public Integer handle(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="fc" id="L745">        return removeDeadHeartBeatAndNotOwnerRows(conn, deadlineNanos);</span>
+<span class="fc" id="L744">        return removeDeadHeartBeatAndNotOwnerRows(conn, deadlineNanos);</span>
       }
     }, timeoutSeconds, TimeUnit.SECONDS);
   }
 
   int removeDeadHeartBeatAndNotOwnerRows(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="fc" id="L751">    int removedDeadHeartBeatRows = this.heartBeat.removeDeadHeartBeatRows(conn, deadlineNanos);</span>
-<span class="pc bpc" id="L752" title="1 of 2 branches missed.">    if (removedDeadHeartBeatRows &gt; 0) {</span>
-<span class="nc" id="L753">      return removeDeadNotOwnedRowsOnly(conn, deadlineNanos);</span>
+<span class="fc" id="L750">    int removedDeadHeartBeatRows = this.heartBeat.removeDeadHeartBeatRows(conn, deadlineNanos);</span>
+<span class="pc bpc" id="L751" title="1 of 2 branches missed.">    if (removedDeadHeartBeatRows &gt; 0) {</span>
+<span class="nc" id="L752">      return removeDeadNotOwnedRowsOnly(conn, deadlineNanos);</span>
     } else {
-<span class="fc" id="L755">      return 0;</span>
+<span class="fc" id="L754">      return 0;</span>
     }
   }
 
   int removeDeadNotOwnedRowsOnly(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="nc" id="L760">    try (final PreparedStatement stmt = conn.prepareStatement(deleteDeadOwnerRecordsSql)) {</span>
-<span class="nc" id="L761">      stmt.setNString(1, semName);</span>
-<span class="nc" id="L762">      stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="nc" id="L763">      return stmt.executeUpdate();</span>
-<span class="nc bnc" id="L764" title="All 8 branches missed.">    }</span>
+<span class="nc" id="L759">    try (final PreparedStatement stmt = conn.prepareStatement(deleteDeadOwnerRecordsSql)) {</span>
+<span class="nc" id="L760">      stmt.setNString(1, semName);</span>
+<span class="nc" id="L761">      stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
+<span class="nc" id="L762">      return stmt.executeUpdate();</span>
+<span class="nc bnc" id="L763" title="All 8 branches missed.">    }</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L769">    return &quot;JdbcSemaphore{&quot; + &quot;jdbc=&quot; + jdbc</span>
+<span class="nc" id="L768">    return &quot;JdbcSemaphore{&quot; + &quot;jdbc=&quot; + jdbc</span>
             + &quot;, jdbcTimeoutSeconds=&quot; + jdbcTimeoutSeconds + &quot;, semName=&quot; + semName + '}';
   }
 
   @Override
   public void close() {
-<span class="fc" id="L775">    releaseAll();</span>
-<span class="fc" id="L776">    unregisterJmx();</span>
-<span class="fc" id="L777">    this.heartBeat.removeLifecycleHook(failureHook);</span>
-<span class="fc" id="L778">    isHealthy = false;</span>
-<span class="fc" id="L779">  }</span>
+<span class="fc" id="L774">    releaseAll();</span>
+<span class="fc" id="L775">    unregisterJmx();</span>
+<span class="fc" id="L776">    this.heartBeat.removeLifecycleHook(failureHook);</span>
+<span class="fc" id="L777">    isHealthy = false;</span>
+<span class="fc" id="L778">  }</span>
+
+  @JmxExport
+  public int getJdbcTimeoutSeconds() {
+<span class="nc" id="L782">    return jdbcTimeoutSeconds;</span>
+  }
+
+  @JmxExport
+  public boolean isIsHealthy() {
+<span class="nc" id="L787">    return isHealthy;</span>
+  }
+
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

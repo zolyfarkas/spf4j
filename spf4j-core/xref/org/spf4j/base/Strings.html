@@ -298,366 +298,411 @@
 <a class="jxr_linenumber" name="L290" href="#L290">290</a>         }
 <a class="jxr_linenumber" name="L291" href="#L291">291</a>     }
 <a class="jxr_linenumber" name="L292" href="#L292">292</a> 
-<a class="jxr_linenumber" name="L293" href="#L293">293</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> ThreadLocal&lt;CharsetEncoder&gt; UTF8_ENCODER = <strong class="jxr_keyword">new</strong> ThreadLocal&lt;CharsetEncoder&gt;() {
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> LENIENT_CODING  = Boolean.getBoolean(<span class="jxr_string">"spf4j.encoding.lenient"</span>);
 <a class="jxr_linenumber" name="L294" href="#L294">294</a> 
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>         @Override
-<a class="jxr_linenumber" name="L296" href="#L296">296</a>         <strong class="jxr_keyword">protected</strong> CharsetEncoder initialValue() {
-<a class="jxr_linenumber" name="L297" href="#L297">297</a>             <strong class="jxr_keyword">return</strong> Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
-<a class="jxr_linenumber" name="L298" href="#L298">298</a>                     .onUnmappableCharacter(CodingErrorAction.REPLACE);
-<a class="jxr_linenumber" name="L299" href="#L299">299</a>         }
-<a class="jxr_linenumber" name="L300" href="#L300">300</a> 
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>     };
-<a class="jxr_linenumber" name="L302" href="#L302">302</a> 
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> ThreadLocal&lt;CharsetDecoder&gt; UTF8_DECODER = <strong class="jxr_keyword">new</strong> ThreadLocal&lt;CharsetDecoder&gt;() {
-<a class="jxr_linenumber" name="L304" href="#L304">304</a> 
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>         @Override
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>         <strong class="jxr_keyword">protected</strong> CharsetDecoder initialValue() {
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>             <strong class="jxr_keyword">return</strong> Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
-<a class="jxr_linenumber" name="L308" href="#L308">308</a>                     .onUnmappableCharacter(CodingErrorAction.REPLACE);
-<a class="jxr_linenumber" name="L309" href="#L309">309</a>         }
-<a class="jxr_linenumber" name="L310" href="#L310">310</a> 
-<a class="jxr_linenumber" name="L311" href="#L311">311</a>     };
-<a class="jxr_linenumber" name="L312" href="#L312">312</a> 
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharsetEncoder getUTF8CharsetEncoder() {
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>         <strong class="jxr_keyword">return</strong> UTF8_ENCODER.get();
-<a class="jxr_linenumber" name="L315" href="#L315">315</a>     }
-<a class="jxr_linenumber" name="L316" href="#L316">316</a> 
-<a class="jxr_linenumber" name="L317" href="#L317">317</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharsetDecoder getUTF8CharsetDecoder() {
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>         <strong class="jxr_keyword">return</strong> UTF8_DECODER.get();
-<a class="jxr_linenumber" name="L319" href="#L319">319</a>     }
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> ThreadLocal&lt;CharsetEncoder&gt; UTF8_ENCODER = <strong class="jxr_keyword">new</strong> ThreadLocal&lt;CharsetEncoder&gt;() {
+<a class="jxr_linenumber" name="L296" href="#L296">296</a> 
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>         @Override
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>         <strong class="jxr_keyword">protected</strong> CharsetEncoder initialValue() {
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>             <strong class="jxr_keyword">return</strong> createUtf8Encoder();
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>         }
+<a class="jxr_linenumber" name="L301" href="#L301">301</a> 
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>     };
+<a class="jxr_linenumber" name="L303" href="#L303">303</a> 
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharsetEncoder createUtf8Encoder() {
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>     <strong class="jxr_keyword">if</strong> (LENIENT_CODING) {
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>       <strong class="jxr_keyword">return</strong> Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>               .onUnmappableCharacter(CodingErrorAction.REPLACE);
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>       <strong class="jxr_keyword">return</strong> Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPORT)
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>               .onUnmappableCharacter(CodingErrorAction.REPORT);
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>     }
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>   }
+<a class="jxr_linenumber" name="L313" href="#L313">313</a> 
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> ThreadLocal&lt;CharsetDecoder&gt; UTF8_DECODER = <strong class="jxr_keyword">new</strong> ThreadLocal&lt;CharsetDecoder&gt;() {
+<a class="jxr_linenumber" name="L315" href="#L315">315</a> 
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>         @Override
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>         <strong class="jxr_keyword">protected</strong> CharsetDecoder initialValue() {
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>           <strong class="jxr_keyword">return</strong> createUtf8Decoder();
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>         }
 <a class="jxr_linenumber" name="L320" href="#L320">320</a> 
-<a class="jxr_linenumber" name="L321" href="#L321">321</a>     @SuppressFBWarnings(<span class="jxr_string">"SUA_SUSPICIOUS_UNINITIALIZED_ARRAY"</span>)
-<a class="jxr_linenumber" name="L322" href="#L322">322</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> byte[] encode(<strong class="jxr_keyword">final</strong> CharsetEncoder ce, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">char</strong>[] ca, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> off, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len) {
-<a class="jxr_linenumber" name="L323" href="#L323">323</a>         <strong class="jxr_keyword">if</strong> (len == 0) {
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>             <strong class="jxr_keyword">return</strong> Arrays.EMPTY_BYTE_ARRAY;
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>         }
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>         byte[] ba = Arrays.getBytesTmp(getmaxNrBytes(ce, len));
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>         <strong class="jxr_keyword">int</strong> nrBytes = encode(ce, ca, off, len, ba);
-<a class="jxr_linenumber" name="L328" href="#L328">328</a>         <strong class="jxr_keyword">return</strong> java.util.Arrays.copyOf(ba, nrBytes);
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>     }
-<a class="jxr_linenumber" name="L330" href="#L330">330</a> 
-<a class="jxr_linenumber" name="L331" href="#L331">331</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> getmaxNrBytes(<strong class="jxr_keyword">final</strong> CharsetEncoder ce, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nrChars) {
-<a class="jxr_linenumber" name="L332" href="#L332">332</a>         <strong class="jxr_keyword">return</strong> (<strong class="jxr_keyword">int</strong>) (nrChars * (<strong class="jxr_keyword">double</strong>) ce.maxBytesPerChar());
-<a class="jxr_linenumber" name="L333" href="#L333">333</a>     }
-<a class="jxr_linenumber" name="L334" href="#L334">334</a> 
-<a class="jxr_linenumber" name="L335" href="#L335">335</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> encode(<strong class="jxr_keyword">final</strong> CharsetEncoder ce, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">char</strong>[] ca, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> off, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len,
-<a class="jxr_linenumber" name="L336" href="#L336">336</a>             <strong class="jxr_keyword">final</strong> byte[] targetArray) {
-<a class="jxr_linenumber" name="L337" href="#L337">337</a>         <strong class="jxr_keyword">if</strong> (len == 0) {
-<a class="jxr_linenumber" name="L338" href="#L338">338</a>             <strong class="jxr_keyword">return</strong> 0;
-<a class="jxr_linenumber" name="L339" href="#L339">339</a>         }
-<a class="jxr_linenumber" name="L340" href="#L340">340</a>         <strong class="jxr_keyword">if</strong> (ce instanceof ArrayEncoder) {
-<a class="jxr_linenumber" name="L341" href="#L341">341</a>             <strong class="jxr_keyword">return</strong> ((ArrayEncoder) ce).encode(ca, off, len, targetArray);
-<a class="jxr_linenumber" name="L342" href="#L342">342</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L343" href="#L343">343</a>             ce.reset();
-<a class="jxr_linenumber" name="L344" href="#L344">344</a>             ByteBuffer bb = ByteBuffer.wrap(targetArray);
-<a class="jxr_linenumber" name="L345" href="#L345">345</a>             CharBuffer cb = CharBuffer.wrap(ca, off, len);
-<a class="jxr_linenumber" name="L346" href="#L346">346</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L347" href="#L347">347</a>                 CoderResult cr = ce.encode(cb, bb, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L348" href="#L348">348</a>                 <strong class="jxr_keyword">if</strong> (!cr.isUnderflow()) {
-<a class="jxr_linenumber" name="L349" href="#L349">349</a>                     cr.throwException();
-<a class="jxr_linenumber" name="L350" href="#L350">350</a>                 }
-<a class="jxr_linenumber" name="L351" href="#L351">351</a>                 cr = ce.flush(bb);
-<a class="jxr_linenumber" name="L352" href="#L352">352</a>                 <strong class="jxr_keyword">if</strong> (!cr.isUnderflow()) {
-<a class="jxr_linenumber" name="L353" href="#L353">353</a>                     cr.throwException();
-<a class="jxr_linenumber" name="L354" href="#L354">354</a>                 }
-<a class="jxr_linenumber" name="L355" href="#L355">355</a>             } <strong class="jxr_keyword">catch</strong> (CharacterCodingException x) {
-<a class="jxr_linenumber" name="L356" href="#L356">356</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Error(x);
-<a class="jxr_linenumber" name="L357" href="#L357">357</a>             }
-<a class="jxr_linenumber" name="L358" href="#L358">358</a>             <strong class="jxr_keyword">return</strong> bb.position();
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>     };
+<a class="jxr_linenumber" name="L322" href="#L322">322</a> 
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharsetDecoder createUtf8Decoder() {
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>     <strong class="jxr_keyword">if</strong> (LENIENT_CODING) {
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>       <strong class="jxr_keyword">return</strong> Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>               .onUnmappableCharacter(CodingErrorAction.REPLACE);
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>       <strong class="jxr_keyword">return</strong> Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>               .onUnmappableCharacter(CodingErrorAction.REPORT);
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>     }
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>   }
+<a class="jxr_linenumber" name="L332" href="#L332">332</a> 
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharsetEncoder getUTF8CharsetEncoder() {
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>         <strong class="jxr_keyword">return</strong> UTF8_ENCODER.get();
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>     }
+<a class="jxr_linenumber" name="L336" href="#L336">336</a> 
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharsetDecoder getUTF8CharsetDecoder() {
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>         <strong class="jxr_keyword">return</strong> UTF8_DECODER.get();
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>     }
+<a class="jxr_linenumber" name="L340" href="#L340">340</a> 
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>     @SuppressFBWarnings(<span class="jxr_string">"SUA_SUSPICIOUS_UNINITIALIZED_ARRAY"</span>)
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> byte[] encode(<strong class="jxr_keyword">final</strong> CharsetEncoder ce, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">char</strong>[] ca, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> off, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len) {
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>         <strong class="jxr_keyword">if</strong> (len == 0) {
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>             <strong class="jxr_keyword">return</strong> Arrays.EMPTY_BYTE_ARRAY;
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>         }
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>         byte[] ba = Arrays.getBytesTmp(getmaxNrBytes(ce, len));
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>         <strong class="jxr_keyword">int</strong> nrBytes = encode(ce, ca, off, len, ba);
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>         <strong class="jxr_keyword">return</strong> java.util.Arrays.copyOf(ba, nrBytes);
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>     }
+<a class="jxr_linenumber" name="L350" href="#L350">350</a> 
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> getmaxNrBytes(<strong class="jxr_keyword">final</strong> CharsetEncoder ce, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nrChars) {
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>         <strong class="jxr_keyword">return</strong> (<strong class="jxr_keyword">int</strong>) (nrChars * (<strong class="jxr_keyword">double</strong>) ce.maxBytesPerChar());
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>     }
+<a class="jxr_linenumber" name="L354" href="#L354">354</a> 
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> encode(<strong class="jxr_keyword">final</strong> CharsetEncoder ce, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">char</strong>[] ca, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> off, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len,
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>             <strong class="jxr_keyword">final</strong> byte[] targetArray) {
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>         <strong class="jxr_keyword">if</strong> (len == 0) {
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>             <strong class="jxr_keyword">return</strong> 0;
 <a class="jxr_linenumber" name="L359" href="#L359">359</a>         }
-<a class="jxr_linenumber" name="L360" href="#L360">360</a>     }
-<a class="jxr_linenumber" name="L361" href="#L361">361</a> 
-<a class="jxr_linenumber" name="L362" href="#L362">362</a>     @SuppressFBWarnings(<span class="jxr_string">"SUA_SUSPICIOUS_UNINITIALIZED_ARRAY"</span>)
-<a class="jxr_linenumber" name="L363" href="#L363">363</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String decode(<strong class="jxr_keyword">final</strong> CharsetDecoder cd, <strong class="jxr_keyword">final</strong> byte[] ba, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> off, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len) {
-<a class="jxr_linenumber" name="L364" href="#L364">364</a>         <strong class="jxr_keyword">if</strong> (len == 0) {
-<a class="jxr_linenumber" name="L365" href="#L365">365</a>             <strong class="jxr_keyword">return</strong> <span class="jxr_string">""</span>;
-<a class="jxr_linenumber" name="L366" href="#L366">366</a>         }
-<a class="jxr_linenumber" name="L367" href="#L367">367</a>         <strong class="jxr_keyword">int</strong> en = (<strong class="jxr_keyword">int</strong>) (len * (<strong class="jxr_keyword">double</strong>) cd.maxCharsPerByte());
-<a class="jxr_linenumber" name="L368" href="#L368">368</a>         <strong class="jxr_keyword">char</strong>[] ca = Arrays.getCharsTmp(en);
-<a class="jxr_linenumber" name="L369" href="#L369">369</a>         <strong class="jxr_keyword">if</strong> (cd instanceof ArrayDecoder) {
-<a class="jxr_linenumber" name="L370" href="#L370">370</a>             <strong class="jxr_keyword">int</strong> clen = ((ArrayDecoder) cd).decode(ba, off, len, ca);
-<a class="jxr_linenumber" name="L371" href="#L371">371</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> String(ca, 0, clen);
-<a class="jxr_linenumber" name="L372" href="#L372">372</a>         }
-<a class="jxr_linenumber" name="L373" href="#L373">373</a>         cd.reset();
-<a class="jxr_linenumber" name="L374" href="#L374">374</a>         ByteBuffer bb = ByteBuffer.wrap(ba, off, len);
-<a class="jxr_linenumber" name="L375" href="#L375">375</a>         CharBuffer cb = CharBuffer.wrap(ca);
-<a class="jxr_linenumber" name="L376" href="#L376">376</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L377" href="#L377">377</a>             CoderResult cr = cd.decode(bb, cb, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L378" href="#L378">378</a>             <strong class="jxr_keyword">if</strong> (!cr.isUnderflow()) {
-<a class="jxr_linenumber" name="L379" href="#L379">379</a>                 cr.throwException();
-<a class="jxr_linenumber" name="L380" href="#L380">380</a>             }
-<a class="jxr_linenumber" name="L381" href="#L381">381</a>             cr = cd.flush(cb);
-<a class="jxr_linenumber" name="L382" href="#L382">382</a>             <strong class="jxr_keyword">if</strong> (!cr.isUnderflow()) {
-<a class="jxr_linenumber" name="L383" href="#L383">383</a>                 cr.throwException();
-<a class="jxr_linenumber" name="L384" href="#L384">384</a>             }
-<a class="jxr_linenumber" name="L385" href="#L385">385</a>         } <strong class="jxr_keyword">catch</strong> (CharacterCodingException x) {
-<a class="jxr_linenumber" name="L386" href="#L386">386</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Error(x);
-<a class="jxr_linenumber" name="L387" href="#L387">387</a>         }
-<a class="jxr_linenumber" name="L388" href="#L388">388</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> String(ca, 0, cb.position());
-<a class="jxr_linenumber" name="L389" href="#L389">389</a>     }
-<a class="jxr_linenumber" name="L390" href="#L390">390</a> 
-<a class="jxr_linenumber" name="L391" href="#L391">391</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String fromUtf8(<strong class="jxr_keyword">final</strong> byte[] bytes) {
-<a class="jxr_linenumber" name="L392" href="#L392">392</a>         <strong class="jxr_keyword">return</strong> decode(UTF8_DECODER.get(), bytes, 0, bytes.length);
-<a class="jxr_linenumber" name="L393" href="#L393">393</a>     }
-<a class="jxr_linenumber" name="L394" href="#L394">394</a> 
-<a class="jxr_linenumber" name="L395" href="#L395">395</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String fromUtf8(<strong class="jxr_keyword">final</strong> byte[] bytes, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> startIdx, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> length) {
-<a class="jxr_linenumber" name="L396" href="#L396">396</a>         <strong class="jxr_keyword">return</strong> decode(UTF8_DECODER.get(), bytes, startIdx, length);
-<a class="jxr_linenumber" name="L397" href="#L397">397</a>     }
-<a class="jxr_linenumber" name="L398" href="#L398">398</a> 
-<a class="jxr_linenumber" name="L399" href="#L399">399</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> byte[] toUtf8(<strong class="jxr_keyword">final</strong> String str) {
-<a class="jxr_linenumber" name="L400" href="#L400">400</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">char</strong>[] chars = steal(str);
-<a class="jxr_linenumber" name="L401" href="#L401">401</a>         <strong class="jxr_keyword">return</strong> encode(UTF8_ENCODER.get(), chars, 0, chars.length);
-<a class="jxr_linenumber" name="L402" href="#L402">402</a>     }
-<a class="jxr_linenumber" name="L403" href="#L403">403</a> 
-<a class="jxr_linenumber" name="L404" href="#L404">404</a>   @Deprecated
-<a class="jxr_linenumber" name="L405" href="#L405">405</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> compareTo(@Nonnull <strong class="jxr_keyword">final</strong> CharSequence s, @Nonnull <strong class="jxr_keyword">final</strong> CharSequence t) {
-<a class="jxr_linenumber" name="L406" href="#L406">406</a>     <strong class="jxr_keyword">return</strong> CharSequences.compareTo(s, t);
-<a class="jxr_linenumber" name="L407" href="#L407">407</a>   }
-<a class="jxr_linenumber" name="L408" href="#L408">408</a> 
-<a class="jxr_linenumber" name="L409" href="#L409">409</a>   @Deprecated
-<a class="jxr_linenumber" name="L410" href="#L410">410</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> equals(@Nonnull <strong class="jxr_keyword">final</strong> CharSequence s, @Nonnull <strong class="jxr_keyword">final</strong> CharSequence t) {
-<a class="jxr_linenumber" name="L411" href="#L411">411</a>     <strong class="jxr_keyword">return</strong> CharSequences.equals(s, t);
-<a class="jxr_linenumber" name="L412" href="#L412">412</a>   }
-<a class="jxr_linenumber" name="L413" href="#L413">413</a> 
-<a class="jxr_linenumber" name="L414" href="#L414">414</a>   @Deprecated
-<a class="jxr_linenumber" name="L415" href="#L415">415</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> hashcode(<strong class="jxr_keyword">final</strong> CharSequence cs) {
-<a class="jxr_linenumber" name="L416" href="#L416">416</a>     <strong class="jxr_keyword">return</strong> CharSequences.hashcode(cs);
-<a class="jxr_linenumber" name="L417" href="#L417">417</a>   }
-<a class="jxr_linenumber" name="L418" href="#L418">418</a> 
-<a class="jxr_linenumber" name="L419" href="#L419">419</a>   @Deprecated
-<a class="jxr_linenumber" name="L420" href="#L420">420</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharSequence subSequence(<strong class="jxr_keyword">final</strong> CharSequence seq, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> startIdx, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> endIdx) {
-<a class="jxr_linenumber" name="L421" href="#L421">421</a>     <strong class="jxr_keyword">return</strong> CharSequences.subSequence(seq, startIdx, endIdx);
-<a class="jxr_linenumber" name="L422" href="#L422">422</a>   }
-<a class="jxr_linenumber" name="L423" href="#L423">423</a> 
-<a class="jxr_linenumber" name="L424" href="#L424">424</a>   @Deprecated
-<a class="jxr_linenumber" name="L425" href="#L425">425</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> endsWith(<strong class="jxr_keyword">final</strong> CharSequence qc, <strong class="jxr_keyword">final</strong> CharSequence with) {
-<a class="jxr_linenumber" name="L426" href="#L426">426</a>     <strong class="jxr_keyword">return</strong> CharSequences.endsWith(qc, with);
-<a class="jxr_linenumber" name="L427" href="#L427">427</a>   }
-<a class="jxr_linenumber" name="L428" href="#L428">428</a> 
-<a class="jxr_linenumber" name="L429" href="#L429">429</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L430" href="#L430">430</a> <em class="jxr_javadoccomment">   * Utility method to escape java strings to json strings.</em>
-<a class="jxr_linenumber" name="L431" href="#L431">431</a> <em class="jxr_javadoccomment">   *</em>
-<a class="jxr_linenumber" name="L432" href="#L432">432</a> <em class="jxr_javadoccomment">   * @param toEscape - the java string to escape.</em>
-<a class="jxr_linenumber" name="L433" href="#L433">433</a> <em class="jxr_javadoccomment">   * @param jsonString - the destination json String builder.</em>
-<a class="jxr_linenumber" name="L434" href="#L434">434</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L435" href="#L435">435</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> escapeJsonString(@Nonnull <strong class="jxr_keyword">final</strong> String toEscape, <strong class="jxr_keyword">final</strong> StringBuilder jsonString) {
-<a class="jxr_linenumber" name="L436" href="#L436">436</a> 
-<a class="jxr_linenumber" name="L437" href="#L437">437</a>     <strong class="jxr_keyword">int</strong> len = toEscape.length();
-<a class="jxr_linenumber" name="L438" href="#L438">438</a>     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; len; i++) {
-<a class="jxr_linenumber" name="L439" href="#L439">439</a>       <strong class="jxr_keyword">char</strong> c = toEscape.charAt(i);
-<a class="jxr_linenumber" name="L440" href="#L440">440</a>       appendJsonStringEscapedChar(c, jsonString);
-<a class="jxr_linenumber" name="L441" href="#L441">441</a>     }
-<a class="jxr_linenumber" name="L442" href="#L442">442</a> 
-<a class="jxr_linenumber" name="L443" href="#L443">443</a>   }
-<a class="jxr_linenumber" name="L444" href="#L444">444</a> 
-<a class="jxr_linenumber" name="L445" href="#L445">445</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> escapeJsonString(@Nonnull <strong class="jxr_keyword">final</strong> String toEscape, <strong class="jxr_keyword">final</strong> Appendable jsonString) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L446" href="#L446">446</a>     <strong class="jxr_keyword">int</strong> len = toEscape.length();
-<a class="jxr_linenumber" name="L447" href="#L447">447</a>     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; len; i++) {
-<a class="jxr_linenumber" name="L448" href="#L448">448</a>       <strong class="jxr_keyword">char</strong> c = toEscape.charAt(i);
-<a class="jxr_linenumber" name="L449" href="#L449">449</a>       appendJsonStringEscapedChar(c, jsonString);
-<a class="jxr_linenumber" name="L450" href="#L450">450</a>     }
-<a class="jxr_linenumber" name="L451" href="#L451">451</a>   }
-<a class="jxr_linenumber" name="L452" href="#L452">452</a> 
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>         <strong class="jxr_keyword">if</strong> (ce instanceof ArrayEncoder) {
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>             <strong class="jxr_keyword">return</strong> ((ArrayEncoder) ce).encode(ca, off, len, targetArray);
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>             ce.reset();
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>             ByteBuffer bb = ByteBuffer.wrap(targetArray);
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>             CharBuffer cb = CharBuffer.wrap(ca, off, len);
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>                 CoderResult cr = ce.encode(cb, bb, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>                 <strong class="jxr_keyword">if</strong> (!cr.isUnderflow()) {
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>                     cr.throwException();
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>                 }
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>                 cr = ce.flush(bb);
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>                 <strong class="jxr_keyword">if</strong> (!cr.isUnderflow()) {
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>                     cr.throwException();
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>                 }
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>             } <strong class="jxr_keyword">catch</strong> (CharacterCodingException x) {
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Error(x);
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>             }
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>             <strong class="jxr_keyword">return</strong> bb.position();
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>         }
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>     }
+<a class="jxr_linenumber" name="L381" href="#L381">381</a> 
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>     @SuppressFBWarnings(<span class="jxr_string">"SUA_SUSPICIOUS_UNINITIALIZED_ARRAY"</span>)
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String decode(<strong class="jxr_keyword">final</strong> CharsetDecoder cd, <strong class="jxr_keyword">final</strong> byte[] ba, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> off, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len) {
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>         <strong class="jxr_keyword">if</strong> (len == 0) {
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>             <strong class="jxr_keyword">return</strong> <span class="jxr_string">""</span>;
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>         }
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>         <strong class="jxr_keyword">int</strong> en = (<strong class="jxr_keyword">int</strong>) (len * (<strong class="jxr_keyword">double</strong>) cd.maxCharsPerByte());
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>         <strong class="jxr_keyword">char</strong>[] ca = Arrays.getCharsTmp(en);
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>         <strong class="jxr_keyword">if</strong> (cd instanceof ArrayDecoder) {
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>             <strong class="jxr_keyword">int</strong> clen = ((ArrayDecoder) cd).decode(ba, off, len, ca);
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> String(ca, 0, clen);
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>         }
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>         cd.reset();
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>         ByteBuffer bb = ByteBuffer.wrap(ba, off, len);
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>         CharBuffer cb = CharBuffer.wrap(ca);
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>             CoderResult cr = cd.decode(bb, cb, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>             <strong class="jxr_keyword">if</strong> (!cr.isUnderflow()) {
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>                 cr.throwException();
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>             }
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>             cr = cd.flush(cb);
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>             <strong class="jxr_keyword">if</strong> (!cr.isUnderflow()) {
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>                 cr.throwException();
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>             }
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>         } <strong class="jxr_keyword">catch</strong> (CharacterCodingException x) {
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> Error(x);
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>         }
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> String(ca, 0, cb.position());
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>     }
+<a class="jxr_linenumber" name="L410" href="#L410">410</a> 
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L412" href="#L412">412</a> <em class="jxr_javadoccomment">     * Optimized UTF8 decoder.</em>
+<a class="jxr_linenumber" name="L413" href="#L413">413</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L414" href="#L414">414</a> <em class="jxr_javadoccomment">     * Here is a benchmark comparison with the JDK implementation</em>
+<a class="jxr_linenumber" name="L415" href="#L415">415</a> <em class="jxr_javadoccomment">     * (see EncodingBenchmark.java in the benchmark project):</em>
+<a class="jxr_linenumber" name="L416" href="#L416">416</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L417" href="#L417">417</a> <em class="jxr_javadoccomment">     * EncodingBenchmark.stringDecode             thrpt   10  16759798.463 ± 343505.144  ops/s</em>
+<a class="jxr_linenumber" name="L418" href="#L418">418</a> <em class="jxr_javadoccomment">     * EncodingBenchmark.fastStringDecode         thrpt   10  17413298.464 ± 301756.867  ops/s</em>
+<a class="jxr_linenumber" name="L419" href="#L419">419</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L420" href="#L420">420</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L421" href="#L421">421</a> <em class="jxr_javadoccomment">     * @param bytes</em>
+<a class="jxr_linenumber" name="L422" href="#L422">422</a> <em class="jxr_javadoccomment">     * @return</em>
+<a class="jxr_linenumber" name="L423" href="#L423">423</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String fromUtf8(<strong class="jxr_keyword">final</strong> byte[] bytes) {
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>         <strong class="jxr_keyword">return</strong> decode(UTF8_DECODER.get(), bytes, 0, bytes.length);
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>     }
+<a class="jxr_linenumber" name="L427" href="#L427">427</a> 
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String fromUtf8(<strong class="jxr_keyword">final</strong> byte[] bytes, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> startIdx, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> length) {
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>         <strong class="jxr_keyword">return</strong> decode(UTF8_DECODER.get(), bytes, startIdx, length);
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>     }
+<a class="jxr_linenumber" name="L431" href="#L431">431</a> 
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L433" href="#L433">433</a> <em class="jxr_javadoccomment">     * Optimized UTF8 string encoder.</em>
+<a class="jxr_linenumber" name="L434" href="#L434">434</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L435" href="#L435">435</a> <em class="jxr_javadoccomment">     * comparison with the stock JDK implementation</em>
+<a class="jxr_linenumber" name="L436" href="#L436">436</a> <em class="jxr_javadoccomment">     * (see EncodingBenchmark.java in the benchmark project):</em>
+<a class="jxr_linenumber" name="L437" href="#L437">437</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L438" href="#L438">438</a> <em class="jxr_javadoccomment">     * EncodingBenchmark.stringEncode             thrpt   10   9481668.776 ± 252543.135  ops/s</em>
+<a class="jxr_linenumber" name="L439" href="#L439">439</a> <em class="jxr_javadoccomment">     * EncodingBenchmark.fastStringEncode         thrpt   10  22469383.612 ± 898677.892  ops/s</em>
+<a class="jxr_linenumber" name="L440" href="#L440">440</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L441" href="#L441">441</a> <em class="jxr_javadoccomment">     * @param str</em>
+<a class="jxr_linenumber" name="L442" href="#L442">442</a> <em class="jxr_javadoccomment">     * @return</em>
+<a class="jxr_linenumber" name="L443" href="#L443">443</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> byte[] toUtf8(<strong class="jxr_keyword">final</strong> String str) {
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">char</strong>[] chars = steal(str);
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>         <strong class="jxr_keyword">return</strong> encode(UTF8_ENCODER.get(), chars, 0, chars.length);
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>     }
+<a class="jxr_linenumber" name="L448" href="#L448">448</a> 
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>   @Deprecated
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> compareTo(@Nonnull <strong class="jxr_keyword">final</strong> CharSequence s, @Nonnull <strong class="jxr_keyword">final</strong> CharSequence t) {
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>     <strong class="jxr_keyword">return</strong> CharSequences.compareTo(s, t);
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>   }
 <a class="jxr_linenumber" name="L453" href="#L453">453</a> 
-<a class="jxr_linenumber" name="L454" href="#L454">454</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendJsonStringEscapedChar(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">char</strong> c, <strong class="jxr_keyword">final</strong> StringBuilder jsonString) {
-<a class="jxr_linenumber" name="L455" href="#L455">455</a>     <strong class="jxr_keyword">switch</strong> (c) {
-<a class="jxr_linenumber" name="L456" href="#L456">456</a>       <strong class="jxr_keyword">case</strong> '&#92;&#92;':
-<a class="jxr_linenumber" name="L457" href="#L457">457</a>       <strong class="jxr_keyword">case</strong> '&quot;':
-<a class="jxr_linenumber" name="L458" href="#L458">458</a>         jsonString.append('&#92;&#92;');
-<a class="jxr_linenumber" name="L459" href="#L459">459</a>         jsonString.append(c);
-<a class="jxr_linenumber" name="L460" href="#L460">460</a>         <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L461" href="#L461">461</a>       <strong class="jxr_keyword">case</strong> '\b':
-<a class="jxr_linenumber" name="L462" href="#L462">462</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;b"</span>);
-<a class="jxr_linenumber" name="L463" href="#L463">463</a>         <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L464" href="#L464">464</a>       <strong class="jxr_keyword">case</strong> '\t':
-<a class="jxr_linenumber" name="L465" href="#L465">465</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;t"</span>);
-<a class="jxr_linenumber" name="L466" href="#L466">466</a>         <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L467" href="#L467">467</a>       <strong class="jxr_keyword">case</strong> '\n':
-<a class="jxr_linenumber" name="L468" href="#L468">468</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;n"</span>);
-<a class="jxr_linenumber" name="L469" href="#L469">469</a>         <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L470" href="#L470">470</a>       <strong class="jxr_keyword">case</strong> '\f':
-<a class="jxr_linenumber" name="L471" href="#L471">471</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;f"</span>);
-<a class="jxr_linenumber" name="L472" href="#L472">472</a>         <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L473" href="#L473">473</a>       <strong class="jxr_keyword">case</strong> '\r':
-<a class="jxr_linenumber" name="L474" href="#L474">474</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;r"</span>);
-<a class="jxr_linenumber" name="L475" href="#L475">475</a>         <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L476" href="#L476">476</a>       <strong class="jxr_keyword">default</strong>:
-<a class="jxr_linenumber" name="L477" href="#L477">477</a>         <strong class="jxr_keyword">if</strong> (c &lt; ' ') {
-<a class="jxr_linenumber" name="L478" href="#L478">478</a>           jsonString.append(<span class="jxr_string">"&#92;&#92;u"</span>);
-<a class="jxr_linenumber" name="L479" href="#L479">479</a>           appendUnsignedStringPadded(jsonString, (<strong class="jxr_keyword">int</strong>) c, 4, 4);
-<a class="jxr_linenumber" name="L480" href="#L480">480</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L481" href="#L481">481</a>           jsonString.append(c);
-<a class="jxr_linenumber" name="L482" href="#L482">482</a>         }
-<a class="jxr_linenumber" name="L483" href="#L483">483</a>     }
-<a class="jxr_linenumber" name="L484" href="#L484">484</a>   }
-<a class="jxr_linenumber" name="L485" href="#L485">485</a> 
-<a class="jxr_linenumber" name="L486" href="#L486">486</a> 
-<a class="jxr_linenumber" name="L487" href="#L487">487</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendJsonStringEscapedChar(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">char</strong> c, <strong class="jxr_keyword">final</strong> Appendable jsonString) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L488" href="#L488">488</a>     <strong class="jxr_keyword">switch</strong> (c) {
-<a class="jxr_linenumber" name="L489" href="#L489">489</a>       <strong class="jxr_keyword">case</strong> '&#92;&#92;':
-<a class="jxr_linenumber" name="L490" href="#L490">490</a>       <strong class="jxr_keyword">case</strong> '&quot;':
-<a class="jxr_linenumber" name="L491" href="#L491">491</a>         jsonString.append('&#92;&#92;');
-<a class="jxr_linenumber" name="L492" href="#L492">492</a>         jsonString.append(c);
-<a class="jxr_linenumber" name="L493" href="#L493">493</a>         <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L494" href="#L494">494</a>       <strong class="jxr_keyword">case</strong> '\b':
-<a class="jxr_linenumber" name="L495" href="#L495">495</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;b"</span>);
-<a class="jxr_linenumber" name="L496" href="#L496">496</a>         <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L497" href="#L497">497</a>       <strong class="jxr_keyword">case</strong> '\t':
-<a class="jxr_linenumber" name="L498" href="#L498">498</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;t"</span>);
-<a class="jxr_linenumber" name="L499" href="#L499">499</a>         <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L500" href="#L500">500</a>       <strong class="jxr_keyword">case</strong> '\n':
-<a class="jxr_linenumber" name="L501" href="#L501">501</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;n"</span>);
-<a class="jxr_linenumber" name="L502" href="#L502">502</a>         <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L503" href="#L503">503</a>       <strong class="jxr_keyword">case</strong> '\f':
-<a class="jxr_linenumber" name="L504" href="#L504">504</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;f"</span>);
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>   @Deprecated
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> equals(@Nonnull <strong class="jxr_keyword">final</strong> CharSequence s, @Nonnull <strong class="jxr_keyword">final</strong> CharSequence t) {
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>     <strong class="jxr_keyword">return</strong> CharSequences.equals(s, t);
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>   }
+<a class="jxr_linenumber" name="L458" href="#L458">458</a> 
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>   @Deprecated
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> hashcode(<strong class="jxr_keyword">final</strong> CharSequence cs) {
+<a class="jxr_linenumber" name="L461" href="#L461">461</a>     <strong class="jxr_keyword">return</strong> CharSequences.hashcode(cs);
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>   }
+<a class="jxr_linenumber" name="L463" href="#L463">463</a> 
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>   @Deprecated
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharSequence subSequence(<strong class="jxr_keyword">final</strong> CharSequence seq, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> startIdx, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> endIdx) {
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>     <strong class="jxr_keyword">return</strong> CharSequences.subSequence(seq, startIdx, endIdx);
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>   }
+<a class="jxr_linenumber" name="L468" href="#L468">468</a> 
+<a class="jxr_linenumber" name="L469" href="#L469">469</a>   @Deprecated
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> endsWith(<strong class="jxr_keyword">final</strong> CharSequence qc, <strong class="jxr_keyword">final</strong> CharSequence with) {
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>     <strong class="jxr_keyword">return</strong> CharSequences.endsWith(qc, with);
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>   }
+<a class="jxr_linenumber" name="L473" href="#L473">473</a> 
+<a class="jxr_linenumber" name="L474" href="#L474">474</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L475" href="#L475">475</a> <em class="jxr_javadoccomment">   * Utility method to escape java strings to json strings.</em>
+<a class="jxr_linenumber" name="L476" href="#L476">476</a> <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L477" href="#L477">477</a> <em class="jxr_javadoccomment">   * @param toEscape - the java string to escape.</em>
+<a class="jxr_linenumber" name="L478" href="#L478">478</a> <em class="jxr_javadoccomment">   * @param jsonString - the destination json String builder.</em>
+<a class="jxr_linenumber" name="L479" href="#L479">479</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> escapeJsonString(@Nonnull <strong class="jxr_keyword">final</strong> String toEscape, <strong class="jxr_keyword">final</strong> StringBuilder jsonString) {
+<a class="jxr_linenumber" name="L481" href="#L481">481</a> 
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>     <strong class="jxr_keyword">int</strong> len = toEscape.length();
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; len; i++) {
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>       <strong class="jxr_keyword">char</strong> c = toEscape.charAt(i);
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>       appendJsonStringEscapedChar(c, jsonString);
+<a class="jxr_linenumber" name="L486" href="#L486">486</a>     }
+<a class="jxr_linenumber" name="L487" href="#L487">487</a> 
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>   }
+<a class="jxr_linenumber" name="L489" href="#L489">489</a> 
+<a class="jxr_linenumber" name="L490" href="#L490">490</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> escapeJsonString(@Nonnull <strong class="jxr_keyword">final</strong> String toEscape, <strong class="jxr_keyword">final</strong> Appendable jsonString) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L491" href="#L491">491</a>     <strong class="jxr_keyword">int</strong> len = toEscape.length();
+<a class="jxr_linenumber" name="L492" href="#L492">492</a>     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; len; i++) {
+<a class="jxr_linenumber" name="L493" href="#L493">493</a>       <strong class="jxr_keyword">char</strong> c = toEscape.charAt(i);
+<a class="jxr_linenumber" name="L494" href="#L494">494</a>       appendJsonStringEscapedChar(c, jsonString);
+<a class="jxr_linenumber" name="L495" href="#L495">495</a>     }
+<a class="jxr_linenumber" name="L496" href="#L496">496</a>   }
+<a class="jxr_linenumber" name="L497" href="#L497">497</a> 
+<a class="jxr_linenumber" name="L498" href="#L498">498</a> 
+<a class="jxr_linenumber" name="L499" href="#L499">499</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendJsonStringEscapedChar(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">char</strong> c, <strong class="jxr_keyword">final</strong> StringBuilder jsonString) {
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>     <strong class="jxr_keyword">switch</strong> (c) {
+<a class="jxr_linenumber" name="L501" href="#L501">501</a>       <strong class="jxr_keyword">case</strong> '&#92;&#92;':
+<a class="jxr_linenumber" name="L502" href="#L502">502</a>       <strong class="jxr_keyword">case</strong> '&quot;':
+<a class="jxr_linenumber" name="L503" href="#L503">503</a>         jsonString.append('&#92;&#92;');
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>         jsonString.append(c);
 <a class="jxr_linenumber" name="L505" href="#L505">505</a>         <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L506" href="#L506">506</a>       <strong class="jxr_keyword">case</strong> '\r':
-<a class="jxr_linenumber" name="L507" href="#L507">507</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;r"</span>);
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>       <strong class="jxr_keyword">case</strong> '\b':
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;b"</span>);
 <a class="jxr_linenumber" name="L508" href="#L508">508</a>         <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L509" href="#L509">509</a>       <strong class="jxr_keyword">default</strong>:
-<a class="jxr_linenumber" name="L510" href="#L510">510</a>         <strong class="jxr_keyword">if</strong> (c &lt; ' ') {
-<a class="jxr_linenumber" name="L511" href="#L511">511</a>           jsonString.append(<span class="jxr_string">"&#92;&#92;u"</span>);
-<a class="jxr_linenumber" name="L512" href="#L512">512</a>           appendUnsignedStringPadded(jsonString, (<strong class="jxr_keyword">int</strong>) c, 4, 4);
-<a class="jxr_linenumber" name="L513" href="#L513">513</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L514" href="#L514">514</a>           jsonString.append(c);
-<a class="jxr_linenumber" name="L515" href="#L515">515</a>         }
-<a class="jxr_linenumber" name="L516" href="#L516">516</a>     }
-<a class="jxr_linenumber" name="L517" href="#L517">517</a>   }
-<a class="jxr_linenumber" name="L518" href="#L518">518</a> 
-<a class="jxr_linenumber" name="L519" href="#L519">519</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">char</strong>[] DIGITS = {
-<a class="jxr_linenumber" name="L520" href="#L520">520</a>         '0', '1', '2', '3', '4', '5',
-<a class="jxr_linenumber" name="L521" href="#L521">521</a>         '6', '7', '8', '9', 'a', 'b',
-<a class="jxr_linenumber" name="L522" href="#L522">522</a>         'c', 'd', 'e', 'f', 'g', 'h',
-<a class="jxr_linenumber" name="L523" href="#L523">523</a>         'i', 'j', 'k', 'l', 'm', 'n',
-<a class="jxr_linenumber" name="L524" href="#L524">524</a>         'o', 'p', 'q', 'r', 's', 't',
-<a class="jxr_linenumber" name="L525" href="#L525">525</a>         'u', 'v', 'w', 'x', 'y', 'z'
-<a class="jxr_linenumber" name="L526" href="#L526">526</a>     };
-<a class="jxr_linenumber" name="L527" href="#L527">527</a> 
-<a class="jxr_linenumber" name="L528" href="#L528">528</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> ThreadLocal&lt;<strong class="jxr_keyword">char</strong>[]&gt; BUFF = <strong class="jxr_keyword">new</strong> ThreadLocal&lt;<strong class="jxr_keyword">char</strong>[]&gt;() {
-<a class="jxr_linenumber" name="L529" href="#L529">529</a> 
-<a class="jxr_linenumber" name="L530" href="#L530">530</a>         @Override
-<a class="jxr_linenumber" name="L531" href="#L531">531</a>         @SuppressFBWarnings(<span class="jxr_string">"SUA_SUSPICIOUS_UNINITIALIZED_ARRAY"</span>)
-<a class="jxr_linenumber" name="L532" href="#L532">532</a>         <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">char</strong>[] initialValue() {
-<a class="jxr_linenumber" name="L533" href="#L533">533</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">char</strong>[64];
-<a class="jxr_linenumber" name="L534" href="#L534">534</a>         }
-<a class="jxr_linenumber" name="L535" href="#L535">535</a> 
-<a class="jxr_linenumber" name="L536" href="#L536">536</a>     };
-<a class="jxr_linenumber" name="L537" href="#L537">537</a> 
-<a class="jxr_linenumber" name="L538" href="#L538">538</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendUnsignedString(<strong class="jxr_keyword">final</strong> StringBuilder sb, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> nr, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> shift) {
-<a class="jxr_linenumber" name="L539" href="#L539">539</a>         <strong class="jxr_keyword">long</strong> i = nr;
-<a class="jxr_linenumber" name="L540" href="#L540">540</a>         <strong class="jxr_keyword">char</strong>[] buf = BUFF.get();
-<a class="jxr_linenumber" name="L541" href="#L541">541</a>         <strong class="jxr_keyword">int</strong> charPos = 64;
-<a class="jxr_linenumber" name="L542" href="#L542">542</a>         <strong class="jxr_keyword">int</strong> radix = 1 &lt;&lt; shift;
-<a class="jxr_linenumber" name="L543" href="#L543">543</a>         <strong class="jxr_keyword">long</strong> mask = radix - 1;
-<a class="jxr_linenumber" name="L544" href="#L544">544</a>         <strong class="jxr_keyword">do</strong> {
-<a class="jxr_linenumber" name="L545" href="#L545">545</a>             buf[--charPos] = DIGITS[(<strong class="jxr_keyword">int</strong>) (i &amp; mask)];
-<a class="jxr_linenumber" name="L546" href="#L546">546</a>             i &gt;&gt;&gt;= shift;
-<a class="jxr_linenumber" name="L547" href="#L547">547</a>         } <strong class="jxr_keyword">while</strong> (i != 0);
-<a class="jxr_linenumber" name="L548" href="#L548">548</a>         sb.append(buf, charPos, 64 - charPos);
-<a class="jxr_linenumber" name="L549" href="#L549">549</a>     }
-<a class="jxr_linenumber" name="L550" href="#L550">550</a> 
-<a class="jxr_linenumber" name="L551" href="#L551">551</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendUnsignedString(<strong class="jxr_keyword">final</strong> StringBuilder sb, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nr, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> shift) {
-<a class="jxr_linenumber" name="L552" href="#L552">552</a>         <strong class="jxr_keyword">long</strong> i = nr;
-<a class="jxr_linenumber" name="L553" href="#L553">553</a>         <strong class="jxr_keyword">char</strong>[] buf = BUFF.get();
-<a class="jxr_linenumber" name="L554" href="#L554">554</a>         <strong class="jxr_keyword">int</strong> charPos = 32;
-<a class="jxr_linenumber" name="L555" href="#L555">555</a>         <strong class="jxr_keyword">int</strong> radix = 1 &lt;&lt; shift;
-<a class="jxr_linenumber" name="L556" href="#L556">556</a>         <strong class="jxr_keyword">long</strong> mask = radix - 1;
-<a class="jxr_linenumber" name="L557" href="#L557">557</a>         <strong class="jxr_keyword">do</strong> {
-<a class="jxr_linenumber" name="L558" href="#L558">558</a>             buf[--charPos] = DIGITS[(<strong class="jxr_keyword">int</strong>) (i &amp; mask)];
-<a class="jxr_linenumber" name="L559" href="#L559">559</a>             i &gt;&gt;&gt;= shift;
-<a class="jxr_linenumber" name="L560" href="#L560">560</a>         } <strong class="jxr_keyword">while</strong> (i != 0);
-<a class="jxr_linenumber" name="L561" href="#L561">561</a>         sb.append(buf, charPos, 32 - charPos);
-<a class="jxr_linenumber" name="L562" href="#L562">562</a>     }
+<a class="jxr_linenumber" name="L509" href="#L509">509</a>       <strong class="jxr_keyword">case</strong> '\t':
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;t"</span>);
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>       <strong class="jxr_keyword">case</strong> '\n':
+<a class="jxr_linenumber" name="L513" href="#L513">513</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;n"</span>);
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>       <strong class="jxr_keyword">case</strong> '\f':
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;f"</span>);
+<a class="jxr_linenumber" name="L517" href="#L517">517</a>         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>       <strong class="jxr_keyword">case</strong> '\r':
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;r"</span>);
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L521" href="#L521">521</a>       <strong class="jxr_keyword">default</strong>:
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>         <strong class="jxr_keyword">if</strong> (c &lt; ' ') {
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>           jsonString.append(<span class="jxr_string">"&#92;&#92;u"</span>);
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>           appendUnsignedStringPadded(jsonString, (<strong class="jxr_keyword">int</strong>) c, 4, 4);
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>           jsonString.append(c);
+<a class="jxr_linenumber" name="L527" href="#L527">527</a>         }
+<a class="jxr_linenumber" name="L528" href="#L528">528</a>     }
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>   }
+<a class="jxr_linenumber" name="L530" href="#L530">530</a> 
+<a class="jxr_linenumber" name="L531" href="#L531">531</a> 
+<a class="jxr_linenumber" name="L532" href="#L532">532</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendJsonStringEscapedChar(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">char</strong> c, <strong class="jxr_keyword">final</strong> Appendable jsonString) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>     <strong class="jxr_keyword">switch</strong> (c) {
+<a class="jxr_linenumber" name="L534" href="#L534">534</a>       <strong class="jxr_keyword">case</strong> '&#92;&#92;':
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>       <strong class="jxr_keyword">case</strong> '&quot;':
+<a class="jxr_linenumber" name="L536" href="#L536">536</a>         jsonString.append('&#92;&#92;');
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>         jsonString.append(c);
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L539" href="#L539">539</a>       <strong class="jxr_keyword">case</strong> '\b':
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;b"</span>);
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>       <strong class="jxr_keyword">case</strong> '\t':
+<a class="jxr_linenumber" name="L543" href="#L543">543</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;t"</span>);
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>       <strong class="jxr_keyword">case</strong> '\n':
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;n"</span>);
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>       <strong class="jxr_keyword">case</strong> '\f':
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;f"</span>);
+<a class="jxr_linenumber" name="L550" href="#L550">550</a>         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L551" href="#L551">551</a>       <strong class="jxr_keyword">case</strong> '\r':
+<a class="jxr_linenumber" name="L552" href="#L552">552</a>         jsonString.append(<span class="jxr_string">"&#92;&#92;r"</span>);
+<a class="jxr_linenumber" name="L553" href="#L553">553</a>         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L554" href="#L554">554</a>       <strong class="jxr_keyword">default</strong>:
+<a class="jxr_linenumber" name="L555" href="#L555">555</a>         <strong class="jxr_keyword">if</strong> (c &lt; ' ') {
+<a class="jxr_linenumber" name="L556" href="#L556">556</a>           jsonString.append(<span class="jxr_string">"&#92;&#92;u"</span>);
+<a class="jxr_linenumber" name="L557" href="#L557">557</a>           appendUnsignedStringPadded(jsonString, (<strong class="jxr_keyword">int</strong>) c, 4, 4);
+<a class="jxr_linenumber" name="L558" href="#L558">558</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L559" href="#L559">559</a>           jsonString.append(c);
+<a class="jxr_linenumber" name="L560" href="#L560">560</a>         }
+<a class="jxr_linenumber" name="L561" href="#L561">561</a>     }
+<a class="jxr_linenumber" name="L562" href="#L562">562</a>   }
 <a class="jxr_linenumber" name="L563" href="#L563">563</a> 
-<a class="jxr_linenumber" name="L564" href="#L564">564</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendUnsignedStringPadded(<strong class="jxr_keyword">final</strong> StringBuilder sb, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nr, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> shift,
-<a class="jxr_linenumber" name="L565" href="#L565">565</a>             <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> padTo) {
-<a class="jxr_linenumber" name="L566" href="#L566">566</a>         <strong class="jxr_keyword">long</strong> i = nr;
-<a class="jxr_linenumber" name="L567" href="#L567">567</a>         <strong class="jxr_keyword">char</strong>[] buf = BUFF.get();
-<a class="jxr_linenumber" name="L568" href="#L568">568</a>         <strong class="jxr_keyword">int</strong> charPos = 32;
-<a class="jxr_linenumber" name="L569" href="#L569">569</a>         <strong class="jxr_keyword">int</strong> radix = 1 &lt;&lt; shift;
-<a class="jxr_linenumber" name="L570" href="#L570">570</a>         <strong class="jxr_keyword">long</strong> mask = radix - 1;
-<a class="jxr_linenumber" name="L571" href="#L571">571</a>         <strong class="jxr_keyword">do</strong> {
-<a class="jxr_linenumber" name="L572" href="#L572">572</a>             buf[--charPos] = DIGITS[(<strong class="jxr_keyword">int</strong>) (i &amp; mask)];
-<a class="jxr_linenumber" name="L573" href="#L573">573</a>             i &gt;&gt;&gt;= shift;
-<a class="jxr_linenumber" name="L574" href="#L574">574</a>         } <strong class="jxr_keyword">while</strong> (i != 0);
-<a class="jxr_linenumber" name="L575" href="#L575">575</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nrChars = 32 - charPos;
-<a class="jxr_linenumber" name="L576" href="#L576">576</a>         <strong class="jxr_keyword">if</strong> (nrChars &gt; padTo) {
-<a class="jxr_linenumber" name="L577" href="#L577">577</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Your pad to value "</span> + padTo
-<a class="jxr_linenumber" name="L578" href="#L578">578</a>                     + <span class="jxr_string">" is to small, must be at least "</span> + nrChars);
-<a class="jxr_linenumber" name="L579" href="#L579">579</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L580" href="#L580">580</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> j = 0, n = padTo - nrChars; j &lt; n; j++) {
-<a class="jxr_linenumber" name="L581" href="#L581">581</a>                 sb.append('0');
-<a class="jxr_linenumber" name="L582" href="#L582">582</a>             }
-<a class="jxr_linenumber" name="L583" href="#L583">583</a>         }
-<a class="jxr_linenumber" name="L584" href="#L584">584</a>         sb.append(buf, charPos, nrChars);
-<a class="jxr_linenumber" name="L585" href="#L585">585</a>     }
-<a class="jxr_linenumber" name="L586" href="#L586">586</a> 
-<a class="jxr_linenumber" name="L587" href="#L587">587</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendUnsignedStringPadded(<strong class="jxr_keyword">final</strong> Appendable sb, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nr, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> shift,
-<a class="jxr_linenumber" name="L588" href="#L588">588</a>             <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> padTo) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L589" href="#L589">589</a>         <strong class="jxr_keyword">long</strong> i = nr;
-<a class="jxr_linenumber" name="L590" href="#L590">590</a>         <strong class="jxr_keyword">char</strong>[] buf = BUFF.get();
-<a class="jxr_linenumber" name="L591" href="#L591">591</a>         <strong class="jxr_keyword">int</strong> charPos = 32;
-<a class="jxr_linenumber" name="L592" href="#L592">592</a>         <strong class="jxr_keyword">int</strong> radix = 1 &lt;&lt; shift;
-<a class="jxr_linenumber" name="L593" href="#L593">593</a>         <strong class="jxr_keyword">long</strong> mask = radix - 1;
-<a class="jxr_linenumber" name="L594" href="#L594">594</a>         <strong class="jxr_keyword">do</strong> {
-<a class="jxr_linenumber" name="L595" href="#L595">595</a>             buf[--charPos] = DIGITS[(<strong class="jxr_keyword">int</strong>) (i &amp; mask)];
-<a class="jxr_linenumber" name="L596" href="#L596">596</a>             i &gt;&gt;&gt;= shift;
-<a class="jxr_linenumber" name="L597" href="#L597">597</a>         } <strong class="jxr_keyword">while</strong> (i != 0);
-<a class="jxr_linenumber" name="L598" href="#L598">598</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nrChars = 32 - charPos;
-<a class="jxr_linenumber" name="L599" href="#L599">599</a>         <strong class="jxr_keyword">if</strong> (nrChars &gt; padTo) {
-<a class="jxr_linenumber" name="L600" href="#L600">600</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Your pad to value "</span> + padTo
-<a class="jxr_linenumber" name="L601" href="#L601">601</a>                     + <span class="jxr_string">" is to small, must be at least "</span> + nrChars);
-<a class="jxr_linenumber" name="L602" href="#L602">602</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L603" href="#L603">603</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> j = 0, n = padTo - nrChars; j &lt; n; j++) {
-<a class="jxr_linenumber" name="L604" href="#L604">604</a>                 sb.append('0');
-<a class="jxr_linenumber" name="L605" href="#L605">605</a>             }
-<a class="jxr_linenumber" name="L606" href="#L606">606</a>         }
-<a class="jxr_linenumber" name="L607" href="#L607">607</a>         sb.append(CharBuffer.wrap(buf), charPos, charPos + nrChars);
-<a class="jxr_linenumber" name="L608" href="#L608">608</a>     }
-<a class="jxr_linenumber" name="L609" href="#L609">609</a> 
-<a class="jxr_linenumber" name="L610" href="#L610">610</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendSpaces(<strong class="jxr_keyword">final</strong> Appendable to, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nrSpaces) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L611" href="#L611">611</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; nrSpaces; i++) {
-<a class="jxr_linenumber" name="L612" href="#L612">612</a>         to.append(' ');
-<a class="jxr_linenumber" name="L613" href="#L613">613</a>       }
-<a class="jxr_linenumber" name="L614" href="#L614">614</a>     }
-<a class="jxr_linenumber" name="L615" href="#L615">615</a> 
-<a class="jxr_linenumber" name="L616" href="#L616">616</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendSpaces(<strong class="jxr_keyword">final</strong> StringBuilder to, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nrSpaces) {
-<a class="jxr_linenumber" name="L617" href="#L617">617</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; nrSpaces; i++) {
-<a class="jxr_linenumber" name="L618" href="#L618">618</a>         to.append(' ');
-<a class="jxr_linenumber" name="L619" href="#L619">619</a>       }
-<a class="jxr_linenumber" name="L620" href="#L620">620</a>     }
-<a class="jxr_linenumber" name="L621" href="#L621">621</a> 
-<a class="jxr_linenumber" name="L622" href="#L622">622</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L623" href="#L623">623</a> <em class="jxr_javadoccomment">   * See String.regionMatches.</em>
-<a class="jxr_linenumber" name="L624" href="#L624">624</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L625" href="#L625">625</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> regionMatches(<strong class="jxr_keyword">final</strong> CharSequence t, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> toffset,
-<a class="jxr_linenumber" name="L626" href="#L626">626</a>           <strong class="jxr_keyword">final</strong> CharSequence other, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> ooffset, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> plen) {
-<a class="jxr_linenumber" name="L627" href="#L627">627</a>     <strong class="jxr_keyword">int</strong> to = toffset;
-<a class="jxr_linenumber" name="L628" href="#L628">628</a>     <strong class="jxr_keyword">int</strong> po = ooffset;
-<a class="jxr_linenumber" name="L629" href="#L629">629</a>     <em class="jxr_comment">// Note: toffset, ooffset, or len might be near -1&gt;&gt;&gt;1.</em>
-<a class="jxr_linenumber" name="L630" href="#L630">630</a>     <strong class="jxr_keyword">if</strong> ((ooffset &lt; 0) || (toffset &lt; 0) || (toffset &gt; (<strong class="jxr_keyword">long</strong>) t.length() - plen)
-<a class="jxr_linenumber" name="L631" href="#L631">631</a>             || (ooffset &gt; (<strong class="jxr_keyword">long</strong>) other.length() - plen)) {
-<a class="jxr_linenumber" name="L632" href="#L632">632</a>       <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L633" href="#L633">633</a>     }
-<a class="jxr_linenumber" name="L634" href="#L634">634</a>     <strong class="jxr_keyword">int</strong> len = plen;
-<a class="jxr_linenumber" name="L635" href="#L635">635</a>     <strong class="jxr_keyword">while</strong> (len-- &gt; 0) {
-<a class="jxr_linenumber" name="L636" href="#L636">636</a>       <strong class="jxr_keyword">if</strong> (t.charAt(to++) != other.charAt(po++)) {
-<a class="jxr_linenumber" name="L637" href="#L637">637</a>         <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L638" href="#L638">638</a>       }
-<a class="jxr_linenumber" name="L639" href="#L639">639</a>     }
-<a class="jxr_linenumber" name="L640" href="#L640">640</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L641" href="#L641">641</a>   }
-<a class="jxr_linenumber" name="L642" href="#L642">642</a> 
-<a class="jxr_linenumber" name="L643" href="#L643">643</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String truncate(@Nonnull <strong class="jxr_keyword">final</strong> String value, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> length) {
-<a class="jxr_linenumber" name="L644" href="#L644">644</a>     <strong class="jxr_keyword">if</strong> (value.length() &gt; length) {
-<a class="jxr_linenumber" name="L645" href="#L645">645</a>       <strong class="jxr_keyword">return</strong> value.substring(0, length);
-<a class="jxr_linenumber" name="L646" href="#L646">646</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L647" href="#L647">647</a>       <strong class="jxr_keyword">return</strong> value;
-<a class="jxr_linenumber" name="L648" href="#L648">648</a>     }
-<a class="jxr_linenumber" name="L649" href="#L649">649</a>   }
-<a class="jxr_linenumber" name="L650" href="#L650">650</a> 
-<a class="jxr_linenumber" name="L651" href="#L651">651</a> 
-<a class="jxr_linenumber" name="L652" href="#L652">652</a> }
+<a class="jxr_linenumber" name="L564" href="#L564">564</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">char</strong>[] DIGITS = {
+<a class="jxr_linenumber" name="L565" href="#L565">565</a>         '0', '1', '2', '3', '4', '5',
+<a class="jxr_linenumber" name="L566" href="#L566">566</a>         '6', '7', '8', '9', 'a', 'b',
+<a class="jxr_linenumber" name="L567" href="#L567">567</a>         'c', 'd', 'e', 'f', 'g', 'h',
+<a class="jxr_linenumber" name="L568" href="#L568">568</a>         'i', 'j', 'k', 'l', 'm', 'n',
+<a class="jxr_linenumber" name="L569" href="#L569">569</a>         'o', 'p', 'q', 'r', 's', 't',
+<a class="jxr_linenumber" name="L570" href="#L570">570</a>         'u', 'v', 'w', 'x', 'y', 'z'
+<a class="jxr_linenumber" name="L571" href="#L571">571</a>     };
+<a class="jxr_linenumber" name="L572" href="#L572">572</a> 
+<a class="jxr_linenumber" name="L573" href="#L573">573</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> ThreadLocal&lt;<strong class="jxr_keyword">char</strong>[]&gt; BUFF = <strong class="jxr_keyword">new</strong> ThreadLocal&lt;<strong class="jxr_keyword">char</strong>[]&gt;() {
+<a class="jxr_linenumber" name="L574" href="#L574">574</a> 
+<a class="jxr_linenumber" name="L575" href="#L575">575</a>         @Override
+<a class="jxr_linenumber" name="L576" href="#L576">576</a>         @SuppressFBWarnings(<span class="jxr_string">"SUA_SUSPICIOUS_UNINITIALIZED_ARRAY"</span>)
+<a class="jxr_linenumber" name="L577" href="#L577">577</a>         <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">char</strong>[] initialValue() {
+<a class="jxr_linenumber" name="L578" href="#L578">578</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">char</strong>[64];
+<a class="jxr_linenumber" name="L579" href="#L579">579</a>         }
+<a class="jxr_linenumber" name="L580" href="#L580">580</a> 
+<a class="jxr_linenumber" name="L581" href="#L581">581</a>     };
+<a class="jxr_linenumber" name="L582" href="#L582">582</a> 
+<a class="jxr_linenumber" name="L583" href="#L583">583</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendUnsignedString(<strong class="jxr_keyword">final</strong> StringBuilder sb, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> nr, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> shift) {
+<a class="jxr_linenumber" name="L584" href="#L584">584</a>         <strong class="jxr_keyword">long</strong> i = nr;
+<a class="jxr_linenumber" name="L585" href="#L585">585</a>         <strong class="jxr_keyword">char</strong>[] buf = BUFF.get();
+<a class="jxr_linenumber" name="L586" href="#L586">586</a>         <strong class="jxr_keyword">int</strong> charPos = 64;
+<a class="jxr_linenumber" name="L587" href="#L587">587</a>         <strong class="jxr_keyword">int</strong> radix = 1 &lt;&lt; shift;
+<a class="jxr_linenumber" name="L588" href="#L588">588</a>         <strong class="jxr_keyword">long</strong> mask = radix - 1;
+<a class="jxr_linenumber" name="L589" href="#L589">589</a>         <strong class="jxr_keyword">do</strong> {
+<a class="jxr_linenumber" name="L590" href="#L590">590</a>             buf[--charPos] = DIGITS[(<strong class="jxr_keyword">int</strong>) (i &amp; mask)];
+<a class="jxr_linenumber" name="L591" href="#L591">591</a>             i &gt;&gt;&gt;= shift;
+<a class="jxr_linenumber" name="L592" href="#L592">592</a>         } <strong class="jxr_keyword">while</strong> (i != 0);
+<a class="jxr_linenumber" name="L593" href="#L593">593</a>         sb.append(buf, charPos, 64 - charPos);
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>     }
+<a class="jxr_linenumber" name="L595" href="#L595">595</a> 
+<a class="jxr_linenumber" name="L596" href="#L596">596</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendUnsignedString(<strong class="jxr_keyword">final</strong> StringBuilder sb, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nr, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> shift) {
+<a class="jxr_linenumber" name="L597" href="#L597">597</a>         <strong class="jxr_keyword">long</strong> i = nr;
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>         <strong class="jxr_keyword">char</strong>[] buf = BUFF.get();
+<a class="jxr_linenumber" name="L599" href="#L599">599</a>         <strong class="jxr_keyword">int</strong> charPos = 32;
+<a class="jxr_linenumber" name="L600" href="#L600">600</a>         <strong class="jxr_keyword">int</strong> radix = 1 &lt;&lt; shift;
+<a class="jxr_linenumber" name="L601" href="#L601">601</a>         <strong class="jxr_keyword">long</strong> mask = radix - 1;
+<a class="jxr_linenumber" name="L602" href="#L602">602</a>         <strong class="jxr_keyword">do</strong> {
+<a class="jxr_linenumber" name="L603" href="#L603">603</a>             buf[--charPos] = DIGITS[(<strong class="jxr_keyword">int</strong>) (i &amp; mask)];
+<a class="jxr_linenumber" name="L604" href="#L604">604</a>             i &gt;&gt;&gt;= shift;
+<a class="jxr_linenumber" name="L605" href="#L605">605</a>         } <strong class="jxr_keyword">while</strong> (i != 0);
+<a class="jxr_linenumber" name="L606" href="#L606">606</a>         sb.append(buf, charPos, 32 - charPos);
+<a class="jxr_linenumber" name="L607" href="#L607">607</a>     }
+<a class="jxr_linenumber" name="L608" href="#L608">608</a> 
+<a class="jxr_linenumber" name="L609" href="#L609">609</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendUnsignedStringPadded(<strong class="jxr_keyword">final</strong> StringBuilder sb, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nr, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> shift,
+<a class="jxr_linenumber" name="L610" href="#L610">610</a>             <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> padTo) {
+<a class="jxr_linenumber" name="L611" href="#L611">611</a>         <strong class="jxr_keyword">long</strong> i = nr;
+<a class="jxr_linenumber" name="L612" href="#L612">612</a>         <strong class="jxr_keyword">char</strong>[] buf = BUFF.get();
+<a class="jxr_linenumber" name="L613" href="#L613">613</a>         <strong class="jxr_keyword">int</strong> charPos = 32;
+<a class="jxr_linenumber" name="L614" href="#L614">614</a>         <strong class="jxr_keyword">int</strong> radix = 1 &lt;&lt; shift;
+<a class="jxr_linenumber" name="L615" href="#L615">615</a>         <strong class="jxr_keyword">long</strong> mask = radix - 1;
+<a class="jxr_linenumber" name="L616" href="#L616">616</a>         <strong class="jxr_keyword">do</strong> {
+<a class="jxr_linenumber" name="L617" href="#L617">617</a>             buf[--charPos] = DIGITS[(<strong class="jxr_keyword">int</strong>) (i &amp; mask)];
+<a class="jxr_linenumber" name="L618" href="#L618">618</a>             i &gt;&gt;&gt;= shift;
+<a class="jxr_linenumber" name="L619" href="#L619">619</a>         } <strong class="jxr_keyword">while</strong> (i != 0);
+<a class="jxr_linenumber" name="L620" href="#L620">620</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nrChars = 32 - charPos;
+<a class="jxr_linenumber" name="L621" href="#L621">621</a>         <strong class="jxr_keyword">if</strong> (nrChars &gt; padTo) {
+<a class="jxr_linenumber" name="L622" href="#L622">622</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Your pad to value "</span> + padTo
+<a class="jxr_linenumber" name="L623" href="#L623">623</a>                     + <span class="jxr_string">" is to small, must be at least "</span> + nrChars);
+<a class="jxr_linenumber" name="L624" href="#L624">624</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L625" href="#L625">625</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> j = 0, n = padTo - nrChars; j &lt; n; j++) {
+<a class="jxr_linenumber" name="L626" href="#L626">626</a>                 sb.append('0');
+<a class="jxr_linenumber" name="L627" href="#L627">627</a>             }
+<a class="jxr_linenumber" name="L628" href="#L628">628</a>         }
+<a class="jxr_linenumber" name="L629" href="#L629">629</a>         sb.append(buf, charPos, nrChars);
+<a class="jxr_linenumber" name="L630" href="#L630">630</a>     }
+<a class="jxr_linenumber" name="L631" href="#L631">631</a> 
+<a class="jxr_linenumber" name="L632" href="#L632">632</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendUnsignedStringPadded(<strong class="jxr_keyword">final</strong> Appendable sb, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nr, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> shift,
+<a class="jxr_linenumber" name="L633" href="#L633">633</a>             <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> padTo) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L634" href="#L634">634</a>         <strong class="jxr_keyword">long</strong> i = nr;
+<a class="jxr_linenumber" name="L635" href="#L635">635</a>         <strong class="jxr_keyword">char</strong>[] buf = BUFF.get();
+<a class="jxr_linenumber" name="L636" href="#L636">636</a>         <strong class="jxr_keyword">int</strong> charPos = 32;
+<a class="jxr_linenumber" name="L637" href="#L637">637</a>         <strong class="jxr_keyword">int</strong> radix = 1 &lt;&lt; shift;
+<a class="jxr_linenumber" name="L638" href="#L638">638</a>         <strong class="jxr_keyword">long</strong> mask = radix - 1;
+<a class="jxr_linenumber" name="L639" href="#L639">639</a>         <strong class="jxr_keyword">do</strong> {
+<a class="jxr_linenumber" name="L640" href="#L640">640</a>             buf[--charPos] = DIGITS[(<strong class="jxr_keyword">int</strong>) (i &amp; mask)];
+<a class="jxr_linenumber" name="L641" href="#L641">641</a>             i &gt;&gt;&gt;= shift;
+<a class="jxr_linenumber" name="L642" href="#L642">642</a>         } <strong class="jxr_keyword">while</strong> (i != 0);
+<a class="jxr_linenumber" name="L643" href="#L643">643</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nrChars = 32 - charPos;
+<a class="jxr_linenumber" name="L644" href="#L644">644</a>         <strong class="jxr_keyword">if</strong> (nrChars &gt; padTo) {
+<a class="jxr_linenumber" name="L645" href="#L645">645</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Your pad to value "</span> + padTo
+<a class="jxr_linenumber" name="L646" href="#L646">646</a>                     + <span class="jxr_string">" is to small, must be at least "</span> + nrChars);
+<a class="jxr_linenumber" name="L647" href="#L647">647</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L648" href="#L648">648</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> j = 0, n = padTo - nrChars; j &lt; n; j++) {
+<a class="jxr_linenumber" name="L649" href="#L649">649</a>                 sb.append('0');
+<a class="jxr_linenumber" name="L650" href="#L650">650</a>             }
+<a class="jxr_linenumber" name="L651" href="#L651">651</a>         }
+<a class="jxr_linenumber" name="L652" href="#L652">652</a>         sb.append(CharBuffer.wrap(buf), charPos, charPos + nrChars);
+<a class="jxr_linenumber" name="L653" href="#L653">653</a>     }
+<a class="jxr_linenumber" name="L654" href="#L654">654</a> 
+<a class="jxr_linenumber" name="L655" href="#L655">655</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendSpaces(<strong class="jxr_keyword">final</strong> Appendable to, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nrSpaces) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L656" href="#L656">656</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; nrSpaces; i++) {
+<a class="jxr_linenumber" name="L657" href="#L657">657</a>         to.append(' ');
+<a class="jxr_linenumber" name="L658" href="#L658">658</a>       }
+<a class="jxr_linenumber" name="L659" href="#L659">659</a>     }
+<a class="jxr_linenumber" name="L660" href="#L660">660</a> 
+<a class="jxr_linenumber" name="L661" href="#L661">661</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> appendSpaces(<strong class="jxr_keyword">final</strong> StringBuilder to, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nrSpaces) {
+<a class="jxr_linenumber" name="L662" href="#L662">662</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; nrSpaces; i++) {
+<a class="jxr_linenumber" name="L663" href="#L663">663</a>         to.append(' ');
+<a class="jxr_linenumber" name="L664" href="#L664">664</a>       }
+<a class="jxr_linenumber" name="L665" href="#L665">665</a>     }
+<a class="jxr_linenumber" name="L666" href="#L666">666</a> 
+<a class="jxr_linenumber" name="L667" href="#L667">667</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L668" href="#L668">668</a> <em class="jxr_javadoccomment">   * See String.regionMatches.</em>
+<a class="jxr_linenumber" name="L669" href="#L669">669</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L670" href="#L670">670</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> regionMatches(<strong class="jxr_keyword">final</strong> CharSequence t, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> toffset,
+<a class="jxr_linenumber" name="L671" href="#L671">671</a>           <strong class="jxr_keyword">final</strong> CharSequence other, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> ooffset, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> plen) {
+<a class="jxr_linenumber" name="L672" href="#L672">672</a>     <strong class="jxr_keyword">int</strong> to = toffset;
+<a class="jxr_linenumber" name="L673" href="#L673">673</a>     <strong class="jxr_keyword">int</strong> po = ooffset;
+<a class="jxr_linenumber" name="L674" href="#L674">674</a>     <em class="jxr_comment">// Note: toffset, ooffset, or len might be near -1&gt;&gt;&gt;1.</em>
+<a class="jxr_linenumber" name="L675" href="#L675">675</a>     <strong class="jxr_keyword">if</strong> ((ooffset &lt; 0) || (toffset &lt; 0) || (toffset &gt; (<strong class="jxr_keyword">long</strong>) t.length() - plen)
+<a class="jxr_linenumber" name="L676" href="#L676">676</a>             || (ooffset &gt; (<strong class="jxr_keyword">long</strong>) other.length() - plen)) {
+<a class="jxr_linenumber" name="L677" href="#L677">677</a>       <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L678" href="#L678">678</a>     }
+<a class="jxr_linenumber" name="L679" href="#L679">679</a>     <strong class="jxr_keyword">int</strong> len = plen;
+<a class="jxr_linenumber" name="L680" href="#L680">680</a>     <strong class="jxr_keyword">while</strong> (len-- &gt; 0) {
+<a class="jxr_linenumber" name="L681" href="#L681">681</a>       <strong class="jxr_keyword">if</strong> (t.charAt(to++) != other.charAt(po++)) {
+<a class="jxr_linenumber" name="L682" href="#L682">682</a>         <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L683" href="#L683">683</a>       }
+<a class="jxr_linenumber" name="L684" href="#L684">684</a>     }
+<a class="jxr_linenumber" name="L685" href="#L685">685</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L686" href="#L686">686</a>   }
+<a class="jxr_linenumber" name="L687" href="#L687">687</a> 
+<a class="jxr_linenumber" name="L688" href="#L688">688</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String truncate(@Nonnull <strong class="jxr_keyword">final</strong> String value, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> length) {
+<a class="jxr_linenumber" name="L689" href="#L689">689</a>     <strong class="jxr_keyword">if</strong> (value.length() &gt; length) {
+<a class="jxr_linenumber" name="L690" href="#L690">690</a>       <strong class="jxr_keyword">return</strong> value.substring(0, length);
+<a class="jxr_linenumber" name="L691" href="#L691">691</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L692" href="#L692">692</a>       <strong class="jxr_keyword">return</strong> value;
+<a class="jxr_linenumber" name="L693" href="#L693">693</a>     }
+<a class="jxr_linenumber" name="L694" href="#L694">694</a>   }
+<a class="jxr_linenumber" name="L695" href="#L695">695</a> 
+<a class="jxr_linenumber" name="L696" href="#L696">696</a> 
+<a class="jxr_linenumber" name="L697" href="#L697">697</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2016. All rights reserved.</div>

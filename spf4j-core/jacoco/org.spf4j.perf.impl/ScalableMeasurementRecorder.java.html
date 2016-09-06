@@ -42,7 +42,7 @@ import org.spf4j.jmx.Registry;
  */
 @ThreadSafe
 // a recorder instance is tipically alive for the entire life of the process
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(&quot;PMB_INSTANCE_BASED_THREAD_LOCAL&quot;)
+@SuppressFBWarnings(&quot;PMB_INSTANCE_BASED_THREAD_LOCAL&quot;)
 public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumulator {
 
 <span class="fc" id="L48">    private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);</span>
@@ -54,169 +54,168 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     private final Persister persister;
     private final Runnable shutdownHook;
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;PMB_INSTANCE_BASED_THREAD_LOCAL&quot;)
     ScalableMeasurementRecorder(final MeasurementAccumulator processor, final int sampleTimeMillis,
-<span class="fc" id="L59">            final MeasurementStore measurementStore) {</span>
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        if (sampleTimeMillis &lt; 1000) {</span>
-<span class="nc" id="L61">            throw new IllegalArgumentException(&quot;sample time needs to be at least 1000 and not &quot; + sampleTimeMillis);</span>
+<span class="fc" id="L58">            final MeasurementStore measurementStore) {</span>
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">        if (sampleTimeMillis &lt; 1000) {</span>
+<span class="nc" id="L60">            throw new IllegalArgumentException(&quot;sample time needs to be at least 1000 and not &quot; + sampleTimeMillis);</span>
         }
-<span class="fc" id="L63">        threadLocalRecorders = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L64">        processorTemplate = processor;</span>
-<span class="fc" id="L65">        threadLocalRecorder = new ThreadLocal&lt;MeasurementAccumulator&gt;() {</span>
+<span class="fc" id="L62">        threadLocalRecorders = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L63">        processorTemplate = processor;</span>
+<span class="fc" id="L64">        threadLocalRecorder = new ThreadLocal&lt;MeasurementAccumulator&gt;() {</span>
 
             @Override
             protected MeasurementAccumulator initialValue() {
-<span class="fc" id="L69">                MeasurementAccumulator result = (MeasurementAccumulator) processor.createClone();</span>
-<span class="fc" id="L70">                synchronized (threadLocalRecorders) {</span>
-<span class="fc" id="L71">                    threadLocalRecorders.put(Thread.currentThread(), result);</span>
-<span class="pc" id="L72">                }</span>
-<span class="fc" id="L73">                return result;</span>
+<span class="fc" id="L68">                MeasurementAccumulator result = (MeasurementAccumulator) processor.createClone();</span>
+<span class="fc" id="L69">                synchronized (threadLocalRecorders) {</span>
+<span class="fc" id="L70">                    threadLocalRecorders.put(Thread.currentThread(), result);</span>
+<span class="pc" id="L71">                }</span>
+<span class="fc" id="L72">                return result;</span>
             }
         };
         final long tableId;
         try {
-<span class="fc" id="L78">           tableId = measurementStore.alocateMeasurements(processor.getInfo(), sampleTimeMillis);</span>
-<span class="nc" id="L79">        } catch (IOException ex) {</span>
-<span class="nc" id="L80">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L81">        }</span>
-<span class="fc" id="L82">        persister = new Persister(measurementStore, tableId, processor);</span>
-<span class="fc" id="L83">        samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);</span>
-<span class="fc" id="L84">        shutdownHook = closeOnShutdown();</span>
-<span class="fc" id="L85">    }</span>
+<span class="fc" id="L77">           tableId = measurementStore.alocateMeasurements(processor.getInfo(), sampleTimeMillis);</span>
+<span class="nc" id="L78">        } catch (IOException ex) {</span>
+<span class="nc" id="L79">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L80">        }</span>
+<span class="fc" id="L81">        persister = new Persister(measurementStore, tableId, processor);</span>
+<span class="fc" id="L82">        samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);</span>
+<span class="fc" id="L83">        shutdownHook = closeOnShutdown();</span>
+<span class="fc" id="L84">    }</span>
 
     private Runnable closeOnShutdown() {
-<span class="fc" id="L88">        final AbstractRunnable runnable = new AbstractRunnable(true) {</span>
+<span class="fc" id="L87">        final AbstractRunnable runnable = new AbstractRunnable(true) {</span>
 
             @Override
             public void doRun() {
-<span class="nc" id="L92">                close();</span>
-<span class="nc" id="L93">            }</span>
+<span class="nc" id="L91">                close();</span>
+<span class="nc" id="L92">            }</span>
         };
-<span class="fc" id="L95">        org.spf4j.base.Runtime.queueHook(0, runnable);</span>
-<span class="fc" id="L96">        return runnable;</span>
+<span class="fc" id="L94">        org.spf4j.base.Runtime.queueHook(0, runnable);</span>
+<span class="fc" id="L95">        return runnable;</span>
     }
 
     @Override
     public void record(final long measurement) {
-<span class="fc" id="L101">        threadLocalRecorder.get().record(measurement);</span>
-<span class="fc" id="L102">    }</span>
+<span class="fc" id="L100">        threadLocalRecorder.get().record(measurement);</span>
+<span class="fc" id="L101">    }</span>
 
     @Override
     public long[] get() {
-<span class="fc" id="L106">        MeasurementAccumulator result  = null;</span>
-<span class="fc" id="L107">        synchronized (threadLocalRecorders) {</span>
-<span class="fc bfc" id="L108" title="All 2 branches covered.">            for (Map.Entry&lt;Thread, MeasurementAccumulator&gt; entry : threadLocalRecorders.entrySet()) {</span>
-<span class="fc" id="L109">                MeasurementAccumulator measurements = entry.getValue().createClone();</span>
-<span class="pc bpc" id="L110" title="1 of 2 branches missed.">                if (result == null) {</span>
-<span class="fc" id="L111">                    result = measurements;</span>
+<span class="fc" id="L105">        MeasurementAccumulator result  = null;</span>
+<span class="fc" id="L106">        synchronized (threadLocalRecorders) {</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">            for (Map.Entry&lt;Thread, MeasurementAccumulator&gt; entry : threadLocalRecorders.entrySet()) {</span>
+<span class="fc" id="L108">                MeasurementAccumulator measurements = entry.getValue().createClone();</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">                if (result == null) {</span>
+<span class="fc" id="L110">                    result = measurements;</span>
                 } else {
-<span class="nc" id="L113">                    result = result.aggregate(measurements);</span>
+<span class="nc" id="L112">                    result = result.aggregate(measurements);</span>
                 }
-<span class="fc" id="L115">            }</span>
-<span class="pc" id="L116">        }</span>
-<span class="pc bpc" id="L117" title="1 of 2 branches missed.">        return (result == null) ? null : result.get();</span>
+<span class="fc" id="L114">            }</span>
+<span class="pc" id="L115">        }</span>
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">        return (result == null) ? null : result.get();</span>
     }
 
     @JmxExport(description = &quot;measurements as csv&quot;)
     public String getMeasurementsAsString() {
-<span class="fc" id="L122">        StringWriter sw = new StringWriter(128);</span>
-<span class="fc" id="L123">        MeasurementsInfo info = getInfo();</span>
+<span class="fc" id="L121">        StringWriter sw = new StringWriter(128);</span>
+<span class="fc" id="L122">        MeasurementsInfo info = getInfo();</span>
         try {
-<span class="fc" id="L125">            Csv.writeCsvRow(sw, (Object[]) info.getMeasurementNames());</span>
-<span class="fc" id="L126">            Csv.writeCsvRow(sw, (Object[]) info.getMeasurementUnits());</span>
-<span class="fc" id="L127">            final long[] values = get();</span>
-<span class="pc bpc" id="L128" title="1 of 2 branches missed.">            if (values != null) {</span>
-<span class="fc" id="L129">                Csv.writeCsvRow(sw, values);</span>
+<span class="fc" id="L124">            Csv.writeCsvRow(sw, (Object[]) info.getMeasurementNames());</span>
+<span class="fc" id="L125">            Csv.writeCsvRow(sw, (Object[]) info.getMeasurementUnits());</span>
+<span class="fc" id="L126">            final long[] values = get();</span>
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">            if (values != null) {</span>
+<span class="fc" id="L128">                Csv.writeCsvRow(sw, values);</span>
             }
-<span class="nc" id="L131">        } catch (IOException ex) {</span>
-<span class="nc" id="L132">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L133">        }</span>
-<span class="fc" id="L134">        return sw.toString();</span>
+<span class="nc" id="L130">        } catch (IOException ex) {</span>
+<span class="nc" id="L131">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L132">        }</span>
+<span class="fc" id="L133">        return sw.toString();</span>
     }
 
     @JmxExport
     public void clear() {
-<span class="nc" id="L139">        getThenReset();</span>
-<span class="nc" id="L140">    }</span>
+<span class="nc" id="L138">        getThenReset();</span>
+<span class="nc" id="L139">    }</span>
 
 
     @Override
     public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
-<span class="nc" id="L145">        throw new UnsupportedOperationException(&quot;Aggregating Scalable Recorders not supported&quot;);</span>
+<span class="nc" id="L144">        throw new UnsupportedOperationException(&quot;Aggregating Scalable Recorders not supported&quot;);</span>
     }
 
 
 
     @Override
     public MeasurementAccumulator createClone() {
-<span class="nc" id="L152">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L151">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     public void registerJmx() {
-<span class="fc" id="L156">        Registry.export(&quot;org.spf4j.perf.recorders&quot;, processorTemplate.getInfo().getMeasuredEntity().toString(), this);</span>
-<span class="fc" id="L157">    }</span>
+<span class="fc" id="L155">        Registry.export(&quot;org.spf4j.perf.recorders&quot;, processorTemplate.getInfo().getMeasuredEntity().toString(), this);</span>
+<span class="fc" id="L156">    }</span>
 
     @Override
     @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
     public void close() {
-<span class="fc" id="L162">        synchronized (processorTemplate) {</span>
-<span class="pc bpc" id="L163" title="1 of 2 branches missed.">            if (!samplingFuture.isCancelled()) {</span>
-<span class="fc" id="L164">                org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);</span>
-<span class="fc" id="L165">                samplingFuture.cancel(false);</span>
+<span class="fc" id="L161">        synchronized (processorTemplate) {</span>
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">            if (!samplingFuture.isCancelled()) {</span>
+<span class="fc" id="L163">                org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);</span>
+<span class="fc" id="L164">                samplingFuture.cancel(false);</span>
                 try {
-<span class="fc" id="L167">                    persister.persist(false);</span>
-<span class="nc" id="L168">                } catch (IOException ex) {</span>
-<span class="nc" id="L169">                    throw new RuntimeException(ex);</span>
-<span class="fc" id="L170">                }</span>
-<span class="fc" id="L171">                Registry.unregister(&quot;org.spf4j.perf.recorders&quot;,</span>
-<span class="fc" id="L172">                        processorTemplate.getInfo().getMeasuredEntity().toString());</span>
+<span class="fc" id="L166">                    persister.persist(false);</span>
+<span class="nc" id="L167">                } catch (IOException ex) {</span>
+<span class="nc" id="L168">                    throw new RuntimeException(ex);</span>
+<span class="fc" id="L169">                }</span>
+<span class="fc" id="L170">                Registry.unregister(&quot;org.spf4j.perf.recorders&quot;,</span>
+<span class="fc" id="L171">                        processorTemplate.getInfo().getMeasuredEntity().toString());</span>
             }
-<span class="pc" id="L174">        }</span>
-<span class="fc" id="L175">    }</span>
+<span class="pc" id="L173">        }</span>
+<span class="fc" id="L174">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L179">        return &quot;ScalableMeasurementRecorder{&quot; + &quot;threadLocalRecorders=&quot; + threadLocalRecorders</span>
+<span class="nc" id="L178">        return &quot;ScalableMeasurementRecorder{&quot; + &quot;threadLocalRecorders=&quot; + threadLocalRecorders</span>
                 + &quot;, processorTemplate=&quot; + processorTemplate + '}';
     }
 
     @Override
     public MeasurementAccumulator createLike(final Object entity) {
-<span class="nc" id="L185">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L184">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public MeasurementsInfo getInfo() {
-<span class="fc" id="L190">        return processorTemplate.getInfo();</span>
+<span class="fc" id="L189">        return processorTemplate.getInfo();</span>
     }
 
     @Override
     public MeasurementAccumulator reset() {
-<span class="nc" id="L195">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L194">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public long[] getThenReset() {
-<span class="fc" id="L200">        MeasurementAccumulator result  = null;</span>
-<span class="fc" id="L201">        synchronized (threadLocalRecorders) {</span>
-<span class="fc" id="L202">            Iterator&lt;Map.Entry&lt;Thread, MeasurementAccumulator&gt;&gt; iterator = threadLocalRecorders.entrySet().iterator();</span>
-<span class="fc bfc" id="L203" title="All 2 branches covered.">            while (iterator.hasNext()) {</span>
-<span class="fc" id="L204">                Map.Entry&lt;Thread, MeasurementAccumulator&gt; entry = iterator.next();</span>
-<span class="fc" id="L205">                Thread t = entry.getKey();</span>
-<span class="pc bpc" id="L206" title="1 of 2 branches missed.">                if (!t.isAlive()) {</span>
-<span class="nc" id="L207">                    iterator.remove();</span>
+<span class="fc" id="L199">        MeasurementAccumulator result  = null;</span>
+<span class="fc" id="L200">        synchronized (threadLocalRecorders) {</span>
+<span class="fc" id="L201">            Iterator&lt;Map.Entry&lt;Thread, MeasurementAccumulator&gt;&gt; iterator = threadLocalRecorders.entrySet().iterator();</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">            while (iterator.hasNext()) {</span>
+<span class="fc" id="L203">                Map.Entry&lt;Thread, MeasurementAccumulator&gt; entry = iterator.next();</span>
+<span class="fc" id="L204">                Thread t = entry.getKey();</span>
+<span class="pc bpc" id="L205" title="1 of 2 branches missed.">                if (!t.isAlive()) {</span>
+<span class="nc" id="L206">                    iterator.remove();</span>
                 }
-<span class="fc" id="L209">                MeasurementAccumulator measurements = entry.getValue().reset();</span>
-<span class="fc bfc" id="L210" title="All 2 branches covered.">                if (result == null) {</span>
-<span class="fc" id="L211">                    result = measurements;</span>
+<span class="fc" id="L208">                MeasurementAccumulator measurements = entry.getValue().reset();</span>
+<span class="fc bfc" id="L209" title="All 2 branches covered.">                if (result == null) {</span>
+<span class="fc" id="L210">                    result = measurements;</span>
                 } else {
-<span class="pc bpc" id="L213" title="1 of 2 branches missed.">                    if (measurements != null) {</span>
-<span class="fc" id="L214">                        result = result.aggregate(measurements);</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">                    if (measurements != null) {</span>
+<span class="fc" id="L213">                        result = result.aggregate(measurements);</span>
                     }
                 }
-<span class="fc" id="L217">            }</span>
-<span class="pc" id="L218">        }</span>
-<span class="pc bpc" id="L219" title="1 of 2 branches missed.">        return (result == null) ? null : result.get();</span>
+<span class="fc" id="L216">            }</span>
+<span class="pc" id="L217">        }</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">        return (result == null) ? null : result.get();</span>
     }
 
     private class Persister extends AbstractRunnable {
@@ -226,32 +225,32 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
         private final MeasurementAccumulator processor;
 
         Persister(final MeasurementStore measurementStore,
-<span class="fc" id="L229">                final long tableId, final MeasurementAccumulator processor) {</span>
-<span class="fc" id="L230">            super(true);</span>
-<span class="fc" id="L231">            this.measurementStore = measurementStore;</span>
-<span class="fc" id="L232">            this.tableId = tableId;</span>
-<span class="fc" id="L233">            this.processor = processor;</span>
-<span class="fc" id="L234">        }</span>
-<span class="fc" id="L235">        private volatile long lastRun = 0;</span>
+<span class="fc" id="L228">                final long tableId, final MeasurementAccumulator processor) {</span>
+<span class="fc" id="L229">            super(true);</span>
+<span class="fc" id="L230">            this.measurementStore = measurementStore;</span>
+<span class="fc" id="L231">            this.tableId = tableId;</span>
+<span class="fc" id="L232">            this.processor = processor;</span>
+<span class="fc" id="L233">        }</span>
+<span class="fc" id="L234">        private volatile long lastRun = 0;</span>
 
         @Override
         public void doRun() throws IOException {
-<span class="fc" id="L239">            persist(true);</span>
-<span class="fc" id="L240">        }</span>
+<span class="fc" id="L238">            persist(true);</span>
+<span class="fc" id="L239">        }</span>
 
         public void persist(final boolean warn) throws IOException {
-<span class="fc" id="L243">            long currentTime = System.currentTimeMillis();</span>
-<span class="pc bpc" id="L244" title="1 of 2 branches missed.">            if (currentTime &gt; lastRun) {</span>
-<span class="fc" id="L245">                lastRun = currentTime;</span>
-<span class="fc" id="L246">                final long[] measurements = ScalableMeasurementRecorder.this.getThenReset();</span>
-<span class="pc bpc" id="L247" title="1 of 2 branches missed.">                if (measurements != null) {</span>
-<span class="fc" id="L248">                    measurementStore.saveMeasurements(tableId, currentTime, measurements);</span>
+<span class="fc" id="L242">            long currentTime = System.currentTimeMillis();</span>
+<span class="pc bpc" id="L243" title="1 of 2 branches missed.">            if (currentTime &gt; lastRun) {</span>
+<span class="fc" id="L244">                lastRun = currentTime;</span>
+<span class="fc" id="L245">                final long[] measurements = ScalableMeasurementRecorder.this.getThenReset();</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">                if (measurements != null) {</span>
+<span class="fc" id="L247">                    measurementStore.saveMeasurements(tableId, currentTime, measurements);</span>
                 }
-<span class="pc bnc" id="L250" title="All 2 branches missed.">            } else if (warn) {</span>
-<span class="nc" id="L251">                LOG.warn(&quot;Last measurement recording for {} was at {} current run is {}, something is wrong&quot;,</span>
-<span class="nc" id="L252">                        processor.getInfo(), lastRun, currentTime);</span>
+<span class="pc bnc" id="L249" title="All 2 branches missed.">            } else if (warn) {</span>
+<span class="nc" id="L250">                LOG.warn(&quot;Last measurement recording for {} was at {} current run is {}, something is wrong&quot;,</span>
+<span class="nc" id="L251">                        processor.getInfo(), lastRun, currentTime);</span>
             }
-<span class="fc" id="L254">        }</span>
+<span class="fc" id="L253">        }</span>
     }
 
 }

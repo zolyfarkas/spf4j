@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ReaderInputStream.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io</a> &gt; <span class="el_source">ReaderInputStream.java</span></div><h1>ReaderInputStream.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (C) 2015 The Guava Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+/**
+ * class copied from latest guava source code.
+ * Since guava is a spf4j dependency, and this implementation does not offer an improvement to the guava implementation,
+ * this will be removed when guava releases a usable implementation.
+ */
+
+package org.spf4j.io;
+
+import com.google.common.annotations.Beta;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkPositionIndexes;
+
+import com.google.common.primitives.UnsignedBytes;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
+import java.util.Arrays;
+
+/**
+ * An {@link InputStream} that converts characters from a {@link Reader} into bytes using an
+ * arbitrary Charset.
+ *
+ * &lt;p&gt;This is an alternative to copying the data to an {@code OutputStream} via a {@code Writer},
+ * which is necessarily blocking. By implementing an {@code InputStream} it allows consumers to
+ * &quot;pull&quot; as much data as they can handle, which is more convenient when dealing with flow
+ * controlled, async APIs.
+ *
+ * @author Chris Nokleberg
+ *
+ * Notes by Z: THis class in its current state is not ready for prime time. Here is why:
+ * 1) Since it buffers, there needs to be capability to access the unconsumed bytes/chars.
+ * 2) Buffer sizing could be smarter? char buffer and byte buffers are not &quot;byte size equivalent&quot;(just made this up :-))
+ */
+@Beta
+public final class ReaderInputStream extends InputStream {
+  private final Reader reader;
+  private final CharsetEncoder encoder;
+<span class="nc" id="L61">  private final byte[] singleByte = new byte[1];</span>
+
+  /**
+   * charBuffer holds characters that have been read from the Reader but not encoded yet. The buffer
+   * is perpetually &quot;flipped&quot; (unencoded characters between position and limit).
+   */
+  private CharBuffer charBuffer;
+
+  /**
+   * byteBuffer holds encoded characters that have not yet been sent to the caller of the input
+   * stream. When encoding it is &quot;unflipped&quot; (encoded bytes between 0 and position) and when
+   * draining it is flipped (undrained bytes between position and limit).
+   */
+  private ByteBuffer byteBuffer;
+
+  /** Whether we've finished reading the reader. */
+  private boolean endOfInput;
+  /** Whether we're copying encoded bytes to the caller's buffer. */
+  private boolean draining;
+  /** Whether we've successfully flushed the encoder. */
+  private boolean doneFlushing;
+
+  /**
+   * Creates a new input stream that will encode the characters from {@code reader} into bytes using
+   * the given character set. Malformed input and unmappable characters will be replaced.
+   *
+   * @param reader input source
+   * @param charset character set used for encoding chars to bytes
+   * @param bufferSize size of internal input and output buffers
+   * @throws IllegalArgumentException if bufferSize is non-positive
+   */
+  public ReaderInputStream(final Reader reader, final Charset charset, final int bufferSize) {
+<span class="nc" id="L93">    this(</span>
+        reader,
+        charset
+<span class="nc" id="L96">            .newEncoder()</span>
+<span class="nc" id="L97">            .onMalformedInput(CodingErrorAction.REPLACE)</span>
+<span class="nc" id="L98">            .onUnmappableCharacter(CodingErrorAction.REPLACE),</span>
+        bufferSize);
+<span class="nc" id="L100">  }</span>
+
+  /**
+   * Creates a new input stream that will encode the characters from {@code reader} into bytes using
+   * the given character set encoder.
+   *
+   * @param reader input source
+   * @param encoder character set encoder used for encoding chars to bytes
+   * @param bufferSize size of internal input and output buffers
+   * @throws IllegalArgumentException if bufferSize is non-positive
+   */
+<span class="nc" id="L111">  public ReaderInputStream(final Reader reader, final CharsetEncoder encoder, final int bufferSize) {</span>
+<span class="nc" id="L112">    this.reader = checkNotNull(reader);</span>
+<span class="nc" id="L113">    this.encoder = checkNotNull(encoder);</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">    checkArgument(bufferSize &gt; 0, &quot;bufferSize must be positive: %s&quot;, bufferSize);</span>
+<span class="nc" id="L115">    encoder.reset();</span>
+
+<span class="nc" id="L117">    charBuffer = CharBuffer.allocate(bufferSize);</span>
+<span class="nc" id="L118">    charBuffer.flip();</span>
+
+<span class="nc" id="L120">    byteBuffer = ByteBuffer.allocate(bufferSize);</span>
+<span class="nc" id="L121">  }</span>
+
+  @Override
+  public void close() throws IOException {
+<span class="nc" id="L125">    reader.close();</span>
+<span class="nc" id="L126">  }</span>
+
+  @Override
+  public int read() throws IOException {
+<span class="nc bnc" id="L130" title="All 2 branches missed.">    return (read(singleByte) == 1) ? UnsignedBytes.toInt(singleByte[0]) : -1;</span>
+  }
+
+  // TODO(chrisn): Consider trying to encode/flush directly to the argument byte
+  // buffer when possible.
+  @Override
+  public int read(final byte[] b, final int off, final int len) throws IOException {
+    // Obey InputStream contract.
+<span class="nc" id="L138">    checkPositionIndexes(off, off + len, b.length);</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">    if (len == 0) {</span>
+<span class="nc" id="L140">      return 0;</span>
+    }
+
+    // The rest of this method implements the process described by the CharsetEncoder javadoc.
+<span class="nc" id="L144">    int totalBytesRead = 0;</span>
+<span class="nc" id="L145">    boolean doneEncoding = endOfInput;</span>
+
+    DRAINING:
+    while (true) {
+      // We stay in draining mode until there are no bytes left in the output buffer. Then we go
+      // back to encoding/flushing.
+<span class="nc bnc" id="L151" title="All 2 branches missed.">      if (draining) {</span>
+<span class="nc" id="L152">        totalBytesRead += drain(b, off + totalBytesRead, len - totalBytesRead);</span>
+<span class="nc bnc" id="L153" title="All 4 branches missed.">        if (totalBytesRead == len || doneFlushing) {</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">          return (totalBytesRead &gt; 0) ? totalBytesRead : -1;</span>
+        }
+<span class="nc" id="L156">        draining = false;</span>
+<span class="nc" id="L157">        byteBuffer.clear();</span>
+      }
+
+      while (true) {
+        // We call encode until there is no more input. The last call to encode will have endOfInput
+        // == true. Then there is a final call to flush.
+        CoderResult result;
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (doneFlushing) {</span>
+<span class="nc" id="L165">          result = CoderResult.UNDERFLOW;</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        } else if (doneEncoding) {</span>
+<span class="nc" id="L167">          result = encoder.flush(byteBuffer);</span>
+        } else {
+<span class="nc" id="L169">          result = encoder.encode(charBuffer, byteBuffer, endOfInput);</span>
+        }
+
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (result.isOverflow()) {</span>
+          // Not enough room in output buffer--drain it, creating a bigger buffer if necessary.
+<span class="nc" id="L174">          startDraining(true);</span>
+<span class="nc" id="L175">          continue DRAINING;</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        } else if (result.isUnderflow()) {</span>
+          // If encoder underflows, it means either:
+          // a) the final flush() succeeded; next drain (then done)
+          // b) we encoded all of the input; next flush
+          // c) we ran of out input to encode; next read more input
+<span class="nc bnc" id="L181" title="All 2 branches missed.">          if (doneEncoding) { // (a)</span>
+<span class="nc" id="L182">            doneFlushing = true;</span>
+<span class="nc" id="L183">            startDraining(false);</span>
+<span class="nc" id="L184">            continue DRAINING;</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">          } else if (endOfInput) { // (b)</span>
+<span class="nc" id="L186">            doneEncoding = true;</span>
+          } else { // (c)
+<span class="nc" id="L188">            readMoreChars();</span>
+          }
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        } else if (result.isError()) {</span>
+          // Only reach here if a CharsetEncoder with non-REPLACE settings is used.
+<span class="nc" id="L192">          result.throwException();</span>
+<span class="nc" id="L193">          return 0; // Not called.</span>
+        }
+<span class="nc" id="L195">      }</span>
+    }
+  }
+
+  /** Returns a new CharBuffer identical to buf, except twice the capacity. */
+  private static CharBuffer grow(final CharBuffer buf) {
+<span class="nc" id="L201">    char[] copy = Arrays.copyOf(buf.array(), buf.capacity() * 2);</span>
+<span class="nc" id="L202">    CharBuffer bigger = CharBuffer.wrap(copy);</span>
+<span class="nc" id="L203">    bigger.position(buf.position());</span>
+<span class="nc" id="L204">    bigger.limit(buf.limit());</span>
+<span class="nc" id="L205">    return bigger;</span>
+  }
+
+  /** Handle the case of underflow caused by needing more input characters. */
+  private void readMoreChars() throws IOException {
+    // Possibilities:
+    // 1) array has space available on right hand side (between limit and capacity)
+    // 2) array has space available on left hand side (before position)
+    // 3) array has no space available
+    //
+    // In case 2 we shift the existing chars to the left, and in case 3 we create a bigger
+    // array, then they both become case 1.
+
+<span class="nc bnc" id="L218" title="All 2 branches missed.">    if (availableCapacity(charBuffer) == 0) {</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">      if (charBuffer.position() &gt; 0) {</span>
+        // (2) There is room in the buffer. Move existing bytes to the beginning.
+<span class="nc" id="L221">        charBuffer.compact().flip();</span>
+      } else {
+        // (3) Entire buffer is full, need bigger buffer.
+<span class="nc" id="L224">        charBuffer = grow(charBuffer);</span>
+      }
+    }
+
+    // (1) Read more characters into free space at end of array.
+<span class="nc" id="L229">    int limit = charBuffer.limit();</span>
+<span class="nc" id="L230">    int numChars = reader.read(charBuffer.array(), limit, availableCapacity(charBuffer));</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">    if (numChars == -1) {</span>
+<span class="nc" id="L232">      endOfInput = true;</span>
+    } else {
+<span class="nc" id="L234">      charBuffer.limit(limit + numChars);</span>
+    }
+<span class="nc" id="L236">  }</span>
+
+  /** Returns the number of elements between the limit and capacity. */
+  private static int availableCapacity(final Buffer buffer) {
+<span class="nc" id="L240">    return buffer.capacity() - buffer.limit();</span>
+  }
+
+  /**
+   * Flips the buffer output buffer so we can start reading bytes from it. If we are starting to
+   * drain because there was overflow, and there aren't actually any characters to drain, then the
+   * overflow must be due to a small output buffer.
+   */
+  private void startDraining(final boolean overflow) {
+<span class="nc" id="L249">    byteBuffer.flip();</span>
+<span class="nc bnc" id="L250" title="All 4 branches missed.">    if (overflow &amp;&amp; byteBuffer.remaining() == 0) {</span>
+<span class="nc" id="L251">      byteBuffer = ByteBuffer.allocate(byteBuffer.capacity() * 2);</span>
+    } else {
+<span class="nc" id="L253">      draining = true;</span>
+    }
+<span class="nc" id="L255">  }</span>
+
+  /**
+   * Copy as much of the byte buffer into the output array as possible, returning the (positive)
+   * number of characters copied.
+   */
+  private int drain(final byte[] b, final int off, final int len) {
+<span class="nc" id="L262">    int remaining = Math.min(len, byteBuffer.remaining());</span>
+<span class="nc" id="L263">    byteBuffer.get(b, off, remaining);</span>
+<span class="nc" id="L264">    return remaining;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L269">    return &quot;ReaderInputStream{&quot; + &quot;reader=&quot; + reader + &quot;, encoder=&quot; + encoder + &quot;, charBuffer=&quot; + charBuffer</span>
+            + &quot;, endOfInput=&quot; + endOfInput + &quot;, draining=&quot; + draining + &quot;, doneFlushing=&quot; + doneFlushing + '}';
+  }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

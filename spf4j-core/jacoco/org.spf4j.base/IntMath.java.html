@@ -21,75 +21,86 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- *
  * @author zoly
  */
 public final class IntMath {
 
-<span class="nc" id="L29">    private IntMath() { }</span>
+<span class="nc" id="L28">    private IntMath() { }</span>
 
     public static int closestPowerOf2(final int number) {
-<span class="pc bpc" id="L32" title="1 of 2 branches missed.">        return number == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(number - 1);</span>
+<span class="pc bpc" id="L31" title="1 of 2 branches missed.">        return number == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(number - 1);</span>
     }
 
     public static int closestPowerOf2Number(final int number) {
-<span class="nc bnc" id="L36" title="All 2 branches missed.">       return number == 0 ? 0 : 1 &lt;&lt; (32 - Integer.numberOfLeadingZeros(number - 1));</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">       return number == 0 ? 0 : 1 &lt;&lt; (32 - Integer.numberOfLeadingZeros(number - 1));</span>
     }
 
+    /**
+     * A very fast Pseudo random generator.
+     * use of this random is appropriate when you need the fastest random that you plan to use in a single
+     * thread.
+     * If you need a thread-safe random, please use JDK ThreadLocalRandom, which will be your best option.
+     */
     @NotThreadSafe
-<span class="fc" id="L40">    public static final class XorShift32 implements IntSequence {</span>
+<span class="fc" id="L45">    public static final class XorShift32 implements IntSequence {</span>
         // XorShift128 PRNG with a 2^32-1 period.
-<span class="fc" id="L42">        private int x = System.identityHashCode(this);</span>
+<span class="fc" id="L47">        private int x = System.identityHashCode(this);</span>
 
         @Override
         public int nextInt() {
-<span class="fc" id="L46">            x ^= (x &lt;&lt; 6);</span>
-<span class="fc" id="L47">            x ^= (x &gt;&gt;&gt; 21);</span>
-<span class="fc" id="L48">            return x ^ (x &lt;&lt; 7);</span>
+<span class="fc" id="L51">            x ^= (x &lt;&lt; 6);</span>
+<span class="fc" id="L52">            x ^= (x &gt;&gt;&gt; 21);</span>
+<span class="fc" id="L53">            return x ^ (x &lt;&lt; 7);</span>
         }
     }
 
+    /**
+     * @deprecated please use JDK java.util.concurrent.ThreadLocalRandom instead.
+     * The JDK implementation uses local fields in the Thread class instead of a classic ThreadLocal,
+     * which makes it faster...
+     */
     @ThreadSafe
-<span class="fc" id="L53">    public static final class XorShift32ThreadSafe implements IntSequence {</span>
+    @Deprecated
+<span class="nc" id="L64">    public static final class XorShift32ThreadSafe implements IntSequence {</span>
 
 
-<span class="nc" id="L56">      public static final class Singleton {</span>
+<span class="nc" id="L67">      public static final class Singleton {</span>
 
-<span class="nc" id="L58">        public static final XorShift32ThreadSafe INSTANCE = new XorShift32ThreadSafe();</span>
+<span class="nc" id="L69">        public static final XorShift32ThreadSafe INSTANCE = new XorShift32ThreadSafe();</span>
 
       }
 
-<span class="fc" id="L62">      private final ThreadLocal&lt;XorShift32&gt; rnd = new ThreadLocalRandom();</span>
+<span class="nc" id="L73">      private final ThreadLocal&lt;XorShift32&gt; rnd = new ThreadLocalRandom();</span>
 
       @Override
       public int nextInt() {
-<span class="fc" id="L66">        return rnd.get().nextInt();</span>
+<span class="nc" id="L77">        return rnd.get().nextInt();</span>
       }
 
-<span class="fc" id="L69">      private static class ThreadLocalRandom extends ThreadLocal&lt;XorShift32&gt; {</span>
+<span class="nc" id="L80">      private static class ThreadLocalRandom extends ThreadLocal&lt;XorShift32&gt; {</span>
 
         @Override
         protected XorShift32 initialValue() {
-<span class="fc" id="L73">          return new XorShift32();</span>
+<span class="nc" id="L84">          return new XorShift32();</span>
         }
       }
     }
 
 
     @NotThreadSafe
-<span class="fc" id="L80">    public static final class XorShift128 implements IntSequence {</span>
+<span class="fc" id="L91">    public static final class XorShift128 implements IntSequence {</span>
         // XorShift128 PRNG with a 2^128-1 period.
-<span class="fc" id="L82">        private int x = System.identityHashCode(this);</span>
-<span class="fc" id="L83">        private int y = -938745813;</span>
-<span class="fc" id="L84">        private int z = 452465366;</span>
-<span class="fc" id="L85">        private int w = 1343246171;</span>
+<span class="fc" id="L93">        private int x = System.identityHashCode(this);</span>
+<span class="fc" id="L94">        private int y = -938745813;</span>
+<span class="fc" id="L95">        private int z = 452465366;</span>
+<span class="fc" id="L96">        private int w = 1343246171;</span>
 
         @Override
         public int nextInt() {
-<span class="fc" id="L89">            int t = x ^ (x &lt;&lt; 15);</span>
-<span class="fc" id="L90">            x = y; y = z; z = w;</span>
-<span class="fc" id="L91">            w = (w ^ (w &gt;&gt;&gt; 21)) ^ (t ^ (t &gt;&gt;&gt; 4));</span>
-<span class="fc" id="L92">            return w;</span>
+<span class="fc" id="L100">            int t = x ^ (x &lt;&lt; 15);</span>
+<span class="fc" id="L101">            x = y; y = z; z = w;</span>
+<span class="fc" id="L102">            w = (w ^ (w &gt;&gt;&gt; 21)) ^ (t ^ (t &gt;&gt;&gt; 4));</span>
+<span class="fc" id="L103">            return w;</span>
         }
     }
 

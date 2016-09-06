@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Method.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Method.java</span></div><h1>Method.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.base;
+
+import com.google.common.escape.Escaper;
+import com.google.common.html.HtmlEscapers;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.map.hash.THashMap;
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.Writer;
+import java.lang.management.ManagementFactory;
+import java.util.Map;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
+
+/**
+ * @author zoly
+ */
+@Immutable
+// using racy single check idiom makes findbugs think the Method obejct is mutable...
+@SuppressFBWarnings(&quot;JCIP_FIELD_ISNT_FINAL_IN_IMMUTABLE_CLASS&quot;)
+public final class Method implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @Nonnull
+    private final String declaringClass;
+
+    @Nonnull
+    private final String methodName;
+
+    public Method(final StackTraceElement elem) {
+<span class="nc" id="L49">      this(elem.getClassName(), elem.getMethodName());</span>
+<span class="nc" id="L50">    }</span>
+
+    public Method(final Class&lt;?&gt; clasz, @Nonnull final String methodName) {
+<span class="nc" id="L53">      this(clasz.getName(), methodName);</span>
+<span class="nc" id="L54">    }</span>
+
+<span class="fc" id="L56">    public Method(@Nonnull final String declaringClass, @Nonnull final String methodName) {</span>
+<span class="fc" id="L57">        this.declaringClass = declaringClass;</span>
+<span class="fc" id="L58">        this.methodName = methodName;</span>
+<span class="fc" id="L59">    }</span>
+
+    @Nonnull
+    public String getDeclaringClass() {
+<span class="fc" id="L63">        return declaringClass;</span>
+    }
+
+    @Nonnull
+    public String getMethodName() {
+<span class="fc" id="L68">        return methodName;</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L73">        return 47 * declaringClass.hashCode() + methodName.hashCode();</span>
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+<span class="fc bfc" id="L78" title="All 2 branches covered.">        if (this == obj) {</span>
+<span class="fc" id="L79">            return true;</span>
+        }
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L82">            return false;</span>
+        }
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L85">            return false;</span>
+        }
+<span class="fc" id="L87">        final Method other = (Method) obj;</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (!this.declaringClass.equals(other.declaringClass)) {</span>
+<span class="fc" id="L89">            return false;</span>
+        }
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (!this.methodName.equals(other.methodName)) {</span>
+<span class="fc" id="L92">            return false;</span>
+        }
+<span class="nc" id="L94">        return true;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="fc" id="L99">        return methodName + '@' + declaringClass;</span>
+    }
+
+    public void toWriter(final Writer w) throws IOException {
+<span class="nc" id="L103">        w.append(methodName).append(&quot;@&quot;).append(declaringClass);</span>
+<span class="nc" id="L104">    }</span>
+
+    public void toHtmlWriter(final Writer w) throws IOException {
+<span class="nc" id="L107">        Escaper htmlEscaper = HtmlEscapers.htmlEscaper();</span>
+<span class="nc" id="L108">        w.append(htmlEscaper.escape(methodName)).append(htmlEscaper.escape(&quot;@&quot;)).</span>
+<span class="nc" id="L109">                append(htmlEscaper.escape(declaringClass));</span>
+<span class="nc" id="L110">    }</span>
+<span class="fc" id="L111">    public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), &quot;ROOT&quot;);</span>
+
+
+<span class="fc" id="L114">    private static final Map&lt;String, Map&lt;String, Method&gt;&gt; INSTANCE_REPO = new THashMap&lt;&gt;(1024);</span>
+
+
+    public static Method getMethod(final StackTraceElement elem) {
+<span class="fc" id="L118">        return getMethod(elem.getClassName(), elem.getMethodName());</span>
+    }
+
+    /*
+     * this function is to allow reuse of Method instances.
+     * not thread safe, use with care, see description for suppressed findbugs bug for more detail.
+     */
+    @SuppressFBWarnings(&quot;PMB_POSSIBLE_MEMORY&quot;)
+    public static synchronized Method getMethod(final String className, final String methodName) {
+<span class="fc" id="L127">        Map&lt;String, Method&gt; mtom = INSTANCE_REPO.get(className);</span>
+        Method result;
+<span class="fc bfc" id="L129" title="All 2 branches covered.">        if (mtom == null) {</span>
+<span class="fc" id="L130">            mtom = new THashMap&lt;&gt;(4);</span>
+<span class="fc" id="L131">            result = new Method(className, methodName);</span>
+<span class="fc" id="L132">            mtom.put(methodName, result);</span>
+<span class="fc" id="L133">            INSTANCE_REPO.put(className, mtom);</span>
+        } else {
+<span class="fc" id="L135">            result = mtom.get(methodName);</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">            if (result == null) {</span>
+<span class="fc" id="L137">                result = new Method(className, methodName);</span>
+<span class="fc" id="L138">                mtom.put(methodName, result);</span>
+            }
+        }
+<span class="fc" id="L141">        return result;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

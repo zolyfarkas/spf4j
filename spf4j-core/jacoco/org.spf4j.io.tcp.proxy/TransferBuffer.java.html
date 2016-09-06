@@ -20,6 +20,8 @@ package org.spf4j.io.tcp.proxy;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -27,113 +29,166 @@ import java.nio.channels.SocketChannel;
  */
 public final class TransferBuffer {
 
-<span class="nc" id="L30">    public enum Operation { READ, WRITE };</span>
+<span class="nc" id="L32">  public enum Operation {</span>
+<span class="nc" id="L33">    READ, WRITE</span>
+  };
 
+  private final ByteBuffer buffer;
 
-    private final ByteBuffer buffer;
+  private Operation lastOperation;
 
+  private boolean isEof;
 
-    private Operation lastOperation;
+  private Runnable isDataInBufferHook;
 
-    private boolean isEof;
-    
-    private Runnable isDataInBufferHook;
+  private Runnable isRoomInBufferHook;
 
-    private Runnable isRoomInBufferHook;
+  private Sniffer incomingSniffer;
 
-    private Sniffer incomingSniffer;
+  private IOException readException;
 
+  private IOException writeException;
 
-<span class="nc" id="L47">    public TransferBuffer(final int bufferSize) {</span>
-<span class="nc" id="L48">        buffer = ByteBuffer.allocateDirect(bufferSize);</span>
-<span class="nc" id="L49">        lastOperation = Operation.READ;</span>
-<span class="nc" id="L50">        isEof = false;</span>
-<span class="nc" id="L51">        this.isDataInBufferHook = null;</span>
-<span class="nc" id="L52">        this.isRoomInBufferHook = null;</span>
-<span class="nc" id="L53">    }</span>
+<span class="nc" id="L52">  public TransferBuffer(final int bufferSize) {</span>
+<span class="nc" id="L53">    buffer = ByteBuffer.allocateDirect(bufferSize);</span>
+<span class="nc" id="L54">    lastOperation = Operation.READ;</span>
+<span class="nc" id="L55">    isEof = false;</span>
+<span class="nc" id="L56">    this.isDataInBufferHook = null;</span>
+<span class="nc" id="L57">    this.isRoomInBufferHook = null;</span>
+<span class="nc" id="L58">    this.readException = null;</span>
+<span class="nc" id="L59">    this.writeException = null;</span>
+<span class="nc" id="L60">  }</span>
 
-    public synchronized int read(final SocketChannel channel) throws IOException {
-<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (lastOperation == Operation.WRITE) {</span>
-<span class="nc" id="L57">            buffer.compact();</span>
-<span class="nc" id="L58">            lastOperation = Operation.READ;</span>
-        }
-<span class="nc" id="L60">        int nrRead = channel.read(buffer);</span>
-<span class="nc bnc" id="L61" title="All 4 branches missed.">        if (incomingSniffer != null &amp;&amp; (nrRead != 0)) {</span>
-<span class="nc" id="L62">            incomingSniffer.received(buffer, nrRead);</span>
-        }
-<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (nrRead &lt; 0) {</span>
-<span class="nc" id="L65">            isEof = true;</span>
-<span class="nc" id="L66">            channel.socket().shutdownInput(); // ? is this really necessary?</span>
-<span class="nc bnc" id="L67" title="All 2 branches missed.">        } else if (buffer.hasRemaining()) {</span>
-<span class="nc" id="L68">            isRoomInBufferHook.run();</span>
-        }
-<span class="nc bnc" id="L70" title="All 4 branches missed.">        if (buffer.position() &gt; 0 || isEof) {</span>
-<span class="nc" id="L71">            isDataInBufferHook.run();</span>
-        }
-<span class="nc" id="L73">        return nrRead;</span>
+<span class="nc" id="L62">  private static final Logger LOG = LoggerFactory.getLogger(TransferBuffer.class);</span>
+
+  public synchronized int read(final SocketChannel channel) {
+<span class="nc bnc" id="L65" title="All 2 branches missed.">    if (lastOperation == Operation.WRITE) {</span>
+<span class="nc" id="L66">      buffer.compact();</span>
+<span class="nc" id="L67">      lastOperation = Operation.READ;</span>
     }
-
-    public synchronized int write(final SocketChannel channel) throws IOException {
-<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (lastOperation == Operation.READ) {</span>
-<span class="nc" id="L78">            buffer.flip();</span>
-<span class="nc" id="L79">            lastOperation = Operation.WRITE;</span>
+    int nrRead;
+<span class="nc" id="L70">    IOException oex = null;</span>
+    try {
+<span class="nc" id="L72">      nrRead = channel.read(buffer);</span>
+<span class="nc bnc" id="L73" title="All 4 branches missed.">      if (incomingSniffer != null &amp;&amp; (nrRead != 0)) {</span>
+<span class="nc" id="L74">        nrRead = incomingSniffer.received(buffer, nrRead);</span>
+      }
+<span class="nc" id="L76">    } catch (IOException ex) {</span>
+<span class="nc" id="L77">      oex = ex;</span>
+<span class="nc" id="L78">      readException = incomingSniffer.received(ex);</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">      if (readException != null) {</span>
+<span class="nc" id="L80">        LOG.debug(&quot;Exception while reading from {}&quot;, channel, ex);</span>
+<span class="nc" id="L81">        nrRead = -1;</span>
+      } else {
+<span class="nc" id="L83">        nrRead = 0; // sniffer filters exception, behave a s no data received.</span>
+      }
+      try {
+<span class="nc" id="L86">        channel.close();</span>
+<span class="nc" id="L87">      } catch (IOException ex1) {</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (readException != null) {</span>
+<span class="nc" id="L89">          readException.addSuppressed(ex1);</span>
         }
-<span class="nc" id="L81">        int nrWritten = channel.write(buffer);</span>
-<span class="nc" id="L82">        final boolean hasRemaining = buffer.hasRemaining();</span>
-<span class="nc bnc" id="L83" title="All 4 branches missed.">        if (!hasRemaining &amp;&amp; isEof) {</span>
-<span class="nc" id="L84">            channel.socket().shutdownOutput();</span>
-<span class="nc" id="L85">            return nrWritten;</span>
-        }
-<span class="nc bnc" id="L87" title="All 4 branches missed.">        if (!isEof &amp;&amp; buffer.position() &gt; 0) {</span>
-<span class="nc" id="L88">           isRoomInBufferHook.run();</span>
-        }
-<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (hasRemaining) {</span>
-<span class="nc" id="L91">           isDataInBufferHook.run();</span>
-        }
-<span class="nc" id="L93">        return nrWritten;</span>
+<span class="nc" id="L91">      }</span>
+<span class="nc" id="L92">    }</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">    if (nrRead &lt; 0) {</span>
+<span class="nc" id="L94">      isEof = true;</span>
+      try {
+<span class="nc" id="L96">        channel.socket().shutdownInput(); // ? is this really necessary?</span>
+<span class="nc" id="L97">      } catch (IOException ex) {</span>
+<span class="nc" id="L98">        throw new RuntimeException(ex);</span>
+<span class="nc" id="L99">      }</span>
+<span class="nc bnc" id="L100" title="All 4 branches missed.">    } else if (oex == null &amp;&amp; buffer.hasRemaining()) {</span>
+<span class="nc" id="L101">      isRoomInBufferHook.run();</span>
     }
-
-
-    public static int transfer(final SocketChannel in, final SocketChannel out, final ByteBuffer buffer)
-            throws IOException {
-<span class="nc" id="L99">        int read = 0;</span>
-        //CHECKSTYLE:OFF
-<span class="nc bnc" id="L101" title="All 6 branches missed.">        while ((in.finishConnect() &amp;&amp; ((read = in.read(buffer)) &gt; 0)) || (buffer.position() &gt; 0)) {</span>
-            //CHECKSTYLE:ON
-<span class="nc" id="L103">          buffer.flip();</span>
-<span class="nc bnc" id="L104" title="All 2 branches missed.">          if (!out.finishConnect()) {</span>
-<span class="nc" id="L105">              break;</span>
-          }
-<span class="nc" id="L107">          int writen = out.write(buffer);</span>
-<span class="nc" id="L108">          buffer.compact();</span>
-<span class="nc bnc" id="L109" title="All 2 branches missed.">          if (writen &lt;= 0) {</span>
-<span class="nc" id="L110">            break;</span>
-          }
-<span class="nc" id="L112">        }</span>
-<span class="nc" id="L113">        return read;</span>
+<span class="nc bnc" id="L103" title="All 4 branches missed.">    if (buffer.position() &gt; 0 || isEof) {</span>
+<span class="nc" id="L104">      isDataInBufferHook.run();</span>
     }
+<span class="nc" id="L106">    return nrRead;</span>
+  }
 
-
-    public synchronized void setIsDataInBufferHook(final Runnable isDataInBufferHook) {
-<span class="nc" id="L118">        this.isDataInBufferHook = isDataInBufferHook;</span>
-<span class="nc" id="L119">    }</span>
-
-    public synchronized void setIsRoomInBufferHook(final Runnable isRoomInBufferHook) {
-<span class="nc" id="L122">        this.isRoomInBufferHook = isRoomInBufferHook;</span>
-<span class="nc" id="L123">    }</span>
-
-    public synchronized void setIncomingSniffer(final Sniffer incomingSniffer) {
-<span class="nc" id="L126">        this.incomingSniffer = incomingSniffer;</span>
-<span class="nc" id="L127">    }</span>
-
-    @Override
-    public String toString() {
-<span class="nc" id="L131">        return &quot;TransferBuffer{&quot; + &quot;buffer=&quot; + buffer + &quot;, lastOperation=&quot; + lastOperation</span>
-                + &quot;, isEof=&quot; + isEof + &quot;, isDataInBufferHook=&quot; + isDataInBufferHook
-                + &quot;, isRoomInBufferHook=&quot; + isRoomInBufferHook + '}';
+  public synchronized int write(final SocketChannel channel) {
+<span class="nc bnc" id="L110" title="All 2 branches missed.">    if (lastOperation == Operation.READ) {</span>
+<span class="nc" id="L111">      buffer.flip();</span>
+<span class="nc" id="L112">      lastOperation = Operation.WRITE;</span>
     }
-    
+    int nrWritten;
+    try {
+<span class="nc" id="L116">      nrWritten = channel.write(buffer);</span>
+<span class="nc" id="L117">    } catch (IOException ex) {</span>
+      try {
+<span class="nc" id="L119">        channel.close();</span>
+<span class="nc" id="L120">      } catch (IOException ex1) {</span>
+<span class="nc" id="L121">        ex.addSuppressed(ex1);</span>
+<span class="nc" id="L122">      }</span>
+<span class="nc" id="L123">      LOG.debug(&quot;Exception while writing to {}&quot;, channel, ex);</span>
+<span class="nc" id="L124">      writeException = ex;</span>
+<span class="nc" id="L125">      nrWritten = 0;</span>
+<span class="nc" id="L126">    }</span>
+<span class="nc" id="L127">    final boolean hasRemaining = buffer.hasRemaining();</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">    if (!hasRemaining) {</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">      if (isEof) {</span>
+        try {
+<span class="nc" id="L131">          channel.socket().shutdownOutput();</span>
+<span class="nc" id="L132">        } catch (IOException ex) {</span>
+<span class="nc" id="L133">          throw new RuntimeException(ex);</span>
+<span class="nc" id="L134">        }</span>
+<span class="nc" id="L135">        return nrWritten;</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">      } else if (readException != null) {</span>
+        try {
+<span class="nc" id="L138">          channel.socket().shutdownOutput();</span>
+<span class="nc" id="L139">        } catch (IOException ex) {</span>
+<span class="nc" id="L140">          readException.addSuppressed(ex);</span>
+<span class="nc" id="L141">        }</span>
+<span class="nc" id="L142">        LOG.debug(&quot;Closed channel {} due to read exception&quot;, channel, readException);</span>
+<span class="nc" id="L143">        return nrWritten;</span>
+      }
+    }
+<span class="nc bnc" id="L146" title="All 4 branches missed.">    if (!isEof &amp;&amp; buffer.position() &gt; 0) {</span>
+<span class="nc" id="L147">      isRoomInBufferHook.run();</span>
+    }
+<span class="nc bnc" id="L149" title="All 4 branches missed.">    if (hasRemaining &amp;&amp; writeException != null) {</span>
+<span class="nc" id="L150">      isDataInBufferHook.run();</span>
+    }
+<span class="nc" id="L152">    return nrWritten;</span>
+  }
 
+  public static int transfer(final SocketChannel in, final SocketChannel out, final ByteBuffer buffer)
+          throws IOException {
+<span class="nc" id="L157">    int read = 0;</span>
+    //CHECKSTYLE:OFF
+<span class="nc bnc" id="L159" title="All 6 branches missed.">    while ((in.finishConnect() &amp;&amp; ((read = in.read(buffer)) &gt; 0)) || (buffer.position() &gt; 0)) {</span>
+      //CHECKSTYLE:ON
+<span class="nc" id="L161">      buffer.flip();</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">      if (!out.finishConnect()) {</span>
+<span class="nc" id="L163">        break;</span>
+      }
+<span class="nc" id="L165">      int writen = out.write(buffer);</span>
+<span class="nc" id="L166">      buffer.compact();</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">      if (writen &lt;= 0) {</span>
+<span class="nc" id="L168">        break;</span>
+      }
+<span class="nc" id="L170">    }</span>
+<span class="nc" id="L171">    return read;</span>
+  }
+
+  public synchronized void setIsDataInBufferHook(final Runnable isDataInBufferHook) {
+<span class="nc" id="L175">    this.isDataInBufferHook = isDataInBufferHook;</span>
+<span class="nc" id="L176">  }</span>
+
+  public synchronized void setIsRoomInBufferHook(final Runnable isRoomInBufferHook) {
+<span class="nc" id="L179">    this.isRoomInBufferHook = isRoomInBufferHook;</span>
+<span class="nc" id="L180">  }</span>
+
+  public synchronized void setIncomingSniffer(final Sniffer incomingSniffer) {
+<span class="nc" id="L183">    this.incomingSniffer = incomingSniffer;</span>
+<span class="nc" id="L184">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L188">    return &quot;TransferBuffer{&quot; + &quot;buffer=&quot; + buffer + &quot;, lastOperation=&quot; + lastOperation</span>
+            + &quot;, isEof=&quot; + isEof + &quot;, isDataInBufferHook=&quot; + isDataInBufferHook
+            + &quot;, isRoomInBufferHook=&quot; + isRoomInBufferHook + '}';
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

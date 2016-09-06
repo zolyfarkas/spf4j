@@ -193,5 +193,154 @@ public final class CharSequences {
   }
 
 
+  /**
+   * A more flexible version of Integer.parseInt.
+   * @see java.lang.Integer.parseInt
+   */
+  public static int parseInt(final CharSequence s) {
+<span class="nc" id="L201">    return parseInt(s, 10);</span>
+  }
+
+  /**
+   * A more flexible version of Integer.parseInt.
+   * @see java.lang.Integer.parseInt
+   */
+  public static int parseInt(final CharSequence cs, final int radix) {
+    /*
+         * WARNING: This method may be invoked early during VM initialization
+         * before IntegerCache is initialized. Care must be taken to not use
+         * the valueOf method.
+     */
+
+<span class="nc bnc" id="L215" title="All 2 branches missed.">    if (cs == null) {</span>
+<span class="nc" id="L216">      throw new NumberFormatException(&quot;cs is null for radix = &quot; + radix);</span>
+    }
+
+<span class="nc bnc" id="L219" title="All 2 branches missed.">    if (radix &lt; Character.MIN_RADIX) {</span>
+<span class="nc" id="L220">      throw new NumberFormatException(&quot;radix &quot; + radix</span>
+              + &quot; less than Character.MIN_RADIX&quot;);
+    }
+
+<span class="nc bnc" id="L224" title="All 2 branches missed.">    if (radix &gt; Character.MAX_RADIX) {</span>
+<span class="nc" id="L225">      throw new NumberFormatException(&quot;radix &quot; + radix</span>
+              + &quot; greater than Character.MAX_RADIX&quot;);
+    }
+
+<span class="nc" id="L229">    int result = 0;</span>
+<span class="nc" id="L230">    boolean negative = false;</span>
+<span class="nc" id="L231">    int i = 0, len = cs.length();</span>
+<span class="nc" id="L232">    int limit = -Integer.MAX_VALUE;</span>
+    int multmin;
+    int digit;
+
+<span class="nc bnc" id="L236" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc" id="L237">      char firstChar = cs.charAt(0);</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">      if (firstChar &lt; '0') { // Possible leading &quot;+&quot; or &quot;-&quot;</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">        if (firstChar == '-') {</span>
+<span class="nc" id="L240">          negative = true;</span>
+<span class="nc" id="L241">          limit = Integer.MIN_VALUE;</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">        } else if (firstChar != '+') {</span>
+<span class="nc" id="L243">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+        }
+
+<span class="nc bnc" id="L246" title="All 2 branches missed.">        if (len == 1) { // Cannot have lone &quot;+&quot; or &quot;-&quot;</span>
+<span class="nc" id="L247">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+        }
+<span class="nc" id="L249">        i++;</span>
+      }
+<span class="nc" id="L251">      multmin = limit / radix;</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">      while (i &lt; len) {</span>
+        // Accumulating negatively avoids surprises near MAX_VALUE
+<span class="nc" id="L254">        digit = Character.digit(cs.charAt(i++), radix);</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">        if (digit &lt; 0) {</span>
+<span class="nc" id="L256">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+        }
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        if (result &lt; multmin) {</span>
+<span class="nc" id="L259">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+        }
+<span class="nc" id="L261">        result *= radix;</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">        if (result &lt; limit + digit) {</span>
+<span class="nc" id="L263">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+        }
+<span class="nc" id="L265">        result -= digit;</span>
+      }
+<span class="nc" id="L267">    } else {</span>
+<span class="nc" id="L268">      throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+    }
+<span class="nc bnc" id="L270" title="All 2 branches missed.">    return negative ? result : -result;</span>
+  }
+
+
+  /**
+   * A more flexible version of Long.parseLong.
+   * @see java.lang.Long.parseLong
+   */
+  public static long parseLong(final CharSequence cs) {
+<span class="nc" id="L279">    return parseLong(cs, 10);</span>
+  }
+
+  /**
+   * A more flexible version of Long.parseLong.
+   * @see java.lang.Long.parseLong
+   */
+  public static long parseLong(final CharSequence cs, final int radix) {
+<span class="nc bnc" id="L287" title="All 2 branches missed.">    if (cs == null) {</span>
+<span class="nc" id="L288">      throw new NumberFormatException(&quot;cs is null for radix = &quot; + radix);</span>
+    }
+
+<span class="nc bnc" id="L291" title="All 2 branches missed.">    if (radix &lt; Character.MIN_RADIX) {</span>
+<span class="nc" id="L292">      throw new NumberFormatException(&quot;radix &quot; + radix</span>
+              + &quot; less than Character.MIN_RADIX&quot;);
+    }
+<span class="nc bnc" id="L295" title="All 2 branches missed.">    if (radix &gt; Character.MAX_RADIX) {</span>
+<span class="nc" id="L296">      throw new NumberFormatException(&quot;radix &quot; + radix</span>
+              + &quot; greater than Character.MAX_RADIX&quot;);
+    }
+
+<span class="nc" id="L300">    long result = 0;</span>
+<span class="nc" id="L301">    boolean negative = false;</span>
+<span class="nc" id="L302">    int i = 0, len = cs.length();</span>
+<span class="nc" id="L303">    long limit = -Long.MAX_VALUE;</span>
+    long multmin;
+    int digit;
+
+<span class="nc bnc" id="L307" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc" id="L308">      char firstChar = cs.charAt(0);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">      if (firstChar &lt; '0') { // Possible leading &quot;+&quot; or &quot;-&quot;</span>
+<span class="nc bnc" id="L310" title="All 2 branches missed.">        if (firstChar == '-') {</span>
+<span class="nc" id="L311">          negative = true;</span>
+<span class="nc" id="L312">          limit = Long.MIN_VALUE;</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">        } else if (firstChar != '+') {</span>
+<span class="nc" id="L314">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+        }
+
+<span class="nc bnc" id="L317" title="All 2 branches missed.">        if (len == 1) { // Cannot have lone &quot;+&quot; or &quot;-&quot;</span>
+<span class="nc" id="L318">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+        }
+<span class="nc" id="L320">        i++;</span>
+      }
+<span class="nc" id="L322">      multmin = limit / radix;</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">      while (i &lt; len) {</span>
+        // Accumulating negatively avoids surprises near MAX_VALUE
+<span class="nc" id="L325">        digit = Character.digit(cs.charAt(i++), radix);</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">        if (digit &lt; 0) {</span>
+<span class="nc" id="L327">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+        }
+<span class="nc bnc" id="L329" title="All 2 branches missed.">        if (result &lt; multmin) {</span>
+<span class="nc" id="L330">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+        }
+<span class="nc" id="L332">        result *= radix;</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">        if (result &lt; limit + digit) {</span>
+<span class="nc" id="L334">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+        }
+<span class="nc" id="L336">        result -= digit;</span>
+      }
+<span class="nc" id="L338">    } else {</span>
+<span class="nc" id="L339">      throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+    }
+<span class="nc bnc" id="L341" title="All 2 branches missed.">    return negative ? result : -result;</span>
+  }
+
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

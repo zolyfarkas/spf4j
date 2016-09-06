@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>InvokedMethod.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">InvokedMethod.java</span></div><h1>InvokedMethod.java</h1><pre class="source lang-java linenums">package org.spf4j.stackmonitor;
+
+import java.io.Serializable;
+import java.util.Objects;
+import org.spf4j.base.Method;
+
+/**
+ *
+ * @author zoly
+ */
+public final class InvokedMethod implements Serializable {
+
+  private static final long serialVersionUID = 1L;
+
+  private final int invocationId;
+
+  private final Method method;
+
+<span class="fc" id="L19">  public InvokedMethod(final Method method, final int invocationId) {</span>
+<span class="fc" id="L20">    this.method = method;</span>
+<span class="fc" id="L21">    this.invocationId = invocationId;</span>
+<span class="fc" id="L22">  }</span>
+
+  @Override
+  public int hashCode() {
+<span class="fc" id="L26">    int hash = 5;</span>
+<span class="fc" id="L27">    hash = 47 * hash + this.invocationId;</span>
+<span class="fc" id="L28">    return 47 * hash + Objects.hashCode(this.method);</span>
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+<span class="pc bpc" id="L33" title="1 of 2 branches missed.">    if (this == obj) {</span>
+<span class="nc" id="L34">      return true;</span>
+    }
+<span class="pc bpc" id="L36" title="1 of 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L37">      return false;</span>
+    }
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L40">      return false;</span>
+    }
+<span class="fc" id="L42">    final InvokedMethod other = (InvokedMethod) obj;</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">    if (!Objects.equals(this.method, other.method)) {</span>
+<span class="fc" id="L44">      return false;</span>
+    }
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">    return this.invocationId == other.invocationId;</span>
+  }
+
+  public Method getMethod() {
+<span class="nc" id="L50">    return method;</span>
+  }
+
+  public InvokedMethod withId(final int pid) {
+<span class="nc" id="L54">    return new InvokedMethod(this.method, pid);</span>
+  }
+
+  public InvokedMethod withNewId() {
+<span class="nc" id="L58">    return new InvokedMethod(this.method, invocationId + 1);</span>
+  }
+
+<span class="fc" id="L61">  public static final InvokedMethod ROOT = new InvokedMethod(Method.ROOT, 0);</span>
+
+  @Override
+  public String toString() {
+<span class="fc" id="L65">    return &quot;InvokedMethod{&quot; + &quot;invocationId=&quot; + invocationId + &quot;, method=&quot; + method + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

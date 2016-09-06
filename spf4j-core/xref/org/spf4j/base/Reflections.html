@@ -97,7 +97,7 @@
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>  <em class="jxr_javadoccomment">   */</em>
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>    @Nullable
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>    @SuppressFBWarnings(value = <span class="jxr_string">"ES_COMPARING_STRINGS_WITH_EQ"</span>, justification = <span class="jxr_string">"comparing interned strings"</span>)
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Method getMethod(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; c,
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../org/spf4j/base/Method.html">Method</a> getMethod(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; c,
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>            <strong class="jxr_keyword">final</strong> String methodName,
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>            <strong class="jxr_keyword">final</strong> Class&lt;?&gt;... paramTypes) {
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>  
@@ -134,10 +134,10 @@
 <a class="jxr_linenumber" name="L126" href="#L126">126</a> <em class="jxr_javadoccomment">   * @return</em>
 <a class="jxr_linenumber" name="L127" href="#L127">127</a> <em class="jxr_javadoccomment">   */</em>
 <a class="jxr_linenumber" name="L128" href="#L128">128</a>   @Nullable
-<a class="jxr_linenumber" name="L129" href="#L129">129</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Method getCompatibleMethod(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; c,
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../org/spf4j/base/Method.html">Method</a> getCompatibleMethod(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; c,
 <a class="jxr_linenumber" name="L130" href="#L130">130</a>           <strong class="jxr_keyword">final</strong> String methodName,
 <a class="jxr_linenumber" name="L131" href="#L131">131</a>           <strong class="jxr_keyword">final</strong> Class&lt;?&gt;... paramTypes) {
-<a class="jxr_linenumber" name="L132" href="#L132">132</a>     Method[] methods = c.getMethods();
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>     <a href="../../../org/spf4j/base/Method.html">Method</a>[] methods = c.getMethods();
 <a class="jxr_linenumber" name="L133" href="#L133">133</a>     <strong class="jxr_keyword">for</strong> (Method m : methods) {
 <a class="jxr_linenumber" name="L134" href="#L134">134</a> 
 <a class="jxr_linenumber" name="L135" href="#L135">135</a>       <strong class="jxr_keyword">if</strong> (!methodName.equals(m.getName())) {
@@ -182,7 +182,7 @@
 <a class="jxr_linenumber" name="L174" href="#L174">174</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L175" href="#L175">175</a>   }
 <a class="jxr_linenumber" name="L176" href="#L176">176</a> 
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Object invoke(<strong class="jxr_keyword">final</strong> Method m, <strong class="jxr_keyword">final</strong> Object object, <strong class="jxr_keyword">final</strong> Object[] parameters)
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Object invoke(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Method.html">Method</a> m, <strong class="jxr_keyword">final</strong> Object object, <strong class="jxr_keyword">final</strong> Object[] parameters)
 <a class="jxr_linenumber" name="L178" href="#L178">178</a>           <strong class="jxr_keyword">throws</strong> IllegalAccessException, InvocationTargetException {
 <a class="jxr_linenumber" name="L179" href="#L179">179</a>     <strong class="jxr_keyword">int</strong> np = parameters.length;
 <a class="jxr_linenumber" name="L180" href="#L180">180</a>     <strong class="jxr_keyword">if</strong> (np &gt; 0) {
@@ -287,8 +287,8 @@
 <a class="jxr_linenumber" name="L279" href="#L279">279</a>           = <strong class="jxr_keyword">new</strong> UnboundedLoadingCache&lt;&gt;(64,
 <a class="jxr_linenumber" name="L280" href="#L280">280</a>                   <strong class="jxr_keyword">new</strong> CacheLoader&lt;MethodDesc, Method&gt;() {
 <a class="jxr_linenumber" name="L281" href="#L281">281</a>             @Override
-<a class="jxr_linenumber" name="L282" href="#L282">282</a>             <strong class="jxr_keyword">public</strong> Method load(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Reflections.html">MethodDesc</a> k) {
-<a class="jxr_linenumber" name="L283" href="#L283">283</a>               <strong class="jxr_keyword">final</strong> Method m = getCompatibleMethod(k.getClasz(), k.getName(), k.getParamTypes());
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>             <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/base/Method.html">Method</a> load(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Reflections.html">MethodDesc</a> k) {
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>               <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Method.html">Method</a> m = getCompatibleMethod(k.getClasz(), k.getName(), k.getParamTypes());
 <a class="jxr_linenumber" name="L284" href="#L284">284</a>               AccessController.doPrivileged(<strong class="jxr_keyword">new</strong> PrivilegedAction() {
 <a class="jxr_linenumber" name="L285" href="#L285">285</a>                 @Override
 <a class="jxr_linenumber" name="L286" href="#L286">286</a>                 <strong class="jxr_keyword">public</strong> Object run() {
@@ -300,7 +300,7 @@
 <a class="jxr_linenumber" name="L292" href="#L292">292</a>             }
 <a class="jxr_linenumber" name="L293" href="#L293">293</a>           });
 <a class="jxr_linenumber" name="L294" href="#L294">294</a> 
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Method getCompatibleMethodCached(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; c,
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../org/spf4j/base/Method.html">Method</a> getCompatibleMethodCached(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; c,
 <a class="jxr_linenumber" name="L296" href="#L296">296</a>           <strong class="jxr_keyword">final</strong> String methodName,
 <a class="jxr_linenumber" name="L297" href="#L297">297</a>           <strong class="jxr_keyword">final</strong> Class&lt;?&gt;... paramTypes) {
 <a class="jxr_linenumber" name="L298" href="#L298">298</a>     <strong class="jxr_keyword">return</strong> CACHE_FAST.getUnchecked(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/base/Reflections.html">MethodDesc</a>(c, methodName, paramTypes));
