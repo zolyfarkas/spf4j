@@ -23,7 +23,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -173,86 +172,74 @@ public final class Strings {
     private static final MethodHandle CHARS_FIELD_GET;
 
     //String(char[] value, boolean share) {
-    private static final Constructor<String> PROTECTED_STR_CONSTR;
+    private static final MethodHandle PROTECTED_STR_CONSTR_HANDLE;
     private static final Class<?>[] PROTECTED_STR_CONSTR_PARAM_TYPES;
 
-    static {
-        Field charsField = AccessController.doPrivileged(new PrivilegedAction<Field>() {
-            @Override
-            public Field run() {
-                Field charsField;
-                try {
-                    charsField = String.class.getDeclaredField("value");
-                    charsField.setAccessible(true);
-                } catch (NoSuchFieldException ex) {
-                    LOG.info("char array stealing from String not supported", ex);
-                    charsField = null;
-                } catch (SecurityException ex) {
-                    throw new RuntimeException(ex);
-                }
-                return charsField;
-            }
-        });
+  static {
+    Field charsField = AccessController.doPrivileged(new PrivilegedAction<Field>() {
+      @Override
+      public Field run() {
+        Field charsField;
+        try {
+          charsField = String.class.getDeclaredField("value");
+          charsField.setAccessible(true);
+        } catch (NoSuchFieldException ex) {
+          LOG.info("char array stealing from String not supported", ex);
+          charsField = null;
+        } catch (SecurityException ex) {
+          throw new RuntimeException(ex);
+        }
+        return charsField;
+      }
+    });
+    MethodHandles.Lookup lookup = MethodHandles.lookup();
+    try {
+      CHARS_FIELD_GET = lookup.unreflectGetter(charsField);
+    } catch (IllegalAccessException ex) {
+      throw new ExceptionInInitializerError(ex);
+    }
+
+    // up until u45 String(int offset, int count, char value[]) {
+    // u45 reverted to: String(char[] value, boolean share) {
+    Constructor<String> prConstr = AccessController.doPrivileged(
+            new PrivilegedAction<Constructor<String>>() {
+      @Override
+      public Constructor<String> run() {
+        Constructor<String> constr;
+        try {
+          constr = String.class.getDeclaredConstructor(char[].class, boolean.class);
+          constr.setAccessible(true);
+        } catch (NoSuchMethodException ex) {
+          try {
+            constr = String.class.getDeclaredConstructor(int.class, int.class, char[].class);
+            constr.setAccessible(true);
+          } catch (NoSuchMethodException ex2) {
+            ex2.addSuppressed(ex);
+            LOG.info("building String from char[] fast not supported", ex2);
+            constr = null;
+          } catch (SecurityException ex2) {
+            ex2.addSuppressed(ex);
+            throw new RuntimeException(ex2);
+          }
+        } catch (SecurityException ex) {
+          throw new RuntimeException(ex);
+        }
+        return constr;
+      }
+    });
+
+    if (prConstr == null) {
+      PROTECTED_STR_CONSTR_PARAM_TYPES = null;
+      PROTECTED_STR_CONSTR_HANDLE = null;
+    } else {
+      PROTECTED_STR_CONSTR_PARAM_TYPES = prConstr.getParameterTypes();
       try {
-        CHARS_FIELD_GET = MethodHandles.lookup().unreflectGetter(charsField);
+        PROTECTED_STR_CONSTR_HANDLE = lookup.unreflectConstructor(prConstr);
       } catch (IllegalAccessException ex) {
         throw new ExceptionInInitializerError(ex);
       }
-
-        if (Runtime.JAVA_PLATFORM.ordinal() >= Runtime.Version.V1_8.ordinal()) {
-            // up until u45 String(int offset, int count, char value[]) {
-            // u45 reverted to: String(char[] value, boolean share) {
-            PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction<Constructor<String>>() {
-                @Override
-                public Constructor<String> run() {
-                    Constructor<String> constr;
-                    try {
-                        constr = String.class.getDeclaredConstructor(int.class, int.class, char[].class);
-                        constr.setAccessible(true);
-                    } catch (NoSuchMethodException ex) {
-                        try {
-                            constr = String.class.getDeclaredConstructor(char[].class, boolean.class);
-                            constr.setAccessible(true);
-                        } catch (NoSuchMethodException ex2) {
-                            ex2.addSuppressed(ex);
-                            LOG.info("building String from char[] fast not supported", ex2);
-                            constr = null;
-                        } catch (SecurityException ex2) {
-                            ex2.addSuppressed(ex);
-                            throw new RuntimeException(ex2);
-                        }
-                    } catch (SecurityException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                    return constr;
-                }
-            });
-
-        } else {
-            PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction<Constructor<String>>() {
-                @Override
-                public Constructor<String> run() {
-                    Constructor<String> constr;
-                    try {
-                        constr = String.class.getDeclaredConstructor(char[].class, boolean.class);
-                        constr.setAccessible(true);
-                    } catch (NoSuchMethodException ex) {
-                        LOG.info("building String from char[] fast not supported", ex);
-                        constr = null;
-                    } catch (SecurityException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                    return constr;
-                }
-            });
-        }
-        if (PROTECTED_STR_CONSTR == null) {
-            PROTECTED_STR_CONSTR_PARAM_TYPES = null;
-        } else {
-            PROTECTED_STR_CONSTR_PARAM_TYPES = PROTECTED_STR_CONSTR.getParameterTypes();
-        }
-
     }
+  }
 
     /**
      * Steal the underlying character array of a String.
@@ -284,12 +271,13 @@ public final class Strings {
         if (PROTECTED_STR_CONSTR_PARAM_TYPES != null) {
             try {
                 if (PROTECTED_STR_CONSTR_PARAM_TYPES.length == 3) {
-                    return PROTECTED_STR_CONSTR.newInstance(0, chars.length, chars);
+                    return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(0, chars.length, chars);
                 } else {
-                    return PROTECTED_STR_CONSTR.newInstance(chars, Boolean.TRUE);
+                    return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(chars, Boolean.TRUE);
                 }
-            } catch (InstantiationException | IllegalAccessException
-                    | IllegalArgumentException | InvocationTargetException ex) {
+            } catch (Error | RuntimeException ex) {
+              throw ex;
+            } catch (Throwable ex) {
                 throw new RuntimeException(ex);
             }
         } else {
