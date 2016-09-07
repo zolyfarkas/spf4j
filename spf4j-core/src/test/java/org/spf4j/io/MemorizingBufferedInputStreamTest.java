@@ -23,9 +23,6 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  */
 public class MemorizingBufferedInputStreamTest {
 
-    public MemorizingBufferedInputStreamTest() {
-    }
-
     private static final String TSTR =
             "This is a super \u00EF cool, mega dupper test string for testing piping..........E";
 
@@ -110,6 +107,7 @@ public class MemorizingBufferedInputStreamTest {
         }
     }
 
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     private void testBuff(final StringBuilder sb, final int buffSize) throws IOException {
         final byte[] utf8Bytes = Strings.toUtf8(sb.toString());
         ByteArrayInputStream bis = new ByteArrayInputStream(utf8Bytes);

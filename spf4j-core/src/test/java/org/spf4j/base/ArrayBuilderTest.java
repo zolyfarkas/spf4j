@@ -5,6 +5,7 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -15,6 +16,7 @@ import org.junit.Test;
 public class ArrayBuilderTest {
 
   @Test
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   public void testBuilder() {
     ArrayBuilder<String> builder = new ArrayBuilder(10, String.class);
     Assert.assertEquals(0, builder.getSize());

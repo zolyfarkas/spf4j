@@ -29,7 +29,7 @@ import org.spf4j.perf.cpu.CpuUsageSampler;
  *
  * @author zoly
  */
-@SuppressFBWarnings("MDM_THREAD_YIELD")
+@SuppressFBWarnings({ "MDM_THREAD_YIELD", "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS" })
 public class LifoThreadPoolExecutorTestCoreIdling {
 
 
