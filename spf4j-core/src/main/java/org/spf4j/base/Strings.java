@@ -40,8 +40,10 @@ import org.slf4j.LoggerFactory;
 //CHECKSTYLE:OFF
 import sun.nio.cs.ArrayDecoder;
 import sun.nio.cs.ArrayEncoder;
-import static java.lang.Math.min;
 //CHECKSTYLE:ON
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import static java.lang.Math.min;
 
 /**
  *
@@ -156,10 +158,9 @@ public final class Strings {
         return result.toString();
     }
 
-    public static void writeReplaceWhitespaces(final String str, final char replacement, final Writer writer)
+    public static void writeReplaceWhitespaces(final String str, final char replacement, final Appendable writer)
             throws IOException {
-        for (int i = 0; i < str.length(); i++) {
-            char c = str.charAt(i);
+        for (char c : steal(str)) {
             if (Character.isWhitespace(c)) {
                 writer.append(replacement);
             } else {
@@ -170,14 +171,14 @@ public final class Strings {
 
     private static final Logger LOG = LoggerFactory.getLogger(Strings.class);
 
-    private static final Field CHARS_FIELD;
+    private static final MethodHandle CHARS_FIELD_GET;
 
     //String(char[] value, boolean share) {
     private static final Constructor<String> PROTECTED_STR_CONSTR;
     private static final Class<?>[] PROTECTED_STR_CONSTR_PARAM_TYPES;
 
     static {
-        CHARS_FIELD = AccessController.doPrivileged(new PrivilegedAction<Field>() {
+        Field charsField = AccessController.doPrivileged(new PrivilegedAction<Field>() {
             @Override
             public Field run() {
                 Field charsField;
@@ -193,6 +194,11 @@ public final class Strings {
                 return charsField;
             }
         });
+      try {
+        CHARS_FIELD_GET = MethodHandles.lookup().unreflectGetter(charsField);
+      } catch (IllegalAccessException ex) {
+        throw new ExceptionInInitializerError(ex);
+      }
 
         if (Runtime.JAVA_PLATFORM.ordinal() >= Runtime.Version.V1_8.ordinal()) {
             // up until u45 String(int offset, int count, char value[]) {
@@ -256,12 +262,14 @@ public final class Strings {
      * @return
      */
     public static char[] steal(final String str) {
-        if (CHARS_FIELD == null) {
+        if (CHARS_FIELD_GET == null) {
             return str.toCharArray();
         } else {
             try {
-                return (char[]) CHARS_FIELD.get(str);
-            } catch (IllegalArgumentException | IllegalAccessException ex) {
+                return (char[]) CHARS_FIELD_GET.invokeExact(str);
+            } catch (RuntimeException | Error ex) {
+              throw ex;
+            } catch (Throwable ex) {
                 throw new RuntimeException(ex);
             }
         }
