@@ -273,7 +273,7 @@ public final class Strings {
                 if (PROTECTED_STR_CONSTR_PARAM_TYPES.length == 3) {
                     return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(0, chars.length, chars);
                 } else {
-                    return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(chars, Boolean.TRUE);
+                    return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(chars, true);
                 }
             } catch (Error | RuntimeException ex) {
               throw ex;
