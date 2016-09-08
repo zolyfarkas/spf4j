@@ -20,7 +20,6 @@ package org.spf4j.stackmonitor;
 import org.spf4j.base.Method;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
-import gnu.trove.procedure.TObjectObjectProcedure;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -96,13 +95,9 @@ public final class SampleNode implements Serializable {
             return new SampleNode(node.sampleCount, null);
         }
         final THashMap<Method, SampleNode> newSubNodes = new THashMap<>(node.subNodes.size());
-        node.subNodes.forEachEntry(new TObjectObjectProcedure<Method, SampleNode>() {
-
-            @Override
-            public boolean execute(final Method a, final SampleNode b) {
-                newSubNodes.put(a, SampleNode.clone(b));
-                return true;
-            }
+        node.subNodes.forEachEntry((final Method a, final SampleNode b) -> {
+          newSubNodes.put(a, SampleNode.clone(b));
+          return true;
         });
         return new SampleNode(node.sampleCount, newSubNodes);
     }
@@ -119,28 +114,20 @@ public final class SampleNode implements Serializable {
         } else {
             final THashMap<Method, SampleNode> ns = new THashMap<>(node1.subNodes.size() + node2.subNodes.size());
 
-            node1.subNodes.forEachEntry(new TObjectObjectProcedure<Method, SampleNode>() {
-
-                @Override
-                public boolean execute(final Method m, final SampleNode b) {
-                    SampleNode other = node2.subNodes.get(m);
-                    if (other == null) {
-                        ns.put(m, SampleNode.clone(b));
-                    } else {
-                        ns.put(m, aggregate(b, other));
-                    }
-                    return true;
-                }
+            node1.subNodes.forEachEntry((final Method m, final SampleNode b) -> {
+              SampleNode other = node2.subNodes.get(m);
+              if (other == null) {
+                ns.put(m, SampleNode.clone(b));
+              } else {
+                ns.put(m, aggregate(b, other));
+              }
+              return true;
             });
-            node2.subNodes.forEachEntry(new TObjectObjectProcedure<Method, SampleNode>() {
-
-                @Override
-                public boolean execute(final Method m, final SampleNode b) {
-                    if (!node1.subNodes.containsKey(m)) {
-                        ns.put(m, SampleNode.clone(b));
-                    }
-                    return true;
-                }
+            node2.subNodes.forEachEntry((final Method m, final SampleNode b) -> {
+              if (!node1.subNodes.containsKey(m)) {
+                ns.put(m, SampleNode.clone(b));
+              }
+              return true;
             });
             newSubNodes = ns;
 
@@ -156,13 +143,9 @@ public final class SampleNode implements Serializable {
 
     public static void putAllClones(final TMap<Method, SampleNode> source,
             final TMap<Method, SampleNode> destination) {
-        source.forEachEntry(new TObjectObjectProcedure<Method, SampleNode>() {
-
-            @Override
-            public boolean execute(final Method a, final SampleNode b) {
-                destination.put(a, SampleNode.clone(b));
-                return true;
-            }
+        source.forEachEntry((final Method a, final SampleNode b) -> {
+          destination.put(a, SampleNode.clone(b));
+          return true;
         });
     }
 
@@ -327,36 +310,30 @@ public final class SampleNode implements Serializable {
     public static Graph<InvokedMethod, InvocationCount> toGraph(final SampleNode rootNode) {
         final HashMapGraph<InvokedMethod, InvocationCount> result = new HashMapGraph<>();
 
-        rootNode.forEach(new InvocationHandler() {
-            @Override
-            public void handle(final Method pfrom, final Method pto, final int count,
-                    final Map<Method, Integer> ancestors) {
+        rootNode.forEach((final Method pfrom, final Method pto,
+                final int count, final Map<Method, Integer> ancestors) -> {
+          InvokedMethod from;
+          InvokedMethod to;
+          Integer val = ancestors.get(pfrom);
+          if (val != null) {
+            from =  new InvokedMethod(pfrom, val - 1);
+          } else {
+            from =  new InvokedMethod(pfrom, 0);
+          }
+          val = ancestors.get(pto);
+          if (val != null) {
+            to = new InvokedMethod(pto, val);
+          } else {
+            to = new InvokedMethod(pto, 0);
+          }
 
-                InvokedMethod from;
-                InvokedMethod to;
-                Integer val = ancestors.get(pfrom);
-                if (val != null) {
-                    from =  new InvokedMethod(pfrom, val - 1);
-                } else {
-                    from =  new InvokedMethod(pfrom, 0);
-                }
-                val = ancestors.get(pto);
-                if (val != null) {
-                    to = new InvokedMethod(pto, val);
-                } else {
-                    to = new InvokedMethod(pto, 0);
-                }
+          InvocationCount ic = result.getEdge(from, to);
 
-                InvocationCount ic = result.getEdge(from, to);
-
-                if (ic == null) {
-                    result.add(new InvocationCount(count), from, to);
-                } else {
-                    ic.setValue(count + ic.getValue());
-                }
-
-
-            }
+          if (ic == null) {
+            result.add(new InvocationCount(count), from, to);
+          } else {
+            ic.setValue(count + ic.getValue());
+          }
         }, Method.ROOT, Method.ROOT, new HashMap<Method, Integer>());
 
         return result;
@@ -393,8 +370,6 @@ public final class SampleNode implements Serializable {
         }
         return Objects.equals(this.subNodes, other.subNodes);
     }
-
-
 
 
 }
