@@ -6,6 +6,7 @@ import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.Pair;
@@ -27,13 +28,12 @@ public interface TraceScope extends AutoCloseable, Consumer<StackTraceElement[]>
   @DischargesObligation
   void close();
 
-  <T> T execute(Callable<T> something);
+  <T> T executeSpan(CharSequence spanName, Function<TraceScope, T> something);
 
-  void execute(Runnable something);
+  void executeSpan(CharSequence spanName, Consumer<TraceScope> something);
 
   TraceScope startSpan(CharSequence spanName);
 
   <T> Callable<T> getTracedCallable(Callable<T> callable);
-
 
 }
