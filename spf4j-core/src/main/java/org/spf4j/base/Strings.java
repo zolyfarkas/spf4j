@@ -193,10 +193,14 @@ public final class Strings {
       }
     });
     MethodHandles.Lookup lookup = MethodHandles.lookup();
-    try {
-      CHARS_FIELD_GET = lookup.unreflectGetter(charsField);
-    } catch (IllegalAccessException ex) {
-      throw new ExceptionInInitializerError(ex);
+    if (charsField != null) {
+      try {
+        CHARS_FIELD_GET = lookup.unreflectGetter(charsField);
+      } catch (IllegalAccessException ex) {
+        throw new ExceptionInInitializerError(ex);
+      }
+    } else {
+        CHARS_FIELD_GET = null;
     }
 
     // up until u45 String(int offset, int count, char value[]) {
