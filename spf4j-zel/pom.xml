@@ -60,6 +60,12 @@
       <version>${avro.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.spf4j</groupId>
+      <artifactId>spf4j-junit</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   
   <build>
@@ -265,10 +271,24 @@
               </tasks>
             </configuration>
           </execution>
-
         </executions>
       </plugin>
-
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <properties>
+            <property>
+              <name>listener</name>
+              <value>org.spf4j.junit.Spf4jRunListener</value>
+            </property>
+            <property>
+              <name>spf4j.junit.sampleTimeMillis</name>
+              <value>5</value>
+            </property>
+          </properties>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   
