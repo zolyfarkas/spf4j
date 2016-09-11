@@ -193,7 +193,7 @@ public final class Sampler {
 
   @Nullable
   public File dumpToFile(@Nonnull final File file) throws IOException {
-    Preconditions.checkArgument(!file.getName().endsWith(".ssdump2"),
+    Preconditions.checkArgument(file.getName().endsWith(".ssdump2"),
             "File name must have ssdump2 extension not %s", file);
     SampleNode collected = stackCollector.clear();
     if (collected != null) {
