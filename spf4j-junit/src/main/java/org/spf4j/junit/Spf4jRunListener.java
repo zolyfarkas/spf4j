@@ -32,7 +32,7 @@ public final class Spf4jRunListener extends RunListener {
   public void testFailure(final Failure failure)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
     sampler.stop();
-    File dumpToFile = sampler.dumpToFile(new File(destinationFolder, failure.getTestHeader() + ".ssdump"));
+    File dumpToFile = sampler.dumpToFile(new File(destinationFolder, failure.getTestHeader() + ".ssdump2"));
     if (dumpToFile != null) {
       System.out.print("Profile saved to " + dumpToFile);
     }
@@ -42,7 +42,7 @@ public final class Spf4jRunListener extends RunListener {
   public void testFinished(final Description description)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
     sampler.stop();
-    File dumpToFile = sampler.dumpToFile(new File(destinationFolder, description.getDisplayName() + ".ssdump"));
+    File dumpToFile = sampler.dumpToFile(new File(destinationFolder, description.getDisplayName() + ".ssdump2"));
     if (dumpToFile != null) {
       System.out.print("Profile saved to " + dumpToFile);
     }
