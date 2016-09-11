@@ -42,7 +42,9 @@ import static org.spf4j.concurrent.RejectedExecutionHandler.REJECT_EXCEPTION_EXE
 import org.spf4j.ds.ZArrayDequeue;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
-
+//CHECKSTYLE:OFF
+import sun.misc.Contended;
+//CHECKSTYLE:ON
 /**
  *
  * Lifo scheduled java thread pool, based on talk: http://applicative.acm.org/speaker-BenMaurer.html This implementation
@@ -74,6 +76,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
   private final ZArrayDequeue<QueuedThread> threadQueue;
 
   @GuardedBy("stateLock")
+  @Contended("mutgr")
   private int maxThreadCount;
 
   @GuardedBy("stateLock")
@@ -84,12 +87,15 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
   private final Condition stateCondition;
 
   @GuardedBy("stateLock")
+  @Contended("mutgr")
   private int queueSizeLimit;
 
   @GuardedBy("stateLock")
+  @Contended("mutgr")
   private boolean daemonThreads;
 
   @GuardedBy("stateLock")
+  @Contended("mutgr")
   private int threadPriority;
 
   private final String poolName;
@@ -631,10 +637,13 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
   private static final class PoolState {
 
+    @Contended("mutgr")
     private int maxIdleTimeMillis;
 
+    @Contended("mutgr")
     private long maxIdleTimeNanos;
 
+    @Contended("mutgr")
     private boolean shutdown;
 
     private final int spinlockCount;
