@@ -24,7 +24,6 @@ import java.awt.Point;
 import java.util.List;
 import java.util.Map;
 import org.spf4j.base.EqualsPredicate;
-import org.spf4j.base.Pair;
 import org.spf4j.base.Method;
 import org.spf4j.stackmonitor.SampleNode;
 
