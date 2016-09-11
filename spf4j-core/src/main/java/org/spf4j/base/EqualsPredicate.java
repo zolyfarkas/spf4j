@@ -25,7 +25,7 @@ import javax.annotation.Nonnull;
  *
  * @author zoly
  */
-public final class EqualsPredicate<T> implements Predicate<Method> {
+public final class EqualsPredicate<T> implements Predicate<T> {
 
     private final T value;
 
@@ -34,7 +34,7 @@ public final class EqualsPredicate<T> implements Predicate<Method> {
     }
 
     @Override
-    public boolean test(@Nonnull final Method t) {
+    public boolean test(@Nonnull final T t) {
         return value.equals(t);
     }
 
