@@ -88,10 +88,7 @@ public final class Method implements Serializable {
         if (!this.declaringClass.equals(other.declaringClass)) {
             return false;
         }
-        if (!this.methodName.equals(other.methodName)) {
-            return false;
-        }
-        return true;
+        return this.methodName.equals(other.methodName);
     }
 
     @Override
