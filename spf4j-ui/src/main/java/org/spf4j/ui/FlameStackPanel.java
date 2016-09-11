@@ -96,9 +96,9 @@ public final class FlameStackPanel extends StackPanelBase {
 
     @Override
     public void filter() {
-        List<Pair<Method, Integer>> tips = search(xx, yy, 0, 0);
+        List<Sampled<Method>> tips = search(xx, yy, 0, 0);
         if (tips.size() >= 1) {
-            final Method value = tips.get(0).getFirst();
+            final Method value = tips.get(0).getObj();
             samples = samples.filteredBy(new EqualsPredicate<Method>(value));
             repaint();
         }
