@@ -233,8 +233,8 @@ public final class ZStackPanel extends StackPanelBase {
   public void filter() {
     List<Sampled<InvokedMethod>> tips = search(xx, yy, 0, 0);
     if (tips.size() >= 1) {
-      final InvokedMethod value = tips.get(0).getObj().withId(0);
-      samples = samples.filteredBy(new EqualsPredicate<InvokedMethod>(value));
+      final InvokedMethod value = tips.get(0).getObj();
+      samples = samples.filteredBy(new EqualsPredicate<>(value.getMethod()));
       if (samples != null) {
         this.completeGraph = SampleNode.toGraph(samples);
       } else {
