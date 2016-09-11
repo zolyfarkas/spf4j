@@ -17,6 +17,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import com.google.common.base.Preconditions;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +28,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.GuardedBy;
@@ -190,7 +192,9 @@ public final class Sampler {
   }
 
   @Nullable
-  public File dumpToFile(final File file) throws IOException {
+  public File dumpToFile(@Nonnull final File file) throws IOException {
+    Preconditions.checkArgument(!file.getName().endsWith(".ssdump2"),
+            "File name must have ssdump2 extension not %s", file);
     SampleNode collected = stackCollector.clear();
     if (collected != null) {
       Converter.save(file, collected);
