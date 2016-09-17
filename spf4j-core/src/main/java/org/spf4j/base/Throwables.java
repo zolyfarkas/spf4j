@@ -41,6 +41,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.Reflections.PackageInfo;
+import org.spf4j.ds.IdentityHashSet;
 
 /**
  * utility class for throwables.
@@ -511,7 +512,7 @@ public final class Throwables {
     ArrayDeque<Throwable> toScan =  new ArrayDeque<>();
     toScan.addFirst(t);
     Throwable th;
-    THashSet<Throwable> seen = new IdentityHashSet();
+    THashSet<Throwable> seen = new IdentityHashSet<>();
     while ((th = toScan.pollFirst()) != null) {
       if (seen.contains(th)) {
         continue;
@@ -598,19 +599,4 @@ public final class Throwables {
 //        }
 //    }
 
-  public static final class IdentityHashSet extends THashSet<Throwable> {
-
-    public IdentityHashSet() {
-    }
-
-    @Override
-    protected int hash(final Object notnull) {
-      return System.identityHashCode(notnull);
-    }
-
-    @Override
-    protected boolean equals(final Object notnull, final Object two) {
-      return notnull == two;
-    }
-  }
 }
