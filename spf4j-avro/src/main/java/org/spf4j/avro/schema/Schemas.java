@@ -100,7 +100,7 @@ public final class Schemas {
               visited.add(schema);
               break;
             case MAP:
-              terminate = visitNonTerminal(visitor, schema, dq, () -> Iterators.forArray(schema.getElementType()));
+              terminate = visitNonTerminal(visitor, schema, dq, () -> Iterators.forArray(schema.getValueType()));
               visited.add(schema);
               break;
             case NULL:
