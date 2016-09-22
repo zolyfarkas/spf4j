@@ -17,7 +17,13 @@
  */
 package org.spf4j.avro.schema;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import java.io.IOException;
+import java.util.Map;
 import org.apache.avro.Schema;
+import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -44,26 +50,36 @@ public class SchemasTest {
 
 
   @Test
-  public void testVisit() {
-    Schemas.visit(new Schema.Parser().parse(SCHEMA), new SchemaVisitor() {
-      @Override
-      public SchemaVisitorAction visitTerminal(Schema terminal) {
-        System.out.println("Terminal: " + terminal.getFullName());
-        return SchemaVisitorAction.CONTINUE;
-      }
+  public void testVisit() throws IOException {
+    Schemas.visit(new Schema.Parser().parse(SCHEMA), new PrintingVisitor());
 
-      @Override
-      public SchemaVisitorAction visitNonTerminal(Schema terminal) {
-        System.out.println("NONTerminal start: " + terminal.getFullName());
-        return SchemaVisitorAction.CONTINUE;
-      }
+    String schemaStr = Resources.toString(Resources.getResource("SchemaBuilder.avsc"), Charsets.US_ASCII);
+    Schema schema = new Schema.Parser().parse(schemaStr);
 
-      @Override
-      public SchemaVisitorAction afterVisitNonTerminal(Schema terminal) {
-        System.out.println("NONTerminal end: " + terminal.getFullName());
-        return SchemaVisitorAction.CONTINUE;
-      }
-    });
+    Map<String, Schema> schemas = Schemas.visit(schema, new SchemasWithClasses());
+    Assert.assertThat(schemas, Matchers.hasValue(schema));
+
+  }
+
+  private static class PrintingVisitor implements SchemaVisitor {
+
+    @Override
+    public SchemaVisitorAction visitTerminal(Schema terminal) {
+      System.out.println("Terminal: " + terminal.getFullName());
+      return SchemaVisitorAction.CONTINUE;
+    }
+
+    @Override
+    public SchemaVisitorAction visitNonTerminal(Schema terminal) {
+      System.out.println("NONTerminal start: " + terminal.getFullName());
+      return SchemaVisitorAction.CONTINUE;
+    }
+
+    @Override
+    public SchemaVisitorAction afterVisitNonTerminal(Schema terminal) {
+      System.out.println("NONTerminal end: " + terminal.getFullName());
+      return SchemaVisitorAction.CONTINUE;
+    }
   }
 
 }

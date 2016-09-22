@@ -18,9 +18,12 @@
 
 package org.spf4j.avro.schema;
 
+import com.google.common.annotations.Beta;
+
 /**
  * @author zoly
  */
+@Beta
 public enum SchemaVisitorAction {
 
     /**

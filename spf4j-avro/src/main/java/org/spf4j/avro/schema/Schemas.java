@@ -1,5 +1,6 @@
 package org.spf4j.avro.schema;
 
+import com.google.common.annotations.Beta;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import java.util.ArrayDeque;
@@ -8,16 +9,39 @@ import java.util.Iterator;
 import java.util.function.Supplier;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
+import org.apache.avro.compiler.specific.SpecificCompiler;
 import org.spf4j.base.Either;
 import org.spf4j.ds.IdentityHashSet;
 
 /**
- *
+ * Avro Schema utilities, to traverse...
  * @author zoly
  */
+@Beta
 public final class Schemas {
 
   private Schemas() {
+  }
+
+  public static boolean hasGeneratedJavaClass(final Schema schema) {
+    Schema.Type type = schema.getType();
+    switch (type) {
+      case ENUM:
+      case RECORD:
+      case FIXED:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  public static String getJavaClassName(final Schema schema) {
+    String namespace = schema.getNamespace();
+    if (namespace.isEmpty()) {
+      return SpecificCompiler.mangle(schema.getName());
+    } else {
+      return namespace + '.' + SpecificCompiler.mangle(schema.getName());
+    }
   }
 
   /**
@@ -26,7 +50,7 @@ public final class Schemas {
    * @param start
    * @param visitor
    */
-  public static void visit(final Schema start, final SchemaVisitor visitor) {
+  public static <T> T visit(final Schema start, final SchemaVisitor<T> visitor) {
     // Set of Visited Schemas
     IdentityHashSet<Schema> visited = new IdentityHashSet<>();
     // Stack that contains the Schams to process and afterVisitNonTerminal functions.
@@ -43,21 +67,23 @@ public final class Schemas {
           case SKIP_SUBTREE:
             throw new UnsupportedOperationException();
           case SKIP_SIBLINGS:
+            //CHECKSTYLE:OFF InnerAssignment
             while ((current = dq.getLast()).isLeft()) {
               // just skip
             }
+            //CHECKSTYLE:ON
             dq.addLast(current);
             break;
           case TERMINATE:
-            return;
+            return visitor.get();
           default:
             throw new UnsupportedOperationException("Invalid action " + action);
         }
       } else {
         Schema schema = current.getLeft();
+        boolean terminate;
         if (!visited.contains(schema)) {
           Schema.Type type = schema.getType();
-          boolean terminate;
           switch (type) {
             case ARRAY:
               terminate = visitNonTerminal(visitor, schema, dq,
@@ -76,6 +102,7 @@ public final class Schemas {
             case MAP:
               terminate = visitNonTerminal(visitor, schema, dq, () -> Iterators.forArray(schema.getElementType()));
               visited.add(schema);
+              break;
             case NULL:
             case BOOLEAN:
             case BYTES:
@@ -91,12 +118,16 @@ public final class Schemas {
             default:
               throw new UnsupportedOperationException("Invalid type " + type);
           }
-          if (terminate) {
-            return;
-          }
+
+        } else {
+          terminate = visitTerminal(visitor, schema, dq);
+        }
+        if (terminate) {
+            return visitor.get();
         }
       }
     }
+    return visitor.get();
   }
 
   private static boolean visitNonTerminal(final SchemaVisitor visitor,
@@ -117,9 +148,11 @@ public final class Schemas {
         break;
       case SKIP_SIBLINGS:
         Either<Schema, Supplier<SchemaVisitorAction>> current;
+        //CHECKSTYLE:OFF InnerAssignment
         while ((current = dq.getLast()).isLeft()) {
           // just skip
         }
+        //CHECKSTYLE:ON
         dq.addLast(current);
         break;
       case TERMINATE:
@@ -140,9 +173,11 @@ public final class Schemas {
         throw new UnsupportedOperationException("Invalid action " + action + " for " + schema);
       case SKIP_SIBLINGS:
         Either<Schema, Supplier<SchemaVisitorAction>> current;
+        //CHECKSTYLE:OFF InnerAssignment
         while ((current = dq.getLast()).isLeft()) {
           // just skip
         }
+        //CHECKSTYLE:ON
         dq.addLast(current);
         break;
       case TERMINATE:

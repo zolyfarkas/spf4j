@@ -17,6 +17,7 @@
  */
 package org.spf4j.avro.schema;
 
+import com.google.common.annotations.Beta;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -25,8 +26,9 @@ import org.apache.avro.Schema;
 /**
  * @author zoly
  */
+@Beta
 @ParametersAreNonnullByDefault
-public interface SchemaVisitor {
+public interface SchemaVisitor<T> {
 
   @Nonnull
   @CheckReturnValue
@@ -40,5 +42,9 @@ public interface SchemaVisitor {
   @CheckReturnValue
   SchemaVisitorAction afterVisitNonTerminal(Schema terminal);
 
+
+  default T get() {
+    return null;
+  }
 
 }

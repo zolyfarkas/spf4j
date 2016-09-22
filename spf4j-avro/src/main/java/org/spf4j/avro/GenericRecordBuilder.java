@@ -18,6 +18,7 @@
 
 package org.spf4j.avro;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.Preconditions;
 import java.io.Closeable;
 import java.io.File;
@@ -27,19 +28,19 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.avro.Schema;
 import org.apache.avro.compiler.specific.SpecificCompiler;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.codehaus.commons.compiler.AbstractJavaSourceClassLoader;
 import org.codehaus.commons.compiler.CompilerFactoryFactory;
+import org.spf4j.avro.schema.Schemas;
 
 /**
  *
  * @author zoly
  */
+@Beta
 public final class GenericRecordBuilder implements Closeable {
 
   private final File tmpDir;
@@ -52,13 +53,13 @@ public final class GenericRecordBuilder implements Closeable {
     this(GenericData.StringType.String);
   }
 
-  public GenericRecordBuilder(GenericData.StringType stringType) {
+  public GenericRecordBuilder(final GenericData.StringType stringType) {
     tmpDir = com.google.common.io.Files.createTempDir();
     this.stringType = stringType;
     try {
       AbstractJavaSourceClassLoader src = CompilerFactoryFactory.getDefaultCompilerFactory()
               .newJavaSourceClassLoader(Thread.currentThread().getContextClassLoader());
-      src.setSourcePath(new File [] { tmpDir });
+      src.setSourcePath(new File[] {tmpDir});
       this.source = src;
     } catch (Exception ex) {
      throw new RuntimeException(ex);
@@ -69,7 +70,8 @@ public final class GenericRecordBuilder implements Closeable {
   public GenericRecordBuilder addSchema(final Schema schema) {
     SpecificCompiler sc = new SpecificCompiler(schema);
     sc.setStringType(stringType);
-    sc.setTemplateDir("org/spf4j/beans/"); // use a custom template that does not contain the builder.
+     // use a custom template that does not contain the builder (janino can't compile builder).
+    sc.setTemplateDir("org/spf4j/avro/");
     try {
       sc.compileToDestination(null, tmpDir);
     } catch (IOException ex) {
@@ -79,32 +81,10 @@ public final class GenericRecordBuilder implements Closeable {
   }
 
 
-  public static String getJavaName(final Schema schema) {
-    String namespace = schema.getNamespace();
-    if (namespace.isEmpty()) {
-      return SpecificCompiler.mangle(schema.getName());
-    } else {
-      return namespace + '.' + SpecificCompiler.mangle(schema.getName());
-    }
-  }
-
-  public static boolean hasJavaClass(final Schema schema) {
-    Schema.Type type = schema.getType();
-    switch (type) {
-      case ENUM:
-      case RECORD:
-      case FIXED:
-        return true;
-      default:
-        return false;
-    }
-  }
-
-
   public Class<? extends SpecificRecordBase> getClass(final Schema schema) {
-    Preconditions.checkArgument(hasJavaClass(schema), "schema %s has no java class", schema);
+    Preconditions.checkArgument(Schemas.hasGeneratedJavaClass(schema), "schema %s has no java class", schema);
     try {
-      return (Class<? extends SpecificRecordBase>) source.loadClass(getJavaName(schema));
+      return (Class<? extends SpecificRecordBase>) source.loadClass(Schemas.getJavaClassName(schema));
     } catch (ClassNotFoundException ex) {
       throw new RuntimeException(ex);
     }
@@ -113,32 +93,41 @@ public final class GenericRecordBuilder implements Closeable {
   @Override
   public void close() {
     try {
-      Files.walkFileTree(tmpDir.toPath(), new FileVisitor<Path>() {
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-          Files.deleteIfExists(file);
-          return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-          Files.deleteIfExists(dir);
-          return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-          return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-          throw exc;
-        }
-
-      });
+      Files.walkFileTree(tmpDir.toPath(), new DeletingVisitor());
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
   }
+
+  @Override
+  public String toString() {
+    return "GenericRecordBuilder{" + "tmpDir=" + tmpDir + ", stringType=" + stringType + ", source=" + source + '}';
+  }
+
+  public static final class DeletingVisitor implements FileVisitor<Path> {
+
+
+    @Override
+    public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+      Files.deleteIfExists(file);
+      return FileVisitResult.CONTINUE;
+    }
+
+    @Override
+    public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
+      Files.deleteIfExists(dir);
+      return FileVisitResult.CONTINUE;
+    }
+
+    @Override
+    public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) {
+      return FileVisitResult.CONTINUE;
+    }
+
+    @Override
+    public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
+      throw exc;
+    }
+  }
+
 }
