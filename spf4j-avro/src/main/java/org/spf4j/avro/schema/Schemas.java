@@ -37,7 +37,7 @@ public final class Schemas {
 
   public static String getJavaClassName(final Schema schema) {
     String namespace = schema.getNamespace();
-    if (namespace.isEmpty()) {
+    if (namespace == null || namespace.isEmpty()) {
       return SpecificCompiler.mangle(schema.getName());
     } else {
       return namespace + '.' + SpecificCompiler.mangle(schema.getName());
