@@ -59,7 +59,7 @@ public final class Throwables {
     private static final Logger LOG = LoggerFactory.getLogger(Throwables.Lazy.class);
   }
 
-  private static final int MAX_THROWABLE_CHAIN
+  public static final int MAX_THROWABLE_CHAIN
           = Integer.getInteger("spf4j.throwables.defaultMaxSuppressChain", 200);
 
   private static final Field CAUSE_FIELD;
