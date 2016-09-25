@@ -13,7 +13,7 @@ import org.spf4j.zel.instr.Instruction;
  *
  * @author zoly
  */
-@SuppressFBWarnings("FCD_FIND_CIRCULAR_DEPENDENCY")
+@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 public final class ZelFrame implements Serializable {
 
 
