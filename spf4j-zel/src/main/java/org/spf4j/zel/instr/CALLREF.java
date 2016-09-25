@@ -65,10 +65,13 @@ public final class CALLREF extends Instruction {
         }
 
         @Override
-        public void assign(final Object object) {
+        public void assign(final Object object) throws ExecutionException {
+          if (function instanceof Program && ((Program) function).getType() == Program.Type.DETERMINISTIC) {
             context.getResultCache().putPermanentResult((Program) function,
-                    Arrays.asList(parameters), object);
-
+                      Arrays.asList(parameters), object);
+          } else {
+            throw new ZExecutionException("Function " + function  + " must be deterministic to memorize value ");
+          }
         }
 
         @Override
