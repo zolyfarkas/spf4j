@@ -115,9 +115,9 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
     result[m] = "QNI_" + lm;
     uom[m] = "count";
     m++;
-    int k = 1;
     bucketLimits[0] = lm;
     if (magnitudes.length > 0) {
+      int k = 1;
       long prevVal = lm;
       StringBuilder sb = new StringBuilder(16);
       for (int i = 1; i < magnitudes.length; i++) {

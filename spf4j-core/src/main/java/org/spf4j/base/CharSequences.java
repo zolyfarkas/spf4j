@@ -228,12 +228,13 @@ public final class CharSequences {
 
     int result = 0;
     boolean negative = false;
-    int i = 0, len = cs.length();
-    int limit = -Integer.MAX_VALUE;
-    int multmin;
-    int digit;
+    int len = cs.length();
 
     if (len > 0) {
+      int i = 0;
+      int limit = -Integer.MAX_VALUE;
+      int multmin;
+      int digit;
       char firstChar = cs.charAt(0);
       if (firstChar < '0') { // Possible leading "+" or "-"
         if (firstChar == '-') {
@@ -299,12 +300,13 @@ public final class CharSequences {
 
     long result = 0;
     boolean negative = false;
-    int i = 0, len = cs.length();
-    long limit = -Long.MAX_VALUE;
-    long multmin;
-    int digit;
+    int len = cs.length();
 
     if (len > 0) {
+      int i = 0;
+      long limit = -Long.MAX_VALUE;
+      long multmin;
+      int digit;
       char firstChar = cs.charAt(0);
       if (firstChar < '0') { // Possible leading "+" or "-"
         if (firstChar == '-') {

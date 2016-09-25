@@ -28,8 +28,6 @@ public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializab
 
     public final class ElementRef implements Comparable<ElementRef> {
 
-        private static final long serialVersionUID = 1L;
-
         private E elem;
         private int index;
 

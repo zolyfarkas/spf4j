@@ -76,7 +76,6 @@ public final class TSDBWriter implements Closeable, Flushable {
     @CreatesObligation
     public TSDBWriter(final File file, final int maxRowsPerBlock,
             final String description, final boolean append) throws IOException {
-        SpecificDatumWriter<Header> headerWriter = new SpecificDatumWriter<>(Header.SCHEMA$);
         this.file = file;
         this.maxRowsPerBlock = maxRowsPerBlock;
         this.writeBlock = new DataBlock();
@@ -99,6 +98,7 @@ public final class TSDBWriter implements Closeable, Flushable {
                     .setContentSchema(FILE_RECORD_SCHEMA.toString())
                     .setDescription(description)
                     .build();
+            SpecificDatumWriter<Header> headerWriter = new SpecificDatumWriter<>(Header.SCHEMA$);
             headerWriter.write(header, encoder);
             encoder.flush();
             byte[] buffer = bab.getBuffer();

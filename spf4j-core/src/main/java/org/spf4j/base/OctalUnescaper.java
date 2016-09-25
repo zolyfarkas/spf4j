@@ -7,9 +7,9 @@ package org.spf4j.base;
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,8 +29,8 @@ public final class OctalUnescaper extends CharSequenceTranslator {
     @Override
     public int translate(final CharSequence input, final int index, final Writer out) throws IOException {
         int remaining = input.length() - index - 1; // how many characters left, ignoring the first \
-        StringBuilder builder = new StringBuilder();
         if (remaining > 0 && input.charAt(index) == '\\' && isOctalDigit(input.charAt(index + 1))) {
+            StringBuilder builder = new StringBuilder();
             int next = index + 1;
             int next2 = index + 2;
             int next3 = index + 3;
