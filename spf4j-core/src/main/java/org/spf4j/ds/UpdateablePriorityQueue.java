@@ -1,5 +1,6 @@
 package org.spf4j.ds;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.ArrayDeque;
@@ -373,6 +374,7 @@ public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializab
     }
 
     @Nullable
+    @SuppressFBWarnings("BAS_BLOATED_ASSIGNMENT_SCOPE")
     public E poll() {
         if (size == 0) {
             return null;
