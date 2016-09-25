@@ -17,6 +17,7 @@
  */
 package org.spf4j.zel.instr;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
@@ -31,6 +32,7 @@ public final class MOV extends Instruction {
     }
 
     @Override
+    @SuppressFBWarnings("BAS_BLOATED_ASSIGNMENT_SCOPE")
     public int execute(final ExecutionContext context)
             throws ExecutionException, InterruptedException {
         Object what = context.pop();
