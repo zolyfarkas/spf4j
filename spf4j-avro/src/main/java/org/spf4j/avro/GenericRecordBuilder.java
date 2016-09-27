@@ -24,6 +24,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
+import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
 import org.apache.avro.compiler.specific.SpecificCompiler;
 import org.apache.avro.generic.GenericData;
@@ -32,6 +34,7 @@ import org.codehaus.commons.compiler.AbstractJavaSourceClassLoader;
 import org.codehaus.commons.compiler.CompilerFactoryFactory;
 import org.spf4j.avro.schema.Schemas;
 import org.spf4j.io.DeletingVisitor;
+import org.spf4j.io.SetFilesReadOnlyVisitor;
 
 /**
  *
@@ -46,13 +49,14 @@ public final class GenericRecordBuilder implements Closeable {
 
   private final AbstractJavaSourceClassLoader source;
 
-  public GenericRecordBuilder() {
-    this(GenericData.StringType.String);
+  public GenericRecordBuilder(final Schema ... schemas) {
+    this(GenericData.StringType.String, schemas);
   }
 
-  public GenericRecordBuilder(final GenericData.StringType stringType) {
+  public GenericRecordBuilder(final GenericData.StringType stringType, final Schema ... schemas) {
     tmpDir = com.google.common.io.Files.createTempDir();
     this.stringType = stringType;
+    generateClasses(stringType, schemas);
     try {
       AbstractJavaSourceClassLoader src = CompilerFactoryFactory.getDefaultCompilerFactory()
               .newJavaSourceClassLoader(Thread.currentThread().getContextClassLoader());
@@ -64,9 +68,23 @@ public final class GenericRecordBuilder implements Closeable {
   }
 
 
-  public GenericRecordBuilder addSchema(final Schema schema) {
-    SpecificCompiler sc = new SpecificCompiler(schema);
-    sc.setStringType(stringType);
+  private void generateClasses(final GenericData.StringType st, final Schema ...schemas) {
+    String[] namespaces = new String[schemas.length];
+    for (int i = 0; i < schemas.length; i++) {
+      String namespace = schemas[i].getNamespace();
+      if (namespace == null) {
+        namespace = "";
+      }
+      namespaces[i] = namespace;
+    }
+    String commonPrefix = org.spf4j.base.Strings.commonPrefix(namespaces);
+    if (commonPrefix.endsWith(".")) {
+      commonPrefix = commonPrefix.substring(0, commonPrefix.length() - 1);
+    }
+    Protocol proto = new Protocol("generated", commonPrefix);
+    proto.setTypes(Arrays.asList(schemas));
+    SpecificCompiler sc = new SpecificCompiler(proto);
+    sc.setStringType(st);
      // use a custom template that does not contain the builder (janino can't compile builder).
     sc.setTemplateDir("org/spf4j/avro/");
     try {
@@ -74,7 +92,11 @@ public final class GenericRecordBuilder implements Closeable {
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
-    return this;
+    try {
+      Files.walkFileTree(tmpDir.toPath(), new SetFilesReadOnlyVisitor());
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
 
@@ -100,6 +122,8 @@ public final class GenericRecordBuilder implements Closeable {
   public String toString() {
     return "GenericRecordBuilder{" + "tmpDir=" + tmpDir + ", stringType=" + stringType + ", source=" + source + '}';
   }
+
+
 
 
 }

@@ -24,8 +24,7 @@ public class GenericRecordBuilderTest {
   public void testGenericRecordCreation() throws IOException, Exception {
     String schemaStr = Resources.toString(Resources.getResource("SchemaBuilder.avsc"), Charsets.US_ASCII);
     Schema schema = new Schema.Parser().parse(schemaStr);
-    try (GenericRecordBuilder builder = new GenericRecordBuilder()) {
-      builder.addSchema(schema);
+    try (GenericRecordBuilder builder = new GenericRecordBuilder(schema)) {
       Class<? extends SpecificRecordBase> clasz = builder.getClass(schema);
       GenericRecord record = clasz.newInstance();
       record.put("requiredBoolean", Boolean.TRUE);
@@ -40,14 +39,27 @@ public class GenericRecordBuilderTest {
   }
 
   @Test
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   public void testMoreGenericRecordCreation() throws InstantiationException, IllegalAccessException {
-    Schema record = SchemaBuilder.builder().record("TestRecord").fields().requiredInt("number").endRecord();
-    try (GenericRecordBuilder builder = new GenericRecordBuilder()) {
-      builder.addSchema(record);
+    Schema reuse = SchemaBuilder.builder().record("Reuse").fields().requiredString("field").endRecord();
+    Schema record = SchemaBuilder.builder().record("TestRecord").fields()
+            .requiredInt("number")
+            .name("record").type(reuse).noDefault()
+            .endRecord();
+    Schema record2 = SchemaBuilder.builder().record("TestRecord2").fields()
+            .requiredBoolean("isThere")
+            .name("record").type(reuse).noDefault()
+            .endRecord();
+    try (GenericRecordBuilder builder = new GenericRecordBuilder(record, record2)) {
       Class<? extends SpecificRecordBase> clasz = builder.getClass(record);
+      Class<? extends SpecificRecordBase> clasz2 = builder.getClass(record);
+      Assert.assertSame(clasz, clasz2);
       SpecificRecordBase myRecord = clasz.newInstance();
       myRecord.put("number", 35);
       Assert.assertEquals(35, (int) myRecord.get("number"));
+      Class<? extends SpecificRecordBase> aClass = builder.getClass(record2);
+      GenericRecord r2 = aClass.newInstance();
+      System.out.println(r2);
     }
   }
 
