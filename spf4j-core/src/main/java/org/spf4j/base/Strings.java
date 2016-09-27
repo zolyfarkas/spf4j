@@ -19,6 +19,7 @@
 package org.spf4j.base;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -691,6 +692,18 @@ public final class Strings {
       return value;
     }
   }
+
+
+  @Nonnull
+  public static String commonPrefix(@Nonnull final String ... strs) {
+    Preconditions.checkArgument(strs.length > 0, "Must have at least 1 string %s", strs);
+    String common = strs[0];
+    for (int i = 1; i < strs.length; i++) {
+      common = com.google.common.base.Strings.commonPrefix(common, strs[i]);
+    }
+    return common;
+  }
+
 
 
 }
