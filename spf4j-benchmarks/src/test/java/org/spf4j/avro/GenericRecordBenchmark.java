@@ -51,6 +51,8 @@ public class GenericRecordBenchmark {
     GenericRecord record =  CLASZ.newInstance();
     record.put("requiredBoolean", true);
     assert (Boolean) record.get("requiredBoolean");
+    record.put(1, true);
+    assert (Boolean) record.get(1);
     return record;
   }
 
@@ -59,6 +61,8 @@ public class GenericRecordBenchmark {
     GenericRecord record = new GenericData.Record(SCHEMA);
     record.put("requiredBoolean", true);
     assert (Boolean) record.get("requiredBoolean");
+    record.put(1, true);
+    assert (Boolean) record.get(1);
     return record;
   }
 

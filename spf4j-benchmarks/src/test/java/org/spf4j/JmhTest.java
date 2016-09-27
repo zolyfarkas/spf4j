@@ -20,6 +20,7 @@ public final class JmhTest {
   public void runJmh() throws RunnerException, IOException {
     if ("true".equalsIgnoreCase(System.getenv("TRAVIS"))) {
       System.err.println("Benchmarks disabled in travis, not enough resources for this...");
+      return;
     }
     final String destinationFolder = System.getProperty("basedir",
             org.spf4j.base.Runtime.USER_DIR) + "/target";
