@@ -40,6 +40,7 @@ public final class SchemasWithClasses implements SchemaVisitor<Map<String, Schem
     return SchemaVisitorAction.CONTINUE;
   }
 
+  @Override
   public Map<String, Schema> get() {
     return schemas;
   }
