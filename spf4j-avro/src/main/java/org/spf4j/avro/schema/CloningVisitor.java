@@ -4,18 +4,31 @@ package org.spf4j.avro.schema;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.function.BiConsumer;
 import org.apache.avro.Schema;
 import static org.apache.avro.Schema.Type.RECORD;
 
 /**
- * this visitor will create a clone of the original Schema with docs and other nonesential fields stripped.
+ * this visitor will create a clone of the original Schema with docs and other nonesential fields stripped
+ * by default. what attributes are copied is customizable.
  * @author zoly
  */
-public final class TrimNonEsentialProperties implements SchemaVisitor<Schema> {
+public final class CloningVisitor implements SchemaVisitor<Schema> {
 
   private final IdentityHashMap<Schema, Schema> replace = new IdentityHashMap<>();
 
   private Schema root = null;
+
+  private final BiConsumer<Schema, Schema> copyProperties;
+
+
+  public CloningVisitor() {
+    this(Schemas::copyLogicalTypes);
+  }
+
+  public CloningVisitor(final BiConsumer<Schema, Schema> copyProperties) {
+    this.copyProperties = copyProperties;
+  }
 
   @Override
   public SchemaVisitorAction visitTerminal(final Schema terminal) {
@@ -53,7 +66,7 @@ public final class TrimNonEsentialProperties implements SchemaVisitor<Schema> {
       default:
         throw new IllegalStateException("Unsupported schema " + terminal);
     }
-    Schemas.copyLogicalType(terminal, newSchema);
+    copyProperties.accept(terminal, newSchema);
     replace.put(terminal, newSchema);
     return SchemaVisitorAction.CONTINUE;
   }
@@ -67,7 +80,7 @@ public final class TrimNonEsentialProperties implements SchemaVisitor<Schema> {
     if  (type == RECORD) {
         Schema newSchema = Schema.createRecord(nt.getName(), null, nt.getNamespace(), nt.isError());
         Schemas.copyAliases(nt, newSchema);
-        Schemas.copyLogicalType(nt, newSchema);
+        copyProperties.accept(nt, newSchema);
         replace.put(nt, newSchema);
     }
     return SchemaVisitorAction.CONTINUE;
@@ -108,7 +121,7 @@ public final class TrimNonEsentialProperties implements SchemaVisitor<Schema> {
        default:
          throw new IllegalStateException("Illegal type " + type + ", schema " + nt);
      }
-     Schemas.copyLogicalType(nt, newSchema);
+     copyProperties.accept(nt, newSchema);
      replace.put(nt, newSchema);
      return SchemaVisitorAction.CONTINUE;
   }

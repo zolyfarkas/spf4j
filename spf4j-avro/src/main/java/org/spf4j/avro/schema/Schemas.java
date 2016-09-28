@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import org.apache.avro.LogicalType;
@@ -38,10 +39,17 @@ public final class Schemas {
     }
   }
 
-  public static void copyLogicalType(final Schema from, final Schema to) {
+  public static void copyLogicalTypes(final Schema from, final Schema to) {
     LogicalType logicalType = from.getLogicalType();
     if (logicalType != null) {
       logicalType.addToSchema(to);
+    }
+  }
+
+  public static void copyProperties(final Schema from, final Schema to) {
+    Map<String, Object> objectProps = from.getObjectProps();
+    for (Map.Entry<String, Object> entry : objectProps.entrySet()) {
+      to.addProp(entry.getKey(), entry.getValue());
     }
   }
 

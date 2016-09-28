@@ -61,7 +61,7 @@ public class SchemasTest {
     Map<String, Schema> schemas = Schemas.visit(schema, new SchemasWithClasses());
     Assert.assertThat(schemas, Matchers.hasValue(schema));
 
-    Schema trimmed = Schemas.visit(recSchema, new TrimNonEsentialProperties());
+    Schema trimmed = Schemas.visit(recSchema, new CloningVisitor());
     Assert.assertNull(trimmed.getDoc());
     Assert.assertNotNull(recSchema.getDoc());
 
