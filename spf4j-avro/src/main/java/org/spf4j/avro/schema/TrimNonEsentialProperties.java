@@ -11,7 +11,7 @@ import static org.apache.avro.Schema.Type.RECORD;
  * this visitor will create a clone of the original Schema with docs and other nonesential fields stripped.
  * @author zoly
  */
-public final class TrimNoneEsentialProperties implements SchemaVisitor<Schema> {
+public final class TrimNonEsentialProperties implements SchemaVisitor<Schema> {
 
   private final IdentityHashMap<Schema, Schema> replace = new IdentityHashMap<>();
 
