@@ -12,7 +12,6 @@ import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.compiler.specific.SpecificCompiler;
-import org.spf4j.base.Either;
 import org.spf4j.ds.IdentityHashSet;
 
 /**
@@ -77,13 +76,15 @@ public final class Schemas {
     // Set of Visited Schemas
     IdentityHashSet<Schema> visited = new IdentityHashSet<>();
     // Stack that contains the Schams to process and afterVisitNonTerminal functions.
-    Deque<Either<Schema, Supplier<SchemaVisitorAction>>> dq = new ArrayDeque<>();
-    dq.addLast(Either.left(start));
-    Either<Schema, Supplier<SchemaVisitorAction>> current;
+    // Deque<Either<Schema, Supplier<SchemaVisitorAction>>>
+    // Using either has a cost which we want to avoid...
+    Deque<Object> dq = new ArrayDeque<>();
+    dq.addLast(start);
+    Object current;
     while ((current = dq.pollLast()) != null) {
-      if (current.isRight()) {
+      if (current instanceof Supplier) {
         // we are executing a non terminal post visit.
-        SchemaVisitorAction action = current.getRight().get();
+        SchemaVisitorAction action = ((Supplier<SchemaVisitorAction>) current).get();
         switch (action) {
           case CONTINUE:
             break;
@@ -91,7 +92,7 @@ public final class Schemas {
             throw new UnsupportedOperationException();
           case SKIP_SIBLINGS:
             //CHECKSTYLE:OFF InnerAssignment
-            while ((current = dq.getLast()).isLeft()) {
+            while ((current = dq.getLast()) instanceof Schema) {
               // just skip
             }
             //CHECKSTYLE:ON
@@ -103,7 +104,7 @@ public final class Schemas {
             throw new UnsupportedOperationException("Invalid action " + action);
         }
       } else {
-        Schema schema = current.getLeft();
+        Schema schema = (Schema) current;
         boolean terminate;
         if (!visited.contains(schema)) {
           Schema.Type type = schema.getType();
@@ -154,25 +155,25 @@ public final class Schemas {
   }
 
   private static boolean visitNonTerminal(final SchemaVisitor visitor,
-          final Schema schema, final Deque<Either<Schema, Supplier<SchemaVisitorAction>>> dq,
+          final Schema schema, final Deque<Object> dq,
           final Supplier<Iterator<Schema>> itSupp) {
     SchemaVisitorAction action = visitor.visitNonTerminal(schema);
     switch (action) {
       case CONTINUE:
-        dq.addLast(Either.right(() -> visitor.afterVisitNonTerminal(schema)));
+        dq.addLast((Supplier<SchemaVisitorAction>) () -> visitor.afterVisitNonTerminal(schema));
         Iterator<Schema> it = itSupp.get();
         while (it.hasNext()) {
           Schema child = it.next();
-          dq.addLast(Either.left(child));
+          dq.addLast(child);
         }
         break;
       case SKIP_SUBTREE:
-        dq.addLast(Either.right(() -> visitor.afterVisitNonTerminal(schema)));
+        dq.addLast((Supplier<SchemaVisitorAction>) () -> visitor.afterVisitNonTerminal(schema));
         break;
       case SKIP_SIBLINGS:
-        Either<Schema, Supplier<SchemaVisitorAction>> current;
+        Object current;
         //CHECKSTYLE:OFF InnerAssignment
-        while ((current = dq.getLast()).isLeft()) {
+        while ((current = dq.getLast()) instanceof Schema) {
           // just skip
         }
         //CHECKSTYLE:ON
@@ -187,7 +188,7 @@ public final class Schemas {
   }
 
   private static boolean visitTerminal(final SchemaVisitor visitor, final Schema schema,
-          final Deque<Either<Schema, Supplier<SchemaVisitorAction>>> dq) {
+          final Deque<Object> dq) {
     SchemaVisitorAction action = visitor.visitTerminal(schema);
     switch (action) {
       case CONTINUE:
@@ -195,9 +196,9 @@ public final class Schemas {
       case SKIP_SUBTREE:
         throw new UnsupportedOperationException("Invalid action " + action + " for " + schema);
       case SKIP_SIBLINGS:
-        Either<Schema, Supplier<SchemaVisitorAction>> current;
+        Object current;
         //CHECKSTYLE:OFF InnerAssignment
-        while ((current = dq.getLast()).isLeft()) {
+        while ((current = dq.getLast()) instanceof Schema) {
           // just skip
         }
         //CHECKSTYLE:ON
