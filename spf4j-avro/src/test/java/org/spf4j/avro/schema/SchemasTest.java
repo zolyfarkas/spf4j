@@ -22,6 +22,7 @@ import com.google.common.io.Resources;
 import java.io.IOException;
 import java.util.Map;
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaCompatibility;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,10 +33,10 @@ import org.junit.Test;
  */
 public class SchemasTest {
 
-  private static final String SCHEMA = "{\"type\":\"record\",\"name\":\"SampleNode\","
+  private static final String SCHEMA = "{\"type\":\"record\",\"name\":\"SampleNode\",\"doc\":\"caca\","
       + "\"namespace\":\"org.spf4j.ssdump2.avro\",\n" +
       " \"fields\":[\n" +
-      "    {\"name\":\"count\",\"type\":\"int\",\"default\":0},\n" +
+      "    {\"name\":\"count\",\"type\":\"int\",\"default\":0,\"doc\":\"caca\"},\n" +
       "    {\"name\":\"subNodes\",\"type\":\n" +
       "       {\"type\":\"array\",\"items\":{\n" +
       "           \"type\":\"record\",\"name\":\"SamplePair\",\n" +
@@ -51,13 +52,24 @@ public class SchemasTest {
 
   @Test
   public void testVisit() throws IOException {
-    Schemas.visit(new Schema.Parser().parse(SCHEMA), new PrintingVisitor());
+    Schema recSchema = new Schema.Parser().parse(SCHEMA);
+    Schemas.visit(recSchema, new PrintingVisitor());
 
     String schemaStr = Resources.toString(Resources.getResource("SchemaBuilder.avsc"), Charsets.US_ASCII);
     Schema schema = new Schema.Parser().parse(schemaStr);
 
     Map<String, Schema> schemas = Schemas.visit(schema, new SchemasWithClasses());
     Assert.assertThat(schemas, Matchers.hasValue(schema));
+
+    Schema trimmed = Schemas.visit(recSchema, new TrimNoneEsentialProperties());
+    Assert.assertNull(trimmed.getDoc());
+    Assert.assertNotNull(recSchema.getDoc());
+
+    SchemaCompatibility.SchemaCompatibilityType compat =
+            SchemaCompatibility.checkReaderWriterCompatibility(trimmed, recSchema).getType();
+    Assert.assertEquals(SchemaCompatibility.SchemaCompatibilityType.COMPATIBLE, compat);
+    compat = SchemaCompatibility.checkReaderWriterCompatibility(recSchema, trimmed).getType();
+    Assert.assertEquals(SchemaCompatibility.SchemaCompatibilityType.COMPATIBLE, compat);
 
   }
 

@@ -36,11 +36,11 @@ public interface SchemaVisitor<T> {
 
   @Nonnull
   @CheckReturnValue
-  SchemaVisitorAction visitNonTerminal(Schema terminal);
+  SchemaVisitorAction visitNonTerminal(Schema nonTerminal);
 
   @Nonnull
   @CheckReturnValue
-  SchemaVisitorAction afterVisitNonTerminal(Schema terminal);
+  SchemaVisitorAction afterVisitNonTerminal(Schema nonTerminal);
 
 
   default T get() {

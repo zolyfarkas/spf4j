@@ -6,7 +6,9 @@ import com.google.common.collect.Lists;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.function.Supplier;
+import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.compiler.specific.SpecificCompiler;
@@ -21,6 +23,27 @@ import org.spf4j.ds.IdentityHashSet;
 public final class Schemas {
 
   private Schemas() {
+  }
+
+  public static void copyAliases(final Schema from, final Schema to) {
+    Set<String> aliases = from.getAliases();
+    for (String alias : aliases) {
+      to.addAlias(alias);
+    }
+  }
+
+  public static void copyAliases(final Schema.Field from, final Schema.Field to) {
+    Set<String> aliases = from.aliases();
+    for (String alias : aliases) {
+      to.addAlias(alias);
+    }
+  }
+
+  public static void copyLogicalType(final Schema from, final Schema to) {
+    LogicalType logicalType = from.getLogicalType();
+    if (logicalType != null) {
+      logicalType.addToSchema(to);
+    }
   }
 
   public static boolean hasGeneratedJavaClass(final Schema schema) {
