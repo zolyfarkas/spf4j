@@ -53,6 +53,13 @@ public final class Schemas {
     }
   }
 
+  public static void copyProperties(final Schema.Field from, final Schema.Field to) {
+    Map<String, Object> objectProps = from.getObjectProps();
+    for (Map.Entry<String, Object> entry : objectProps.entrySet()) {
+      to.addProp(entry.getKey(), entry.getValue());
+    }
+  }
+
   public static boolean hasGeneratedJavaClass(final Schema schema) {
     Schema.Type type = schema.getType();
     switch (type) {
