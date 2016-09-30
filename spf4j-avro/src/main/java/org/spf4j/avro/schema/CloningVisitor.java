@@ -23,7 +23,7 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
 
 
   public CloningVisitor() {
-    this(Schemas::copyLogicalTypes);
+    this(((BiConsumer<Schema, Schema>) Schemas::copyLogicalTypes).andThen(Schemas::copyAliases));
   }
 
   public CloningVisitor(final BiConsumer<Schema, Schema> copyProperties) {
