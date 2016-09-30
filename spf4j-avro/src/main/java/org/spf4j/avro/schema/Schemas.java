@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
@@ -20,16 +21,24 @@ import org.spf4j.ds.IdentityHashSet;
  * @author zoly
  */
 @Beta
+@ParametersAreNonnullByDefault
 public final class Schemas {
 
   private Schemas() {
   }
 
   public static void copyAliases(final Schema from, final Schema to) {
-    Set<String> aliases = from.getAliases();
-    for (String alias : aliases) {
-      to.addAlias(alias);
+    //CHECKSTYLE:OFF
+    switch (from.getType()) { // only named types.
+      case RECORD:
+      case ENUM:
+      case FIXED:
+        Set<String> aliases = from.getAliases();
+        for (String alias : aliases) {
+          to.addAlias(alias);
+        }
     }
+    //CHECKSTYLE:OFF
   }
 
   public static void copyAliases(final Schema.Field from, final Schema.Field to) {
