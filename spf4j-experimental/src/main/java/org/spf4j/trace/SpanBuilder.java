@@ -1,7 +1,7 @@
 package org.spf4j.trace;
 
 import java.util.function.Consumer;
-import org.spf4j.base.Pair;
+import org.spf4j.base.NameValue;
 
 /**
  *
@@ -9,10 +9,14 @@ import org.spf4j.base.Pair;
  */
 public interface SpanBuilder extends Consumer<StackTraceElement[]>, AutoCloseable {
 
+  int getSpanId();
 
-  void log(Pair<String, Object> ... data);
+  void log(NameValue ... data);
 
+  void log(String name, Object value);
 
   Span build();
+
+  void close();
 
 }

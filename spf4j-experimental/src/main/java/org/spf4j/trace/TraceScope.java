@@ -28,11 +28,15 @@ public interface TraceScope extends AutoCloseable, Consumer<StackTraceElement[]>
 
   void executeSpan(CharSequence spanName, Consumer<SpanBuilder> something);
 
-  TraceScope startSpan(CharSequence spanName);
+  SpanBuilder startSpan(CharSequence spanName);
 
   <T> Callable<T> getTracedCallable(Callable<T> callable);
 
   public TraceScope attachToThread();
+
+  CharSequence getTraceId();
+
+  int getCurrentSpanId();
 
   @Nonnull
   SpanBuilder getCurrentSpan();
