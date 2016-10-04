@@ -293,7 +293,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   private void validate() {
     if (!isHealthy) {
-      throw new IllegalStateException("Heartbeats failed! semahore broken " + this, heartBeatFailure);
+      throw new IllegalStateException("Heartbeats failed! semaphore broken " + this, heartBeatFailure);
     }
   }
 
