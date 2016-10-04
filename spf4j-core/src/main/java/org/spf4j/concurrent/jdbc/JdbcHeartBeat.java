@@ -19,6 +19,8 @@
 
 package org.spf4j.concurrent.jdbc;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableScheduledFuture;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
@@ -57,6 +59,9 @@ import org.spf4j.jmx.Registry;
  * The process is considered dead when: currentTime - lastheartbeat > beatInterval * 2
  * When this class mechanism detects that it cannot perform the heartbeats it throws a Error.
  * The sensible this for the process is to go down (and restart if it is a daemon).
+ * This is typically done by registering a default uncaught exception handler with:
+ * Thread.setDefaultUncaughtExceptionHandler
+ *
  *
  * @author zoly
  */
@@ -266,13 +271,26 @@ public final class JdbcHeartBeat implements AutoCloseable {
         } else {
           throw new IllegalStateException("The end of times are upon us :-) " + lr);
         }
-        scheduledHearbeat = DefaultScheduler.LISTENABLE_INSTANCE.schedule(
+        ListenableScheduledFuture<?> scheduleFut = DefaultScheduler.LISTENABLE_INSTANCE.schedule(
                 getHeartBeatRunnable(), delay, TimeUnit.MILLISECONDS);
-        scheduledHearbeat.addListener(() -> {
-          synchronized (jdbc) {
-            if (!isClosed) {
-              scheduledHearbeat = null;
-              scheduleHeartbeat();
+        scheduledHearbeat = scheduleFut;
+        Futures.addCallback(scheduleFut, new FutureCallback() {
+          @Override
+          public void onSuccess(final Object result) {
+            synchronized (jdbc) {
+              if (!isClosed) {
+                scheduledHearbeat = null;
+                scheduleHeartbeat();
+              }
+            }
+          }
+
+          @Override
+          public void onFailure(final Throwable t) {
+            if (t instanceof Error) {
+              throw (Error) t;
+            } else {
+              throw new HeartBeatError(t);
             }
           }
         }, DefaultExecutor.INSTANCE);
@@ -285,7 +303,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
     jdbc.transactOnConnection(new HandlerNano<Connection, Void, SQLException>() {
       @Override
       @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
-      public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
+      public Void handle(final Connection conn, final long deadlineNanos) {
         beat(conn, deadlineNanos);
         return null;
       }
@@ -293,10 +311,10 @@ public final class JdbcHeartBeat implements AutoCloseable {
     lastRun = System.currentTimeMillis();
   }
 
-  void beat(final Connection conn, final long deadlineNanos) throws SQLException {
+  void beat(final Connection conn, final long deadlineNanos) {
     synchronized (jdbc) {
       if (isClosed) {
-        throw new IllegalStateException("Heartbeater is closed " + this);
+        throw new HeartBeatError("Heartbeater is closed " + this);
       }
     }
     try (PreparedStatement stmt = conn.prepareStatement(updateHeartbeatSql)) {
@@ -308,10 +326,12 @@ public final class JdbcHeartBeat implements AutoCloseable {
                 + org.spf4j.base.Runtime.PROCESS_ID + "sql : " + updateHeartbeatSql + " rows : " + rowsUpdated);
       }
       LOG.debug("Heart Beat for {}", org.spf4j.base.Runtime.PROCESS_ID);
+    } catch (SQLException ex) {
+      throw new HeartBeatError(ex);
     }
   }
 
-  boolean tryBeat(final Connection conn, final long deadlineNanos) throws SQLException {
+  boolean tryBeat(final Connection conn, final long deadlineNanos) {
     if (System.currentTimeMillis() - lastRun > intervalMillis / 2) {
       beat(conn, deadlineNanos);
       return true;
@@ -325,7 +345,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
   }
 
 
-  @JmxExport
+  @JmxExport(description = "The last run time recorded in the DB by this process")
   public long getLastRunDB() throws SQLException, InterruptedException {
     return jdbc.transactOnConnection(new HandlerNano<Connection, Long, SQLException>() {
       @Override
@@ -351,18 +371,18 @@ public final class JdbcHeartBeat implements AutoCloseable {
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
-  @JmxExport
+  @JmxExport(description = "The heartbeat interval in miliseconds")
   public long getIntervalMillis() {
     return intervalMillis;
   }
 
-  @JmxExport
-  public long getLastRunOwner() {
+  @JmxExport(description =  "The unix time millis the jdbc heartbeat run last")
+  public long getLastRunMillis() {
     return lastRun;
   }
 
   @JmxExport
-  public String getLastRunDateTimeOwner() {
+  public String getLastRunTimeStampString() {
     return ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastRun), ZoneId.systemDefault()).toString();
   }
 
@@ -461,7 +481,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
             return;
           } else if (((intervalMillis * 2) < millisSinceLastBeat)) {
             // Unable to beat at inteval!
-            Error err = new Error("System to busy to provide regular heartbeat, lastRun = " + lr
+            HeartBeatError err = new HeartBeatError("System to busy to provide regular heartbeat, lastRun = " + lr
                     + ", intervalMillis = " + intervalMillis + ", currentTimeMillis = " + currentTimeMillis);
 
             handleError(err);
@@ -469,12 +489,12 @@ public final class JdbcHeartBeat implements AutoCloseable {
         }
         beat();
       } catch (RuntimeException | SQLException | InterruptedException ex) {
-        Error err = new Error("System failed heartbeat", ex);
+        HeartBeatError err = new HeartBeatError("System failed heartbeat", ex);
         handleError(err);
       }
     }
 
-    public void handleError(final Error err) throws Error {
+    public void handleError(final HeartBeatError err) {
       for (LifecycleHook hook : lifecycleHooks) {
         hook.onError(err);
       }
