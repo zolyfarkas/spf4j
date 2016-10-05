@@ -34,6 +34,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
@@ -289,6 +290,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
           public void onFailure(final Throwable t) {
             if (t instanceof Error) {
               throw (Error) t;
+            } else if (t instanceof CancellationException) {
+              // JdbcHeartbeat is closed (tipically on process shutdown)
             } else {
               throw new HeartBeatError(t);
             }
