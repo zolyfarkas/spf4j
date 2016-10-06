@@ -58,6 +58,10 @@ public final class UIDGenerator implements Supplier<CharSequence> {
         this(sequence, BaseEncoding.base64Url(), customEpoch, '.', "");
     }
 
+    public UIDGenerator(final Sequence sequence, final String prefix, final long customEpoch) {
+        this(sequence, BaseEncoding.base64Url(), customEpoch, '.', prefix);
+    }
+    
     /**
      * Construct a UID Generator
      * @param sequence

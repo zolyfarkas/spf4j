@@ -19,6 +19,9 @@ package org.spf4j.concurrent;
 
 public interface Sequence {
 
+    /**
+     * @return next number in sequence. if result is negative an overflow happened.
+     */
     long next();
-    
+
 }
