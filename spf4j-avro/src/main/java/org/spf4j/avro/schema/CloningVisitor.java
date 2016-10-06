@@ -39,14 +39,13 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
     Schema newSchema;
     switch (type) {
       case RECORD: // recursion.
+      case ARRAY:
+      case MAP:
+      case UNION:
         if (!replace.containsKey(terminal)) {
           throw new IllegalStateException("Schema " + terminal + " must be already processed");
         }
         return SchemaVisitorAction.CONTINUE;
-      case ARRAY:
-      case MAP:
-      case UNION:
-        throw new IllegalStateException("Schema " + terminal + " should never be a terminal");
       case BOOLEAN:
       case BYTES:
       case DOUBLE:
