@@ -144,7 +144,7 @@ public class JdbcSemaphoreTest {
       org.spf4j.base.Runtime.jrun(BadSemaphoreHandler.class, 10000, connStr, "test_sem2");
       Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS));
       Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS));
-
+      JdbcHeartBeat.stopHeartBeats();
       server.stop();
     } finally {
       if (!tempDB.delete()) {
@@ -183,6 +183,7 @@ public class JdbcSemaphoreTest {
       numbers.addAll(Arrays.asList(nr2));
       Assert.assertEquals(totatl, numbers.size());
     } finally {
+      JdbcHeartBeat.stopHeartBeats();
       server.stop();
     }
   }

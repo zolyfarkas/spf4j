@@ -287,12 +287,11 @@ public final class JdbcHeartBeat implements AutoCloseable {
           }
 
           @Override
+          @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
           public void onFailure(final Throwable t) {
             if (t instanceof Error) {
               throw (Error) t;
-            } else if (t instanceof CancellationException) {
-              // JdbcHeartbeat is closed (tipically on process shutdown)
-            } else {
+            } else if (!(t instanceof CancellationException)) {
               throw new HeartBeatError(t);
             }
           }
@@ -442,7 +441,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
             }
             try {
               fbeat.close();
-            } catch (SQLException ex) {
+            } catch (SQLException | HeartBeatError ex) {
               // logging in shutdownhooks is not reliable.
               System.err.println("WARN: Could not clean heartbeat record,"
                       + " this error can be ignored since it is a best effort attempt, detail:");
@@ -459,6 +458,17 @@ public final class JdbcHeartBeat implements AutoCloseable {
     beat.scheduleHeartbeat();
     return beat;
   }
+
+  public static void stopHeartBeats() {
+   synchronized (HEARTBEATS) {
+     Exception e = org.spf4j.base.Closeables.closeAll(HEARTBEATS.values());
+     if (e != null) {
+       throw new RuntimeException(e);
+     }
+     HEARTBEATS.clear();
+   }
+  }
+
 
   public HeartBeatTableDesc getHbTableDesc() {
     return hbTableDesc;
