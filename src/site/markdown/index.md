@@ -243,9 +243,12 @@ Callable<?> monitoredCallable =
  One of the main advantages of spf4j is that it can be easily be used for continuous profiling.
  The captured profile data is persisted to ssdump files which can be opened and visualized with the spf4j UI.
 
- Due to the use of Thread.getStackTraces() the profile data is safe point biased. 
- For more detail see:  http://sape.inf.usi.ch/sites/default/files/publication/pldi10.pdf,
- https://www.youtube.com/watch?v=Yg6_ulhwLw0, https://github.com/RichardWarburton/honest-profiler
+ Due to the use of Thread.getStackTraces() the profile data is safe point biased, which is an important aspect to consider
+ when analyzing your profile results.
+ For more detail on safepoint bias see:
+ [Blog post on safepoint bias](http://psy-lob-saw.blogspot.com/2016/02/why-most-sampling-java-profilers-are.html)
+ [Evaluating the accuracy of Java profilers](http://sape.inf.usi.ch/publications/pldi10)
+ [Honest profiler](https://www.youtube.com/watch?v=Yg6_ulhwLw0, https://github.com/RichardWarburton/honest-profiler)
 
 ### 5.2. When to profile your code?
 
@@ -255,6 +258,7 @@ Callable<?> monitoredCallable =
  A good practice is to have a benchmark module in your project, that will benchmark key functionality of your application.
  These benchmarks will be run as part of your build process, and you can monitor the performance of your project with a
  Jenkins JMH [plugin](https://github.com/blackboard/jmh-jenkins)
+ With spf4j-junit you can also easily profile your unit tests with Spf4jRunListener.
   
 
 ### 5.3. How to profile your code?
