@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Monitor.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">Monitor.java</span></div><h1>Monitor.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.stackmonitor;
+
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
+import org.spf4j.base.AbstractRunnable;
+
+/**
+ * @author zoly
+ */
+public final class Monitor {
+
+<span class="nc" id="L35">    private Monitor() { }</span>
+
+<span class="fc" id="L37">    public static final String DEFAULT_SS_DUMP_FOLDER = System.getProperty(&quot;spf4j.perf.ms.defaultSsdumpFolder&quot;,</span>
+<span class="fc" id="L38">                System.getProperty(&quot;java.io.tmpdir&quot;));</span>
+
+<span class="fc" id="L40">    public static final String DEFAULT_SS_DUMP_FILE_NAME_PREFIX =</span>
+<span class="fc" id="L41">            System.getProperty(&quot;spf4j.perf.ms.defaultSsdumpFilePrefix&quot;, ManagementFactory.getRuntimeMXBean().getName());</span>
+
+<span class="fc" id="L43">    private static class Options {</span>
+
+<span class="fc" id="L45">        @Option(name = &quot;-df&quot;, usage = &quot;dump folder&quot;)</span>
+        private String dumpFolder = DEFAULT_SS_DUMP_FOLDER;
+
+<span class="fc" id="L48">        @Option(name = &quot;-dp&quot;, usage = &quot;dump file prefix&quot;)</span>
+        private String dumpFilePrefix = DEFAULT_SS_DUMP_FILE_NAME_PREFIX;
+
+        @Option(name = &quot;-main&quot;, usage = &quot;the main class name&quot;, required = true)
+        private String mainClass;
+
+<span class="fc" id="L54">        @Option(name = &quot;-si&quot;, usage = &quot;the stack sampling interval in milliseconds&quot;)</span>
+        private int sampleInterval = 100;
+
+<span class="fc" id="L57">        @Option(name = &quot;-di&quot;, usage = &quot;the stack dump to file interval in milliseconds&quot;)</span>
+        private int dumpInterval = 3600000;
+
+<span class="fc" id="L60">        @Option(name = &quot;-ss&quot;, usage = &quot;start the stack sampling thread. (can also be done manually via jmx)&quot;)</span>
+        private boolean startSampler = false;
+
+
+    }
+
+    public static void main(final String[] args)
+            throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
+            InvocationTargetException  {
+
+<span class="fc" id="L70">        int sepPos = args.length;</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        for (int i = 0; i &lt; args.length; i++) {</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">            if (&quot;--&quot;.equals(args[i])) {</span>
+<span class="nc" id="L73">                sepPos = i;</span>
+<span class="nc" id="L74">                break;</span>
+            }
+        }
+        String[] newArgs;
+        String[] ownArgs;
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        if (sepPos == args.length) {</span>
+<span class="fc" id="L80">            newArgs = new String[0];</span>
+<span class="fc" id="L81">            ownArgs = args;</span>
+        } else {
+<span class="nc" id="L83">            newArgs = new String[args.length - sepPos - 1];</span>
+<span class="nc" id="L84">            ownArgs = new String[sepPos];</span>
+<span class="nc" id="L85">            System.arraycopy(args, sepPos + 1, newArgs, 0, newArgs.length);</span>
+<span class="nc" id="L86">            System.arraycopy(args, 0, ownArgs, 0, sepPos);</span>
+        }
+<span class="fc" id="L88">        Options options = new Options();</span>
+<span class="fc" id="L89">        CmdLineParser parser = new CmdLineParser(options);</span>
+        try {
+<span class="fc" id="L91">            parser.parseArgument(ownArgs);</span>
+<span class="fc" id="L92">        } catch (CmdLineException e) {</span>
+<span class="fc" id="L93">            System.err.println(&quot;Error: &quot; + e.getMessage() + &quot;\nUsage:&quot;);</span>
+<span class="fc" id="L94">            parser.printUsage(System.err);</span>
+<span class="nc" id="L95">            System.exit(1);</span>
+<span class="fc" id="L96">        }</span>
+
+<span class="fc" id="L98">        final Sampler sampler = new Sampler(options.sampleInterval, options.dumpInterval, new SimpleStackCollector(),</span>
+<span class="fc" id="L99">                options.dumpFolder, options.dumpFilePrefix);</span>
+<span class="fc" id="L100">        Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable() {</span>
+
+            @Override
+            public void doRun() throws InterruptedException, IOException, ExecutionException, TimeoutException {
+<span class="nc" id="L104">                sampler.stop();</span>
+<span class="nc" id="L105">                sampler.dumpToFile();</span>
+<span class="nc" id="L106">                sampler.dispose();</span>
+<span class="nc" id="L107">            }</span>
+
+        }, &quot;Sampling report&quot;));
+<span class="fc" id="L110">        sampler.registerJmx();</span>
+
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">        if (options.startSampler) {</span>
+<span class="fc" id="L113">            sampler.start();</span>
+        }
+<span class="fc" id="L115">        Class.forName(options.mainClass).getMethod(&quot;main&quot;, String[].class).invoke(null, (Object) newArgs);</span>
+<span class="nc" id="L116">        System.exit(0);</span>
+<span class="nc" id="L117">    }</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

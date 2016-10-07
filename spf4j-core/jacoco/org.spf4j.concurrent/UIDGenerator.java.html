@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>UIDGenerator.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">UIDGenerator.java</span></div><h1>UIDGenerator.java</h1><pre class="source lang-java linenums">/*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UIDGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">UIDGenerator.java</span></div><h1>UIDGenerator.java</h1><pre class="source lang-java linenums">/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -58,6 +58,10 @@ public final class UIDGenerator implements Supplier&lt;CharSequence&gt; {
 <span class="fc" id="L58">        this(sequence, BaseEncoding.base64Url(), customEpoch, '.', &quot;&quot;);</span>
 <span class="fc" id="L59">    }</span>
 
+    public UIDGenerator(final Sequence sequence, final String prefix, final long customEpoch) {
+<span class="nc" id="L62">        this(sequence, BaseEncoding.base64Url(), customEpoch, '.', prefix);</span>
+<span class="nc" id="L63">    }</span>
+    
     /**
      * Construct a UID Generator
      * @param sequence
@@ -65,61 +69,61 @@ public final class UIDGenerator implements Supplier&lt;CharSequence&gt; {
      */
     @SuppressFBWarnings(&quot;STT_TOSTRING_STORED_IN_FIELD&quot;)
     public UIDGenerator(final Sequence sequence, @Nullable final BaseEncoding baseEncoding,
-<span class="fc" id="L68">            final long customEpoch, final char separator, final String prefix) {</span>
-<span class="fc" id="L69">        this.sequence = sequence;</span>
-<span class="fc" id="L70">        StringBuilder sb = new StringBuilder(16 + prefix.length());</span>
-<span class="fc" id="L71">        sb.append(prefix);</span>
-<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        if (baseEncoding != null) {</span>
+<span class="fc" id="L72">            final long customEpoch, final char separator, final String prefix) {</span>
+<span class="fc" id="L73">        this.sequence = sequence;</span>
+<span class="fc" id="L74">        StringBuilder sb = new StringBuilder(16 + prefix.length());</span>
+<span class="fc" id="L75">        sb.append(prefix);</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">        if (baseEncoding != null) {</span>
             byte[] intfMac;
             try {
-<span class="fc" id="L75">                Enumeration&lt;NetworkInterface&gt; networkInterfaces = NetworkInterface.getNetworkInterfaces();</span>
-<span class="pc bpc" id="L76" title="2 of 4 branches missed.">                if (networkInterfaces != null &amp;&amp; networkInterfaces.hasMoreElements()) {</span>
+<span class="fc" id="L79">                Enumeration&lt;NetworkInterface&gt; networkInterfaces = NetworkInterface.getNetworkInterfaces();</span>
+<span class="pc bpc" id="L80" title="2 of 4 branches missed.">                if (networkInterfaces != null &amp;&amp; networkInterfaces.hasMoreElements()) {</span>
                     do {
-<span class="fc" id="L78">                        intfMac = networkInterfaces.nextElement().getHardwareAddress();</span>
-<span class="pc bpc" id="L79" title="2 of 6 branches missed.">                    } while ((intfMac == null || intfMac.length == 0) &amp;&amp; networkInterfaces.hasMoreElements());</span>
-<span class="pc bpc" id="L80" title="1 of 2 branches missed.">                    if (intfMac == null) {</span>
-<span class="nc" id="L81">                        intfMac = new byte[] {0};</span>
+<span class="fc" id="L82">                        intfMac = networkInterfaces.nextElement().getHardwareAddress();</span>
+<span class="pc bpc" id="L83" title="2 of 6 branches missed.">                    } while ((intfMac == null || intfMac.length == 0) &amp;&amp; networkInterfaces.hasMoreElements());</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">                    if (intfMac == null) {</span>
+<span class="nc" id="L85">                        intfMac = new byte[] {0};</span>
                     }
                 } else {
-<span class="nc" id="L84">                    intfMac = new byte[] {0};</span>
+<span class="nc" id="L88">                    intfMac = new byte[] {0};</span>
                 }
-<span class="nc" id="L86">            } catch (SocketException ex) {</span>
-<span class="nc" id="L87">                throw new RuntimeException(ex);</span>
-<span class="fc" id="L88">            }</span>
-<span class="fc" id="L89">            sb.append(baseEncoding.encode(intfMac)).append(separator);</span>
+<span class="nc" id="L90">            } catch (SocketException ex) {</span>
+<span class="nc" id="L91">                throw new RuntimeException(ex);</span>
+<span class="fc" id="L92">            }</span>
+<span class="fc" id="L93">            sb.append(baseEncoding.encode(intfMac)).append(separator);</span>
         }
-<span class="fc" id="L91">        appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);</span>
-<span class="fc" id="L92">        sb.append(separator);</span>
-<span class="fc" id="L93">        appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);</span>
-<span class="fc" id="L94">        sb.append(separator);</span>
-<span class="fc" id="L95">        base = sb;</span>
-<span class="fc" id="L96">        maxSize = base.length() + 16;</span>
-<span class="fc" id="L97">    }</span>
+<span class="fc" id="L95">        appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);</span>
+<span class="fc" id="L96">        sb.append(separator);</span>
+<span class="fc" id="L97">        appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);</span>
+<span class="fc" id="L98">        sb.append(separator);</span>
+<span class="fc" id="L99">        base = sb;</span>
+<span class="fc" id="L100">        maxSize = base.length() + 16;</span>
+<span class="fc" id="L101">    }</span>
 
     public int getMaxSize() {
-<span class="nc" id="L100">        return maxSize;</span>
+<span class="nc" id="L104">        return maxSize;</span>
     }
 
     public CharSequence next() {
-<span class="fc" id="L104">        StringBuilder result = new StringBuilder(maxSize);</span>
-<span class="fc" id="L105">        result.append(base);</span>
-<span class="fc" id="L106">        Strings.appendUnsignedString(result, sequence.next(), 5);</span>
-<span class="fc" id="L107">        return result;</span>
+<span class="fc" id="L108">        StringBuilder result = new StringBuilder(maxSize);</span>
+<span class="fc" id="L109">        result.append(base);</span>
+<span class="fc" id="L110">        Strings.appendUnsignedString(result, sequence.next(), 5);</span>
+<span class="fc" id="L111">        return result;</span>
     }
 
 
 
     @Override
     public String toString() {
-<span class="nc" id="L114">        return &quot;UIDGenerator{&quot; + &quot;sequence=&quot; + sequence + &quot;, base=&quot; + base + &quot;, maxSize=&quot; + maxSize + '}';</span>
+<span class="nc" id="L118">        return &quot;UIDGenerator{&quot; + &quot;sequence=&quot; + sequence + &quot;, base=&quot; + base + &quot;, maxSize=&quot; + maxSize + '}';</span>
     }
 
     @Override
     public CharSequence get() {
-<span class="nc" id="L119">      return next();</span>
+<span class="nc" id="L123">      return next();</span>
     }
 
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

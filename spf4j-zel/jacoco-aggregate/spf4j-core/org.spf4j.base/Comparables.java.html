@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Comparables.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Comparables.java</span></div><h1>Comparables.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.base;
+
+import javax.annotation.Nonnull;
+
+/**
+ *
+ * @author zoly
+ */
+public final class Comparables {
+
+<span class="nc" id="L28">    private Comparables() {</span>
+<span class="nc" id="L29">    }</span>
+
+    public static &lt;T&gt; Comparable&lt;T&gt; min(@Nonnull final Object ... nrs) {
+<span class="pc bpc" id="L32" title="1 of 2 branches missed.">        if (nrs.length == 0) {</span>
+<span class="nc" id="L33">            throw new IllegalArgumentException(&quot;cannot calc min of empty array&quot; + java.util.Arrays.toString(nrs));</span>
+        }
+<span class="fc" id="L35">        Comparable min = (Comparable) nrs[0];</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        for (int i = 1; i &lt; nrs.length; i++) {</span>
+<span class="fc" id="L37">            Comparable c = (Comparable) nrs[i];</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">            if (c.compareTo((T) min) &lt; 0) {</span>
+<span class="fc" id="L39">                min  = c;</span>
+            }
+        }
+<span class="fc" id="L42">        return min;</span>
+    }
+    
+    public static &lt;T&gt; Comparable&lt;T&gt; max(@Nonnull final Object ... nrs) {
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (nrs.length == 0) {</span>
+<span class="nc" id="L47">            throw new IllegalArgumentException(&quot;cannot calc max of empty array: &quot; + java.util.Arrays.toString(nrs));</span>
+        }
+<span class="fc" id="L49">        Comparable max = (Comparable) nrs[0];</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        for (int i = 1; i &lt; nrs.length; i++) {</span>
+<span class="fc" id="L51">            Comparable c = (Comparable) nrs[i];</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">            if (c.compareTo((T) max) &gt; 0) {</span>
+<span class="fc" id="L53">                max  = c;</span>
+            }
+        }
+<span class="fc" id="L56">        return max;</span>
+    }
+    
+    public static &lt;T extends Comparable&lt;T&gt;&gt; int compare(final T first, final T second) {
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        if (first == null) {</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">            return (second == null) ? 0 : 1;</span>
+        } else {
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">            return (second == null) ? -1 : first.compareTo(second);</span>
+        }
+    }
+    
+    
+    public static &lt;T extends Comparable&lt;T&gt;&gt; int compareArrays(final T[] first, final T[] second) {
+<span class="fc" id="L69">        int result = 0;</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">        if (first == second) {</span>
+<span class="nc" id="L71">            return result;</span>
+        }
+<span class="fc" id="L73">        int i = 0;</span>
+<span class="fc" id="L74">        int l1 = first.length;</span>
+<span class="fc" id="L75">        int l2 = second.length;</span>
+<span class="fc" id="L76">        int n = Math.min(l1, l2);</span>
+        do {
+<span class="fc" id="L78">            result = Comparables.compare(first[i], second[i]);</span>
+<span class="fc" id="L79">            i++;</span>
+<span class="fc bfc" id="L80" title="All 4 branches covered.">        } while (result == 0 &amp;&amp; i &lt; n);</span>
+<span class="pc bpc" id="L81" title="1 of 4 branches missed.">        if (result == 0 &amp;&amp; l1 != l2) {</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">            return (l1 &lt; l2) ? -1 : 1;</span>
+        }
+<span class="fc" id="L84">        return result;</span>
+    }
+    
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

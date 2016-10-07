@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>IntMath.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">IntMath.java</span></div><h1>IntMath.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.base;
+
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
+
+/**
+ * @author zoly
+ */
+public final class IntMath {
+
+<span class="nc" id="L28">    private IntMath() { }</span>
+
+    public static int closestPowerOf2(final int number) {
+<span class="pc bpc" id="L31" title="1 of 2 branches missed.">        return number == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(number - 1);</span>
+    }
+
+    public static int closestPowerOf2Number(final int number) {
+<span class="nc bnc" id="L35" title="All 2 branches missed.">       return number == 0 ? 0 : 1 &lt;&lt; (32 - Integer.numberOfLeadingZeros(number - 1));</span>
+    }
+
+    /**
+     * A very fast Pseudo random generator.
+     * use of this random is appropriate when you need the fastest random that you plan to use in a single
+     * thread.
+     * If you need a thread-safe random, please use JDK ThreadLocalRandom, which will be your best option.
+     */
+    @NotThreadSafe
+<span class="fc" id="L45">    public static final class XorShift32 implements IntSequence {</span>
+        // XorShift128 PRNG with a 2^32-1 period.
+<span class="fc" id="L47">        private int x = System.identityHashCode(this);</span>
+
+        @Override
+        public int nextInt() {
+<span class="fc" id="L51">            x ^= (x &lt;&lt; 6);</span>
+<span class="fc" id="L52">            x ^= (x &gt;&gt;&gt; 21);</span>
+<span class="fc" id="L53">            return x ^ (x &lt;&lt; 7);</span>
+        }
+    }
+
+    /**
+     * @deprecated please use JDK java.util.concurrent.ThreadLocalRandom instead.
+     * The JDK implementation uses local fields in the Thread class instead of a classic ThreadLocal,
+     * which makes it faster...
+     */
+    @ThreadSafe
+    @Deprecated
+<span class="nc" id="L64">    public static final class XorShift32ThreadSafe implements IntSequence {</span>
+
+
+<span class="nc" id="L67">      public static final class Singleton {</span>
+
+<span class="nc" id="L69">        public static final XorShift32ThreadSafe INSTANCE = new XorShift32ThreadSafe();</span>
+
+      }
+
+<span class="nc" id="L73">      private final ThreadLocal&lt;XorShift32&gt; rnd = new ThreadLocalRandom();</span>
+
+      @Override
+      public int nextInt() {
+<span class="nc" id="L77">        return rnd.get().nextInt();</span>
+      }
+
+<span class="nc" id="L80">      private static class ThreadLocalRandom extends ThreadLocal&lt;XorShift32&gt; {</span>
+
+        @Override
+        protected XorShift32 initialValue() {
+<span class="nc" id="L84">          return new XorShift32();</span>
+        }
+      }
+    }
+
+
+    @NotThreadSafe
+<span class="fc" id="L91">    public static final class XorShift128 implements IntSequence {</span>
+        // XorShift128 PRNG with a 2^128-1 period.
+<span class="fc" id="L93">        private int x = System.identityHashCode(this);</span>
+<span class="fc" id="L94">        private int y = -938745813;</span>
+<span class="fc" id="L95">        private int z = 452465366;</span>
+<span class="fc" id="L96">        private int w = 1343246171;</span>
+
+        @Override
+        public int nextInt() {
+<span class="fc" id="L100">            int t = x ^ (x &lt;&lt; 15);</span>
+<span class="fc" id="L101">            x = y; y = z; z = w;</span>
+<span class="fc" id="L102">            w = (w ^ (w &gt;&gt;&gt; 21)) ^ (t ^ (t &gt;&gt;&gt; 4));</span>
+<span class="fc" id="L103">            return w;</span>
+        }
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

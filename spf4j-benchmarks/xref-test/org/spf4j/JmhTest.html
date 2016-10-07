@@ -6,59 +6,61 @@
 </head>
 <body>
 <div id="overview"><a href="../../../testapidocs/org/spf4j/JmhTest.html">View Javadoc</a></div><pre>
-<a class="jxr_linenumber" name="L1" href="#L1">1</a>   
-<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <strong class="jxr_keyword">package</strong> org.spf4j;
-<a class="jxr_linenumber" name="L3" href="#L3">3</a>   
-<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.io.IOException;
-<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> org.junit.Ignore;
-<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.junit.Test;
-<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.openjdk.jmh.results.format.ResultFormatType;
-<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> org.openjdk.jmh.runner.Runner;
-<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.openjdk.jmh.runner.RunnerException;
-<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.openjdk.jmh.runner.options.Options;
-<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.openjdk.jmh.runner.options.OptionsBuilder;
-<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.spf4j.stackmonitor.JmhFlightRecorderProfiler;
-<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.spf4j.stackmonitor.Spf4jJmhProfiler;
-<a class="jxr_linenumber" name="L14" href="#L14">14</a>  
-<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_comment">//@Ignore</em>
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../org/spf4j/JmhTest.html">JmhTest</a> {
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>      @Test
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> runJmh() <strong class="jxr_keyword">throws</strong> RunnerException, IOException {
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>          <strong class="jxr_keyword">final</strong> String destinationFolder = System.getProperty(<span class="jxr_string">"basedir"</span>,
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>                  org.spf4j.base.Runtime.USER_DIR) + <span class="jxr_string">"/target"</span>;
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>          <strong class="jxr_keyword">final</strong> String profile = System.getProperty(<span class="jxr_string">"basedir"</span>,
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>                  org.spf4j.base.Runtime.USER_DIR) + <span class="jxr_string">"/src/main/jfc/profile.jfc"</span>;
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>          Options opt = <strong class="jxr_keyword">new</strong> OptionsBuilder()
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_comment">//                .include(".*Cache.*")</em>
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_comment">//                .include(".*")</em>
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_comment">//                .addProfiler(JmhProfiler.class)</em>
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_comment">//                .addProfiler(CompilerProfiler.class)</em>
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>                  .addProfiler(JmhFlightRecorderProfiler.<strong class="jxr_keyword">class</strong>)
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>                  .addProfiler(Spf4jJmhProfiler.<strong class="jxr_keyword">class</strong>)
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_comment">//                .addProfiler(GCProfiler.class)</em>
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>                  <em class="jxr_comment">//"-XX:+PrintCompilation", "-XX:+UseG1GC", "-XX:MinTLABSize=1m", "-XX:MaxInlineLevel=12"</em>
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>                  <em class="jxr_comment">// "-XX:+PrintInlining", "-XX:+TraceDeoptimization", "-XX:+DebugDeoptimization", "-XX:+LogEvents"</em>
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>                  <em class="jxr_comment">//"-XX:+UnlockDiagnosticVMOptions", "-XX:+LogEvents", "-XX:+PrintCodeCache", "-XX:MaxInlineLevel=12",</em>
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>                  <em class="jxr_comment">//         "-XX:+PrintInlining", "-XX:+PrintCompilation", "-XX:+LogCompilation"</em>
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>                  .jvmArgs(<span class="jxr_string">"-XX:MaxInlineLevel=12"</span>,<span class="jxr_string">"-Xmx256m"</span>, <span class="jxr_string">"-Xms256m"</span>, <span class="jxr_string">"-XX:+UnlockCommercialFeatures"</span>,
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>                          <span class="jxr_string">"-Djmh.stack.profiles="</span> + destinationFolder,
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>                          <span class="jxr_string">"-Dspf4j.executors.defaultExecutor.daemon=true"</span>, <span class="jxr_string">"-Djmh.executor=FJP"</span>,
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>                          <span class="jxr_string">"-Djmh.fr.options=defaultrecording=true,settings="</span> + profile)
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>                  .result(destinationFolder + <span class="jxr_string">"/"</span> + <span class="jxr_string">"benchmarkResults.csv"</span>)
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>                  .resultFormat(ResultFormatType.CSV)
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>                  .warmupIterations(10)
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>                  .measurementIterations(10)
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>                  .forks(1)
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>                  .build();
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>           <strong class="jxr_keyword">new</strong> Runner(opt).run();
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>      }
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  }
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.spf4j;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> org.junit.Test;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> org.openjdk.jmh.results.format.ResultFormatType;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.openjdk.jmh.runner.Runner;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.openjdk.jmh.runner.RunnerException;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> org.openjdk.jmh.runner.options.Options;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.openjdk.jmh.runner.options.OptionsBuilder;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.spf4j.stackmonitor.JmhFlightRecorderProfiler;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.spf4j.stackmonitor.Spf4jJmhProfiler;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../org/spf4j/JmhTest.html">JmhTest</a> {
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>    @Test
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> runJmh() <strong class="jxr_keyword">throws</strong> RunnerException, IOException {
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>      <strong class="jxr_keyword">if</strong> (<span class="jxr_string">"true"</span>.equalsIgnoreCase(System.getenv(<span class="jxr_string">"TRAVIS"</span>))) {
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>        System.err.println(<span class="jxr_string">"Benchmarks disabled in travis, not enough resources for this..."</span>);
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>        <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>      }
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      <strong class="jxr_keyword">final</strong> String destinationFolder = System.getProperty(<span class="jxr_string">"basedir"</span>,
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>              org.spf4j.base.Runtime.USER_DIR) + <span class="jxr_string">"/target"</span>;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      <strong class="jxr_keyword">final</strong> String profile = System.getProperty(<span class="jxr_string">"basedir"</span>,
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>              org.spf4j.base.Runtime.USER_DIR) + <span class="jxr_string">"/src/main/jfc/profile.jfc"</span>;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      Options opt = <strong class="jxr_keyword">new</strong> OptionsBuilder()
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>              <em class="jxr_comment">//.include(".*Either.*")</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>                              .include(<span class="jxr_string">".*"</span>)
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>              <em class="jxr_comment">//                .addProfiler(JmhProfiler.class)</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>              <em class="jxr_comment">//                .addProfiler(CompilerProfiler.class)</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>              .addProfiler(JmhFlightRecorderProfiler.<strong class="jxr_keyword">class</strong>)
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>              .addProfiler(Spf4jJmhProfiler.<strong class="jxr_keyword">class</strong>)
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>              <em class="jxr_comment">//                .addProfiler(GCProfiler.class)</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>              <em class="jxr_comment">//"-XX:+PrintCompilation", "-XX:+UseG1GC", "-XX:MinTLABSize=1m", "-XX:MaxInlineLevel=12"</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>              <em class="jxr_comment">// "-XX:+PrintInlining", "-XX:+TraceDeoptimization", "-XX:+DebugDeoptimization", "-XX:+LogEvents"</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>              <em class="jxr_comment">//"-XX:+UnlockDiagnosticVMOptions", "-XX:+LogEvents", "-XX:+PrintCodeCache", "-XX:MaxInlineLevel=12",</em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>              <em class="jxr_comment">//         "-XX:+PrintInlining", "-XX:+PrintCompilation", "-XX:+LogCompilation"</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>              .jvmArgs(<span class="jxr_string">"-XX:MaxInlineLevel=12"</span>, <span class="jxr_string">"-Xmx256m"</span>, <span class="jxr_string">"-Xms256m"</span>, <span class="jxr_string">"-XX:+UnlockCommercialFeatures"</span>,
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>                      <span class="jxr_string">"-Djmh.stack.profiles="</span> + destinationFolder,
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>                      <span class="jxr_string">"-Dspf4j.executors.defaultExecutor.daemon=true"</span>,
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>                   <em class="jxr_comment">// "-Djmh.executor=FJP",</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>                      <span class="jxr_string">"-Djmh.fr.options=defaultrecording=true,settings="</span> + profile)
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>              .result(destinationFolder + <span class="jxr_string">"/"</span> + <span class="jxr_string">"benchmarkResults.csv"</span>)
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>              .resultFormat(ResultFormatType.CSV)
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>              .warmupIterations(10)
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>              .measurementIterations(10)
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>              .forks(1)
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>              .build();
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">new</strong> Runner(opt).run();
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>    }
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2016. All rights reserved.</div>

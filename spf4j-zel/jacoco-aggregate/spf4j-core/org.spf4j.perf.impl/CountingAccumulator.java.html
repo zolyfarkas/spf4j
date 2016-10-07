@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CountingAccumulator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">CountingAccumulator.java</span></div><h1>CountingAccumulator.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.impl;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.spf4j.perf.MeasurementAccumulator;
+import org.spf4j.perf.MeasurementsInfo;
+
+/**
+ *
+ * @author zoly
+ */
+public final class CountingAccumulator
+        extends AbstractMeasurementAccumulator {
+
+    private long counter;
+    private long total;
+    private final MeasurementsInfo info;
+<span class="fc" id="L34">    private static final String[] MEASUREMENTS = {&quot;count&quot;, &quot;total&quot;};</span>
+
+    private CountingAccumulator(final Object measuredEntity, final String description,
+<span class="fc" id="L37">            final String unitOfMeasurement, final long counter, final long total) {</span>
+<span class="fc" id="L38">        this.info = new MeasurementsInfoImpl(measuredEntity, description,</span>
+                MEASUREMENTS, new String[]{&quot;count&quot;, unitOfMeasurement});
+<span class="fc" id="L40">        this.counter = counter;</span>
+<span class="fc" id="L41">        this.total = total;</span>
+<span class="fc" id="L42">    }</span>
+
+    public CountingAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement) {
+<span class="fc" id="L45">        this(measuredEntity, description, unitOfMeasurement, 0, 0);</span>
+<span class="fc" id="L46">    }</span>
+
+    public String getUnitOfMeasurement() {
+<span class="fc" id="L49">        return info.getMeasurementUnit(1);</span>
+    }
+
+    @Override
+    public synchronized void record(final long measurement) {
+<span class="fc" id="L54">        total += measurement;</span>
+<span class="fc" id="L55">        counter++;</span>
+<span class="fc" id="L56">    }</span>
+
+    @Override
+    @SuppressFBWarnings(&quot;PZLA_PREFER_ZERO_LENGTH_ARRAYS&quot;)
+    public synchronized long[] get() {
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        if (counter == 0) {</span>
+<span class="nc" id="L62">            return null;</span>
+        } else {
+<span class="fc" id="L64">            return new long[]{counter, total};</span>
+        }
+    }
+
+    @SuppressFBWarnings({&quot;CLI_CONSTANT_LIST_INDEX&quot;, &quot;NOS_NON_OWNED_SYNCHRONIZATION&quot; })
+    @Override
+    public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (mSource instanceof CountingAccumulator) {</span>
+<span class="nc" id="L72">            CountingAccumulator other = (CountingAccumulator) mSource;</span>
+<span class="nc" id="L73">            long[] measurements = other.get();</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">            if (measurements != null) {</span>
+<span class="nc" id="L75">              synchronized (this) {</span>
+<span class="nc" id="L76">                  return new CountingAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),</span>
+<span class="nc" id="L77">                          getUnitOfMeasurement(), counter + measurements[0], total + measurements[1]);</span>
+<span class="nc" id="L78">              }</span>
+            } else {
+<span class="nc" id="L80">              return this.createClone();</span>
+            }
+        } else {
+<span class="nc" id="L83">            throw new IllegalArgumentException(&quot;Cannot aggregate &quot; + this + &quot; with &quot; + mSource);</span>
+        }
+    }
+
+    @Override
+    public synchronized CountingAccumulator createClone() {
+<span class="fc" id="L89">        return new CountingAccumulator(this.info.getMeasuredEntity(),</span>
+<span class="fc" id="L90">                this.info.getDescription(), getUnitOfMeasurement(), counter, total);</span>
+    }
+
+    @Override
+    public CountingAccumulator createLike(final Object entity) {
+<span class="fc" id="L95">        return new CountingAccumulator(entity, this.info.getDescription(), getUnitOfMeasurement());</span>
+    }
+
+    @Override
+    public MeasurementsInfo getInfo() {
+<span class="fc" id="L100">        return info;</span>
+    }
+
+    @Override
+    public synchronized MeasurementAccumulator reset() {
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">        if (counter == 0) {</span>
+<span class="nc" id="L106">            return null;</span>
+        } else {
+<span class="fc" id="L108">            MeasurementAccumulator result = this.createClone();</span>
+<span class="fc" id="L109">            counter = 0;</span>
+<span class="fc" id="L110">            total = 0;</span>
+<span class="fc" id="L111">            return result;</span>
+        }
+    }
+
+    @Override
+    @SuppressFBWarnings(&quot;PZLA_PREFER_ZERO_LENGTH_ARRAYS&quot;)
+    public long[] getThenReset() {
+<span class="fc" id="L118">        final MeasurementAccumulator vals = reset();</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">        if (vals == null) {</span>
+<span class="nc" id="L120">            return null;</span>
+        } else {
+<span class="fc" id="L122">            return vals.get();</span>
+        }
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L128">        return &quot;CountingAccumulator{&quot; + &quot;counter=&quot; + counter + &quot;, total=&quot; + total + &quot;, info=&quot; + info + '}';</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

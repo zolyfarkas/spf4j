@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>TSDBWriter.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.tsdb2</a> &gt; <span class="el_source">TSDBWriter.java</span></div><h1>TSDBWriter.java</h1><pre class="source lang-java linenums"> /*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TSDBWriter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.tsdb2</a> &gt; <span class="el_source">TSDBWriter.java</span></div><h1>TSDBWriter.java</h1><pre class="source lang-java linenums"> /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -76,29 +76,29 @@ public final class TSDBWriter implements Closeable, Flushable {
     @CreatesObligation
     public TSDBWriter(final File file, final int maxRowsPerBlock,
 <span class="fc" id="L78">            final String description, final boolean append) throws IOException {</span>
-<span class="fc" id="L79">        SpecificDatumWriter&lt;Header&gt; headerWriter = new SpecificDatumWriter&lt;&gt;(Header.SCHEMA$);</span>
-<span class="fc" id="L80">        this.file = file;</span>
-<span class="fc" id="L81">        this.maxRowsPerBlock = maxRowsPerBlock;</span>
-<span class="fc" id="L82">        this.writeBlock = new DataBlock();</span>
-<span class="fc" id="L83">        this.writeBlock.baseTimestamp = System.currentTimeMillis();</span>
-<span class="fc" id="L84">        this.writeBlock.setValues(new ArrayList&lt;DataRow&gt;(maxRowsPerBlock));</span>
-<span class="fc" id="L85">        raf = new RandomAccessFile(file, &quot;rw&quot;);</span>
-<span class="fc" id="L86">        bab = new ByteArrayBuilder(32768, ArraySuppliers.Bytes.JAVA_NEW);</span>
-<span class="fc" id="L87">        encoder = EncoderFactory.get().directBinaryEncoder(bab, null);</span>
-<span class="fc" id="L88">        channel = raf.getChannel();</span>
-<span class="fc" id="L89">        channel.lock();</span>
-<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (!append) {</span>
-<span class="fc" id="L91">            raf.setLength(0);</span>
-<span class="fc" id="L92">            channel.force(true);</span>
+<span class="fc" id="L79">        this.file = file;</span>
+<span class="fc" id="L80">        this.maxRowsPerBlock = maxRowsPerBlock;</span>
+<span class="fc" id="L81">        this.writeBlock = new DataBlock();</span>
+<span class="fc" id="L82">        this.writeBlock.baseTimestamp = System.currentTimeMillis();</span>
+<span class="fc" id="L83">        this.writeBlock.setValues(new ArrayList&lt;DataRow&gt;(maxRowsPerBlock));</span>
+<span class="fc" id="L84">        raf = new RandomAccessFile(file, &quot;rw&quot;);</span>
+<span class="fc" id="L85">        bab = new ByteArrayBuilder(32768, ArraySuppliers.Bytes.JAVA_NEW);</span>
+<span class="fc" id="L86">        encoder = EncoderFactory.get().directBinaryEncoder(bab, null);</span>
+<span class="fc" id="L87">        channel = raf.getChannel();</span>
+<span class="fc" id="L88">        channel.lock();</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">        if (!append) {</span>
+<span class="fc" id="L90">            raf.setLength(0);</span>
+<span class="fc" id="L91">            channel.force(true);</span>
         }
-<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        if (raf.length() &lt;= 0) {</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (raf.length() &lt;= 0) {</span>
             // new file or overwite, will write header;
-<span class="fc" id="L96">            bab.write(MAGIC);</span>
-<span class="fc" id="L97">            toOutputStream(0, bab);</span>
-<span class="fc" id="L98">            header = Header.newBuilder()</span>
-<span class="fc" id="L99">                    .setContentSchema(FILE_RECORD_SCHEMA.toString())</span>
-<span class="fc" id="L100">                    .setDescription(description)</span>
-<span class="fc" id="L101">                    .build();</span>
+<span class="fc" id="L95">            bab.write(MAGIC);</span>
+<span class="fc" id="L96">            toOutputStream(0, bab);</span>
+<span class="fc" id="L97">            header = Header.newBuilder()</span>
+<span class="fc" id="L98">                    .setContentSchema(FILE_RECORD_SCHEMA.toString())</span>
+<span class="fc" id="L99">                    .setDescription(description)</span>
+<span class="fc" id="L100">                    .build();</span>
+<span class="fc" id="L101">            SpecificDatumWriter&lt;Header&gt; headerWriter = new SpecificDatumWriter&lt;&gt;(Header.SCHEMA$);</span>
 <span class="fc" id="L102">            headerWriter.write(header, encoder);</span>
 <span class="fc" id="L103">            encoder.flush();</span>
 <span class="fc" id="L104">            byte[] buffer = bab.getBuffer();</span>
@@ -222,4 +222,4 @@ public final class TSDBWriter implements Closeable, Flushable {
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

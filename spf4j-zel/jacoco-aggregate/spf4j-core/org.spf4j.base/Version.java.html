@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Version.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Version.java</span></div><h1>Version.java</h1><pre class="source lang-java linenums">package org.spf4j.base;
+
+import com.google.common.primitives.Ints;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ *
+ * @author zoly
+ */
+public final class Version implements Comparable&lt;Version&gt; {
+    
+    private final Comparable[] components;
+    
+    private final String image;
+    
+<span class="fc" id="L18">    public Version(final String version) {</span>
+<span class="fc" id="L19">        this.image = version;</span>
+<span class="fc" id="L20">        List&lt;Comparable&lt;?&gt;&gt; comps = new ArrayList&lt;&gt;(4);</span>
+<span class="fc" id="L21">        StringBuilder sb = new StringBuilder();</span>
+<span class="fc bfc" id="L22" title="All 2 branches covered.">        for (int i = 0; i &lt; version.length(); i++) {</span>
+<span class="fc" id="L23">            char c = version.charAt(i);</span>
+<span class="fc" id="L24">            final int length = sb.length();</span>
+<span class="fc bfc" id="L25" title="All 2 branches covered.">            if (c == '.') {</span>
+<span class="fc" id="L26">                addPart(sb, comps);</span>
+<span class="fc" id="L27">                sb.setLength(0);</span>
+<span class="fc bfc" id="L28" title="All 2 branches covered.">            } else if (Character.isDigit(c)) {</span>
+<span class="fc bfc" id="L29" title="All 2 branches covered.">                if (length &gt; 0) {</span>
+<span class="fc" id="L30">                    char prev = sb.charAt(length - 1);</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">                    if (!Character.isDigit(prev)) {</span>
+<span class="fc" id="L32">                        comps.add(sb.toString());</span>
+<span class="fc" id="L33">                        sb.setLength(0);</span>
+                    }
+                }
+<span class="fc" id="L36">                sb.append(c);</span>
+            } else {
+<span class="fc bfc" id="L38" title="All 2 branches covered.">                if (length &gt; 0) {</span>
+<span class="fc" id="L39">                    char prev = sb.charAt(length - 1);</span>
+<span class="pc bpc" id="L40" title="1 of 2 branches missed.">                    if (Character.isDigit(prev)) {</span>
+<span class="fc" id="L41">                        comps.add(Integer.valueOf(sb.toString()));</span>
+<span class="fc" id="L42">                        sb.setLength(0);</span>
+                    }
+                }
+<span class="fc" id="L45">                sb.append(c);</span>
+            }
+        }
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">        if (sb.length() &gt; 0) {</span>
+<span class="fc" id="L49">           addPart(sb, comps);</span>
+        }
+<span class="fc" id="L51">        components = comps.toArray(new Comparable[comps.size()]);</span>
+<span class="fc" id="L52">    }</span>
+
+    private static void addPart(final StringBuilder sb, final List&lt;Comparable&lt;?&gt;&gt; comps) {
+<span class="fc" id="L55">        final String strPart = sb.toString();</span>
+<span class="fc" id="L56">        Integer nr = Ints.tryParse(strPart);</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (nr == null) {</span>
+<span class="fc" id="L58">            comps.add(strPart);</span>
+        } else {
+<span class="fc" id="L60">            comps.add(nr);</span>
+        }
+<span class="fc" id="L62">    }</span>
+
+    @Override
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public int compareTo(final Version o) {
+<span class="fc" id="L67">        return Comparables.compareArrays(components, o.components);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L72">        return image.hashCode();</span>
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (this == obj) {</span>
+<span class="nc" id="L78">            return true;</span>
+        }
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L81">            return false;</span>
+        }
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L84">            return false;</span>
+        }
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        return this.compareTo((Version) obj) == 0;</span>
+    }
+
+    public String getImage() {
+<span class="fc" id="L90">        return image;</span>
+    }
+
+    public Comparable[] getComponents() {
+<span class="fc" id="L94">        return components.clone();</span>
+    }
+
+    
+    @Override
+    public String toString() {
+<span class="fc" id="L100">        return &quot;Version{&quot; + &quot;components=&quot; + Arrays.toString(components) + '}';</span>
+    }
+ 
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

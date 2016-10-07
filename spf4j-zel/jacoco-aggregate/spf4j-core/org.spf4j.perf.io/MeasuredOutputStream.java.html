@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MeasuredOutputStream.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.io</a> &gt; <span class="el_source">MeasuredOutputStream.java</span></div><h1>MeasuredOutputStream.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.io;
+
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import java.io.IOException;
+import java.io.OutputStream;
+import org.spf4j.perf.MeasurementRecorderSource;
+
+/**
+ *
+ * @author zoly
+ */
+@CleanupObligation
+public final class MeasuredOutputStream extends OutputStream {
+    
+    private final OutputStream os;
+    private final String from;
+    private final MeasurementRecorderSource recorderSource;
+    
+    
+    public MeasuredOutputStream(final OutputStream os, final String from,
+<span class="nc" id="L39">            final MeasurementRecorderSource recorderSource) {</span>
+<span class="nc" id="L40">     this.os = os;</span>
+<span class="nc" id="L41">     this.from = from;</span>
+<span class="nc" id="L42">     this.recorderSource = recorderSource;</span>
+<span class="nc" id="L43">    }</span>
+
+    @Override
+    public void write(final int b) throws IOException {
+<span class="nc" id="L47">        os.write(b);</span>
+<span class="nc" id="L48">        recorderSource.getRecorder(from).record(1);</span>
+<span class="nc" id="L49">    }</span>
+
+    @Override
+    public void write(final byte[] b) throws IOException {
+<span class="nc" id="L53">        os.write(b);</span>
+<span class="nc" id="L54">        recorderSource.getRecorder(from).record(b.length);</span>
+<span class="nc" id="L55">    }</span>
+
+    @Override
+    public void write(final byte[] b, final int off, final int len) throws IOException {
+<span class="nc" id="L59">        os.write(b, off, len);</span>
+<span class="nc" id="L60">        recorderSource.getRecorder(from).record(len);</span>
+<span class="nc" id="L61">    }</span>
+
+    @Override
+    public void flush() throws IOException {
+<span class="nc" id="L65">        os.flush();</span>
+<span class="nc" id="L66">    }</span>
+
+    @Override
+    public void close() throws IOException {
+<span class="nc" id="L70">        os.close();</span>
+<span class="nc" id="L71">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L75">        return &quot;MeasuredOutputStream{&quot; + &quot;os=&quot; + os + &quot;, from=&quot; + from + &quot;, recorderSource=&quot; + recorderSource + '}';</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

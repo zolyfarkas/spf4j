@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Traversals.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ds</a> &gt; <span class="el_source">Traversals.java</span></div><h1>Traversals.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.ds;
+
+import com.google.common.collect.Sets;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Set;
+
+/**
+ *
+ * @author zoly
+ */
+public final class Traversals {
+
+<span class="nc" id="L36">    private Traversals() {</span>
+<span class="nc" id="L37">    }</span>
+
+    public interface TraversalCallback&lt;V, E&gt; {
+
+        void handle(V vertex, Map&lt;E, V&gt; edges);
+    }
+
+    public static &lt;V, E&gt; void traverse(final Graph&lt;V, E&gt; graph, final V startNode,
+            final TraversalCallback&lt;V, E&gt; handler, final boolean isBreadth) {
+<span class="fc" id="L46">        Set&lt;V&gt; traversedNodes = new HashSet&lt;V&gt;();</span>
+<span class="fc" id="L47">        Deque&lt;V&gt; traversalQueue = new ArrayDeque&lt;V&gt;();</span>
+<span class="fc" id="L48">        traversalQueue.add(startNode);</span>
+<span class="fc" id="L49">        boolean done = false;</span>
+        do {
+<span class="fc" id="L51">            boolean first = true;</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">            while (!traversalQueue.isEmpty()) {</span>
+                V node;
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">                if (isBreadth) {</span>
+<span class="fc" id="L55">                    node = traversalQueue.removeFirst();</span>
+                } else {
+<span class="nc" id="L57">                    node = traversalQueue.removeLast();</span>
+                }
+<span class="fc" id="L59">                VertexEdges&lt;V, E&gt; edges = graph.getEdges(node);</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">                if (traversedNodes.contains(node)) {</span>
+<span class="fc" id="L61">                    continue;</span>
+                }
+<span class="fc" id="L63">                Map&lt;E, V&gt; incomming = edges.getIncomming();</span>
+<span class="fc" id="L64">                boolean hasIncomingBeenTraversed = true;</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">                for (V val : incomming.values()) {</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">                    if (!traversedNodes.contains(val)) {</span>
+<span class="fc" id="L67">                        hasIncomingBeenTraversed = false;</span>
+<span class="fc" id="L68">                        break;</span>
+                    }
+<span class="fc" id="L70">                }</span>
+<span class="fc bfc" id="L71" title="All 4 branches covered.">                if (!first &amp;&amp; !hasIncomingBeenTraversed) {</span>
+<span class="fc" id="L72">                    continue;</span>
+                }
+<span class="fc" id="L74">                handler.handle(node, incomming);</span>
+<span class="fc" id="L75">                traversedNodes.add(node);</span>
+<span class="fc" id="L76">                first = false;</span>
+<span class="fc" id="L77">                Map&lt;E, V&gt; outgoing = edges.getOutgoing();</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">                for (V next : outgoing.values()) {</span>
+<span class="fc" id="L79">                    traversalQueue.add(next);</span>
+<span class="fc" id="L80">                }</span>
+<span class="fc" id="L81">            }</span>
+
+<span class="fc" id="L83">            Set&lt;V&gt; leftNodes = Sets.difference(graph.getVertices(), traversedNodes);</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">            if (leftNodes.isEmpty()) {</span>
+<span class="fc" id="L85">                done = true;</span>
+            } else {
+<span class="nc" id="L87">                boolean added = false;</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">                for (V node : leftNodes) {</span>
+<span class="nc" id="L89">                    Collection&lt;V&gt; incomingNodes = graph.getEdges(node).getIncomming().values();</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">                    for (V incoming : incomingNodes) {</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">                        if (traversedNodes.contains(incoming)) {</span>
+<span class="nc" id="L92">                            traversalQueue.add(node);</span>
+<span class="nc" id="L93">                            added = true;</span>
+<span class="nc" id="L94">                            break;</span>
+                        }
+<span class="nc" id="L96">                    }</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">                    if (added) {</span>
+<span class="nc" id="L98">                        break;</span>
+                    }
+<span class="nc" id="L100">                }</span>
+            }
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        } while (!done);</span>
+<span class="fc" id="L103">    }</span>
+    
+    
+    public static final class VertexHolder&lt;V&gt; implements Comparable&lt;VertexHolder&lt;V&gt;&gt; {
+
+        private final V vertex;
+        
+        private final int order;
+        
+        private final int nrImcoming;
+
+<span class="nc" id="L114">        public VertexHolder(final V vertex, final int order, final int nrImcoming) {</span>
+<span class="nc" id="L115">            this.vertex = vertex;</span>
+<span class="nc" id="L116">            this.order = order;</span>
+<span class="nc" id="L117">            this.nrImcoming = nrImcoming;</span>
+<span class="nc" id="L118">        }</span>
+           
+        @Override
+        public int compareTo(final VertexHolder&lt;V&gt; o) {
+<span class="nc" id="L122">            int result = this.nrImcoming - o.nrImcoming;</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">            if (result == 0) {</span>
+<span class="nc" id="L124">                return  this.order - o.order;</span>
+            } else {
+<span class="nc" id="L126">                return result;</span>
+            }
+        }
+
+        public V getVertex() {
+<span class="nc" id="L131">            return vertex;</span>
+        }
+
+        @Override
+        public int hashCode() {
+<span class="nc" id="L136">            int hash = 7;</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">            hash = 29 * hash + (this.vertex != null ? this.vertex.hashCode() : 0);</span>
+<span class="nc" id="L138">            hash = 29 * hash + this.order;</span>
+<span class="nc" id="L139">            return 29 * hash + this.nrImcoming;</span>
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+<span class="nc bnc" id="L144" title="All 2 branches missed.">            if (obj == null) {</span>
+<span class="nc" id="L145">                return false;</span>
+            }
+<span class="nc bnc" id="L147" title="All 2 branches missed.">            if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L148">                return false;</span>
+            }
+<span class="nc" id="L150">            final VertexHolder&lt;V&gt; other = (VertexHolder&lt;V&gt;) obj;</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">            return (this.compareTo(other) == 0);</span>
+        }
+        
+        
+        
+        
+    }
+    
+    
+    public static &lt;V, E&gt; void customTraverse(final Graph&lt;V, E&gt; graph, final V startNode,
+            final TraversalCallback&lt;V, E&gt; handler) {
+<span class="nc" id="L162">        Set&lt;V&gt; traversedNodes = new HashSet&lt;V&gt;();</span>
+<span class="nc" id="L163">        Queue&lt;VertexHolder&lt;V&gt;&gt; traversalQueue = new PriorityQueue&lt;VertexHolder&lt;V&gt;&gt;(16);</span>
+<span class="nc" id="L164">        int counter = 0;</span>
+<span class="nc" id="L165">        traversalQueue.add(new VertexHolder&lt;V&gt;(startNode, counter++, 0));</span>
+<span class="nc" id="L166">        boolean done = false;</span>
+        do {
+<span class="nc" id="L168">            boolean first = true;</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">            while (!traversalQueue.isEmpty()) {</span>
+<span class="nc" id="L170">                V node = traversalQueue.remove().getVertex();</span>
+<span class="nc" id="L171">                VertexEdges&lt;V, E&gt; edges = graph.getEdges(node);</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">                if (traversedNodes.contains(node)) {</span>
+<span class="nc" id="L173">                    continue;</span>
+                }
+<span class="nc" id="L175">                Map&lt;E, V&gt; incomming = edges.getIncomming();</span>
+<span class="nc" id="L176">                boolean hasIncomingBeenTraversed = true;</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">                for (V val : incomming.values()) {</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">                    if (!traversedNodes.contains(val)) {</span>
+<span class="nc" id="L179">                        hasIncomingBeenTraversed = false;</span>
+<span class="nc" id="L180">                        break;</span>
+                    }
+<span class="nc" id="L182">                }</span>
+<span class="nc bnc" id="L183" title="All 4 branches missed.">                if (!first &amp;&amp; !hasIncomingBeenTraversed) {</span>
+<span class="nc" id="L184">                    continue;</span>
+                }
+<span class="nc" id="L186">                handler.handle(node, incomming);</span>
+<span class="nc" id="L187">                traversedNodes.add(node);</span>
+<span class="nc" id="L188">                first = false;</span>
+<span class="nc" id="L189">                Map&lt;E, V&gt; outgoing = edges.getOutgoing();</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">                for (V next : outgoing.values()) {</span>
+<span class="nc" id="L191">                    traversalQueue.add(</span>
+<span class="nc" id="L192">                            new VertexHolder&lt;V&gt;(next, counter++, graph.getEdges(next).getIncomming().size()));</span>
+<span class="nc" id="L193">                }</span>
+<span class="nc" id="L194">            }</span>
+
+<span class="nc" id="L196">            Set&lt;V&gt; leftNodes = Sets.difference(graph.getVertices(), traversedNodes);</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">            if (leftNodes.isEmpty()) {</span>
+<span class="nc" id="L198">                done = true;</span>
+            } else {
+<span class="nc" id="L200">                boolean added = false;</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">                for (V node : leftNodes) {</span>
+<span class="nc" id="L202">                    Collection&lt;V&gt; incomingNodes = graph.getEdges(node).getIncomming().values();</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">                    for (V incoming : incomingNodes) {</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">                        if (traversedNodes.contains(incoming)) {</span>
+<span class="nc" id="L205">                            traversalQueue.add(new VertexHolder&lt;V&gt;(node, counter++, 0));</span>
+<span class="nc" id="L206">                            added = true;</span>
+<span class="nc" id="L207">                            break;</span>
+                        }
+<span class="nc" id="L209">                    }</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                    if (added) {</span>
+<span class="nc" id="L211">                        break;</span>
+                    }
+<span class="nc" id="L213">                }</span>
+            }
+<span class="nc bnc" id="L215" title="All 2 branches missed.">        } while (!done);</span>
+<span class="nc" id="L216">    }</span>
+
+    
+    
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

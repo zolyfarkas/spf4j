@@ -1,0 +1,1814 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ConcurrentReferenceHashMap.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">ConcurrentReferenceHashMap.java</span></div><h1>ConcurrentReferenceHashMap.java</h1><pre class="source lang-java linenums">/*
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/licenses/publicdomain
+ */
+
+package org.spf4j.concurrent;
+import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.io.Serializable;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
+import java.util.AbstractCollection;
+import java.util.AbstractMap;
+import java.util.AbstractSet;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * An advanced hash table supporting configurable garbage collection semantics
+ * of keys and values, optional referential-equality, full concurrency of
+ * retrievals, and adjustable expected concurrency for updates.
+ *
+ * This table is designed around specific advanced use-cases. If there is any
+ * doubt whether this table is for you, you most likely should be using
+ * {@link java.util.concurrent.ConcurrentHashMap} instead.
+ *
+ * This table supports strong, weak, and soft keys and values. By default keys
+ * are weak, and values are strong. Such a configuration offers similar behavior
+ * to {@link java.util.WeakHashMap}, entries of this table are periodically
+ * removed once their corresponding keys are no longer referenced outside of
+ * this table. In other words, this table will not prevent a key from being
+ * discarded by the garbage collector. Once a key has been discarded by the
+ * collector, the corresponding entry is no longer visible to this table;
+ * however, the entry may occupy space until a future table operation decides to
+ * reclaim it. For this reason, summary functions such as &lt;tt&gt;size&lt;/tt&gt; and
+ * &lt;tt&gt;isEmpty&lt;/tt&gt; might return a value greater than the observed number of
+ * entries. In order to support a high level of concurrency, stale entries are
+ * only reclaimed during blocking (usually mutating) operations.
+ *
+ * Enabling soft keys allows entries in this table to remain until their space
+ * is absolutely needed by the garbage collector. This is unlike weak keys which
+ * can be reclaimed as soon as they are no longer referenced by a normal strong
+ * reference. The primary use case for soft keys is a cache, which ideally
+ * occupies memory that is not in use for as long as possible.
+ *
+ * By default, values are held using a normal strong reference. This provides
+ * the commonly desired guarantee that a value will always have at least the
+ * same life-span as it's key. For this reason, care should be taken to ensure
+ * that a value never refers, either directly or indirectly, to its key, thereby
+ * preventing reclamation. If this is unavoidable, then it is recommended to use
+ * the same reference type in use for the key. However, it should be noted that
+ * non-strong values may disappear before their corresponding key.
+ *
+ * While this table does allow the use of both strong keys and values, it is
+ * recommended to use {@link java.util.concurrent.ConcurrentHashMap} for such a
+ * configuration, since it is optimized for that case.
+ *
+ * Just like {@link java.util.concurrent.ConcurrentHashMap}, this class obeys
+ * the same functional specification as {@link java.util.Hashtable}, and
+ * includes versions of methods corresponding to each method of
+ * &lt;tt&gt;Hashtable&lt;/tt&gt;. However, even though all operations are thread-safe,
+ * retrieval operations do &lt;em&gt;not&lt;/em&gt; entail locking, and there is
+ * &lt;em&gt;not&lt;/em&gt; any support for locking the entire table in a way that
+ * prevents all access. This class is fully interoperable with
+ * &lt;tt&gt;Hashtable&lt;/tt&gt; in programs that rely on its thread safety but not on
+ * its synchronization details.
+ *
+ * &lt;p&gt;
+ * Retrieval operations (including &lt;tt&gt;get&lt;/tt&gt;) generally do not block, so
+ * may overlap with update operations (including &lt;tt&gt;put&lt;/tt&gt; and
+ * &lt;tt&gt;remove&lt;/tt&gt;). Retrievals reflect the results of the most recently
+ * &lt;em&gt;completed&lt;/em&gt; update operations holding upon their onset. For
+ * aggregate operations such as &lt;tt&gt;putAll&lt;/tt&gt; and &lt;tt&gt;clear&lt;/tt&gt;,
+ * concurrent retrievals may reflect insertion or removal of only some entries.
+ * Similarly, Iterators and Enumerations return elements reflecting the state of
+ * the hash table at some point at or since the creation of the
+ * iterator/enumeration. They do &lt;em&gt;not&lt;/em&gt; throw
+ * {@link ConcurrentModificationException}. However, iterators are designed to
+ * be used by only one thread at a time.
+ *
+ * &lt;p&gt;
+ * The allowed concurrency among update operations is guided by the optional
+ * &lt;tt&gt;concurrencyLevel&lt;/tt&gt; constructor argument (default &lt;tt&gt;16&lt;/tt&gt;),
+ * which is used as a hint for internal sizing. The table is internally
+ * partitioned to try to permit the indicated number of concurrent updates
+ * without contention. Because placement in hash tables is essentially random,
+ * the actual concurrency will vary. Ideally, you should choose a value to
+ * accommodate as many threads as will ever concurrently modify the table. Using
+ * a significantly higher value than you need can waste space and time, and a
+ * significantly lower value can lead to thread contention. But overestimates
+ * and underestimates within an order of magnitude do not usually have much
+ * noticeable impact. A value of one is appropriate when it is known that only
+ * one thread will modify and all others will only read. Also, resizing this or
+ * any other kind of hash table is a relatively slow operation, so, when
+ * possible, it is a good idea to provide estimates of expected table sizes in
+ * constructors.
+ *
+ * &lt;p&gt;
+ * This class and its views and iterators implement all of the &lt;em&gt;optional&lt;/em&gt;
+ * methods of the {@link Map} and {@link Iterator} interfaces.
+ *
+ * &lt;p&gt;
+ * Like {@link Hashtable} but unlike {@link HashMap}, this class does
+ * &lt;em&gt;not&lt;/em&gt; allow &lt;tt&gt;null&lt;/tt&gt; to be used as a key or value.
+ *
+ * &lt;p&gt;
+ * This class is a member of the &lt;a href=&quot;{@docRoot}/../technotes/guides/collections/index.html&quot;&gt;
+ * Java Collections Framework&lt;/a&gt;.
+ *
+ * @author Doug Lea
+ * @author Jason T. Greene
+ * @param &lt;K&gt; the type of keys maintained by this map
+ * @param &lt;V&gt; the type of mapped values
+ */
+// This is beta until at least the static analisys tool is happy.
+// There are enough issues to not trust the implementation.
+@Beta
+@SuppressFBWarnings
+//CHECKSTYLE:OFF
+public class ConcurrentReferenceHashMap&lt;K, V&gt; extends AbstractMap&lt;K, V&gt;
+        implements java.util.concurrent.ConcurrentMap&lt;K, V&gt;, Serializable {
+    private static final long serialVersionUID = 7249069246763182397L;
+
+    /*
+     * The basic strategy is to subdivide the table among Segments,
+     * each of which itself is a concurrently readable hash table.
+     */
+
+    /**
+     * An option specifying which Java reference type should be used to refer
+     * to a key and/or value.
+     */
+<span class="pc" id="L143">    public static enum ReferenceType {</span>
+        /** Indicates a normal Java strong reference should be used */
+<span class="fc" id="L145">        STRONG,</span>
+        /** Indicates a {@link WeakReference} should be used */
+<span class="fc" id="L147">        WEAK,</span>
+        /** Indicates a {@link SoftReference} should be used */
+<span class="fc" id="L149">        SOFT</span>
+    };
+
+
+<span class="nc" id="L153">    public static enum Option {</span>
+        /** Indicates that referential-equality (== instead of .equals()) should
+         * be used when locating keys. This offers similar behavior to {@link IdentityHashMap} */
+<span class="nc" id="L156">        IDENTITY_COMPARISONS</span>
+    };
+
+    /* ---------------- Constants -------------- */
+
+<span class="fc" id="L161">    static final ReferenceType DEFAULT_KEY_TYPE = ReferenceType.WEAK;</span>
+
+<span class="fc" id="L163">    static final ReferenceType DEFAULT_VALUE_TYPE = ReferenceType.STRONG;</span>
+
+
+    /**
+     * The default initial capacity for this table,
+     * used when not otherwise specified in a constructor.
+     */
+    static final int DEFAULT_INITIAL_CAPACITY = 16;
+
+    /**
+     * The default load factor for this table, used when not
+     * otherwise specified in a constructor.
+     */
+    static final float DEFAULT_LOAD_FACTOR = 0.75f;
+
+    /**
+     * The default concurrency level for this table, used when not
+     * otherwise specified in a constructor.
+     */
+    static final int DEFAULT_CONCURRENCY_LEVEL = 16;
+
+    /**
+     * The maximum capacity, used if a higher value is implicitly
+     * specified by either of the constructors with arguments.  MUST
+     * be a power of two &lt;= 1&lt;&lt;30 to ensure that entries are indexable
+     * using ints.
+     */
+    static final int MAXIMUM_CAPACITY = 1 &lt;&lt; 30;
+
+    /**
+     * The maximum number of segments to allow; used to bound
+     * constructor arguments.
+     */
+    static final int MAX_SEGMENTS = 1 &lt;&lt; 16; // slightly conservative
+
+    /**
+     * Number of unsynchronized retries in size and containsValue
+     * methods before resorting to locking. This is used to avoid
+     * unbounded retries if tables undergo continuous modification
+     * which would make it impossible to obtain an accurate result.
+     */
+    static final int RETRIES_BEFORE_LOCK = 2;
+
+    /* ---------------- Fields -------------- */
+
+    /**
+     * Mask value for indexing into segments. The upper bits of a
+     * key's hash code are used to choose the segment.
+     */
+    private final int segmentMask;
+
+    /**
+     * Shift value for indexing within segments.
+     */
+    private final int segmentShift;
+
+    /**
+     * The segments, each of which is a specialized hash table
+     */
+    private final Segment&lt;K, V&gt;[] segments;
+
+    private boolean identityComparisons;
+
+    private transient Set&lt;K&gt; keySet;
+    private transient Set&lt;Map.Entry&lt;K, V&gt;&gt; entrySet;
+    private transient Collection&lt;V&gt; values;
+
+    /* ---------------- Small Utilities -------------- */
+
+    /**
+     * Applies a supplemental hash function to a given hashCode, which
+     * defends against poor quality hash functions.  This is critical
+     * because ConcurrentReferenceHashMap uses power-of-two length hash tables,
+     * that otherwise encounter collisions for hashCodes that do not
+     * differ in lower or upper bits.
+     */
+    private static int hash(final int ph) {
+<span class="fc" id="L240">        int h = ph;</span>
+        // Spread bits to regularize both segment and index locations,
+        // using variant of single-word Wang/Jenkins hash.
+<span class="fc" id="L243">        h += (h &lt;&lt;  15) ^ 0xffffcd7d;</span>
+<span class="fc" id="L244">        h ^= (h &gt;&gt;&gt; 10);</span>
+<span class="fc" id="L245">        h += (h &lt;&lt;   3);</span>
+<span class="fc" id="L246">        h ^= (h &gt;&gt;&gt;  6);</span>
+<span class="fc" id="L247">        h += (h &lt;&lt;   2) + (h &lt;&lt; 14);</span>
+<span class="fc" id="L248">        return h ^ (h &gt;&gt;&gt; 16);</span>
+    }
+
+    /**
+     * Returns the segment that should be used for key with given hash
+     * @param hash the hash code for the key
+     * @return the segment
+     */
+    final Segment&lt;K, V&gt; segmentFor(final int hash) {
+<span class="fc" id="L257">        return segments[(hash &gt;&gt;&gt; segmentShift) &amp; segmentMask];</span>
+    }
+
+    private int hashOf(final Object key) {
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">        return hash(identityComparisons</span>
+<span class="pc" id="L262">                ? System.identityHashCode(key) : key.hashCode());</span>
+    }
+
+    /* ---------------- Inner Classes -------------- */
+
+    static interface KeyReference {
+        int keyHash();
+        Object keyRef();
+    }
+
+    /**
+     * A weak-key reference which stores the key hash needed for reclamation.
+     */
+    static final class WeakKeyReference&lt;K&gt; extends WeakReference&lt;K&gt;  implements KeyReference {
+        private final int hash;
+        WeakKeyReference(final K key, final int hash, final ReferenceQueue&lt;Object&gt; refQueue) {
+<span class="nc" id="L278">            super(key, refQueue);</span>
+<span class="nc" id="L279">            this.hash = hash;</span>
+<span class="nc" id="L280">        }</span>
+
+        @Override
+        public int keyHash() {
+<span class="nc" id="L284">            return hash;</span>
+        }
+
+        @Override
+        public Object keyRef() {
+<span class="nc" id="L289">            return this;</span>
+        }
+    }
+
+    /**
+     * A soft-key reference which stores the key hash needed for reclamation.
+     */
+    static final class SoftKeyReference&lt;K&gt; extends SoftReference&lt;K&gt; implements KeyReference {
+        private final int hash;
+        SoftKeyReference(final K key, final int hash, final ReferenceQueue&lt;Object&gt; refQueue) {
+<span class="nc" id="L299">            super(key, refQueue);</span>
+<span class="nc" id="L300">            this.hash = hash;</span>
+<span class="nc" id="L301">        }</span>
+        @Override
+        public int keyHash() {
+<span class="nc" id="L304">            return hash;</span>
+        }
+
+        @Override
+        public Object keyRef() {
+<span class="nc" id="L309">            return this;</span>
+        }
+    }
+
+    static final class WeakValueReference&lt;V&gt; extends WeakReference&lt;V&gt;  implements KeyReference {
+        private final Object keyRef;
+        private final int hash;
+
+        WeakValueReference(final V value, final Object keyRef, final int hash, final ReferenceQueue&lt;Object&gt; refQueue) {
+<span class="nc" id="L318">            super(value, refQueue);</span>
+<span class="nc" id="L319">            this.keyRef = keyRef;</span>
+<span class="nc" id="L320">            this.hash = hash;</span>
+<span class="nc" id="L321">        }</span>
+
+        @Override
+        public int keyHash() {
+<span class="nc" id="L325">            return hash;</span>
+        }
+
+        @Override
+        public Object keyRef() {
+<span class="nc" id="L330">            return keyRef;</span>
+        }
+    }
+
+    static final class SoftValueReference&lt;V&gt; extends SoftReference&lt;V&gt;  implements KeyReference {
+        private final Object keyRef;
+        private final int hash;
+        SoftValueReference(final V value, final Object keyRef, final int hash, final ReferenceQueue&lt;Object&gt; refQueue) {
+<span class="nc" id="L338">            super(value, refQueue);</span>
+<span class="nc" id="L339">            this.keyRef = keyRef;</span>
+<span class="nc" id="L340">            this.hash = hash;</span>
+<span class="nc" id="L341">        }</span>
+        @Override
+        public int keyHash() {
+<span class="nc" id="L344">            return hash;</span>
+        }
+
+        @Override
+        public Object keyRef() {
+<span class="nc" id="L349">            return keyRef;</span>
+        }
+    }
+
+    /**
+     * ConcurrentReferenceHashMap list entry. Note that this is never exported
+     * out as a user-visible Map.Entry.
+     *
+     * Because the value field is volatile, not final, it is legal wrt
+     * the Java Memory Model for an unsynchronized reader to see null
+     * instead of initial value when read via a data race.  Although a
+     * reordering leading to this is not likely to ever actually
+     * occur, the Segment.readValueUnderLock method is used as a
+     * backup in case a null (pre-initialized) value is ever seen in
+     * an unsynchronized access method.
+     */
+    static final class HashEntry&lt;K, V&gt; {
+        private final Object keyRef;
+        private final int hash;
+        private volatile Object valueRef;
+        private final HashEntry&lt;K, V&gt; next;
+
+        HashEntry(final K key, final int hash, final HashEntry&lt;K, V&gt; next, final V value,
+                final ReferenceType keyType, final ReferenceType valueType,
+<span class="fc" id="L373">                final ReferenceQueue&lt;Object&gt; refQueue) {</span>
+<span class="fc" id="L374">            this.hash = hash;</span>
+<span class="fc" id="L375">            this.next = next;</span>
+<span class="fc" id="L376">            this.keyRef = newKeyReference(key, keyType, refQueue);</span>
+<span class="fc" id="L377">            this.valueRef = newValueReference(value, valueType, refQueue);</span>
+<span class="fc" id="L378">        }</span>
+
+        Object newKeyReference(final K key, final ReferenceType keyType,
+                final ReferenceQueue&lt;Object&gt; refQueue) {
+<span class="pc bpc" id="L382" title="3 of 4 branches missed.">            switch (keyType) {</span>
+                case WEAK:
+<span class="nc" id="L384">                return new WeakKeyReference&lt;&gt;(key, hash, refQueue);</span>
+                case SOFT:
+<span class="nc" id="L386">                return new SoftKeyReference&lt;&gt;(key, hash, refQueue);</span>
+                case STRONG:
+<span class="fc" id="L388">                return key;</span>
+                default:
+<span class="nc" id="L390">                    throw new RuntimeException(&quot;Unsupported refference type &quot; + keyType);</span>
+            }
+        }
+
+        Object newValueReference(final V value, final ReferenceType valueType,
+                final ReferenceQueue&lt;Object&gt; refQueue) {
+<span class="pc bpc" id="L396" title="3 of 4 branches missed.">            switch (valueType) {</span>
+                case WEAK:
+<span class="nc" id="L398">                return new WeakValueReference&lt;&gt;(value, keyRef, hash, refQueue);</span>
+                case SOFT:
+<span class="nc" id="L400">                return new SoftValueReference&lt;&gt;(value, keyRef, hash, refQueue);</span>
+                case STRONG:
+<span class="fc" id="L402">                return value;</span>
+                default:
+<span class="nc" id="L404">                    throw new RuntimeException(&quot;Unsupported refference type &quot; + valueType);</span>
+            }
+        }
+
+        @SuppressWarnings(&quot;unchecked&quot;)
+        final K key() {
+<span class="pc bpc" id="L410" title="1 of 2 branches missed.">            if (keyRef instanceof KeyReference)</span>
+<span class="nc" id="L411">                return ((Reference&lt;K&gt;)keyRef).get();</span>
+
+<span class="fc" id="L413">            return (K) keyRef;</span>
+        }
+
+        final V value() {
+<span class="fc" id="L417">            return dereferenceValue(valueRef);</span>
+        }
+
+        @SuppressWarnings(&quot;unchecked&quot;)
+        final V dereferenceValue(Object value) {
+<span class="pc bpc" id="L422" title="1 of 2 branches missed.">            if (value instanceof KeyReference)</span>
+<span class="nc" id="L423">                return ((Reference&lt;V&gt;)value).get();</span>
+
+<span class="fc" id="L425">            return (V) value;</span>
+        }
+
+        final void setValue(V value, ReferenceType valueType, ReferenceQueue&lt;Object&gt; refQueue) {
+<span class="nc" id="L429">            this.valueRef = newValueReference(value, valueType, refQueue);</span>
+<span class="nc" id="L430">        }</span>
+
+        @SuppressWarnings(&quot;unchecked&quot;)
+        static final &lt;K,V&gt; HashEntry&lt;K,V&gt;[] newArray(int i) {
+<span class="fc" id="L434">            return new HashEntry[i];</span>
+        }
+    }
+
+    /**
+     * Segments are specialized versions of hash tables.  This
+     * subclasses from ReentrantLock opportunistically, just to
+     * simplify some locking and avoid separate construction.
+     */
+    static final class Segment&lt;K,V&gt; extends ReentrantLock implements Serializable {
+        /*
+         * Segments maintain a table of entry lists that are ALWAYS
+         * kept in a consistent state, so can be read without locking.
+         * Next fields of nodes are immutable (final).  All list
+         * additions are performed at the front of each bin. This
+         * makes it easy to check changes, and also fast to traverse.
+         * When nodes would otherwise be changed, new nodes are
+         * created to replace them. This works well for hash tables
+         * since the bin lists tend to be short. (The average length
+         * is less than two for the default load factor threshold.)
+         *
+         * Read operations can thus proceed without locking, but rely
+         * on selected uses of volatiles to ensure that completed
+         * write operations performed by other threads are
+         * noticed. For most purposes, the &quot;count&quot; field, tracking the
+         * number of elements, serves as that volatile variable
+         * ensuring visibility.  This is convenient because this field
+         * needs to be read in many read operations anyway:
+         *
+         *   - All (unsynchronized) read operations must first read the
+         *     &quot;count&quot; field, and should not look at table entries if
+         *     it is 0.
+         *
+         *   - All (synchronized) write operations should write to
+         *     the &quot;count&quot; field after structurally changing any bin.
+         *     The operations must not take any action that could even
+         *     momentarily cause a concurrent read operation to see
+         *     inconsistent data. This is made easier by the nature of
+         *     the read operations in Map. For example, no operation
+         *     can reveal that the table has grown but the threshold
+         *     has not yet been updated, so there are no atomicity
+         *     requirements for this with respect to reads.
+         *
+         * As a guide, all critical volatile reads and writes to the
+         * count field are marked in code comments.
+         */
+
+        private static final long serialVersionUID = 2249069246763182397L;
+
+        /**
+         * The number of elements in this segment's region.
+         */
+        transient volatile int count;
+
+        /**
+         * Number of updates that alter the size of the table. This is
+         * used during bulk-read methods to make sure they see a
+         * consistent snapshot: If modCounts change during a traversal
+         * of segments computing size or checking containsValue, then
+         * we might have an inconsistent view of state so (usually)
+         * must retry.
+         */
+        transient int modCount;
+
+        /**
+         * The table is rehashed when its size exceeds this threshold.
+         * (The value of this field is always &lt;tt&gt;(int)(capacity *
+         * loadFactor)&lt;/tt&gt;.)
+         */
+        transient int threshold;
+
+        /**
+         * The per-segment table.
+         */
+        transient volatile HashEntry&lt;K, V&gt;[] table;
+
+        /**
+         * The load factor for the hash table.  Even though this value
+         * is same for all segments, it is replicated to avoid needing
+         * links to outer object.
+         * @serial
+         */
+        final float loadFactor;
+
+        /**
+         * The collected weak-key reference queue for this segment.
+         * This should be (re)initialized whenever table is assigned,
+         */
+        transient volatile ReferenceQueue&lt;Object&gt; refQueue;
+
+        final ReferenceType keyType;
+
+        final ReferenceType valueType;
+
+        final boolean identityComparisons;
+
+        Segment(int initialCapacity, float lf, ReferenceType keyType,
+<span class="fc" id="L531">                ReferenceType valueType, boolean identityComparisons) {</span>
+<span class="fc" id="L532">            loadFactor = lf;</span>
+<span class="fc" id="L533">            this.keyType = keyType;</span>
+<span class="fc" id="L534">            this.valueType = valueType;</span>
+<span class="fc" id="L535">            this.identityComparisons = identityComparisons;</span>
+<span class="fc" id="L536">            setTable(HashEntry.&lt;K,V&gt;newArray(initialCapacity));</span>
+<span class="fc" id="L537">        }</span>
+
+        @SuppressWarnings(&quot;unchecked&quot;)
+        static final &lt;K,V&gt; Segment&lt;K,V&gt;[] newArray(int i) {
+<span class="fc" id="L541">            return new Segment[i];</span>
+        }
+
+        private boolean keyEq(Object src, Object dest) {
+<span class="pc bpc" id="L545" title="3 of 4 branches missed.">            return identityComparisons ? src == dest : src.equals(dest);</span>
+        }
+
+        /**
+         * Sets table to new HashEntry array.
+         * Call only while holding lock or in constructor.
+         */
+        void setTable(HashEntry&lt;K,V&gt;[] newTable) {
+<span class="fc" id="L553">            threshold = (int)(newTable.length * loadFactor);</span>
+<span class="fc" id="L554">            table = newTable;</span>
+<span class="fc" id="L555">            refQueue = new ReferenceQueue&lt;&gt;();</span>
+<span class="fc" id="L556">        }</span>
+
+        /**
+         * Returns properly casted first entry of bin for given hash.
+         */
+        HashEntry&lt;K,V&gt; getFirst(int hash) {
+<span class="fc" id="L562">            HashEntry&lt;K,V&gt;[] tab = table;</span>
+<span class="fc" id="L563">            return tab[hash &amp; (tab.length - 1)];</span>
+        }
+
+        HashEntry&lt;K,V&gt; newHashEntry(K key, int hash, HashEntry&lt;K, V&gt; next, V value) {
+<span class="fc" id="L567">            return new HashEntry&lt;&gt;(key, hash, next, value, keyType, valueType, refQueue);</span>
+        }
+
+        /**
+         * Reads value field of an entry under lock. Called if value
+         * field ever appears to be null. This is possible only if a
+         * compiler happens to reorder a HashEntry initialization with
+         * its table assignment, which is legal under memory model
+         * but is not known to ever occur.
+         */
+        V readValueUnderLock(HashEntry&lt;K,V&gt; e) {
+<span class="nc" id="L578">            lock();</span>
+            try {
+<span class="nc" id="L580">                removeStale();</span>
+<span class="nc" id="L581">                return e.value();</span>
+            } finally {
+<span class="nc" id="L583">                unlock();</span>
+            }
+        }
+
+        /* Specialized implementations of map methods */
+
+        V get(Object key, int hash) {
+<span class="pc bpc" id="L590" title="1 of 2 branches missed.">            if (count != 0) { // read-volatile</span>
+<span class="fc" id="L591">                HashEntry&lt;K,V&gt; e = getFirst(hash);</span>
+<span class="pc bpc" id="L592" title="1 of 2 branches missed.">                while (e != null) {</span>
+<span class="pc bpc" id="L593" title="2 of 4 branches missed.">                    if (e.hash == hash &amp;&amp; keyEq(key, e.key())) {</span>
+<span class="fc" id="L594">                        Object opaque = e.valueRef;</span>
+<span class="pc bpc" id="L595" title="1 of 2 branches missed.">                        if (opaque != null)</span>
+<span class="fc" id="L596">                            return e.dereferenceValue(opaque);</span>
+
+<span class="nc" id="L598">                        return readValueUnderLock(e);  // recheck</span>
+                    }
+<span class="nc" id="L600">                    e = e.next;</span>
+                }
+            }
+<span class="nc" id="L603">            return null;</span>
+        }
+
+        boolean containsKey(Object key, int hash) {
+<span class="nc bnc" id="L607" title="All 2 branches missed.">            if (count != 0) { // read-volatile</span>
+<span class="nc" id="L608">                HashEntry&lt;K,V&gt; e = getFirst(hash);</span>
+<span class="nc bnc" id="L609" title="All 2 branches missed.">                while (e != null) {</span>
+<span class="nc bnc" id="L610" title="All 4 branches missed.">                    if (e.hash == hash &amp;&amp; keyEq(key, e.key()))</span>
+<span class="nc" id="L611">                        return true;</span>
+<span class="nc" id="L612">                    e = e.next;</span>
+                }
+            }
+<span class="nc" id="L615">            return false;</span>
+        }
+
+        boolean containsValue(Object value) {
+<span class="nc bnc" id="L619" title="All 2 branches missed.">            if (count != 0) { // read-volatile</span>
+<span class="nc" id="L620">                HashEntry&lt;K,V&gt;[] tab = table;</span>
+<span class="nc" id="L621">                int len = tab.length;</span>
+<span class="nc bnc" id="L622" title="All 2 branches missed.">                for (int i = 0 ; i &lt; len; i++) {</span>
+<span class="nc bnc" id="L623" title="All 2 branches missed.">                    for (HashEntry&lt;K,V&gt; e = tab[i]; e != null; e = e.next) {</span>
+<span class="nc" id="L624">                        Object opaque = e.valueRef;</span>
+                        V v;
+
+<span class="nc bnc" id="L627" title="All 2 branches missed.">                        if (opaque == null)</span>
+<span class="nc" id="L628">                            v = readValueUnderLock(e); // recheck</span>
+                        else
+<span class="nc" id="L630">                            v = e.dereferenceValue(opaque);</span>
+
+<span class="nc bnc" id="L632" title="All 2 branches missed.">                        if (value.equals(v))</span>
+<span class="nc" id="L633">                            return true;</span>
+                    }
+                }
+            }
+<span class="nc" id="L637">            return false;</span>
+        }
+
+        boolean replace(K key, int hash, V oldValue, V newValue) {
+<span class="nc" id="L641">            lock();</span>
+            try {
+<span class="nc" id="L643">                removeStale();</span>
+<span class="nc" id="L644">                HashEntry&lt;K,V&gt; e = getFirst(hash);</span>
+<span class="nc bnc" id="L645" title="All 6 branches missed.">                while (e != null &amp;&amp; (e.hash != hash || !keyEq(key, e.key())))</span>
+<span class="nc" id="L646">                    e = e.next;</span>
+
+<span class="nc" id="L648">                boolean replaced = false;</span>
+<span class="nc bnc" id="L649" title="All 4 branches missed.">                if (e != null &amp;&amp; oldValue.equals(e.value())) {</span>
+<span class="nc" id="L650">                    replaced = true;</span>
+<span class="nc" id="L651">                    e.setValue(newValue, valueType, refQueue);</span>
+                }
+<span class="nc" id="L653">                return replaced;</span>
+            } finally {
+<span class="nc" id="L655">                unlock();</span>
+            }
+        }
+
+        V replace(K key, int hash, V newValue) {
+<span class="nc" id="L660">            lock();</span>
+            try {
+<span class="nc" id="L662">                removeStale();</span>
+<span class="nc" id="L663">                HashEntry&lt;K,V&gt; e = getFirst(hash);</span>
+<span class="nc bnc" id="L664" title="All 6 branches missed.">                while (e != null &amp;&amp; (e.hash != hash || !keyEq(key, e.key())))</span>
+<span class="nc" id="L665">                    e = e.next;</span>
+
+<span class="nc" id="L667">                V oldValue = null;</span>
+<span class="nc bnc" id="L668" title="All 2 branches missed.">                if (e != null) {</span>
+<span class="nc" id="L669">                    oldValue = e.value();</span>
+<span class="nc" id="L670">                    e.setValue(newValue, valueType, refQueue);</span>
+                }
+<span class="nc" id="L672">                return oldValue;</span>
+            } finally {
+<span class="nc" id="L674">                unlock();</span>
+            }
+        }
+
+
+        V put(K key, int hash, V value, boolean onlyIfAbsent) {
+<span class="fc" id="L680">            lock();</span>
+            try {
+<span class="fc" id="L682">                removeStale();</span>
+<span class="fc" id="L683">                int c = count;</span>
+<span class="fc bfc" id="L684" title="All 2 branches covered.">                if (c++ &gt; threshold) {// ensure capacity</span>
+<span class="fc" id="L685">                    int reduced = rehash();</span>
+<span class="pc bpc" id="L686" title="1 of 2 branches missed.">                    if (reduced &gt; 0)  // adjust from possible weak cleanups</span>
+<span class="nc" id="L687">                        count = (c -= reduced) - 1; // write-volatile</span>
+                }
+
+<span class="fc" id="L690">                HashEntry&lt;K,V&gt;[] tab = table;</span>
+<span class="fc" id="L691">                int index = hash &amp; (tab.length - 1);</span>
+<span class="fc" id="L692">                HashEntry&lt;K,V&gt; first = tab[index];</span>
+<span class="fc" id="L693">                HashEntry&lt;K,V&gt; e = first;</span>
+<span class="pc bpc" id="L694" title="3 of 6 branches missed.">                while (e != null &amp;&amp; (e.hash != hash || !keyEq(key, e.key())))</span>
+<span class="fc" id="L695">                    e = e.next;</span>
+
+                V oldValue;
+<span class="pc bpc" id="L698" title="1 of 2 branches missed.">                if (e != null) {</span>
+<span class="nc" id="L699">                    oldValue = e.value();</span>
+<span class="nc bnc" id="L700" title="All 2 branches missed.">                    if (!onlyIfAbsent)</span>
+<span class="nc" id="L701">                        e.setValue(value, valueType, refQueue);</span>
+                }
+                else {
+<span class="fc" id="L704">                    oldValue = null;</span>
+<span class="fc" id="L705">                    ++modCount;</span>
+<span class="fc" id="L706">                    tab[index] = newHashEntry(key, hash, first, value);</span>
+<span class="fc" id="L707">                    count = c; // write-volatile</span>
+                }
+<span class="fc" id="L709">                return oldValue;</span>
+            } finally {
+<span class="pc" id="L711">                unlock();</span>
+            }
+        }
+
+        int rehash() {
+<span class="fc" id="L716">            HashEntry&lt;K,V&gt;[] oldTable = table;</span>
+<span class="fc" id="L717">            int oldCapacity = oldTable.length;</span>
+<span class="pc bpc" id="L718" title="1 of 2 branches missed.">            if (oldCapacity &gt;= MAXIMUM_CAPACITY)</span>
+<span class="nc" id="L719">                return 0;</span>
+
+            /*
+             * Reclassify nodes in each list to new Map.  Because we are
+             * using power-of-two expansion, the elements from each bin
+             * must either stay at same index, or move with a power of two
+             * offset. We eliminate unnecessary node creation by catching
+             * cases where old nodes can be reused because their next
+             * fields won't change. Statistically, at the default
+             * threshold, only about one-sixth of them need cloning when
+             * a table doubles. The nodes they replace will be garbage
+             * collectable as soon as they are no longer referenced by any
+             * reader thread that may be in the midst of traversing table
+             * right now.
+             */
+
+<span class="fc" id="L735">            HashEntry&lt;K, V&gt;[] newTable = HashEntry.newArray(oldCapacity&lt;&lt;1);</span>
+<span class="fc" id="L736">            threshold = (int)(newTable.length * loadFactor);</span>
+<span class="fc" id="L737">            int sizeMask = newTable.length - 1;</span>
+<span class="fc" id="L738">            int reduce = 0;</span>
+<span class="fc bfc" id="L739" title="All 2 branches covered.">            for (int i = 0; i &lt; oldCapacity ; i++) {</span>
+                // We need to guarantee that any existing reads of old Map can
+                //  proceed. So we cannot yet null out each bin.
+<span class="fc" id="L742">                HashEntry&lt;K,V&gt; e = oldTable[i];</span>
+
+<span class="fc bfc" id="L744" title="All 2 branches covered.">                if (e != null) {</span>
+<span class="fc" id="L745">                    HashEntry&lt;K,V&gt; next = e.next;</span>
+<span class="fc" id="L746">                    int idx = e.hash &amp; sizeMask;</span>
+
+                    //  Single node on list
+<span class="fc bfc" id="L749" title="All 2 branches covered.">                    if (next == null)</span>
+<span class="fc" id="L750">                        newTable[idx] = e;</span>
+
+                    else {
+                        // Reuse trailing consecutive sequence at same slot
+<span class="fc" id="L754">                        HashEntry&lt;K,V&gt; lastRun = e;</span>
+<span class="fc" id="L755">                        int lastIdx = idx;</span>
+<span class="fc" id="L756">                        for (HashEntry&lt;K,V&gt; last = next;</span>
+<span class="fc bfc" id="L757" title="All 2 branches covered.">                             last != null;</span>
+<span class="fc" id="L758">                             last = last.next) {</span>
+<span class="fc" id="L759">                            int k = last.hash &amp; sizeMask;</span>
+<span class="fc bfc" id="L760" title="All 2 branches covered.">                            if (k != lastIdx) {</span>
+<span class="fc" id="L761">                                lastIdx = k;</span>
+<span class="fc" id="L762">                                lastRun = last;</span>
+                            }
+                        }
+<span class="fc" id="L765">                        newTable[lastIdx] = lastRun;</span>
+                        // Clone all remaining nodes
+<span class="fc bfc" id="L767" title="All 2 branches covered.">                        for (HashEntry&lt;K,V&gt; p = e; p != lastRun; p = p.next) {</span>
+                            // Skip GC'd weak refs
+<span class="fc" id="L769">                            K key = p.key();</span>
+<span class="pc bpc" id="L770" title="1 of 2 branches missed.">                            if (key == null) {</span>
+<span class="nc" id="L771">                                reduce++;</span>
+<span class="nc" id="L772">                                continue;</span>
+                            }
+<span class="fc" id="L774">                            int k = p.hash &amp; sizeMask;</span>
+<span class="fc" id="L775">                            HashEntry&lt;K,V&gt; n = newTable[k];</span>
+<span class="fc" id="L776">                            newTable[k] = newHashEntry(key, p.hash, n, p.value());</span>
+                        }
+                    }
+                }
+            }
+<span class="fc" id="L781">            table = newTable;</span>
+<span class="fc" id="L782">            return reduce;</span>
+        }
+
+        /**
+         * Remove; match on key only if value null, else match both.
+         */
+        V remove(final Object key, final int hash, final Object value, final boolean refRemove) {
+<span class="nc" id="L789">            lock();</span>
+            try {
+<span class="nc bnc" id="L791" title="All 2 branches missed.">                if (!refRemove)</span>
+<span class="nc" id="L792">                    removeStale();</span>
+<span class="nc" id="L793">                int c = count - 1;</span>
+<span class="nc" id="L794">                HashEntry&lt;K,V&gt;[] tab = table;</span>
+<span class="nc" id="L795">                int index = hash &amp; (tab.length - 1);</span>
+<span class="nc" id="L796">                HashEntry&lt;K,V&gt; first = tab[index];</span>
+<span class="nc" id="L797">                HashEntry&lt;K,V&gt; e = first;</span>
+                // a ref remove operation compares the Reference instance
+<span class="nc bnc" id="L799" title="All 6 branches missed.">                while (e != null &amp;&amp; key != e.keyRef</span>
+<span class="nc bnc" id="L800" title="All 4 branches missed.">                                 &amp;&amp; (refRemove || hash != e.hash || !keyEq(key, e.key())))</span>
+<span class="nc" id="L801">                    e = e.next;</span>
+
+<span class="nc" id="L803">                V oldValue = null;</span>
+<span class="nc bnc" id="L804" title="All 2 branches missed.">                if (e != null) {</span>
+<span class="nc" id="L805">                    V v = e.value();</span>
+<span class="nc bnc" id="L806" title="All 4 branches missed.">                    if (value == null || value.equals(v)) {</span>
+<span class="nc" id="L807">                        oldValue = v;</span>
+                        // All entries following removed node can stay
+                        // in list, but all preceding ones need to be
+                        // cloned.
+<span class="nc" id="L811">                        ++modCount;</span>
+<span class="nc" id="L812">                        HashEntry&lt;K,V&gt; newFirst = e.next;</span>
+<span class="nc bnc" id="L813" title="All 2 branches missed.">                        for (HashEntry&lt;K,V&gt; p = first; p != e; p = p.next) {</span>
+<span class="nc" id="L814">                            K pKey = p.key();</span>
+<span class="nc bnc" id="L815" title="All 2 branches missed.">                            if (pKey == null) { // Skip GC'd keys</span>
+<span class="nc" id="L816">                                c--;</span>
+<span class="nc" id="L817">                                continue;</span>
+                            }
+
+<span class="nc" id="L820">                            newFirst = newHashEntry(pKey, p.hash, newFirst, p.value());</span>
+                        }
+<span class="nc" id="L822">                        tab[index] = newFirst;</span>
+<span class="nc" id="L823">                        count = c; // write-volatile</span>
+                    }
+                }
+<span class="nc" id="L826">                return oldValue;</span>
+            } finally {
+<span class="nc" id="L828">                unlock();</span>
+            }
+        }
+
+        final void removeStale() {
+            KeyReference ref;
+<span class="pc bpc" id="L834" title="1 of 2 branches missed.">            while ((ref = (KeyReference) refQueue.poll()) != null) {</span>
+<span class="nc" id="L835">                remove(ref.keyRef(), ref.keyHash(), null, true);</span>
+            }
+<span class="fc" id="L837">        }</span>
+
+        void clear() {
+<span class="nc bnc" id="L840" title="All 2 branches missed.">            if (count != 0) {</span>
+<span class="nc" id="L841">                lock();</span>
+                try {
+<span class="nc" id="L843">                    HashEntry&lt;K,V&gt;[] tab = table;</span>
+<span class="nc bnc" id="L844" title="All 2 branches missed.">                    for (int i = 0; i &lt; tab.length ; i++)</span>
+<span class="nc" id="L845">                        tab[i] = null;</span>
+<span class="nc" id="L846">                    ++modCount;</span>
+                    // replace the reference queue to avoid unnecessary stale cleanups
+<span class="nc" id="L848">                    refQueue = new ReferenceQueue&lt;&gt;();</span>
+<span class="nc" id="L849">                    count = 0; // write-volatile</span>
+                } finally {
+<span class="nc" id="L851">                    unlock();</span>
+<span class="nc" id="L852">                }</span>
+            }
+<span class="nc" id="L854">        }</span>
+    }
+
+
+
+    /* ---------------- Public operations -------------- */
+
+    /**
+     * Creates a new, empty map with the specified initial
+     * capacity, reference types, load factor and concurrency level.
+     *
+     * Behavioral changing options such as {@link Option#IDENTITY_COMPARISONS}
+     * can also be specified.
+     *
+     * @param initialCapacity the initial capacity. The implementation
+     * performs internal sizing to accommodate this many elements.
+     * @param loadFactor  the load factor threshold, used to control resizing.
+     * Resizing may be performed when the average number of elements per
+     * bin exceeds this threshold.
+     * @param concurrencyLevel the estimated number of concurrently
+     * updating threads. The implementation performs internal sizing
+     * to try to accommodate this many threads.
+     * @param keyType the reference type to use for keys
+     * @param valueType the reference type to use for values
+     * @param options the behavioral options
+     * @throws IllegalArgumentException if the initial capacity is
+     * negative or the load factor or concurrencyLevel are
+     * nonpositive.
+     */
+    public ConcurrentReferenceHashMap(final int pinitialCapacity,
+                             final float loadFactor, final int pconcurrencyLevel,
+                             final ReferenceType keyType, final ReferenceType valueType,
+<span class="fc" id="L886">                             final EnumSet&lt;Option&gt; options) {</span>
+<span class="pc bpc" id="L887" title="3 of 6 branches missed.">        if (!(loadFactor &gt; 0) || pinitialCapacity &lt; 0 || pconcurrencyLevel &lt;= 0)</span>
+<span class="nc" id="L888">            throw new IllegalArgumentException();</span>
+
+        int concurrencyLevel;
+<span class="pc bpc" id="L891" title="1 of 2 branches missed.">        if (pconcurrencyLevel &gt; MAX_SEGMENTS) {</span>
+<span class="nc" id="L892">            concurrencyLevel = MAX_SEGMENTS;</span>
+        } else {
+<span class="fc" id="L894">            concurrencyLevel = pconcurrencyLevel;</span>
+        }
+
+        // Find power-of-two sizes best matching arguments
+<span class="fc" id="L898">        int sshift = 0;</span>
+<span class="fc" id="L899">        int ssize = 1;</span>
+<span class="fc bfc" id="L900" title="All 2 branches covered.">        while (ssize &lt; concurrencyLevel) {</span>
+<span class="fc" id="L901">            ++sshift;</span>
+<span class="fc" id="L902">            ssize &lt;&lt;= 1;</span>
+        }
+<span class="fc" id="L904">        segmentShift = 32 - sshift;</span>
+<span class="fc" id="L905">        segmentMask = ssize - 1;</span>
+<span class="fc" id="L906">        this.segments = Segment.newArray(ssize);</span>
+
+        int initialCapacity;
+<span class="pc bpc" id="L909" title="1 of 2 branches missed.">        if (pinitialCapacity &gt; MAXIMUM_CAPACITY) {</span>
+<span class="nc" id="L910">            initialCapacity = MAXIMUM_CAPACITY;</span>
+        } else {
+<span class="fc" id="L912">            initialCapacity = pinitialCapacity;</span>
+        }
+<span class="fc" id="L914">        int c = initialCapacity / ssize;</span>
+<span class="pc bpc" id="L915" title="1 of 2 branches missed.">        if (c * ssize &lt; initialCapacity)</span>
+<span class="nc" id="L916">            ++c;</span>
+<span class="fc" id="L917">        int cap = 1;</span>
+<span class="pc bpc" id="L918" title="1 of 2 branches missed.">        while (cap &lt; c)</span>
+<span class="nc" id="L919">            cap &lt;&lt;= 1;</span>
+
+<span class="pc bpc" id="L921" title="3 of 4 branches missed.">        identityComparisons = options != null &amp;&amp; options.contains(Option.IDENTITY_COMPARISONS);</span>
+
+<span class="fc bfc" id="L923" title="All 2 branches covered.">        for (int i = 0; i &lt; this.segments.length; ++i)</span>
+<span class="fc" id="L924">            this.segments[i] = new Segment&lt;&gt;(cap, loadFactor,</span>
+                    keyType, valueType, identityComparisons);
+<span class="fc" id="L926">    }</span>
+
+    /**
+     * Creates a new, empty map with the specified initial
+     * capacity, load factor and concurrency level.
+     *
+     * @param initialCapacity the initial capacity. The implementation
+     * performs internal sizing to accommodate this many elements.
+     * @param loadFactor  the load factor threshold, used to control resizing.
+     * Resizing may be performed when the average number of elements per
+     * bin exceeds this threshold.
+     * @param concurrencyLevel the estimated number of concurrently
+     * updating threads. The implementation performs internal sizing
+     * to try to accommodate this many threads.
+     * @throws IllegalArgumentException if the initial capacity is
+     * negative or the load factor or concurrencyLevel are
+     * nonpositive.
+     */
+    public ConcurrentReferenceHashMap(final int initialCapacity,
+                             final float loadFactor, final int concurrencyLevel) {
+<span class="nc" id="L946">        this(initialCapacity, loadFactor, concurrencyLevel,</span>
+                DEFAULT_KEY_TYPE, DEFAULT_VALUE_TYPE, null);
+<span class="nc" id="L948">    }</span>
+
+    /**
+     * Creates a new, empty map with the specified initial capacity
+     * and load factor and with the default reference types (weak keys,
+     * strong values), and concurrencyLevel (16).
+     *
+     * @param initialCapacity The implementation performs internal
+     * sizing to accommodate this many elements.
+     * @param loadFactor  the load factor threshold, used to control resizing.
+     * Resizing may be performed when the average number of elements per
+     * bin exceeds this threshold.
+     * @throws IllegalArgumentException if the initial capacity of
+     * elements is negative or the load factor is nonpositive
+     *
+     * @since 1.6
+     */
+    public ConcurrentReferenceHashMap(final int initialCapacity, final float loadFactor) {
+<span class="nc" id="L966">        this(initialCapacity, loadFactor, DEFAULT_CONCURRENCY_LEVEL);</span>
+<span class="nc" id="L967">    }</span>
+
+
+    /**
+     * Creates a new, empty map with the specified initial capacity,
+     * reference types and with default load factor (0.75) and concurrencyLevel (16).
+     *
+     * @param initialCapacity the initial capacity. The implementation
+     * performs internal sizing to accommodate this many elements.
+     * @param keyType the reference type to use for keys
+     * @param valueType the reference type to use for values
+     * @throws IllegalArgumentException if the initial capacity of
+     * elements is negative.
+     */
+    public ConcurrentReferenceHashMap(final int initialCapacity,
+            final ReferenceType keyType, final ReferenceType valueType) {
+<span class="nc" id="L983">        this(initialCapacity, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL,</span>
+                keyType, valueType, null);
+<span class="nc" id="L985">    }</span>
+
+    /**
+     * Creates a new, empty reference map with the specified key
+     * and value reference types.
+     *
+     * @param keyType the reference type to use for keys
+     * @param valueType the reference type to use for values
+     * @throws IllegalArgumentException if the initial capacity of
+     * elements is negative.
+     */
+    public ConcurrentReferenceHashMap(ReferenceType keyType, ReferenceType valueType) {
+<span class="fc" id="L997">        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL,</span>
+                keyType, valueType, null);
+<span class="fc" id="L999">    }</span>
+
+    /**
+     * Creates a new, empty reference map with the specified reference types
+     * and behavioral options.
+     *
+     * @param keyType the reference type to use for keys
+     * @param valueType the reference type to use for values
+     * @throws IllegalArgumentException if the initial capacity of
+     * elements is negative.
+     */
+    public ConcurrentReferenceHashMap(final ReferenceType keyType, final ReferenceType valueType,
+            final EnumSet&lt;Option&gt; options) {
+<span class="nc" id="L1012">        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL,</span>
+                keyType, valueType, options);
+<span class="nc" id="L1014">    }</span>
+
+
+    /**
+     * Creates a new, empty map with the specified initial capacity,
+     * and with default reference types (weak keys, strong values),
+     * load factor (0.75) and concurrencyLevel (16).
+     *
+     * @param initialCapacity the initial capacity. The implementation
+     * performs internal sizing to accommodate this many elements.
+     * @throws IllegalArgumentException if the initial capacity of
+     * elements is negative.
+     */
+    public ConcurrentReferenceHashMap(final int initialCapacity) {
+<span class="nc" id="L1028">        this(initialCapacity, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL);</span>
+<span class="nc" id="L1029">    }</span>
+
+    /**
+     * Creates a new, empty map with a default initial capacity (16),
+     * reference types (weak keys, strong values), default
+     * load factor (0.75) and concurrencyLevel (16).
+     */
+    public ConcurrentReferenceHashMap() {
+<span class="nc" id="L1037">        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL);</span>
+<span class="nc" id="L1038">    }</span>
+
+    /**
+     * Creates a new map with the same mappings as the given map.
+     * The map is created with a capacity of 1.5 times the number
+     * of mappings in the given map or 16 (whichever is greater),
+     * and a default load factor (0.75) and concurrencyLevel (16).
+     *
+     * @param m the map
+     */
+    public ConcurrentReferenceHashMap(final Map&lt;? extends K, ? extends V&gt; m) {
+<span class="nc" id="L1049">        this(Math.max((int) (m.size() / DEFAULT_LOAD_FACTOR) + 1,</span>
+                      DEFAULT_INITIAL_CAPACITY),
+             DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL);
+<span class="nc" id="L1052">        putAll(m);</span>
+<span class="nc" id="L1053">    }</span>
+
+    /**
+     * Returns &lt;tt&gt;true&lt;/tt&gt; if this map contains no key-value mappings.
+     *
+     * @return &lt;tt&gt;true&lt;/tt&gt; if this map contains no key-value mappings
+     */
+    @Override
+    public boolean isEmpty() {
+<span class="nc" id="L1062">        final Segment&lt;K, V&gt;[] segments = this.segments;</span>
+        /*
+         * We keep track of per-segment modCounts to avoid ABA
+         * problems in which an element in one segment was added and
+         * in another removed during traversal, in which case the
+         * table was never actually empty at any point. Note the
+         * similar use of modCounts in the size() and containsValue()
+         * methods, which are the only other methods also susceptible
+         * to ABA problems.
+         */
+<span class="nc" id="L1072">        int[] mc = new int[segments.length];</span>
+<span class="nc" id="L1073">        int mcsum = 0;</span>
+<span class="nc bnc" id="L1074" title="All 2 branches missed.">        for (int i = 0; i &lt; segments.length; ++i) {</span>
+<span class="nc bnc" id="L1075" title="All 2 branches missed.">            if (segments[i].count != 0)</span>
+<span class="nc" id="L1076">                return false;</span>
+            else
+<span class="nc" id="L1078">                mcsum += mc[i] = segments[i].modCount;</span>
+        }
+        // If mcsum happens to be zero, then we know we got a snapshot
+        // before any modifications at all were made.  This is
+        // probably common enough to bother tracking.
+<span class="nc bnc" id="L1083" title="All 2 branches missed.">        if (mcsum != 0) {</span>
+<span class="nc bnc" id="L1084" title="All 2 branches missed.">            for (int i = 0; i &lt; segments.length; ++i) {</span>
+<span class="nc bnc" id="L1085" title="All 4 branches missed.">                if (segments[i].count != 0 ||</span>
+                    mc[i] != segments[i].modCount)
+<span class="nc" id="L1087">                    return false;</span>
+            }
+        }
+<span class="nc" id="L1090">        return true;</span>
+    }
+
+    /**
+     * Returns the number of key-value mappings in this map.  If the
+     * map contains more than &lt;tt&gt;Integer.MAX_VALUE&lt;/tt&gt; elements, returns
+     * &lt;tt&gt;Integer.MAX_VALUE&lt;/tt&gt;.
+     *
+     * @return the number of key-value mappings in this map
+     */
+    @Override
+    public int size() {
+<span class="fc" id="L1102">        final Segment&lt;K,V&gt;[] segments = this.segments;</span>
+<span class="fc" id="L1103">        long sum = 0;</span>
+<span class="fc" id="L1104">        long check = 0;</span>
+<span class="fc" id="L1105">        int[] mc = new int[segments.length];</span>
+        // Try a few times to get accurate count. On failure due to
+        // continuous async changes in table, resort to locking.
+<span class="pc bpc" id="L1108" title="1 of 2 branches missed.">        for (int k = 0; k &lt; RETRIES_BEFORE_LOCK; ++k) {</span>
+<span class="fc" id="L1109">            check = 0;</span>
+<span class="fc" id="L1110">            sum = 0;</span>
+<span class="fc" id="L1111">            int mcsum = 0;</span>
+<span class="fc bfc" id="L1112" title="All 2 branches covered.">            for (int i = 0; i &lt; segments.length; ++i) {</span>
+<span class="fc" id="L1113">                sum += segments[i].count;</span>
+<span class="fc" id="L1114">                mcsum += mc[i] = segments[i].modCount;</span>
+            }
+<span class="pc bpc" id="L1116" title="1 of 2 branches missed.">            if (mcsum != 0) {</span>
+<span class="fc bfc" id="L1117" title="All 2 branches covered.">                for (int i = 0; i &lt; segments.length; ++i) {</span>
+<span class="fc" id="L1118">                    check += segments[i].count;</span>
+<span class="pc bpc" id="L1119" title="1 of 2 branches missed.">                    if (mc[i] != segments[i].modCount) {</span>
+<span class="nc" id="L1120">                        check = -1; // force retry</span>
+<span class="nc" id="L1121">                        break;</span>
+                    }
+                }
+            }
+<span class="pc bpc" id="L1125" title="1 of 2 branches missed.">            if (check == sum)</span>
+<span class="fc" id="L1126">                break;</span>
+        }
+<span class="pc bpc" id="L1128" title="1 of 2 branches missed.">        if (check != sum) { // Resort to locking all segments</span>
+<span class="nc" id="L1129">            sum = 0;</span>
+<span class="nc bnc" id="L1130" title="All 2 branches missed.">            for (int i = 0; i &lt; segments.length; ++i)</span>
+<span class="nc" id="L1131">                segments[i].lock();</span>
+<span class="nc bnc" id="L1132" title="All 2 branches missed.">            for (int i = 0; i &lt; segments.length; ++i)</span>
+<span class="nc" id="L1133">                sum += segments[i].count;</span>
+<span class="nc bnc" id="L1134" title="All 2 branches missed.">            for (int i = 0; i &lt; segments.length; ++i)</span>
+<span class="nc" id="L1135">                segments[i].unlock();</span>
+        }
+<span class="pc bpc" id="L1137" title="1 of 2 branches missed.">        if (sum &gt; Integer.MAX_VALUE)</span>
+<span class="nc" id="L1138">            return Integer.MAX_VALUE;</span>
+        else
+<span class="fc" id="L1140">            return (int)sum;</span>
+    }
+
+    /**
+     * Returns the value to which the specified key is mapped,
+     * or {@code null} if this map contains no mapping for the key.
+     *
+     * &lt;p&gt;More formally, if this map contains a mapping from a key
+     * {@code k} to a value {@code v} such that {@code key.equals(k)},
+     * then this method returns {@code v}; otherwise it returns
+     * {@code null}.  (There can be at most one such mapping.)
+     *
+     * @throws NullPointerException if the specified key is null
+     */
+    @Override
+    public V get(final Object key) {
+<span class="fc" id="L1156">        int hash = hashOf(key);</span>
+<span class="fc" id="L1157">        return segmentFor(hash).get(key, hash);</span>
+    }
+
+    /**
+     * Tests if the specified object is a key in this table.
+     *
+     * @param  key   possible key
+     * @return &lt;tt&gt;true&lt;/tt&gt; if and only if the specified object
+     *         is a key in this table, as determined by the
+     *         &lt;tt&gt;equals&lt;/tt&gt; method; &lt;tt&gt;false&lt;/tt&gt; otherwise.
+     * @throws NullPointerException if the specified key is null
+     */
+    @Override
+    public boolean containsKey(final Object key) {
+<span class="nc" id="L1171">        int hash = hashOf(key);</span>
+<span class="nc" id="L1172">        return segmentFor(hash).containsKey(key, hash);</span>
+    }
+
+    /**
+     * Returns &lt;tt&gt;true&lt;/tt&gt; if this map maps one or more keys to the
+     * specified value. Note: This method requires a full internal
+     * traversal of the hash table, and so is much slower than
+     * method &lt;tt&gt;containsKey&lt;/tt&gt;.
+     *
+     * @param value value whose presence in this map is to be tested
+     * @return &lt;tt&gt;true&lt;/tt&gt; if this map maps one or more keys to the
+     *         specified value
+     * @throws NullPointerException if the specified value is null
+     */
+    @Override
+    public boolean containsValue(final Object value) {
+<span class="nc bnc" id="L1188" title="All 2 branches missed.">        if (value == null)</span>
+<span class="nc" id="L1189">            throw new NullPointerException();</span>
+
+        // See explanation of modCount use above
+
+<span class="nc" id="L1193">        final Segment&lt;K,V&gt;[] segments = this.segments;</span>
+<span class="nc" id="L1194">        int[] mc = new int[segments.length];</span>
+
+        // Try a few times without locking
+<span class="nc bnc" id="L1197" title="All 2 branches missed.">        for (int k = 0; k &lt; RETRIES_BEFORE_LOCK; ++k) {</span>
+<span class="nc" id="L1198">            int sum = 0;</span>
+<span class="nc" id="L1199">            int mcsum = 0;</span>
+<span class="nc bnc" id="L1200" title="All 2 branches missed.">            for (int i = 0; i &lt; segments.length; ++i) {</span>
+<span class="nc" id="L1201">                int c = segments[i].count;</span>
+<span class="nc" id="L1202">                mcsum += mc[i] = segments[i].modCount;</span>
+<span class="nc bnc" id="L1203" title="All 2 branches missed.">                if (segments[i].containsValue(value))</span>
+<span class="nc" id="L1204">                    return true;</span>
+            }
+<span class="nc" id="L1206">            boolean cleanSweep = true;</span>
+<span class="nc bnc" id="L1207" title="All 2 branches missed.">            if (mcsum != 0) {</span>
+<span class="nc bnc" id="L1208" title="All 2 branches missed.">                for (int i = 0; i &lt; segments.length; ++i) {</span>
+<span class="nc" id="L1209">                    int c = segments[i].count;</span>
+<span class="nc bnc" id="L1210" title="All 2 branches missed.">                    if (mc[i] != segments[i].modCount) {</span>
+<span class="nc" id="L1211">                        cleanSweep = false;</span>
+<span class="nc" id="L1212">                        break;</span>
+                    }
+                }
+            }
+<span class="nc bnc" id="L1216" title="All 2 branches missed.">            if (cleanSweep)</span>
+<span class="nc" id="L1217">                return false;</span>
+        }
+        // Resort to locking all segments
+<span class="nc bnc" id="L1220" title="All 2 branches missed.">        for (int i = 0; i &lt; segments.length; ++i)</span>
+<span class="nc" id="L1221">            segments[i].lock();</span>
+<span class="nc" id="L1222">        boolean found = false;</span>
+        try {
+<span class="nc bnc" id="L1224" title="All 2 branches missed.">            for (int i = 0; i &lt; segments.length; ++i) {</span>
+<span class="nc bnc" id="L1225" title="All 2 branches missed.">                if (segments[i].containsValue(value)) {</span>
+<span class="nc" id="L1226">                    found = true;</span>
+<span class="nc" id="L1227">                    break;</span>
+                }
+            }
+        } finally {
+<span class="nc bnc" id="L1231" title="All 4 branches missed.">            for (int i = 0; i &lt; segments.length; ++i)</span>
+<span class="nc" id="L1232">                segments[i].unlock();</span>
+<span class="nc" id="L1233">        }</span>
+<span class="nc" id="L1234">        return found;</span>
+    }
+
+    /**
+     * Legacy method testing if some key maps into the specified value
+     * in this table.  This method is identical in functionality to
+     * {@link #containsValue}, and exists solely to ensure
+     * full compatibility with class {@link java.util.Hashtable},
+     * which supported this method prior to introduction of the
+     * Java Collections framework.
+
+     * @param  value a value to search for
+     * @return &lt;tt&gt;true&lt;/tt&gt; if and only if some key maps to the
+     *         &lt;tt&gt;value&lt;/tt&gt; argument in this table as
+     *         determined by the &lt;tt&gt;equals&lt;/tt&gt; method;
+     *         &lt;tt&gt;false&lt;/tt&gt; otherwise
+     * @throws NullPointerException if the specified value is null
+     */
+    public boolean contains(final Object value) {
+<span class="nc" id="L1253">        return containsValue(value);</span>
+    }
+
+    /**
+     * Maps the specified key to the specified value in this table.
+     * Neither the key nor the value can be null.
+     *
+     * &lt;p&gt; The value can be retrieved by calling the &lt;tt&gt;get&lt;/tt&gt; method
+     * with a key that is equal to the original key.
+     *
+     * @param key key with which the specified value is to be associated
+     * @param value value to be associated with the specified key
+     * @return the previous value associated with &lt;tt&gt;key&lt;/tt&gt;, or
+     *         &lt;tt&gt;null&lt;/tt&gt; if there was no mapping for &lt;tt&gt;key&lt;/tt&gt;
+     * @throws NullPointerException if the specified key or value is null
+     */
+    @Override
+    public V put(final K key, final V value) {
+<span class="pc bpc" id="L1271" title="1 of 2 branches missed.">        if (value == null)</span>
+<span class="nc" id="L1272">            throw new NullPointerException();</span>
+<span class="fc" id="L1273">        int hash = hashOf(key);</span>
+<span class="fc" id="L1274">        return segmentFor(hash).put(key, hash, value, false);</span>
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return the previous value associated with the specified key,
+     *         or &lt;tt&gt;null&lt;/tt&gt; if there was no mapping for the key
+     * @throws NullPointerException if the specified key or value is null
+     */
+    @Override
+    public V putIfAbsent(final K key, final V value) {
+<span class="nc bnc" id="L1286" title="All 2 branches missed.">        if (value == null)</span>
+<span class="nc" id="L1287">            throw new NullPointerException();</span>
+<span class="nc" id="L1288">        int hash = hashOf(key);</span>
+<span class="nc" id="L1289">        return segmentFor(hash).put(key, hash, value, true);</span>
+    }
+
+    /**
+     * Copies all of the mappings from the specified map to this one.
+     * These mappings replace any mappings that this map had for any of the
+     * keys currently in the specified map.
+     *
+     * @param m mappings to be stored in this map
+     */
+    @Override
+    public void putAll(Map&lt;? extends K, ? extends V&gt; m) {
+<span class="nc bnc" id="L1301" title="All 2 branches missed.">        for (Map.Entry&lt;? extends K, ? extends V&gt; e : m.entrySet())</span>
+<span class="nc" id="L1302">            put(e.getKey(), e.getValue());</span>
+<span class="nc" id="L1303">    }</span>
+
+    /**
+     * Removes the key (and its corresponding value) from this map.
+     * This method does nothing if the key is not in the map.
+     *
+     * @param  key the key that needs to be removed
+     * @return the previous value associated with &lt;tt&gt;key&lt;/tt&gt;, or
+     *         &lt;tt&gt;null&lt;/tt&gt; if there was no mapping for &lt;tt&gt;key&lt;/tt&gt;
+     * @throws NullPointerException if the specified key is null
+     */
+    @Override
+    public V remove(final Object key) {
+<span class="nc" id="L1316">        int hash = hashOf(key);</span>
+<span class="nc" id="L1317">        return segmentFor(hash).remove(key, hash, null, false);</span>
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @throws NullPointerException if the specified key is null
+     */
+    @Override
+    public boolean remove(final Object key, final Object value) {
+<span class="nc" id="L1327">        int hash = hashOf(key);</span>
+<span class="nc bnc" id="L1328" title="All 2 branches missed.">        if (value == null)</span>
+<span class="nc" id="L1329">            return false;</span>
+<span class="nc bnc" id="L1330" title="All 2 branches missed.">        return segmentFor(hash).remove(key, hash, value, false) != null;</span>
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @throws NullPointerException if any of the arguments are null
+     */
+    @Override
+    public boolean replace(final K key, final V oldValue, final V newValue) {
+<span class="nc bnc" id="L1340" title="All 4 branches missed.">        if (oldValue == null || newValue == null)</span>
+<span class="nc" id="L1341">            throw new NullPointerException();</span>
+<span class="nc" id="L1342">        int hash = hashOf(key);</span>
+<span class="nc" id="L1343">        return segmentFor(hash).replace(key, hash, oldValue, newValue);</span>
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return the previous value associated with the specified key,
+     *         or &lt;tt&gt;null&lt;/tt&gt; if there was no mapping for the key
+     * @throws NullPointerException if the specified key or value is null
+     */
+    public V replace(final K key, final V value) {
+<span class="nc bnc" id="L1354" title="All 2 branches missed.">        if (value == null)</span>
+<span class="nc" id="L1355">            throw new NullPointerException();</span>
+<span class="nc" id="L1356">        int hash = hashOf(key);</span>
+<span class="nc" id="L1357">        return segmentFor(hash).replace(key, hash, value);</span>
+    }
+
+    /**
+     * Removes all of the mappings from this map.
+     */
+    @Override
+    public void clear() {
+<span class="nc bnc" id="L1365" title="All 2 branches missed.">        for (int i = 0; i &lt; segments.length; ++i)</span>
+<span class="nc" id="L1366">            segments[i].clear();</span>
+<span class="nc" id="L1367">    }</span>
+
+    /**
+     * Removes any stale entries whose keys have been finalized. Use of this
+     * method is normally not necessary since stale entries are automatically
+     * removed lazily, when blocking operations are required. However, there
+     * are some cases where this operation should be performed eagerly, such
+     * as cleaning up old references to a ClassLoader in a multi-classloader
+     * environment.
+     *
+     * Note: this method will acquire locks, one at a time, across all segments
+     * of this table, so if it is to be used, it should be used sparingly.
+     */
+    public void purgeStaleEntries() {
+<span class="nc bnc" id="L1381" title="All 2 branches missed.">        for (int i = 0; i &lt; segments.length; ++i)</span>
+<span class="nc" id="L1382">            segments[i].removeStale();</span>
+<span class="nc" id="L1383">    }</span>
+
+
+    /**
+     * Returns a {@link Set} view of the keys contained in this map.
+     * The set is backed by the map, so changes to the map are
+     * reflected in the set, and vice-versa.  The set supports element
+     * removal, which removes the corresponding mapping from this map,
+     * via the &lt;tt&gt;Iterator.remove&lt;/tt&gt;, &lt;tt&gt;Set.remove&lt;/tt&gt;,
+     * &lt;tt&gt;removeAll&lt;/tt&gt;, &lt;tt&gt;retainAll&lt;/tt&gt;, and &lt;tt&gt;clear&lt;/tt&gt;
+     * operations.  It does not support the &lt;tt&gt;add&lt;/tt&gt; or
+     * &lt;tt&gt;addAll&lt;/tt&gt; operations.
+     *
+     * &lt;p&gt;The view's &lt;tt&gt;iterator&lt;/tt&gt; is a &quot;weakly consistent&quot; iterator
+     * that will never throw {@link ConcurrentModificationException},
+     * and guarantees to traverse elements as they existed upon
+     * construction of the iterator, and may (but is not guaranteed to)
+     * reflect any modifications subsequent to construction.
+     */
+    @Override
+    public Set&lt;K&gt; keySet() {
+<span class="nc" id="L1404">        Set&lt;K&gt; ks = keySet;</span>
+<span class="nc bnc" id="L1405" title="All 2 branches missed.">        return (ks != null) ? ks : (keySet = new KeySet());</span>
+    }
+
+    /**
+     * Returns a {@link Collection} view of the values contained in this map.
+     * The collection is backed by the map, so changes to the map are
+     * reflected in the collection, and vice-versa.  The collection
+     * supports element removal, which removes the corresponding
+     * mapping from this map, via the &lt;tt&gt;Iterator.remove&lt;/tt&gt;,
+     * &lt;tt&gt;Collection.remove&lt;/tt&gt;, &lt;tt&gt;removeAll&lt;/tt&gt;,
+     * &lt;tt&gt;retainAll&lt;/tt&gt;, and &lt;tt&gt;clear&lt;/tt&gt; operations.  It does not
+     * support the &lt;tt&gt;add&lt;/tt&gt; or &lt;tt&gt;addAll&lt;/tt&gt; operations.
+     *
+     * &lt;p&gt;The view's &lt;tt&gt;iterator&lt;/tt&gt; is a &quot;weakly consistent&quot; iterator
+     * that will never throw {@link ConcurrentModificationException},
+     * and guarantees to traverse elements as they existed upon
+     * construction of the iterator, and may (but is not guaranteed to)
+     * reflect any modifications subsequent to construction.
+     */
+    @Override
+    public Collection&lt;V&gt; values() {
+<span class="nc" id="L1426">        Collection&lt;V&gt; vs = values;</span>
+<span class="nc bnc" id="L1427" title="All 2 branches missed.">        return (vs != null) ? vs : (values = new Values());</span>
+    }
+
+    /**
+     * Returns a {@link Set} view of the mappings contained in this map.
+     * The set is backed by the map, so changes to the map are
+     * reflected in the set, and vice-versa.  The set supports element
+     * removal, which removes the corresponding mapping from the map,
+     * via the &lt;tt&gt;Iterator.remove&lt;/tt&gt;, &lt;tt&gt;Set.remove&lt;/tt&gt;,
+     * &lt;tt&gt;removeAll&lt;/tt&gt;, &lt;tt&gt;retainAll&lt;/tt&gt;, and &lt;tt&gt;clear&lt;/tt&gt;
+     * operations.  It does not support the &lt;tt&gt;add&lt;/tt&gt; or
+     * &lt;tt&gt;addAll&lt;/tt&gt; operations.
+     *
+     * &lt;p&gt;The view's &lt;tt&gt;iterator&lt;/tt&gt; is a &quot;weakly consistent&quot; iterator
+     * that will never throw {@link ConcurrentModificationException},
+     * and guarantees to traverse elements as they existed upon
+     * construction of the iterator, and may (but is not guaranteed to)
+     * reflect any modifications subsequent to construction.
+     */
+    @Override
+    public Set&lt;Map.Entry&lt;K, V&gt;&gt; entrySet() {
+<span class="fc" id="L1448">        Set&lt;Map.Entry&lt;K,V&gt;&gt; es = entrySet;</span>
+<span class="pc bpc" id="L1449" title="1 of 2 branches missed.">        return (es != null) ? es : (entrySet = new EntrySet());</span>
+    }
+
+    /**
+     * Returns an enumeration of the keys in this table.
+     *
+     * @return an enumeration of the keys in this table
+     * @see #keySet()
+     */
+    public Enumeration&lt;K&gt; keys() {
+<span class="nc" id="L1459">        return new KeyIterator();</span>
+    }
+
+    /**
+     * Returns an enumeration of the values in this table.
+     *
+     * @return an enumeration of the values in this table
+     * @see #values()
+     */
+    public Enumeration&lt;V&gt; elements() {
+<span class="nc" id="L1469">        return new ValueIterator();</span>
+    }
+
+    /* ---------------- Iterator Support -------------- */
+
+    abstract class HashIterator {
+        int nextSegmentIndex;
+        int nextTableIndex;
+        HashEntry&lt;K,V&gt;[] currentTable;
+        HashEntry&lt;K, V&gt; nextEntry;
+        HashEntry&lt;K, V&gt; lastReturned;
+        K currentKey; // Strong reference to weak key (prevents gc)
+
+<span class="fc" id="L1482">        HashIterator() {</span>
+<span class="fc" id="L1483">            nextSegmentIndex = segments.length - 1;</span>
+<span class="fc" id="L1484">            nextTableIndex = -1;</span>
+<span class="fc" id="L1485">            advance();</span>
+<span class="fc" id="L1486">        }</span>
+
+<span class="nc" id="L1488">        public boolean hasMoreElements() { return hasNext(); }</span>
+
+        final void advance() {
+<span class="fc bfc" id="L1491" title="All 4 branches covered.">            if (nextEntry != null &amp;&amp; (nextEntry = nextEntry.next) != null)</span>
+<span class="fc" id="L1492">                return;</span>
+
+<span class="fc bfc" id="L1494" title="All 2 branches covered.">            while (nextTableIndex &gt;= 0) {</span>
+<span class="fc bfc" id="L1495" title="All 2 branches covered.">                if ( (nextEntry = currentTable[nextTableIndex--]) != null)</span>
+<span class="fc" id="L1496">                    return;</span>
+            }
+
+<span class="fc bfc" id="L1499" title="All 2 branches covered.">            while (nextSegmentIndex &gt;= 0) {</span>
+<span class="fc" id="L1500">                Segment&lt;K,V&gt; seg = segments[nextSegmentIndex--];</span>
+<span class="pc bpc" id="L1501" title="1 of 2 branches missed.">                if (seg.count != 0) {</span>
+<span class="fc" id="L1502">                    currentTable = seg.table;</span>
+<span class="pc bpc" id="L1503" title="1 of 2 branches missed.">                    for (int j = currentTable.length - 1; j &gt;= 0; --j) {</span>
+<span class="fc bfc" id="L1504" title="All 2 branches covered.">                        if ( (nextEntry = currentTable[j]) != null) {</span>
+<span class="fc" id="L1505">                            nextTableIndex = j - 1;</span>
+<span class="fc" id="L1506">                            return;</span>
+                        }
+                    }
+                }
+<span class="nc" id="L1510">            }</span>
+<span class="fc" id="L1511">        }</span>
+
+        public boolean hasNext() {
+<span class="fc bfc" id="L1514" title="All 2 branches covered.">            while (nextEntry != null) {</span>
+<span class="pc bpc" id="L1515" title="1 of 2 branches missed.">                if (nextEntry.key() != null)</span>
+<span class="fc" id="L1516">                    return true;</span>
+<span class="nc" id="L1517">                advance();</span>
+            }
+
+<span class="fc" id="L1520">            return false;</span>
+        }
+
+        HashEntry&lt;K, V&gt; nextEntry() {
+            do {
+<span class="pc bpc" id="L1525" title="1 of 2 branches missed.">                if (nextEntry == null)</span>
+<span class="nc" id="L1526">                    throw new NoSuchElementException();</span>
+
+<span class="fc" id="L1528">                lastReturned = nextEntry;</span>
+<span class="fc" id="L1529">                currentKey = lastReturned.key();</span>
+<span class="fc" id="L1530">                advance();</span>
+<span class="pc bpc" id="L1531" title="1 of 2 branches missed.">            } while (currentKey == null); // Skip GC'd keys</span>
+
+<span class="fc" id="L1533">            return lastReturned;</span>
+        }
+
+        public void remove() {
+<span class="nc bnc" id="L1537" title="All 2 branches missed.">            if (lastReturned == null)</span>
+<span class="nc" id="L1538">                throw new IllegalStateException();</span>
+<span class="nc" id="L1539">            ConcurrentReferenceHashMap.this.remove(currentKey);</span>
+<span class="nc" id="L1540">            lastReturned = null;</span>
+<span class="nc" id="L1541">        }</span>
+    }
+
+<span class="nc" id="L1544">    final class KeyIterator</span>
+        extends HashIterator
+        implements Iterator&lt;K&gt;, Enumeration&lt;K&gt;
+    {
+        @Override
+<span class="nc" id="L1549">        public K next()        { return super.nextEntry().key(); }</span>
+        @Override
+<span class="nc" id="L1551">        public K nextElement() { return super.nextEntry().key(); }</span>
+    }
+
+<span class="nc" id="L1554">    final class ValueIterator</span>
+        extends HashIterator
+        implements Iterator&lt;V&gt;, Enumeration&lt;V&gt;
+    {
+        @Override
+<span class="nc" id="L1559">        public V next()        { return super.nextEntry().value(); }</span>
+        @Override
+<span class="nc" id="L1561">        public V nextElement() { return super.nextEntry().value(); }</span>
+    }
+
+     /*
+      * This class is needed for JDK5 compatibility.
+      */
+     static class SimpleEntry&lt;K, V&gt; implements Entry&lt;K, V&gt;,
+            java.io.Serializable {
+        private static final long serialVersionUID = -8499721149061103585L;
+
+        private final K key;
+        private V value;
+
+<span class="fc" id="L1574">        public SimpleEntry(final K key, final V value) {</span>
+<span class="fc" id="L1575">            this.key = key;</span>
+<span class="fc" id="L1576">            this.value = value;</span>
+<span class="fc" id="L1577">        }</span>
+
+<span class="nc" id="L1579">        public SimpleEntry(final Entry&lt;? extends K, ? extends V&gt; entry) {</span>
+<span class="nc" id="L1580">            this.key = entry.getKey();</span>
+<span class="nc" id="L1581">            this.value = entry.getValue();</span>
+<span class="nc" id="L1582">        }</span>
+
+        @Override
+        public K getKey() {
+<span class="fc" id="L1586">            return key;</span>
+        }
+
+        @Override
+        public V getValue() {
+<span class="nc" id="L1591">            return value;</span>
+        }
+
+        @Override
+        public V setValue(final V value) {
+<span class="nc" id="L1596">            V oldValue = this.value;</span>
+<span class="nc" id="L1597">            this.value = value;</span>
+<span class="nc" id="L1598">            return oldValue;</span>
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+<span class="nc bnc" id="L1603" title="All 2 branches missed.">            if (!(o instanceof Map.Entry))</span>
+<span class="nc" id="L1604">                return false;</span>
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L1606">            Map.Entry e = (Map.Entry) o;</span>
+<span class="nc bnc" id="L1607" title="All 4 branches missed.">            return eq(key, e.getKey()) &amp;&amp; eq(value, e.getValue());</span>
+        }
+
+        @Override
+        public int hashCode() {
+<span class="nc bnc" id="L1612" title="All 4 branches missed.">            return (key == null ? 0 : key.hashCode())</span>
+<span class="nc" id="L1613">                    ^ (value == null ? 0 : value.hashCode());</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="nc" id="L1618">            return key + &quot;=&quot; + value;</span>
+        }
+
+        private static boolean eq(Object o1, Object o2) {
+<span class="nc bnc" id="L1622" title="All 4 branches missed.">            return o1 == null ? o2 == null : o1.equals(o2);</span>
+        }
+    }
+
+
+    /**
+     * Custom Entry class used by EntryIterator.next(), that relays setValue
+     * changes to the underlying map.
+     */
+    final class WriteThroughEntry extends SimpleEntry&lt;K,V&gt;
+    {
+        private static final long serialVersionUID = -7900634345345313646L;
+
+<span class="fc" id="L1635">        WriteThroughEntry(K k, V v) {</span>
+<span class="fc" id="L1636">            super(k,v);</span>
+<span class="fc" id="L1637">        }</span>
+
+        /**
+         * Set our entry's value and write through to the map. The
+         * value to return is somewhat arbitrary here. Since a
+         * WriteThroughEntry does not necessarily track asynchronous
+         * changes, the most recent &quot;previous&quot; value could be
+         * different from what we return (or could even have been
+         * removed in which case the put will re-establish). We do not
+         * and cannot guarantee more.
+         */
+        @Override
+        public V setValue(final V value) {
+<span class="nc bnc" id="L1650" title="All 2 branches missed.">            if (value == null) throw new NullPointerException();</span>
+<span class="nc" id="L1651">            V v = super.setValue(value);</span>
+<span class="nc" id="L1652">            ConcurrentReferenceHashMap.this.put(getKey(), value);</span>
+<span class="nc" id="L1653">            return v;</span>
+        }
+    }
+
+<span class="fc" id="L1657">    final class EntryIterator</span>
+        extends HashIterator
+        implements Iterator&lt;Entry&lt;K,V&gt;&gt;
+    {
+        @Override
+        public Map.Entry&lt;K,V&gt; next() {
+<span class="fc" id="L1663">            HashEntry&lt;K,V&gt; e = super.nextEntry();</span>
+<span class="fc" id="L1664">            return new WriteThroughEntry(e.key(), e.value());</span>
+        }
+    }
+
+<span class="nc" id="L1668">    final class KeySet extends AbstractSet&lt;K&gt; {</span>
+        @Override
+        public Iterator&lt;K&gt; iterator() {
+<span class="nc" id="L1671">            return new KeyIterator();</span>
+        }
+        @Override
+        public int size() {
+<span class="nc" id="L1675">            return ConcurrentReferenceHashMap.this.size();</span>
+        }
+        @Override
+        public boolean isEmpty() {
+<span class="nc" id="L1679">            return ConcurrentReferenceHashMap.this.isEmpty();</span>
+        }
+        @Override
+        public boolean contains(Object o) {
+<span class="nc" id="L1683">            return ConcurrentReferenceHashMap.this.containsKey(o);</span>
+        }
+        @Override
+        public boolean remove(Object o) {
+<span class="nc bnc" id="L1687" title="All 2 branches missed.">            return ConcurrentReferenceHashMap.this.remove(o) != null;</span>
+        }
+        @Override
+        public void clear() {
+<span class="nc" id="L1691">            ConcurrentReferenceHashMap.this.clear();</span>
+<span class="nc" id="L1692">        }</span>
+    }
+
+<span class="nc" id="L1695">    final class Values extends AbstractCollection&lt;V&gt; {</span>
+        @Override
+        public Iterator&lt;V&gt; iterator() {
+<span class="nc" id="L1698">            return new ValueIterator();</span>
+        }
+        @Override
+        public int size() {
+<span class="nc" id="L1702">            return ConcurrentReferenceHashMap.this.size();</span>
+        }
+        @Override
+        public boolean isEmpty() {
+<span class="nc" id="L1706">            return ConcurrentReferenceHashMap.this.isEmpty();</span>
+        }
+        @Override
+        public boolean contains(Object o) {
+<span class="nc" id="L1710">            return ConcurrentReferenceHashMap.this.containsValue(o);</span>
+        }
+        @Override
+        public void clear() {
+<span class="nc" id="L1714">            ConcurrentReferenceHashMap.this.clear();</span>
+<span class="nc" id="L1715">        }</span>
+    }
+
+<span class="fc" id="L1718">    final class EntrySet extends AbstractSet&lt;Map.Entry&lt;K,V&gt;&gt; {</span>
+        @Override
+        public Iterator&lt;Map.Entry&lt;K,V&gt;&gt; iterator() {
+<span class="fc" id="L1721">            return new EntryIterator();</span>
+        }
+        @Override
+        public boolean contains(Object o) {
+<span class="nc bnc" id="L1725" title="All 2 branches missed.">            if (!(o instanceof Map.Entry))</span>
+<span class="nc" id="L1726">                return false;</span>
+<span class="nc" id="L1727">            Map.Entry&lt;?,?&gt; e = (Map.Entry&lt;?,?&gt;)o;</span>
+<span class="nc" id="L1728">            V v = ConcurrentReferenceHashMap.this.get(e.getKey());</span>
+<span class="nc bnc" id="L1729" title="All 4 branches missed.">            return v != null &amp;&amp; v.equals(e.getValue());</span>
+        }
+        @Override
+        public boolean remove(Object o) {
+<span class="nc bnc" id="L1733" title="All 2 branches missed.">            if (!(o instanceof Map.Entry))</span>
+<span class="nc" id="L1734">                return false;</span>
+<span class="nc" id="L1735">            Map.Entry&lt;?,?&gt; e = (Map.Entry&lt;?,?&gt;)o;</span>
+<span class="nc" id="L1736">            return ConcurrentReferenceHashMap.this.remove(e.getKey(), e.getValue());</span>
+        }
+        @Override
+        public int size() {
+<span class="nc" id="L1740">            return ConcurrentReferenceHashMap.this.size();</span>
+        }
+        @Override
+        public boolean isEmpty() {
+<span class="nc" id="L1744">            return ConcurrentReferenceHashMap.this.isEmpty();</span>
+        }
+        @Override
+        public void clear() {
+<span class="nc" id="L1748">            ConcurrentReferenceHashMap.this.clear();</span>
+<span class="nc" id="L1749">        }</span>
+    }
+
+    /* ---------------- Serialization Support -------------- */
+
+    /**
+     * Save the state of the &lt;tt&gt;ConcurrentReferenceHashMap&lt;/tt&gt; instance to a
+     * stream (i.e., serialize it).
+     * @param s the stream
+     * @serialData
+     * the key (Object) and value (Object)
+     * for each key-value mapping, followed by a null pair.
+     * The key-value mappings are emitted in no particular order.
+     */
+    private void writeObject(final java.io.ObjectOutputStream s) throws IOException  {
+<span class="nc" id="L1764">        s.defaultWriteObject();</span>
+
+<span class="nc bnc" id="L1766" title="All 2 branches missed.">        for (int k = 0; k &lt; segments.length; ++k) {</span>
+<span class="nc" id="L1767">            Segment&lt;K,V&gt; seg = segments[k];</span>
+<span class="nc" id="L1768">            seg.lock();</span>
+            try {
+<span class="nc" id="L1770">                HashEntry&lt;K,V&gt;[] tab = seg.table;</span>
+<span class="nc bnc" id="L1771" title="All 2 branches missed.">                for (int i = 0; i &lt; tab.length; ++i) {</span>
+<span class="nc bnc" id="L1772" title="All 2 branches missed.">                    for (HashEntry&lt;K,V&gt; e = tab[i]; e != null; e = e.next) {</span>
+<span class="nc" id="L1773">                        K key = e.key();</span>
+<span class="nc bnc" id="L1774" title="All 2 branches missed.">                        if (key == null) // Skip GC'd keys</span>
+<span class="nc" id="L1775">                            continue;</span>
+
+<span class="nc" id="L1777">                        s.writeObject(key);</span>
+<span class="nc" id="L1778">                        s.writeObject(e.value());</span>
+                    }
+                }
+            } finally {
+<span class="nc" id="L1782">                seg.unlock();</span>
+<span class="nc" id="L1783">            }</span>
+        }
+<span class="nc" id="L1785">        s.writeObject(null);</span>
+<span class="nc" id="L1786">        s.writeObject(null);</span>
+<span class="nc" id="L1787">    }</span>
+
+    /**
+     * Reconstitute the &lt;tt&gt;ConcurrentReferenceHashMap&lt;/tt&gt; instance from a
+     * stream (i.e., deserialize it).
+     * @param s the stream
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    private void readObject(final java.io.ObjectInputStream s)
+        throws IOException, ClassNotFoundException  {
+<span class="nc" id="L1797">        s.defaultReadObject();</span>
+
+        // Initialize each segment to be minimally sized, and let grow.
+<span class="nc bnc" id="L1800" title="All 2 branches missed.">        for (int i = 0; i &lt; segments.length; ++i) {</span>
+<span class="nc" id="L1801">            segments[i].setTable(new HashEntry[1]);</span>
+        }
+
+        // Read the keys and values, and put the mappings in the table
+        for (;;) {
+<span class="nc" id="L1806">            K key = (K) s.readObject();</span>
+<span class="nc" id="L1807">            V value = (V) s.readObject();</span>
+<span class="nc bnc" id="L1808" title="All 2 branches missed.">            if (key == null)</span>
+<span class="nc" id="L1809">                break;</span>
+<span class="nc" id="L1810">            put(key, value);</span>
+<span class="nc" id="L1811">        }</span>
+<span class="nc" id="L1812">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

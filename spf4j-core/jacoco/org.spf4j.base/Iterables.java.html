@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Iterables.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Iterables.java</span></div><h1>Iterables.java</h1><pre class="source lang-java linenums">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Iterables.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Iterables.java</span></div><h1>Iterables.java</h1><pre class="source lang-java linenums">
 package org.spf4j.base;
 
 import java.util.function.Consumer;
@@ -18,23 +18,23 @@ public final class Iterables {
   @Nullable
   @CheckReturnValue
   public static &lt;T&gt; RuntimeException forAll(final Iterable&lt;T&gt; itterable, final Consumer&lt;? super T&gt; consumer)  {
-<span class="fc" id="L21">    MutableHolder&lt;RuntimeException&gt; hex = MutableHolder.of(null);</span>
-<span class="fc" id="L22">    itterable.forEach(new Consumer&lt;T&gt;() {</span>
+<span class="nc" id="L21">    MutableHolder&lt;RuntimeException&gt; hex = MutableHolder.of(null);</span>
+<span class="nc" id="L22">    itterable.forEach(new Consumer&lt;T&gt;() {</span>
       @Override
       public void accept(final T t) {
         try {
-<span class="fc" id="L26">          consumer.accept(t);</span>
-<span class="fc" id="L27">        } catch (RuntimeException ex1) {</span>
-<span class="fc" id="L28">          RuntimeException ex = hex.getValue();</span>
-<span class="fc bfc" id="L29" title="All 2 branches covered.">          if (ex == null) {</span>
-<span class="fc" id="L30">            hex.setValue(ex1);</span>
+<span class="nc" id="L26">          consumer.accept(t);</span>
+<span class="nc" id="L27">        } catch (RuntimeException ex1) {</span>
+<span class="nc" id="L28">          RuntimeException ex = hex.getValue();</span>
+<span class="nc bnc" id="L29" title="All 2 branches missed.">          if (ex == null) {</span>
+<span class="nc" id="L30">            hex.setValue(ex1);</span>
           } else {
-<span class="fc" id="L32">            hex.setValue(Throwables.suppress(ex1, ex));</span>
+<span class="nc" id="L32">            hex.setValue(Throwables.suppress(ex1, ex));</span>
           }
-<span class="fc" id="L34">        }</span>
-<span class="fc" id="L35">      }</span>
+<span class="nc" id="L34">        }</span>
+<span class="nc" id="L35">      }</span>
     });
-<span class="fc" id="L37">    return hex.getValue();</span>
+<span class="nc" id="L37">    return hex.getValue();</span>
   }
 
   public static &lt;T&gt; void forAll2(final Iterable&lt;T&gt; itterable, final Consumer&lt;? super T&gt; consumer)  {
@@ -47,4 +47,4 @@ public final class Iterables {
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

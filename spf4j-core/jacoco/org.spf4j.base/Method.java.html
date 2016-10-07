@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Method.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Method.java</span></div><h1>Method.java</h1><pre class="source lang-java linenums">/*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Method.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Method.java</span></div><h1>Method.java</h1><pre class="source lang-java linenums">/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -88,34 +88,31 @@ public final class Method implements Serializable {
 <span class="fc bfc" id="L88" title="All 2 branches covered.">        if (!this.declaringClass.equals(other.declaringClass)) {</span>
 <span class="fc" id="L89">            return false;</span>
         }
-<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (!this.methodName.equals(other.methodName)) {</span>
-<span class="fc" id="L92">            return false;</span>
-        }
-<span class="nc" id="L94">        return true;</span>
+<span class="fc" id="L91">        return this.methodName.equals(other.methodName);</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L99">        return methodName + '@' + declaringClass;</span>
+<span class="fc" id="L96">        return methodName + '@' + declaringClass;</span>
     }
 
     public void toWriter(final Writer w) throws IOException {
-<span class="nc" id="L103">        w.append(methodName).append(&quot;@&quot;).append(declaringClass);</span>
-<span class="nc" id="L104">    }</span>
+<span class="nc" id="L100">        w.append(methodName).append(&quot;@&quot;).append(declaringClass);</span>
+<span class="nc" id="L101">    }</span>
 
     public void toHtmlWriter(final Writer w) throws IOException {
-<span class="nc" id="L107">        Escaper htmlEscaper = HtmlEscapers.htmlEscaper();</span>
-<span class="nc" id="L108">        w.append(htmlEscaper.escape(methodName)).append(htmlEscaper.escape(&quot;@&quot;)).</span>
-<span class="nc" id="L109">                append(htmlEscaper.escape(declaringClass));</span>
-<span class="nc" id="L110">    }</span>
-<span class="fc" id="L111">    public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), &quot;ROOT&quot;);</span>
+<span class="nc" id="L104">        Escaper htmlEscaper = HtmlEscapers.htmlEscaper();</span>
+<span class="nc" id="L105">        w.append(htmlEscaper.escape(methodName)).append(htmlEscaper.escape(&quot;@&quot;)).</span>
+<span class="nc" id="L106">                append(htmlEscaper.escape(declaringClass));</span>
+<span class="nc" id="L107">    }</span>
+<span class="fc" id="L108">    public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), &quot;ROOT&quot;);</span>
 
 
-<span class="fc" id="L114">    private static final Map&lt;String, Map&lt;String, Method&gt;&gt; INSTANCE_REPO = new THashMap&lt;&gt;(1024);</span>
+<span class="fc" id="L111">    private static final Map&lt;String, Map&lt;String, Method&gt;&gt; INSTANCE_REPO = new THashMap&lt;&gt;(1024);</span>
 
 
     public static Method getMethod(final StackTraceElement elem) {
-<span class="fc" id="L118">        return getMethod(elem.getClassName(), elem.getMethodName());</span>
+<span class="fc" id="L115">        return getMethod(elem.getClassName(), elem.getMethodName());</span>
     }
 
     /*
@@ -124,22 +121,22 @@ public final class Method implements Serializable {
      */
     @SuppressFBWarnings(&quot;PMB_POSSIBLE_MEMORY&quot;)
     public static synchronized Method getMethod(final String className, final String methodName) {
-<span class="fc" id="L127">        Map&lt;String, Method&gt; mtom = INSTANCE_REPO.get(className);</span>
+<span class="fc" id="L124">        Map&lt;String, Method&gt; mtom = INSTANCE_REPO.get(className);</span>
         Method result;
-<span class="fc bfc" id="L129" title="All 2 branches covered.">        if (mtom == null) {</span>
-<span class="fc" id="L130">            mtom = new THashMap&lt;&gt;(4);</span>
-<span class="fc" id="L131">            result = new Method(className, methodName);</span>
-<span class="fc" id="L132">            mtom.put(methodName, result);</span>
-<span class="fc" id="L133">            INSTANCE_REPO.put(className, mtom);</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">        if (mtom == null) {</span>
+<span class="fc" id="L127">            mtom = new THashMap&lt;&gt;(4);</span>
+<span class="fc" id="L128">            result = new Method(className, methodName);</span>
+<span class="fc" id="L129">            mtom.put(methodName, result);</span>
+<span class="fc" id="L130">            INSTANCE_REPO.put(className, mtom);</span>
         } else {
-<span class="fc" id="L135">            result = mtom.get(methodName);</span>
-<span class="fc bfc" id="L136" title="All 2 branches covered.">            if (result == null) {</span>
-<span class="fc" id="L137">                result = new Method(className, methodName);</span>
-<span class="fc" id="L138">                mtom.put(methodName, result);</span>
+<span class="fc" id="L132">            result = mtom.get(methodName);</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">            if (result == null) {</span>
+<span class="fc" id="L134">                result = new Method(className, methodName);</span>
+<span class="fc" id="L135">                mtom.put(methodName, result);</span>
             }
         }
-<span class="fc" id="L141">        return result;</span>
+<span class="fc" id="L138">        return result;</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

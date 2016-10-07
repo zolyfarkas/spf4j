@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SizedThreadLocalRecyclingSupplier.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.recyclable.impl</a> &gt; <span class="el_source">SizedThreadLocalRecyclingSupplier.java</span></div><h1>SizedThreadLocalRecyclingSupplier.java</h1><pre class="source lang-java linenums">package org.spf4j.recyclable.impl;
+
+import java.lang.ref.Reference;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import org.spf4j.base.ReferenceType;
+import org.spf4j.recyclable.SizedRecyclingSupplier;
+
+/**
+ * recycling supplier that allows you to recycle objects.
+ * Recycling objects is dangerous business, care should be used.
+ * @author zoly
+ */
+public final class SizedThreadLocalRecyclingSupplier&lt;T&gt; implements SizedRecyclingSupplier&lt;T&gt; {
+
+    private final SizedRecyclingSupplier.Factory&lt;T&gt; factory;
+
+    private final ReferenceType refType;
+
+    private final ThreadLocal&lt;NavigableMap&lt;Integer, Collection&lt;Reference&lt;T&gt;&gt;&gt;&gt; localObjects;
+
+<span class="fc" id="L25">    public SizedThreadLocalRecyclingSupplier(final Factory&lt;T&gt; factory, final ReferenceType refType) {</span>
+<span class="fc" id="L26">        this.factory = factory;</span>
+<span class="fc" id="L27">        this.refType = refType;</span>
+<span class="fc" id="L28">        localObjects = new ThreadLocal&lt;NavigableMap&lt;Integer, Collection&lt;Reference&lt;T&gt;&gt;&gt;&gt;() {</span>
+
+            @Override
+            protected  NavigableMap&lt;Integer, Collection&lt;Reference&lt;T&gt;&gt;&gt; initialValue() {
+<span class="fc" id="L32">                return new TreeMap&lt;&gt;();</span>
+            }
+        };
+<span class="fc" id="L35">    }</span>
+
+    @Override
+    public T get(final int size) {
+<span class="fc" id="L39">        NavigableMap&lt;Integer, Collection&lt;Reference&lt;T&gt;&gt;&gt; available = localObjects.get();</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        if (available.isEmpty()) {</span>
+<span class="fc" id="L41">            return factory.create(size);</span>
+        } else {
+
+<span class="fc" id="L44">            Iterator&lt;Collection&lt;Reference&lt;T&gt;&gt;&gt; iterator =</span>
+<span class="fc" id="L45">                    available.tailMap(size).values().iterator();</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">            while (iterator.hasNext()) {</span>
+<span class="fc" id="L47">                Collection&lt;Reference&lt;T&gt;&gt; refs = iterator.next();</span>
+<span class="fc" id="L48">                Iterator&lt;Reference&lt;T&gt;&gt; srit = refs.iterator();</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">                while (srit.hasNext()) {</span>
+<span class="fc" id="L50">                    Reference&lt;T&gt; next = srit.next();</span>
+<span class="fc" id="L51">                    T value = next.get();</span>
+<span class="fc" id="L52">                    iterator.remove();</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">                    if (value != null) {</span>
+<span class="fc" id="L54">                        return value;</span>
+                    }
+<span class="nc" id="L56">                }</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">                if (refs.isEmpty()) {</span>
+<span class="nc" id="L58">                    iterator.remove();</span>
+                }
+<span class="nc" id="L60">            }</span>
+<span class="fc" id="L61">            iterator = available.headMap(size).values().iterator();</span>
+            // replace one small array
+<span class="fc" id="L63">            boolean done = false;</span>
+<span class="pc bpc" id="L64" title="1 of 4 branches missed.">            while (!done &amp;&amp; iterator.hasNext()) {</span>
+<span class="fc" id="L65">                Collection&lt;Reference&lt;T&gt;&gt; refs = iterator.next();</span>
+<span class="fc" id="L66">                Iterator&lt;Reference&lt;T&gt;&gt; srit = refs.iterator();</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">                while (srit.hasNext()) {</span>
+<span class="fc" id="L68">                    Reference&lt;T&gt; next = srit.next();</span>
+<span class="fc" id="L69">                    T value = next.get();</span>
+<span class="fc" id="L70">                    iterator.remove();</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">                    if (value != null) {</span>
+<span class="fc" id="L72">                       done = true;</span>
+<span class="fc" id="L73">                       break;</span>
+                    }
+<span class="nc" id="L75">                }</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">                if (refs.isEmpty()) {</span>
+<span class="nc" id="L77">                    iterator.remove();</span>
+                }
+<span class="fc" id="L79">            }</span>
+<span class="fc" id="L80">            return factory.create(size);</span>
+        }
+    }
+
+    @Override
+    public void recycle(final T object) {
+<span class="fc" id="L86">        NavigableMap&lt;Integer, Collection&lt;Reference&lt;T&gt;&gt;&gt; available = localObjects.get();</span>
+<span class="fc" id="L87">        final Integer size = factory.size(object);</span>
+<span class="fc" id="L88">        Collection&lt;Reference&lt;T&gt;&gt; refs = available.get(size);</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">        if (refs == null) {</span>
+<span class="fc" id="L90">            refs = new ArrayList&lt;&gt;(2);</span>
+<span class="fc" id="L91">            available.put(size, refs);</span>
+        }
+<span class="fc" id="L93">        refs.add(refType.create(object));</span>
+<span class="fc" id="L94">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L98">        return &quot;SizedThreadLocalRecyclingSupplier{&quot; + &quot;factory=&quot; + factory + &quot;, refType=&quot; + refType + '}';</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

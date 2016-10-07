@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SemaphoreTablesDesc.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent.jdbc</a> &gt; <span class="el_source">SemaphoreTablesDesc.java</span></div><h1>SemaphoreTablesDesc.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+package org.spf4j.concurrent.jdbc;
+
+import java.io.Serializable;
+/**
+ *
+ * @author zoly
+ */
+public final class SemaphoreTablesDesc implements Serializable {
+
+  private static final long serialVersionUID = 1L;
+
+  private final String semaphoreTableName;
+  private final String semNameColumn;
+  private final String availablePermitsColumn;
+  private final String totalPermitsColumn;
+  private final String lastModifiedByColumn;
+  private final String lastModifiedAtColumn;
+  private final String permitsByOwnerTableName;
+  private final String ownerColumn;
+  private final String ownerReservationsColumn;
+  private final HeartBeatTableDesc heartBeatTableDesc;
+
+<span class="fc" id="L41">  public static final SemaphoreTablesDesc DEFAULT = new SemaphoreTablesDesc(</span>
+<span class="fc" id="L42">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.tableName&quot;, &quot;SEMAPHORES&quot;),</span>
+<span class="fc" id="L43">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.semaphoreNameColumn&quot;, &quot;SEMAPHORE_NAME&quot;),</span>
+<span class="fc" id="L44">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.availablePermitsColumn&quot;, &quot;AVAILABLE_PERMITS&quot;),</span>
+<span class="fc" id="L45">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.totalPermitsColumn&quot;, &quot;TOTAL_PERMITS&quot;),</span>
+<span class="fc" id="L46">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.lastUpdatedByColumn&quot;, &quot;LAST_UPDATED_BY&quot;),</span>
+<span class="fc" id="L47">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.lastUpdatedAtColumn&quot;, &quot;LAST_UPDATED_AT&quot;),</span>
+<span class="fc" id="L48">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.permitsByOwnerColumn&quot;, &quot;PERMITS_BY_OWNER&quot;),</span>
+<span class="fc" id="L49">          HeartBeatTableDesc.DEFAULT.getOwnerColumn(),</span>
+<span class="fc" id="L50">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.permitsColumn&quot;, &quot;PERMITS&quot;),</span>
+          HeartBeatTableDesc.DEFAULT);
+
+
+  public SemaphoreTablesDesc(final String semaphoreTableName, final String semNameColumn,
+          final String availablePermitsColumn,
+          final String totalPermitsColumn, final String lastModifiedColumn,
+          final String lastModifiedAtColumn, final String reservationsByOwnerTableName,
+          final String ownerColumn, final String ownerReservationsColumn,
+<span class="fc" id="L59">          final HeartBeatTableDesc heartBeatTableDesc) {</span>
+<span class="fc" id="L60">    this.semaphoreTableName = semaphoreTableName;</span>
+<span class="fc" id="L61">    this.semNameColumn = semNameColumn;</span>
+<span class="fc" id="L62">    this.availablePermitsColumn = availablePermitsColumn;</span>
+<span class="fc" id="L63">    this.totalPermitsColumn = totalPermitsColumn;</span>
+<span class="fc" id="L64">    this.lastModifiedByColumn = lastModifiedColumn;</span>
+<span class="fc" id="L65">    this.lastModifiedAtColumn = lastModifiedAtColumn;</span>
+<span class="fc" id="L66">    this.permitsByOwnerTableName = reservationsByOwnerTableName;</span>
+<span class="fc" id="L67">    this.ownerColumn = ownerColumn;</span>
+<span class="fc" id="L68">    this.ownerReservationsColumn = ownerReservationsColumn;</span>
+<span class="fc" id="L69">    this.heartBeatTableDesc = heartBeatTableDesc;</span>
+<span class="fc" id="L70">  }</span>
+
+  public String getSemaphoreTableName() {
+<span class="fc" id="L73">    return semaphoreTableName;</span>
+  }
+
+  public String getSemNameColumn() {
+<span class="fc" id="L77">    return semNameColumn;</span>
+  }
+
+  public String getAvailablePermitsColumn() {
+<span class="fc" id="L81">    return availablePermitsColumn;</span>
+  }
+
+  public String getTotalPermitsColumn() {
+<span class="fc" id="L85">    return totalPermitsColumn;</span>
+  }
+
+  public String getLastModifiedByColumn() {
+<span class="fc" id="L89">    return lastModifiedByColumn;</span>
+  }
+
+  public String getLastModifiedAtColumn() {
+<span class="fc" id="L93">    return lastModifiedAtColumn;</span>
+  }
+
+  public String getPermitsByOwnerTableName() {
+<span class="fc" id="L97">    return permitsByOwnerTableName;</span>
+  }
+
+  public String getOwnerColumn() {
+<span class="fc" id="L101">    return ownerColumn;</span>
+  }
+
+  public String getOwnerReservationsColumn() {
+<span class="fc" id="L105">    return ownerReservationsColumn;</span>
+  }
+
+  public HeartBeatTableDesc getHeartBeatTableDesc() {
+<span class="fc" id="L109">    return heartBeatTableDesc;</span>
+  }
+
+
+  @Override
+  public String toString() {
+<span class="nc" id="L115">    return &quot;SemaphoreTablesDesc{&quot; + &quot;semaphoreTableName=&quot; + semaphoreTableName + &quot;, semNameColumn=&quot;</span>
+            + semNameColumn + &quot;, availablePermitsColumn=&quot; + availablePermitsColumn
+            + &quot;, totalPermitsColumn=&quot; + totalPermitsColumn + &quot;, lastModifiedByColumn=&quot;
+            + lastModifiedByColumn + &quot;, lastModifiedAtColumn=&quot; + lastModifiedAtColumn
+            + &quot;, permitsByOwnerTableName=&quot; + permitsByOwnerTableName + &quot;, ownerColumn=&quot;
+            + ownerColumn + &quot;, ownerReservationsColumn=&quot; + ownerReservationsColumn + '}';
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UnicodeUnescaper.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">UnicodeUnescaper.java</span></div><h1>UnicodeUnescaper.java</h1><pre class="source lang-java linenums">package org.spf4j.base;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the &quot;License&quot;); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import java.io.IOException;
+import java.io.Writer;
+
+<span class="fc" id="L23">public final class UnicodeUnescaper extends CharSequenceTranslator {</span>
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int translate(final CharSequence input, final int index, final Writer out) throws IOException {
+<span class="fc" id="L30">        final int length = input.length();</span>
+<span class="pc bpc" id="L31" title="1 of 6 branches missed.">        if (index + 1 &lt; length &amp;&amp;  input.charAt(index) == '\\' &amp;&amp; input.charAt(index + 1) == 'u') {</span>
+            // consume optional additional 'u' chars
+<span class="nc" id="L33">            int i = 2;</span>
+<span class="nc bnc" id="L34" title="All 4 branches missed.">            while (index + i &lt; length &amp;&amp; input.charAt(index + i) == 'u') {</span>
+<span class="nc" id="L35">                i++;</span>
+            }
+
+<span class="nc bnc" id="L38" title="All 4 branches missed.">            if (index + i &lt; length &amp;&amp; input.charAt(index + i) == '+') {</span>
+<span class="nc" id="L39">                i++;</span>
+            }
+
+<span class="nc bnc" id="L42" title="All 2 branches missed.">            if (index + i + 4 &lt;= length) {</span>
+                // Get 4 hex digits
+<span class="nc" id="L44">                final CharSequence unicode = input.subSequence(index + i, index + i + 4);</span>
+
+                try {
+<span class="nc" id="L47">                    final int value = Integer.parseInt(unicode.toString(), 16);</span>
+<span class="nc" id="L48">                    out.write((char) value);</span>
+<span class="nc" id="L49">                } catch (final NumberFormatException nfe) {</span>
+<span class="nc" id="L50">                    throw new IllegalArgumentException(&quot;Unable to parse unicode value: &quot; + unicode, nfe);</span>
+<span class="nc" id="L51">                }</span>
+<span class="nc" id="L52">                return i + 4;</span>
+            } else {
+<span class="nc" id="L54">                throw new IllegalArgumentException(&quot;Less than 4 hex digits in unicode value: '&quot;</span>
+<span class="nc" id="L55">                        + input.subSequence(index, length)</span>
+                        + &quot;' due to end of CharSequence&quot;);
+            }
+        }
+<span class="fc" id="L59">        return 0;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Converter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ssdump2</a> &gt; <span class="el_source">Converter.java</span></div><h1>Converter.java</h1><pre class="source lang-java linenums">package org.spf4j.ssdump2;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.TMap;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.procedure.TObjectObjectProcedure;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PushbackInputStream;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import org.apache.avro.io.BinaryDecoder;
+import org.apache.avro.io.BinaryEncoder;
+import org.apache.avro.io.DecoderFactory;
+import org.apache.avro.io.EncoderFactory;
+import org.apache.avro.specific.SpecificDatumReader;
+import org.apache.avro.specific.SpecificDatumWriter;
+import org.spf4j.base.Handler;
+import org.spf4j.io.MemorizingBufferedInputStream;
+import org.spf4j.ssdump2.avro.AMethod;
+import org.spf4j.stackmonitor.SampleNode;
+import org.spf4j.ssdump2.avro.ASample;
+import org.spf4j.base.Method;
+
+/**
+ *
+ * @author zoly
+ */
+public final class Converter {
+
+<span class="nc" id="L37">    private Converter() { }</span>
+
+    public static &lt;E extends Exception&gt; int convert(final Method method, final SampleNode node,
+            final int parentId, final int id,
+            final Handler&lt;ASample, E&gt; handler) throws E {
+<span class="fc" id="L42">        ASample sample = new ASample();</span>
+<span class="fc" id="L43">        sample.id = id;</span>
+<span class="fc" id="L44">        sample.count = node.getSampleCount();</span>
+<span class="fc" id="L45">        AMethod m = new AMethod();</span>
+<span class="fc" id="L46">        m.setName(method.getMethodName());</span>
+<span class="fc" id="L47">        m.setDeclaringClass(method.getDeclaringClass());</span>
+<span class="fc" id="L48">        sample.method = m;</span>
+<span class="fc" id="L49">        sample.parentId = parentId;</span>
+<span class="fc" id="L50">        handler.handle(sample, Long.MAX_VALUE);</span>
+<span class="fc" id="L51">        final TMap&lt;Method, SampleNode&gt; subNodes = node.getSubNodes();</span>
+<span class="fc" id="L52">        int nid = id + 1;</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        if (subNodes != null) {</span>
+<span class="fc" id="L54">            final TObjectObjectProcedureImpl proc = new TObjectObjectProcedureImpl(id, handler);</span>
+<span class="fc" id="L55">            subNodes.forEachEntry(proc);</span>
+<span class="fc" id="L56">            nid = proc.getNid();</span>
+        }
+<span class="fc" id="L58">        return nid;</span>
+    }
+
+    public static SampleNode convert(final Iterator&lt;ASample&gt; samples) {
+<span class="fc" id="L62">        TIntObjectMap&lt;SampleNode&gt; index = new TIntObjectHashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        while (samples.hasNext()) {</span>
+<span class="fc" id="L64">            ASample asmp = samples.next();</span>
+<span class="fc" id="L65">            SampleNode sn = new SampleNode(asmp.count, new THashMap&lt;Method, SampleNode&gt;());</span>
+<span class="fc" id="L66">            SampleNode parent = index.get(asmp.parentId);</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">            if (parent != null) {</span>
+<span class="fc" id="L68">                AMethod method = asmp.getMethod();</span>
+<span class="fc" id="L69">                Method m = Method.getMethod(method.declaringClass, method.getName());</span>
+<span class="fc" id="L70">                final Map&lt;Method, SampleNode&gt; subNodes = parent.getSubNodes();</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">                if (subNodes == null) {</span>
+<span class="nc" id="L72">                    throw new IllegalStateException(&quot;Bug, state &quot; + index + &quot;; at node &quot; + asmp);</span>
+                }
+<span class="fc" id="L74">                subNodes.put(m, sn);</span>
+            }
+<span class="fc" id="L76">            index.put(asmp.id, sn);</span>
+<span class="fc" id="L77">        }</span>
+<span class="fc" id="L78">        return index.get(0);</span>
+    }
+
+    public static void save(final File file, final SampleNode collected) throws IOException {
+<span class="pc" id="L82">        try (BufferedOutputStream bos = new BufferedOutputStream(</span>
+                new FileOutputStream(file))) {
+<span class="fc" id="L84">            final SpecificDatumWriter&lt;ASample&gt; writer = new SpecificDatumWriter&lt;&gt;(ASample.SCHEMA$);</span>
+<span class="fc" id="L85">            final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);</span>
+<span class="fc" id="L86">            Converter.convert(Method.ROOT, collected,</span>
+<span class="fc" id="L87">                    -1, 0, new Handler&lt;ASample, IOException&gt;() {</span>
+
+                        @Override
+                        public void handle(final ASample object, final long deadline)
+                                throws IOException {
+<span class="fc" id="L92">                            writer.write(object, encoder);</span>
+<span class="fc" id="L93">                        }</span>
+                    });
+<span class="fc" id="L95">            encoder.flush();</span>
+<span class="pc bpc" id="L96" title="6 of 8 branches missed.">        }</span>
+<span class="fc" id="L97">    }</span>
+
+    @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
+    public static SampleNode load(final File file) throws IOException {
+<span class="pc" id="L101">        try (MemorizingBufferedInputStream bis = new MemorizingBufferedInputStream(new FileInputStream(file))) {</span>
+<span class="fc" id="L102">            final PushbackInputStream pis = new PushbackInputStream(bis);</span>
+<span class="fc" id="L103">            final SpecificDatumReader&lt;ASample&gt; reader = new SpecificDatumReader&lt;&gt;(ASample.SCHEMA$);</span>
+<span class="fc" id="L104">            final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(pis, null);</span>
+<span class="fc" id="L105">            return convert(new Iterator&lt;ASample&gt;() {</span>
+
+                @Override
+                public boolean hasNext() {
+                    try {
+<span class="fc" id="L110">                        int read = pis.read();</span>
+<span class="fc" id="L111">                        pis.unread(read);</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">                        return read &gt;= 0;</span>
+<span class="nc" id="L113">                    } catch (IOException ex) {</span>
+<span class="nc" id="L114">                        throw new RuntimeException(ex);</span>
+                    }
+                }
+
+                @Override
+                @SuppressFBWarnings
+                public ASample next() {
+                    try {
+<span class="fc" id="L122">                        return reader.read(null, decoder);</span>
+<span class="nc" id="L123">                    } catch (IOException ex) {</span>
+<span class="nc" id="L124">                        NoSuchElementException e = new NoSuchElementException();</span>
+<span class="nc" id="L125">                        e.addSuppressed(ex);</span>
+<span class="nc" id="L126">                        throw e;</span>
+                    }
+                }
+
+                @Override
+                public void remove() {
+<span class="nc" id="L132">                    throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+                }
+            });
+<span class="pc bpc" id="L135" title="6 of 8 branches missed.">        }</span>
+    }
+
+    private static final class TObjectObjectProcedureImpl&lt;E extends Exception&gt;
+                        implements TObjectObjectProcedure&lt;Method, SampleNode&gt; {
+
+        private final int id;
+        private final Handler&lt;ASample, E&gt; handler;
+        private int nid;
+
+<span class="fc" id="L145">        TObjectObjectProcedureImpl(final int id, final Handler&lt;ASample, E&gt; handler) {</span>
+<span class="fc" id="L146">            this.id = id;</span>
+<span class="fc" id="L147">            this.handler = handler;</span>
+<span class="fc" id="L148">            nid = id + 1;</span>
+<span class="fc" id="L149">        }</span>
+
+        @Override
+        public boolean execute(final Method a, final SampleNode b) {
+            try {
+<span class="fc" id="L154">                nid = convert(a, b, id, nid, handler);</span>
+<span class="nc" id="L155">            } catch (Exception ex) {</span>
+<span class="nc" id="L156">                throw new RuntimeException(ex);</span>
+<span class="fc" id="L157">            }</span>
+<span class="fc" id="L158">            return true;</span>
+        }
+
+        public int getNid() {
+<span class="fc" id="L162">            return nid;</span>
+        }
+
+
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

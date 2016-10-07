@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MemoryUsageSampler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.memory</a> &gt; <span class="el_source">MemoryUsageSampler.java</span></div><h1>MemoryUsageSampler.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.memory;
+
+//CHECKSTYLE:OFF
+import com.sun.management.HotSpotDiagnosticMXBean;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+//CHECKSTYLE:ON
+import java.io.IOException;
+import org.spf4j.base.AbstractRunnable;
+import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.perf.MeasurementRecorder;
+import org.spf4j.perf.impl.RecorderFactory;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import javax.management.MBeanServer;
+import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
+
+/**
+ * This class allows you to poll and recordAt to a file the heap commited and heap used
+ for your java process.
+ *  start data recording by calling the startMemoryUsageSampling method,
+ *  stop the data recording by calling the method: startMemoryUsageSampling.
+ *
+ * @author zoly
+ */
+@SuppressFBWarnings(&quot;IICU_INCORRECT_INTERNAL_CLASS_USE&quot;)
+public final class MemoryUsageSampler {
+
+<span class="nc" id="L50">    private MemoryUsageSampler() { }</span>
+
+<span class="fc" id="L52">    private static final MemoryMXBean MBEAN = ManagementFactory.getMemoryMXBean();</span>
+
+    private static ScheduledFuture&lt;?&gt; samplingFuture;
+    private static AccumulatorRunnable accumulatorRunnable;
+
+    static {
+<span class="fc" id="L58">        org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {</span>
+            @Override
+            public void doRun() {
+<span class="nc" id="L61">                stop();</span>
+<span class="nc" id="L62">            }</span>
+        });
+<span class="fc" id="L64">        Registry.export(MemoryUsageSampler.class);</span>
+    }
+
+    public static synchronized void start(final long sampleTimeMilis) {
+<span class="nc" id="L68">        start((int) sampleTimeMilis, (int) sampleTimeMilis * 10);</span>
+<span class="nc" id="L69">    }</span>
+
+    public static synchronized void start(final int sampleTimeMilis) {
+<span class="fc" id="L72">        start(sampleTimeMilis, sampleTimeMilis * 10);</span>
+<span class="fc" id="L73">    }</span>
+
+
+    @JmxExport
+    public static synchronized void start(@JmxExport(&quot;sampleTimeMillis&quot;) final int sampleTimeMilis,
+            @JmxExport(&quot;accumulateIntervalMillis&quot;) final int accumulateIntervalMillis) {
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        if (samplingFuture == null) {</span>
+<span class="fc" id="L80">            accumulatorRunnable = new AccumulatorRunnable(accumulateIntervalMillis);</span>
+<span class="fc" id="L81">            samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(accumulatorRunnable,</span>
+                    sampleTimeMilis, sampleTimeMilis, TimeUnit.MILLISECONDS);
+        } else {
+<span class="nc" id="L84">            throw new IllegalStateException(&quot;Memory usage sampling already started &quot; + samplingFuture);</span>
+        }
+<span class="fc" id="L86">    }</span>
+
+    @JmxExport
+    public static synchronized void stop() {
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">         if (samplingFuture != null) {</span>
+<span class="fc" id="L91">             samplingFuture.cancel(false);</span>
+<span class="fc" id="L92">             samplingFuture = null;</span>
+<span class="fc" id="L93">             accumulatorRunnable.close();</span>
+         }
+<span class="fc" id="L95">    }</span>
+
+    @JmxExport
+    public static synchronized boolean isStarted() {
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        return samplingFuture != null;</span>
+    }
+
+    private static class AccumulatorRunnable extends AbstractRunnable {
+
+<span class="fc" id="L104">        AccumulatorRunnable(final int accumulationIntervalMillis) {</span>
+<span class="fc" id="L105">            heapCommited =</span>
+<span class="fc" id="L106">                RecorderFactory.createScalableMinMaxAvgRecorder(&quot;heap-commited&quot;, &quot;bytes&quot;, accumulationIntervalMillis);</span>
+<span class="fc" id="L107">            heapUsed =</span>
+<span class="fc" id="L108">                RecorderFactory.createScalableMinMaxAvgRecorder(&quot;heap-used&quot;, &quot;bytes&quot;, accumulationIntervalMillis);</span>
+<span class="fc" id="L109">        }</span>
+
+        private final MeasurementRecorder heapCommited;
+        private final MeasurementRecorder heapUsed;
+
+
+        @Override
+        public void doRun() throws Exception {
+<span class="fc" id="L117">            MemoryUsage usage = MBEAN.getHeapMemoryUsage();</span>
+<span class="fc" id="L118">            heapCommited.record(usage.getCommitted());</span>
+<span class="fc" id="L119">            heapUsed.record(usage.getUsed());</span>
+<span class="fc" id="L120">        }</span>
+
+        public void close() {
+            try {
+<span class="fc" id="L124">                heapCommited.close();</span>
+<span class="fc" id="L125">                heapUsed.close();</span>
+<span class="nc" id="L126">            } catch (IOException ex) {</span>
+<span class="nc" id="L127">                throw new RuntimeException(ex);</span>
+<span class="fc" id="L128">            }</span>
+
+<span class="fc" id="L130">        }</span>
+    }
+
+
+    public static void dumpHeap(final String filename, final boolean liveObjectOnly) throws IOException {
+<span class="nc" id="L135">        HOTSPOT_DIAGNOSTIC_INSTANCE.dumpHeap(filename, liveObjectOnly);</span>
+<span class="nc" id="L136">    }</span>
+
+    private static final String HOTSPOT_BEAN_NAME = &quot;com.sun.management:type=HotSpotDiagnostic&quot;;
+
+<span class="fc" id="L140">    private static final HotSpotDiagnosticMXBean HOTSPOT_DIAGNOSTIC_INSTANCE = getHotspotMBean();</span>
+
+
+    public static HotSpotDiagnosticMXBean getHotspotDiagnosticBean() {
+<span class="nc" id="L144">        return HOTSPOT_DIAGNOSTIC_INSTANCE;</span>
+    }
+
+    private static HotSpotDiagnosticMXBean getHotspotMBean() {
+        try {
+<span class="fc" id="L149">            MBeanServer server = ManagementFactory.getPlatformMBeanServer();</span>
+<span class="fc" id="L150">            return ManagementFactory.newPlatformMXBeanProxy(server,</span>
+                HOTSPOT_BEAN_NAME, HotSpotDiagnosticMXBean.class);
+<span class="nc" id="L152">        } catch (IOException ex) {</span>
+<span class="nc" id="L153">            throw new RuntimeException(ex);</span>
+        }
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

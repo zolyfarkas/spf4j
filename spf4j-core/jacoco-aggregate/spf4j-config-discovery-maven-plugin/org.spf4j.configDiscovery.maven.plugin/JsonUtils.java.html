@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>JsonUtils.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-core</a> &gt; <a href="../index.html" class="el_bundle">spf4j-config-discovery-maven-plugin</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.configDiscovery.maven.plugin</a> &gt; <span class="el_source">JsonUtils.java</span></div><h1>JsonUtils.java</h1><pre class="source lang-java linenums">package org.spf4j.configDiscovery.maven.plugin;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import javax.annotation.Nonnull;
+
+/**
+ *
+ * @author zoly
+ */
+public final class JsonUtils {
+
+<span class="nc" id="L12">  private JsonUtils() {</span>
+<span class="nc" id="L13">  }</span>
+
+  public static CharSequence toJsonString(final String str) {
+<span class="nc" id="L16">    StringBuilder sb = new StringBuilder(str.length() + 4);</span>
+<span class="nc" id="L17">    sb.append('&quot;');</span>
+<span class="nc" id="L18">    escapeJsonString(str, sb);</span>
+<span class="nc" id="L19">    sb.append('&quot;');</span>
+<span class="nc" id="L20">    return sb;</span>
+  }
+
+  public static void escapeJsonString(@Nonnull final String toEscape, final StringBuilder jsonString) {
+<span class="nc" id="L24">    int len = toEscape.length();</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">    for (int i = 0; i &lt; len; i++) {</span>
+<span class="nc" id="L26">      char c = toEscape.charAt(i);</span>
+<span class="nc" id="L27">      appendJsonStringEscapedChar(c, jsonString);</span>
+    }
+<span class="nc" id="L29">  }</span>
+
+  public static void appendJsonStringEscapedChar(final char c, final StringBuilder jsonString) {
+<span class="nc bnc" id="L32" title="All 7 branches missed.">    switch (c) {</span>
+      case '\\':
+      case '&quot;':
+<span class="nc" id="L35">        jsonString.append('\\');</span>
+<span class="nc" id="L36">        jsonString.append(c);</span>
+<span class="nc" id="L37">        break;</span>
+      case '\b':
+<span class="nc" id="L39">        jsonString.append(&quot;\\b&quot;);</span>
+<span class="nc" id="L40">        break;</span>
+      case '\t':
+<span class="nc" id="L42">        jsonString.append(&quot;\\t&quot;);</span>
+<span class="nc" id="L43">        break;</span>
+      case '\n':
+<span class="nc" id="L45">        jsonString.append(&quot;\\n&quot;);</span>
+<span class="nc" id="L46">        break;</span>
+      case '\f':
+<span class="nc" id="L48">        jsonString.append(&quot;\\f&quot;);</span>
+<span class="nc" id="L49">        break;</span>
+      case '\r':
+<span class="nc" id="L51">        jsonString.append(&quot;\\r&quot;);</span>
+<span class="nc" id="L52">        break;</span>
+      default:
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (c &lt; ' ') {</span>
+<span class="nc" id="L55">          jsonString.append(&quot;\\u&quot;);</span>
+<span class="nc" id="L56">          appendUnsignedStringPadded(jsonString, (int) c, 4, 4);</span>
+        } else {
+<span class="nc" id="L58">          jsonString.append(c);</span>
+        }
+    }
+<span class="nc" id="L61">  }</span>
+
+  public static void appendUnsignedStringPadded(final StringBuilder sb, final int nr, final int shift,
+          final int padTo) {
+<span class="nc" id="L65">    long i = nr;</span>
+<span class="nc" id="L66">    char[] buf = BUFF.get();</span>
+<span class="nc" id="L67">    int charPos = 32;</span>
+<span class="nc" id="L68">    int radix = 1 &lt;&lt; shift;</span>
+<span class="nc" id="L69">    long mask = radix - 1;</span>
+    do {
+<span class="nc" id="L71">      buf[--charPos] = DIGITS[(int) (i &amp; mask)];</span>
+<span class="nc" id="L72">      i &gt;&gt;&gt;= shift;</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">    } while (i != 0);</span>
+<span class="nc" id="L74">    final int nrChars = 32 - charPos;</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">    if (nrChars &gt; padTo) {</span>
+<span class="nc" id="L76">      throw new IllegalArgumentException(&quot;Your pad to value &quot; + padTo</span>
+              + &quot; is to small, must be at least &quot; + nrChars);
+    } else {
+<span class="nc bnc" id="L79" title="All 2 branches missed.">      for (int j = 0, n = padTo - nrChars; j &lt; n; j++) {</span>
+<span class="nc" id="L80">        sb.append('0');</span>
+      }
+    }
+<span class="nc" id="L83">    sb.append(buf, charPos, nrChars);</span>
+<span class="nc" id="L84">  }</span>
+
+<span class="nc" id="L86">  private static final ThreadLocal&lt;char[]&gt; BUFF = new ThreadLocal&lt;char[]&gt;() {</span>
+
+    @Override
+    @SuppressFBWarnings(&quot;SUA_SUSPICIOUS_UNINITIALIZED_ARRAY&quot;)
+    protected char[] initialValue() {
+<span class="nc" id="L91">      return new char[64];</span>
+    }
+
+  };
+
+<span class="nc" id="L96">  private static final char[] DIGITS = {</span>
+    '0', '1', '2', '3', '4', '5',
+    '6', '7', '8', '9', 'a', 'b',
+    'c', 'd', 'e', 'f', 'g', 'h',
+    'i', 'j', 'k', 'l', 'm', 'n',
+    'o', 'p', 'q', 'r', 's', 't',
+    'u', 'v', 'w', 'x', 'y', 'z'
+  };
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ProxyClientHandler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io.tcp.proxy</a> &gt; <span class="el_source">ProxyClientHandler.java</span></div><h1>ProxyClientHandler.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.io.tcp.proxy;
+
+import com.google.common.net.HostAndPort;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.Closeables;
+import org.spf4j.ds.UpdateablePriorityQueue;
+import org.spf4j.io.tcp.ClientHandler;
+import org.spf4j.io.tcp.DeadlineAction;
+
+/**
+ *
+ * @author zoly
+ */
+@ParametersAreNonnullByDefault
+public final class ProxyClientHandler implements ClientHandler {
+
+<span class="nc" id="L44">    private static final Logger LOG = LoggerFactory.getLogger(ProxyClientHandler.class);</span>
+
+    private final HostAndPort fwdDestination;
+    private final int proxyBufferSize;
+    private final int connectTimeoutMillis;
+    private final SnifferFactory c2sSnifferFact;
+    private final SnifferFactory s2cSnifferFact;
+
+    /**
+     * TCP proxy client handler.
+     * @param fwdDestination - the destination all connections will be forwarded to.
+     * @param c2sSnifferFact - create sniffer to be invoked when data is received from client.
+     * @param s2cSnifferFact - create sniffer to be invoked when data is received from server.
+     * @param proxyBufferSize - the transmission buffer sizes.
+     * @param connectTimeoutMillis - The connection timeout.
+     */
+
+    public ProxyClientHandler(final HostAndPort fwdDestination,
+        @Nullable final SnifferFactory c2sSnifferFact, @Nullable final SnifferFactory s2cSnifferFact,
+<span class="nc" id="L63">        final int proxyBufferSize, final int connectTimeoutMillis) {</span>
+<span class="nc" id="L64">        this.fwdDestination = fwdDestination;</span>
+<span class="nc" id="L65">        this.proxyBufferSize = proxyBufferSize;</span>
+<span class="nc" id="L66">        this.connectTimeoutMillis = connectTimeoutMillis;</span>
+<span class="nc" id="L67">        this.c2sSnifferFact = c2sSnifferFact;</span>
+<span class="nc" id="L68">        this.s2cSnifferFact = s2cSnifferFact;</span>
+<span class="nc" id="L69">    }</span>
+
+    @Override
+    public void handle(final Selector serverSelector, final SocketChannel clientChannel,
+            final ExecutorService exec, final BlockingQueue&lt;Runnable&gt; tasksToRunBySelector,
+            final UpdateablePriorityQueue&lt;DeadlineAction&gt; deadlineActions)  throws IOException {
+<span class="nc" id="L75">        final InetSocketAddress socketAddress = new InetSocketAddress(</span>
+<span class="nc" id="L76">                fwdDestination.getHostText(), fwdDestination.getPort());</span>
+<span class="nc" id="L77">        final SocketChannel proxyChannel = SocketChannel.open();</span>
+        try {
+<span class="nc" id="L79">            proxyChannel.configureBlocking(false);</span>
+<span class="nc" id="L80">            proxyChannel.connect(socketAddress);</span>
+<span class="nc" id="L81">            TransferBuffer c2s = new TransferBuffer(proxyBufferSize);</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">            if (c2sSnifferFact != null) {</span>
+<span class="nc" id="L83">                c2s.setIncomingSniffer(c2sSnifferFact.get(clientChannel));</span>
+            }
+<span class="nc" id="L85">            TransferBuffer s2c = new TransferBuffer(proxyBufferSize);</span>
+<span class="nc" id="L86">            final long connectDeadline = System.currentTimeMillis() + connectTimeoutMillis;</span>
+<span class="nc" id="L87">            UpdateablePriorityQueue.ElementRef daction = deadlineActions.add(new DeadlineAction(connectDeadline,</span>
+                    new CloseChannelsOnTimeout(proxyChannel, clientChannel)));
+<span class="nc" id="L89">            new ProxyBufferTransferHandler(c2s, s2c, null, clientChannel,</span>
+<span class="nc" id="L90">                    serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();</span>
+<span class="nc" id="L91">            new ProxyBufferTransferHandler(s2c, c2s, s2cSnifferFact, proxyChannel,</span>
+<span class="nc" id="L92">                    serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();</span>
+<span class="nc" id="L93">        } catch (IOException ex) {</span>
+<span class="nc" id="L94">            Exception exs = Closeables.closeAll(proxyChannel, clientChannel);</span>
+<span class="nc" id="L95">            ex.addSuppressed(exs);</span>
+<span class="nc" id="L96">            throw ex;</span>
+<span class="nc" id="L97">        }</span>
+
+<span class="nc" id="L99">    }</span>
+
+    static final class CloseChannelsOnTimeout extends AbstractRunnable {
+
+        private final SocketChannel proxyChannel;
+        private final SocketChannel clientChannel;
+
+        CloseChannelsOnTimeout(final SocketChannel proxyChannel, final SocketChannel clientChannel) {
+<span class="nc" id="L107">            super(true);</span>
+<span class="nc" id="L108">            this.proxyChannel = proxyChannel;</span>
+<span class="nc" id="L109">            this.clientChannel = clientChannel;</span>
+<span class="nc" id="L110">        }</span>
+
+        @Override
+        public void doRun() throws IOException {
+<span class="nc" id="L114">            LOG.warn(&quot;Timed out connecting to {}&quot;, proxyChannel);</span>
+            try {
+<span class="nc" id="L116">                clientChannel.close();</span>
+            } finally {
+<span class="nc" id="L118">                proxyChannel.close();</span>
+<span class="nc" id="L119">            }</span>
+<span class="nc" id="L120">        }</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L125">        return &quot;ProxyClientHandler{&quot; + &quot;fwdDestination=&quot; + fwdDestination + &quot;, proxyBufferSize=&quot;</span>
+                + proxyBufferSize + &quot;, connectTimeoutMillis=&quot; + connectTimeoutMillis + &quot;, c2sSnifferFact=&quot;
+                + c2sSnifferFact + &quot;, s2cSnifferFact=&quot; + s2cSnifferFact + '}';
+    }
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

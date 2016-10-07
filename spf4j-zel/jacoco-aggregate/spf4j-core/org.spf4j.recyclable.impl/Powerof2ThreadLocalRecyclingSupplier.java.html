@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Powerof2ThreadLocalRecyclingSupplier.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.recyclable.impl</a> &gt; <span class="el_source">Powerof2ThreadLocalRecyclingSupplier.java</span></div><h1>Powerof2ThreadLocalRecyclingSupplier.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.recyclable.impl;
+
+import java.lang.ref.Reference;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import org.spf4j.base.IntMath;
+import org.spf4j.base.ReferenceType;
+import org.spf4j.recyclable.SizedRecyclingSupplier;
+
+/**
+ * recycling supplier that allows you to recycle objects.
+ * Recycling objects is dangerous business, care should be used.
+ * @author zoly
+ */
+public final class Powerof2ThreadLocalRecyclingSupplier&lt;T&gt; implements SizedRecyclingSupplier&lt;T&gt; {
+
+    private final SizedRecyclingSupplier.Factory&lt;T&gt; factory;
+
+    private final ReferenceType refType;
+
+    private final ThreadLocal&lt;Deque&lt;Reference&lt;T&gt;&gt; []&gt; localObjects;
+
+<span class="fc" id="L40">    public Powerof2ThreadLocalRecyclingSupplier(final Factory&lt;T&gt; factory, final ReferenceType refType) {</span>
+<span class="fc" id="L41">        this.factory = factory;</span>
+<span class="fc" id="L42">        this.refType = refType;</span>
+<span class="fc" id="L43">        localObjects = new ThreadLocal&lt;Deque&lt;Reference&lt;T&gt;&gt; []&gt;() {</span>
+
+            @Override
+            protected  Deque&lt;Reference&lt;T&gt;&gt;[] initialValue() {
+<span class="fc" id="L47">                Deque&lt;Reference&lt;T&gt;&gt;[] result =  new Deque[28];</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">                for (int i = 0; i &lt; result.length; i++) {</span>
+<span class="fc" id="L49">                    result[i] = new ArrayDeque&lt;&gt;();</span>
+                }
+<span class="fc" id="L51">                return result;</span>
+            }
+        };
+<span class="fc" id="L54">    }</span>
+
+    @Override
+    public T get(final int size) {
+<span class="fc" id="L58">        Deque&lt;Reference&lt;T&gt;&gt;[] available = localObjects.get();</span>
+<span class="fc" id="L59">        int idx = IntMath.closestPowerOf2(size);</span>
+<span class="fc" id="L60">        Deque&lt;Reference&lt;T&gt;&gt; refs = available[idx];</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (refs.isEmpty()) {</span>
+<span class="fc" id="L62">            int actualSize = 1 &lt;&lt; idx;</span>
+<span class="fc" id="L63">            return factory.create(actualSize);</span>
+        } else {
+            T result;
+            do {
+<span class="fc" id="L67">                Reference&lt;T&gt; removeLast = refs.removeLast();</span>
+<span class="fc" id="L68">                result = removeLast.get();</span>
+<span class="pc bpc" id="L69" title="3 of 4 branches missed.">            } while (result == null &amp;&amp; !refs.isEmpty());</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">            if (result == null) {</span>
+<span class="nc" id="L71">                int actualSize = 1 &lt;&lt; idx;</span>
+<span class="nc" id="L72">                return factory.create(actualSize);</span>
+            } else {
+<span class="fc" id="L74">                return result;</span>
+            }
+        }
+    }
+
+    @Override
+    public void recycle(final T object) {
+<span class="fc" id="L81">        int size = factory.size(object);</span>
+<span class="fc" id="L82">        int idx = IntMath.closestPowerOf2(size);</span>
+<span class="fc" id="L83">        Deque&lt;Reference&lt;T&gt;&gt;[] available = localObjects.get();</span>
+<span class="fc" id="L84">        Deque&lt;Reference&lt;T&gt;&gt; refs = available[idx];</span>
+<span class="fc" id="L85">        refs.addLast(refType.create(object));</span>
+<span class="fc" id="L86">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L90">        return &quot;Powerof2ThreadLocalRecyclingSupplier{&quot; + &quot;factory=&quot; + factory + &quot;, refType=&quot; + refType + '}';</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

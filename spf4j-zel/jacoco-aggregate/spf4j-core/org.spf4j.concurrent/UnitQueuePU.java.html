@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UnitQueuePU.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">UnitQueuePU.java</span></div><h1>UnitQueuePU.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.concurrent;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.LockSupport;
+
+/**
+ * Special purpose queue for a single value
+ * Custom designed for the LifoThreadPool
+ *
+ * @author zoly
+ */
+public final class UnitQueuePU&lt;T&gt; {
+
+<span class="fc" id="L34">    private final AtomicReference&lt;T&gt; value = new AtomicReference&lt;&gt;();</span>
+
+    private final Thread readerThread;
+
+<span class="fc" id="L38">    public UnitQueuePU(final Thread readerThread) {</span>
+<span class="fc" id="L39">        this.readerThread = readerThread;</span>
+<span class="fc" id="L40">    }</span>
+
+
+
+    public T poll() {
+<span class="fc" id="L45">        T result = value.getAndSet(null);</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (result != null) {</span>
+<span class="fc" id="L47">            return result;</span>
+        } else {
+<span class="fc" id="L49">            return null;</span>
+        }
+    }
+
+<span class="fc" id="L53">    private static final int SPIN_LIMITER = Integer.getInteger(&quot;spf4j.lifoTp.maxSpinning&quot;,</span>
+            org.spf4j.base.Runtime.NR_PROCESSORS / 2);
+
+<span class="fc" id="L56">    private static final Semaphore SPIN_LIMIT = new Semaphore(SPIN_LIMITER);</span>
+
+    @SuppressFBWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
+    public T poll(final long timeoutNanos, final long spinCount) throws InterruptedException {
+<span class="fc" id="L60">        T result = poll();</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (result != null) {</span>
+<span class="fc" id="L62">            return result;</span>
+        }
+<span class="pc bpc" id="L64" title="2 of 4 branches missed.">        if (spinCount &gt; 0 &amp;&amp; org.spf4j.base.Runtime.NR_PROCESSORS &gt; 1) {</span>
+<span class="fc" id="L65">            boolean tryAcquire = SPIN_LIMIT.tryAcquire();</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">            if (tryAcquire) {</span>
+                try {
+<span class="fc" id="L68">                    int i = 0;</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">                    while (i &lt; spinCount) {</span>
+<span class="fc" id="L70">                        result = poll();</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">                        if (result != null) {</span>
+<span class="fc" id="L72">                            return result;</span>
+                        }
+<span class="fc bfc" id="L74" title="All 2 branches covered.">                        if (Thread.interrupted()) {</span>
+<span class="fc" id="L75">                            throw new InterruptedException();</span>
+                        }
+<span class="fc" id="L77">                        i++;</span>
+                    }
+                } finally {
+<span class="fc" id="L80">                    SPIN_LIMIT.release();</span>
+<span class="fc" id="L81">                }</span>
+            }
+        }
+
+<span class="fc" id="L85">            long deadlineNanos = System.nanoTime() + timeoutNanos;</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">                while ((result = value.getAndSet(null)) == null) {</span>
+<span class="fc" id="L87">                    final long to = deadlineNanos - System.nanoTime();</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">                    if (to &lt;= 0) {</span>
+<span class="fc" id="L89">                        return null;</span>
+                    }
+<span class="fc" id="L91">                    LockSupport.parkNanos(to);</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">                    if (Thread.interrupted()) {</span>
+<span class="nc" id="L93">                        throw new InterruptedException();</span>
+                    }
+<span class="fc" id="L95">                }</span>
+<span class="fc" id="L96">        return result;</span>
+    }
+
+    public boolean offer(final T offer) {
+<span class="fc" id="L100">        boolean result = value.compareAndSet(null, offer);</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        if (result) {</span>
+<span class="fc" id="L102">            LockSupport.unpark(readerThread);</span>
+        }
+<span class="fc" id="L104">        return result;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L109">        return &quot;UnitQueuePU{&quot; + &quot;value=&quot; + value + '}';</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

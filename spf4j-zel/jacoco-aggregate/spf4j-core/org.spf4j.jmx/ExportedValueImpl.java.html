@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ExportedValueImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jmx</a> &gt; <span class="el_source">ExportedValueImpl.java</span></div><h1>ExportedValueImpl.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+package org.spf4j.jmx;
+
+import com.google.common.base.Converter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.management.InvalidAttributeValueException;
+
+
+/**
+ *
+ * @author zoly
+ */
+class ExportedValueImpl implements ExportedValue&lt;Object&gt; {
+    private final String name;
+    private final String description;
+    private final Method getMethod;
+    private final Method setMethod;
+    private final Object object;
+    private final Class&lt;?&gt; valueClass;
+    private final Converter&lt;Object, Object&gt; converter;
+
+    ExportedValueImpl(@Nonnull final String name, @Nullable final String description,
+            @Nullable final Method getMethod, @Nullable final Method setMethod,
+<span class="fc" id="L45">            @Nullable final Object object, @Nonnull final Class&lt;?&gt; valueClass) {</span>
+<span class="fc" id="L46">        this.name = name;</span>
+<span class="fc" id="L47">        this.description = description;</span>
+<span class="fc" id="L48">        this.getMethod = getMethod;</span>
+<span class="fc" id="L49">        this.setMethod = setMethod;</span>
+<span class="fc" id="L50">        this.object = object;</span>
+<span class="fc" id="L51">        this.valueClass = valueClass;</span>
+<span class="pc bpc" id="L52" title="1 of 4 branches missed.">        if (valueClass == Boolean.class</span>
+                || valueClass == String.class
+<span class="fc bfc" id="L54" title="All 2 branches covered.">                || valueClass.isPrimitive()</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">                || Number.class.isAssignableFrom(valueClass)) {</span>
+<span class="fc" id="L56">            this.converter = null;</span>
+        } else {
+<span class="fc" id="L58">            this.converter = OpenTypeConverter.getConverter(valueClass);</span>
+        }
+<span class="fc" id="L60">    }</span>
+
+    public ExportedValueImpl withSetter(@Nonnull final Method psetMethod) {
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">        if (setMethod != null) {</span>
+<span class="nc" id="L64">            throw new IllegalArgumentException(&quot;duplicate value registration attemted &quot; + setMethod</span>
+                    + &quot;, &quot; + psetMethod);
+        }
+<span class="fc" id="L67">        return new ExportedValueImpl(name, description, getMethod, psetMethod, object, valueClass);</span>
+    }
+
+    public ExportedValueImpl withGetter(@Nonnull final Method pgetMethod, @Nonnull final String pdescription) {
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        if (getMethod != null) {</span>
+<span class="nc" id="L72">            throw new IllegalArgumentException(&quot;duplicate value registration attemted &quot; + getMethod</span>
+                    + &quot;, &quot; + pgetMethod);
+        }
+<span class="fc" id="L75">        return new ExportedValueImpl(name, pdescription, pgetMethod, setMethod, object, valueClass);</span>
+    }
+
+    @Override
+    public String getName() {
+<span class="fc" id="L80">        return name;</span>
+    }
+
+    @Override
+    public String getDescription() {
+<span class="fc" id="L85">        return description;</span>
+    }
+
+    @Override
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = &quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
+    public Object get() {
+
+        try {
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">            if (converter != null) {</span>
+<span class="nc" id="L94">                return converter.reverse().convert(getMethod.invoke(object));</span>
+            } else {
+<span class="fc" id="L96">                return getMethod.invoke(object);</span>
+            }
+<span class="nc" id="L98">        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
+<span class="nc" id="L99">            throw new RuntimeException(ex);</span>
+        }
+    }
+
+    @Override
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = &quot;EXS_EXCEPTION_SOFTENING_HAS_CHECKED&quot;)
+    public void set(final Object value) throws InvalidAttributeValueException {
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        if (setMethod == null) {</span>
+<span class="fc" id="L107">            throw new InvalidAttributeValueException(name + &quot; is a read only attribute &quot;);</span>
+        }
+        try {
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">            if (converter != null) {</span>
+<span class="nc" id="L111">                setMethod.invoke(object, converter.convert(value));</span>
+            } else {
+<span class="fc" id="L113">                setMethod.invoke(object, value);</span>
+            }
+<span class="nc" id="L115">        } catch (IllegalAccessException | InvocationTargetException ex) {</span>
+<span class="nc" id="L116">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L117">        }</span>
+<span class="fc" id="L118">    }</span>
+
+    @Override
+    public boolean isWriteable() {
+<span class="fc bfc" id="L122" title="All 2 branches covered.">        return setMethod != null;</span>
+    }
+
+    @Override
+    public Class&lt;? extends Object&gt; getValueClass() {
+<span class="fc" id="L127">        return valueClass;</span>
+    }
+
+    public boolean isValid() {
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">        return getMethod != null;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L136">        return &quot;ExportedValueImpl{&quot; + &quot;name=&quot; + name + &quot;, description=&quot; + description + &quot;, getMethod=&quot;</span>
+                + getMethod + &quot;, setMethod=&quot; + setMethod + &quot;, object=&quot; + object + &quot;, valueClass=&quot; + valueClass + '}';
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

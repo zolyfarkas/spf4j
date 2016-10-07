@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>BufferedOutputStream.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io</a> &gt; <span class="el_source">BufferedOutputStream.java</span></div><h1>BufferedOutputStream.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.io;
+
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import java.io.IOException;
+import java.io.OutputStream;
+import org.spf4j.base.Base64;
+import org.spf4j.recyclable.SizedRecyclingSupplier;
+import org.spf4j.recyclable.impl.ArraySuppliers;
+
+/**
+ * Better that the JDK outputstream, no exception swallowing...
+ * and ability to recycle underlying byte array.
+ * @author zoly
+ */
+@CleanupObligation
+public final class BufferedOutputStream extends OutputStream {
+
+    private byte[] buf;
+    private final int length;
+    private final OutputStream os;
+    private final SizedRecyclingSupplier&lt;byte[]&gt; bufferProvider;
+
+    private int count;
+
+    public BufferedOutputStream(final OutputStream out) {
+<span class="nc" id="L44">        this(out, 8192);</span>
+<span class="nc" id="L45">    }</span>
+
+    public BufferedOutputStream(final OutputStream out, final int size) {
+<span class="nc" id="L48">        this(out, size, ArraySuppliers.Bytes.JAVA_NEW);</span>
+<span class="nc" id="L49">    }</span>
+
+    public BufferedOutputStream(final OutputStream out, final int size,
+<span class="nc" id="L52">            final SizedRecyclingSupplier&lt;byte[]&gt; bufferProvider) {</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (size &lt;= 0) {</span>
+<span class="nc" id="L54">            throw new IllegalArgumentException(&quot;Buffer size &lt;= 0 : &quot; + size);</span>
+        }
+<span class="nc" id="L56">        this.bufferProvider = bufferProvider;</span>
+<span class="nc" id="L57">        buf = bufferProvider.get(size);</span>
+<span class="nc" id="L58">        length = size;</span>
+<span class="nc" id="L59">        this.os = out;</span>
+<span class="nc" id="L60">    }</span>
+
+    private void flushBuffer() throws IOException {
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (count &gt; 0) {</span>
+<span class="nc" id="L64">            os.write(buf, 0, count);</span>
+<span class="nc" id="L65">            count = 0;</span>
+        }
+<span class="nc" id="L67">    }</span>
+
+    @Override
+    public synchronized void write(final int b) throws IOException {
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (buf == null) {</span>
+<span class="nc" id="L72">            throw new IOException(&quot;Stream closed &quot; + os);</span>
+        }
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (count &gt;= length) {</span>
+<span class="nc" id="L75">            flushBuffer();</span>
+        }
+<span class="nc" id="L77">        buf[count++] = (byte) b;</span>
+<span class="nc" id="L78">    }</span>
+
+    @Override
+    public synchronized void write(final byte[] b, final int off, final int len) throws IOException {
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        if (buf == null) {</span>
+<span class="nc" id="L83">            throw new IOException(&quot;Stream closed &quot; + os);</span>
+        }
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (len &gt;= length) {</span>
+<span class="nc" id="L86">            flushBuffer();</span>
+<span class="nc" id="L87">            os.write(b, off, len);</span>
+<span class="nc" id="L88">            return;</span>
+        }
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (len &gt; length - count) {</span>
+<span class="nc" id="L91">            flushBuffer();</span>
+        }
+<span class="nc" id="L93">        System.arraycopy(b, off, buf, count, len);</span>
+<span class="nc" id="L94">        count += len;</span>
+<span class="nc" id="L95">    }</span>
+
+    @Override
+    public synchronized void flush() throws IOException {
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (buf == null) {</span>
+<span class="nc" id="L100">            throw new IOException(&quot;Stream closed &quot; + os);</span>
+        }
+<span class="nc" id="L102">        flushBuffer();</span>
+<span class="nc" id="L103">        os.flush();</span>
+<span class="nc" id="L104">    }</span>
+
+    @Override
+    @DischargesObligation
+    public synchronized void close() throws IOException {
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        if (buf != null) {</span>
+<span class="nc" id="L110">            try (OutputStream los = os) {</span>
+<span class="nc" id="L111">                flush();</span>
+<span class="nc bnc" id="L112" title="All 8 branches missed.">            } finally {</span>
+<span class="nc" id="L113">                this.bufferProvider.recycle(buf);</span>
+<span class="nc" id="L114">                buf = null;</span>
+<span class="nc" id="L115">            }</span>
+        }
+<span class="nc" id="L117">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        return &quot;BufferedOutputStream{&quot; + &quot;buf=&quot; + (buf != null ? Base64.encodeBase64(buf) : &quot;null&quot;)</span>
+                + &quot;, length=&quot; + length + &quot;, os=&quot; + os + &quot;, bufferProvider=&quot;
+                + bufferProvider + &quot;, count=&quot; + count + '}';
+    }
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Pair.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Pair.java</span></div><h1>Pair.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.base;
+
+import org.spf4j.io.Csv;
+import com.google.common.base.Objects;
+import java.beans.ConstructorProperties;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+/**
+ *
+ * @author zoly
+ */
+public class Pair&lt;A, B&gt; implements Map.Entry&lt;A, B&gt;, Writeable {
+
+    @ConstructorProperties({&quot;first&quot;, &quot;second&quot; })
+<span class="fc" id="L39">    public Pair(@Nullable final A first, @Nullable final B second) {</span>
+<span class="fc" id="L40">        this.first = first;</span>
+<span class="fc" id="L41">        this.second = second;</span>
+<span class="fc" id="L42">    }</span>
+
+    public static &lt;A, B&gt; Pair&lt;A, B&gt; of(@Nullable final A first, @Nullable final B second) {
+<span class="fc" id="L45">        return new Pair&lt;&gt;(first, second);</span>
+    }
+
+    /**
+     * Creates a pair from a str1,str2 pair.
+     *
+     * @param stringPair - pair in the format (a,b) csv pair.
+     * @return null if this is not a pair.
+     */
+    @Nullable
+    public static Pair&lt;String, String&gt; from(@Nonnull final String stringPair) {
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (stringPair.isEmpty()) {</span>
+<span class="nc" id="L57">          return null;</span>
+        }
+<span class="fc" id="L59">        int commaIdx = stringPair.indexOf(',');</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        if (commaIdx &lt; 0) {</span>
+<span class="nc" id="L61">            return null;</span>
+        }
+<span class="fc" id="L63">        StringReader sr = new StringReader(stringPair);</span>
+<span class="fc" id="L64">        StringBuilder first = new StringBuilder();</span>
+<span class="fc" id="L65">        StringBuilder second = new StringBuilder();</span>
+        int comma;
+        try {
+<span class="fc" id="L68">            comma = Csv.readCsvElement(sr, first);</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">            if (comma != ',') {</span>
+<span class="nc" id="L70">                return null;</span>
+            }
+<span class="fc" id="L72">            int last = Csv.readCsvElement(sr, second);</span>
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">            if (last &gt;= 0) {</span>
+<span class="nc" id="L74">                return null;</span>
+            }
+<span class="nc" id="L76">        } catch (IOException ex) {</span>
+<span class="nc" id="L77">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L78">        }</span>
+<span class="fc" id="L79">        return Pair.of(first.toString(), second.toString());</span>
+    }
+
+    public static final char SUFFIX = ')';
+
+    public static final char PREFIX = '(';
+
+    //CHECKSTYLE:OFF
+    @Nullable
+    protected final A first;
+
+    @Nullable
+    protected final B second;
+    //CHECKSTYLE:ON
+
+    public final A getFirst() {
+<span class="fc" id="L95">        return first;</span>
+    }
+
+    public final B getSecond() {
+<span class="fc" id="L99">        return second;</span>
+    }
+
+    @Override
+    public final boolean equals(final Object obj) {
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L105">            return false;</span>
+        }
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L108">            return false;</span>
+        }
+<span class="fc" id="L110">        final Pair&lt;A, B&gt; other = (Pair&lt;A, B&gt;) obj;</span>
+<span class="pc bpc" id="L111" title="3 of 6 branches missed.">        if (this.first != other.first &amp;&amp; (this.first == null || !this.first.equals(other.first))) {</span>
+<span class="nc" id="L112">            return false;</span>
+        }
+<span class="pc bpc" id="L114" title="3 of 6 branches missed.">        return (!(this.second != other.second &amp;&amp; (this.second == null || !this.second.equals(other.second))));</span>
+    }
+
+    @Override
+    public final int hashCode() {
+<span class="fc" id="L119">        return Objects.hashCode(first, second);</span>
+    }
+
+    @Override
+    public final String toString() {
+        try {
+<span class="fc" id="L125">            StringBuilder result = new StringBuilder(32);</span>
+<span class="fc" id="L126">            writeTo(result);</span>
+<span class="fc" id="L127">            return result.toString();</span>
+<span class="nc" id="L128">        } catch (IOException ex) {</span>
+<span class="nc" id="L129">           throw new RuntimeException(ex);</span>
+        }
+    }
+
+    @Override
+    public final void writeTo(final Appendable appendable) throws IOException {
+<span class="fc bfc" id="L135" title="All 2 branches covered.">      Csv.writeCsvElement(first == null ? &quot;&quot; : first.toString(), appendable);</span>
+<span class="fc" id="L136">      appendable.append(',');</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">      Csv.writeCsvElement(second == null ? &quot;&quot; : second.toString(), appendable);</span>
+<span class="fc" id="L138">    }</span>
+
+    public final List&lt;Object&gt; toList() {
+<span class="fc" id="L141">        return java.util.Arrays.asList(first, second);</span>
+    }
+
+    public static &lt;K, V extends Object&gt; Map&lt;K, V&gt; asMap(final Pair&lt;K, ? extends V&gt; ... pairs) {
+<span class="fc" id="L145">        Map&lt;K, V&gt; result = new LinkedHashMap&lt;&gt;(pairs.length);</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">        for (Pair&lt;K, ? extends V&gt; pair : pairs) {</span>
+<span class="fc" id="L147">            result.put(pair.getFirst(), pair.getSecond());</span>
+        }
+<span class="fc" id="L149">        return result;</span>
+    }
+
+    @Override
+    public final A getKey() {
+<span class="fc" id="L154">        return first;</span>
+    }
+
+    @Override
+    public final B getValue() {
+<span class="fc" id="L159">        return second;</span>
+    }
+
+    @Override
+    public final B setValue(final B value) {
+<span class="nc" id="L164">        throw new UnsupportedOperationException(&quot;Object not mutable&quot;);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

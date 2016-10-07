@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>HashMapGraph.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ds</a> &gt; <span class="el_source">HashMapGraph.java</span></div><h1>HashMapGraph.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.ds;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import org.spf4j.base.Pair;
+
+/**
+ *
+ * @author zoly
+ */
+public final class HashMapGraph&lt;V, E&gt; implements Graph&lt;V, E&gt; {
+
+    private Map&lt;E, Pair&lt;V, V&gt;&gt; edgeNodes;
+    private Map&lt;V, VertexEdges&gt; vertices;
+
+<span class="fc" id="L34">    public HashMapGraph() {</span>
+<span class="fc" id="L35">        edgeNodes = new HashMap&lt;E, Pair&lt;V, V&gt;&gt;();</span>
+<span class="fc" id="L36">        vertices = new HashMap&lt;V, VertexEdges&gt;();</span>
+<span class="fc" id="L37">    }</span>
+
+    private HashMapGraph(final Map&lt;E, Pair&lt;V, V&gt;&gt; edgeNodes,
+<span class="nc" id="L40">            final Map&lt;V, VertexEdges&gt; vertices) {</span>
+<span class="nc" id="L41">        this.edgeNodes = edgeNodes;</span>
+<span class="nc" id="L42">        this.vertices = vertices;</span>
+<span class="nc" id="L43">    }</span>
+
+    public void add(final V vertex) {
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        if (!vertices.containsKey(vertex)) {</span>
+<span class="nc" id="L47">            vertices.put(vertex, null);</span>
+        }
+<span class="nc" id="L49">    }</span>
+
+    public void add(final E edge, final V fromVertex, final V toVertex) {
+<span class="fc" id="L52">        edgeNodes.put(edge, new Pair&lt;V, V&gt;(fromVertex, toVertex));</span>
+<span class="fc" id="L53">        VertexEdges fromV = vertices.get(fromVertex);</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (fromV == null) {</span>
+<span class="fc" id="L55">            fromV = new VertexEdges();</span>
+<span class="fc" id="L56">            vertices.put(fromVertex, fromV);</span>
+        }
+<span class="fc" id="L58">        fromV.getOutgoing().put(edge, toVertex);</span>
+
+<span class="fc" id="L60">        VertexEdges toV = vertices.get(toVertex);</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (toV == null) {</span>
+<span class="fc" id="L62">            toV = new VertexEdges();</span>
+<span class="fc" id="L63">            vertices.put(toVertex, toV);</span>
+        }
+<span class="fc" id="L65">        toV.getIncomming().put(edge, fromVertex);</span>
+<span class="fc" id="L66">    }</span>
+
+    @Override
+    public Pair&lt;V, V&gt; getVertices(final E edge) {
+<span class="nc" id="L70">        return edgeNodes.get(edge);</span>
+    }
+
+    @Override
+    public VertexEdges&lt;V, E&gt; getEdges(final V vertice) {
+<span class="fc" id="L75">        return vertices.get(vertice);</span>
+    }
+
+    @Override
+    public Set&lt;V&gt; getVertices() {
+<span class="fc" id="L80">        return vertices.keySet();</span>
+    }
+
+    @Override
+    public void remove(final V vertice) {
+<span class="nc" id="L85">        VertexEdges&lt;V, E&gt; remove = vertices.remove(vertice);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (remove == null) {</span>
+<span class="nc" id="L87">            return;</span>
+        }
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        for (E edge : remove.getIncomming().keySet()) {</span>
+<span class="nc" id="L90">            V fromVertex = edgeNodes.remove(edge).getFirst();</span>
+<span class="nc" id="L91">            vertices.get(fromVertex).getOutgoing().remove(edge);</span>
+
+<span class="nc" id="L93">        }</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        for (E edge : remove.getOutgoing().keySet()) {</span>
+<span class="nc" id="L95">            V toVertex = edgeNodes.remove(edge).getSecond();</span>
+<span class="nc" id="L96">            vertices.get(toVertex).getIncomming().remove(edge);</span>
+<span class="nc" id="L97">        }</span>
+<span class="nc" id="L98">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L102">        return &quot;HashMapGraph{&quot; + &quot;edgeNodes=&quot; + edgeNodes + &quot;, vertices=&quot; + vertices + '}';</span>
+    }
+
+    @Override
+    public Graph&lt;V, E&gt; copy() {
+<span class="nc" id="L107">        HashMap&lt;V, VertexEdges&gt; hashMap = new HashMap&lt;V, VertexEdges&gt;(vertices);</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        for (Map.Entry&lt;V, VertexEdges&gt; entry : hashMap.entrySet()) {</span>
+<span class="nc" id="L109">            V v = entry.getKey();</span>
+<span class="nc" id="L110">            VertexEdges vertexEdges = entry.getValue();</span>
+<span class="nc" id="L111">            hashMap.put(v, vertexEdges.copy());</span>
+<span class="nc" id="L112">        }</span>
+<span class="nc" id="L113">        return new HashMapGraph&lt;V, E&gt;(new HashMap&lt;E, Pair&lt;V, V&gt;&gt;(edgeNodes),</span>
+                hashMap);
+    }
+
+    @Override
+    public boolean contains(final V vertice) {
+<span class="nc" id="L119">        return vertices.containsKey(vertice);</span>
+    }
+
+    @Override
+    public E getEdge(final V from, final V to) {
+<span class="fc" id="L124">        VertexEdges&lt;V, E&gt; edges = vertices.get(from);</span>
+<span class="fc bfc" id="L125" title="All 2 branches covered.">        if (edges != null) {</span>
+<span class="fc" id="L126">            Map&lt;E, V&gt; outgoing = edges.getOutgoing();</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">            for (Map.Entry&lt;E, V&gt; entry : outgoing.entrySet()) {</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">                if (entry.getValue().equals(to)) {</span>
+<span class="fc" id="L129">                    return entry.getKey();</span>
+                }
+<span class="fc" id="L131">            }</span>
+        }
+<span class="fc" id="L133">        return null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

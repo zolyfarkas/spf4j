@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MeasurementsInfoImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">MeasurementsInfoImpl.java</span></div><h1>MeasurementsInfoImpl.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.impl;
+
+import org.spf4j.perf.MeasurementsInfo;
+import java.util.Arrays;
+import javax.annotation.concurrent.Immutable;
+
+/**
+ *
+ * @author zoly
+ */
+@Immutable
+public final class MeasurementsInfoImpl implements MeasurementsInfo {
+    private final Object measuredEntity;
+    private final String description;
+    private final String[] measurementNames;
+    private final String[] measurementUnits;
+
+
+
+    public MeasurementsInfoImpl(final Object measuredEntity, final String description,
+<span class="fc" id="L38">            final String[] measurementNames, final String[] measurementUnits) {</span>
+<span class="fc" id="L39">        this.measuredEntity = measuredEntity;</span>
+<span class="fc" id="L40">        this.description = description;</span>
+<span class="fc" id="L41">        this.measurementNames = measurementNames.clone();</span>
+<span class="fc" id="L42">        this.measurementUnits = measurementUnits.clone();</span>
+<span class="fc" id="L43">    }</span>
+
+    @Override
+    public Object getMeasuredEntity() {
+<span class="fc" id="L47">        return measuredEntity;</span>
+    }
+
+    @Override
+    public String getDescription() {
+<span class="fc" id="L52">        return description;</span>
+    }
+
+    @Override
+    public String[] getMeasurementNames() {
+<span class="fc" id="L57">        return measurementNames.clone();</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L62">        return measuredEntity.hashCode();</span>
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L68">            return false;</span>
+        }
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L71">            return false;</span>
+        }
+<span class="fc" id="L73">        final MeasurementsInfoImpl other = (MeasurementsInfoImpl) obj;</span>
+<span class="pc bpc" id="L74" title="3 of 4 branches missed.">        if (this.measuredEntity != other.measuredEntity</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">                &amp;&amp; (this.measuredEntity == null || !this.measuredEntity.equals(other.measuredEntity))) {</span>
+<span class="nc" id="L76">            return false;</span>
+        }
+<span class="pc bpc" id="L78" title="3 of 4 branches missed.">        if ((this.description == null)</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">                ? (other.description != null) : !this.description.equals(other.description)) {</span>
+<span class="nc" id="L80">            return false;</span>
+        }
+<span class="fc" id="L82">        return Arrays.equals(this.measurementNames, other.measurementNames);</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="fc" id="L87">        return &quot;EntityMeasurementsInfoImpl{&quot; + &quot;measuredEntity=&quot; + measuredEntity</span>
+                + &quot;, description=&quot; + description + &quot;, measurementNames=&quot;
+<span class="fc" id="L89">                + Arrays.toString(measurementNames) + &quot;, measurementUnits=&quot;</span>
+<span class="fc" id="L90">                + Arrays.toString(measurementUnits) + '}';</span>
+    }
+
+
+    @Override
+    public int getNumberOfMeasurements() {
+<span class="fc" id="L96">        return measurementNames.length;</span>
+    }
+
+    @Override
+    public String[] getMeasurementUnits() {
+<span class="fc" id="L101">        return measurementUnits.clone();</span>
+    }
+
+    @Override
+    public String getMeasurementName(final int measurementNr) {
+<span class="fc" id="L106">        return measurementNames[measurementNr];</span>
+    }
+
+    @Override
+    public String getMeasurementUnit(final int measurementNr) {
+<span class="fc" id="L111">        return measurementUnits[measurementNr];</span>
+    }
+
+    @Override
+    public int getMeasurementNr() {
+<span class="nc" id="L116">        return measurementNames.length;</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

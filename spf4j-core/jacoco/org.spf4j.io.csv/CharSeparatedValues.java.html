@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CharSeparatedValues.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io.csv</a> &gt; <span class="el_source">CharSeparatedValues.java</span></div><h1>CharSeparatedValues.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.io.csv;
+
+import com.google.common.base.Preconditions;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.map.hash.THashMap;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.CheckReturnValue;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.Strings;
+import org.spf4j.io.PushbackReader;
+
+/**
+ * Supports Character Separated values format as described at: https://en.wikipedia.org/wiki/Comma-separated_values.
+ * either of \n \r or \r\n generalized to custom separator character.
+ * are valid end of line delimiters
+ *
+ * why another implementation? because I need one that is as fast as possible, and as flexible as possible.
+ *
+ * @author zoly
+ */
+@ParametersAreNonnullByDefault
+@SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;) // FB gets it wrong here
+public final class CharSeparatedValues {
+
+  private final char separator;
+  private final char[] toEscape;
+
+<span class="fc" id="L56">  public CharSeparatedValues(final char separator) {</span>
+<span class="pc bpc" id="L57" title="3 of 6 branches missed.">    Preconditions.checkArgument(separator != '\n' &amp;&amp; separator != '\r' &amp;&amp; separator != '&quot;',</span>
+<span class="fc" id="L58">            &quot;Illegal separator character %s&quot;, separator);</span>
+<span class="fc" id="L59">    this.separator = separator;</span>
+<span class="fc" id="L60">    this.toEscape = new char[]{separator, '\n', '\r', '&quot;'};</span>
+<span class="fc" id="L61">  }</span>
+
+  public void writeCsvRow(final Appendable writer, final Object... elems) throws IOException {
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">    if (elems.length &gt; 0) {</span>
+<span class="fc" id="L65">      int i = 0;</span>
+<span class="fc" id="L66">      Object elem = elems[i++];</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">      if (elem != null) {</span>
+<span class="fc" id="L68">        writeCsvElement(elem.toString(), writer);</span>
+      }
+<span class="fc bfc" id="L70" title="All 2 branches covered.">      while (i &lt; elems.length) {</span>
+<span class="fc" id="L71">        writer.append(separator);</span>
+<span class="fc" id="L72">        elem = elems[i++];</span>
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        if (elem != null) {</span>
+<span class="fc" id="L74">          writeCsvElement(elem.toString(), writer);</span>
+        }
+      }
+    }
+<span class="fc" id="L78">    writer.append('\n');</span>
+<span class="fc" id="L79">  }</span>
+
+  public void writeCsvRow2(final Appendable writer, final Object obj, final Object... elems)
+          throws IOException {
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">    if (obj != null) {</span>
+<span class="fc" id="L84">      writeCsvElement(obj.toString(), writer);</span>
+    }
+<span class="fc bfc" id="L86" title="All 2 branches covered.">    for (Object elem : elems) {</span>
+<span class="fc" id="L87">      writer.append(separator);</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">      if (elem != null) {</span>
+<span class="fc" id="L89">        writeCsvElement(elem.toString(), writer);</span>
+      }
+    }
+<span class="fc" id="L92">    writer.append('\n');</span>
+<span class="fc" id="L93">  }</span>
+
+  public void writeCsvRow(final Appendable writer, final long... elems) throws IOException {
+<span class="fc" id="L96">    writeCsvRowNoEOL(elems, writer);</span>
+<span class="fc" id="L97">    writer.append('\n');</span>
+<span class="fc" id="L98">  }</span>
+
+  public void writeCsvRowNoEOL(final long[] elems, final Appendable writer) throws IOException {
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">    if (elems.length &gt; 0) {</span>
+<span class="fc" id="L102">      int i = 0;</span>
+<span class="fc" id="L103">      writer.append(Long.toString(elems[i++]));</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">      while (i &lt; elems.length) {</span>
+<span class="fc" id="L105">        writer.append(separator);</span>
+<span class="fc" id="L106">        writer.append(Long.toString(elems[i++]));</span>
+      }
+    }
+<span class="fc" id="L109">  }</span>
+
+  public void writeCsvRow(final Appendable writer, final Iterable&lt;?&gt; elems) throws IOException {
+<span class="nc" id="L112">    writeCsvRowNoEOL(elems, writer);</span>
+<span class="nc" id="L113">    writer.append('\n');</span>
+<span class="nc" id="L114">  }</span>
+
+  public void writeCsvRowNoEOL(final Iterable&lt;?&gt; elems, final Appendable writer) throws IOException {
+<span class="nc" id="L117">    Iterator&lt;?&gt; it = elems.iterator();</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">    if (it.hasNext()) {</span>
+<span class="nc" id="L119">      Object next = it.next();</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">      if (next != null) {</span>
+<span class="nc" id="L121">        writeCsvElement(next.toString(), writer);</span>
+      }
+<span class="nc bnc" id="L123" title="All 2 branches missed.">      while (it.hasNext()) {</span>
+<span class="nc" id="L124">        writer.append(separator);</span>
+<span class="nc" id="L125">        next = it.next();</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (next != null) {</span>
+<span class="nc" id="L127">          writeCsvElement(next.toString(), writer);</span>
+        }
+      }
+    }
+<span class="nc" id="L131">  }</span>
+
+  public &lt;T&gt; T read(final File file, final Charset charset,
+          final CsvMapHandler&lt;T&gt; handler) throws IOException {
+<span class="pc" id="L135">    try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {</span>
+<span class="fc" id="L136">      return read(br, handler);</span>
+<span class="pc bpc" id="L137" title="6 of 8 branches missed.">    }</span>
+  }
+
+  public &lt;T&gt; T read(final File file, final Charset charset,
+          final CsvHandler&lt;T&gt; handler) throws IOException {
+<span class="pc" id="L142">    try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {</span>
+<span class="fc" id="L143">      return read(br, handler);</span>
+<span class="pc bpc" id="L144" title="6 of 8 branches missed.">    }</span>
+  }
+
+  public List&lt;Map&lt;String, String&gt;&gt; read(final Reader preader) throws IOException {
+<span class="nc" id="L148">    return read(preader, new ToListMapHandler());</span>
+  }
+
+  public &lt;T&gt; T read(final Reader preader,
+          final CsvMapHandler&lt;T&gt; handler) throws IOException {
+<span class="fc" id="L153">    return read(preader, new CsvMapHandler2CsvHandler&lt;&gt;(handler));</span>
+  }
+
+  public List&lt;String&gt; readRow(final Reader reader) throws IOException {
+<span class="fc" id="L157">    return readRow(reader, new CsvRow2List());</span>
+  }
+
+  public &lt;T&gt; T readRow(final Reader reader, final CsvRowHandler&lt;T&gt; handler) throws IOException {
+<span class="fc" id="L161">    return read(reader, new OneRowHandler&lt;&gt;(handler));</span>
+  }
+
+  public &lt;T&gt; T read(final Reader preader,
+          final CsvHandler&lt;T&gt; handler) throws IOException {
+<span class="fc" id="L166">    PushbackReader reader = new PushbackReader(preader);</span>
+<span class="fc" id="L167">    int firstChar = reader.read();</span>
+<span class="pc bpc" id="L168" title="1 of 4 branches missed.">    if (firstChar != UTF_BOM &amp;&amp; firstChar &gt;= 0) {</span>
+<span class="fc" id="L169">      reader.unread(firstChar);</span>
+    }
+<span class="fc" id="L171">    return readNoBom(reader, handler);</span>
+  }
+
+  /**
+   * http://unicode.org/faq/utf_bom.html#BOM
+   */
+  public static final int UTF_BOM = '\uFEFF';
+
+  /**
+   * reads CSV format until EOF of reader.
+   *
+   * @param &lt;T&gt;
+   * @param preader
+   * @param handler
+   * @return
+   * @throws IOException
+   */
+  public &lt;T&gt; T readNoBom(final PushbackReader reader, final CsvHandler&lt;T&gt; handler) throws IOException {
+<span class="fc" id="L189">    boolean start = true;</span>
+<span class="fc" id="L190">    StringBuilder strB = new StringBuilder();</span>
+<span class="fc" id="L191">    boolean loop = true;</span>
+    do {
+<span class="fc bfc" id="L193" title="All 2 branches covered.">      if (start) {</span>
+<span class="fc" id="L194">        handler.startRow();</span>
+<span class="fc" id="L195">        start = false;</span>
+      }
+<span class="fc" id="L197">      strB.setLength(0);</span>
+<span class="fc" id="L198">      int c = readCsvElement(reader, strB);</span>
+<span class="fc" id="L199">      handler.element(strB);</span>
+<span class="pc bpc" id="L200" title="1 of 3 branches missed.">      switch (c) {</span>
+        case '\r':
+<span class="nc" id="L202">          handler.endRow();</span>
+<span class="nc" id="L203">          start = true;</span>
+<span class="nc" id="L204">          int c2 = reader.read();</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">          if (c2 &lt; 0) {</span>
+<span class="nc" id="L206">            loop = false;</span>
+<span class="nc" id="L207">            break;</span>
+          }
+<span class="nc bnc" id="L209" title="All 2 branches missed.">          if (c2 != '\n') {</span>
+<span class="nc" id="L210">            reader.unread(c2);</span>
+          }
+          break;
+        case '\n':
+<span class="fc" id="L214">          handler.endRow();</span>
+<span class="fc" id="L215">          start = true;</span>
+<span class="fc" id="L216">          break;</span>
+        default:
+<span class="fc bfc" id="L218" title="All 2 branches covered.">          if (c != separator) {</span>
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">            if (c &lt; 0) {</span>
+<span class="fc" id="L220">              loop = false;</span>
+            } else {
+<span class="nc" id="L222">              throw new IOException(&quot;Unexpected character &quot; + c);</span>
+            }
+          }
+      }
+<span class="fc bfc" id="L226" title="All 2 branches covered.">    } while (loop);</span>
+    out:
+<span class="fc" id="L228">    return handler.eof();</span>
+  }
+
+  /**
+   * read a CSV stream, as a Iterable over rows.
+   * the List&lt;String&gt; instance is reused during iteration, you will need to copy content into
+   * own data structure.
+   * @param preader
+   * @return
+   */
+  public  Iterable&lt;List&lt;String&gt;&gt; asIterable(final Reader preader) {
+<span class="fc" id="L239">    return () -&gt; {</span>
+      try {
+<span class="fc" id="L241">        return new CsvReader2Iterator(reader(preader));</span>
+<span class="nc" id="L242">      } catch (IOException ex) {</span>
+<span class="nc" id="L243">        throw new RuntimeException(ex);</span>
+      }
+    };
+
+  }
+
+
+  public CsvReader reader(final Reader preader) throws IOException {
+<span class="fc" id="L251">    PushbackReader reader = new PushbackReader(preader);</span>
+<span class="fc" id="L252">    int firstChar = reader.read();</span>
+<span class="pc bpc" id="L253" title="2 of 4 branches missed.">    if (firstChar != UTF_BOM &amp;&amp; firstChar &gt;= 0) {</span>
+<span class="fc" id="L254">      reader.unread(firstChar);</span>
+    }
+<span class="fc" id="L256">    return readerNoBOM(reader);</span>
+  }
+
+  public CsvReader readerNoBOM(final PushbackReader reader) {
+<span class="fc" id="L260">    return new CsvReaderImpl(reader);</span>
+  }
+
+
+
+  public void writeCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
+<span class="fc bfc" id="L266" title="All 2 branches covered.">    if (Strings.contains(elem, toEscape)) {</span>
+<span class="fc" id="L267">      writeQuotedCsvElement(elem, writer);</span>
+    } else {
+<span class="fc" id="L269">      writer.append(elem);</span>
+    }
+<span class="fc" id="L271">  }</span>
+
+  public static void writeQuotedCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
+<span class="fc" id="L274">    int length = elem.length();</span>
+<span class="fc" id="L275">    writer.append('&quot;');</span>
+<span class="fc bfc" id="L276" title="All 2 branches covered.">    for (int i = 0; i &lt; length; i++) {</span>
+<span class="fc" id="L277">      char c = elem.charAt(i);</span>
+<span class="fc bfc" id="L278" title="All 2 branches covered.">      if (c == '&quot;') {</span>
+<span class="fc" id="L279">        writer.append(&quot;\&quot;\&quot;&quot;);</span>
+      } else {
+<span class="fc" id="L281">        writer.append(c);</span>
+      }
+    }
+<span class="fc" id="L284">    writer.append('&quot;');</span>
+<span class="fc" id="L285">  }</span>
+
+  public CharSequence toCsvElement(final CharSequence elem) {
+<span class="nc bnc" id="L288" title="All 2 branches missed.">    if (Strings.contains(elem, toEscape)) {</span>
+<span class="nc" id="L289">      StringWriter sw = new StringWriter(elem.length() - 1);</span>
+      try {
+<span class="nc" id="L291">        writeQuotedCsvElement(elem, sw);</span>
+<span class="nc" id="L292">      } catch (IOException ex) {</span>
+<span class="nc" id="L293">        throw new RuntimeException(ex);</span>
+<span class="nc" id="L294">      }</span>
+<span class="nc" id="L295">      return sw.toString();</span>
+    } else {
+<span class="nc" id="L297">      return elem;</span>
+    }
+  }
+
+  /**
+   * returns next character.
+   *
+   * @param reader
+   * @param addElemTo
+   * @return - next character or -1 if eof has been reached.
+   * @throws IOException
+   */
+  @CheckReturnValue
+  public int readCsvElement(final Reader reader, final StringBuilder addElemTo) throws IOException {
+<span class="fc" id="L311">    int c = reader.read();</span>
+<span class="fc bfc" id="L312" title="All 2 branches covered.">    if (c &lt; 0) {</span>
+<span class="fc" id="L313">      return c;</span>
+    }
+<span class="fc bfc" id="L315" title="All 2 branches covered.">    if (c == '&quot;') {</span>
+<span class="fc" id="L316">      c = reader.read();</span>
+<span class="pc bpc" id="L317" title="1 of 2 branches missed.">      while (c &gt;= 0) {</span>
+<span class="fc bfc" id="L318" title="All 2 branches covered.">        if (c == '&quot;') {</span>
+<span class="fc" id="L319">          int c2 = reader.read();</span>
+<span class="fc bfc" id="L320" title="All 2 branches covered.">          if (c2 &gt;= 0) {</span>
+<span class="fc bfc" id="L321" title="All 2 branches covered.">            if (c2 == '&quot;') {</span>
+<span class="fc" id="L322">              addElemTo.append((char) c);</span>
+            } else {
+<span class="fc" id="L324">              return c2;</span>
+            }
+          } else {
+<span class="fc" id="L327">            return c2;</span>
+          }
+<span class="fc" id="L329">        } else {</span>
+<span class="fc" id="L330">          addElemTo.append((char) c);</span>
+        }
+<span class="fc" id="L332">        c = reader.read();</span>
+      }
+    } else {
+<span class="pc bpc" id="L335" title="1 of 8 branches missed.">      while (c != separator &amp;&amp; c != '\n' &amp;&amp; c != '\r' &amp;&amp; c &gt;= 0) {</span>
+<span class="fc" id="L336">        addElemTo.append((char) c);</span>
+<span class="fc" id="L337">        c = reader.read();</span>
+      }
+    }
+<span class="fc" id="L340">    return c;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L345">    return &quot;CharSepValues{&quot; + &quot;separator=&quot; + separator + '}';</span>
+  }
+
+<span class="nc" id="L348">  private static class ToListMapHandler implements CsvMapHandler&lt;List&lt;Map&lt;String, String&gt;&gt;&gt; {</span>
+
+<span class="nc" id="L350">    private List&lt;Map&lt;String, String&gt;&gt; result = new ArrayList&lt;&gt;();</span>
+
+    @Override
+    public void row(final Map&lt;String, String&gt; row) {
+<span class="nc" id="L354">      result.add(row);</span>
+<span class="nc" id="L355">    }</span>
+
+    @Override
+    public List&lt;Map&lt;String, String&gt;&gt; eof() {
+<span class="nc" id="L359">      return result;</span>
+    }
+  }
+
+  private static class CsvMapHandler2CsvHandler&lt;T&gt; implements CsvHandler&lt;T&gt; {
+
+    private final CsvMapHandler&lt;T&gt; handler;
+
+<span class="fc" id="L367">    CsvMapHandler2CsvHandler(final CsvMapHandler&lt;T&gt; handler) {</span>
+<span class="fc" id="L368">      this.handler = handler;</span>
+<span class="fc" id="L369">    }</span>
+<span class="fc" id="L370">    private boolean first = true;</span>
+<span class="fc" id="L371">    private final List&lt;String&gt; header = new ArrayList&lt;&gt;();</span>
+    private int elemIdx;
+<span class="fc" id="L373">    private Map&lt;String, String&gt; row = null;</span>
+
+    @Override
+    public void startRow() {
+<span class="fc" id="L377">      elemIdx = 0;</span>
+<span class="fc bfc" id="L378" title="All 2 branches covered.">      if (!first) {</span>
+<span class="fc" id="L379">        row = new THashMap&lt;&gt;(header.size());</span>
+      }
+<span class="fc" id="L381">    }</span>
+
+    @Override
+    public void element(final CharSequence elem) {
+<span class="fc bfc" id="L385" title="All 2 branches covered.">      if (first) {</span>
+<span class="fc" id="L386">        header.add(elem.toString());</span>
+      } else {
+<span class="fc" id="L388">        row.put(header.get(elemIdx), elem.toString());</span>
+      }
+<span class="fc" id="L390">      elemIdx++;</span>
+<span class="fc" id="L391">    }</span>
+
+    @Override
+    public void endRow() {
+<span class="fc bfc" id="L395" title="All 2 branches covered.">      if (first) {</span>
+<span class="fc" id="L396">        first = false;</span>
+      } else {
+<span class="fc" id="L398">        handler.row(row);</span>
+      }
+<span class="fc" id="L400">    }</span>
+
+    @Override
+    public T eof() {
+<span class="fc" id="L404">      return handler.eof();</span>
+    }
+  }
+
+  private class CsvReaderImpl implements CsvReader {
+
+    private final PushbackReader reader;
+
+<span class="fc" id="L412">    CsvReaderImpl(final PushbackReader reader) {</span>
+<span class="fc" id="L413">      this.reader = reader;</span>
+<span class="fc" id="L414">    }</span>
+<span class="fc" id="L415">    private final StringBuilder currentElement = new StringBuilder();</span>
+    private TokenType currentToken;
+    private TokenType nextToken;
+
+    private void readCurrentElement() throws IOException {
+<span class="fc" id="L420">      currentElement.setLength(0);</span>
+<span class="fc" id="L421">      int next = readCsvElement(reader, currentElement);</span>
+<span class="fc" id="L422">      currentToken = TokenType.ELEMENT;</span>
+<span class="pc bpc" id="L423" title="1 of 3 branches missed.">      switch (next) {</span>
+        case '\r':
+<span class="nc" id="L425">          int c2 = reader.read();</span>
+<span class="nc bnc" id="L426" title="All 2 branches missed.">          if (c2 &lt; 0) {</span>
+<span class="nc" id="L427">            nextToken = TokenType.END_DOCUMENT;</span>
+<span class="nc" id="L428">            break;</span>
+          }
+<span class="nc bnc" id="L430" title="All 2 branches missed.">          if (c2 != '\n') {</span>
+<span class="nc" id="L431">            reader.unread(c2);</span>
+          }
+<span class="nc" id="L433">          nextToken = TokenType.END_ROW;</span>
+<span class="nc" id="L434">          break;</span>
+        case '\n':
+<span class="fc" id="L436">          nextToken = TokenType.END_ROW;</span>
+<span class="fc" id="L437">          break;</span>
+        default:
+<span class="fc bfc" id="L439" title="All 2 branches covered.">          if (next != separator) {</span>
+<span class="pc bpc" id="L440" title="1 of 2 branches missed.">            if (next &lt; 0) {</span>
+<span class="fc" id="L441">              nextToken = TokenType.END_DOCUMENT;</span>
+            } else {
+<span class="nc" id="L443">              throw new IOException(&quot;Unexpected character &quot; + next);</span>
+            }
+          }
+      }
+
+<span class="fc" id="L448">    }</span>
+
+    @Override
+    public TokenType next() throws IOException {
+<span class="pc bpc" id="L452" title="1 of 2 branches missed.">      if (currentToken == null) {</span>
+<span class="fc bfc" id="L453" title="All 2 branches covered.">        if (nextToken == null) {</span>
+<span class="fc" id="L454">          readCurrentElement();</span>
+<span class="fc" id="L455">          TokenType result = currentToken;</span>
+<span class="pc bpc" id="L456" title="1 of 2 branches missed.">          if (result != TokenType.END_DOCUMENT) {</span>
+<span class="fc" id="L457">            currentToken = null;</span>
+          }
+<span class="fc" id="L459">          return result;</span>
+        } else {
+<span class="fc" id="L461">          TokenType result = nextToken;</span>
+<span class="fc bfc" id="L462" title="All 2 branches covered.">          if (result != TokenType.END_DOCUMENT) {</span>
+<span class="fc" id="L463">            nextToken = null;</span>
+          }
+<span class="fc" id="L465">          return result;</span>
+        }
+      } else {
+<span class="nc" id="L468">        return currentToken;</span>
+      }
+    }
+
+    @Override
+    public CharSequence getElement() {
+<span class="fc" id="L474">      return currentElement;</span>
+    }
+  }
+
+  private static class OneRowHandler&lt;T&gt; implements CsvHandler&lt;T&gt; {
+
+    private final CsvRowHandler&lt;T&gt; handler;
+
+    private int nrRows;
+
+<span class="fc" id="L484">    OneRowHandler(final CsvRowHandler&lt;T&gt; handler) {</span>
+<span class="fc" id="L485">      this.handler = handler;</span>
+<span class="fc" id="L486">      this.nrRows = 0;</span>
+<span class="fc" id="L487">    }</span>
+
+    @Override
+    public void startRow() {
+<span class="pc bpc" id="L491" title="1 of 2 branches missed.">      if (nrRows &gt; 0) {</span>
+<span class="nc" id="L492">        throw new IllegalStateException(&quot;Multiple rows encountered for &quot; + this);</span>
+      }
+<span class="fc" id="L494">    }</span>
+
+    @Override
+    public void element(final CharSequence elem) {
+<span class="fc" id="L498">      handler.element(elem);</span>
+<span class="fc" id="L499">    }</span>
+
+    @Override
+    public void endRow() {
+<span class="nc" id="L503">      nrRows++;</span>
+<span class="nc" id="L504">    }</span>
+
+    @Override
+    public T eof() {
+<span class="fc" id="L508">      return handler.eof();</span>
+    }
+  }
+
+<span class="fc" id="L512">  private static final class CsvRow2List implements CsvRowHandler&lt;List&lt;String&gt;&gt; {</span>
+
+<span class="fc" id="L514">    private final List&lt;String&gt; result = new ArrayList&lt;&gt;();</span>
+
+    @Override
+    public void element(final CharSequence elem) {
+<span class="fc" id="L518">      result.add(elem.toString());</span>
+<span class="fc" id="L519">    }</span>
+
+    @Override
+    public List&lt;String&gt; eof() {
+<span class="fc" id="L523">      return result;</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

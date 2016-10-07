@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>GCUsageSampler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.memory</a> &gt; <span class="el_source">GCUsageSampler.java</span></div><h1>GCUsageSampler.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.memory;
+
+import gnu.trove.map.TObjectLongMap;
+import gnu.trove.map.hash.TObjectLongHashMap;
+import java.lang.management.GarbageCollectorMXBean;
+import org.spf4j.base.AbstractRunnable;
+import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.perf.MeasurementRecorder;
+import org.spf4j.perf.impl.RecorderFactory;
+import java.lang.management.ManagementFactory;
+import java.util.List;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
+
+/**
+ * This class allows you to poll and recordAt to a file the heap commited and heap used for your java process.
+ * start data
+ * recording by calling the startMemoryUsageSampling method, stop the data recording by calling the method:
+ * startMemoryUsageSampling.
+ *
+ * @author zoly
+ */
+public final class GCUsageSampler {
+
+<span class="nc" id="L45">    private GCUsageSampler() {</span>
+<span class="nc" id="L46">    }</span>
+<span class="fc" id="L47">    private static final List&lt;GarbageCollectorMXBean&gt; MBEANS = ManagementFactory.getGarbageCollectorMXBeans();</span>
+    private static ScheduledFuture&lt;?&gt; samplingFuture;
+
+    static {
+<span class="fc" id="L51">        org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {</span>
+            @Override
+            public void doRun() {
+<span class="fc" id="L54">                stop();</span>
+<span class="fc" id="L55">            }</span>
+        });
+<span class="fc" id="L57">        Registry.export(GCUsageSampler.class);</span>
+<span class="fc" id="L58">    }</span>
+
+    @JmxExport
+    public static synchronized void start(@JmxExport(&quot;sampleTimeMillis&quot;) final int sampleTime) {
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        if (samplingFuture == null) {</span>
+<span class="fc" id="L63">            final MeasurementRecorder gcUsage =</span>
+<span class="fc" id="L64">                RecorderFactory.createDirectRecorder(&quot;gc-time&quot;, &quot;ms&quot;, sampleTime);</span>
+<span class="fc" id="L65">            samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {</span>
+
+<span class="fc" id="L67">                private final TObjectLongMap lastValues = new TObjectLongHashMap();</span>
+
+                @Override
+                public void doRun() {
+<span class="fc" id="L71">                    synchronized (lastValues) {</span>
+<span class="fc" id="L72">                        gcUsage.record(getGCTimeDiff(MBEANS, lastValues));</span>
+<span class="pc" id="L73">                    }</span>
+<span class="fc" id="L74">                }</span>
+            }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
+<span class="fc" id="L76">        } else {</span>
+<span class="nc" id="L77">            throw new IllegalStateException(&quot;GC usage sampling already started &quot; + samplingFuture);</span>
+        }
+<span class="fc" id="L79">    }</span>
+
+    @JmxExport
+    public static synchronized void stop() {
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (samplingFuture != null) {</span>
+<span class="fc" id="L84">            samplingFuture.cancel(false);</span>
+<span class="fc" id="L85">            samplingFuture = null;</span>
+        }
+<span class="fc" id="L87">    }</span>
+
+    public static long getGCTimeDiff(final List&lt;GarbageCollectorMXBean&gt; gcBeans, final TObjectLongMap lastValues) {
+<span class="fc" id="L90">        long gcTime = 0;</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        for (GarbageCollectorMXBean gcBean : gcBeans) {</span>
+<span class="fc" id="L92">            long prevVal = lastValues.get(gcBean);</span>
+<span class="fc" id="L93">            long currVal = gcBean.getCollectionTime();</span>
+<span class="fc" id="L94">            gcTime += currVal - prevVal;</span>
+<span class="fc" id="L95">            lastValues.put(gcBean, currVal);</span>
+<span class="fc" id="L96">        }</span>
+<span class="fc" id="L97">        return gcTime;</span>
+    }
+
+    public static long getGCTime(final List&lt;GarbageCollectorMXBean&gt; gcBeans) {
+<span class="fc" id="L101">        long gcTime = 0;</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        for (GarbageCollectorMXBean gcBean : gcBeans) {</span>
+<span class="fc" id="L103">            gcTime += gcBean.getCollectionTime();</span>
+<span class="fc" id="L104">        }</span>
+<span class="fc" id="L105">        return gcTime;</span>
+    }
+
+    @JmxExport(description = &quot;Get the total GC time in millis since the JVM started&quot;)
+    public static long getGCTime() {
+<span class="nc" id="L110">        return getGCTime(MBEANS);</span>
+    }
+
+    @JmxExport
+    public static synchronized boolean isStarted() {
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">        return samplingFuture != null;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Striped64.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">Striped64.java</span></div><h1>Striped64.java</h1><pre class="source lang-java linenums">
+package org.spf4j.concurrent;
+
+/*
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
+ */
+
+/*
+ * Source:
+ * http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/jsr166e/SequenceLock.java?revision=1.17
+ */
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Random;
+
+/**
+ * A package-local class holding common representation and mechanics
+ * for classes supporting dynamic striping on 64bit values. The class
+ * extends Number so that concrete subclasses must publicly do so.
+ */
+//CHECKSTYLE:OFF
+@SuppressFBWarnings
+abstract class Striped64 extends Number {
+    /*
+     * This class maintains a lazily-initialized table of atomically
+     * updated variables, plus an extra &quot;base&quot; field. The table size
+     * is a power of two. Indexing uses masked per-thread hash codes.
+     * Nearly all declarations in this class are package-private,
+     * accessed directly by subclasses.
+     *
+     * Table entries are of class Cell; a variant of AtomicLong padded
+     * to reduce cache contention on most processors. Padding is
+     * overkill for most Atomics because they are usually irregularly
+     * scattered in memory and thus don't interfere much with each
+     * other. But Atomic objects residing in arrays will tend to be
+     * placed adjacent to each other, and so will most often share
+     * cache lines (with a huge negative performance impact) without
+     * this precaution.
+     *
+     * In part because Cells are relatively large, we avoid creating
+     * them until they are needed.  When there is no contention, all
+     * updates are made to the base field.  Upon first contention (a
+     * failed CAS on base update), the table is initialized to size 2.
+     * The table size is doubled upon further contention until
+     * reaching the nearest power of two greater than or equal to the
+     * number of CPUS. Table slots remain empty (null) until they are
+     * needed.
+     *
+     * A single spinlock (&quot;busy&quot;) is used for initializing and
+     * resizing the table, as well as populating slots with new Cells.
+     * There is no need for a blocking lock: When the lock is not
+     * available, threads try other slots (or the base).  During these
+     * retries, there is increased contention and reduced locality,
+     * which is still better than alternatives.
+     *
+     * Per-thread hash codes are initialized to random values.
+     * Contention and/or table collisions are indicated by failed
+     * CASes when performing an update operation (see method
+     * retryUpdate). Upon a collision, if the table size is less than
+     * the capacity, it is doubled in size unless some other thread
+     * holds the lock. If a hashed slot is empty, and lock is
+     * available, a new Cell is created. Otherwise, if the slot
+     * exists, a CAS is tried.  Retries proceed by &quot;double hashing&quot;,
+     * using a secondary hash (Marsaglia XorShift) to try to find a
+     * free slot.
+     *
+     * The table size is capped because, when there are more threads
+     * than CPUs, supposing that each thread were bound to a CPU,
+     * there would exist a perfect hash function mapping threads to
+     * slots that eliminates collisions. When we reach capacity, we
+     * search for this mapping by randomly varying the hash codes of
+     * colliding threads.  Because search is random, and collisions
+     * only become known via CAS failures, convergence can be slow,
+     * and because threads are typically not bound to CPUS forever,
+     * may not occur at all. However, despite these limitations,
+     * observed contention rates are typically low in these cases.
+     *
+     * It is possible for a Cell to become unused when threads that
+     * once hashed to it terminate, as well as in the case where
+     * doubling the table causes no thread to hash to it under
+     * expanded mask.  We do not try to detect or remove such cells,
+     * under the assumption that for long-running instances, observed
+     * contention levels will recur, so the cells will eventually be
+     * needed again; and for short-lived ones, it does not matter.
+     */
+
+    /**
+     * Padded variant of AtomicLong supporting only raw accesses plus CAS.
+     * The value field is placed between pads, hoping that the JVM doesn't
+     * reorder them.
+     *
+     * JVM intrinsics note: It would be possible to use a release-only
+     * form of CAS here, if it were provided.
+     */
+    static final class Cell {
+        volatile long p0, p1, p2, p3, p4, p5, p6;
+        volatile long value;
+        volatile long q0, q1, q2, q3, q4, q5, q6;
+<span class="fc" id="L101">        Cell(long x) { value = x; }</span>
+
+        final boolean cas(long cmp, long val) {
+<span class="fc" id="L104">            return UNSAFE.compareAndSwapLong(this, valueOffset, cmp, val);</span>
+        }
+
+        // Unsafe mechanics
+        private static final sun.misc.Unsafe UNSAFE;
+        private static final long valueOffset;
+        static {
+            try {
+<span class="fc" id="L112">                UNSAFE = getUnsafe();</span>
+<span class="fc" id="L113">                Class&lt;?&gt; ak = Cell.class;</span>
+<span class="fc" id="L114">                valueOffset = UNSAFE.objectFieldOffset</span>
+<span class="fc" id="L115">                    (ak.getDeclaredField(&quot;value&quot;));</span>
+<span class="nc" id="L116">            } catch (NoSuchFieldException | SecurityException e) {</span>
+<span class="nc" id="L117">                throw new Error(e);</span>
+<span class="fc" id="L118">            }</span>
+<span class="fc" id="L119">        }</span>
+
+    }
+
+    /**
+     * Holder for the thread-local hash code. The code is initially
+     * random, but may be set to a different value upon collisions.
+     */
+    static final class HashCode {
+<span class="fc" id="L128">        static final Random rng = new Random();</span>
+        int code;
+<span class="fc" id="L130">        HashCode() {</span>
+<span class="fc" id="L131">            int h = rng.nextInt(); // Avoid zero to allow xorShift rehash</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">            code = (h == 0) ? 1 : h;</span>
+<span class="fc" id="L133">        }</span>
+    }
+
+    /**
+     * The corresponding ThreadLocal class
+     */
+<span class="fc" id="L139">    static final class ThreadHashCode extends ThreadLocal&lt;HashCode&gt; {</span>
+<span class="fc" id="L140">        public HashCode initialValue() { return new HashCode(); }</span>
+    }
+
+    /**
+     * Static per-thread hash codes. Shared across all instances to
+     * reduce ThreadLocal pollution and because adjustments due to
+     * collisions in one table are likely to be appropriate for
+     * others.
+     */
+<span class="fc" id="L149">    static final ThreadHashCode threadHashCode = new ThreadHashCode();</span>
+
+    /** Number of CPUS, to place bound on table size */
+<span class="fc" id="L152">    static final int NCPU = Runtime.getRuntime().availableProcessors();</span>
+
+    /**
+     * Table of cells. When non-null, size is a power of 2.
+     */
+    transient volatile Cell[] cells;
+
+    /**
+     * Base value, used mainly when there is no contention, but also as
+     * a fallback during table initialization races. Updated via CAS.
+     */
+    transient volatile long base;
+
+    /**
+     * Spinlock (locked via CAS) used when resizing and/or creating Cells.
+     */
+    transient volatile int busy;
+
+    /**
+     * Package-private default constructor
+     */
+<span class="fc" id="L173">    Striped64() {</span>
+<span class="fc" id="L174">    }</span>
+
+    /**
+     * CASes the base field.
+     */
+    final boolean casBase(long cmp, long val) {
+<span class="fc" id="L180">        return UNSAFE.compareAndSwapLong(this, baseOffset, cmp, val);</span>
+    }
+
+    /**
+     * CASes the busy field from 0 to 1 to acquire lock.
+     */
+    final boolean casBusy() {
+<span class="fc" id="L187">        return UNSAFE.compareAndSwapInt(this, busyOffset, 0, 1);</span>
+    }
+
+    /**
+     * Computes the function of current and new value. Subclasses
+     * should open-code this update function for most uses, but the
+     * virtualized form is needed within retryUpdate.
+     *
+     * @param currentValue the current value (of either base or a cell)
+     * @param newValue the argument from a user update call
+     * @return result of the update function
+     */
+    abstract long fn(long currentValue, long newValue);
+
+    /**
+     * Handles cases of updates involving initialization, resizing,
+     * creating new Cells, and/or contention. See above for
+     * explanation. This method suffers the usual non-modularity
+     * problems of optimistic retry code, relying on rechecked sets of
+     * reads.
+     *
+     * @param x the value
+     * @param hc the hash code holder
+     * @param wasUncontended false if CAS failed before call
+     */
+    final void retryUpdate(long x, HashCode hc, boolean wasUncontended) {
+<span class="fc" id="L213">        int h = hc.code;</span>
+<span class="fc" id="L214">        boolean collide = false;                // True if last slot nonempty</span>
+        for (;;) {
+            Cell[] as; Cell a; int n; long v;
+<span class="pc bpc" id="L217" title="1 of 4 branches missed.">            if ((as = cells) != null &amp;&amp; (n = as.length) &gt; 0) {</span>
+<span class="fc bfc" id="L218" title="All 2 branches covered.">                if ((a = as[(n - 1) &amp; h]) == null) {</span>
+<span class="fc bfc" id="L219" title="All 2 branches covered.">                    if (busy == 0) {            // Try to attach new Cell</span>
+<span class="fc" id="L220">                        Cell r = new Cell(x);   // Optimistically create</span>
+<span class="pc bpc" id="L221" title="1 of 4 branches missed.">                        if (busy == 0 &amp;&amp; casBusy()) {</span>
+<span class="fc" id="L222">                            boolean created = false;</span>
+                            try {               // Recheck under lock
+                                Cell[] rs; int m, j;
+<span class="pc bpc" id="L225" title="3 of 6 branches missed.">                                if ((rs = cells) != null &amp;&amp;</span>
+                                    (m = rs.length) &gt; 0 &amp;&amp;
+                                    rs[j = (m - 1) &amp; h] == null) {
+<span class="fc" id="L228">                                    rs[j] = r;</span>
+<span class="fc" id="L229">                                    created = true;</span>
+                                }
+                            } finally {
+<span class="pc" id="L232">                                busy = 0;</span>
+<span class="fc" id="L233">                            }</span>
+<span class="pc bpc" id="L234" title="1 of 2 branches missed.">                            if (created)</span>
+<span class="fc" id="L235">                                break;</span>
+                            continue;           // Slot is now non-empty
+                        }
+                    }
+<span class="fc" id="L239">                    collide = false;</span>
+                }
+<span class="fc bfc" id="L241" title="All 2 branches covered.">                else if (!wasUncontended)       // CAS already known to fail</span>
+<span class="fc" id="L242">                    wasUncontended = true;      // Continue after rehash</span>
+<span class="fc bfc" id="L243" title="All 2 branches covered.">                else if (a.cas(v = a.value, fn(v, x)))</span>
+<span class="fc" id="L244">                    break;</span>
+<span class="pc bpc" id="L245" title="1 of 4 branches missed.">                else if (n &gt;= NCPU || cells != as)</span>
+<span class="fc" id="L246">                    collide = false;            // At max size or stale</span>
+<span class="fc bfc" id="L247" title="All 2 branches covered.">                else if (!collide)</span>
+<span class="fc" id="L248">                    collide = true;</span>
+<span class="pc bpc" id="L249" title="2 of 4 branches missed.">                else if (busy == 0 &amp;&amp; casBusy()) {</span>
+                    try {
+<span class="pc bpc" id="L251" title="1 of 2 branches missed.">                        if (cells == as) {      // Expand table unless stale</span>
+<span class="fc" id="L252">                            Cell[] rs = new Cell[n &lt;&lt; 1];</span>
+<span class="fc" id="L253">                            System.arraycopy(as, 0, rs, 0, n);</span>
+<span class="fc" id="L254">                            cells = rs;</span>
+                        }
+                    } finally {
+<span class="pc" id="L257">                        busy = 0;</span>
+<span class="fc" id="L258">                    }</span>
+<span class="fc" id="L259">                    collide = false;</span>
+<span class="fc" id="L260">                    continue;                   // Retry with expanded table</span>
+                }
+<span class="fc" id="L262">                h ^= h &lt;&lt; 13;                   // Rehash</span>
+<span class="fc" id="L263">                h ^= h &gt;&gt;&gt; 17;</span>
+<span class="fc" id="L264">                h ^= h &lt;&lt; 5;</span>
+            }
+<span class="pc bpc" id="L266" title="2 of 6 branches missed.">            else if (busy == 0 &amp;&amp; cells == as &amp;&amp; casBusy()) {</span>
+<span class="fc" id="L267">                boolean init = false;</span>
+                try {                           // Initialize table
+<span class="pc bpc" id="L269" title="1 of 2 branches missed.">                    if (cells == as) {</span>
+<span class="fc" id="L270">                        Cell[] rs = new Cell[2];</span>
+<span class="fc" id="L271">                        rs[h &amp; 1] = new Cell(x);</span>
+<span class="fc" id="L272">                        cells = rs;</span>
+<span class="fc" id="L273">                        init = true;</span>
+                    }
+                } finally {
+<span class="pc" id="L276">                    busy = 0;</span>
+<span class="fc" id="L277">                }</span>
+<span class="pc bpc" id="L278" title="1 of 2 branches missed.">                if (init)</span>
+<span class="fc" id="L279">                    break;</span>
+<span class="nc" id="L280">            }</span>
+<span class="fc bfc" id="L281" title="All 2 branches covered.">            else if (casBase(v = base, fn(v, x)))</span>
+<span class="fc" id="L282">                break;                          // Fall back on using base</span>
+<span class="fc" id="L283">        }</span>
+<span class="fc" id="L284">        hc.code = h;                            // Record index for next time</span>
+<span class="fc" id="L285">    }</span>
+
+    /**
+     * Sets base and all cells to the given value.
+     */
+    final void internalReset(long initialValue) {
+<span class="nc" id="L291">        Cell[] as = cells;</span>
+<span class="nc" id="L292">        base = initialValue;</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">        if (as != null) {</span>
+<span class="nc" id="L294">            int n = as.length;</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">            for (int i = 0; i &lt; n; ++i) {</span>
+<span class="nc" id="L296">                Cell a = as[i];</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">                if (a != null)</span>
+<span class="nc" id="L298">                    a.value = initialValue;</span>
+            }
+        }
+<span class="nc" id="L301">    }</span>
+
+    // Unsafe mechanics
+    private static final sun.misc.Unsafe UNSAFE;
+    private static final long baseOffset;
+    private static final long busyOffset;
+    static {
+        try {
+<span class="fc" id="L309">            UNSAFE = getUnsafe();</span>
+<span class="fc" id="L310">            Class&lt;?&gt; sk = Striped64.class;</span>
+<span class="fc" id="L311">            baseOffset = UNSAFE.objectFieldOffset</span>
+<span class="fc" id="L312">                (sk.getDeclaredField(&quot;base&quot;));</span>
+<span class="fc" id="L313">            busyOffset = UNSAFE.objectFieldOffset</span>
+<span class="fc" id="L314">                (sk.getDeclaredField(&quot;busy&quot;));</span>
+<span class="nc" id="L315">        } catch (NoSuchFieldException | SecurityException e) {</span>
+<span class="nc" id="L316">            throw new Error(e);</span>
+<span class="fc" id="L317">        }</span>
+<span class="fc" id="L318">    }</span>
+
+    /**
+     * Returns a sun.misc.Unsafe.  Suitable for use in a 3rd party package.
+     * Replace with a simple call to Unsafe.getUnsafe when integrating
+     * into a jdk.
+     *
+     * @return a sun.misc.Unsafe
+     */
+    private static sun.misc.Unsafe getUnsafe() {
+        try {
+<span class="nc" id="L329">            return sun.misc.Unsafe.getUnsafe();</span>
+<span class="fc" id="L330">        } catch (SecurityException se) {</span>
+            try {
+<span class="fc" id="L332">                return java.security.AccessController.doPrivileged</span>
+<span class="fc" id="L333">                    (new java.security</span>
+<span class="fc" id="L334">                     .PrivilegedExceptionAction&lt;sun.misc.Unsafe&gt;() {</span>
+                        public sun.misc.Unsafe run() throws Exception {
+<span class="fc" id="L336">                            java.lang.reflect.Field f = sun.misc</span>
+<span class="fc" id="L337">                                .Unsafe.class.getDeclaredField(&quot;theUnsafe&quot;);</span>
+<span class="fc" id="L338">                            f.setAccessible(true);</span>
+<span class="fc" id="L339">                            return (sun.misc.Unsafe) f.get(null);</span>
+                        }});
+<span class="nc" id="L341">            } catch (java.security.PrivilegedActionException e) {</span>
+<span class="nc" id="L342">                throw new RuntimeException(&quot;Could not initialize intrinsics&quot;,</span>
+<span class="nc" id="L343">                                           e.getCause());</span>
+            }
+        }
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

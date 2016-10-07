@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TcpServer.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io.tcp</a> &gt; <span class="el_source">TcpServer.java</span></div><h1>TcpServer.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.io.tcp;
+
+import com.google.common.annotations.Beta;
+import com.google.common.base.Supplier;
+import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import com.google.common.util.concurrent.Service;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import org.spf4j.base.Throwables;
+import org.spf4j.concurrent.RestartableServiceImpl;
+import org.spf4j.ds.UpdateablePriorityQueue;
+
+/**
+ *
+ * @author zoly
+ */
+@SuppressFBWarnings(&quot;HES_EXECUTOR_NEVER_SHUTDOWN&quot;)
+@Beta
+public final class TcpServer extends RestartableServiceImpl {
+
+    private final int serverPort;
+
+    public TcpServer(final ExecutorService executor, final ClientHandler handlerFactory,
+                final int serverPort,
+                final int acceptBacklog)  {
+<span class="nc" id="L55">        super(new Supplier&lt;Service&gt;() {</span>
+            @Override
+            public Service get() {
+<span class="nc" id="L58">                return new TcpServerGuavaService(executor, handlerFactory, serverPort, acceptBacklog);</span>
+            }
+        });
+<span class="nc" id="L61">        this.serverPort = serverPort;</span>
+<span class="nc" id="L62">    }</span>
+
+    @Override
+    public String getServiceName() {
+<span class="nc" id="L66">        return &quot;TCP:LISTEN:&quot; + serverPort;</span>
+    }
+
+    public static final class TcpServerGuavaService extends AbstractExecutionThreadService
+            implements Closeable {
+
+        private final ExecutorService executor;
+
+        private final ClientHandler handlerFactory;
+
+        private final int serverPort;
+
+        private final int acceptBacklog;
+
+        private volatile boolean terminated;
+
+        private volatile Selector selector;
+
+        private volatile ServerSocketChannel serverCh;
+
+        public TcpServerGuavaService(final ExecutorService executor, final ClientHandler handlerFactory,
+                final int serverPort,
+<span class="nc" id="L88">                final int acceptBacklog) {</span>
+<span class="nc" id="L89">            this.executor = executor;</span>
+<span class="nc" id="L90">            this.handlerFactory = handlerFactory;</span>
+<span class="nc" id="L91">            this.acceptBacklog = acceptBacklog;</span>
+<span class="nc" id="L92">            this.serverPort = serverPort;</span>
+<span class="nc" id="L93">            this.terminated = false;</span>
+<span class="nc" id="L94">            this.selector = null;</span>
+<span class="nc" id="L95">        }</span>
+
+        @Override
+        protected void startUp() throws Exception {
+<span class="nc" id="L99">            selector = Selector.open();</span>
+            try {
+<span class="nc" id="L101">                ServerSocketChannel sc = ServerSocketChannel.open();</span>
+                try {
+<span class="nc" id="L103">                    sc.bind(new InetSocketAddress(serverPort), acceptBacklog);</span>
+<span class="nc" id="L104">                    sc.configureBlocking(false);</span>
+<span class="nc" id="L105">                    serverCh = sc;</span>
+<span class="nc" id="L106">                } catch (IOException | RuntimeException e) {</span>
+<span class="nc" id="L107">                    sc.close();</span>
+<span class="nc" id="L108">                    throw e;</span>
+<span class="nc" id="L109">                }</span>
+<span class="nc" id="L110">            } catch (IOException | RuntimeException e) {</span>
+<span class="nc" id="L111">                selector.close();</span>
+<span class="nc" id="L112">                throw e;</span>
+<span class="nc" id="L113">            }</span>
+<span class="nc" id="L114">        }</span>
+
+        @SuppressFBWarnings(&quot;AFBR_ABNORMAL_FINALLY_BLOCK_RETURN&quot;)
+        @Override
+        public void run() throws IOException {
+<span class="nc" id="L119">            Selector sel = selector;</span>
+            try {
+<span class="nc" id="L121">                BlockingQueue&lt;Runnable&gt; tasksToRunBySelector = new ArrayBlockingQueue&lt;&gt;(64);</span>
+<span class="nc" id="L122">                UpdateablePriorityQueue&lt;DeadlineAction&gt; deadlineActions</span>
+                        = new UpdateablePriorityQueue&lt;&gt;(64, DeadlineAction.COMPARATOR);
+<span class="nc" id="L124">                new AcceptorSelectorEventHandler(serverCh, handlerFactory, sel, executor,</span>
+                        tasksToRunBySelector, deadlineActions)
+<span class="nc" id="L126">                        .initialInterestRegistration();</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                while (isRunning()) {</span>
+<span class="nc" id="L128">                    int nrSelectors = sel.select(100);</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                    if (nrSelectors &gt; 0) {</span>
+<span class="nc" id="L130">                        Set&lt;SelectionKey&gt; selectedKeys = sel.selectedKeys();</span>
+<span class="nc" id="L131">                        Iterator&lt;SelectionKey&gt; keyIterator = selectedKeys.iterator();</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                        while (keyIterator.hasNext()) {</span>
+<span class="nc" id="L133">                            SelectionKey skey = keyIterator.next();</span>
+<span class="nc" id="L134">                            final Object attachment = skey.attachment();</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">                            if (attachment instanceof SelectorEventHandler) {</span>
+<span class="nc" id="L136">                                SelectorEventHandler seh = (SelectorEventHandler) attachment;</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">                                if (seh.canRunAsync()) {</span>
+<span class="nc" id="L138">                                    seh.runAsync(skey);</span>
+                                } else {
+<span class="nc" id="L140">                                    seh.run(skey);</span>
+                                }
+                            }
+<span class="nc" id="L143">                            keyIterator.remove();</span>
+<span class="nc" id="L144">                        }</span>
+                    }
+                    // process deadlineActions
+<span class="nc" id="L147">                    long currentTime = System.currentTimeMillis();</span>
+                    DeadlineAction peek;
+                    //CHECKSTYLE:OFF
+<span class="nc bnc" id="L150" title="All 4 branches missed.">                    while ((peek = deadlineActions.peek()) != null &amp;&amp; currentTime &gt; peek.getDeadline()) {</span>
+<span class="nc" id="L151">                        deadlineActions.poll().getAction().run();</span>
+                    }
+                    //CHECKSTYLE:ON
+                    Runnable task;
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                    while ((task = tasksToRunBySelector.poll()) != null) {</span>
+<span class="nc" id="L156">                        task.run();</span>
+                    }
+<span class="nc" id="L158">                }</span>
+            } finally {
+<span class="nc" id="L160">                try {</span>
+<span class="nc" id="L161">                    closeSelectorChannels(selector);</span>
+<span class="nc" id="L162">                } catch (IOException ex) {</span>
+                    try {
+<span class="nc" id="L164">                        sel.close();</span>
+<span class="nc" id="L165">                    } catch (IOException ex2) {</span>
+<span class="nc" id="L166">                        ex2.addSuppressed(ex);</span>
+<span class="nc" id="L167">                        throw ex2;</span>
+<span class="nc" id="L168">                    }</span>
+<span class="nc" id="L169">                    throw ex;</span>
+<span class="nc" id="L170">                }</span>
+<span class="nc" id="L171">                sel.close();</span>
+<span class="nc" id="L172">            }</span>
+<span class="nc" id="L173">        }</span>
+
+        @Override
+        protected Executor executor() {
+<span class="nc" id="L177">            return this.executor;</span>
+        }
+
+        @Override
+        protected String serviceName() {
+<span class="nc" id="L182">            return &quot;TCP:LISTEN:&quot; + serverPort;</span>
+        }
+
+        @Override
+        protected void triggerShutdown() {
+<span class="nc" id="L187">            selector.wakeup();</span>
+<span class="nc" id="L188">        }</span>
+
+        @Override
+        public synchronized void close() throws IOException {
+<span class="nc" id="L192">            this.stopAsync().awaitTerminated();</span>
+<span class="nc" id="L193">        }</span>
+
+        public static void closeSelectorChannels(final Selector selector) throws IOException {
+<span class="nc" id="L196">            IOException ex = null;</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">            for (SelectionKey key : selector.keys()) {</span>
+<span class="nc" id="L198">                SelectableChannel channel = key.channel();</span>
+                try {
+<span class="nc" id="L200">                    channel.close();</span>
+<span class="nc" id="L201">                } catch (IOException ex2) {</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">                    if (ex == null) {</span>
+<span class="nc" id="L203">                        ex = ex2;</span>
+                    } else {
+<span class="nc" id="L205">                        ex = Throwables.suppress(ex, ex2);</span>
+                    }
+<span class="nc" id="L207">                }</span>
+<span class="nc" id="L208">            }</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">            if (ex != null) {</span>
+<span class="nc" id="L210">                throw ex;</span>
+            }
+<span class="nc" id="L212">        }</span>
+
+        @Override
+        public String toString() {
+<span class="nc" id="L216">            return &quot;TcpServer{&quot; + &quot;executor=&quot; + executor + &quot;, handlerFactory=&quot; + handlerFactory</span>
+                    + &quot;, serverPort=&quot; + serverPort + &quot;, acceptBacklog=&quot; + acceptBacklog
+                    + &quot;, terminated=&quot; + terminated + &quot;, selector=&quot; + selector + '}';
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

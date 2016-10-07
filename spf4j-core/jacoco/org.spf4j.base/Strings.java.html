@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>Strings.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Strings.java</span></div><h1>Strings.java</h1><pre class="source lang-java linenums">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Strings.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Strings.java</span></div><h1>Strings.java</h1><pre class="source lang-java linenums">
 /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
@@ -19,12 +19,11 @@
 package org.spf4j.base;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
-import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -40,8 +39,10 @@ import org.slf4j.LoggerFactory;
 //CHECKSTYLE:OFF
 import sun.nio.cs.ArrayDecoder;
 import sun.nio.cs.ArrayEncoder;
-import static java.lang.Math.min;
 //CHECKSTYLE:ON
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import static java.lang.Math.min;
 
 /**
  *
@@ -50,10 +51,10 @@ import static java.lang.Math.min;
 @SuppressFBWarnings(&quot;IICU_INCORRECT_INTERNAL_CLASS_USE&quot;)
 public final class Strings {
 
-<span class="nc" id="L53">    private Strings() {</span>
-<span class="nc" id="L54">    }</span>
+<span class="nc" id="L54">    private Strings() {</span>
+<span class="nc" id="L55">    }</span>
 
-<span class="fc" id="L56">    public static final String EOL = System.getProperty(&quot;line.separator&quot;, &quot;\n&quot;);</span>
+<span class="fc" id="L57">    public static final String EOL = System.getProperty(&quot;line.separator&quot;, &quot;\n&quot;);</span>
 
     /**
      * function that calculates the number of operations that are needed to transform s1 into s2. operations are: char
@@ -64,38 +65,38 @@ public final class Strings {
      * @return the number of operations required to transfor s1 into s2
      */
     public static int distance(@Nonnull final String s1, @Nonnull final String s2) {
-<span class="fc" id="L67">        int l1 = s1.length();</span>
-<span class="fc" id="L68">        int l2 = s2.length();</span>
+<span class="fc" id="L68">        int l1 = s1.length();</span>
+<span class="fc" id="L69">        int l2 = s2.length();</span>
 
-<span class="fc" id="L70">        int[] prev = new int[l2];</span>
-<span class="fc" id="L71">        char c1 = s1.charAt(0);</span>
-<span class="fc" id="L72">        prev[0] = distance(c1, s2.charAt(0));</span>
-<span class="fc bfc" id="L73" title="All 2 branches covered.">        for (int j = 1; j &lt; l2; j++) {</span>
-<span class="fc" id="L74">            prev[j] = prev[j - 1] + distance(c1, s2.charAt(j));</span>
+<span class="fc" id="L71">        int[] prev = new int[l2];</span>
+<span class="fc" id="L72">        char c1 = s1.charAt(0);</span>
+<span class="fc" id="L73">        prev[0] = distance(c1, s2.charAt(0));</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        for (int j = 1; j &lt; l2; j++) {</span>
+<span class="fc" id="L75">            prev[j] = prev[j - 1] + distance(c1, s2.charAt(j));</span>
         }
 
-<span class="fc bfc" id="L77" title="All 2 branches covered.">        for (int i = 1; i &lt; l1; i++) {</span>
-<span class="fc" id="L78">            int[] dist = new int[l2];</span>
-<span class="fc" id="L79">            c1 = s1.charAt(i);</span>
-<span class="fc" id="L80">            dist[0] = prev[i - 1] + distance(c1, s2.charAt(0));</span>
-<span class="fc bfc" id="L81" title="All 2 branches covered.">            for (int j = 1; j &lt; l2; j++) {</span>
-<span class="fc" id="L82">                dist[j] = min(prev[j - 1] + distance(c1, s2.charAt(j)),</span>
-<span class="fc" id="L83">                        min(prev[j] + 1, dist[j - 1] + 1));</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">        for (int i = 1; i &lt; l1; i++) {</span>
+<span class="fc" id="L79">            int[] dist = new int[l2];</span>
+<span class="fc" id="L80">            c1 = s1.charAt(i);</span>
+<span class="fc" id="L81">            dist[0] = prev[i - 1] + distance(c1, s2.charAt(0));</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">            for (int j = 1; j &lt; l2; j++) {</span>
+<span class="fc" id="L83">                dist[j] = min(prev[j - 1] + distance(c1, s2.charAt(j)),</span>
+<span class="fc" id="L84">                        min(prev[j] + 1, dist[j - 1] + 1));</span>
             }
-<span class="fc" id="L85">            prev = dist;</span>
+<span class="fc" id="L86">            prev = dist;</span>
         }
-<span class="fc" id="L87">        return prev[l2 - 1];</span>
+<span class="fc" id="L88">        return prev[l2 - 1];</span>
     }
 
     public static int distance(final char c1, final char c2) {
-<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (c1 == c2) {</span>
-<span class="fc" id="L92">            return 0;</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (c1 == c2) {</span>
+<span class="fc" id="L93">            return 0;</span>
         } else {
-<span class="fc" id="L94">            return 1;</span>
+<span class="fc" id="L95">            return 1;</span>
         }
     }
 
-<span class="fc" id="L98">    private static final String[][] JAVA_CTRL_CHARS_UNESCAPE = {</span>
+<span class="fc" id="L99">    private static final String[][] JAVA_CTRL_CHARS_UNESCAPE = {</span>
         {&quot;\\b&quot;, &quot;\b&quot;},
         {&quot;\\n&quot;, &quot;\n&quot;},
         {&quot;\\t&quot;, &quot;\t&quot;},
@@ -103,7 +104,7 @@ public final class Strings {
         {&quot;\\r&quot;, &quot;\r&quot;}
     };
 
-<span class="fc" id="L106">    private static final CharSequenceTranslator UNESCAPE_JAVA</span>
+<span class="fc" id="L107">    private static final CharSequenceTranslator UNESCAPE_JAVA</span>
             = new AggregateTranslator(
                     new OctalUnescaper(),
                     new UnicodeUnescaper(),
@@ -118,48 +119,47 @@ public final class Strings {
             );
 
     public static String unescape(final String what) {
-<span class="fc" id="L121">        return UNESCAPE_JAVA.translate(what);</span>
+<span class="fc" id="L122">        return UNESCAPE_JAVA.translate(what);</span>
     }
 
     public static boolean contains(final String string, final char... chars) {
-<span class="nc bnc" id="L125" title="All 2 branches missed.">        for (char c : chars) {</span>
-<span class="nc bnc" id="L126" title="All 2 branches missed.">            if (string.indexOf(c) &gt;= 0) {</span>
-<span class="nc" id="L127">                return true;</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        for (char c : chars) {</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (string.indexOf(c) &gt;= 0) {</span>
+<span class="nc" id="L128">                return true;</span>
             }
         }
-<span class="nc" id="L130">        return false;</span>
+<span class="nc" id="L131">        return false;</span>
     }
 
     public static boolean contains(final CharSequence string, final char... chars) {
-<span class="fc bfc" id="L134" title="All 2 branches covered.">        for (int i = 0; i &lt; string.length(); i++) {</span>
-<span class="fc" id="L135">            char c = string.charAt(i);</span>
-<span class="fc bfc" id="L136" title="All 2 branches covered.">            if (Arrays.search(chars, c) &gt;= 0) {</span>
-<span class="fc" id="L137">                return true;</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">        for (int i = 0; i &lt; string.length(); i++) {</span>
+<span class="fc" id="L136">            char c = string.charAt(i);</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">            if (Arrays.search(chars, c) &gt;= 0) {</span>
+<span class="fc" id="L138">                return true;</span>
             }
         }
-<span class="fc" id="L140">        return false;</span>
+<span class="fc" id="L141">        return false;</span>
     }
 
     public static String withFirstCharLower(final String str) {
-<span class="pc bpc" id="L144" title="1 of 2 branches missed.">        if (str.isEmpty()) {</span>
-<span class="nc" id="L145">            return str;</span>
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">        if (str.isEmpty()) {</span>
+<span class="nc" id="L146">            return str;</span>
         }
-<span class="pc bpc" id="L147" title="1 of 2 branches missed.">        if (Character.isLowerCase(str.charAt(0))) {</span>
-<span class="nc" id="L148">            return str;</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">        if (Character.isLowerCase(str.charAt(0))) {</span>
+<span class="nc" id="L149">            return str;</span>
         }
-<span class="fc" id="L150">        int l = str.length();</span>
-<span class="fc" id="L151">        StringBuilder result = new StringBuilder(l);</span>
-<span class="fc" id="L152">        result.append(Character.toLowerCase(str.charAt(0)));</span>
-<span class="fc bfc" id="L153" title="All 2 branches covered.">        for (int i = 1; i &lt; l; i++) {</span>
-<span class="fc" id="L154">            result.append(str.charAt(i));</span>
+<span class="fc" id="L151">        int l = str.length();</span>
+<span class="fc" id="L152">        StringBuilder result = new StringBuilder(l);</span>
+<span class="fc" id="L153">        result.append(Character.toLowerCase(str.charAt(0)));</span>
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        for (int i = 1; i &lt; l; i++) {</span>
+<span class="fc" id="L155">            result.append(str.charAt(i));</span>
         }
-<span class="fc" id="L156">        return result.toString();</span>
+<span class="fc" id="L157">        return result.toString();</span>
     }
 
-    public static void writeReplaceWhitespaces(final String str, final char replacement, final Writer writer)
+    public static void writeReplaceWhitespaces(final String str, final char replacement, final Appendable writer)
             throws IOException {
-<span class="fc bfc" id="L161" title="All 2 branches covered.">        for (int i = 0; i &lt; str.length(); i++) {</span>
-<span class="fc" id="L162">            char c = str.charAt(i);</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">        for (char c : steal(str)) {</span>
 <span class="fc bfc" id="L163" title="All 2 branches covered.">            if (Character.isWhitespace(c)) {</span>
 <span class="fc" id="L164">                writer.append(replacement);</span>
             } else {
@@ -170,84 +170,81 @@ public final class Strings {
 
 <span class="fc" id="L171">    private static final Logger LOG = LoggerFactory.getLogger(Strings.class);</span>
 
-    private static final Field CHARS_FIELD;
+    private static final MethodHandle CHARS_FIELD_GET;
 
     //String(char[] value, boolean share) {
-    private static final Constructor&lt;String&gt; PROTECTED_STR_CONSTR;
+    private static final MethodHandle PROTECTED_STR_CONSTR_HANDLE;
     private static final Class&lt;?&gt;[] PROTECTED_STR_CONSTR_PARAM_TYPES;
 
-    static {
-<span class="fc" id="L180">        CHARS_FIELD = AccessController.doPrivileged(new PrivilegedAction&lt;Field&gt;() {</span>
-            @Override
-            public Field run() {
-                Field charsField;
-                try {
-<span class="fc" id="L185">                    charsField = String.class.getDeclaredField(&quot;value&quot;);</span>
-<span class="fc" id="L186">                    charsField.setAccessible(true);</span>
-<span class="nc" id="L187">                } catch (NoSuchFieldException ex) {</span>
-<span class="nc" id="L188">                    LOG.info(&quot;char array stealing from String not supported&quot;, ex);</span>
-<span class="nc" id="L189">                    charsField = null;</span>
-<span class="nc" id="L190">                } catch (SecurityException ex) {</span>
-<span class="nc" id="L191">                    throw new RuntimeException(ex);</span>
-<span class="pc" id="L192">                }</span>
-<span class="fc" id="L193">                return charsField;</span>
-            }
-        });
-
-<span class="pc bpc" id="L197" title="1 of 2 branches missed.">        if (Runtime.JAVA_PLATFORM.ordinal() &gt;= Runtime.Version.V1_8.ordinal()) {</span>
-            // up until u45 String(int offset, int count, char value[]) {
-            // u45 reverted to: String(char[] value, boolean share) {
-<span class="fc" id="L200">            PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction&lt;Constructor&lt;String&gt;&gt;() {</span>
-                @Override
-                public Constructor&lt;String&gt; run() {
-                    Constructor&lt;String&gt; constr;
-                    try {
-<span class="nc" id="L205">                        constr = String.class.getDeclaredConstructor(int.class, int.class, char[].class);</span>
-<span class="nc" id="L206">                        constr.setAccessible(true);</span>
-<span class="fc" id="L207">                    } catch (NoSuchMethodException ex) {</span>
-                        try {
-<span class="fc" id="L209">                            constr = String.class.getDeclaredConstructor(char[].class, boolean.class);</span>
-<span class="fc" id="L210">                            constr.setAccessible(true);</span>
-<span class="nc" id="L211">                        } catch (NoSuchMethodException ex2) {</span>
-<span class="nc" id="L212">                            ex2.addSuppressed(ex);</span>
-<span class="nc" id="L213">                            LOG.info(&quot;building String from char[] fast not supported&quot;, ex2);</span>
-<span class="nc" id="L214">                            constr = null;</span>
-<span class="nc" id="L215">                        } catch (SecurityException ex2) {</span>
-<span class="nc" id="L216">                            ex2.addSuppressed(ex);</span>
-<span class="nc" id="L217">                            throw new RuntimeException(ex2);</span>
-<span class="pc" id="L218">                        }</span>
-<span class="nc" id="L219">                    } catch (SecurityException ex) {</span>
-<span class="nc" id="L220">                        throw new RuntimeException(ex);</span>
-<span class="pc" id="L221">                    }</span>
-<span class="fc" id="L222">                    return constr;</span>
-                }
-            });
-
-        } else {
-<span class="nc" id="L227">            PROTECTED_STR_CONSTR = AccessController.doPrivileged(new PrivilegedAction&lt;Constructor&lt;String&gt;&gt;() {</span>
-                @Override
-                public Constructor&lt;String&gt; run() {
-                    Constructor&lt;String&gt; constr;
-                    try {
-<span class="nc" id="L232">                        constr = String.class.getDeclaredConstructor(char[].class, boolean.class);</span>
-<span class="nc" id="L233">                        constr.setAccessible(true);</span>
-<span class="nc" id="L234">                    } catch (NoSuchMethodException ex) {</span>
-<span class="nc" id="L235">                        LOG.info(&quot;building String from char[] fast not supported&quot;, ex);</span>
-<span class="nc" id="L236">                        constr = null;</span>
-<span class="nc" id="L237">                    } catch (SecurityException ex) {</span>
-<span class="nc" id="L238">                        throw new RuntimeException(ex);</span>
-<span class="nc" id="L239">                    }</span>
-<span class="nc" id="L240">                    return constr;</span>
-                }
-            });
-        }
-<span class="pc bpc" id="L244" title="1 of 2 branches missed.">        if (PROTECTED_STR_CONSTR == null) {</span>
-<span class="nc" id="L245">            PROTECTED_STR_CONSTR_PARAM_TYPES = null;</span>
-        } else {
-<span class="fc" id="L247">            PROTECTED_STR_CONSTR_PARAM_TYPES = PROTECTED_STR_CONSTR.getParameterTypes();</span>
-        }
-
+  static {
+<span class="fc" id="L180">    Field charsField = AccessController.doPrivileged(new PrivilegedAction&lt;Field&gt;() {</span>
+      @Override
+      public Field run() {
+        Field charsField;
+        try {
+<span class="fc" id="L185">          charsField = String.class.getDeclaredField(&quot;value&quot;);</span>
+<span class="fc" id="L186">          charsField.setAccessible(true);</span>
+<span class="nc" id="L187">        } catch (NoSuchFieldException ex) {</span>
+<span class="nc" id="L188">          LOG.info(&quot;char array stealing from String not supported&quot;, ex);</span>
+<span class="nc" id="L189">          charsField = null;</span>
+<span class="nc" id="L190">        } catch (SecurityException ex) {</span>
+<span class="nc" id="L191">          throw new RuntimeException(ex);</span>
+<span class="pc" id="L192">        }</span>
+<span class="fc" id="L193">        return charsField;</span>
+      }
+    });
+<span class="fc" id="L196">    MethodHandles.Lookup lookup = MethodHandles.lookup();</span>
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">    if (charsField != null) {</span>
+      try {
+<span class="fc" id="L199">        CHARS_FIELD_GET = lookup.unreflectGetter(charsField);</span>
+<span class="nc" id="L200">      } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L201">        throw new ExceptionInInitializerError(ex);</span>
+<span class="fc" id="L202">      }</span>
+    } else {
+<span class="nc" id="L204">        CHARS_FIELD_GET = null;</span>
     }
+
+    // up until u45 String(int offset, int count, char value[]) {
+    // u45 reverted to: String(char[] value, boolean share) {
+<span class="fc" id="L209">    Constructor&lt;String&gt; prConstr = AccessController.doPrivileged(</span>
+<span class="fc" id="L210">            new PrivilegedAction&lt;Constructor&lt;String&gt;&gt;() {</span>
+      @Override
+      public Constructor&lt;String&gt; run() {
+        Constructor&lt;String&gt; constr;
+        try {
+<span class="fc" id="L215">          constr = String.class.getDeclaredConstructor(char[].class, boolean.class);</span>
+<span class="fc" id="L216">          constr.setAccessible(true);</span>
+<span class="nc" id="L217">        } catch (NoSuchMethodException ex) {</span>
+          try {
+<span class="nc" id="L219">            constr = String.class.getDeclaredConstructor(int.class, int.class, char[].class);</span>
+<span class="nc" id="L220">            constr.setAccessible(true);</span>
+<span class="nc" id="L221">          } catch (NoSuchMethodException ex2) {</span>
+<span class="nc" id="L222">            ex2.addSuppressed(ex);</span>
+<span class="nc" id="L223">            LOG.info(&quot;building String from char[] fast not supported&quot;, ex2);</span>
+<span class="nc" id="L224">            constr = null;</span>
+<span class="nc" id="L225">          } catch (SecurityException ex2) {</span>
+<span class="nc" id="L226">            ex2.addSuppressed(ex);</span>
+<span class="nc" id="L227">            throw new RuntimeException(ex2);</span>
+<span class="nc" id="L228">          }</span>
+<span class="nc" id="L229">        } catch (SecurityException ex) {</span>
+<span class="nc" id="L230">          throw new RuntimeException(ex);</span>
+<span class="pc" id="L231">        }</span>
+<span class="fc" id="L232">        return constr;</span>
+      }
+    });
+
+<span class="pc bpc" id="L236" title="1 of 2 branches missed.">    if (prConstr == null) {</span>
+<span class="nc" id="L237">      PROTECTED_STR_CONSTR_PARAM_TYPES = null;</span>
+<span class="nc" id="L238">      PROTECTED_STR_CONSTR_HANDLE = null;</span>
+    } else {
+<span class="fc" id="L240">      PROTECTED_STR_CONSTR_PARAM_TYPES = prConstr.getParameterTypes();</span>
+      try {
+<span class="fc" id="L242">        PROTECTED_STR_CONSTR_HANDLE = lookup.unreflectConstructor(prConstr);</span>
+<span class="nc" id="L243">      } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L244">        throw new ExceptionInInitializerError(ex);</span>
+<span class="fc" id="L245">      }</span>
+    }
+  }
 
     /**
      * Steal the underlying character array of a String.
@@ -256,13 +253,15 @@ public final class Strings {
      * @return
      */
     public static char[] steal(final String str) {
-<span class="pc bpc" id="L259" title="1 of 2 branches missed.">        if (CHARS_FIELD == null) {</span>
-<span class="nc" id="L260">            return str.toCharArray();</span>
+<span class="pc bpc" id="L256" title="1 of 2 branches missed.">        if (CHARS_FIELD_GET == null) {</span>
+<span class="nc" id="L257">            return str.toCharArray();</span>
         } else {
             try {
-<span class="fc" id="L263">                return (char[]) CHARS_FIELD.get(str);</span>
-<span class="nc" id="L264">            } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
-<span class="nc" id="L265">                throw new RuntimeException(ex);</span>
+<span class="fc" id="L260">                return (char[]) CHARS_FIELD_GET.invokeExact(str);</span>
+<span class="nc" id="L261">            } catch (RuntimeException | Error ex) {</span>
+<span class="nc" id="L262">              throw ex;</span>
+<span class="nc" id="L263">            } catch (Throwable ex) {</span>
+<span class="nc" id="L264">                throw new RuntimeException(ex);</span>
             }
         }
     }
@@ -274,15 +273,16 @@ public final class Strings {
      * @return
      */
     public static String wrap(final char[] chars) {
-<span class="pc bpc" id="L277" title="1 of 2 branches missed.">        if (PROTECTED_STR_CONSTR_PARAM_TYPES != null) {</span>
+<span class="pc bpc" id="L276" title="1 of 2 branches missed.">        if (PROTECTED_STR_CONSTR_PARAM_TYPES != null) {</span>
             try {
-<span class="pc bpc" id="L279" title="1 of 2 branches missed.">                if (PROTECTED_STR_CONSTR_PARAM_TYPES.length == 3) {</span>
-<span class="nc" id="L280">                    return PROTECTED_STR_CONSTR.newInstance(0, chars.length, chars);</span>
+<span class="pc bpc" id="L278" title="1 of 2 branches missed.">                if (PROTECTED_STR_CONSTR_PARAM_TYPES.length == 3) {</span>
+<span class="nc" id="L279">                    return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(0, chars.length, chars);</span>
                 } else {
-<span class="fc" id="L282">                    return PROTECTED_STR_CONSTR.newInstance(chars, Boolean.TRUE);</span>
+<span class="fc" id="L281">                    return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(chars, true);</span>
                 }
-<span class="nc" id="L284">            } catch (InstantiationException | IllegalAccessException</span>
-                    | IllegalArgumentException | InvocationTargetException ex) {
+<span class="nc" id="L283">            } catch (Error | RuntimeException ex) {</span>
+<span class="nc" id="L284">              throw ex;</span>
+<span class="nc" id="L285">            } catch (Throwable ex) {</span>
 <span class="nc" id="L286">                throw new RuntimeException(ex);</span>
             }
         } else {
@@ -694,5 +694,17 @@ public final class Strings {
   }
 
 
+  @Nonnull
+  public static String commonPrefix(@Nonnull final String ... strs) {
+<span class="nc bnc" id="L699" title="All 2 branches missed.">    Preconditions.checkArgument(strs.length &gt; 0, &quot;Must have at least 1 string %s&quot;, strs);</span>
+<span class="nc" id="L700">    String common = strs[0];</span>
+<span class="nc bnc" id="L701" title="All 2 branches missed.">    for (int i = 1; i &lt; strs.length; i++) {</span>
+<span class="nc" id="L702">      common = com.google.common.base.Strings.commonPrefix(common, strs[i]);</span>
+    }
+<span class="nc" id="L704">    return common;</span>
+  }
+
+
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

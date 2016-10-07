@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>GenericRecordBuilderTest xref</title>
+<link type="text/css" rel="stylesheet" href="../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../testapidocs/org/spf4j/avro/GenericRecordBuilderTest.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <strong class="jxr_keyword">package</strong> org.spf4j.avro;
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> com.google.common.base.Charsets;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> com.google.common.io.Resources;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> org.junit.Assert;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.apache.avro.Schema;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.apache.avro.SchemaBuilder;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.apache.avro.<strong class="jxr_keyword">generic</strong>.GenericRecord;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.apache.avro.specific.SpecificRecordBase;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/avro/GenericRecordBuilderTest.html">GenericRecordBuilderTest</a> {
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>    @Test
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>    @SuppressFBWarnings(<span class="jxr_string">"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"</span>)
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testGenericRecordCreation() <strong class="jxr_keyword">throws</strong> IOException, Exception {
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      String schemaStr = Resources.toString(Resources.getResource(<span class="jxr_string">"SchemaBuilder.avsc"</span>), Charsets.US_ASCII);
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      Schema schema = <strong class="jxr_keyword">new</strong> Schema.Parser().parse(schemaStr);
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      <strong class="jxr_keyword">try</strong> (GenericRecordBuilder builder = <strong class="jxr_keyword">new</strong> GenericRecordBuilder(schema)) {
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>        Class&lt;? <strong class="jxr_keyword">extends</strong> SpecificRecordBase&gt; clasz = builder.getClass(schema);
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>        GenericRecord record = clasz.newInstance();
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>        record.put(<span class="jxr_string">"requiredBoolean"</span>, Boolean.TRUE);
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>        Schema fieldSchema = schema.getField(<span class="jxr_string">"optionalRecord"</span>).schema().getTypes().get(1);
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>        Class&lt;? <strong class="jxr_keyword">extends</strong> SpecificRecordBase&gt; nestedRecordClass = builder.getClass(fieldSchema);
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>        SpecificRecordBase nr = nestedRecordClass.newInstance();
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>        nr.put(<span class="jxr_string">"nestedRequiredBoolean"</span>, Boolean.TRUE);
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>        record.put(<span class="jxr_string">"optionalRecord"</span>, nr);
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>        Assert.assertEquals(nr, record.get(<span class="jxr_string">"optionalRecord"</span>));
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>        System.out.println(record);
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      }
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>    }
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>    @Test
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>    @SuppressFBWarnings(<span class="jxr_string">"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"</span>)
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testMoreGenericRecordCreation() <strong class="jxr_keyword">throws</strong> InstantiationException, IllegalAccessException {
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      Schema reuse = SchemaBuilder.builder().record(<span class="jxr_string">"Reuse"</span>).fields().requiredString(<span class="jxr_string">"field"</span>).endRecord();
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      Schema record = SchemaBuilder.builder().record(<span class="jxr_string">"TestRecord"</span>).fields()
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>              .requiredInt(<span class="jxr_string">"number"</span>)
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>              .name(<span class="jxr_string">"record"</span>).type(reuse).noDefault()
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>              .endRecord();
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      Schema record2 = SchemaBuilder.builder().record(<span class="jxr_string">"TestRecord2"</span>).fields()
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>              .requiredBoolean(<span class="jxr_string">"isThere"</span>)
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>              .name(<span class="jxr_string">"record"</span>).type(reuse).noDefault()
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>              .endRecord();
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">try</strong> (GenericRecordBuilder builder = <strong class="jxr_keyword">new</strong> GenericRecordBuilder(record, record2)) {
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>        Class&lt;? <strong class="jxr_keyword">extends</strong> SpecificRecordBase&gt; clasz = builder.getClass(record);
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>        Class&lt;? <strong class="jxr_keyword">extends</strong> SpecificRecordBase&gt; clasz2 = builder.getClass(record);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>        Assert.assertSame(clasz, clasz2);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>        SpecificRecordBase myRecord = clasz.newInstance();
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>        myRecord.put(<span class="jxr_string">"number"</span>, 35);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>        Assert.assertEquals(35, (<strong class="jxr_keyword">int</strong>) myRecord.get(<span class="jxr_string">"number"</span>));
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>        Class&lt;? <strong class="jxr_keyword">extends</strong> SpecificRecordBase&gt; aClass = builder.getClass(record2);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>        GenericRecord r2 = aClass.newInstance();
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>        System.out.println(r2);
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      }
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>    }
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2016. All rights reserved.</div>
+</body>
+</html>

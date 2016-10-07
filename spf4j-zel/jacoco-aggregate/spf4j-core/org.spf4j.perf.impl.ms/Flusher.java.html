@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Flusher.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl.ms</a> &gt; <span class="el_source">Flusher.java</span></div><h1>Flusher.java</h1><pre class="source lang-java linenums">
+ /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+package org.spf4j.perf.impl.ms;
+
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import org.spf4j.base.AbstractRunnable;
+import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.perf.MeasurementStore;
+
+public final class Flusher {
+   
+<span class="nc" id="L30">    private Flusher() { }</span>
+    
+    public static void flushEvery(final int intervalMillis, final MeasurementStore store) {
+<span class="fc" id="L33">        final ScheduledFuture&lt;?&gt; future = DefaultScheduler.INSTANCE.scheduleAtFixedRate(new AbstractRunnable(false) {</span>
+            @Override
+            public void doRun() throws Exception {
+<span class="nc" id="L36">                store.flush();</span>
+<span class="nc" id="L37">            }</span>
+        }, intervalMillis, intervalMillis, TimeUnit.MILLISECONDS);
+<span class="fc" id="L39">        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(false) {</span>
+            @Override
+            public void doRun() throws Exception {
+                try {
+<span class="fc" id="L43">                    future.cancel(false);</span>
+                } finally {
+<span class="pc" id="L45">                    store.close();</span>
+<span class="fc" id="L46">                }</span>
+<span class="fc" id="L47">            }</span>
+        });
+<span class="fc" id="L49">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

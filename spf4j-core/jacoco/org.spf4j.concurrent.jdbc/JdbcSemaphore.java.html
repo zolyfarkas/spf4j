@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>JdbcSemaphore.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent.jdbc</a> &gt; <span class="el_source">JdbcSemaphore.java</span></div><h1>JdbcSemaphore.java</h1><pre class="source lang-java linenums">/*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JdbcSemaphore.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent.jdbc</a> &gt; <span class="el_source">JdbcSemaphore.java</span></div><h1>JdbcSemaphore.java</h1><pre class="source lang-java linenums">/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -168,9 +168,9 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 <span class="fc" id="L168">    this.failureHook = new JdbcHeartBeat.LifecycleHook() {</span>
       @Override
       public void onError(final Error error) {
-<span class="fc" id="L171">        heartBeatFailure = error;</span>
-<span class="fc" id="L172">        isHealthy = false;</span>
-<span class="fc" id="L173">      }</span>
+<span class="nc" id="L171">        heartBeatFailure = error;</span>
+<span class="nc" id="L172">        isHealthy = false;</span>
+<span class="nc" id="L173">      }</span>
 
       @Override
       public void onClose() {
@@ -293,7 +293,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   private void validate() {
 <span class="pc bpc" id="L295" title="1 of 2 branches missed.">    if (!isHealthy) {</span>
-<span class="nc" id="L296">      throw new IllegalStateException(&quot;Heartbeats failed! semahore broken &quot; + this, heartBeatFailure);</span>
+<span class="nc" id="L296">      throw new IllegalStateException(&quot;Heartbeats failed! semaphore broken &quot; + this, heartBeatFailure);</span>
     }
 <span class="fc" id="L298">  }</span>
 
@@ -514,8 +514,8 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 <span class="fc" id="L514">            return null;</span>
           }
         }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<span class="fc" id="L517">      } catch (SQLException ex) {</span>
-<span class="fc" id="L518">        throw new RuntimeException(ex);</span>
+<span class="nc" id="L517">      } catch (SQLException ex) {</span>
+<span class="nc" id="L518">        throw new RuntimeException(ex);</span>
 <span class="fc" id="L519">      }</span>
 <span class="fc" id="L520">      ownedReservations -= nrReservations;</span>
 <span class="pc bpc" id="L521" title="1 of 2 branches missed.">      if (ownedReservations &lt; 0) {</span>
@@ -528,7 +528,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   public void releaseAll() {
 <span class="fc" id="L529">    synchronized (semName) {</span>
 <span class="fc" id="L530">      release(ownedReservations);</span>
-<span class="fc" id="L531">    }</span>
+<span class="pc" id="L531">    }</span>
 <span class="fc" id="L532">  }</span>
 
   private void releaseReservations(final Connection conn, final long deadlineNanos, final int nrReservations)
@@ -789,4 +789,4 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

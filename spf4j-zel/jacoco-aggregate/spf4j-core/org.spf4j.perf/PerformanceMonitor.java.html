@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PerformanceMonitor.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf</a> &gt; <span class="el_source">PerformanceMonitor.java</span></div><h1>PerformanceMonitor.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf;
+
+import java.util.concurrent.Callable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spf4j.perf.impl.NopMeasurementRecorder;
+
+/**
+ *
+ * @author zoly
+ */
+public final class PerformanceMonitor {
+
+<span class="nc" id="L31">    private PerformanceMonitor() {</span>
+<span class="nc" id="L32">    }</span>
+<span class="fc" id="L33">    private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitor.class);</span>
+
+    public static &lt;T&gt; T callAndMonitor(
+            final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable) throws Exception {
+<span class="fc" id="L37">        return performanceMonitoredCallable(warnMillis, errorMillis, callable).call();</span>
+    }
+
+    public static &lt;T&gt; T callAndMonitor(final MeasurementRecorderSource mrs,
+            final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable) throws Exception {
+<span class="nc" id="L42">        return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable).call();</span>
+    }
+
+    public static &lt;T&gt; T callAndMonitor(final MeasurementRecorderSource mrs,
+            final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable,
+            final boolean isLogInfo, final Object... detail) throws Exception {
+<span class="nc" id="L48">        return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable, isLogInfo, detail)</span>
+<span class="nc" id="L49">                .call();</span>
+    }
+
+    public static &lt;T&gt; Callable&lt;T&gt; performanceMonitoredCallable(final MeasurementRecorderSource mrs,
+            final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable) {
+<span class="nc" id="L54">        return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable, false);</span>
+    }
+
+    public static &lt;T&gt; Callable&lt;T&gt; performanceMonitoredCallable(final MeasurementRecorderSource mrs,
+            final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable,
+            final boolean isLogInfo, final Object... detail) {
+
+<span class="nc" id="L61">        return new Callable&lt;T&gt;() {</span>
+            @Override
+            public T call() throws Exception {
+<span class="nc" id="L64">                final long start = System.currentTimeMillis();</span>
+<span class="nc" id="L65">                T result = callable.call();</span>
+<span class="nc" id="L66">                final long elapsed = System.currentTimeMillis() - start;</span>
+<span class="nc" id="L67">                String callableName = callable.toString();</span>
+<span class="nc" id="L68">                mrs.getRecorder(callableName).record(elapsed);</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">                if (elapsed &gt; warnMillis) {</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">                    if (elapsed &gt; errorMillis) {</span>
+<span class="nc" id="L71">                        LOG.error(&quot;Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}&quot;,</span>
+<span class="nc" id="L72">                                elapsed, callableName, errorMillis, detail);</span>
+                    } else {
+<span class="nc" id="L74">                        LOG.warn(&quot;Execution time  {} ms for {} exceeds warning threshold of {} ms, detail: {}&quot;,</span>
+<span class="nc" id="L75">                                elapsed, callableName, warnMillis, detail);</span>
+                    }
+                } else {
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                    if (isLogInfo) {</span>
+<span class="nc" id="L79">                        LOG.info(&quot;Execution time {} ms for {}, detail: {}&quot;, elapsed, callableName, detail);</span>
+                    } else {
+<span class="nc" id="L81">                        LOG.debug(&quot;Execution time {} ms for {}, detail: {}&quot;, elapsed, callableName, detail);</span>
+                    }
+                }
+<span class="nc" id="L84">                return result;</span>
+
+            }
+        };
+
+    }
+
+    public static &lt;T&gt; Callable&lt;T&gt; performanceMonitoredCallable(
+            final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable) {
+<span class="fc" id="L93">        return performanceMonitoredCallable(NopMeasurementRecorder.INSTANCE,</span>
+                warnMillis, errorMillis, callable, false);
+    }
+
+    public static &lt;T&gt; Callable&lt;T&gt; performanceMonitoredCallable(
+            final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable,
+            final boolean isLogInfo, final Object... detail) {
+<span class="nc" id="L100">        return performanceMonitoredCallable(NopMeasurementRecorder.INSTANCE,</span>
+                warnMillis, errorMillis, callable, isLogInfo, detail);
+    }
+
+    public static &lt;T&gt; Callable&lt;T&gt; performanceMonitoredCallable(final MeasurementRecorder mr,
+            final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable,
+            final boolean isLogInfo, final Object... detail) {
+
+<span class="fc" id="L108">        return new Callable&lt;T&gt;() {</span>
+            @Override
+            public T call() throws Exception {
+<span class="fc" id="L111">                final long start = System.currentTimeMillis();</span>
+<span class="fc" id="L112">                T result = callable.call();</span>
+<span class="fc" id="L113">                final long elapsed = System.currentTimeMillis() - start;</span>
+<span class="fc" id="L114">                mr.record(elapsed);</span>
+<span class="fc" id="L115">                String callableName = callable.toString();</span>
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">                if (elapsed &gt; warnMillis) {</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">                    if (elapsed &gt; errorMillis) {</span>
+<span class="fc" id="L118">                        LOG.error(&quot;Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}&quot;,</span>
+<span class="fc" id="L119">                                elapsed, callableName, errorMillis, detail);</span>
+                    } else {
+<span class="nc" id="L121">                        LOG.warn(&quot;Execution time  {} ms for {} exceeds warning threshold of {} ms, detail: {}&quot;,</span>
+<span class="nc" id="L122">                                elapsed, callableName, warnMillis, detail);</span>
+                    }
+                } else {
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                    if (isLogInfo) {</span>
+<span class="nc" id="L126">                        LOG.info(&quot;Execution time {} ms for {}, detail: {}&quot;, elapsed, callableName, detail);</span>
+                    } else {
+<span class="nc" id="L128">                        LOG.debug(&quot;Execution time {} ms for {}, detail: {}&quot;, elapsed, callableName, detail);</span>
+                    }
+                }
+<span class="fc" id="L131">                return result;</span>
+
+            }
+        };
+
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Client.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jmx</a> &gt; <span class="el_source">Client.java</span></div><h1>Client.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.jmx;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import javax.annotation.Nonnull;
+import javax.management.Attribute;
+import javax.management.AttributeNotFoundException;
+import javax.management.InstanceNotFoundException;
+import javax.management.InvalidAttributeValueException;
+import javax.management.MBeanException;
+import javax.management.MBeanServerConnection;
+import javax.management.ReflectionException;
+import javax.management.remote.JMXConnector;
+import javax.management.remote.JMXConnectorFactory;
+import javax.management.remote.JMXServiceURL;
+
+/**
+ * Simple Jmx Client utilities.
+ *
+ * @author zoly
+ */
+@SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;) // FB gets it wrong here
+public final class Client {
+
+<span class="nc" id="L43">    private Client() { }</span>
+
+    /**
+     * get a an attribute from a JMX mbean.
+     * @param serviceUrl in the form of: &quot;service:jmx:rmi:///jndi/rmi://:9999/jmxrmi&quot;
+     * @param domain - mbean domain name.
+     * @param mbeanName -  mbean name.
+     * @param attribName - attribute name.
+     * @return - the attribute value.
+     * @throws java.io.IOException - IO issue communicating with mbean.
+     * @throws javax.management.InstanceNotFoundException - mbean not found.
+     * @throws javax.management.MBeanException - exception while getting the attribute.
+     * @throws javax.management.AttributeNotFoundException - attribute not found.
+     * @throws javax.management.ReflectionException - mbean reflection exception.
+     */
+    public static Object getAttribute(@Nonnull final String serviceUrl,
+            @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String attribName)
+            throws IOException, InstanceNotFoundException,
+            MBeanException, AttributeNotFoundException, ReflectionException {
+<span class="fc" id="L62">        JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
+<span class="pc" id="L63">        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
+<span class="fc" id="L64">            MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
+<span class="fc" id="L65">            return mbsc.getAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName), attribName);</span>
+<span class="pc bpc" id="L66" title="6 of 8 branches missed.">        }</span>
+    }
+
+    public static void setAttribute(@Nonnull final String serviceUrl,
+            @Nonnull final String domain, @Nonnull final String mbeanName,
+            @Nonnull final String attribName, @Nonnull final Object attribValue)
+            throws IOException, InstanceNotFoundException,
+            MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
+<span class="fc" id="L74">        JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
+<span class="fc" id="L75">        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
+<span class="fc" id="L76">            MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
+<span class="fc" id="L77">            mbsc.setAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName),</span>
+                    new Attribute(attribName, attribValue));
+<span class="pc bpc" id="L79" title="4 of 8 branches missed.">        }</span>
+<span class="fc" id="L80">    }</span>
+
+
+    public static Object callOperation(@Nonnull final String serviceUrl,
+            @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String operationName,
+            final Object ... parameters)
+            throws IOException, InstanceNotFoundException,
+            MBeanException, ReflectionException {
+<span class="fc" id="L88">        JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
+<span class="pc" id="L89">        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
+<span class="fc" id="L90">            MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
+<span class="fc" id="L91">            return mbsc.invoke(ExportedValuesMBean.createObjectName(domain, mbeanName),</span>
+                    operationName, parameters, null);
+<span class="pc bpc" id="L93" title="6 of 8 branches missed.">        }</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

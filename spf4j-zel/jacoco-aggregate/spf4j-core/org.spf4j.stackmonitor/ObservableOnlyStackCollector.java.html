@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ObservableOnlyStackCollector.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">ObservableOnlyStackCollector.java</span></div><h1>ObservableOnlyStackCollector.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.stackmonitor;
+
+import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Consumer;
+import javax.annotation.Nullable;
+import org.spf4j.base.ArrayBuilder;
+
+@Beta
+public final class ObservableOnlyStackCollector extends AbstractStackCollector {
+
+  private final ConcurrentMap&lt;Thread, Consumer&lt;StackTraceElement[]&gt;&gt; stConsumers;
+
+
+<span class="nc" id="L34">  public ObservableOnlyStackCollector() {</span>
+<span class="nc" id="L35">    this.stConsumers = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="nc" id="L36">  }</span>
+
+  @Nullable
+  public Consumer&lt;StackTraceElement[]&gt; registerConsumer(final Thread thread,
+          final Consumer&lt;StackTraceElement[]&gt; consumer) {
+<span class="nc" id="L41">    return stConsumers.put(thread, consumer);</span>
+  }
+
+  public Consumer&lt;StackTraceElement[]&gt; unregisterConsumer(final Thread thread) {
+<span class="nc" id="L45">    return stConsumers.remove(thread);</span>
+  }
+
+<span class="nc" id="L48">  private ArrayBuilder&lt;Thread&gt; requestFor = new ArrayBuilder&lt;&gt;(8, Thread.class);</span>
+
+  @Override
+  @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
+  public void sample(final Thread ignore) {
+<span class="nc" id="L53">    requestFor.clear();</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">    for (Thread t : stConsumers.keySet()) {</span>
+<span class="nc" id="L55">      requestFor.add(t);</span>
+<span class="nc" id="L56">    }</span>
+<span class="nc" id="L57">    Thread[] rfArray = requestFor.getArray();</span>
+<span class="nc" id="L58">    StackTraceElement[][] stackDump = FastStackCollector.getStackTraces(rfArray);</span>
+<span class="nc" id="L59">    int size = requestFor.getSize();</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">    for (int i = 0; i &lt; size; i++) {</span>
+<span class="nc" id="L61">      Thread t = rfArray[i];</span>
+<span class="nc" id="L62">      StackTraceElement[] stackTrace = stackDump[i];</span>
+<span class="nc" id="L63">      Consumer&lt;StackTraceElement[]&gt; consumer = this.stConsumers.get(t);</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">      if (consumer != null) {</span>
+<span class="nc" id="L65">        consumer.accept(stackTrace);</span>
+      }
+<span class="nc bnc" id="L67" title="All 4 branches missed.">      if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
+<span class="nc" id="L68">        addSample(stackTrace);</span>
+      } else {
+<span class="nc" id="L70">        addSample(new StackTraceElement[]{</span>
+<span class="nc" id="L71">          new StackTraceElement(&quot;Thread&quot;, t.getName(), &quot;&quot;, 0)</span>
+        });
+      }
+    }
+<span class="nc" id="L75">  }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
