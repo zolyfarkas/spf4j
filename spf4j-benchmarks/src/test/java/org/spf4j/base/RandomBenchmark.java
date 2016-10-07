@@ -2,7 +2,7 @@ package org.spf4j.base;
 
 import java.io.IOException;
 import java.util.concurrent.ThreadLocalRandom;
-import org.openjdk.jmh.annotations.Benchmark;
+//import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
@@ -34,22 +34,22 @@ public class RandomBenchmark {
   }
 
 
-  @Benchmark
+  //@Benchmark
   public int testSpf4jRandomThreadLocal() throws IOException {
     return RND.nextInt();
   }
 
-  @Benchmark
+  //@Benchmark
   public int testSpf4jRandomLocal(ThreadState ts) throws IOException {
     return ts.rnd.nextInt();
   }
 
-  @Benchmark
+  //@Benchmark
   public int testJdkRandomLocal(ThreadState2 ts) throws IOException {
     return ts.rnd.nextInt();
   }
 
-  @Benchmark
+  //@Benchmark
   public int testJdkRandomThreadLocal() throws IOException {
     return ThreadLocalRandom.current().nextInt();
   }

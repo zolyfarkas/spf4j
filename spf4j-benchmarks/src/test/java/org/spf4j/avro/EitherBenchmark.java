@@ -3,7 +3,7 @@ package org.spf4j.avro;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import org.openjdk.jmh.annotations.Benchmark;
+//import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
@@ -33,7 +33,7 @@ public class EitherBenchmark {
     public Deque<Object> list = new ArrayDeque();
   }
 
-  @Benchmark
+  //@Benchmark
   public Object testEither(final ThreadState1 ts) throws InstantiationException, IllegalAccessException {
     Either<String, Object> left = Either.left(ts.obj);
     ts.list.add(left);
@@ -45,7 +45,7 @@ public class EitherBenchmark {
     }
   }
 
-  @Benchmark
+  //@Benchmark
   public CharSequence testNaive(final ThreadState2 ts) throws IOException {
     ts.list.add(ts.obj);
     Object get = ts.list.removeFirst();
