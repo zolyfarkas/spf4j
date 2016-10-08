@@ -246,8 +246,11 @@ Callable<?> monitoredCallable =
  Due to the use of Thread.getStackTraces() the profile data is safe point biased, which is an important aspect to consider
  when analyzing your profile results.
  For more detail on safepoint bias see:
+
  [Blog post on safepoint bias](http://psy-lob-saw.blogspot.com/2016/02/why-most-sampling-java-profilers-are.html)
+
  [Evaluating the accuracy of Java profilers](http://sape.inf.usi.ch/publications/pldi10)
+
  [Honest profiler](https://www.youtube.com/watch?v=Yg6_ulhwLw0, https://github.com/RichardWarburton/honest-profiler)
 
 ### 5.2. When to profile your code?
