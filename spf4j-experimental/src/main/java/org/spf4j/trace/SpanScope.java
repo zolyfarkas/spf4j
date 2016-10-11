@@ -7,7 +7,7 @@ import org.spf4j.base.NameValue;
  *
  * @author zoly
  */
-public interface SpanBuilder extends Consumer<StackTraceElement[]>, AutoCloseable {
+public interface SpanScope extends Consumer<StackTraceElement[]>, AutoCloseable {
 
   int getSpanId();
 
@@ -15,7 +15,7 @@ public interface SpanBuilder extends Consumer<StackTraceElement[]>, AutoCloseabl
 
   void log(String name, Object value);
 
-  Span build();
+  Span finish();
 
   void close();
 

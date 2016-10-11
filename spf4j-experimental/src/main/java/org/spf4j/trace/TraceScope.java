@@ -21,14 +21,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface TraceScope extends AutoCloseable, Consumer<StackTraceElement[]> {
 
+  SpanScope startSpan(CharSequence spanName);
+
+  @Nonnull
+  SpanScope getCurrentSpan();
+  
   @DischargesObligation
   void close();
-
-  <T> T executeSpan(CharSequence spanName, Function<SpanBuilder, T> something);
-
-  void executeSpan(CharSequence spanName, Consumer<SpanBuilder> something);
-
-  SpanBuilder startSpan(CharSequence spanName);
 
   <T> Callable<T> getTracedCallable(Callable<T> callable);
 
@@ -38,7 +37,9 @@ public interface TraceScope extends AutoCloseable, Consumer<StackTraceElement[]>
 
   int getCurrentSpanId();
 
-  @Nonnull
-  SpanBuilder getCurrentSpan();
+  <T> T executeSpan(CharSequence spanName, Function<SpanScope, T> something);
+
+  void executeSpan(CharSequence spanName, Consumer<SpanScope> something);
+
 
 }

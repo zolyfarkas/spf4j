@@ -9,7 +9,7 @@ import org.spf4j.concurrent.ScalableSequence;
 import org.spf4j.concurrent.UIDGenerator;
 
 /**
- *
+ * the main tracing api.
  * @author zoly
  */
 @ThreadSafe
@@ -23,6 +23,9 @@ public interface Tracer {
    */
   @Nullable
   TraceScope getTraceScope();
+
+  @Nullable
+  TraceScope getTraceScope(Thread thread);
 
   default TraceScope newTrace(@Nonnull final CharSequence spanName) {
     return newTrace(spanName, ID_GEN.get());
