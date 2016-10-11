@@ -24,6 +24,8 @@ import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import java.util.Collection;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.Either;
@@ -48,9 +50,13 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
             }
 
             @Override
-            public void dispose(final TestObject object) {
+            public void dispose(final TestObject object) throws ObjectDisposeException {
+              try {
                 System.out.println("Disposing Object");
                 object.dispose();
+              } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+              }
             }
 
             @Override
@@ -118,8 +124,9 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
         }
 
         @Override
-        public void dispose() {
+        public boolean tryDispose(final long timeoutMillis) {
             disposed = true;
+            return true;
         }
     }
 

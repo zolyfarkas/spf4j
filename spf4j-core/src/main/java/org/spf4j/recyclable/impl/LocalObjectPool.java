@@ -104,7 +104,7 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
     }
 
     @Override
-    public void dispose() {
+    public boolean tryDispose(final long timeoutMillis) {
         throw new UnsupportedOperationException("LocalPool dispose is not supported");
     }
 

@@ -92,8 +92,8 @@ final class ObjectPoolWrapper<T> implements RecyclingSupplier<T>, Scanable<Objec
     }
 
     @Override
-    public void dispose() throws ObjectDisposeException, InterruptedException {
-        pool.dispose();
+    public boolean tryDispose(final long timeoutMillis) throws ObjectDisposeException, InterruptedException {
+        return pool.tryDispose(timeoutMillis);
     }
 
     @Override

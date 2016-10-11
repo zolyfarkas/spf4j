@@ -61,8 +61,8 @@ final class ScalableObjectPool<T> implements RecyclingSupplier<T>,  Scanable<Obj
     }
 
     @Override
-    public void dispose() throws ObjectDisposeException, InterruptedException {
-        globalPool.dispose();
+    public boolean tryDispose(final long timeoutMillis) throws ObjectDisposeException, InterruptedException {
+       return globalPool.tryDispose(timeoutMillis);
     }
 
     @Override

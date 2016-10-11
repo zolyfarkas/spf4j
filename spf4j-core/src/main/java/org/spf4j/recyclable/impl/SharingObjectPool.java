@@ -182,9 +182,12 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
         recycle(object, null);
     }
 
+
     @Override
-    public synchronized void dispose() throws ObjectDisposeException, InterruptedException {
+    public synchronized boolean tryDispose(final long timeoutMillis)
+            throws ObjectDisposeException, InterruptedException {
         if (!closed) {
+            long deadline = System.currentTimeMillis() + timeoutMillis;
             closed = true;
             ObjectDisposeException exres = null;
             Iterator<SharedObject<T>> iterator = pooledObjects.iterator();
@@ -192,7 +195,12 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
                 SharedObject<T> so = iterator.next();
                 try {
                     while (so.getNrTimesShared() > 0) {
-                        this.wait(5000);
+                        long waitFor = deadline - System.currentTimeMillis();
+                        if (waitFor > 0) {
+                          this.wait();
+                        } else {
+                          return false;
+                        }
                     }
                     T o = so.getObject();
                     o2QueueRefMap.remove(o);
@@ -212,6 +220,7 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
                 throw exres;
             }
         }
+        return true;
     }
 
     @Override

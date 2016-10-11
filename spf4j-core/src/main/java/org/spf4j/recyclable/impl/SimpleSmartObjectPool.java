@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
@@ -202,13 +201,12 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
     }
 
     @Override
-    public void dispose() throws ObjectDisposeException, InterruptedException {
-        long deadline = org.spf4j.base.Runtime.getDeadline();
+    public boolean tryDispose(final long timeoutMillis) throws ObjectDisposeException, InterruptedException {
+        long deadline = System.currentTimeMillis() + timeoutMillis;
         lock.lock();
         try {
             maxSize = 0;
             List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<>();
-            final Set<ObjectBorower<T>> borrowers = borrowedObjects.keySet();
             for (Entry<ObjectBorower<T>, Collection<T>>  b : borrowedObjects.asMap().entrySet()) {
                 ObjectBorower<T> borrower = b.getKey();
                 final int nrObjects = b.getValue().size();
@@ -230,21 +228,19 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
             while (!borrowedObjects.isEmpty()) {
                 long waitTime = deadline - System.currentTimeMillis();
                 if (waitTime <= 0) {
-                        throw new TimeoutException("Object wait timeout expired, deadline = " + deadline
-                        + " still borrowed by " + borrowers);
+                        return false;
                 }
                 if (!available.await(waitTime, TimeUnit.MILLISECONDS)) {
-                    throw new TimeoutException("Object wait timeout expired, deadline = " + deadline);
+                    return false;
                 }
                 disposeReturnedObjects(exception);
             }
             if (exception != null) {
                 throw exception;
             }
+            return true;
         } catch (InterruptedException | RuntimeException e) {
             throw e;
-        } catch (TimeoutException e) {
-            throw new ObjectDisposeException(e);
         } finally {
             lock.unlock();
         }
