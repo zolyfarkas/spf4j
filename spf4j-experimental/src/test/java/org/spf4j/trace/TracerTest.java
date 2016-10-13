@@ -43,7 +43,7 @@ public class TracerTest {
 
 
   public void doSomething(final int index) throws InterruptedException {
-    try (SpanBuilder sb = TRACER.getTraceScope().startSpan("doSomething")) {
+    try (SpanScope sb = TRACER.getTraceScope().startSpan("doSomething")) {
       sb.log("arg0", index);
       Thread.sleep((long) (Math.random() * 1000));
     }
@@ -51,7 +51,7 @@ public class TracerTest {
 
   public int getSomething(final int index) throws InterruptedException {
     final TraceScope ts = TRACER.getTraceScope();
-    return ts.executeSpan("ts1", (SpanBuilder span) -> {
+    return ts.executeSpan("ts1", (SpanScope span) -> {
       span.log("arg0", index);
       long sleep = (long) (Math.random() * 1000);
       if (sleep < 10) {
@@ -87,7 +87,7 @@ public class TracerTest {
               spanId = Integer.parseInt(headers.get("span-id"));
             }
             TraceScope traceScope = TRACER.continueOrNewTrace(traceId, spanId, "serverHandler");
-            try (SpanBuilder scope = traceScope.getCurrentSpan()) {
+            try (SpanScope scope = traceScope.getCurrentSpan()) {
               Callable<Void> tracedCallable = traceScope.getTracedCallable(() -> {
                 doSomething(100);
                 return null;
