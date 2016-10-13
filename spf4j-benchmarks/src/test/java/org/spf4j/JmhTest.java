@@ -28,7 +28,7 @@ public final class JmhTest {
             org.spf4j.base.Runtime.USER_DIR) + "/src/main/jfc/profile.jfc";
     Options opt = new OptionsBuilder()
             //.include(".*Either.*")
-                            .include(".*")
+                            .include(".*Appendable.*")
             //                .addProfiler(JmhProfiler.class)
             //                .addProfiler(CompilerProfiler.class)
             .addProfiler(JmhFlightRecorderProfiler.class)
