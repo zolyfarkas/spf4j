@@ -49,4 +49,28 @@ public final class ReflectionsTest {
 
     }
 
+    public static String print(Object ... args) {
+      return java.util.Arrays.toString(args);
+    }
+
+    public static void caca() {
+      //nothing
+    }
+
+    public interface Printing {
+      String print(Object ... args);
+
+      void caca();
+    }
+
+
+
+    @Test
+    public void testImplement() {
+      Printing prt = Reflections.implementStatic(Printing.class, ReflectionsTest.class);
+      String result = prt.print("a", 3);
+      System.out.println(result);
+      Assert.assertEquals("[a, 3]", result);
+    }
+
 }

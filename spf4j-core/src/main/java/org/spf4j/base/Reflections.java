@@ -10,15 +10,21 @@ import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.CodeSource;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import javax.annotation.Nonnull;
@@ -174,6 +180,23 @@ public final class Reflections {
     return null;
   }
 
+  @Nullable
+  public static MethodHandle getCompatibleMethodHandle(final Class<?> c,
+          final String methodName,
+          final Class<?>... paramTypes) {
+    Method compatibleMethod = getCompatibleMethod(c, methodName, paramTypes);
+    if (compatibleMethod == null) {
+      return null;
+    } else {
+      try {
+        return MethodHandles.lookup().unreflect(compatibleMethod);
+      } catch (IllegalAccessException ex) {
+        throw new RuntimeException(ex);
+      }
+    }
+  }
+
+
   public static Object invoke(final Method m, final Object object, final Object[] parameters)
           throws IllegalAccessException, InvocationTargetException {
     int np = parameters.length;
@@ -275,12 +298,15 @@ public final class Reflections {
 
   }
 
-  private static final LoadingCache<MethodDesc, Method> CACHE_FAST
+  private static final LoadingCache<MethodDesc, Holder<Method>> CACHE_FAST
           = new UnboundedLoadingCache<>(64,
-                  new CacheLoader<MethodDesc, Method>() {
+                  new CacheLoader<MethodDesc, Holder<Method>>() {
             @Override
-            public Method load(final MethodDesc k) {
+            public Holder<Method> load(final MethodDesc k) {
               final Method m = getCompatibleMethod(k.getClasz(), k.getName(), k.getParamTypes());
+              if (m == null) {
+                return Holder.OF_NULL;
+              }
               AccessController.doPrivileged(new PrivilegedAction() {
                 @Override
                 public Object run() {
@@ -288,15 +314,32 @@ public final class Reflections {
                   return null; // nothing to return
                 }
               });
-              return m;
+              return Holder.of(m);
             }
           });
 
+  @Nullable
   public static Method getCompatibleMethodCached(final Class<?> c,
           final String methodName,
           final Class<?>... paramTypes) {
-    return CACHE_FAST.getUnchecked(new MethodDesc(c, methodName, paramTypes));
+    return CACHE_FAST.getUnchecked(new MethodDesc(c, methodName, paramTypes)).getValue();
   }
+
+  private static final LoadingCache<MethodDesc, MethodHandle> CACHE_FAST_MH
+          = new UnboundedLoadingCache<>(64,
+                  new CacheLoader<MethodDesc, MethodHandle>() {
+            @Override
+            public MethodHandle load(final MethodDesc k) {
+              return getCompatibleMethodHandle(k.getClasz(), k.getName(), k.getParamTypes());
+            }
+          });
+
+  public static MethodHandle getCompatibleMethodHandleCached(final Class<?> c,
+          final String methodName,
+          final Class<?>... paramTypes) {
+    return CACHE_FAST_MH.getUnchecked(new MethodDesc(c, methodName, paramTypes));
+  }
+
 
   /**
    * Useful to get the jar URL where a particular class is located.
@@ -426,5 +469,42 @@ public final class Reflections {
               return getPackageInfoDirect(key);
             }
           });
+
+
+  public static <T> T implementStatic(final Class<T> clasz, final Class<?> target) {
+
+    Method[] methods = clasz.getMethods();
+    final Map<Method, Method> map = new HashMap<>(methods.length);
+    for (Method from : methods) {
+      Method to = getCompatibleMethodCached(target, from.getName(), from.getParameterTypes());
+      if (to == null || !Modifier.isStatic(to.getModifiers())) {
+        throw new IllegalArgumentException("Cannot map from " + clasz + " to " + target);
+      }
+      map.put(from, to);
+    }
+
+    return (T) Proxy.newProxyInstance(clasz.getClassLoader(), new Class[]{clasz},
+            (final Object proxy, final Method method, final Object[] args) -> map.get(method).invoke(null, args));
+  }
+
+  public static <T> T implement(final Class<T> clasz, final Object target) {
+
+    Method[] methods = clasz.getMethods();
+    final Map<Method, Method> map = new HashMap<>(methods.length);
+    Class<? extends Object> aClass = target.getClass();
+    for (Method from : methods) {
+      Method to = getCompatibleMethodCached(aClass, from.getName(), from.getParameterTypes());
+      if (to == null) {
+        throw new IllegalArgumentException("Cannot map from " + clasz + " to " + target);
+      }
+      map.put(from, to);
+    }
+
+
+    return (T) Proxy.newProxyInstance(clasz.getClassLoader(), new Class[]{clasz},
+            (final Object proxy, final Method method, final Object[] args) ->
+                    map.get(method).invoke(target, args));
+  }
+
 
 }
