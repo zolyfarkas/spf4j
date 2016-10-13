@@ -47,4 +47,6 @@ public final  class Holder<T> {
         return new Holder<>(value);
     }
 
+    public static final Holder OF_NULL = Holder.of(null);
+
 }
