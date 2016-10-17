@@ -35,7 +35,7 @@ public class TracerTest {
   public void testDistTrace() throws InterruptedException {
     try (TraceScope trace = TRACER.continueOrNewTrace("clientTraceId", -1, "clientInvokeSpan")) {
       REQ_QUEUE.put(new Message("test msg", ImmutableMap.of("trace-id", trace.getTraceId(),
-              "span-id", trace.getCurrentSpanId())));
+              "span-id", trace.getCurrentSpan().getSpanId())));
       Message<String> response = RESP_QUEUE.take();
       System.out.println("Response = " + response);
     }
@@ -43,7 +43,7 @@ public class TracerTest {
 
 
   public void doSomething(final int index) throws InterruptedException {
-    try (SpanScope sb = TRACER.getTraceScope().startSpan("doSomething")) {
+    try (SpanScope sb = TRACER.getTraceScope().getCurrentSpan().startSpan("doSomething")) {
       sb.log("arg0", index);
       Thread.sleep((long) (Math.random() * 1000));
     }
@@ -51,7 +51,7 @@ public class TracerTest {
 
   public int getSomething(final int index) throws InterruptedException {
     final TraceScope ts = TRACER.getTraceScope();
-    return ts.executeSpan("ts1", (SpanScope span) -> {
+    try (SpanScope span = ts.getCurrentSpan().startSpan("ts1")) {
       span.log("arg0", index);
       long sleep = (long) (Math.random() * 1000);
       if (sleep < 10) {
@@ -63,7 +63,7 @@ public class TracerTest {
         // do nothing;
       }
       return index * 10;
-    });
+    }
   }
 
 
