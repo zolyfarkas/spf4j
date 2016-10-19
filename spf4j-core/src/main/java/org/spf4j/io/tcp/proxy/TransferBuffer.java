@@ -19,6 +19,7 @@ package org.spf4j.io.tcp.proxy;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,6 +130,8 @@ public final class TransferBuffer {
       if (isEof) {
         try {
           channel.socket().shutdownOutput();
+        } catch (ClosedChannelException closed) {
+          //channel is closed already
         } catch (IOException ex) {
           throw new RuntimeException(ex);
         }
@@ -136,7 +139,9 @@ public final class TransferBuffer {
       } else if (readException != null) {
         try {
           channel.socket().shutdownOutput();
-        } catch (IOException ex) {
+        } catch (ClosedChannelException closed) {
+          //channel is closed already
+        }  catch (IOException ex) {
           readException.addSuppressed(ex);
         }
         LOG.debug("Closed channel {} due to read exception", channel, readException);
