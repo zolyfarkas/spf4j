@@ -1,0 +1,52 @@
+@namespace("org.spf4j.trace.avro")
+protocol Trace {
+
+   import idl "ssdump2.avdl";
+
+   enum ValueType {JSON, BASE64BIN, PLAIN}
+
+   /* Name Value record */
+   record ANameValue {
+      /** the name */
+      string name;
+      /** the value */
+      string value;
+      /* is the value a json object */
+      ValueType type = "PLAIN";
+   }
+
+   /** Trace Annotation */
+    record ATraceAnnotation {
+      /** the timestamp */
+      long timestamp;
+      /** values */
+      array<ANameValue> values = [];
+    }
+
+   /** record representing all java methods with the same name from a particular class. */
+    record ASpanRecord {
+      /** start time, millis since epoch */
+      long startTime = -1;
+      /** end time, millis since epoch, -1 if end is not known in this record */
+      long endTime = -1;
+      /** the name of the span or "" if not available */
+      string name = "";
+      /** the span id, 0 is the root span id of a trace */
+      int spanId;
+      /** the parent span Id, -1 if this is the root span;
+      int parentSpanId;
+      /** trace annotations */
+      array<ATraceAnnotation> annotations = [];
+      /** profile samples associated with trace */
+      array <org.spf4j.ssdump2.avro.ASample> samples = [];
+    }
+
+    /** record representing the samples where a particular method was executed */
+    record ATraceRecord {
+      /** the id of the Trace */
+      string traceId;
+      /** the span detail captured in this record */
+      array<ASpanRecord> spans = [];
+    }
+
+}
