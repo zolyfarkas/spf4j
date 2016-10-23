@@ -137,6 +137,7 @@ public final class TSDBWriter implements Closeable, Flushable {
         bab.reset();
         tableDef.id = position;
         recordWriter.write(tableDef, encoder);
+        encoder.flush();
         raf.write(bab.getBuffer(), 0, bab.size());
         return position;
     }
@@ -195,10 +196,10 @@ public final class TSDBWriter implements Closeable, Flushable {
         if (writeBlock.getValues().size() > 0) {
             bab.reset();
             this.recordWriter.write(writeBlock, this.encoder);
+            encoder.flush();
             raf.write(bab.getBuffer(), 0, bab.size());
             updateEOFPtrPointer();
             writeBlock.values.clear();
-            encoder.flush();
         }
         channel.force(true);
     }
