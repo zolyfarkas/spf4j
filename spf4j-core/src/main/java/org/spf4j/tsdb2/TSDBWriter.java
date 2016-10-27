@@ -198,6 +198,7 @@ public final class TSDBWriter implements Closeable, Flushable {
             this.recordWriter.write(writeBlock, this.encoder);
             encoder.flush();
             raf.write(bab.getBuffer(), 0, bab.size());
+            channel.force(true);
             updateEOFPtrPointer();
             writeBlock.values.clear();
         }
