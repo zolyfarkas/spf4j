@@ -32,15 +32,15 @@ public interface Sniffer {
      * @param data - the byte buffer containing the data.
      * @param nrBytes - number of bytes in the buffer. The data in the buffer is from position-nrBytes to position.
      * nrBytes will be -1 on EOF.
-     * @return new nrReadValue if we aim to motate buffer
+     * @return new nrReadValue if we aim to mutate buffer, returning -1 will simulate a EOF.
      */
     int received(ByteBuffer data, int nrBytes);
 
 
     /**
-     * Allows to intercept read errors and change them.
+     * Allows to intercept read errors and change/suppress them.
      * @param ex
-     * @return
+     * @return A exception you want to propagate, or null in case we do not want to propagate exception.
      */
     @Nullable
     IOException received(IOException ex);
