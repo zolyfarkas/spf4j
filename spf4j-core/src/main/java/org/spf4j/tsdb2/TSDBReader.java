@@ -62,7 +62,7 @@ public final  class TSDBReader implements Closeable {
     private final SpecificDatumReader<Object> recordReader;
     private RandomAccessFile raf;
     private final File file;
-    private static final boolean corruptionLenient = Boolean.getBoolean("spf4j.tsdb2.lenientRead");
+    private static final boolean CORUPTION_LENIENT = Boolean.getBoolean("spf4j.tsdb2.lenientRead");
 
 
     public TSDBReader(final File file, final int bufferSize) throws IOException {
@@ -107,7 +107,7 @@ public final  class TSDBReader implements Closeable {
         try {
           result = recordReader.read(null, decoder);
         } catch (IOException | RuntimeException ex) {
-          if (corruptionLenient) {
+          if (CORUPTION_LENIENT) {
             return null;
           } else {
             throw ex;
