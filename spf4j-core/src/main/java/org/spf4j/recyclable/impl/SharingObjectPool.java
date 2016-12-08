@@ -209,7 +209,7 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
           while (so.getNrTimesShared() > 0) {
             long waitFor = deadline - System.currentTimeMillis();
             if (waitFor > 0) {
-              this.wait();
+              this.wait(waitFor);
             } else {
               return false;
             }
