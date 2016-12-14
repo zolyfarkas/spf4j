@@ -489,7 +489,7 @@ public final class CharSeparatedValues {
     @Override
     public void startRow() {
       if (nrRows > 0) {
-        throw new IllegalStateException("Multiple rows encountered for " + this);
+        throw new IllegalArgumentException("Multiple rows encountered for " + this);
       }
     }
 
