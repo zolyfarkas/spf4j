@@ -2,7 +2,6 @@ package org.spf4j.trace;
 
 import com.google.common.annotations.Beta;
 import java.util.List;
-import org.spf4j.base.NameValue;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -24,7 +23,7 @@ public interface Span {
 
   SampleNode getSamples();
 
-  List<NameValue> getAnnotations();
+  List<TraceAnnotation> getAnnotations();
 
 
 }

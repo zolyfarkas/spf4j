@@ -2,7 +2,9 @@
 package org.spf4j.trace.impl;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.trace.SpanScope;
@@ -17,7 +19,9 @@ public class TraceScopeImpl implements TraceScope {
 
   private final CharSequence traceId;
 
-  private Deque<SpanScope> spanStack;
+  private final Deque<SpanScope> spanStack;
+
+  private  final List<SpanScope> finishedSpans;
 
   /**
    * Start or continue a trace.
@@ -29,7 +33,18 @@ public class TraceScopeImpl implements TraceScope {
           final int spanId) {
     this.traceId = traceId;
     this.spanStack = new ArrayDeque<>(4);
-    SpanScopeImpl scope = new SpanScopeImpl(spanName, spanId, spanStack);
+    this.finishedSpans = new ArrayList<>(4);
+    SpanScopeImpl scope = new SpanScopeImpl(spanName, spanId, new SpanEventHandler() {
+      @Override
+      public void newSpan(SpanScope spanScope) {
+        spanStack.addLast(spanScope);
+      }
+
+      @Override
+      public void closeSpan(SpanScope spanScope) {
+        finishedSpans.add(spanStack.removeLast());
+      }
+    });
     spanStack.addLast(scope);
   }
 

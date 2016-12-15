@@ -22,16 +22,16 @@ public interface TraceScope extends AutoCloseable {
   SpanScope getCurrentSpan();
 
   /**
-   * Terminates this scope. This does not mean the trace is finished.
+   * Terminates this trace.
    */
   @DischargesObligation
   void close();
 
   /**
-   * Terminates this scope, also terminates the trace.
+   *  the trace.
    */
   @DischargesObligation
-  void finish();
+  void scopeClose();
 
   CharSequence getTraceId();
 

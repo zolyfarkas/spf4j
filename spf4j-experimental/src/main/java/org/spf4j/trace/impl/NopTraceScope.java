@@ -1,7 +1,6 @@
 
 package org.spf4j.trace.impl;
 
-import java.util.concurrent.Callable;
 import org.spf4j.trace.SpanScope;
 import org.spf4j.trace.TraceScope;
 
@@ -23,19 +22,14 @@ public final class NopTraceScope implements TraceScope {
   public void close() {
   }
 
-  @Override
-  public <T> Callable<T> getTracedCallable(Callable<T> callable) {
-    return callable;
-  }
-
-  @Override
-  public TraceScope attachToThread() {
-    return this;
-  }
 
   @Override
   public CharSequence getTraceId() {
     return "NOP";
+  }
+
+  @Override
+  public void finish() {
   }
 
 

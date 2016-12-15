@@ -33,10 +33,6 @@ public class NopSpanScope implements SpanScope {
   public void log(String name, Object value) {
   }
 
-  @Override
-  public Span finish() {
-    return null;
-  }
 
   @Override
   public void close() {
