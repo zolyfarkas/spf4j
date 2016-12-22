@@ -210,7 +210,7 @@ public final class Throwables {
     T result;
     try {
       result = Objects.clone(t);
-    } catch (IOException ex) {
+    } catch (RuntimeException ex) {
       result = t;
       Lazy.LOG.info("Unable to clone exception {}", t, ex);
     }
@@ -248,7 +248,7 @@ public final class Throwables {
     T clone;
     try {
       clone = Objects.clone(t);
-    } catch (IOException ex) {
+    } catch (RuntimeException ex) {
       clone = t;
       Lazy.LOG.info("Unable to clone exception", t);
     }
