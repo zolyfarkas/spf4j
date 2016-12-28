@@ -1,16 +1,13 @@
 
 package org.spf4j.perf.memory;
 
-import com.sun.management.HotSpotDiagnosticMXBean;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import sun.jvm.hotspot.HotSpotAgent;
 import sun.jvm.hotspot.oops.DefaultHeapVisitor;
-import sun.jvm.hotspot.oops.HeapVisitor;
 import sun.jvm.hotspot.oops.Klass;
 import sun.jvm.hotspot.oops.Oop;
 import sun.jvm.hotspot.runtime.VM;
-import sun.management.HotspotInternal;
 
 
 

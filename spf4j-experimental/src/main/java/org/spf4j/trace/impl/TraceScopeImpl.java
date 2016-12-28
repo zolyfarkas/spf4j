@@ -62,8 +62,10 @@ public class TraceScopeImpl implements TraceScope {
     return traceId;
   }
 
+
   @Override
-  public void finish() {
+  public void scopeClose() {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
 }

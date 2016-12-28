@@ -20,7 +20,7 @@ public class SnappyUtilsTest {
     String testStr = "jhsfgajdhgfjhsgdfjhagkdjfhgasjdhfur89ewfh4898run2dw9b2cyrufscerbhc87w5hbeghrgobrcshbf8woh4o8";
     byte[] testBytes = testStr.getBytes(StandardCharsets.UTF_8);
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    SnappyFrameUtils.writeCompressedFrame(bos, testBytes, 0, testBytes.length);
+    SnappyFrameUtils.writeFrame(bos, testBytes, 0, testBytes.length, 0.5f);
     SnappyFrameUtils.Frame readFrame =
             SnappyFrameUtils.readFrame(new ByteArrayInputStream(bos.toByteArray()), (int size) -> new byte[size]);
     Assert.assertArrayEquals(testBytes, readFrame.getData());

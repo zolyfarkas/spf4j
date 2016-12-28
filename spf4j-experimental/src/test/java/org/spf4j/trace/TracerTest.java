@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -88,11 +87,12 @@ public class TracerTest {
             }
             TraceScope traceScope = TRACER.continueOrNewTrace(traceId, spanId, "serverHandler");
             try (SpanScope scope = traceScope.getCurrentSpan()) {
-              Callable<Void> tracedCallable = traceScope.getTracedCallable(() -> {
-                doSomething(100);
-                return null;
-              });
-              Future<Void> submit = DefaultExecutor.INSTANCE.submit(tracedCallable);
+              Future<Void> submit = DefaultExecutor.INSTANCE.submit(() -> {
+                try (SpanScope s = scope.startSpan("asyncSpan")) {
+                  doSomething(100);
+                  return null;
+                }}
+              );
               RESP_QUEUE.put(new Message("RESP" + take.getPayload() + getSomething(1) + submit.get(),
                       Collections.EMPTY_MAP));
             }
