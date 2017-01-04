@@ -514,6 +514,19 @@ public final class Throwables {
 
 
   /**
+   * return first Exception in the causal chain Assignable to clasz.
+   * @param <T>
+   * @param t
+   * @param clasz
+   * @return
+   */
+  @Nullable
+  @CheckReturnValue
+  public static <T extends Throwable> T first(@Nonnull final Throwable t, final Class<T> clasz) {
+    return (T) first(t, (Throwable th) -> clasz.isAssignableFrom(th.getClass()));
+  }
+
+  /**
    * Returns the first Throwable that matches the predicate in the causal and suppressed chain.
    * @param t the Throwable
    * @param predicate the Predicate
