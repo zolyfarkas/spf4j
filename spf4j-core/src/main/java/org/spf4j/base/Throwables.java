@@ -509,6 +509,18 @@ public final class Throwables {
    * @return true if a Throwable matching the predicate is found.
    */
   public static boolean contains(@Nonnull final Throwable t, final Predicate<Throwable> predicate) {
+    return first(t, predicate) != null;
+  }
+
+
+  /**
+   * Returns the first Throwable that matches the predicate in the causal and suppressed chain.
+   * @param t the Throwable
+   * @param predicate the Predicate
+   * @return the Throwable the first matches the predicate or null is none matches.
+   */
+  @Nullable
+  public static Throwable first(@Nonnull final Throwable t, final Predicate<Throwable> predicate) {
     ArrayDeque<Throwable> toScan =  new ArrayDeque<>();
     toScan.addFirst(t);
     Throwable th;
@@ -518,7 +530,7 @@ public final class Throwables {
         continue;
       }
       if (predicate.test(th)) {
-        return true;
+        return th;
       } else {
         Throwable cause = th.getCause();
         if (cause != null) {
@@ -530,7 +542,7 @@ public final class Throwables {
       }
       seen.add(th);
     }
-    return false;
+    return null;
   }
 
 
