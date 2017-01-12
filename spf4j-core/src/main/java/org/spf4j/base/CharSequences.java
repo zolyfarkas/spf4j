@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 /**
  * Special methods to use for character sequences...
+ *
  * @author zoly
  */
 public final class CharSequences {
@@ -13,20 +14,55 @@ public final class CharSequences {
   private CharSequences() {
   }
 
+  /**
+   * compare s to t.
+   *
+   * @param s
+   * @param t
+   * @return
+   * @deprecated use compare.
+   */
+  @Deprecated
   public static int compareTo(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
-    int i = 0;
-    final int sl = s.length();
-    final int tl = t.length();
-    while (i < sl && i < tl) {
-      char a = s.charAt(i);
-      char b = t.charAt(i);
-      int diff = a - b;
-      if (diff != 0) {
-        return diff;
+    return compare(s, t);
+  }
+
+  public static int compare(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
+    return compare(s, 0, s.length(), t, 0, t.length());
+  }
+
+  public static int compare(@Nonnull final CharSequence s, final int sLength,
+          @Nonnull final CharSequence t, final int tLength) {
+    return compare(s, 0, sLength, t, 0, tLength);
+  }
+
+
+  /**
+   * compare 2 CharSequence fragments.
+   * @param s the charsequence to compare
+   * @param sFrom the index for the first chars to compare.
+   * @param sLength the number of characters to compare.
+   * @param t the charsequence to compare to
+   * @param tFrom the index for the first character to compare to.
+   * @param tLength the number of characters to compare to.
+   * @return
+   */
+  public static int compare(@Nonnull final CharSequence s, final int sFrom, final int sLength,
+          @Nonnull final CharSequence t, final int tFrom, final int tLength) {
+
+    int lim = Math.min(sLength, tLength);
+    int i = sFrom, j = tFrom;
+    int sTo = sFrom + lim;
+    while (i < sTo) {
+      char c1 = s.charAt(i);
+      char c2 = t.charAt(j);
+      if (c1 != c2) {
+        return c1 - c2;
       }
       i++;
+      j++;
     }
-    return sl - tl;
+    return sLength - tLength;
   }
 
   public static boolean equalsNullables(@Nullable final CharSequence s, @Nullable final CharSequence t) {
@@ -143,6 +179,7 @@ public final class CharSequences {
     ia.append(startLineNr, appendable);
     return new Appendable() {
       private int lineNr = startLineNr + 1;
+
       @Override
       public Appendable append(final CharSequence csq) throws IOException {
         return append(csq, 0, csq.length());
@@ -180,8 +217,7 @@ public final class CharSequences {
     return toLineNumbered(startLineNr, source, IntAppender.CommentNumberAppender.INSTANCE);
   }
 
-
-  public static CharSequence toLineNumbered(final int startLineNr, final CharSequence source,  final IntAppender ia) {
+  public static CharSequence toLineNumbered(final int startLineNr, final CharSequence source, final IntAppender ia) {
     int length = source.length();
     StringBuilder destination = new StringBuilder(length + 6 * length / 80);
     try {
@@ -192,9 +228,9 @@ public final class CharSequences {
     return destination;
   }
 
-
   /**
    * A more flexible version of Integer.parseInt.
+   *
    * @see java.lang.Integer.parseInt
    */
   public static int parseInt(final CharSequence s) {
@@ -203,6 +239,7 @@ public final class CharSequences {
 
   /**
    * A more flexible version of Integer.parseInt.
+   *
    * @see java.lang.Integer.parseInt
    */
   public static int parseInt(final CharSequence cs, final int radix) {
@@ -271,9 +308,9 @@ public final class CharSequences {
     return negative ? result : -result;
   }
 
-
   /**
    * A more flexible version of Long.parseLong.
+   *
    * @see java.lang.Long.parseLong
    */
   public static long parseLong(final CharSequence cs) {
@@ -282,6 +319,7 @@ public final class CharSequences {
 
   /**
    * A more flexible version of Long.parseLong.
+   *
    * @see java.lang.Long.parseLong
    */
   public static long parseLong(final CharSequence cs, final int radix) {
@@ -342,6 +380,5 @@ public final class CharSequences {
     }
     return negative ? result : -result;
   }
-
 
 }
