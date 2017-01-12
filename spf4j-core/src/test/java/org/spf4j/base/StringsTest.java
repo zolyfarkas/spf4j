@@ -58,7 +58,7 @@ public final class StringsTest {
     @Test
     public void testSubSequence() {
         String str = "dsfhjgsdjfgwuergfedhgfjhwheriufwiueruhfguyerugfweuyrygfwueyrghfuwoeruhgfdgwsjhfg";
-        assertEquals(0, Strings.compareTo(str.subSequence(3, 15), Strings.subSequence(str, 3, 15)));
+        assertEquals(0, CharSequences.compare(str, 3, 12, str, 3, 12));
         Assert.assertTrue(Strings.equals(str.subSequence(15, 15), Strings.subSequence(str, 15, 15)));
         Assert.assertTrue(Strings.equals(str.subSequence(0, str.length()), Strings.subSequence(str, 0, str.length())));
         Assert.assertEquals(str.subSequence(3, 15).toString(), Strings.subSequence(str, 3, 15).toString());
