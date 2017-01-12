@@ -446,6 +446,9 @@ public final class Strings {
         return encode(UTF8_ENCODER.get(), chars, 0, chars.length);
     }
 
+  /**
+   * @deprecated use CharSequences.compare
+   */
   @Deprecated
   public static int compareTo(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
     return CharSequences.compareTo(s, t);
