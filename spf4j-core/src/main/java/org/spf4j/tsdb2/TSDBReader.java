@@ -17,6 +17,7 @@
  */
 package org.spf4j.tsdb2;
 
+import com.google.common.io.CountingInputStream;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
@@ -43,7 +44,6 @@ import org.apache.avro.specific.SpecificDatumReader;
 import org.spf4j.base.Either;
 import org.spf4j.base.Handler;
 import org.spf4j.concurrent.DefaultExecutor;
-import org.spf4j.io.MemorizingBufferedInputStream;
 import org.spf4j.tsdb2.avro.DataBlock;
 import org.spf4j.tsdb2.avro.Header;
 import org.spf4j.tsdb2.avro.TableDef;
@@ -55,7 +55,7 @@ import org.spf4j.tsdb2.avro.TableDef;
 @SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
 public final  class TSDBReader implements Closeable {
 
-    private final MemorizingBufferedInputStream bis;
+    private final CountingInputStream bis;
     private final Header header;
     private long size;
     private final BinaryDecoder decoder;
@@ -68,7 +68,7 @@ public final  class TSDBReader implements Closeable {
     public TSDBReader(final File file, final int bufferSize) throws IOException {
         this.file = file;
         final FileInputStream fis = new FileInputStream(file);
-        bis = new MemorizingBufferedInputStream(fis);
+        bis = new CountingInputStream(fis);
         SpecificDatumReader<Header> reader = new SpecificDatumReader<>(Header.getClassSchema());
         decoder = DecoderFactory.get().directBinaryDecoder(bis, null);
         TSDBWriter.validateType(bis);
@@ -99,7 +99,7 @@ public final  class TSDBReader implements Closeable {
 
     @Nullable
     public synchronized Either<TableDef, DataBlock> read() throws IOException {
-        final long position = bis.getReadBytes();
+        final long position = bis.getCount();
         if (position >= size) {
             return null;
         }
