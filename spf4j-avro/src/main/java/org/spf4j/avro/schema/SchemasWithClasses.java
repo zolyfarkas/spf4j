@@ -7,7 +7,9 @@ import java.util.Map;
 import org.apache.avro.Schema;
 
 /**
- *
+ * A visitor that recursively visits a schema and returns a map like:
+ * java class name -> Schema
+ * for every Schema encountered that has a java class implementation.
  * @author zoly
  */
 //CHECKSTYLE IGNORE MissingSwitchDefault FOR NEXT 200 LINES
