@@ -1,9 +1,9 @@
 package org.spf4j.avro.schema;
 
 import com.google.common.annotations.Beta;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.Map;
@@ -12,7 +12,6 @@ import java.util.function.Supplier;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
-import org.apache.avro.Schema.Field;
 import org.apache.avro.compiler.specific.SpecificCompiler;
 import org.spf4j.ds.IdentityHashSet;
 
@@ -134,21 +133,20 @@ public final class Schemas {
           Schema.Type type = schema.getType();
           switch (type) {
             case ARRAY:
-              terminate = visitNonTerminal(visitor, schema, dq,
-                      () -> Iterators.forArray(schema.getElementType()));
+              terminate = visitNonTerminal(visitor, schema, dq, Arrays.asList(schema.getElementType()));
               visited.add(schema);
               break;
             case RECORD:
               terminate = visitNonTerminal(visitor, schema, dq,
-                      () -> Iterators.transform(Lists.reverse(schema.getFields()).iterator(), (Field f) -> f.schema()));
+                      Lists.transform(Lists.reverse(schema.getFields()), (field) -> field.schema()));
               visited.add(schema);
               break;
             case UNION:
-              terminate = visitNonTerminal(visitor, schema, dq, () -> schema.getTypes().iterator());
+              terminate = visitNonTerminal(visitor, schema, dq, schema.getTypes());
               visited.add(schema);
               break;
             case MAP:
-              terminate = visitNonTerminal(visitor, schema, dq, () -> Iterators.forArray(schema.getValueType()));
+              terminate = visitNonTerminal(visitor, schema, dq, Arrays.asList(schema.getValueType()));
               visited.add(schema);
               break;
             case NULL:
@@ -180,12 +178,12 @@ public final class Schemas {
 
   private static boolean visitNonTerminal(final SchemaVisitor visitor,
           final Schema schema, final Deque<Object> dq,
-          final Supplier<Iterator<Schema>> itSupp) {
+          final Iterable<Schema> itSupp) {
     SchemaVisitorAction action = visitor.visitNonTerminal(schema);
     switch (action) {
       case CONTINUE:
         dq.addLast((Supplier<SchemaVisitorAction>) () -> visitor.afterVisitNonTerminal(schema));
-        Iterator<Schema> it = itSupp.get();
+        Iterator<Schema> it = itSupp.iterator();
         while (it.hasNext()) {
           Schema child = it.next();
           dq.addLast(child);
