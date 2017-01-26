@@ -18,18 +18,19 @@
 
 package org.spf4j.io;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.BaseEncoding;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.CodingErrorAction;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Arrays;
-import org.spf4j.base.Strings;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
@@ -71,11 +72,11 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
     private long readBytes;
 
     public MemorizingBufferedInputStream(final InputStream in) {
-        this(in, 16384, 8192, ArraySuppliers.Bytes.GL_SUPPLIER, Charsets.UTF_8);
+        this(in, 16384, 8192, ArraySuppliers.Bytes.GL_SUPPLIER, null);
     }
 
     public MemorizingBufferedInputStream(final InputStream in, final int size) {
-        this(in, size, size / 2, ArraySuppliers.Bytes.GL_SUPPLIER, Charsets.UTF_8);
+        this(in, size, size / 2, ArraySuppliers.Bytes.GL_SUPPLIER, null);
     }
 
     public MemorizingBufferedInputStream(final InputStream in, final Charset charset) {
@@ -304,10 +305,19 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
             result.append("readBytes=\"").append(base64.encode(getReadBytesFromBuffer())).append("\",\n");
             result.append("unreadBytes=\"").append(base64.encode(getUnreadBytesFromBuffer())).append("\"\n");
         } else {
+          try {
             result.append("readStr=\"").append(
-                    Strings.fromUtf8(getReadBytesFromBuffer())).append("\",\n");
+                    charset.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
+                            .onUnmappableCharacter(CodingErrorAction.REPLACE).replaceWith("?")
+                            .decode(ByteBuffer.wrap(getReadBytesFromBuffer()))).append("\",\n");
             result.append("unreadStr=\"").append(
-                    Strings.fromUtf8(getUnreadBytesFromBuffer())).append("\"\n");
+                    charset.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
+                            .onUnmappableCharacter(CodingErrorAction.REPLACE).replaceWith("?")
+                            .decode(ByteBuffer.wrap(getUnreadBytesFromBuffer()))).append("\"\n");
+          } catch (CharacterCodingException ex) {
+            throw new RuntimeException(ex);
+          }
+
         }
         result.append("memIdx=").append(this.memIdx).append("\"\n");
         result.append("startIdx=").append(this.startIdx).append("\"\n");
