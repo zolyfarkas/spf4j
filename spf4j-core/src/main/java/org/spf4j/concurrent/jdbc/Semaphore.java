@@ -37,7 +37,7 @@ public interface Semaphore {
    * @throws InterruptedException - operation interrupted.
    * @throws TimeoutException - timed out.
    */
-  void acquire(final long timeout, final TimeUnit unit)
+  void acquire(long timeout, TimeUnit unit)
           throws InterruptedException, TimeoutException;
 
   /**
@@ -48,7 +48,7 @@ public interface Semaphore {
    * @throws InterruptedException - operation interrupted.
    * @throws TimeoutException - timed out.
    */
-  void acquire(final int nrPermits, final long timeout, final TimeUnit unit)
+  void acquire(int nrPermits, long timeout, TimeUnit unit)
           throws InterruptedException, TimeoutException;
 
 
@@ -60,7 +60,7 @@ public interface Semaphore {
    * @throws InterruptedException - operation interrupted.
    */
   @CheckReturnValue
-  boolean tryAcquire(final long timeout, final TimeUnit unit)
+  boolean tryAcquire(long timeout, TimeUnit unit)
           throws InterruptedException;
 
   /**
@@ -72,7 +72,7 @@ public interface Semaphore {
    * @throws InterruptedException - operation interrupted.
    */
   @CheckReturnValue
-  boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit)
+  boolean tryAcquire(int nrPermits, long timeout, TimeUnit unit)
           throws InterruptedException;
 
   /**
@@ -84,6 +84,6 @@ public interface Semaphore {
    * release a number of permits.
    * @param nrPermits  the number of permits to release.
    */
-  void release(final int nrPermits);
+  void release(int nrPermits);
 
 }

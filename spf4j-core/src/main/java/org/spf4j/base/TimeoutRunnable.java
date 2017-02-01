@@ -27,7 +27,7 @@ public abstract class TimeoutRunnable<E extends Exception> extends CheckedRunnab
     }
 
 
-    public abstract void doRun(final long pdeadlineMillis) throws E;
+    public abstract void doRun(long pdeadlineMillis) throws E;
 
     public final long getDeadlineMillis() {
         return deadlineMillis;

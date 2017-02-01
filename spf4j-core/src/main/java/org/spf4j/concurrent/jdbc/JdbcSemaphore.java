@@ -307,14 +307,14 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     final String maxReservationsColumn = semTableDesc.getTotalPermitsColumn();
 
     jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
-      try (final PreparedStatement stmt = conn.prepareStatement("SELECT " + availableReservationsColumn
+      try (PreparedStatement stmt = conn.prepareStatement("SELECT " + availableReservationsColumn
               + ',' + maxReservationsColumn + " FROM " + tableName
               + " WHERE " + semNameColumn + " = ?")) {
         stmt.setNString(1, semName);
         stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
-        try (final ResultSet rs = stmt.executeQuery()) {
+        try (ResultSet rs = stmt.executeQuery()) {
           if (!rs.next()) {
-            try (final PreparedStatement insert = conn.prepareStatement("insert into " + tableName
+            try (PreparedStatement insert = conn.prepareStatement("insert into " + tableName
                     + " (" + semNameColumn + ',' + availableReservationsColumn + ',' + maxReservationsColumn
                     + ',' + lastModifiedByColumn + ',' + lastModifiedAtColumn + ") VALUES (?, ?, ?, ?, "
                     + heartBeat.getHbTableDesc().getCurrentTimeMillisFunc() + ')')) {
@@ -348,7 +348,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
     jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
 
-      try (final PreparedStatement insert = conn.prepareStatement("insert into "
+      try (PreparedStatement insert = conn.prepareStatement("insert into "
               + semTableDesc.getPermitsByOwnerTableName()
               + " (" + semTableDesc.getSemNameColumn() + ',' + semTableDesc.getOwnerColumn() + ','
               + semTableDesc.getOwnerReservationsColumn() + ','
@@ -546,10 +546,10 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   @JmxExport(description = "Get the available semaphore permits")
   public int availablePermits() throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
-      try (final PreparedStatement stmt = conn.prepareStatement(availablePermitsSql)) {
+      try (PreparedStatement stmt = conn.prepareStatement(availablePermitsSql)) {
         stmt.setNString(1, semName);
         stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
-        try (final ResultSet rs = stmt.executeQuery()) {
+        try (ResultSet rs = stmt.executeQuery()) {
           if (!rs.next()) {
             throw new IllegalStateException();
           } else {
@@ -567,11 +567,11 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   @JmxExport(description = "get the number of permits owned by this process")
   public int permitsOwned() throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
-      try (final PreparedStatement stmt = conn.prepareStatement(ownedPermitsSql)) {
+      try (PreparedStatement stmt = conn.prepareStatement(ownedPermitsSql)) {
         stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
         stmt.setNString(2, semName);
         stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
-        try (final ResultSet rs = stmt.executeQuery()) {
+        try (ResultSet rs = stmt.executeQuery()) {
           if (!rs.next()) {
             throw new IllegalStateException();
           } else {
@@ -589,10 +589,10 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   @JmxExport(description = "Get the total permits this semaphore can hand out")
   public int totalPermits() throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
-      try (final PreparedStatement stmt = conn.prepareStatement(totalPermitsSql)) {
+      try (PreparedStatement stmt = conn.prepareStatement(totalPermitsSql)) {
         stmt.setNString(1, semName);
         stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
-        try (final ResultSet rs = stmt.executeQuery()) {
+        try (ResultSet rs = stmt.executeQuery()) {
           if (!rs.next()) {
             throw new IllegalStateException();
           } else {
@@ -613,10 +613,10 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   List<OwnerPermits> getDeadOwnerPermits(final Connection conn, final long deadlineNanos, final int wishPermits)
           throws SQLException {
     List<OwnerPermits> result = new ArrayList<>();
-    try (final PreparedStatement stmt = conn.prepareStatement(getDeadOwnerPermitsSql)) {
+    try (PreparedStatement stmt = conn.prepareStatement(getDeadOwnerPermitsSql)) {
       stmt.setNString(1, semName);
       stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
-      try (final ResultSet rs = stmt.executeQuery()) {
+      try (ResultSet rs = stmt.executeQuery()) {
         int nrPermits = 0;
         while (rs.next()) {
           OwnerPermits ownerPermit = new OwnerPermits(rs.getNString(1), rs.getInt(2));
@@ -649,7 +649,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
         List<OwnerPermits> deadOwnerPermits = getDeadOwnerPermits(conn, deadlineNanos, wishPermits);
         int released = 0;
         for (OwnerPermits permit : deadOwnerPermits) {
-          try (final PreparedStatement stmt = conn.prepareStatement(deleteDeadOwerRecordSql)) {
+          try (PreparedStatement stmt = conn.prepareStatement(deleteDeadOwerRecordSql)) {
             String owner = permit.getOwner();
             stmt.setNString(1, owner);
             stmt.setNString(2, semName);
@@ -756,7 +756,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   }
 
   int removeDeadNotOwnedRowsOnly(final Connection conn, final long deadlineNanos) throws SQLException {
-    try (final PreparedStatement stmt = conn.prepareStatement(deleteDeadOwnerRecordsSql)) {
+    try (PreparedStatement stmt = conn.prepareStatement(deleteDeadOwnerRecordsSql)) {
       stmt.setNString(1, semName);
       stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
       return stmt.executeUpdate();

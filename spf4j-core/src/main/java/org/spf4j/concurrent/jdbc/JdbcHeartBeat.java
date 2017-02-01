@@ -121,7 +121,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   public interface LifecycleHook {
 
-    void onError(final Error error);
+    void onError(Error error);
 
     void onClose() throws SQLException;
 
@@ -190,7 +190,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
     try {
       jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
 
-        try (final PreparedStatement insert = conn.prepareStatement("insert into " + hbTableDesc.getTableName()
+        try (PreparedStatement insert = conn.prepareStatement("insert into " + hbTableDesc.getTableName()
                 + " (" + hbTableDesc.getOwnerColumn() + ',' + hbTableDesc.getIntervalColumn() + ','
                 + hbTableDesc.getLastHeartbeatColumn() + ") VALUES (?, ?, "
                 + hbTableDesc.getCurrentTimeMillisFunc() + ")")) {
@@ -216,7 +216,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
   int removeDeadHeartBeatRows(final Connection conn, final long deadlineNanos) throws SQLException {
-    try (final PreparedStatement stmt = conn.prepareStatement(deleteSql)) {
+    try (PreparedStatement stmt = conn.prepareStatement(deleteSql)) {
       stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
       return stmt.executeUpdate();
     }
@@ -225,7 +225,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
   void removeHeartBeatRow(final int timeoutSeconds)
           throws SQLException {
     jdbc.transactOnConnectionNonInterrupt((final Connection conn, final long deadlineNanos) -> {
-      try (final PreparedStatement stmt = conn.prepareStatement(deleteHeartBeatSql)) {
+      try (PreparedStatement stmt = conn.prepareStatement(deleteHeartBeatSql)) {
         stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
         stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
         int nrDeleted = stmt.executeUpdate();

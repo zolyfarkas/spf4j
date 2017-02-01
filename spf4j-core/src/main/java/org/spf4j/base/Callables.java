@@ -286,7 +286,7 @@ public final class Callables {
             return call(mdeadline);
         }
 
-        public abstract T call(final long deadline) throws EX, InterruptedException, TimeoutException;
+        public abstract T call(long deadline) throws EX, InterruptedException, TimeoutException;
 
         public final long getDeadline() {
             return mdeadline;
@@ -506,7 +506,7 @@ public final class Callables {
          * @param lastRet
          * @return - the result to be returned.
          */
-        T lastReturn(final T lastRet);
+        T lastReturn(T lastRet);
 
         /**
          * method to press the exception after all retries exhausted.

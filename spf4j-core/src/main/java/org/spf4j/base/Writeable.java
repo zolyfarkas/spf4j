@@ -9,6 +9,6 @@ import javax.annotation.Nonnull;
  */
 public interface Writeable {
 
-  void writeTo(@Nonnull final Appendable appendable) throws IOException;
+  void writeTo(@Nonnull Appendable appendable) throws IOException;
 
 }

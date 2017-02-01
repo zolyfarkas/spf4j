@@ -181,7 +181,7 @@ public enum SysExits {
     this.exitCode = code;
   }
 
-  final int exitCode;
+  private final int exitCode;
 
   public int exitCode() {
     return exitCode;

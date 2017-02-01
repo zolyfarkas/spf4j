@@ -248,7 +248,7 @@ public final class Runtime {
 
     static {
       // priming certain functionality to make sure it works when we need it (classes are already loaded).
-      try (final PrintStream stream = new PrintStream(new ByteArrayBuilder(), false, "UTF-8")) {
+      try (PrintStream stream = new PrintStream(new ByteArrayBuilder(), false, "UTF-8")) {
         Throwables.writeTo(new RuntimeException("priming"), stream, Throwables.Detail.NONE);
       } catch (UnsupportedEncodingException ex) {
         throw new ExceptionInInitializerError(ex);

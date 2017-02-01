@@ -254,7 +254,7 @@ public final class SampleNode implements Serializable {
 
     public interface InvocationHandler {
 
-        void handle(Method from, Method to, int count, final Map<Method, Integer> ancestors);
+        void handle(Method from, Method to, int count, Map<Method, Integer> ancestors);
     }
 
     public void forEach(final InvocationHandler handler, final Method from,

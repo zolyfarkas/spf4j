@@ -26,18 +26,18 @@ import org.spf4j.jmx.JmxExport;
 public interface MutableLifoThreadPool extends LifoThreadPool {
 
   @JmxExport
-  void setDaemonThreads(final boolean daemonThreads);
+  void setDaemonThreads(boolean daemonThreads);
 
   @JmxExport
-  void setMaxIdleTimeMillis(final int maxIdleTimeMillis);
+  void setMaxIdleTimeMillis(int maxIdleTimeMillis);
 
   @JmxExport
-  void setMaxThreadCount(final int maxThreadCount);
+  void setMaxThreadCount(int maxThreadCount);
 
   @JmxExport
-  void setQueueSizeLimit(final int queueSizeLimit);
+  void setQueueSizeLimit(int queueSizeLimit);
 
   @JmxExport
-  void setThreadPriority(final int threadPriority);
+  void setThreadPriority(int threadPriority);
 
 }

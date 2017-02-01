@@ -267,7 +267,7 @@ public final class CallablesNano {
             return call(mdeadlineNanos);
         }
 
-        public abstract T call(final long deadlinenanos) throws EX, InterruptedException, TimeoutException;
+        public abstract T call(long deadlinenanos) throws EX, InterruptedException, TimeoutException;
 
         public final long getDeadlineNanos() {
             return mdeadlineNanos;
@@ -457,7 +457,7 @@ public final class CallablesNano {
          * @param lastRet
          * @return - the result to be returned.
          */
-        T lastReturn(final T lastRet);
+        T lastReturn(T lastRet);
 
         /**
          * method to press the exception after all retries exhausted.
