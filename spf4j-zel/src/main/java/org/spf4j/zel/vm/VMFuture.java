@@ -28,12 +28,12 @@ import org.spf4j.base.Either;
  */
 @ThreadSafe
 public interface VMFuture<T> extends Future<T> {
-       
+
     Either<T, ? extends ExecutionException> getResultStore();
-    
+
     void setResult(T result);
-    
-    void setExceptionResult(final ExecutionException result);
-    
-    
+
+    void setExceptionResult(ExecutionException result);
+
+
 }
