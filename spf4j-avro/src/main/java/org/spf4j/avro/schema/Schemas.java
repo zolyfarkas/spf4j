@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.apache.avro.JsonProperties;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.compiler.specific.SpecificCompiler;
@@ -54,18 +55,27 @@ public final class Schemas {
     }
   }
 
-  public static void copyProperties(final Schema from, final Schema to) {
+  public static void copyProperties(final JsonProperties from, final JsonProperties to) {
     Map<String, Object> objectProps = from.getObjectProps();
     for (Map.Entry<String, Object> entry : objectProps.entrySet()) {
       to.addProp(entry.getKey(), entry.getValue());
     }
   }
 
+  /**
+   * @deprecated use void copyProperties(final JsonProperties from, final JsonProperties to) instead.
+   */
+  @Deprecated
+  public static void copyProperties(final Schema from, final Schema to) {
+    copyProperties((JsonProperties) from, (JsonProperties) to);
+  }
+
+  /**
+   * @deprecated use void copyProperties(final JsonProperties from, final JsonProperties to) instead.
+   */
+  @Deprecated
   public static void copyProperties(final Schema.Field from, final Schema.Field to) {
-    Map<String, Object> objectProps = from.getObjectProps();
-    for (Map.Entry<String, Object> entry : objectProps.entrySet()) {
-      to.addProp(entry.getKey(), entry.getValue());
-    }
+    copyProperties((JsonProperties) from, (JsonProperties) to);
   }
 
   public static boolean hasGeneratedJavaClass(final Schema schema) {
