@@ -25,7 +25,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Callables.Action;
 import org.spf4j.base.Callables.AdvancedAction;
@@ -52,20 +51,6 @@ public final class CallablesNano {
             return (input != null) ? Action.ABORT : Action.RETRY;
         }
     };
-
-
-    public static final Predicate<Exception> DEFAULT_EXCEPTION_RETRY_PREDICATE =
-            new Predicate<Exception>() {
-
-        @Override
-        @SuppressFBWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
-        public boolean test(final Exception t) {
-            return DEFAULT_EXCEPTION_RETRY.apply(t) != AdvancedAction.ABORT;
-        }
-
-    };
-
-
 
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
             final int nrImmediateRetries,

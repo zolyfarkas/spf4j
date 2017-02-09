@@ -18,16 +18,13 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.base.Callables.Action;
 import org.spf4j.base.Callables.AdvancedAction;
 import org.spf4j.base.Callables.AdvancedRetryPredicate;
@@ -46,10 +43,6 @@ public final class CallablesNanoNonInterrupt {
     private CallablesNanoNonInterrupt() {
     }
 
-    private static final Logger LOG = LoggerFactory.getLogger(CallablesNanoNonInterrupt.class);
-
-
-
     public static final RetryPredicate<?, RuntimeException> RETRY_FOR_NULL_RESULT =
             new RetryPredicate<Object, RuntimeException>() {
         @Override
@@ -57,19 +50,6 @@ public final class CallablesNanoNonInterrupt {
             return (input != null) ? Action.ABORT : Action.RETRY;
         }
     };
-
-
-    public static final Predicate<Exception> DEFAULT_EXCEPTION_RETRY_PREDICATE =
-            new Predicate<Exception>() {
-
-        @Override
-        @SuppressFBWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
-        public boolean apply(final Exception t) {
-            return DEFAULT_EXCEPTION_RETRY.apply(t) != AdvancedAction.ABORT;
-        }
-
-    };
-
 
 
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
@@ -109,7 +89,7 @@ public final class CallablesNanoNonInterrupt {
             throws EX, TimeoutException {
         return executeWithRetry(what, retryOnReturnVal,
                 new FibonacciBackoffRetryPredicate<>(retryOnException, nrImmediateRetries,
-                        maxWaitNanos / 100, maxWaitNanos, EX_TYPE_CLASS_MAPPER));
+                        maxWaitNanos / 100, maxWaitNanos, Callables.EX_TYPE_CLASS_MAPPER));
     }
 
 
@@ -151,16 +131,6 @@ public final class CallablesNanoNonInterrupt {
 
     }
 
-    private static final Function<Exception, Object> EX_TYPE_CLASS_MAPPER = new Function<Exception, Object>() {
-
-        @Override
-        @SuppressFBWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
-        public Object apply(final Exception f) {
-            return com.google.common.base.Throwables.getStackTraceAsString(f).getClass();
-        }
-
-    };
-
 
     public static final class FibonacciBackoffRetryPredicate<T> implements TimeoutRetryPredicate<T> {
 
@@ -176,11 +146,11 @@ public final class CallablesNanoNonInterrupt {
 
         private Map<Object, RetryData> retryRegistry;
 
-        private final Function<T, Object> mapper;
+        private final Function<T, ?> mapper;
 
         public FibonacciBackoffRetryPredicate(final AdvancedRetryPredicate<T> arp,
                 final int nrImmediateRetries, final long minWaitNanos, final long maxWaitNanos,
-                final Function<T, Object> mapper) {
+                final Function<T, ?> mapper) {
             this.arp = arp;
             this.nrImmediateRetries = nrImmediateRetries;
             this.maxWaitNanos = maxWaitNanos;
