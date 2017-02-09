@@ -105,7 +105,7 @@ public final class CallablesNano {
             throws InterruptedException, EX, TimeoutException {
         return executeWithRetry(what, retryOnReturnVal,
                 new FibonacciBackoffRetryPredicate<>(retryOnException, nrImmediateRetries,
-                        maxWaitNanos / 100, maxWaitNanos, EX_TYPE_CLASS_MAPPER));
+                        maxWaitNanos / 100, maxWaitNanos, Callables.EX_TYPE_CLASS_MAPPER));
     }
 
 
@@ -147,16 +147,6 @@ public final class CallablesNano {
 
     }
 
-    private static final Function<Exception, Object> EX_TYPE_CLASS_MAPPER = new Function<Exception, Object>() {
-
-        @Override
-        @SuppressFBWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
-        public Object apply(final Exception f) {
-            return com.google.common.base.Throwables.getStackTraceAsString(f).getClass();
-        }
-
-    };
-
 
     public static final class FibonacciBackoffRetryPredicate<T> implements TimeoutRetryPredicate<T> {
 
@@ -172,11 +162,11 @@ public final class CallablesNano {
 
         private Map<Object, RetryData> retryRegistry;
 
-        private final Function<T, Object> mapper;
+        private final Function<T, ?> mapper;
 
         public FibonacciBackoffRetryPredicate(final AdvancedRetryPredicate<T> arp,
                 final int nrImmediateRetries, final long minWaitNanos, final long maxWaitNanos,
-                final Function<T, Object> mapper) {
+                final Function<T, ?> mapper) {
             this.arp = arp;
             this.nrImmediateRetries = nrImmediateRetries;
             this.maxWaitNanos = maxWaitNanos;

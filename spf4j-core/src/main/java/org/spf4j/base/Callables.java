@@ -167,12 +167,12 @@ public final class Callables {
 
     }
 
-    private static final Function<Exception, Object> EX_TYPE_CLASS_MAPPER = new Function<Exception, Object>() {
+    static final Function<Exception, Class> EX_TYPE_CLASS_MAPPER = new Function<Exception, Class>() {
 
         @Override
         @SuppressFBWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
-        public Object apply(final Exception f) {
-            return com.google.common.base.Throwables.getStackTraceAsString(f).getClass();
+        public Class apply(final Exception f) {
+            return com.google.common.base.Throwables.getRootCause(f).getClass();
         }
 
     };
@@ -192,11 +192,11 @@ public final class Callables {
 
         private Map<Object, RetryData> retryRegistry;
 
-        private final Function<T, Object> mapper;
+        private final Function<T, ?> mapper;
 
         public FibonacciBackoffRetryPredicate(final AdvancedRetryPredicate<T> arp,
                 final int nrImmediateRetries, final int minWaitMillis, final int maxWaitMillis,
-                final Function<T, Object> mapper) {
+                final Function<T, ?> mapper) {
             this.arp = arp;
             this.nrImmediateRetries = nrImmediateRetries;
             this.maxWaitMillis = maxWaitMillis;
