@@ -18,14 +18,14 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Callables.Action;
 import org.spf4j.base.Callables.AdvancedAction;
@@ -59,7 +59,7 @@ public final class CallablesNano {
 
         @Override
         @SuppressFBWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
-        public boolean apply(final Exception t) {
+        public boolean test(final Exception t) {
             return DEFAULT_EXCEPTION_RETRY.apply(t) != AdvancedAction.ABORT;
         }
 

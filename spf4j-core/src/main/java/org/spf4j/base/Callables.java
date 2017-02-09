@@ -17,8 +17,6 @@
  */
 package org.spf4j.base;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.sql.SQLRecoverableException;
@@ -27,6 +25,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
@@ -79,7 +79,7 @@ public final class Callables {
 
         @Override
         @SuppressFBWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
-        public boolean apply(final Exception t) {
+        public boolean test(final Exception t) {
             return DEFAULT_EXCEPTION_RETRY.apply(t) != AdvancedAction.ABORT;
         }
 
