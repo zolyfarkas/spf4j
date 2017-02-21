@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     private final ScheduledFuture<?> samplingFuture;
     private final MeasurementAccumulator processorTemplate;
     private final Persister persister;
+    @Nonnull
     private final Runnable shutdownHook;
 
     ScalableMeasurementRecorder(final MeasurementAccumulator processor, final int sampleTimeMillis,
@@ -158,7 +160,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     @Override
     @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
     public void close() {
-        synchronized (processorTemplate) {
+        synchronized (shutdownHook) {
             if (!samplingFuture.isCancelled()) {
                 org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);
                 samplingFuture.cancel(false);

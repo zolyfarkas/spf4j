@@ -197,7 +197,7 @@ public final class ScalableMeasurementRecorderSource implements
     @Override
     @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
     public void close() {
-        synchronized (processorTemplate) {
+        synchronized (shutdownHook) {
             if (!samplingFuture.isCancelled()) {
                 org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);
                 samplingFuture.cancel(false);
