@@ -560,6 +560,27 @@ public final class Throwables {
   }
 
 
+  /**
+   * Returns first Throwable in the causality chain that is matching the provided predicate.
+   * @param throwable the Throwable to go through.
+   * @param predicate the predicate to apply
+   * @return the first Throwable from the chain that the predicate matches.
+   */
+
+  @Nullable
+  @CheckReturnValue
+  public static Throwable firstCause(@Nonnull final Throwable throwable, final Predicate<Throwable> predicate) {
+    Throwable t = throwable;
+    do {
+      if (predicate.test(t)) {
+        return t;
+      }
+      t = throwable.getCause();
+    } while (t != null);
+    return null;
+  }
+
+
   public static Predicate<Throwable> getNonRecoverablePredicate() {
     return nrPredicate;
   }

@@ -55,6 +55,11 @@ public final class Callables {
         }
     };
 
+    /**
+     * A decent default retry predicate.
+     * It might retry exceptions that might not be retriable..
+     * (like IO exceptions thrown by parser libraries for parsing issues...)
+     */
     public static final AdvancedRetryPredicate<Exception> DEFAULT_EXCEPTION_RETRY =
             new AdvancedRetryPredicate<Exception>() {
         @Override
@@ -63,10 +68,12 @@ public final class Callables {
             if (rootCause instanceof RuntimeException) {
                 return AdvancedAction.ABORT;
             }
-            if (rootCause instanceof SQLTransientException
-                    || rootCause instanceof SQLRecoverableException
-                    || rootCause instanceof IOException
-                    || rootCause instanceof TimeoutException) {
+            Throwable e = Throwables.firstCause(input,
+                    (ex) -> (ex instanceof SQLTransientException
+                    || ex instanceof SQLRecoverableException
+                    || ex instanceof IOException
+                    || ex instanceof TimeoutException));
+            if (e != null) {
                 LOG.debug("Exception encountered, retrying...", input);
                 return AdvancedAction.RETRY;
             }
