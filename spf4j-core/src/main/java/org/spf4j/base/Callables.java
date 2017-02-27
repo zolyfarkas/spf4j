@@ -18,7 +18,7 @@
 package org.spf4j.base;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.IOException;
+import java.net.SocketException;
 import java.sql.SQLRecoverableException;
 import java.sql.SQLTransientException;
 import java.util.HashMap;
@@ -71,7 +71,7 @@ public final class Callables {
             Throwable e = Throwables.firstCause(input,
                     (ex) -> (ex instanceof SQLTransientException
                     || ex instanceof SQLRecoverableException
-                    || ex instanceof IOException
+                    || ex instanceof SocketException
                     || ex instanceof TimeoutException));
             if (e != null) {
                 LOG.debug("Exception encountered, retrying...", input);
