@@ -36,147 +36,185 @@ import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 
 /**
- * This class allows you to poll and recordAt to a file the heap commited and heap used
- for your java process.
- *  start data recording by calling the startMemoryUsageSampling method,
- *  stop the data recording by calling the method: startMemoryUsageSampling.
+ * This class allows you to poll and recordAt to a file the heap commited and heap used for your java process. start
+ * data recording by calling the startMemoryUsageSampling method, stop the data recording by calling the method:
+ * startMemoryUsageSampling.
  *
  * @author zoly
  */
-  public final class OpenFilesSampler {
+public final class OpenFilesSampler {
 
-    private OpenFilesSampler() { }
+  private OpenFilesSampler() {
+  }
+
+  private static ScheduledFuture<?> samplingFuture;
+  private static AccumulatorRunnable accumulator;
+
+  private static final Logger LOG = LoggerFactory.getLogger(OpenFilesSampler.class);
+
+  private static volatile String lastWarnLsof = "";
+
+  static {
+    org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
+      @Override
+      public void doRun() {
+        stop();
+      }
+    });
+    Registry.export(OpenFilesSampler.class);
+  }
+
+  public static void start(final long sampleTimeMillis) {
+    start(sampleTimeMillis, Runtime.MAX_NR_OPENFILES - Runtime.MAX_NR_OPENFILES / 10,
+            Runtime.MAX_NR_OPENFILES, true);
+  }
+
+  @JmxExport
+  public static void start(@JmxExport("sampleTimeMillis") final long sampleTimeMillis,
+          @JmxExport("shutdownOnError") final boolean shutdownOnError) {
+    start(sampleTimeMillis, Runtime.MAX_NR_OPENFILES - Runtime.MAX_NR_OPENFILES / 10,
+            Runtime.MAX_NR_OPENFILES, shutdownOnError);
+  }
+
+  @JmxExport
+  public static String getWarnLsofDetail() {
+    return lastWarnLsof;
+  }
+
+  public static void start(final long sampleTimeMillis,
+          final int warnThreshold, final int errorThreshold, final boolean shutdownOnError) {
+    start(sampleTimeMillis, warnThreshold, errorThreshold, shutdownOnError, (int) sampleTimeMillis * 10);
+  }
+
+  public static synchronized void start(final long sampleTimeMillis,
+          final int warnThreshold, final int errorThreshold, final boolean shutdownOnError,
+          final int aggTimeMillis) {
+    if (samplingFuture == null) {
+      accumulator = new AccumulatorRunnable(errorThreshold, shutdownOnError,
+              warnThreshold, aggTimeMillis);
+      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(accumulator,
+              sampleTimeMillis, sampleTimeMillis, TimeUnit.MILLISECONDS);
+    } else {
+      throw new IllegalStateException("Open file usage sampling already started " + samplingFuture);
+    }
+  }
+
+  @JmxExport
+  public static synchronized void stop() {
+    if (samplingFuture != null) {
+      samplingFuture.cancel(false);
+      samplingFuture = null;
+      accumulator.close();
+      accumulator = null;
+    }
+  }
+
+  @JmxExport
+  public static synchronized boolean isStarted() {
+    return samplingFuture != null;
+  }
+
+  @JmxExport
+  public static String getLsof() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    return Runtime.getLsofOutput();
+  }
+
+  @JmxExport
+  public static int getMaxNrOpenFiles() {
+    return Runtime.MAX_NR_OPENFILES;
+  }
+
+  @JmxExport
+  public static int getNrOpenFiles() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    return Runtime.getNrOpenFiles();
+  }
+
+  @JmxExport
+  public static int getWarnThreshold() {
+    if (accumulator == null) {
+      return -1;
+    }
+    return accumulator.getWarnThreshold();
+  }
+
+  @JmxExport
+  public static int getErrorThreshold() {
+    if (accumulator == null) {
+      return -1;
+    }
+    return accumulator.getErrorThreshold();
+  }
 
 
+  private static class AccumulatorRunnable extends AbstractRunnable implements Closeable {
 
-    private static ScheduledFuture<?> samplingFuture;
-    private static AccumulatorRunnable accumulator;
+    private final int errorThreshold;
+    private final boolean shutdownOnError;
+    private final int warnThreshold;
+    private final MeasurementRecorder nrOpenFiles;
 
-    private static final Logger LOG = LoggerFactory.getLogger(OpenFilesSampler.class);
-
-
-    private static volatile String lastWarnLsof = "";
-
-    static {
-        org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
-            @Override
-            public void doRun() {
-                stop();
-            }
-        });
-        Registry.export(OpenFilesSampler.class);
+    AccumulatorRunnable(final int errorThreshold, final boolean shutdownOnError,
+            final int warnThreshold, final int aggMillis) {
+      this.errorThreshold = errorThreshold;
+      this.shutdownOnError = shutdownOnError;
+      this.warnThreshold = warnThreshold;
+      this.nrOpenFiles = RecorderFactory.createScalableMinMaxAvgRecorder("nr-open-files", "count", aggMillis);
     }
 
-
-
-    public static void start(final long sampleTimeMillis) {
-        start(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
-                Runtime.Ulimit.MAX_NR_OPENFILES, true);
-    }
-
-    @JmxExport
-    public static void start(@JmxExport("sampleTimeMillis") final long sampleTimeMillis,
-            @JmxExport("shutdownOnError") final boolean shutdownOnError) {
-        start(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
-                Runtime.Ulimit.MAX_NR_OPENFILES, shutdownOnError);
-    }
-
-    @JmxExport
-    public static String getWarnLsofDetail() {
-        return lastWarnLsof;
-    }
-
-    public static void start(final long sampleTimeMillis,
-            final int warnThreshold, final int errorThreshold, final boolean shutdownOnError) {
-        start(sampleTimeMillis, warnThreshold, errorThreshold, shutdownOnError, (int) sampleTimeMillis * 10);
-    }
-
-
-    public static synchronized void start(final long sampleTimeMillis,
-            final int warnThreshold, final int errorThreshold, final boolean shutdownOnError,
-            final int aggTimeMillis) {
-        if (samplingFuture == null) {
-            accumulator = new AccumulatorRunnable(errorThreshold, shutdownOnError,
-                    warnThreshold, aggTimeMillis);
-            samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(accumulator,
-                    sampleTimeMillis, sampleTimeMillis, TimeUnit.MILLISECONDS);
+    @Override
+    public void doRun() throws Exception {
+      long time = System.currentTimeMillis();
+      int nrOf = Runtime.getNrOpenFiles();
+      if (nrOf > errorThreshold) {
+        try {
+          lastWarnLsof = Runtime.getLsofOutput();
+        } catch (IOException ex) {
+          String msg = ex.getMessage();
+          if (msg != null && msg.contains("Too many open files")) {
+            lastWarnLsof = "Unable to get lsof detail, Too many open files ";
+          } else {
+            throw ex;
+          }
+        }
+        LOG.error("Nr open files is {} and exceeds error threshold {}, detail:\n{}",
+                nrOf, errorThreshold, lastWarnLsof);
+        if (shutdownOnError) {
+          Runtime.goDownWithError(null, SysExits.EX_IOERR);
+        }
+      } else if (nrOf > warnThreshold) {
+        lastWarnLsof = Runtime.getLsofOutput();
+        LOG.warn("Nr open files is {} and exceeds warn threshold {}, detail:\n{} ",
+                nrOf, warnThreshold, lastWarnLsof);
+        if (!Runtime.gc(60000)) {
+          LOG.warn("Unable to trigger GC although running low on file resources");
         } else {
-            throw new IllegalStateException("Open file usage sampling already started " + samplingFuture);
+          LOG.warn("gc executed nr open files reduced by {} files", nrOf - Runtime.getNrOpenFiles());
         }
+      }
+      this.nrOpenFiles.recordAt(time, nrOf);
     }
 
-    @JmxExport
-    public static synchronized void stop() {
-         if (samplingFuture != null) {
-             samplingFuture.cancel(false);
-             samplingFuture = null;
-             accumulator.close();
-             accumulator = null;
-         }
+    @Override
+    public void close() {
+      try {
+        this.nrOpenFiles.close();
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
     }
 
-    @JmxExport
-    public static synchronized boolean isStarted() {
-        return samplingFuture != null;
+    public int getErrorThreshold() {
+      return errorThreshold;
     }
 
-
-    @JmxExport
-    public static String getLsof() throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        return Runtime.getLsofOutput();
+    public boolean isShutdownOnError() {
+      return shutdownOnError;
     }
 
-    private static class AccumulatorRunnable extends AbstractRunnable implements Closeable {
-
-        private final int errorThreshold;
-        private final boolean shutdownOnError;
-        private final int warnThreshold;
-        private final MeasurementRecorder nrOpenFiles;
-
-        AccumulatorRunnable(final int errorThreshold, final boolean shutdownOnError,
-                final int warnThreshold, final int aggMillis) {
-            this.errorThreshold = errorThreshold;
-            this.shutdownOnError = shutdownOnError;
-            this.warnThreshold = warnThreshold;
-            this.nrOpenFiles = RecorderFactory.createScalableMinMaxAvgRecorder("nr-open-files", "count", aggMillis);
-        }
-
-
-
-
-        @Override
-        public void doRun() throws Exception {
-            long time = System.currentTimeMillis();
-            int nrOf = Runtime.getNrOpenFiles();
-            if (nrOf > errorThreshold) {
-                lastWarnLsof = Runtime.getLsofOutput();
-                LOG.error("Nr open files is {} and exceeds error threshold {}, detail:\n{}",
-                        nrOf, errorThreshold, lastWarnLsof);
-                if (shutdownOnError) {
-                    Runtime.goDownWithError(null, SysExits.EX_IOERR);
-                }
-            } else if (nrOf > warnThreshold) {
-                lastWarnLsof = Runtime.getLsofOutput();
-                LOG.warn("Nr open files is {} and exceeds warn threshold {}, detail:\n{} ",
-                        nrOf, warnThreshold, lastWarnLsof);
-                if (!Runtime.gc(60000)) {
-                  LOG.warn("Unable to trigger GC although running low on file resources");
-                } else {
-                  LOG.warn("gc executed nr open files reduced by {} files", nrOf - Runtime.getNrOpenFiles());
-                }
-            }
-            this.nrOpenFiles.recordAt(time, nrOf);
-        }
-
-        @Override
-        public void close() {
-            try {
-                this.nrOpenFiles.close();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
+    public int getWarnThreshold() {
+      return warnThreshold;
     }
 
+  }
 
 }

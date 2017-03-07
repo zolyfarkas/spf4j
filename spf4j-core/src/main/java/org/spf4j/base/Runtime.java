@@ -345,40 +345,50 @@ public final class Runtime {
 
     }
 
+  public static final int MAX_NR_OPENFILES = Ulimit.MAX_NR_OPENFILES;
 
-    /**
-     * get the number of open files by current java process.
-     * @return -1 if cannot get nr of open files
-     * @throws IOException - IO exception while accessing procfs.
-     * @throws InterruptedException - interrupted.
-     * @throws ExecutionException - execution exception while invoking lsof.
-     * @throws java.util.concurrent.TimeoutException - timeout while obtaining info.
-     */
-
-    public static int getNrOpenFiles() throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        if (isMacOsx()) {
-            if (Lsof.LSOF == null) {
-                return -1;
-            }
-            LineCountCharHandler handler = new LineCountCharHandler();
-            run(LSOF_CMD, handler, 60000);
-            return handler.getLineCount() - 1;
-        } else {
-            if (Files.isDirectory(FD_FOLDER)) {
-                int result = 0;
-                try (DirectoryStream<Path> stream = Files.newDirectoryStream(FD_FOLDER)) {
-                    Iterator<Path> iterator = stream.iterator();
-                    while (iterator.hasNext()) {
-                        iterator.next();
-                        result++;
-                    }
-                }
-                return result;
-            } else {
-                return -1;
-            }
+  /**
+   * get the number of open files by current java process.
+   *
+   * @return -1 if cannot get nr of open files
+   * @throws IOException - IO exception while accessing procfs.
+   * @throws InterruptedException - interrupted.
+   * @throws ExecutionException - execution exception while invoking lsof.
+   * @throws java.util.concurrent.TimeoutException - timeout while obtaining info.
+   */
+  public static int getNrOpenFiles() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    try {
+      if (isMacOsx()) {
+        if (Lsof.LSOF == null) {
+          return -1;
         }
+        LineCountCharHandler handler = new LineCountCharHandler();
+        run(LSOF_CMD, handler, 60000);
+        return handler.getLineCount() - 1;
+      } else {
+        if (Files.isDirectory(FD_FOLDER)) {
+          int result = 0;
+          try (DirectoryStream<Path> stream = Files.newDirectoryStream(FD_FOLDER)) {
+            Iterator<Path> iterator = stream.iterator();
+            while (iterator.hasNext()) {
+              iterator.next();
+              result++;
+            }
+          }
+          return result;
+        } else {
+          return -1;
+        }
+      }
+    } catch (IOException ex) {
+      String msg = ex.getMessage();
+      if (msg != null && msg.contains("Too many open files")) {
+        return MAX_NR_OPENFILES;
+      } else {
+        throw ex;
+      }
     }
+  }
 
     @Nullable
     public static String getLsofOutput()
