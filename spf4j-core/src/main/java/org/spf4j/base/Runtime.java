@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 import static org.spf4j.base.Runtime.Lsof.LSOF;
 import static org.spf4j.base.Runtime.Lsof.LSOF_CMD;
 import org.spf4j.concurrent.Futures;
+import org.spf4j.io.AppendableOutputStream;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
@@ -330,7 +331,7 @@ public final class Runtime {
             }
             int mfiles;
             try {
-                String result = Runtime.run(Arrays.concat(ULIMIT_CMD, options), 10000);
+                String result = Runtime.run(Arrays.concat(ULIMIT_CMD, options), 10000).toString();
                 if (result.contains("unlimited")) {
                     mfiles = Integer.MAX_VALUE;
                 } else {
@@ -391,7 +392,7 @@ public final class Runtime {
   }
 
     @Nullable
-    public static String getLsofOutput()
+    public static CharSequence getLsofOutput()
             throws IOException, InterruptedException, ExecutionException, TimeoutException {
         if (LSOF == null) {
             return null;
@@ -410,7 +411,7 @@ public final class Runtime {
         void stdErrDone();
     }
 
-    public static String run(final String[] command,
+    public static CharSequence run(final String[] command,
             final long timeoutMillis) throws IOException, InterruptedException, ExecutionException, TimeoutException {
         StringBuilderCharHandler handler = new StringBuilderCharHandler();
         int result = run(command, handler, timeoutMillis);
@@ -563,19 +564,21 @@ public final class Runtime {
         }
     }
 
+    @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
     public static final class StringBuilderCharHandler implements ProcOutputHandler {
 
-        private final Charset charset;
+        private final AppendableOutputStream stdout;
+        private final StringBuilder stdoutCharseq;
 
-        private final ByteArrayBuilder stdout;
-
-        private final ByteArrayBuilder stderr;
+        private final AppendableOutputStream stderr;
+        private final StringBuilder stderrCharseq;
 
 
         public StringBuilderCharHandler(final Charset charset) {
-            stdout = new ByteArrayBuilder(128, ArraySuppliers.Bytes.JAVA_NEW);
-            stderr = new ByteArrayBuilder(0, ArraySuppliers.Bytes.JAVA_NEW);
-            this.charset = charset;
+            stdoutCharseq = new StringBuilder();
+            stdout = new AppendableOutputStream(stdoutCharseq, charset);
+            stderrCharseq =  new StringBuilder();
+            stderr = new AppendableOutputStream(stderrCharseq, charset);
         }
 
         public StringBuilderCharHandler() {
@@ -584,26 +587,33 @@ public final class Runtime {
 
         @Override
         public void handleStdOut(final byte[] buffer, final int length) {
+          try {
             stdout.write(buffer, 0, length);
+          } catch (IOException ex) {
+            throw new RuntimeException(ex);
+          }
         }
 
         @Override
         public String toString() {
-            return "OUT: " + new String(stdout.getBuffer(), 0, stdout.size(), charset)
-                    + "\nERR: " + new String(stderr.getBuffer(), 0, stderr.size(), charset);
+            return "OUT: " + stdoutCharseq + "\nERR: " + stderrCharseq;
         }
 
-        public String getStdOut() {
-            return new String(stdout.getBuffer(), 0, stdout.size(), charset);
+        public CharSequence getStdOut() {
+            return stdoutCharseq;
         }
 
-        public String getStdErr() {
-            return new String(stderr.getBuffer(), 0, stderr.size(), charset);
+        public CharSequence getStdErr() {
+            return stderrCharseq;
         }
 
         @Override
         public void handleStdErr(final byte[] buffer, final int length) {
+          try {
             stderr.write(buffer, 0, length);
+          } catch (IOException ex) {
+            throw new RuntimeException(ex);
+          }
         }
 
         @Override
@@ -696,14 +706,14 @@ public final class Runtime {
         return ref.get() == null;
     }
 
-    public static String jrun(final Class<?> classWithMain,
+    public static CharSequence jrun(final Class<?> classWithMain,
             final long timeoutMillis, final String ... arguments)
             throws IOException, InterruptedException, ExecutionException, TimeoutException {
         final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
         return jrun(classWithMain, classPath, timeoutMillis,  arguments);
     }
 
-    public static String jrun(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
+    public static CharSequence jrun(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
             final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
         final String jvmPath = JAVA_HOME + File.separatorChar + "bin" + File.separatorChar + "java";
         String[] command = Arrays.concat(new String[] {jvmPath, "-cp", classPath, classWithMain.getName() }, arguments);

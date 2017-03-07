@@ -381,4 +381,15 @@ public final class CharSequences {
     return negative ? result : -result;
   }
 
+  public static boolean containsAnyChar(final CharSequence string, final char... chars) {
+    for (int i = 0; i < string.length(); i++) {
+      char c = string.charAt(i);
+      if (Arrays.search(chars, c) >= 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
 }

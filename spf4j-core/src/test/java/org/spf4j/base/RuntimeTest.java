@@ -48,10 +48,10 @@ public final class RuntimeTest {
         int nrOpenFiles = Runtime.getNrOpenFiles();
         System.out.println("NR_OPEN_FILES=" + nrOpenFiles);
         Assert.assertThat(nrOpenFiles, Matchers.greaterThan(0));
-        String lsofOutput = Runtime.getLsofOutput();
+        CharSequence lsofOutput = Runtime.getLsofOutput();
         System.out.println("LSOF_OUT=" + lsofOutput);
         Assert.assertNotNull(lsofOutput);
-        Assert.assertThat(lsofOutput, Matchers.containsString("jar"));
+        Assert.assertThat(lsofOutput.toString(), Matchers.containsString("jar"));
         System.out.println("MAX_OPEN_FILES=" + Runtime.Ulimit.MAX_NR_OPENFILES);
     }
 

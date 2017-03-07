@@ -29,13 +29,17 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public interface ObjectAppender<T> {
 
     void append(T object, Appendable appendTo) throws IOException;
-    
-    
+
+
     ObjectAppender<Object> TOSTRING_APPENDER = new ObjectAppender<Object>() {
         @Override
         public void append(final Object object, final Appendable appendTo) throws IOException {
+          if (object instanceof CharSequence) {
+            appendTo.append((CharSequence) object);
+          } else {
             appendTo.append(object.toString());
+          }
         }
     };
-    
+
 }

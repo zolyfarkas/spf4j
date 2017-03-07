@@ -131,14 +131,12 @@ public final class Strings {
         return false;
     }
 
+    /**
+     * @deprecated use CharSequences.containsAnyChar instead.
+     */
+    @Deprecated
     public static boolean contains(final CharSequence string, final char... chars) {
-        for (int i = 0; i < string.length(); i++) {
-            char c = string.charAt(i);
-            if (Arrays.search(chars, c) >= 0) {
-                return true;
-            }
-        }
-        return false;
+      return CharSequences.containsAnyChar(string, chars);
     }
 
     public static String withFirstCharLower(final String str) {

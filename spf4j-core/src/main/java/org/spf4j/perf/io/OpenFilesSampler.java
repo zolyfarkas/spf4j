@@ -52,7 +52,7 @@ public final class OpenFilesSampler {
 
   private static final Logger LOG = LoggerFactory.getLogger(OpenFilesSampler.class);
 
-  private static volatile String lastWarnLsof = "";
+  private static volatile CharSequence lastWarnLsof = "";
 
   static {
     org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
@@ -78,7 +78,7 @@ public final class OpenFilesSampler {
 
   @JmxExport
   public static String getWarnLsofDetail() {
-    return lastWarnLsof;
+    return lastWarnLsof.toString();
   }
 
   public static void start(final long sampleTimeMillis,
@@ -116,7 +116,7 @@ public final class OpenFilesSampler {
 
   @JmxExport
   public static String getLsof() throws IOException, InterruptedException, ExecutionException, TimeoutException {
-    return Runtime.getLsofOutput();
+    return Runtime.getLsofOutput().toString();
   }
 
   @JmxExport
@@ -170,9 +170,7 @@ public final class OpenFilesSampler {
           lastWarnLsof = Runtime.getLsofOutput();
         } catch (IOException ex) {
           String msg = ex.getMessage();
-          if (msg != null && msg.contains("Too many open files")) {
-            lastWarnLsof = "Unable to get lsof detail, Too many open files ";
-          } else {
+          if (msg == null || !msg.contains("Too many open files")) {
             throw ex;
           }
         }
@@ -182,7 +180,14 @@ public final class OpenFilesSampler {
           Runtime.goDownWithError(null, SysExits.EX_IOERR);
         }
       } else if (nrOf > warnThreshold) {
-        lastWarnLsof = Runtime.getLsofOutput();
+        try {
+          lastWarnLsof = Runtime.getLsofOutput();
+        } catch (IOException ex) {
+          String msg = ex.getMessage();
+          if (msg == null || !msg.contains("Too many open files")) {
+            throw ex;
+          }
+        }
         LOG.warn("Nr open files is {} and exceeds warn threshold {}, detail:\n{} ",
                 nrOf, warnThreshold, lastWarnLsof);
         if (!Runtime.gc(60000)) {

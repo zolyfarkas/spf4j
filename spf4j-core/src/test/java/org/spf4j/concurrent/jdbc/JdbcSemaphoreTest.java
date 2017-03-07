@@ -167,8 +167,8 @@ public class JdbcSemaphoreTest {
       ds.setPassword("sa");
       createSchemaObjects(ds);
       JdbcSemaphore semaphore = new JdbcSemaphore(ds, "test_sem2", 1, true);
-      String o1 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.class, 10000, connStr, "test_sem2");
-      String o2 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.class, 10000, connStr, "test_sem2");
+      String o1 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.class, 10000, connStr, "test_sem2").toString();
+      String o2 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.class, 10000, connStr, "test_sem2").toString();
       Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS));
       Assert.assertFalse(semaphore.tryAcquire(10, TimeUnit.SECONDS));
       System.out.println("P1:");
