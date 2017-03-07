@@ -116,7 +116,8 @@ public final class OpenFilesSampler {
 
   @JmxExport
   public static String getLsof() throws IOException, InterruptedException, ExecutionException, TimeoutException {
-    return Runtime.getLsofOutput().toString();
+    CharSequence lsofOutput = Runtime.getLsofOutput();
+    return lsofOutput == null ? "unable to obtain lsof" : lsofOutput.toString();
   }
 
   @JmxExport
