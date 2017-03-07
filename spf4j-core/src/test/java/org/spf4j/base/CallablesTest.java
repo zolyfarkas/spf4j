@@ -19,13 +19,13 @@ package org.spf4j.base;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.net.SocketException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.Callables.Action;
 import org.spf4j.base.Callables.AdvancedAction;
 import org.spf4j.base.Callables.AdvancedRetryPredicate;
 import org.spf4j.base.Callables.TimeoutCallable;
-import org.spf4j.base.Callables.TimeoutRetryPredicate;
 
 /**
  *
@@ -76,7 +76,7 @@ public final class CallablesTest {
       public Integer call(final long deadline) throws IOException {
         count++;
         if (count < 20) {
-          throw new IOException("Aaaaaaaaaaa" + count);
+          throw new SocketException("Aaaaaaaaaaa" + count);
         }
 
         return 1;
@@ -95,7 +95,7 @@ public final class CallablesTest {
 
         @Override
         public Integer call(final long deadline) throws IOException {
-          throw new IOException("Aaaaaaaaaaa " + System.currentTimeMillis());
+          throw new SocketException("Aaaaaaaaaaa " + System.currentTimeMillis());
         }
       }, 4, 100);
       Assert.fail("Should not get here");
@@ -118,7 +118,7 @@ public final class CallablesTest {
       public Integer call(final long deadline) throws IOException {
         count++;
         if (count < 15) {
-          throw new IOException("Aaaaaaaaaaa" + count);
+          throw new SocketException("Aaaaaaaaaaa" + count);
         }
 
         return 1;
@@ -150,7 +150,7 @@ public final class CallablesTest {
         Thread.sleep(2000);
         count++;
         if (count < 5) {
-          throw new IOException("Aaaaaaaaaaa" + count);
+          throw new SocketException("Aaaaaaaaaaa" + count);
         }
         return 1;
       }
@@ -168,7 +168,7 @@ public final class CallablesTest {
         System.out.println("Exec at " + System.currentTimeMillis());
         count++;
         if (count < 200) {
-          throw new IOException("Aaaaaaaaaaa" + count);
+          throw new SocketException("Aaaaaaaaaaa" + count);
         }
         return 1;
       }
