@@ -46,6 +46,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
@@ -282,6 +283,9 @@ public final class Runtime {
                     }
                 }
             }
+            if (lsofFile == null) {
+              Lazy.LOGGER.warn("lsof unavailable on this system");
+            }
             LSOF = lsofFile;
         }
 
@@ -352,12 +356,9 @@ public final class Runtime {
    * get the number of open files by current java process.
    *
    * @return -1 if cannot get nr of open files
-   * @throws IOException - IO exception while accessing procfs.
-   * @throws InterruptedException - interrupted.
-   * @throws ExecutionException - execution exception while invoking lsof.
-   * @throws java.util.concurrent.TimeoutException - timeout while obtaining info.
    */
-  public static int getNrOpenFiles() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+  @CheckReturnValue
+  public static int getNrOpenFiles() {
     try {
       if (isMacOsx()) {
         if (Lsof.LSOF == null) {
@@ -386,18 +387,33 @@ public final class Runtime {
       if (msg != null && msg.contains("Too many open files")) {
         return MAX_NR_OPENFILES;
       } else {
-        throw ex;
+        Lazy.LOGGER.warn("Unable to get nr of open files", ex);
+        return -1;
       }
+    } catch (ExecutionException | TimeoutException ex) {
+        Lazy.LOGGER.warn("Unable to get nr of open files", ex);
+        return -1;
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      return -1;
     }
   }
 
     @Nullable
-    public static CharSequence getLsofOutput()
-            throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    @CheckReturnValue
+    public static CharSequence getLsofOutput() {
         if (LSOF == null) {
             return null;
         }
+      try {
         return run(LSOF_CMD, 60000);
+      } catch (IOException | ExecutionException | TimeoutException ex) {
+         Lazy.LOGGER.warn("Unable to run lsof", ex);
+         return null;
+      } catch (InterruptedException ex) {
+         Thread.currentThread().interrupt();
+         return null;
+      }
     }
 
     public interface ProcOutputHandler {

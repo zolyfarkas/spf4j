@@ -42,7 +42,7 @@ public final class RuntimeTest {
      * Test of goDownWithError method, of class Runtime.
      */
     @Test
-    public void testSomeParams() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    public void testSomeParams() {
         System.out.println("PID=" + Runtime.PID);
         System.out.println("OSNAME=" + Runtime.OS_NAME);
         int nrOpenFiles = Runtime.getNrOpenFiles();
