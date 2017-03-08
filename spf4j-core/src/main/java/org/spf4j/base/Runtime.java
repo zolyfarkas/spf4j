@@ -46,6 +46,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import org.joda.time.format.ISODateTimeFormat;
@@ -335,11 +336,16 @@ public final class Runtime {
             }
             int mfiles;
             try {
-                String result = Runtime.run(Arrays.concat(ULIMIT_CMD, options), 10000).toString();
+                String[] cmd = Arrays.concat(ULIMIT_CMD, options);
+                String result = Runtime.run(cmd, 10000).toString();
                 if (result.contains("unlimited")) {
                     mfiles = Integer.MAX_VALUE;
                 } else {
-                    mfiles = Integer.parseInt(result.trim());
+                    try {
+                      mfiles = Integer.parseInt(result.trim());
+                    } catch (NumberFormatException ex) {
+                      throw new RuntimeException("Invalid value returned by " + java.util.Arrays.toString(cmd), ex);
+                    }
                 }
             } catch (TimeoutException | IOException | InterruptedException | ExecutionException ex) {
                 Lazy.LOGGER.error("Error while running ulimit, assuming no limit", ex);
@@ -616,7 +622,7 @@ public final class Runtime {
         }
 
         public CharSequence getStdOut() {
-            return stdoutCharseq;
+          return stdoutCharseq;
         }
 
         public CharSequence getStdErr() {
@@ -634,10 +640,20 @@ public final class Runtime {
 
         @Override
         public void stdOutDone() {
+          try {
+            stdout.close();
+          } catch (IOException ex) {
+             throw new RuntimeException(ex);
+          }
         }
 
         @Override
         public void stdErrDone() {
+          try {
+            stderr.close();
+          } catch (IOException ex) {
+             throw new RuntimeException(ex);
+          }
         }
     }
 
