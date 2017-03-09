@@ -329,6 +329,11 @@ public final class Runtime {
             MAX_NR_OPENFILES = mfiles;
         }
 
+        /**
+         * @param options
+         * @return number of max open files for the current process.
+         * If unable to find out System Max Limit this value will be Integer.MAX_VALUE
+         */
         public static int runUlimit(final String ... options) {
             if (ULIMIT_CMD == null) {
                 throw new RuntimeException("Ulimit not available on " + Runtime.OS_NAME);
@@ -355,6 +360,10 @@ public final class Runtime {
 
     }
 
+  /**
+   * maximum number of open files for this process.
+   * If unable to find out System Max Limit this value will be Integer.MAX_VALUE
+   */
   public static final int MAX_NR_OPENFILES = Ulimit.MAX_NR_OPENFILES;
 
   /**
