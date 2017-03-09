@@ -361,12 +361,6 @@ public final class Runtime {
     }
 
   /**
-   * maximum number of open files for this process.
-   * If unable to find out System Max Limit this value will be Integer.MAX_VALUE
-   */
-  public static final int MAX_NR_OPENFILES = Ulimit.MAX_NR_OPENFILES;
-
-  /**
    * get the number of open files by current java process.
    *
    * @return -1 if cannot get nr of open files
@@ -399,7 +393,7 @@ public final class Runtime {
     } catch (IOException ex) {
       String msg = ex.getMessage();
       if (msg != null && msg.contains("Too many open files")) {
-        return MAX_NR_OPENFILES;
+        return Ulimit.MAX_NR_OPENFILES;
       } else {
         Lazy.LOGGER.warn("Unable to get nr of open files", ex);
         return -1;

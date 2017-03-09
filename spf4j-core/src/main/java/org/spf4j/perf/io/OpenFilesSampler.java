@@ -63,15 +63,15 @@ public final class OpenFilesSampler {
   }
 
   public static void start(final long sampleTimeMillis) {
-    start(sampleTimeMillis, Runtime.MAX_NR_OPENFILES - Runtime.MAX_NR_OPENFILES / 10,
-            Runtime.MAX_NR_OPENFILES, true);
+    start(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
+            Runtime.Ulimit.MAX_NR_OPENFILES, true);
   }
 
   @JmxExport
   public static void start(@JmxExport("sampleTimeMillis") final long sampleTimeMillis,
           @JmxExport("shutdownOnError") final boolean shutdownOnError) {
-    start(sampleTimeMillis, Runtime.MAX_NR_OPENFILES - Runtime.MAX_NR_OPENFILES / 10,
-            Runtime.MAX_NR_OPENFILES, shutdownOnError);
+    start(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
+            Runtime.Ulimit.MAX_NR_OPENFILES, shutdownOnError);
   }
 
   @JmxExport
@@ -120,7 +120,7 @@ public final class OpenFilesSampler {
 
   @JmxExport
   public static int getMaxNrOpenFiles() {
-    return Runtime.MAX_NR_OPENFILES;
+    return Runtime.Ulimit.MAX_NR_OPENFILES;
   }
 
   @JmxExport
