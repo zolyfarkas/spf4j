@@ -35,7 +35,7 @@ public final class ThrowablesTest {
     /**
      * Test of chain method, of class ExceptionChain.
      */
-    @Test
+    @Test(timeout = 3000)
     public void testChain() {
         System.out.println("chain");
         Throwable t = new RuntimeException("", new SocketTimeoutException("Boo timeout"));
@@ -44,7 +44,8 @@ public final class ThrowablesTest {
         System.out.println(Throwables.toString(result));
         Assert.assertEquals(newRootCause, com.google.common.base.Throwables.getRootCause(result));
         Assert.assertEquals(3, com.google.common.base.Throwables.getCausalChain(result).size());
-
+        Throwable firstCause = Throwables.firstCause(t, (l) -> false);
+        Assert.assertNull(firstCause);
     }
 
     @Test

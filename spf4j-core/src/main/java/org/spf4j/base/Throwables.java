@@ -575,7 +575,7 @@ public final class Throwables {
       if (predicate.test(t)) {
         return t;
       }
-      t = throwable.getCause();
+      t = t.getCause();
     } while (t != null);
     return null;
   }
