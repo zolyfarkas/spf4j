@@ -626,10 +626,20 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
       }
     }
 
+   private static final StackTraceElement[] EMPTY_STACK_TRACE
+        = new StackTraceElement[0];
+
+
     @Override
     public String toString() {
+      StackTraceElement[] stackTrace;
+      try {
+        stackTrace = this.getStackTrace();
+      } catch (RuntimeException ex) {
+        stackTrace = EMPTY_STACK_TRACE;
+      }
       return "QueuedThread{name = " + getName() + ", running=" + running + ", lastRunNanos="
-              + lastRunNanos + ", stack =" + Arrays.toString(this.getStackTrace())
+              + lastRunNanos + ", stack =" + Arrays.toString(stackTrace)
               + ", toRun = " + toRun + '}';
     }
 
