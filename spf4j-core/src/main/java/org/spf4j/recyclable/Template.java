@@ -32,25 +32,28 @@ public final class Template<T, E extends Exception> {
     private final int nrImmediateRetries;
     private final int retryWaitMillis;
     private final int timeout;
+    private final Class<E> exClass;
 
     public Template(final RecyclingSupplier<T> pool, final int nrImmediateRetries,
-             final int retryWaitMillis, final int timeoutMillis) {
+             final int retryWaitMillis, final int timeoutMillis, final Class<E> exClass) {
         this.pool = pool;
         this.nrImmediateRetries = nrImmediateRetries;
         this.retryWaitMillis = retryWaitMillis;
         this.timeout = timeoutMillis;
+        this.exClass = exClass;
     }
 
     public void doOnSupplied(final Handler<T, E> handler)
             throws InterruptedException, E {
-        doOnSupplied(handler, pool, nrImmediateRetries, retryWaitMillis, timeout);
+        doOnSupplied(handler, pool, nrImmediateRetries, retryWaitMillis, timeout, exClass);
     }
 
     public static  <T, E extends Exception> void doOnSupplied(final Handler<T, E> handler,
             final RecyclingSupplier<T> pool, final int nrImmediateRetries,
-             final int retryWaitMillis, final int timeoutMillis) throws E, InterruptedException {
+             final int retryWaitMillis, final int timeoutMillis, final Class<E> exClass)
+            throws E, InterruptedException {
         Callables.executeWithRetry(new TimeoutCallable<Void, E>(timeoutMillis) {
-            
+
             @Override
             // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
             public Void call(final long deadline)
@@ -59,7 +62,7 @@ public final class Template<T, E extends Exception> {
                 Template.doOnSupplied(handler, pool, deadline);
                 return null;
             }
-        }, nrImmediateRetries, retryWaitMillis);
+        }, nrImmediateRetries, retryWaitMillis, exClass);
     }
 
     //findbugs does not know about supress in spf4j

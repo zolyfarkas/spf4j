@@ -41,7 +41,7 @@ public final class TestCallable implements Callable<Integer> {
     public Integer call() throws IOException, InterruptedException {
         Template.doOnSupplied((final ExpensiveTestObject object, final long deadline) -> {
           object.doStuff();
-        }, pool, 5, 1000, 60000);
+        }, pool, 5, 1000, 60000, IOException.class);
         return testNr;
     }
 

@@ -20,6 +20,7 @@ package org.spf4j.base;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.net.SocketException;
+import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.Callables.Action;
@@ -44,7 +45,17 @@ public final class CallablesTest {
       public Integer call(final long deadline) throws TestException {
         throw new TestException();
       }
-    }, 3, 10);
+    }, 3, 10, TestException.class);
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void testExceptionPropagation2() throws InterruptedException {
+    Callables.executeWithRetry(new TimeoutCallable<Integer, RuntimeException>(60000) {
+      @Override
+      public Integer call(final long deadline) throws TimeoutException {
+        throw new TimeoutException();
+      }
+    }, 3, 10, RuntimeException.class);
   }
 
   /**
@@ -58,7 +69,7 @@ public final class CallablesTest {
       public Integer call(final long deadline) {
         return 1;
       }
-    }, 3, 10);
+    }, 3, 10, RuntimeException.class);
     Assert.assertEquals(1L, result.longValue());
   }
 
@@ -81,7 +92,7 @@ public final class CallablesTest {
 
         return 1;
       }
-    }, 1, 10);
+    }, 1, 10, IOException.class);
     long elapsedTime = System.currentTimeMillis() - startTime;
     Assert.assertEquals(1L, result.longValue());
     Assert.assertTrue("Operation has to take at least 10 ms", elapsedTime > 10L);
@@ -97,7 +108,7 @@ public final class CallablesTest {
         public Integer call(final long deadline) throws IOException {
           throw new SocketException("Aaaaaaaaaaa " + System.currentTimeMillis());
         }
-      }, 4, 100);
+      }, 4, 100, IOException.class);
       Assert.fail("Should not get here");
     } catch (IOException e) {
       Assert.assertTrue("must have supressed exceptions: "
@@ -133,7 +144,7 @@ public final class CallablesTest {
         }
         return AdvancedAction.RETRY;
       }
-    });
+    }, IOException.class);
     long elapsedTime = System.currentTimeMillis() - startTime;
     Assert.assertEquals(1L, result.longValue());
     Assert.assertTrue("Operation has to take at least 10 ms and not " + elapsedTime, elapsedTime > 10L);
@@ -154,7 +165,7 @@ public final class CallablesTest {
         }
         return 1;
       }
-    }, 1, 10);
+    }, 1, 10, IOException.class);
     Assert.assertEquals(1L, result.longValue());
   }
 
@@ -172,7 +183,7 @@ public final class CallablesTest {
         }
         return 1;
       }
-    }, 0, 100);
+    }, 0, 100, IOException.class);
     Assert.assertEquals(1L, result.longValue());
   }
 
@@ -183,7 +194,7 @@ public final class CallablesTest {
     System.out.println("executeWithRetry");
     final CallableImpl callableImpl = new CallableImpl(60000);
     try {
-      Callables.executeWithRetry(callableImpl, 3, 10);
+      Callables.executeWithRetry(callableImpl, 3, 10, Exception.class);
       Assert.fail("this should throw a exception");
     } catch (Exception e) {
       Assert.assertEquals(11, callableImpl.getCount());
@@ -196,7 +207,7 @@ public final class CallablesTest {
     final CallableImpl2 callableImpl = new CallableImpl2(60000);
     Callables.executeWithRetry(callableImpl, 2, 10,
             (final Integer t, final long deadline)
-                    -> t > 0 ? Action.RETRY : Action.ABORT, Callables.DEFAULT_EXCEPTION_RETRY);
+                    -> t > 0 ? Action.RETRY : Action.ABORT, Callables.DEFAULT_EXCEPTION_RETRY, Exception.class);
     Assert.assertEquals(4, callableImpl.getCount());
   }
 

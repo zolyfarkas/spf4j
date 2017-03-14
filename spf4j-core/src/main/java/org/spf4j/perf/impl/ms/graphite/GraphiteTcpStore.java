@@ -112,7 +112,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
             final long timeStampMillis, final long... measurements) throws IOException {
         try {
             Template.doOnSupplied(new HandlerImpl(measurements, Id2Info.getInfo(tableId), timeStampMillis),
-                    socketWriterSupplier, 3, 1000, 60000);
+                    socketWriterSupplier, 3, 1000, 60000, IOException.class);
         } catch (InterruptedException ex) {
             throw new RuntimeException(ex);
         }

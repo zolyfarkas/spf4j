@@ -57,7 +57,7 @@ public final class JdbcTemplate {
             }
           }
         }
-      }, 2, 1000);
+      }, 2, 1000, SQLException.class);
     } catch (TimeoutException ex) {
       throw new SQLTimeoutException(ex);
     }
@@ -96,7 +96,7 @@ public final class JdbcTemplate {
             }
           }
         }
-      }, 2, 1000);
+      }, 2, 1000, SQLException.class);
     } catch (TimeoutException ex) {
       throw new SQLTimeoutException(ex);
     }

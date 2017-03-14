@@ -81,7 +81,7 @@ public final class SntpClient {
                 return requestTime(hosts[hostIdx],
                         Math.min((int) (deadline - System.currentTimeMillis()), ntpResponseTimeout));
             }
-        }, 3, 1000);
+        }, 3, 1000, IOException.class);
     }
 
     /**

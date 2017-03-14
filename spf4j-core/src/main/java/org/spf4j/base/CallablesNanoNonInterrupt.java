@@ -54,19 +54,19 @@ public final class CallablesNanoNonInterrupt {
 
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
             final int nrImmediateRetries,
-            final long maxRetryWaitNanos)
+            final long maxRetryWaitNanos, final Class<EX> exceptionClass)
             throws EX, TimeoutException {
         return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,
-                TimeoutRetryPredicate.NORETRY_FOR_RESULT, DEFAULT_EXCEPTION_RETRY);
+                TimeoutRetryPredicate.NORETRY_FOR_RESULT, DEFAULT_EXCEPTION_RETRY, exceptionClass);
     }
 
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
             final int nrImmediateRetries,
             final long maxRetryWaitNanos,
-            final AdvancedRetryPredicate<Exception> retryOnException)
+            final AdvancedRetryPredicate<Exception> retryOnException, final Class<EX> exceptionClass)
             throws EX, TimeoutException {
         return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,
-                TimeoutRetryPredicate.NORETRY_FOR_RESULT, retryOnException);
+                TimeoutRetryPredicate.NORETRY_FOR_RESULT, retryOnException, exceptionClass);
     }
 
     /**
@@ -85,11 +85,11 @@ public final class CallablesNanoNonInterrupt {
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
             final int nrImmediateRetries, final long maxWaitNanos,
             final TimeoutRetryPredicate<? super T> retryOnReturnVal,
-            final AdvancedRetryPredicate<Exception> retryOnException)
+            final AdvancedRetryPredicate<Exception> retryOnException, final Class<EX> exceptionClass)
             throws EX, TimeoutException {
         return executeWithRetry(what, retryOnReturnVal,
                 new FibonacciBackoffRetryPredicate<>(retryOnException, nrImmediateRetries,
-                        maxWaitNanos / 100, maxWaitNanos, Callables.EX_TYPE_CLASS_MAPPER));
+                        maxWaitNanos / 100, maxWaitNanos, Callables.EX_TYPE_CLASS_MAPPER), exceptionClass);
     }
 
 
@@ -222,12 +222,12 @@ public final class CallablesNanoNonInterrupt {
 
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
             final TimeoutRetryPredicate<? super T> retryOnReturnVal,
-            final TimeoutRetryPredicate<Exception> retryOnException)
+            final TimeoutRetryPredicate<Exception> retryOnException, final Class<EX> exceptionClass)
             throws EX, TimeoutException {
         final long deadlineNanos = what.getDeadlineNanos();
         return executeWithRetry(what,
                 new TimeoutRetryPredicate2RetryPredicate<>(deadlineNanos, retryOnReturnVal),
-                new TimeoutRetryPredicate2RetryPredicate<>(deadlineNanos, retryOnException));
+                new TimeoutRetryPredicate2RetryPredicate<>(deadlineNanos, retryOnException), exceptionClass);
     }
 
 
@@ -329,17 +329,18 @@ public final class CallablesNanoNonInterrupt {
 
     public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
             final TimeoutDelayPredicate<T> retryOnReturnVal,
-            final TimeoutDelayPredicate<Exception> retryOnException)
+            final TimeoutDelayPredicate<Exception> retryOnException,
+            final Class<EX> exceptionClass)
             throws EX, TimeoutException {
         return executeWithRetry(what, new SmartRetryPredicate2TimeoutRetryPredicate<>(retryOnReturnVal),
-                new SmartRetryPredicate2TimeoutRetryPredicate<>(retryOnException));
+                new SmartRetryPredicate2TimeoutRetryPredicate<>(retryOnException), exceptionClass);
     }
 
    public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
-            final TimeoutDelayPredicate<Exception> retryOnException)
+            final TimeoutDelayPredicate<Exception> retryOnException, final Class<EX> exceptionClass)
             throws EX, TimeoutException {
         return (T) executeWithRetry(what, (TimeoutDelayPredicate<T>) TimeoutDelayPredicate.NORETRY_FOR_RESULT,
-                retryOnException);
+                retryOnException, exceptionClass);
     }
 
     public interface TimeoutRetryPredicate<T> {
@@ -389,25 +390,6 @@ public final class CallablesNanoNonInterrupt {
      */
     public abstract static class CheckedCallable<T, EX extends Exception> implements RetryCallable<T, EX> {
 
-        /**
-         * method to process result (after all retries exhausted).
-         * @param lastRet - the last return.
-         * @return - the value being returned.
-         */
-        //design for extension here is not quite right. This case is a case of a "default implementation"
-        //CHECKSTYLE:OFF
-        @Override
-        public  T lastReturn(final T lastRet) {
-            return lastRet;
-        }
-
-        @Override
-        public <EXX extends Exception> EXX lastException(EXX ex) throws EXX {
-            throw ex;
-        }
-        //CHECKSTYLE:ON
-
-
         @Override
         public abstract T call() throws EX,  TimeoutException;
 
@@ -423,7 +405,7 @@ public final class CallablesNanoNonInterrupt {
      * @param <T> - the type of the object returned by this callable.
      * @param <EX> - the exception type returned by this callable.
      */
-    public interface RetryCallable<T, EX extends Exception> extends CallablesNano.RetryCallable<T, EX> {
+    public interface RetryCallable<T, EX extends Exception> extends Callables.RetryCallable<T, EX> {
 
         /**
          * the method that is retried.
@@ -450,11 +432,12 @@ public final class CallablesNanoNonInterrupt {
      * @return the result of the retried callable if successful.
      * @throws EX - the exception thrown by callable.
      */
-    @SuppressFBWarnings("BC_UNCONFIRMED_CAST_OF_RETURN_VALUE")
+    @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE")
     public static <T, EX extends Exception, EX2 extends Exception> T executeWithRetry(
             final RetryCallable<T, EX> what,
             final RetryPredicate<? super T, EX2> retryOnReturnVal,
-            final RetryPredicate<Exception, EX2> retryOnException)
+            final RetryPredicate<Exception, EX2> retryOnException,
+            final Class<EX> exceptionClass)
             throws EX, EX2, TimeoutException {
         T result = null;
         Exception lastEx = null; // last exception
@@ -480,10 +463,16 @@ public final class CallablesNanoNonInterrupt {
             }
         }
         if (lastEx != null) {
-            if (lastExChain instanceof RuntimeException) {
-                throw what.lastException((RuntimeException) lastExChain);
+            Exception ett = what.lastException(lastExChain);
+            if (ett == null) {
+              return null;
+            }
+            if (ett instanceof RuntimeException) {
+                throw (RuntimeException) ett;
+            } else if (exceptionClass.isAssignableFrom(ett.getClass())) {
+                throw (EX) ett;
             } else {
-                throw what.lastException((EX) lastExChain);
+                throw new RuntimeException(ett);
             }
         }
         return what.lastReturn(result);

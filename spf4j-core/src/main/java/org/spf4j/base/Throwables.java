@@ -60,7 +60,7 @@ public final class Throwables {
   }
 
   public static final int MAX_THROWABLE_CHAIN
-          = Integer.getInteger("spf4j.throwables.defaultMaxSuppressChain", 200);
+          = Integer.getInteger("spf4j.throwables.defaultMaxSuppressChain", 100);
 
   private static final Field CAUSE_FIELD;
 

@@ -96,7 +96,7 @@ public final class ThrowablesTest {
         for (int i = 0; i < 500; i++) {
             exs = Throwables.suppress(new Exception("test"  + i), exs);
         }
-        Assert.assertEquals(200, Throwables.getNrRecursiveSuppressedExceptions(exs));
+        Assert.assertEquals(100, Throwables.getNrRecursiveSuppressedExceptions(exs));
     }
 
     @Test
