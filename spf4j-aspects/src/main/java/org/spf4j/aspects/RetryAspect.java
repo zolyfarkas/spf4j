@@ -35,7 +35,7 @@ import org.spf4j.base.Callables.TimeoutCallable;
 @Aspect
 public final class RetryAspect {
 
-    
+
     private static final ThreadLocal<Long> DEADLINE = new ThreadLocal<Long>() {
 
         @Override
@@ -44,12 +44,12 @@ public final class RetryAspect {
         }
 
     };
-    
-    
+
+
     public static long getDeadline() {
         return DEADLINE.get();
     }
-    
+
     @Around(value = "execution(@org.spf4j.annotations.Retry * *(..)) && @annotation(annot)",
             argNames = "pjp,annot")
     public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final Retry annot)
@@ -72,7 +72,7 @@ public final class RetryAspect {
             }
         }, annot.immediateRetries(), annot.retryDelayMillis(),
                 annot.exRetry() == VoidPredicate.class ? Callables.DEFAULT_EXCEPTION_RETRY
-                        : annot.exRetry().newInstance());
+                        : annot.exRetry().newInstance(), Exception.class);
 
     }
 }
