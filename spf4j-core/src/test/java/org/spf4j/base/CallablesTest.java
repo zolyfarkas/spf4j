@@ -23,7 +23,6 @@ import java.net.SocketException;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
-import org.spf4j.base.Callables.Action;
 import org.spf4j.base.Callables.AdvancedAction;
 import org.spf4j.base.Callables.AdvancedRetryPredicate;
 import org.spf4j.base.Callables.TimeoutCallable;
@@ -206,8 +205,9 @@ public final class CallablesTest {
     System.out.println("executeWithRetry");
     final CallableImpl2 callableImpl = new CallableImpl2(60000);
     Callables.executeWithRetry(callableImpl, 2, 10,
-            (final Integer t, final long deadline)
-                    -> t > 0 ? Action.RETRY : Action.ABORT, Callables.DEFAULT_EXCEPTION_RETRY, Exception.class);
+            (t, deadline, callable)
+                    -> t > 0 ? Callables.RetryDecision.retry(0, callable) : Callables.RetryDecision.abort(),
+            Callables.DEFAULT_EXCEPTION_RETRY, Exception.class);
     Assert.assertEquals(4, callableImpl.getCount());
   }
 

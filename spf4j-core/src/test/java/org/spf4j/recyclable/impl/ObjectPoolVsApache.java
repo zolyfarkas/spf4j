@@ -54,12 +54,12 @@ public final class ObjectPoolVsApache {
         BlockingQueue<Future<?>> completionQueue = new LinkedBlockingDeque<>();
         RetryExecutor exec
                 = new RetryExecutor(execService, (final Callable<Object> parameter)
-                        -> new Callables.DelayPredicate<Exception>() {
+                        -> new Callables.DelayPredicate<Exception, Object>() {
+          @Override
+          public Callables.RetryDecision<Object> getDecision(Exception value, Callable<Object> callable) {
+            return Callables.RetryDecision.retry(0, callable);
+          }
 
-                  @Override
-                  public int apply(final Exception value) {
-                    return 0;
-                  }
                 }, completionQueue);
         long zpooltime = testPool(exec, pool, completionQueue);
         long apooltime = testPoolApache(exec, apool, completionQueue);

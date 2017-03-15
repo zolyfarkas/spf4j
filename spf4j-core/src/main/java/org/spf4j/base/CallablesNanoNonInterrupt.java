@@ -18,17 +18,15 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.spf4j.base.Callables.Action;
-import org.spf4j.base.Callables.AdvancedAction;
 import org.spf4j.base.Callables.AdvancedRetryPredicate;
 import static org.spf4j.base.Callables.DEFAULT_EXCEPTION_RETRY;
+import org.spf4j.base.Callables.FibonacciBackoffRetryPredicate;
+import org.spf4j.base.Callables.TimeoutDelayPredicate;
+import org.spf4j.base.Callables.TimeoutDelayPredicate2DelayPredicate;
+import org.spf4j.base.CallablesNano.NanoTimeoutCallable;
+import org.spf4j.base.CallablesNano.TimeoutNanoDelayPredicate;
 
 /**
  * Utility class for executing stuff with retry logic.
@@ -43,30 +41,25 @@ public final class CallablesNanoNonInterrupt {
     private CallablesNanoNonInterrupt() {
     }
 
-    public static final RetryPredicate<?, RuntimeException> RETRY_FOR_NULL_RESULT =
-            new RetryPredicate<Object, RuntimeException>() {
-        @Override
-        public Action apply(final Object input) {
-            return (input != null) ? Action.ABORT : Action.RETRY;
-        }
-    };
 
-
-    public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
+    public static <T, EX extends Exception> T executeWithRetry(final NanoTimeoutCallable<T, EX> what,
             final int nrImmediateRetries,
             final long maxRetryWaitNanos, final Class<EX> exceptionClass)
-            throws EX, TimeoutException {
+            throws EX {
         return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,
-                TimeoutRetryPredicate.NORETRY_FOR_RESULT, DEFAULT_EXCEPTION_RETRY, exceptionClass);
+                (TimeoutNanoDelayPredicate<? super T, T>) TimeoutNanoDelayPredicate.NORETRY_FOR_RESULT,
+                DEFAULT_EXCEPTION_RETRY, exceptionClass);
     }
 
-    public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
+    public static <T, EX extends Exception> T executeWithRetry(final NanoTimeoutCallable<T, EX> what,
             final int nrImmediateRetries,
             final long maxRetryWaitNanos,
-            final AdvancedRetryPredicate<Exception> retryOnException, final Class<EX> exceptionClass)
-            throws EX, TimeoutException {
+            final AdvancedRetryPredicate<Exception> retryOnException,
+            final Class<EX> exceptionClass)
+            throws EX {
         return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,
-                TimeoutRetryPredicate.NORETRY_FOR_RESULT, retryOnException, exceptionClass);
+                (TimeoutNanoDelayPredicate<? super T, T>) TimeoutNanoDelayPredicate.NORETRY_FOR_RESULT,
+                retryOnException, exceptionClass);
     }
 
     /**
@@ -82,401 +75,47 @@ public final class CallablesNanoNonInterrupt {
      * @return the result of the callable.
      * @throws EX - the exception declared to be thrown by the callable.
      */
-    public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
+    public static <T, EX extends Exception> T executeWithRetry(final NanoTimeoutCallable<T, EX> what,
             final int nrImmediateRetries, final long maxWaitNanos,
-            final TimeoutRetryPredicate<? super T> retryOnReturnVal,
-            final AdvancedRetryPredicate<Exception> retryOnException, final Class<EX> exceptionClass)
-            throws EX, TimeoutException {
-        return executeWithRetry(what, retryOnReturnVal,
+            final TimeoutNanoDelayPredicate<? super T, T> retryOnReturnVal,
+            final AdvancedRetryPredicate<Exception> retryOnException,
+            final Class<EX> exceptionClass)
+            throws EX {
+      final long deadline = what.getDeadline();
+      try {
+        return Callables.executeWithRetry(what, new TimeoutDelayPredicate2DelayPredicate<>(deadline, retryOnReturnVal),
                 new FibonacciBackoffRetryPredicate<>(retryOnException, nrImmediateRetries,
-                        maxWaitNanos / 100, maxWaitNanos, Callables.EX_TYPE_CLASS_MAPPER), exceptionClass);
+                        maxWaitNanos / 100, maxWaitNanos, Callables::rootClass, deadline,
+                        () -> System.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);
+      } catch (InterruptedException ex) {
+       throw new RuntimeException(ex);
+      }
     }
 
-
-    private static final class RetryData {
-
-        private long immediateLeft;
-
-        private long p1;
-
-        private long p2;
-
-        private final long maxDelayNanos;
-
-        RetryData(final long immediateLeft, final long p1, final long maxDelayNanos) {
-            this.immediateLeft = immediateLeft;
-            if (p1 < 1) {
-                this.p1 = 0;
-                this.p2 = 1;
-            } else {
-                this.p1 = p1;
-                this.p2 = p1;
-            }
-            this.maxDelayNanos = maxDelayNanos;
-        }
-
-        long nextDelayNanos() {
-            if (immediateLeft > 0) {
-                immediateLeft--;
-                return 0;
-            } else if (p2 > maxDelayNanos) {
-                return maxDelayNanos;
-            } else {
-                long result = p2;
-                p2 = p1 + p2;
-                p1 = result;
-                return result;
-            }
-        }
-
-    }
-
-
-    public static final class FibonacciBackoffRetryPredicate<T> implements TimeoutRetryPredicate<T> {
-
-        private final IntMath.XorShift32 random;
-
-        private final AdvancedRetryPredicate<T> arp;
-
-        private final int nrImmediateRetries;
-
-        private final long maxWaitNanos;
-
-        private final long minWaitNanos;
-
-        private Map<Object, RetryData> retryRegistry;
-
-        private final Function<T, ?> mapper;
-
-        public FibonacciBackoffRetryPredicate(final AdvancedRetryPredicate<T> arp,
-                final int nrImmediateRetries, final long minWaitNanos, final long maxWaitNanos,
-                final Function<T, ?> mapper) {
-            this.arp = arp;
-            this.nrImmediateRetries = nrImmediateRetries;
-            this.maxWaitNanos = maxWaitNanos;
-            this.minWaitNanos = minWaitNanos;
-            retryRegistry = null;
-            this.mapper = mapper;
-            this.random = new IntMath.XorShift32();
-        }
-
-
-        @Override
-        @SuppressFBWarnings("MDM_THREAD_YIELD")
-        public Action apply(final T value, final long deadlineNanos) throws TimeoutException {
-            long currentTimeNanos = System.nanoTime();
-            if (currentTimeNanos > deadlineNanos) {
-                return Action.ABORT;
-            }
-            if (retryRegistry == null) {
-                retryRegistry = new HashMap<>();
-            }
-            AdvancedAction action = arp.apply(value, deadlineNanos);
-            switch (action) {
-                case ABORT:
-                    return Action.ABORT;
-                case RETRY_IMMEDIATE:
-                    return Action.RETRY;
-                case RETRY_DELAYED:
-                case RETRY:
-                    RetryData retryData = getRetryData(value, action);
-                    final long nextDelay = retryData.nextDelayNanos();
-                    long delayNanos = Math.min(nextDelay, deadlineNanos - currentTimeNanos);
-                    if (delayNanos > 0) {
-                        delayNanos = Math.abs(random.nextInt()) % delayNanos;
-                      try {
-                        Thread.sleep(TimeUnit.NANOSECONDS.toMillis(delayNanos));
-                      } catch (InterruptedException ex) {
-                        Thread.currentThread().interrupt();
-                      }
-                    }
-                    return Action.RETRY;
-                default:
-                    throw new RuntimeException("Unsupperted Retry Action " + action);
-
-            }
-        }
-
-        RetryData getRetryData(final T value, final AdvancedAction action) {
-            Object rootCauseClass = mapper.apply(value);
-            RetryData data = retryRegistry.get(rootCauseClass);
-            if (data == null) {
-                data  = createRetryData(action);
-                retryRegistry.put(rootCauseClass, data);
-            }
-            return data;
-        }
-
-        private RetryData createRetryData(final AdvancedAction action) {
-            if (action == AdvancedAction.RETRY_DELAYED) {
-                return new RetryData(0, minWaitNanos, maxWaitNanos);
-            } else {
-                return new RetryData(nrImmediateRetries, minWaitNanos, maxWaitNanos);
-            }
-        }
-
-
-    }
-
-
-
-    public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
-            final TimeoutRetryPredicate<? super T> retryOnReturnVal,
-            final TimeoutRetryPredicate<Exception> retryOnException, final Class<EX> exceptionClass)
-            throws EX, TimeoutException {
-        final long deadlineNanos = what.getDeadlineNanos();
-        return executeWithRetry(what,
-                new TimeoutRetryPredicate2RetryPredicate<>(deadlineNanos, retryOnReturnVal),
-                new TimeoutRetryPredicate2RetryPredicate<>(deadlineNanos, retryOnException), exceptionClass);
-    }
-
-
-    public abstract static class TimeoutCallable<T, EX extends Exception> extends CheckedCallable<T, EX> {
-
-        private final long mdeadlineNanos;
-
-        public TimeoutCallable(final long timeoutNanos) {
-            mdeadlineNanos = System.nanoTime() + timeoutNanos;
-        }
-
-        @Override
-        public final T call() throws EX, TimeoutException {
-            return call(mdeadlineNanos);
-        }
-
-        public abstract T call(long deadlinenanos) throws EX, TimeoutException;
-
-        public final long getDeadlineNanos() {
-            return mdeadlineNanos;
-        }
-
-    }
-
-
-    public interface DelayPredicate<T> {
-        /**
-         * the number or millis of delay until the next retry, or -1 for abort.
-         * @param value
-         * @return
-         */
-        int apply(T value);
-
-        DelayPredicate<Object> NORETRY_DELAY_PREDICATE = new DelayPredicate<Object>() {
-
-            @Override
-            public int apply(final Object value) {
-                return -1;
-            }
-
-        };
-    }
-
-
-    public interface TimeoutDelayPredicate<T>  {
-
-        /**
-         *
-         * @param value - the value to apply the predicate for.
-         * @param deadlineNanos - Deadline in nanos, relative to System.nanotime().
-         * @return the number or nanos of delay until the next retry, or -1 for abort.
-         */
-         long apply(T value, long deadlineNanos);
-
-
-         TimeoutDelayPredicate<Object> NORETRY_FOR_RESULT = new TimeoutDelayPredicate<Object>() {
-
-            @Override
-            public long apply(final Object value, final long deadlineNanos) {
-                return -1;
-            }
-
-        };
-
-
-    }
-
-    public static final class SmartRetryPredicate2TimeoutRetryPredicate<T>
-    implements TimeoutRetryPredicate<T> {
-
-        private final TimeoutDelayPredicate predicate;
-
-        public SmartRetryPredicate2TimeoutRetryPredicate(final TimeoutDelayPredicate<T> predicate) {
-            this.predicate = predicate;
-        }
-
-
-
-        @Override
-        @SuppressFBWarnings("MDM_THREAD_YIELD")
-        public Action apply(final T value, final long deadlineNanos) {
-            long apply = predicate.apply(value, deadlineNanos);
-            if (apply < 0) {
-                return Action.ABORT;
-            } else if (apply == 0) {
-                return Action.RETRY;
-            } else {
-              try {
-                Thread.sleep(TimeUnit.NANOSECONDS.toMillis(apply));
-              } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-              }
-                return Action.RETRY;
-            }
-        }
-
-    }
-
-
-    public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
-            final TimeoutDelayPredicate<T> retryOnReturnVal,
-            final TimeoutDelayPredicate<Exception> retryOnException,
+    public static <T, EX extends Exception> T executeWithRetry(final NanoTimeoutCallable<T, EX> what,
+            final TimeoutNanoDelayPredicate<T, T> retryOnReturnVal,
+            final TimeoutNanoDelayPredicate<Exception, T> retryOnException,
             final Class<EX> exceptionClass)
-            throws EX, TimeoutException {
-        return executeWithRetry(what, new SmartRetryPredicate2TimeoutRetryPredicate<>(retryOnReturnVal),
-                new SmartRetryPredicate2TimeoutRetryPredicate<>(retryOnException), exceptionClass);
+            throws EX {
+      try {
+        return Callables.executeWithRetry(what, retryOnReturnVal, retryOnException, exceptionClass);
+      } catch (InterruptedException ex) {
+        throw new RuntimeException(ex);
+      }
     }
 
-   public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
-            final TimeoutDelayPredicate<Exception> retryOnException, final Class<EX> exceptionClass)
-            throws EX, TimeoutException {
-        return (T) executeWithRetry(what, (TimeoutDelayPredicate<T>) TimeoutDelayPredicate.NORETRY_FOR_RESULT,
+   public static <T, EX extends Exception> T executeWithRetry(final NanoTimeoutCallable<T, EX> what,
+            final TimeoutNanoDelayPredicate<Exception, T> retryOnException, final Class<EX> exceptionClass)
+            throws EX {
+      try {
+        return Callables.executeWithRetry(what,
+                (TimeoutDelayPredicate<T, T>) TimeoutDelayPredicate.NORETRY_FOR_RESULT,
                 retryOnException, exceptionClass);
+      } catch (InterruptedException ex) {
+        throw new RuntimeException(ex);
+      }
     }
 
-    public interface TimeoutRetryPredicate<T> {
-
-        Action apply(T value, long deadlineNanos)
-                throws TimeoutException;
-
-        TimeoutRetryPredicate<Object> NORETRY_FOR_RESULT = new TimeoutRetryPredicate<Object>() {
-
-            @Override
-            public Action apply(final Object value, final long deadlineNanos) {
-                return Action.ABORT;
-            }
-
-        };
-
-    }
-
-    public static final class TimeoutRetryPredicate2RetryPredicate<T> implements RetryPredicate<T, TimeoutException> {
-
-        private final long deadlineNanos;
-
-        private final TimeoutRetryPredicate<T> predicate;
-
-        public TimeoutRetryPredicate2RetryPredicate(final long deadlineNanos,
-                final TimeoutRetryPredicate<T> predicate) {
-            this.deadlineNanos = deadlineNanos;
-            this.predicate = predicate;
-        }
-
-
-
-        @Override
-        @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
-        public Action apply(final T value) throws TimeoutException {
-           return predicate.apply(value, deadlineNanos);
-        }
-
-
-    }
-
-
-    /**
-     * A callable that will be retried.
-     * @param <T> - The type returned by  Callable.
-     * @param <EX> - The type of exception thrown by call.
-     */
-    public abstract static class CheckedCallable<T, EX extends Exception> implements RetryCallable<T, EX> {
-
-        @Override
-        public abstract T call() throws EX,  TimeoutException;
-
-    }
-
-    public interface RetryPredicate<T, EX extends Exception> {
-
-        Action apply(T value) throws EX;
-    }
-
-    /**
-     * A callable that will be retried.
-     * @param <T> - the type of the object returned by this callable.
-     * @param <EX> - the exception type returned by this callable.
-     */
-    public interface RetryCallable<T, EX extends Exception> extends Callables.RetryCallable<T, EX> {
-
-        /**
-         * the method that is retried.
-         * @return
-         * @throws EX
-         * @throws InterruptedException
-         * @throws java.util.concurrent.TimeoutException
-         */
-        @Override
-        T call() throws EX, TimeoutException;
-
-    }
-
-    /**
-     * Naive implementation of execution with retry logic. a callable will be executed and retry attempted in current
-     * thread if the result and exception predicates. before retry, a callable can be executed that can abort the retry
-     * and finish the function with the previous result.
-     *
-     * @param <T> - The type of callable to retry result;
-     * @param <EX> - the exception thrown by the callable to retry.
-     * @param what - the callable to retry.
-     * @param retryOnReturnVal - the predicate to control retry on return value.
-     * @param retryOnException - the predicate to return on retry value.
-     * @return the result of the retried callable if successful.
-     * @throws EX - the exception thrown by callable.
-     */
-    @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE")
-    public static <T, EX extends Exception, EX2 extends Exception> T executeWithRetry(
-            final RetryCallable<T, EX> what,
-            final RetryPredicate<? super T, EX2> retryOnReturnVal,
-            final RetryPredicate<Exception, EX2> retryOnException,
-            final Class<EX> exceptionClass)
-            throws EX, EX2, TimeoutException {
-        T result = null;
-        Exception lastEx = null; // last exception
-        try {
-            result = what.call();
-        } catch (Exception e) { // only EX and RuntimeException
-            lastEx = e;
-        }
-        Exception lastExChain = lastEx; // last exception chained with all previous exceptions
-        while ((lastEx != null && retryOnException.apply(lastEx) == Action.RETRY)
-                || retryOnReturnVal.apply(result) == Action.RETRY) {
-            result = null;
-            lastEx = null;
-            try {
-                result = what.call();
-            } catch (Exception e) { // only EX and RuntimeException
-                lastEx = e;
-                if (lastExChain != null) {
-                    lastExChain = Throwables.suppress(e, lastExChain);
-                } else {
-                    lastExChain = e;
-                }
-            }
-        }
-        if (lastEx != null) {
-            Exception ett = what.lastException(lastExChain);
-            if (ett == null) {
-              return null;
-            }
-            if (ett instanceof RuntimeException) {
-                throw (RuntimeException) ett;
-            } else if (exceptionClass.isAssignableFrom(ett.getClass())) {
-                throw (EX) ett;
-            } else {
-                throw new RuntimeException(ett);
-            }
-        }
-        return what.lastReturn(result);
-    }
 
 
 }

@@ -197,12 +197,11 @@ public final class ObjectPoolBuilderTest {
                 5000, 1024, true);
         BlockingQueue<Future<?>> completionQueue = new LinkedBlockingDeque<>();
         RetryExecutor exec = new RetryExecutor(execService, (final Callable<Object> parameter)
-                        -> new Callables.DelayPredicate<Exception>() {
-
-                  @Override
-                  public int apply(final Exception value) {
-                    return 0;
-                  }
+                        -> new Callables.DelayPredicate<Exception, Object>() {
+          @Override
+          public Callables.RetryDecision<Object> getDecision(Exception value, Callable<Object> callable) {
+            return Callables.RetryDecision.retry(0, callable);
+          }
                 }, completionQueue);
         int nrTests = 1000;
         for (int i = 0; i < nrTests; i++) {

@@ -4,9 +4,7 @@ import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.SQLTimeoutException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import javax.sql.DataSource;
 import org.spf4j.base.CallablesNano;
 import org.spf4j.base.CallablesNanoNonInterrupt;
@@ -30,8 +28,8 @@ public final class JdbcTemplate {
   public <R> R transactOnConnection(final HandlerNano<Connection, R, SQLException> handler,
           final long timeout, final TimeUnit tu)
           throws SQLException, InterruptedException {
-    try {
-      return CallablesNano.executeWithRetry(new CallablesNano.TimeoutCallable<R, SQLException>(tu.toNanos(timeout)) {
+      return CallablesNano.executeWithRetry(
+              new CallablesNano.NanoTimeoutCallable<R, SQLException>(tu.toNanos(timeout)) {
 
         @Override
         // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
@@ -58,9 +56,6 @@ public final class JdbcTemplate {
           }
         }
       }, 2, 1000, SQLException.class);
-    } catch (TimeoutException ex) {
-      throw new SQLTimeoutException(ex);
-    }
 
   }
 
@@ -68,9 +63,8 @@ public final class JdbcTemplate {
   public <R> R transactOnConnectionNonInterrupt(final HandlerNano<Connection, R, SQLException> handler,
           final long timeout, final TimeUnit tu)
           throws SQLException {
-    try {
       return CallablesNanoNonInterrupt.executeWithRetry(
-              new CallablesNanoNonInterrupt.TimeoutCallable<R, SQLException>(tu.toNanos(timeout)) {
+              new CallablesNano.NanoTimeoutCallable<R, SQLException>(tu.toNanos(timeout)) {
 
         @Override
         // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
@@ -97,10 +91,6 @@ public final class JdbcTemplate {
           }
         }
       }, 2, 1000, SQLException.class);
-    } catch (TimeoutException ex) {
-      throw new SQLTimeoutException(ex);
-    }
-
   }
 
   @Override
