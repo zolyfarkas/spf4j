@@ -305,7 +305,7 @@ public final class Callables {
             new TimeoutDelayPredicate2DelayPredicate<>(deadline, retryOnException), exceptionClass);
   }
 
-  public abstract static class TimeoutCallable<T, EX extends Exception> implements RetryCallable<T, EX> {
+  public abstract static class TimeoutCallable<T, EX extends Exception> implements CheckedCallable<T, EX> {
 
     private final long mdeadline;
 
@@ -482,7 +482,7 @@ public final class Callables {
    * @param <T> - the type of the object returned by this callable.
    * @param <EX> - the exception type returned by this callable.
    */
-  public interface RetryCallable<T, EX extends Exception> extends Callable<T> {
+  public interface CheckedCallable<T, EX extends Exception> extends Callable<T> {
 
     /**
      * the method that is retried.
@@ -523,7 +523,7 @@ public final class Callables {
    */
   @SuppressFBWarnings({ "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", "MDM_THREAD_YIELD" })
   public static <T, EX extends Exception> T executeWithRetry(
-          final RetryCallable<T, EX> pwhat,
+          final CheckedCallable<T, EX> pwhat,
           final RetryPredicate<? super T, T> retryOnReturnVal,
           final RetryPredicate<Exception, T> retryOnException,
           final Class<EX> exceptionClass)
