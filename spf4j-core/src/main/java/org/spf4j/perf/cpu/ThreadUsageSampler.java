@@ -68,16 +68,17 @@ public final class ThreadUsageSampler {
 
     @JmxExport
     public static String getCurrentAliveThreadInfo() {
-        StringBuilder sb = new StringBuilder(1024);
+        StringBuilder sb = new StringBuilder(2048);
         Thread[] threads = FastStackCollector.getThreads();
         StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(threads);
         for (int i = 0; i < threads.length; i++) {
             Thread t = threads[i];
             if (t.isAlive()) {
-                sb.append(t.getName());
-                sb.append(", daemon =");
-                sb.append(t.isDaemon());
-                sb.append(',');
+                sb.append(t.getId());
+                sb.append(",\t").append(t.getName());
+                sb.append(",\t state =").append(t.getState());
+                sb.append(",\t daemon =").append(t.isDaemon());
+                sb.append(",\t");
                 StackTraceElement[] straces = stackTraces[i];
                 if (straces != null && straces.length > 0) {
                     sb.append(' ');
