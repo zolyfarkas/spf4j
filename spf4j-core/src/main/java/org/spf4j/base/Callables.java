@@ -100,6 +100,16 @@ public final class Callables {
             DEFAULT_EXCEPTION_RETRY, exceptionClass);
   }
 
+  public static <T> T executeWithRetry(final TimeoutCallable<T, RuntimeException> what,
+          final int nrImmediateRetries, final int maxRetryWaitMillis)
+          throws InterruptedException {
+    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,
+            (TimeoutRetryPredicate<? super T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
+            DEFAULT_EXCEPTION_RETRY, RuntimeException.class);
+  }
+
+
+
   public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
           final int nrImmediateRetries,
           final int maxRetryWaitMillis,
@@ -109,6 +119,15 @@ public final class Callables {
     return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,
             (TimeoutRetryPredicate<? super T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, exceptionClass);
+  }
+
+  public static <T> T executeWithRetry(final TimeoutCallable<T, RuntimeException> what,
+          final int nrImmediateRetries, final int maxRetryWaitMillis,
+          final AdvancedRetryPredicate<Exception> retryOnException)
+          throws InterruptedException {
+    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,
+            (TimeoutRetryPredicate<? super T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
+            retryOnException, RuntimeException.class);
   }
 
   /**
