@@ -44,7 +44,12 @@ public final class IntMath {
     @NotThreadSafe
     public static final class XorShift32 implements IntSequence {
         // XorShift128 PRNG with a 2^32-1 period.
-        private int x = System.identityHashCode(this);
+        private int x = (int) System.currentTimeMillis();
+        {
+          while (x == 0) {
+            x = (int) System.currentTimeMillis();
+          }
+        }
 
         @Override
         public int nextInt() {

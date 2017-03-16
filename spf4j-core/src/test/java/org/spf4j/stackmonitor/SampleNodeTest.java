@@ -6,8 +6,10 @@ package org.spf4j.stackmonitor;
 
 import org.spf4j.base.Method;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.base.IntMath;
 
 /**
  *
@@ -16,6 +18,15 @@ import org.junit.Test;
 public final class SampleNodeTest {
 
     public SampleNodeTest() {
+    }
+
+
+    @Test
+    public void testMod() {
+      IntMath.XorShift32 random = new IntMath.XorShift32();
+      for (int i = 0; i < 100; i++) {
+        Assert.assertThat(10 + (random.nextInt() % 5), Matchers.greaterThan(4));
+      }
     }
 
     @Test

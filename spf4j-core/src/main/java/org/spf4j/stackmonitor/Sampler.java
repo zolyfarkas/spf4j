@@ -91,6 +91,9 @@ public final class Sampler {
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final StackCollector collector,
           final String dumpFolder, final String dumpFilePrefix) {
     stopped = true;
+    if (sampleTimeMillis < 1) {
+      throw new IllegalArgumentException("Invalid sample time " + sampleTimeMillis);
+    }
     this.sampleTimeMillis = sampleTimeMillis;
     this.dumpTimeMillis = dumpTimeMillis;
     this.stackCollector = collector;
@@ -128,6 +131,7 @@ public final class Sampler {
           boolean lstopped = stopped;
           long prevGcTime = 0;
           int sleepTime = 0;
+          int halfStMillis = stMillis / 2;
           while (!lstopped) {
             stackCollector.sample(samplerThread);
             dumpCounterMs += sleepTime;
@@ -153,7 +157,7 @@ public final class Sampler {
                 dumpCounterMs -= dumpTimeMillis - timeSinceLastDump;
               }
             }
-            sleepTime = stMillis + (random.nextInt() % stMillis);
+            sleepTime = stMillis + (random.nextInt() % halfStMillis);
             Thread.sleep(sleepTime);
           }
         }
