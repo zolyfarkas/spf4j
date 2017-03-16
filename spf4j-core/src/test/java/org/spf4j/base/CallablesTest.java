@@ -118,6 +118,7 @@ public final class CallablesTest {
   }
 
   @Test
+  @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
   public void testSuppression() throws InterruptedException, IOException  {
     System.out.println("executeWithRetry");
     long startTime = System.currentTimeMillis();

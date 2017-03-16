@@ -49,10 +49,10 @@ public class RetryExecutor {
    */
   private final DelayQueue<FailedExecutionResult> executionEvents = new DelayQueue<>();
   private final
-          ParameterizedSupplier<Callables.DelayPredicate<Object, Object>, Callable<?>>
+          ParameterizedSupplier<Callables.RetryPredicate<Object, Object>, Callable<?>>
           resultRetryPredicateSupplier;
   private final
-          ParameterizedSupplier<Callables.DelayPredicate<Exception, Object>, Callable<?>>
+          ParameterizedSupplier<Callables.RetryPredicate<Exception, Object>, Callable<?>>
           exceptionRetryPredicateSupplier;
   private volatile RetryManager retryManager;
   private Future<?> retryManagerFuture;
@@ -149,24 +149,24 @@ public class RetryExecutor {
     @Nullable
     private final FutureBean<T> future;
     private volatile FailedExecutionResult previousResult;
-    private final Callables.DelayPredicate<Object, T> resultRetryPredicate;
-    private final Callables.DelayPredicate<Exception, T> exceptionRetryPredicate;
+    private final Callables.RetryPredicate<Object, T> resultRetryPredicate;
+    private final Callables.RetryPredicate<Exception, T> exceptionRetryPredicate;
 
     RetryableCallable(final Callable<T> callable, @Nullable final FutureBean<T> future,
             final FailedExecutionResult previousResult,
-            final Callables.DelayPredicate<?, T> resultRetryPredicate,
-            final Callables.DelayPredicate<Exception, T> exceptionRetryPredicate) {
+            final Callables.RetryPredicate<?, T> resultRetryPredicate,
+            final Callables.RetryPredicate<Exception, T> exceptionRetryPredicate) {
       this.callable = callable;
       this.future = future;
       this.previousResult = previousResult;
-      this.resultRetryPredicate = (Callables.DelayPredicate<Object, T>) resultRetryPredicate;
+      this.resultRetryPredicate = (Callables.RetryPredicate<Object, T>) resultRetryPredicate;
       this.exceptionRetryPredicate = exceptionRetryPredicate;
     }
 
     RetryableCallable(final Runnable task, final Object result, @Nullable final FutureBean<T> future,
             @Nullable final FailedExecutionResult previousResult,
-            final Callables.DelayPredicate<?, T> resultRetryPredicate,
-            final Callables.DelayPredicate<Exception, T> exceptionRetryPredicate) {
+            final Callables.RetryPredicate<?, T> resultRetryPredicate,
+            final Callables.RetryPredicate<Exception, T> exceptionRetryPredicate) {
       this(new Callable() {
 
         @Override
@@ -277,17 +277,17 @@ public class RetryExecutor {
   }
 
   public static final
-          ParameterizedSupplier<Callables.DelayPredicate<Object, Object>, Callable<Object>> NO_RETRY_SUPPLIER
-          = new ParameterizedSupplier<Callables.DelayPredicate<Object, Object>, Callable<Object>>() {
+          ParameterizedSupplier<Callables.RetryPredicate<Object, Object>, Callable<Object>> NO_RETRY_SUPPLIER
+          = new ParameterizedSupplier<Callables.RetryPredicate<Object, Object>, Callable<Object>>() {
 
     @Override
-    public Callables.DelayPredicate<Object, Object> get(final Callable<Object> parameter) {
-      return Callables.DelayPredicate.NORETRY_DELAY_PREDICATE;
+    public Callables.RetryPredicate<Object, Object> get(final Callable<Object> parameter) {
+      return Callables.RetryPredicate.NORETRY_DELAY_PREDICATE;
     }
   };
 
   public RetryExecutor(final ExecutorService exec,
-          final ParameterizedSupplier<Callables.DelayPredicate<Exception, Object>,
+          final ParameterizedSupplier<Callables.RetryPredicate<Exception, Object>,
                   Callable<Object>> exceptionRetryPredicateSupplier,
           @Nullable final BlockingQueue<Future<?>> completionQueue) {
     this(exec, (ParameterizedSupplier) NO_RETRY_SUPPLIER,
@@ -295,9 +295,9 @@ public class RetryExecutor {
   }
 
   public RetryExecutor(final ExecutorService exec,
-          final ParameterizedSupplier<Callables.DelayPredicate<Object, Object>,
+          final ParameterizedSupplier<Callables.RetryPredicate<Object, Object>,
                   Callable<?>> resultRetryPredicateSupplier,
-          final ParameterizedSupplier<Callables.DelayPredicate<Exception, Object>,
+          final ParameterizedSupplier<Callables.RetryPredicate<Exception, Object>,
                   Callable<?>> exceptionRetryPredicateSupplier,
           @Nullable final BlockingQueue<Future<?>> completionQueue) {
     executionService = exec;

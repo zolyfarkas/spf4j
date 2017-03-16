@@ -96,7 +96,7 @@ public final class Callables {
           final int maxRetryWaitMillis, final Class<EX> exceptionClass)
           throws InterruptedException, EX {
     return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,
-            (TimeoutDelayPredicate<? super T, T>) TimeoutDelayPredicate.NORETRY_FOR_RESULT,
+            (TimeoutRetryPredicate<? super T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             DEFAULT_EXCEPTION_RETRY, exceptionClass);
   }
 
@@ -107,7 +107,7 @@ public final class Callables {
           final Class<EX> exceptionClass)
           throws InterruptedException, EX {
     return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,
-            (TimeoutDelayPredicate<? super T, T>) TimeoutDelayPredicate.NORETRY_FOR_RESULT,
+            (TimeoutRetryPredicate<? super T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, exceptionClass);
   }
 
@@ -128,7 +128,7 @@ public final class Callables {
    */
   public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
           final int nrImmediateRetries, final int maxWaitMillis,
-          final TimeoutDelayPredicate<? super T, T> retryOnReturnVal,
+          final TimeoutRetryPredicate<? super T, T> retryOnReturnVal,
           final AdvancedRetryPredicate<Exception> retryOnException,
           final Class<EX> exceptionClass)
           throws InterruptedException, EX {
@@ -183,7 +183,7 @@ public final class Callables {
     return com.google.common.base.Throwables.getRootCause(f).getClass();
   }
 
-  public static final class FibonacciBackoffRetryPredicate<T, R> implements DelayPredicate<T, R> {
+  public static final class FibonacciBackoffRetryPredicate<T, R> implements RetryPredicate<T, R> {
 
     private final IntMath.XorShift32 random;
 
@@ -277,8 +277,8 @@ public final class Callables {
   }
 
   public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
-          final TimeoutDelayPredicate<? super T, T> retryOnReturnVal,
-          final TimeoutDelayPredicate<Exception, T> retryOnException, final Class<EX> exceptionClass)
+          final TimeoutRetryPredicate<? super T, T> retryOnReturnVal,
+          final TimeoutRetryPredicate<Exception, T> retryOnException, final Class<EX> exceptionClass)
           throws InterruptedException, EX {
     final long deadline = what.getDeadline();
     return executeWithRetry(what,
@@ -290,12 +290,14 @@ public final class Callables {
 
     private final long mdeadline;
 
+
     public TimeoutCallable(final int timeoutMillis) {
       mdeadline = System.currentTimeMillis() + timeoutMillis;
     }
 
-    public TimeoutCallable(final long deadline) {
+    TimeoutCallable(final long deadline) {
       mdeadline = deadline;
+
     }
 
     @Override
@@ -303,6 +305,9 @@ public final class Callables {
       return call(mdeadline);
     }
 
+    /**
+     * @param deadline millis since epoch.
+     */
     public abstract T call(long deadline) throws EX, InterruptedException, TimeoutException;
 
     public final long getDeadline() {
@@ -318,17 +323,15 @@ public final class Callables {
     ABORT // Abort, no retry, return last value/exception
   }
 
-  public abstract static class AdvancedRetryPredicate<T> {
+  public interface AdvancedRetryPredicate<T> {
 
-    //CHECKSTYLE:OFF designed for extension does not like this, but I need this for backwards compat.
-    public AdvancedAction apply(final T value, final long deadline) {
-      //CHECKSTYLE:ON
+    default AdvancedAction apply(final T value, final long deadline) {
       return apply(value);
     }
 
-    public abstract AdvancedAction apply(T value);
+    AdvancedAction apply(T value);
 
-    public static final AdvancedRetryPredicate<?> NO_RETRY = new AdvancedRetryPredicate<Object>() {
+    AdvancedRetryPredicate<?> NO_RETRY = new AdvancedRetryPredicate<Object>() {
       @Override
       public AdvancedAction apply(final Object value) {
         return AdvancedAction.ABORT;
@@ -392,7 +395,7 @@ public final class Callables {
 
   }
 
-  public interface DelayPredicate<T, R> {
+  public interface RetryPredicate<T, R> {
 
     /**
      * the number or millis of delay until the next retry, or -1 for abort.
@@ -403,7 +406,7 @@ public final class Callables {
     @Nonnull
     RetryDecision<R> getDecision(T value, @Nonnull Callable<R> callable);
 
-    DelayPredicate<Object, Object> NORETRY_DELAY_PREDICATE = new DelayPredicate<Object, Object>() {
+    RetryPredicate<Object, Object> NORETRY_DELAY_PREDICATE = new RetryPredicate<Object, Object>() {
       @Override
       public RetryDecision getDecision(final Object value, final Callable callable) {
          return RetryDecision.abort();
@@ -413,17 +416,17 @@ public final class Callables {
 
 
   public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
-          final TimeoutDelayPredicate<Exception, T> retryOnException, final Class<EX> exceptionClass)
+          final TimeoutRetryPredicate<Exception, T> retryOnException, final Class<EX> exceptionClass)
           throws InterruptedException, EX {
-    return (T) executeWithRetry(what, (TimeoutDelayPredicate<T, T>) TimeoutDelayPredicate.NORETRY_FOR_RESULT,
+    return (T) executeWithRetry(what, (TimeoutRetryPredicate<T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, exceptionClass);
   }
 
-  public interface TimeoutDelayPredicate<T, R> {
+  public interface TimeoutRetryPredicate<T, R> {
 
     RetryDecision<R> getDecision(T value, long deadlineMillis, Callable<R> what);
 
-    TimeoutDelayPredicate NORETRY_FOR_RESULT = new TimeoutDelayPredicate<Object, Object>() {
+    TimeoutRetryPredicate NORETRY_FOR_RESULT = new TimeoutRetryPredicate<Object, Object>() {
 
       @Override
       public RetryDecision<Object> getDecision(final Object value, final long deadline, final Callable<Object> what) {
@@ -435,13 +438,13 @@ public final class Callables {
   }
 
   public static final class TimeoutDelayPredicate2DelayPredicate<T, R>
-          implements  DelayPredicate<T, R> {
+          implements  RetryPredicate<T, R> {
 
     private final long deadline;
 
-    private final TimeoutDelayPredicate<T, R> predicate;
+    private final TimeoutRetryPredicate<T, R> predicate;
 
-    public TimeoutDelayPredicate2DelayPredicate(final long deadline, final TimeoutDelayPredicate<T, R> predicate) {
+    public TimeoutDelayPredicate2DelayPredicate(final long deadline, final TimeoutRetryPredicate<T, R> predicate) {
       this.deadline = deadline;
       this.predicate = predicate;
     }
@@ -502,8 +505,8 @@ public final class Callables {
   @SuppressFBWarnings({ "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", "MDM_THREAD_YIELD" })
   public static <T, EX extends Exception> T executeWithRetry(
           final RetryCallable<T, EX> pwhat,
-          final DelayPredicate<? super T, T> retryOnReturnVal,
-          final DelayPredicate<Exception, T> retryOnException,
+          final RetryPredicate<? super T, T> retryOnReturnVal,
+          final RetryPredicate<Exception, T> retryOnException,
           final Class<EX> exceptionClass)
           throws InterruptedException, EX {
     Callable<T> what = pwhat;

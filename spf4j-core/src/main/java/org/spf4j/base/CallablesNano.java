@@ -20,13 +20,14 @@ package org.spf4j.base;
 import com.google.common.annotations.Beta;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Callables.AdvancedRetryPredicate;
 import static org.spf4j.base.Callables.DEFAULT_EXCEPTION_RETRY;
 import org.spf4j.base.Callables.FibonacciBackoffRetryPredicate;
 import org.spf4j.base.Callables.TimeoutCallable;
-import org.spf4j.base.Callables.TimeoutDelayPredicate;
 import org.spf4j.base.Callables.TimeoutDelayPredicate2DelayPredicate;
+import org.spf4j.base.Callables.TimeoutRetryPredicate;
 
 /**
  * Utility class for executing stuff with retry logic.
@@ -46,7 +47,7 @@ public final class CallablesNano {
           final long maxRetryWaitNanos, final Class<EX> exceptionClass)
           throws InterruptedException, EX {
     return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,
-            (TimeoutNanoDelayPredicate<? super T, T>) TimeoutNanoDelayPredicate.NORETRY_FOR_RESULT,
+            (TimeoutNanoRetryPredicate<? super T, T>) TimeoutNanoRetryPredicate.NORETRY_FOR_RESULT,
             DEFAULT_EXCEPTION_RETRY, exceptionClass);
   }
 
@@ -57,7 +58,7 @@ public final class CallablesNano {
           final Class<EX> exceptionClass)
           throws InterruptedException, EX {
     return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,
-            (TimeoutNanoDelayPredicate<? super T, T>) TimeoutNanoDelayPredicate.NORETRY_FOR_RESULT,
+            (TimeoutNanoRetryPredicate<? super T, T>) TimeoutNanoRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, exceptionClass);
   }
 
@@ -78,7 +79,7 @@ public final class CallablesNano {
    */
   public static <T, EX extends Exception> T executeWithRetry(final NanoTimeoutCallable<T, EX> what,
           final int nrImmediateRetries, final long maxWaitNanos,
-          final TimeoutNanoDelayPredicate<? super T, T> retryOnReturnVal,
+          final TimeoutNanoRetryPredicate<? super T, T> retryOnReturnVal,
           final AdvancedRetryPredicate<Exception> retryOnException,
           final Class<EX> exceptionClass)
           throws InterruptedException, EX {
@@ -95,30 +96,35 @@ public final class CallablesNano {
       super(System.nanoTime() + timeoutNanos);
     }
 
+    /**
+     * @param deadline System.nanoTime deadline.
+     */
+    public abstract T call(long deadline) throws EX, InterruptedException, TimeoutException;
+
   }
 
   public static <T, EX extends Exception> T executeWithRetry(final NanoTimeoutCallable<T, EX> what,
-          final TimeoutNanoDelayPredicate<T, T> retryOnReturnVal,
-          final TimeoutNanoDelayPredicate<Exception, T> retryOnException,
+          final TimeoutNanoRetryPredicate<T, T> retryOnReturnVal,
+          final TimeoutNanoRetryPredicate<Exception, T> retryOnException,
           final Class<EX> exceptionClass)
           throws InterruptedException, EX {
     return Callables.executeWithRetry(what, retryOnReturnVal, retryOnException, exceptionClass);
   }
 
   public static <T, EX extends Exception> T executeWithRetry(final NanoTimeoutCallable<T, EX> what,
-          final TimeoutNanoDelayPredicate<Exception, T> retryOnException, final Class<EX> exceptionClass)
+          final TimeoutNanoRetryPredicate<Exception, T> retryOnException, final Class<EX> exceptionClass)
           throws InterruptedException, EX {
     return Callables.executeWithRetry(what,
-            (TimeoutDelayPredicate<T, T>) TimeoutDelayPredicate.NORETRY_FOR_RESULT,
+            (TimeoutRetryPredicate<T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, exceptionClass);
   }
 
-  public interface TimeoutNanoDelayPredicate<T, R> extends TimeoutDelayPredicate<T, R> {
+  public interface TimeoutNanoRetryPredicate<T, R> extends TimeoutRetryPredicate<T, R> {
 
     @Override
     Callables.RetryDecision<R> getDecision(T value, long deadlineNanos, Callable<R> what);
 
-    TimeoutNanoDelayPredicate NORETRY_FOR_RESULT = new TimeoutNanoDelayPredicate<Object, Object>() {
+    TimeoutNanoRetryPredicate NORETRY_FOR_RESULT = new TimeoutNanoRetryPredicate<Object, Object>() {
 
       @Override
       public Callables.RetryDecision<Object> getDecision(final Object value,

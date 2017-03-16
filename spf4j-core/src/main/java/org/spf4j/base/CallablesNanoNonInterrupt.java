@@ -23,10 +23,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Callables.AdvancedRetryPredicate;
 import static org.spf4j.base.Callables.DEFAULT_EXCEPTION_RETRY;
 import org.spf4j.base.Callables.FibonacciBackoffRetryPredicate;
-import org.spf4j.base.Callables.TimeoutDelayPredicate;
 import org.spf4j.base.Callables.TimeoutDelayPredicate2DelayPredicate;
 import org.spf4j.base.CallablesNano.NanoTimeoutCallable;
-import org.spf4j.base.CallablesNano.TimeoutNanoDelayPredicate;
+import org.spf4j.base.Callables.TimeoutRetryPredicate;
+import org.spf4j.base.CallablesNano.TimeoutNanoRetryPredicate;
 
 /**
  * Utility class for executing stuff with retry logic.
@@ -47,7 +47,7 @@ public final class CallablesNanoNonInterrupt {
             final long maxRetryWaitNanos, final Class<EX> exceptionClass)
             throws EX {
         return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,
-                (TimeoutNanoDelayPredicate<? super T, T>) TimeoutNanoDelayPredicate.NORETRY_FOR_RESULT,
+                (TimeoutNanoRetryPredicate<? super T, T>) TimeoutNanoRetryPredicate.NORETRY_FOR_RESULT,
                 DEFAULT_EXCEPTION_RETRY, exceptionClass);
     }
 
@@ -58,7 +58,7 @@ public final class CallablesNanoNonInterrupt {
             final Class<EX> exceptionClass)
             throws EX {
         return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,
-                (TimeoutNanoDelayPredicate<? super T, T>) TimeoutNanoDelayPredicate.NORETRY_FOR_RESULT,
+                (TimeoutNanoRetryPredicate<? super T, T>) TimeoutNanoRetryPredicate.NORETRY_FOR_RESULT,
                 retryOnException, exceptionClass);
     }
 
@@ -77,7 +77,7 @@ public final class CallablesNanoNonInterrupt {
      */
     public static <T, EX extends Exception> T executeWithRetry(final NanoTimeoutCallable<T, EX> what,
             final int nrImmediateRetries, final long maxWaitNanos,
-            final TimeoutNanoDelayPredicate<? super T, T> retryOnReturnVal,
+            final TimeoutNanoRetryPredicate<? super T, T> retryOnReturnVal,
             final AdvancedRetryPredicate<Exception> retryOnException,
             final Class<EX> exceptionClass)
             throws EX {
@@ -93,8 +93,8 @@ public final class CallablesNanoNonInterrupt {
     }
 
     public static <T, EX extends Exception> T executeWithRetry(final NanoTimeoutCallable<T, EX> what,
-            final TimeoutNanoDelayPredicate<T, T> retryOnReturnVal,
-            final TimeoutNanoDelayPredicate<Exception, T> retryOnException,
+            final TimeoutNanoRetryPredicate<T, T> retryOnReturnVal,
+            final TimeoutNanoRetryPredicate<Exception, T> retryOnException,
             final Class<EX> exceptionClass)
             throws EX {
       try {
@@ -105,11 +105,11 @@ public final class CallablesNanoNonInterrupt {
     }
 
    public static <T, EX extends Exception> T executeWithRetry(final NanoTimeoutCallable<T, EX> what,
-            final TimeoutNanoDelayPredicate<Exception, T> retryOnException, final Class<EX> exceptionClass)
+            final TimeoutNanoRetryPredicate<Exception, T> retryOnException, final Class<EX> exceptionClass)
             throws EX {
       try {
         return Callables.executeWithRetry(what,
-                (TimeoutDelayPredicate<T, T>) TimeoutDelayPredicate.NORETRY_FOR_RESULT,
+                (TimeoutRetryPredicate<T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
                 retryOnException, exceptionClass);
       } catch (InterruptedException ex) {
         throw new RuntimeException(ex);

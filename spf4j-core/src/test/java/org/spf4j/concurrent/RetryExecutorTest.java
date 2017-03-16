@@ -39,7 +39,7 @@ public final class RetryExecutorTest {
         System.out.println("submit");
         final LifoThreadPoolExecutorSQP lifoThreadPoolExecutorSQP = new LifoThreadPoolExecutorSQP(10, "test");
         RetryExecutor instance = new RetryExecutor(lifoThreadPoolExecutorSQP,
-                (final Callable<Object> parameter) -> new Callables.DelayPredicate<Exception, Object>() {
+                (final Callable<Object> parameter) -> new Callables.RetryPredicate<Exception, Object>() {
           @Override
           public Callables.RetryDecision<Object> getDecision(Exception value, Callable<Object> callable) {
             return Callables.RetryDecision.retry(0, callable);
