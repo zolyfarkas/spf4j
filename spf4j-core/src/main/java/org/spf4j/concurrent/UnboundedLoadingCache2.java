@@ -32,7 +32,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * Simple adapter that adapts a java ConcurrentMap to a guava cache.
  * See UnboundedLoadingCache for rationale and benchmark data to see
  * why this is not the default implementation.
- * 
+ *
  * @author zoly
  */
 @ParametersAreNonnullByDefault
@@ -101,7 +101,7 @@ public final class UnboundedLoadingCache2<K, V> implements LoadingCache<K, V> {
 
     @Override
     public ConcurrentMap<K, V> asMap() {
-        throw new UnsupportedOperationException();
+        return map;
     }
 
     @Override
