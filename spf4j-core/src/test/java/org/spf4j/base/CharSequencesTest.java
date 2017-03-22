@@ -21,6 +21,17 @@ public class CharSequencesTest {
 
 
   @Test
+  public void testID() {
+    Assert.assertFalse(CharSequences.isJavaIdentifier(""));
+    Assert.assertFalse(CharSequences.isJavaIdentifier(null));
+    Assert.assertFalse(CharSequences.isJavaIdentifier("12A"));
+    Assert.assertTrue(CharSequences.isJavaIdentifier("_a"));
+    Assert.assertTrue(CharSequences.isJavaIdentifier("a"));
+    Assert.assertTrue(CharSequences.isJavaIdentifier("a123FGH"));
+  }
+
+
+  @Test
   public void testCompare() {
     Assert.assertEquals(0, CharSequences.compare("blabla", 6, "blabla/cucu", 6));
   }
