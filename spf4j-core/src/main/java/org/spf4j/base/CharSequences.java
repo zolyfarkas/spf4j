@@ -393,8 +393,11 @@ public final class CharSequences {
 
 
   public static boolean isJavaIdentifier(@Nullable final CharSequence cs) {
+    if (cs == null) {
+      return false;
+    }
     final int length = cs.length();
-    if (cs == null || length == 0) {
+    if (length <= 0) {
       return false;
     }
     if (!Character.isJavaIdentifierStart(cs.charAt(0))) {
