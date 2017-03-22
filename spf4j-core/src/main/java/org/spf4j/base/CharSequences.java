@@ -392,4 +392,20 @@ public final class CharSequences {
   }
 
 
+  public static boolean isJavaIdentifier(@Nullable final CharSequence cs) {
+    final int length = cs.length();
+    if (cs == null || length == 0) {
+      return false;
+    }
+    if (!Character.isJavaIdentifierStart(cs.charAt(0))) {
+      return false;
+    }
+    for (int i = 1; i < length; i++) {
+      if (!Character.isJavaIdentifierPart(cs.charAt(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 }
