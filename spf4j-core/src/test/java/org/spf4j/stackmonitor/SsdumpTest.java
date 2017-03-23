@@ -17,7 +17,6 @@
  */
 package org.spf4j.stackmonitor;
 
-import org.spf4j.base.Method;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;

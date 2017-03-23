@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.spf4j.stackmonitor;
 
 import org.junit.Assert;
@@ -12,7 +8,7 @@ import org.junit.Test;
  * @author zoly
  */
 public final class StackTraceTest {
-    
+
     public StackTraceTest() {
     }
 

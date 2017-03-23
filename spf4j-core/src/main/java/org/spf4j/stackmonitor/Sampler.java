@@ -132,6 +132,9 @@ public final class Sampler {
           long prevGcTime = 0;
           int sleepTime = 0;
           int halfStMillis = stMillis / 2;
+          if (halfStMillis == 0) {
+            halfStMillis = 1;
+          }
           while (!lstopped) {
             stackCollector.sample(samplerThread);
             dumpCounterMs += sleepTime;
