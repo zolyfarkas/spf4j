@@ -189,41 +189,49 @@ public final class CharSeparatedValues {
     boolean start = true;
     StringBuilder strB = new StringBuilder();
     boolean loop = true;
-    do {
-      if (start) {
-        handler.startRow();
-        start = false;
-      }
-      strB.setLength(0);
-      int c = readCsvElement(reader, strB);
-      handler.element(strB);
-      switch (c) {
-        case '\r':
-          handler.endRow();
-          start = true;
-          int c2 = reader.read();
-          if (c2 < 0) {
-            loop = false;
-            break;
-          }
-          if (c2 != '\n') {
-            reader.unread(c2);
-          }
-          break;
-        case '\n':
-          handler.endRow();
-          start = true;
-          break;
-        default:
-          if (c != separator) {
-            if (c < 0) {
+    int lineNr = 0;
+    try {
+      do {
+        if (start) {
+          handler.startRow(lineNr);
+          start = false;
+        }
+        strB.setLength(0);
+        int c = readCsvElement(reader, strB, lineNr);
+        handler.element(strB);
+        switch (c) {
+          case '\r':
+            handler.endRow();
+            start = true;
+            int c2 = reader.read();
+            if (c2 < 0) {
               loop = false;
-            } else {
-              throw new IOException("Unexpected character " + c);
+              break;
             }
-          }
-      }
-    } while (loop);
+            if (c2 != '\n') {
+              reader.unread(c2);
+            }
+            break;
+          case '\n':
+            lineNr++;
+            handler.endRow();
+            start = true;
+            break;
+          default:
+            if (c != separator) {
+              if (c < 0) {
+                loop = false;
+              } else {
+                throw new CsvParseException("Unexpected character " + c + " at line " + lineNr);
+              }
+            }
+        }
+      } while (loop);
+    } catch (IOException ex) {
+      throw new IOException("IO issue at line " + lineNr, ex);
+    } catch (RuntimeException ex) {
+      throw new RuntimeException("Exception at " + lineNr, ex);
+    }
     out:
     return handler.eof();
   }
@@ -307,7 +315,7 @@ public final class CharSeparatedValues {
    * @throws IOException
    */
   @CheckReturnValue
-  public int readCsvElement(final Reader reader, final StringBuilder addElemTo) throws IOException {
+  public int readCsvElement(final Reader reader, final StringBuilder addElemTo, final int lineNr) throws IOException {
     int c = reader.read();
     if (c < 0) {
       return c;
@@ -331,6 +339,7 @@ public final class CharSeparatedValues {
         }
         c = reader.read();
       }
+      throw new CsvParseException("Escaped CSV element " + addElemTo + " not terminated correctly at " + lineNr);
     } else {
       while (c != separator && c != '\n' && c != '\r' && c >= 0) {
         addElemTo.append((char) c);
@@ -371,9 +380,11 @@ public final class CharSeparatedValues {
     private final List<String> header = new ArrayList<>();
     private int elemIdx;
     private Map<String, String> row = null;
+    private int lineNr;
 
     @Override
-    public void startRow() {
+    public void startRow(final int ln) {
+      lineNr = ln;
       elemIdx = 0;
       if (!first) {
         row = new THashMap<>(header.size());
@@ -385,6 +396,9 @@ public final class CharSeparatedValues {
       if (first) {
         header.add(elem.toString());
       } else {
+        if (header.size() <= elemIdx) {
+          throw new CsvParseException("Too many elements in row " + row + " at line " + lineNr);
+        }
         row.put(header.get(elemIdx), elem.toString());
       }
       elemIdx++;
@@ -415,10 +429,11 @@ public final class CharSeparatedValues {
     private final StringBuilder currentElement = new StringBuilder();
     private TokenType currentToken;
     private TokenType nextToken;
+    private int lineNr = 0;
 
     private void readCurrentElement() throws IOException {
       currentElement.setLength(0);
-      int next = readCsvElement(reader, currentElement);
+      int next = readCsvElement(reader, currentElement, lineNr);
       currentToken = TokenType.ELEMENT;
       switch (next) {
         case '\r':
@@ -430,9 +445,11 @@ public final class CharSeparatedValues {
           if (c2 != '\n') {
             reader.unread(c2);
           }
+          lineNr++;
           nextToken = TokenType.END_ROW;
           break;
         case '\n':
+          lineNr++;
           nextToken = TokenType.END_ROW;
           break;
         default:
@@ -440,7 +457,7 @@ public final class CharSeparatedValues {
             if (next < 0) {
               nextToken = TokenType.END_DOCUMENT;
             } else {
-              throw new IOException("Unexpected character " + next);
+              throw new CsvParseException("Unexpected character " + next + " at line" + lineNr);
             }
           }
       }
@@ -479,16 +496,14 @@ public final class CharSeparatedValues {
 
     private final CsvRowHandler<T> handler;
 
-    private int nrRows;
 
     OneRowHandler(final CsvRowHandler<T> handler) {
       this.handler = handler;
-      this.nrRows = 0;
     }
 
     @Override
-    public void startRow() {
-      if (nrRows > 0) {
+    public void startRow(final int rowNr) {
+      if (rowNr > 0) {
         throw new IllegalArgumentException("Multiple rows encountered for " + this);
       }
     }
@@ -499,14 +514,10 @@ public final class CharSeparatedValues {
     }
 
     @Override
-    public void endRow() {
-      nrRows++;
-    }
-
-    @Override
     public T eof() {
       return handler.eof();
     }
+
   }
 
   private static final class CsvRow2List implements CsvRowHandler<List<String>> {

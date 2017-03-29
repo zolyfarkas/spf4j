@@ -7,7 +7,12 @@ package org.spf4j.io.csv;
  */
 public interface CsvHandler<T> {
 
-  void startRow();
+  default void startRow(int rowNr) {
+    startRow();
+  }
+
+  default void startRow() {
+  }
 
   /**
    * @param elem - the CharSequence instance is being reused, between invocations. value should be copied or parsed into
@@ -15,7 +20,8 @@ public interface CsvHandler<T> {
    */
   void element(CharSequence elem);
 
-  void endRow();
+  default void endRow() {
+  }
 
   T eof();
 }
