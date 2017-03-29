@@ -131,38 +131,38 @@ public final class CharSeparatedValues {
   }
 
   public <T> T read(final File file, final Charset charset,
-          final CsvMapHandler<T> handler) throws IOException {
+          final CsvMapHandler<T> handler) throws IOException, CsvParseException {
     try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {
       return read(br, handler);
     }
   }
 
   public <T> T read(final File file, final Charset charset,
-          final CsvHandler<T> handler) throws IOException {
+          final CsvHandler<T> handler) throws IOException, CsvParseException {
     try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {
       return read(br, handler);
     }
   }
 
-  public List<Map<String, String>> read(final Reader preader) throws IOException {
+  public List<Map<String, String>> read(final Reader preader) throws IOException, CsvParseException {
     return read(preader, new ToListMapHandler());
   }
 
   public <T> T read(final Reader preader,
-          final CsvMapHandler<T> handler) throws IOException {
+          final CsvMapHandler<T> handler) throws IOException, CsvParseException {
     return read(preader, new CsvMapHandler2CsvHandler<>(handler));
   }
 
-  public List<String> readRow(final Reader reader) throws IOException {
+  public List<String> readRow(final Reader reader) throws IOException, CsvParseException {
     return readRow(reader, new CsvRow2List());
   }
 
-  public <T> T readRow(final Reader reader, final CsvRowHandler<T> handler) throws IOException {
+  public <T> T readRow(final Reader reader, final CsvRowHandler<T> handler) throws IOException, CsvParseException {
     return read(reader, new OneRowHandler<>(handler));
   }
 
   public <T> T read(final Reader preader,
-          final CsvHandler<T> handler) throws IOException {
+          final CsvHandler<T> handler) throws IOException, CsvParseException {
     PushbackReader reader = new PushbackReader(preader);
     int firstChar = reader.read();
     if (firstChar != UTF_BOM && firstChar >= 0) {
@@ -185,7 +185,8 @@ public final class CharSeparatedValues {
    * @return
    * @throws IOException
    */
-  public <T> T readNoBom(final PushbackReader reader, final CsvHandler<T> handler) throws IOException {
+  public <T> T readNoBom(final PushbackReader reader, final CsvHandler<T> handler)
+          throws IOException, CsvParseException {
     boolean start = true;
     StringBuilder strB = new StringBuilder();
     boolean loop = true;
@@ -232,7 +233,7 @@ public final class CharSeparatedValues {
     } catch (RuntimeException ex) {
       throw new RuntimeException("Exception at " + lineNr, ex);
     }
-    out:
+    handler.endRow();
     return handler.eof();
   }
 
@@ -267,8 +268,6 @@ public final class CharSeparatedValues {
   public CsvReader readerNoBOM(final PushbackReader reader) {
     return new CsvReaderImpl(reader);
   }
-
-
 
   public void writeCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
     if (Strings.contains(elem, toEscape)) {
@@ -315,7 +314,8 @@ public final class CharSeparatedValues {
    * @throws IOException
    */
   @CheckReturnValue
-  public int readCsvElement(final Reader reader, final StringBuilder addElemTo, final int lineNr) throws IOException {
+  public int readCsvElement(final Reader reader, final StringBuilder addElemTo, final int lineNr)
+          throws IOException, CsvParseException {
     int c = reader.read();
     if (c < 0) {
       return c;
@@ -392,7 +392,7 @@ public final class CharSeparatedValues {
     }
 
     @Override
-    public void element(final CharSequence elem) {
+    public void element(final CharSequence elem) throws CsvParseException {
       if (first) {
         header.add(elem.toString());
       } else {
@@ -431,7 +431,7 @@ public final class CharSeparatedValues {
     private TokenType nextToken;
     private int lineNr = 0;
 
-    private void readCurrentElement() throws IOException {
+    private void readCurrentElement() throws IOException, CsvParseException {
       currentElement.setLength(0);
       int next = readCsvElement(reader, currentElement, lineNr);
       currentToken = TokenType.ELEMENT;
@@ -465,7 +465,7 @@ public final class CharSeparatedValues {
     }
 
     @Override
-    public TokenType next() throws IOException {
+    public TokenType next() throws IOException, CsvParseException {
       if (currentToken == null) {
         if (nextToken == null) {
           readCurrentElement();

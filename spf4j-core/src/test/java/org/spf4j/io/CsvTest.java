@@ -25,10 +25,12 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,6 +40,7 @@ import java.util.zip.GZIPInputStream;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.spf4j.io.csv.CsvParseException;
 import org.spf4j.io.csv.CsvReader;
 import org.spf4j.io.csv.CsvReader.TokenType;
 
@@ -49,7 +52,7 @@ import org.spf4j.io.csv.CsvReader.TokenType;
 public final class CsvTest {
 
     @Test
-    public void testCsvReadWrite() throws IOException {
+    public void testCsvReadWrite() throws IOException, CsvParseException {
 
         File testFile = createTestCsv();
 
@@ -105,7 +108,7 @@ public final class CsvTest {
     }
 
     @Test
-    public void testCsvReadWrite2() throws IOException {
+    public void testCsvReadWrite2() throws IOException, CsvParseException {
         File testFile = createTestCsv();
         List<Map<String, String>> data
                 = Csv.read(testFile, Charsets.UTF_8, new Csv.CsvMapHandler<List<Map<String, String>>>() {
@@ -146,13 +149,13 @@ public final class CsvTest {
     }
 
     @Test
-    public void testReadRow() throws IOException {
+    public void testReadRow() throws IOException, CsvParseException {
         List<String> row = Csv.readRow(new StringReader("a,b,\",c\",d"));
         Assert.assertEquals("a", row.get(0));
     }
 
 
-    public static void main(final String [] params) throws IOException {
+    public static void main(final String [] params) throws IOException, CsvParseException {
         CsvTest test = new CsvTest();
         for (int i=0 ; i < 10 ; i++) {
             test.testLargeFileRead();
@@ -161,7 +164,7 @@ public final class CsvTest {
 
     @Test
     @Ignore
-    public void testLargeFileRead() throws IOException {
+    public void testLargeFileRead() throws IOException, CsvParseException {
         try (final BufferedReader reader = new BufferedReader(new InputStreamReader(
                 new GZIPInputStream(
                         new URL("http://www.maxmind.com/download/worldcities/worldcitiespop.txt.gz").openStream()),
@@ -195,19 +198,19 @@ public final class CsvTest {
     }
 
     @Test
-    public void testCsvRowParsing() throws IOException {
+    public void testCsvRowParsing() throws IOException, CsvParseException {
       List<String> readRow = Csv.readRow(new StringReader(""));
       Assert.assertEquals(Arrays.asList(""), readRow);
     }
 
     @Test
-    public void testCsvRowParsing2() throws IOException {
+    public void testCsvRowParsing2() throws IOException, CsvParseException {
       List<String> readRow = Csv.readRow(CharSource.wrap("").openStream());
       Assert.assertEquals(Arrays.asList(""), readRow);
     }
 
     @Test
-    public void testCsvStream1() throws IOException {
+    public void testCsvStream1() throws IOException, CsvParseException {
       CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader("")));
       Assert.assertEquals(TokenType.ELEMENT, reader.next());
       Assert.assertEquals("", reader.getElement().toString());
@@ -216,7 +219,7 @@ public final class CsvTest {
     }
 
     @Test
-    public void testCsvStream1_1() throws IOException {
+    public void testCsvStream1_1() throws IOException, CsvParseException {
       CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader(",")));
       Assert.assertEquals(TokenType.ELEMENT, reader.next());
       Assert.assertEquals("", reader.getElement().toString());
@@ -227,7 +230,7 @@ public final class CsvTest {
     }
 
     @Test
-    public void testCsvStream2() throws IOException {
+    public void testCsvStream2() throws IOException, CsvParseException {
       CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader("bla")));
       Assert.assertEquals(TokenType.ELEMENT, reader.next());
       Assert.assertEquals("bla", reader.getElement().toString());
@@ -236,7 +239,7 @@ public final class CsvTest {
     }
 
     @Test
-    public void testCsvStream3() throws IOException {
+    public void testCsvStream3() throws IOException, CsvParseException {
       CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader("\"bla\"")));
       Assert.assertEquals(TokenType.ELEMENT, reader.next());
       Assert.assertEquals("bla", reader.getElement().toString());
@@ -245,7 +248,7 @@ public final class CsvTest {
     }
 
     @Test
-    public void testCsvStream4() throws IOException {
+    public void testCsvStream4() throws IOException, CsvParseException {
       CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader("bla,\"bla\"\n")));
       Assert.assertEquals(TokenType.ELEMENT, reader.next());
       Assert.assertEquals("bla", reader.getElement().toString());
@@ -259,7 +262,7 @@ public final class CsvTest {
     }
 
     @Test
-    public void testCsvStream5() throws IOException {
+    public void testCsvStream5() throws IOException, CsvParseException {
       CsvReader reader = Csv.reader(new StringReader("bla,\"bla\"\nuhu,uhu2\n"));
       Assert.assertEquals(TokenType.ELEMENT, reader.next());
       Assert.assertEquals("bla", reader.getElement().toString());
@@ -287,6 +290,62 @@ public final class CsvTest {
       Assert.assertEquals(3, nr);
     }
 
+    @Test
+    public void testCsvFileParsing() throws IOException, CsvParseException {
+      try (InputStream resourceAsStream = CsvTest.class.getResourceAsStream("/test.csv") ) {
+        int nr = Csv.read(new InputStreamReader(resourceAsStream, StandardCharsets.UTF_8),
+                new Csv.CsvMapHandler<Integer>() {
+          int i = 0;
+          @Override
+          public void row(Map<String, String> row) {
+            System.out.println("Row " + row);
+            i++;
+          }
+
+          @Override
+          public Integer eof() {
+            return i;
+          }
+        });
+        Assert.assertEquals(3, nr);
+      }
+    }
+
+    @Test
+    public void testCsvFileParsing2() throws IOException {
+      try (InputStream resourceAsStream = CsvTest.class.getResourceAsStream("/test.csv") ) {
+        Iterable<List<String>> asIterable =
+                Csv.asIterable(new InputStreamReader(resourceAsStream, StandardCharsets.UTF_8));
+        int i = 0;
+        List<String> lastRow = null;
+        for (List<String> row : asIterable) {
+          lastRow = new ArrayList<>(row);
+          System.out.println("row " + row);
+          i++;
+        }
+        Assert.assertEquals(4, i);
+        Assert.assertEquals("3,,\nasdg,,ahsd\nsdf", lastRow.get(0));
+      }
+    }
+
+
+    @Test(expected = CsvParseException.class)
+    public void testCsvFileParsingBad() throws IOException, CsvParseException {
+      try (InputStream resourceAsStream = CsvTest.class.getResourceAsStream("/test_bad.csv") ) {
+        Csv.read(new InputStreamReader(resourceAsStream, StandardCharsets.UTF_8),
+                new Csv.CsvMapHandler<Void>() {
+          @Override
+          public void row(Map<String, String> row) {
+            System.out.println("Row " + row);
+          }
+
+          @Override
+          public Void eof() {
+            return null;
+          }
+        });
+      }
+    }
 
 
 }

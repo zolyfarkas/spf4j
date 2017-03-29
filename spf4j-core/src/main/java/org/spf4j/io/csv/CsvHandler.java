@@ -18,9 +18,9 @@ public interface CsvHandler<T> {
    * @param elem - the CharSequence instance is being reused, between invocations. value should be copied or parsed into
    * a new object.
    */
-  void element(CharSequence elem);
+  void element(CharSequence elem) throws CsvParseException;
 
-  default void endRow() {
+  default void endRow() throws CsvParseException {
   }
 
   T eof();

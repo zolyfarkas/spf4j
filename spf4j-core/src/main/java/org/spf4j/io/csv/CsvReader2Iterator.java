@@ -17,7 +17,7 @@ public final class CsvReader2Iterator implements Iterator<List<String>> {
   private final List<String> row = new ArrayList<>();
   private boolean haveParsedRow = false;
 
-  private CsvReader.TokenType readRow() throws IOException {
+  private CsvReader.TokenType readRow() throws IOException, CsvParseException {
     row.clear();
     CsvReader.TokenType token;
     boolean loop = true;
@@ -49,7 +49,7 @@ public final class CsvReader2Iterator implements Iterator<List<String>> {
         } else {
           return token != CsvReader.TokenType.END_DOCUMENT;
         }
-      } catch (IOException ex) {
+      } catch (IOException | CsvParseException ex) {
         throw new RuntimeException(ex);
       }
     } else {
@@ -71,6 +71,6 @@ public final class CsvReader2Iterator implements Iterator<List<String>> {
   public String toString() {
     return "CsvReader2Iterator{" + "reader=" + reader + ", row=" + row + ", haveParsedRow=" + haveParsedRow + '}';
   }
-  
+
 
 }

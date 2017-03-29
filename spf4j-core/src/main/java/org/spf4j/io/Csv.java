@@ -27,8 +27,9 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.spf4j.base.Strings;
+import org.spf4j.base.CharSequences;
 import org.spf4j.io.csv.CharSeparatedValues;
+import org.spf4j.io.csv.CsvParseException;
 import org.spf4j.io.csv.CsvReader;
 
 /**
@@ -83,34 +84,35 @@ public final class Csv {
   }
 
   public static <T> T read(final File file, final Charset charset,
-          final CsvMapHandler<T> handler) throws IOException {
+          final CsvMapHandler<T> handler) throws IOException, CsvParseException {
     return CSV.read(file, charset, handler);
   }
 
   public static <T> T read(final File file, final Charset charset,
-          final CsvHandler<T> handler) throws IOException {
+          final CsvHandler<T> handler) throws IOException, CsvParseException {
     return CSV.read(file, charset, handler);
   }
 
-  public static List<Map<String, String>> read(final Reader preader) throws IOException {
+  public static List<Map<String, String>> read(final Reader preader) throws IOException, CsvParseException {
     return CSV.read(preader);
   }
 
   public static <T> T read(final Reader preader,
-          final CsvMapHandler<T> handler) throws IOException {
+          final CsvMapHandler<T> handler) throws IOException, CsvParseException {
     return CSV.read(preader, handler);
   }
 
-  public static List<String> readRow(final Reader reader) throws IOException {
+  public static List<String> readRow(final Reader reader) throws IOException, CsvParseException {
     return CSV.readRow(reader);
   }
 
-  public static <T> T readRow(final Reader reader, final CsvRowHandler<T> handler) throws IOException {
+  public static <T> T readRow(final Reader reader, final CsvRowHandler<T> handler)
+          throws IOException, CsvParseException {
     return CSV.readRow(reader, handler);
   }
 
   public static <T> T read(final Reader preader,
-          final CsvHandler<T> handler) throws IOException {
+          final CsvHandler<T> handler) throws IOException, CsvParseException {
     return CSV.read(preader, handler);
   }
 
@@ -123,7 +125,8 @@ public final class Csv {
    * @return
    * @throws IOException
    */
-  public static <T> T readNoBom(final PushbackReader reader, final CsvHandler<T> handler) throws IOException {
+  public static <T> T readNoBom(final PushbackReader reader, final CsvHandler<T> handler)
+          throws IOException, CsvParseException {
     return CSV.readNoBom(reader, handler);
   }
 
@@ -149,7 +152,7 @@ public final class Csv {
   private static final char[] TO_ESCAPE = new char[]{',', '\n', '\r', '"'};
 
   public static void writeCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
-    if (Strings.contains(elem, TO_ESCAPE)) {
+    if (CharSequences.containsAnyChar(elem, TO_ESCAPE)) {
       writeQuotedCsvElement(elem, writer);
     } else {
       writer.append(elem);
@@ -171,7 +174,7 @@ public final class Csv {
   }
 
   public static CharSequence toCsvElement(final CharSequence elem) {
-    if (Strings.contains(elem, TO_ESCAPE)) {
+    if (CharSequences.containsAnyChar(elem, TO_ESCAPE)) {
       StringWriter sw = new StringWriter(elem.length() - 1);
       try {
         writeQuotedCsvElement(elem, sw);

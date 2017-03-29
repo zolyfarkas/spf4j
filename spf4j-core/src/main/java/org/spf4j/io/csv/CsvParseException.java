@@ -4,7 +4,9 @@ package org.spf4j.io.csv;
 /**
  * @author zoly
  */
-public class CsvParseException extends RuntimeException {
+public class CsvParseException extends Exception {
+
+  private static final long serialVersionUID = 1L;
 
   public CsvParseException() {
   }

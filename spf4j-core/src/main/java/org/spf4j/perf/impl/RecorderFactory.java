@@ -25,11 +25,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.management.ManagementFactory;
-import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.spf4j.io.Csv;
+import org.spf4j.io.csv.CsvParseException;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.MeasurementStore;
@@ -71,21 +71,12 @@ public final class RecorderFactory {
                     ManagementFactory.getRuntimeMXBean().getName() + ".tsdb2"));
         }
 
-        List<String> stores = Csv.readRow(new StringReader(configuration), new Csv.CsvRowHandler<List<String>>() {
-
-            private final List<String> result = new ArrayList<>(4);
-
-
-            @Override
-            public void element(final CharSequence elem) {
-                result.add(elem.toString());
-            }
-
-            @Override
-            public List<String> eof() {
-                return result;
-            }
-        });
+        List<String> stores;
+        try {
+          stores = Csv.readRow(new StringReader(configuration));
+        } catch (CsvParseException ex) {
+          throw new IllegalArgumentException("Invalid configuration " + configuration, ex);
+        }
         final int size = stores.size();
         if (size == 1) {
             return fromString(stores.get(0));
