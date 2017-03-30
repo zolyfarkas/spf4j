@@ -11,4 +11,12 @@ public interface Writeable {
 
   void writeTo(@Nonnull Appendable appendable) throws IOException;
 
+  default void writeTo(@Nonnull StringBuilder builder) {
+    try {
+      writeTo((Appendable) builder);
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
 }

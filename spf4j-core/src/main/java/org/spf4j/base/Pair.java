@@ -35,133 +35,129 @@ import javax.annotation.Nullable;
  */
 public class Pair<A, B> implements Map.Entry<A, B>, Writeable {
 
-    @ConstructorProperties({"first", "second" })
-    public Pair(@Nullable final A first, @Nullable final B second) {
-        this.first = first;
-        this.second = second;
+  @ConstructorProperties({"first", "second"})
+  public Pair(@Nullable final A first, @Nullable final B second) {
+    this.first = first;
+    this.second = second;
+  }
+
+  public static <A, B> Pair<A, B> of(@Nullable final A first, @Nullable final B second) {
+    return new Pair<>(first, second);
+  }
+
+  /**
+   * Creates a pair from a str1,str2 pair.
+   *
+   * @param stringPair - pair in the format (a,b) csv pair.
+   * @return null if this is not a pair.
+   */
+  @Nullable
+  public static Pair<String, String> from(@Nonnull final String stringPair) {
+    if (stringPair.isEmpty()) {
+      return null;
     }
-
-    public static <A, B> Pair<A, B> of(@Nullable final A first, @Nullable final B second) {
-        return new Pair<>(first, second);
+    int commaIdx = stringPair.indexOf(',');
+    if (commaIdx < 0) {
+      return null;
     }
-
-    /**
-     * Creates a pair from a str1,str2 pair.
-     *
-     * @param stringPair - pair in the format (a,b) csv pair.
-     * @return null if this is not a pair.
-     */
-    @Nullable
-    public static Pair<String, String> from(@Nonnull final String stringPair) {
-        if (stringPair.isEmpty()) {
-          return null;
-        }
-        int commaIdx = stringPair.indexOf(',');
-        if (commaIdx < 0) {
-            return null;
-        }
-        StringReader sr = new StringReader(stringPair);
-        StringBuilder first = new StringBuilder();
-        StringBuilder second = new StringBuilder();
-        int comma;
-        try {
-            comma = Csv.readCsvElement(sr, first);
-            if (comma != ',') {
-                return null;
-            }
-            int last = Csv.readCsvElement(sr, second);
-            if (last >= 0) {
-                return null;
-            }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-        return Pair.of(first.toString(), second.toString());
+    StringReader sr = new StringReader(stringPair);
+    StringBuilder first = new StringBuilder();
+    StringBuilder second = new StringBuilder();
+    int comma;
+    try {
+      comma = Csv.readCsvElement(sr, first);
+      if (comma != ',') {
+        return null;
+      }
+      int last = Csv.readCsvElement(sr, second);
+      if (last >= 0) {
+        return null;
+      }
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
     }
+    return Pair.of(first.toString(), second.toString());
+  }
 
-    public static final char SUFFIX = ')';
+  public static final char SUFFIX = ')';
 
-    public static final char PREFIX = '(';
+  public static final char PREFIX = '(';
 
-    //CHECKSTYLE:OFF
-    @Nullable
-    protected final A first;
+  //CHECKSTYLE:OFF
+  @Nullable
+  protected final A first;
 
-    @Nullable
-    protected final B second;
-    //CHECKSTYLE:ON
+  @Nullable
+  protected final B second;
+  //CHECKSTYLE:ON
 
-    public final A getFirst() {
-        return first;
+  public final A getFirst() {
+    return first;
+  }
+
+  public final B getSecond() {
+    return second;
+  }
+
+  @Override
+  public final boolean equals(final Object obj) {
+    if (obj == null) {
+      return false;
     }
-
-    public final B getSecond() {
-        return second;
+    if (getClass() != obj.getClass()) {
+      return false;
     }
-
-    @Override
-    public final boolean equals(final Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Pair<A, B> other = (Pair<A, B>) obj;
-        if (this.first != other.first && (this.first == null || !this.first.equals(other.first))) {
-            return false;
-        }
-        return (!(this.second != other.second && (this.second == null || !this.second.equals(other.second))));
+    final Pair<A, B> other = (Pair<A, B>) obj;
+    if (this.first != other.first && (this.first == null || !this.first.equals(other.first))) {
+      return false;
     }
+    return (!(this.second != other.second && (this.second == null || !this.second.equals(other.second))));
+  }
 
-    @Override
-    public final int hashCode() {
-        return Objects.hashCode(first, second);
-    }
+  @Override
+  public final int hashCode() {
+    return Objects.hashCode(first, second);
+  }
 
-    @Override
-    public final String toString() {
-        try {
-            StringBuilder result = new StringBuilder(32);
-            writeTo(result);
-            return result.toString();
-        } catch (IOException ex) {
-           throw new RuntimeException(ex);
-        }
-    }
+  @Override
+  public final String toString() {
+    StringBuilder result = new StringBuilder(32);
+    writeTo(result);
+    return result.toString();
+  }
 
-    @Override
-    public final void writeTo(final Appendable appendable) throws IOException {
-      Csv.writeCsvElement(first == null ? "" : first.toString(), appendable);
-      appendable.append(',');
-      Csv.writeCsvElement(second == null ? "" : second.toString(), appendable);
-    }
+  @Override
+  public final void writeTo(final Appendable appendable) throws IOException {
+    Csv.writeCsvElement(first == null ? "" : first.toString(), appendable);
+    appendable.append(',');
+    Csv.writeCsvElement(second == null ? "" : second.toString(), appendable);
+  }
 
-    public final List<Object> toList() {
-        return java.util.Arrays.asList(first, second);
-    }
+  public final List<Object> toList() {
+    return java.util.Arrays.asList(first, second);
+  }
 
-    public static <K, V extends Object> Map<K, V> asMap(final Pair<K, ? extends V> ... pairs) {
-        Map<K, V> result = new LinkedHashMap<>(pairs.length);
-        for (Pair<K, ? extends V> pair : pairs) {
-            result.put(pair.getFirst(), pair.getSecond());
-        }
-        return result;
+  public static <K, V extends Object> Map<K, V> asMap(final Pair<K, ? extends V>... pairs) {
+    Map<K, V> result = new LinkedHashMap<>(pairs.length);
+    for (Pair<K, ? extends V> pair : pairs) {
+      result.put(pair.getFirst(), pair.getSecond());
     }
+    return result;
+  }
 
-    @Override
-    public final A getKey() {
-        return first;
-    }
+  @Override
+  public final A getKey() {
+    return first;
+  }
 
-    @Override
-    public final B getValue() {
-        return second;
-    }
+  @Override
+  public final B getValue() {
+    return second;
+  }
 
-    @Override
-    public final B setValue(final B value) {
-        throw new UnsupportedOperationException("Object not mutable");
-    }
+  @Override
+  public final B setValue(final B value) {
+    throw new UnsupportedOperationException("Object not mutable");
+  }
 
 }
