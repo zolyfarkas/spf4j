@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.spf4j.base.Strings;
+import org.spf4j.base.CharSequences;
 import org.spf4j.io.PushbackReader;
 
 /**
@@ -244,7 +244,7 @@ public final class CharSeparatedValues {
    * @param preader
    * @return
    */
-  public  Iterable<List<String>> asIterable(final Reader preader) {
+  public  Iterable<Iterable<String>> asIterable(final Reader preader) {
     return () -> {
       try {
         return new CsvReader2Iterator(reader(preader));
@@ -270,7 +270,7 @@ public final class CharSeparatedValues {
   }
 
   public void writeCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
-    if (Strings.contains(elem, toEscape)) {
+    if (CharSequences.containsAnyChar(elem, toEscape)) {
       writeQuotedCsvElement(elem, writer);
     } else {
       writer.append(elem);
@@ -292,7 +292,7 @@ public final class CharSeparatedValues {
   }
 
   public CharSequence toCsvElement(final CharSequence elem) {
-    if (Strings.contains(elem, toEscape)) {
+    if (CharSequences.containsAnyChar(elem, toEscape)) {
       StringWriter sw = new StringWriter(elem.length() - 1);
       try {
         writeQuotedCsvElement(elem, sw);

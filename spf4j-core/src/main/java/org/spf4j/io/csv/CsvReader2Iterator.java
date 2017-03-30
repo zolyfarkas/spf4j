@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public final class CsvReader2Iterator implements Iterator<List<String>> {
+public final class CsvReader2Iterator implements Iterator<Iterable<String>> {
 
   public CsvReader2Iterator(final CsvReader preader) {
     this.reader = preader;
@@ -58,7 +58,7 @@ public final class CsvReader2Iterator implements Iterator<List<String>> {
   }
 
   @Override
-  public List<String> next() {
+  public Iterable<String> next() {
     if (!hasNext()) {
       throw new NoSuchElementException();
     } else {

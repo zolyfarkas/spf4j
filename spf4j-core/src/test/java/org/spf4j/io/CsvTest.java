@@ -17,6 +17,7 @@
  */
 package org.spf4j.io;
 
+import avro.shaded.com.google.common.collect.Lists;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharSource;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -283,7 +284,7 @@ public final class CsvTest {
     @Test
     public void testLineIteration() {
       int nr = 0;
-      for(List<String> line : Csv.asIterable(new StringReader("bla,\"bla\"\nuhu,uhu2\n"))) {
+      for(Iterable<String> line : Csv.asIterable(new StringReader("bla,\"bla\"\nuhu,uhu2\n"))) {
         System.out.println(line);
         nr++;
       };
@@ -314,12 +315,12 @@ public final class CsvTest {
     @Test
     public void testCsvFileParsing2() throws IOException {
       try (InputStream resourceAsStream = CsvTest.class.getResourceAsStream("/test.csv") ) {
-        Iterable<List<String>> asIterable =
+        Iterable<Iterable<String>> asIterable =
                 Csv.asIterable(new InputStreamReader(resourceAsStream, StandardCharsets.UTF_8));
         int i = 0;
         List<String> lastRow = null;
-        for (List<String> row : asIterable) {
-          lastRow = new ArrayList<>(row);
+        for (Iterable<String> row : asIterable) {
+          lastRow = Lists.newArrayList(row);
           System.out.println("row " + row);
           i++;
         }

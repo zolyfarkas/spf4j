@@ -137,7 +137,7 @@ public final class Csv {
    * @param preader
    * @return
    */
-  public static Iterable<List<String>> asIterable(final Reader preader) {
+  public static Iterable<Iterable<String>> asIterable(final Reader preader) {
     return CSV.asIterable(preader);
   }
 
