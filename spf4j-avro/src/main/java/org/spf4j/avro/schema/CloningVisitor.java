@@ -132,7 +132,7 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
 
   @Override
   public String toString() {
-    return "TrimNoneEsentialProperties{" + "replace=" + replace + ", root=" + root + '}';
+    return "CloningVisitor{" + "replace=" + replace + ", root=" + root + '}';
   }
 
 }
