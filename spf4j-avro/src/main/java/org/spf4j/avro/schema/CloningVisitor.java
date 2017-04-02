@@ -78,7 +78,6 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
     Schema.Type type = nt.getType();
     if  (type == RECORD) {
         Schema newSchema = Schema.createRecord(nt.getName(), null, nt.getNamespace(), nt.isError());
-        Schemas.copyAliases(nt, newSchema);
         copyProperties.accept(nt, newSchema);
         replace.put(nt, newSchema);
     }
