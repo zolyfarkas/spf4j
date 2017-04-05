@@ -17,24 +17,23 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
 
   private final IdentityHashMap<Schema, Schema> replace = new IdentityHashMap<>();
 
-  private Schema root = null;
+  private final Schema root;
 
   private final BiConsumer<Schema, Schema> copyProperties;
+  private final boolean copyDocs;
 
-
-  public CloningVisitor() {
-    this(((BiConsumer<Schema, Schema>) Schemas::copyLogicalTypes).andThen(Schemas::copyAliases));
+  public CloningVisitor(final Schema root) {
+    this(((BiConsumer<Schema, Schema>) Schemas::copyLogicalTypes).andThen(Schemas::copyAliases), false, root);
   }
 
-  public CloningVisitor(final BiConsumer<Schema, Schema> copyProperties) {
+  public CloningVisitor(final BiConsumer<Schema, Schema> copyProperties, final boolean copyDocs, final Schema root) {
     this.copyProperties = copyProperties;
+    this.copyDocs = copyDocs;
+    this.root = root;
   }
 
   @Override
   public SchemaVisitorAction visitTerminal(final Schema terminal) {
-    if (root == null) {
-      root = terminal;
-    }
     Schema.Type type = terminal.getType();
     Schema newSchema;
     switch (type) {
@@ -57,10 +56,12 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
         newSchema = Schema.create(type);
       break;
       case ENUM:
-        newSchema = Schema.createEnum(terminal.getName(), null, terminal.getNamespace(), terminal.getEnumSymbols());
+        newSchema = Schema.createEnum(terminal.getName(), copyDocs ? terminal.getDoc() : null,
+                terminal.getNamespace(), terminal.getEnumSymbols());
         break;
       case FIXED:
-        newSchema = Schema.createFixed(terminal.getName(), null, terminal.getNamespace(), terminal.getFixedSize());
+        newSchema = Schema.createFixed(terminal.getName(), copyDocs ? terminal.getDoc() : null,
+                terminal.getNamespace(), terminal.getFixedSize());
         break;
       default:
         throw new IllegalStateException("Unsupported schema " + terminal);
@@ -72,12 +73,10 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
 
   @Override
   public SchemaVisitorAction visitNonTerminal(final Schema nt) {
-    if (root == null) {
-      root = nt;
-    }
     Schema.Type type = nt.getType();
     if  (type == RECORD) {
-        Schema newSchema = Schema.createRecord(nt.getName(), null, nt.getNamespace(), nt.isError());
+        Schema newSchema = Schema.createRecord(nt.getName(), copyDocs ? nt.getDoc() : null,
+                nt.getNamespace(), nt.isError());
         copyProperties.accept(nt, newSchema);
         replace.put(nt, newSchema);
     }
@@ -95,7 +94,7 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
          List<Schema.Field> newFields = new ArrayList<>(fields.size());
          for (Schema.Field field : fields) {
           Schema.Field newField = new Schema.Field(field.name(), replace.get(field.schema()),
-                  null, field.defaultVal(), field.order());
+                  copyDocs ? field.doc() : null, field.defaultVal(), field.order());
           Schemas.copyAliases(field, newField);
           newFields.add(newField);
          }
