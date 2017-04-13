@@ -1,5 +1,6 @@
 package org.spf4j.concurrent.jdbc;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.h2.jdbcx.JdbcDataSource;
@@ -8,6 +9,7 @@ import org.h2.jdbcx.JdbcDataSource;
  *
  * @author zoly
  */
+@SuppressFBWarnings("HARD_CODE_PASSWORD")
 public class BadSemaphoreHandler {
 
   static {

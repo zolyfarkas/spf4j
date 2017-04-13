@@ -16,6 +16,7 @@
  */
 package org.spf4j.io;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -25,8 +26,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import org.spf4j.base.IntMath;
 
+@SuppressFBWarnings("PREDICTABLE_RANDOM")
 public class WriterOutputStreamTest {
     private static final String TEST_STRING = "\u00e0 peine arriv\u00e9s nous entr\u00e2mes dans sa chambre";
     private static final String LARGE_TEST_STRING;

@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 import org.spf4j.base.CallablesNano;
 import org.spf4j.base.CallablesNanoNonInterrupt;
+import org.spf4j.base.CharSequences;
 import org.spf4j.base.HandlerNano;
 
 /**
@@ -23,6 +24,13 @@ public final class JdbcTemplate {
   public JdbcTemplate(final DataSource dataSource) {
     this.dataSource = dataSource;
   }
+
+  public static void checkJdbcObjectName(final CharSequence name) {
+    if (!CharSequences.isJavaIdentifier(name) || name.length() > 30) {
+      throw new IllegalArgumentException("Invalid database Object identifier " + name);
+    }
+  }
+
 
   @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION")
   public <R> R transactOnConnection(final HandlerNano<Connection, R, SQLException> handler,

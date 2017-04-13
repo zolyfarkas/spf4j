@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
  */
 
 @SuppressFBWarnings({"CLI_CONSTANT_LIST_INDEX", "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
-    "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS" })
+    "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "PREDICTABLE_RANDOM" })
 public final class RTree<T> {
 
     public enum SeedPicker {
@@ -711,6 +711,6 @@ public final class RTree<T> {
                 + ", seedPicker=" + seedPicker + ", root=" + root + ", size=" + size + '}';
     }
 
-    
+
 
 }

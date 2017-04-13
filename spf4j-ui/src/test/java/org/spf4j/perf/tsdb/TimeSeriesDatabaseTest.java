@@ -29,7 +29,7 @@ import org.spf4j.tsdb2.TimeSeries;
  *
  * @author zoly
  */
-@SuppressFBWarnings({ "CLI_CONSTANT_LIST_INDEX", "MDM_THREAD_YIELD" })
+@SuppressFBWarnings({ "CLI_CONSTANT_LIST_INDEX", "MDM_THREAD_YIELD", "PATH_TRAVERSAL_IN" })
 public final class TimeSeriesDatabaseTest {
 
     public TimeSeriesDatabaseTest() {
@@ -46,7 +46,7 @@ public final class TimeSeriesDatabaseTest {
         if (new File(FILE_NAME).delete()) {
             System.out.println("existing tsdb file deleted");
         }
-        try (TimeSeriesDatabase instance = new TimeSeriesDatabase(FILE_NAME, new byte[] {})) {
+        try (TimeSeriesDatabase instance = new TimeSeriesDatabase(new File(FILE_NAME), new byte[] {})) {
             instance.addTSTable("gr1", new byte []{}, 5, new String[]{"a", "b"}, new byte [][] {});
             instance.write(System.currentTimeMillis(), "gr1", new long[] {0, 1});
             Thread.sleep(5);
@@ -75,7 +75,7 @@ public final class TimeSeriesDatabaseTest {
             System.out.println(readAll);
         }
 
-        TimeSeriesDatabase instanceRead = new TimeSeriesDatabase(FILE_NAME, null);
+        TimeSeriesDatabase instanceRead = new TimeSeriesDatabase(new File(FILE_NAME), null);
       Collection<TSTable> tsTables = instanceRead.getTSTables();
 
         System.out.println(tsTables);
@@ -88,7 +88,7 @@ public final class TimeSeriesDatabaseTest {
     @Test(expected = IllegalArgumentException.class)
     public void testWriteBadTSDB() throws Exception {
         System.out.println("testWriteBadTSDB");
-        try (TimeSeriesDatabase instance = new TimeSeriesDatabase(FILE_NAME, new byte[] {})) {
+        try (TimeSeriesDatabase instance = new TimeSeriesDatabase(new File(FILE_NAME), new byte[] {})) {
             instance.addTSTable("gr1", new byte []{}, 5, new String[]{"a", "b"}, new byte [][] {});
             instance.addTSTable("gr1", new byte []{}, 5, new String[]{"a", "b"}, new byte [][] {});
         }

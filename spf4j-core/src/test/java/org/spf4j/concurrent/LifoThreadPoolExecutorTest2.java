@@ -40,7 +40,7 @@ import org.spf4j.stackmonitor.FastStackCollector;
  *
  * @author zoly
  */
-@SuppressFBWarnings("HES_LOCAL_EXECUTOR_SERVICE")
+@SuppressFBWarnings({ "HES_LOCAL_EXECUTOR_SERVICE", "PREDICTABLE_RANDOM" })
 public class LifoThreadPoolExecutorTest2 {
 
 

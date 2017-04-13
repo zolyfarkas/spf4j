@@ -472,7 +472,7 @@ public final class Runtime {
     return run(command, handler, timeoutMillis, 60000);
   }
 
-  @SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE") // not really lost, suppressed exceptions are used.
+  @SuppressFBWarnings("COMMAND_INJECTION")
   public static int run(final String[] command, final ProcOutputHandler handler,
           final long timeoutMillis, final long terminationTimeoutMillis)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {

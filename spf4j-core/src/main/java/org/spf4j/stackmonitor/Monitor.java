@@ -26,6 +26,7 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.CharSequences;
 
 /**
  * @author zoly
@@ -37,8 +38,9 @@ public final class Monitor {
     public static final String DEFAULT_SS_DUMP_FOLDER = System.getProperty("spf4j.perf.ms.defaultSsdumpFolder",
                 System.getProperty("java.io.tmpdir"));
 
-    public static final String DEFAULT_SS_DUMP_FILE_NAME_PREFIX =
-            System.getProperty("spf4j.perf.ms.defaultSsdumpFilePrefix", ManagementFactory.getRuntimeMXBean().getName());
+    public static final String DEFAULT_SS_DUMP_FILE_NAME_PREFIX = CharSequences.validatedFileName(
+            System.getProperty("spf4j.perf.ms.defaultSsdumpFilePrefix",
+                    ManagementFactory.getRuntimeMXBean().getName()));
 
     private static class Options {
 

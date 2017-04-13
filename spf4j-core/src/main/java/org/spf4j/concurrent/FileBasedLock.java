@@ -47,6 +47,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     private volatile Thread owner;
     private int reentranceCount = 0;
 
+    @SuppressFBWarnings("PREDICTABLE_RANDOM")
     private static int next(final int maxVal) {
         return Math.abs(Math.abs(ThreadLocalRandom.current().nextInt()) % maxVal);
     }

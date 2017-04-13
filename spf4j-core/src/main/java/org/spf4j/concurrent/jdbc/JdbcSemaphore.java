@@ -54,15 +54,20 @@ import org.spf4j.jmx.Registry;
  *
  * There are 3 tables involved:
  *
- * SEMAPHORES - keep track of available and total permits by semaphore. PERMITS_BY_OWNER - keeps track of all permits by
- * owner. HEARTBEATS - keeps heartbeats by owner to detect - dead owners.
+ * SEMAPHORES - keep track of available and total permits by semaphore.
+ * PERMITS_BY_OWNER - keeps track of all permits by
+ * owner.
+ * HEARTBEATS - keeps heartbeats by owner to detect - dead owners.
  *
  * All table names and columns are customizable to adapt this implementation to different naming conventions.
  *
  *
  * @author zoly
  */
-@SuppressFBWarnings({"SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING", "NP_LOAD_OF_KNOWN_NULL_VALUE"})
+@SuppressFBWarnings(value = {"NP_LOAD_OF_KNOWN_NULL_VALUE", "SQL_INJECTION_JDBC",
+  "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING"},
+        justification = "Sql injection is not really possible since the parameterized values are"
+                + "  validated to be java ids")
 @Beta
 public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
@@ -96,13 +101,15 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   private final String deleteDeadOwerRecordSql;
 
+  private final String insertLockRowSql;
+
+  private final String insertPermitsByOwnerSql;
+
   private final int jdbcTimeoutSeconds;
 
   private final IntMath.XorShift32 rnd;
 
   private final String semName;
-
-  private final SemaphoreTablesDesc semTableDesc;
 
   private final JdbcHeartBeat heartBeat;
 
@@ -161,7 +168,6 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     this.semName = INTERNER.intern(semaphoreName);
     this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;
     this.jdbc = new JdbcTemplate(dataSource);
-    this.semTableDesc = semTableDesc;
     this.rnd = new IntMath.XorShift32();
     this.isHealthy = true;
     this.ownedReservations = 0;
@@ -186,12 +192,12 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     String ownerColumn = semTableDesc.getOwnerColumn();
     String semaphoreNameColumn = semTableDesc.getSemNameColumn();
     String totalPermitsColumn = semTableDesc.getTotalPermitsColumn();
-    String ownerPermitsColumn = semTableDesc.getOwnerReservationsColumn();
+    String ownerPermitsColumn = semTableDesc.getOwnerPermitsColumn();
     String permitsByOwnerTableName = semTableDesc.getPermitsByOwnerTableName();
     HeartBeatTableDesc hbTableDesc = heartBeat.getHbTableDesc();
     String heartBeatTableName = hbTableDesc.getTableName();
     String heartBeatOwnerColumn = hbTableDesc.getOwnerColumn();
-    String currentTimeMillisFunc = hbTableDesc.getCurrentTimeMillisFunc();
+    String currentTimeMillisFunc = hbTableDesc.getDbType().getCurrTSSqlFn();
 
     this.reducePermitsSql = "UPDATE " + semaphoreTableName + " SET "
             + totalPermitsColumn + " = " + totalPermitsColumn + " - ?, "
@@ -234,12 +240,11 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
             + " - ?, " + lastModifiedAtColumn + " = " + currentTimeMillisFunc + " WHERE "
             + ownerColumn + " = ? AND " + semaphoreNameColumn + " = ? and " + ownerPermitsColumn + " >= ?";
 
-    this.availablePermitsSql = "SELECT " + semTableDesc.getAvailablePermitsColumn()
-            + ',' + totalPermitsColumn + " FROM " + semTableDesc.getSemaphoreTableName()
-            + " WHERE " + semTableDesc.getSemNameColumn() + " = ?";
+    this.availablePermitsSql = "SELECT " + availablePermitsColumn + ',' + totalPermitsColumn
+            + " FROM " + semaphoreTableName
+            + " WHERE " + semaphoreNameColumn + " = ?";
 
-    this.totalPermitsSql = "SELECT " + totalPermitsColumn
-            + ',' + totalPermitsColumn + " FROM " + semTableDesc.getSemaphoreTableName()
+    this.totalPermitsSql = "SELECT " + totalPermitsColumn + " FROM " + semaphoreTableName
             + " WHERE " + semTableDesc.getSemNameColumn() + " = ?";
 
     this.ownedPermitsSql = "SELECT " + ownerPermitsColumn + " FROM "
@@ -261,6 +266,16 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     this.deleteDeadOwerRecordSql = "DELETE FROM " + permitsByOwnerTableName + " WHERE "
             + ownerColumn + " = ? AND " + semaphoreNameColumn + " = ? AND "
             + ownerPermitsColumn + " = ?";
+
+    this.insertLockRowSql = "insert into " + semaphoreTableName
+                    + " (" + semaphoreNameColumn + ',' + availablePermitsColumn + ',' + totalPermitsColumn
+                    + ',' + lastModifiedByColumn + ',' + lastModifiedAtColumn + ") VALUES (?, ?, ?, ?, "
+                    + currentTimeMillisFunc + ')';
+
+    this.insertPermitsByOwnerSql = "insert into " + permitsByOwnerTableName
+              + " (" + semaphoreNameColumn + ',' + ownerColumn + ',' + ownerPermitsColumn + ','
+              + lastModifiedAtColumn + ") VALUES (?, ?, ?, " + currentTimeMillisFunc + ")";
+
 
     try {
       createLockRowIfNotPresent(strictReservations, nrPermits);
@@ -299,25 +314,13 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   void createLockRowIfNotPresent(final boolean strictReservations, final int nrPermits)
           throws SQLException, InterruptedException {
-    final String lastModifiedByColumn = semTableDesc.getLastModifiedByColumn();
-    final String lastModifiedAtColumn = semTableDesc.getLastModifiedAtColumn();
-    final String tableName = semTableDesc.getSemaphoreTableName();
-    final String semNameColumn = semTableDesc.getSemNameColumn();
-    final String availableReservationsColumn = semTableDesc.getAvailablePermitsColumn();
-    final String maxReservationsColumn = semTableDesc.getTotalPermitsColumn();
-
     jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
-      try (PreparedStatement stmt = conn.prepareStatement("SELECT " + availableReservationsColumn
-              + ',' + maxReservationsColumn + " FROM " + tableName
-              + " WHERE " + semNameColumn + " = ?")) {
+    try (PreparedStatement stmt = conn.prepareStatement(availablePermitsSql)) {
         stmt.setNString(1, semName);
         stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
         try (ResultSet rs = stmt.executeQuery()) {
           if (!rs.next()) {
-            try (PreparedStatement insert = conn.prepareStatement("insert into " + tableName
-                    + " (" + semNameColumn + ',' + availableReservationsColumn + ',' + maxReservationsColumn
-                    + ',' + lastModifiedByColumn + ',' + lastModifiedAtColumn + ") VALUES (?, ?, ?, ?, "
-                    + heartBeat.getHbTableDesc().getCurrentTimeMillisFunc() + ')')) {
+            try (PreparedStatement insert = conn.prepareStatement(insertLockRowSql)) {
               insert.setNString(1, semName);
               insert.setInt(2, nrPermits);
               insert.setInt(3, nrPermits);
@@ -348,12 +351,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
     jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
 
-      try (PreparedStatement insert = conn.prepareStatement("insert into "
-              + semTableDesc.getPermitsByOwnerTableName()
-              + " (" + semTableDesc.getSemNameColumn() + ',' + semTableDesc.getOwnerColumn() + ','
-              + semTableDesc.getOwnerReservationsColumn() + ','
-              + semTableDesc.getLastModifiedAtColumn() + ") VALUES (?, ?, ?, "
-              + heartBeat.getHbTableDesc().getCurrentTimeMillisFunc() + ")")) {
+      try (PreparedStatement insert = conn.prepareStatement(insertPermitsByOwnerSql)) {
         insert.setNString(1, this.semName);
         insert.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
         insert.setInt(3, 0);

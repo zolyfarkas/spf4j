@@ -43,8 +43,8 @@ public final class TSDBMeasurementStore
     private final TSDBWriter database;
 
 
-    public TSDBMeasurementStore(final String databaseName) throws IOException {
-        this.database = new TSDBWriter(new File(databaseName), 1024, "", false);
+    public TSDBMeasurementStore(final File databaseFile) throws IOException {
+        this.database = new TSDBWriter(databaseFile, 1024, "", false);
     }
 
 
@@ -104,17 +104,6 @@ public final class TSDBMeasurementStore
         StringBuilder result = new StringBuilder(1024);
         TSDBQuery.writeAsCsv(result, database.getFile(), tableName);
         return result.toString();
-    }
-
-    @JmxExport(description = "export As Csv to file")
-    public void writeTableAsCsv(@JmxExport("tableName") final String tableName,
-            @JmxExport("csvFileName") final String csvFileName) throws IOException {
-        File csv = new File(csvFileName);
-        File parent = csv.getParentFile();
-        if (parent == null || !parent.exists()) {
-            csv = new File(database.getFile().getParentFile().getAbsolutePath() + File.separator + csv.getName());
-        }
-        TSDBQuery.writeCsvTable(database.getFile(), tableName, csv);
     }
 
     @Override

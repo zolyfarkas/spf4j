@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author zoly
  */
+@SuppressFBWarnings("PREDICTABLE_RANDOM") //not security related
 public final class ExpensiveTestObject implements Closeable {
 
     private final long maxIdleMillis;

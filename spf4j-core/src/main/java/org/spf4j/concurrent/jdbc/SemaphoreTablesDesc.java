@@ -19,6 +19,7 @@
 package org.spf4j.concurrent.jdbc;
 
 import java.io.Serializable;
+import org.spf4j.jdbc.JdbcTemplate;
 /**
  *
  * @author zoly
@@ -35,7 +36,7 @@ public final class SemaphoreTablesDesc implements Serializable {
   private final String lastModifiedAtColumn;
   private final String permitsByOwnerTableName;
   private final String ownerColumn;
-  private final String ownerReservationsColumn;
+  private final String ownerPermitsColumn;
   private final HeartBeatTableDesc heartBeatTableDesc;
 
   public static final SemaphoreTablesDesc DEFAULT = new SemaphoreTablesDesc(
@@ -55,8 +56,17 @@ public final class SemaphoreTablesDesc implements Serializable {
           final String availablePermitsColumn,
           final String totalPermitsColumn, final String lastModifiedColumn,
           final String lastModifiedAtColumn, final String reservationsByOwnerTableName,
-          final String ownerColumn, final String ownerReservationsColumn,
+          final String ownerColumn, final String ownerPermitsColumn,
           final HeartBeatTableDesc heartBeatTableDesc) {
+    JdbcTemplate.checkJdbcObjectName(semaphoreTableName);
+    JdbcTemplate.checkJdbcObjectName(semNameColumn);
+    JdbcTemplate.checkJdbcObjectName(availablePermitsColumn);
+    JdbcTemplate.checkJdbcObjectName(totalPermitsColumn);
+    JdbcTemplate.checkJdbcObjectName(lastModifiedColumn);
+    JdbcTemplate.checkJdbcObjectName(lastModifiedAtColumn);
+    JdbcTemplate.checkJdbcObjectName(reservationsByOwnerTableName);
+    JdbcTemplate.checkJdbcObjectName(ownerColumn);
+    JdbcTemplate.checkJdbcObjectName(ownerPermitsColumn);
     this.semaphoreTableName = semaphoreTableName;
     this.semNameColumn = semNameColumn;
     this.availablePermitsColumn = availablePermitsColumn;
@@ -65,7 +75,7 @@ public final class SemaphoreTablesDesc implements Serializable {
     this.lastModifiedAtColumn = lastModifiedAtColumn;
     this.permitsByOwnerTableName = reservationsByOwnerTableName;
     this.ownerColumn = ownerColumn;
-    this.ownerReservationsColumn = ownerReservationsColumn;
+    this.ownerPermitsColumn = ownerPermitsColumn;
     this.heartBeatTableDesc = heartBeatTableDesc;
   }
 
@@ -101,8 +111,8 @@ public final class SemaphoreTablesDesc implements Serializable {
     return ownerColumn;
   }
 
-  public String getOwnerReservationsColumn() {
-    return ownerReservationsColumn;
+  public String getOwnerPermitsColumn() {
+    return ownerPermitsColumn;
   }
 
   public HeartBeatTableDesc getHeartBeatTableDesc() {
@@ -117,7 +127,7 @@ public final class SemaphoreTablesDesc implements Serializable {
             + ", totalPermitsColumn=" + totalPermitsColumn + ", lastModifiedByColumn="
             + lastModifiedByColumn + ", lastModifiedAtColumn=" + lastModifiedAtColumn
             + ", permitsByOwnerTableName=" + permitsByOwnerTableName + ", ownerColumn="
-            + ownerColumn + ", ownerReservationsColumn=" + ownerReservationsColumn + '}';
+            + ownerColumn + ", ownerReservationsColumn=" + ownerPermitsColumn + '}';
   }
 
 }

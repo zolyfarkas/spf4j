@@ -34,7 +34,7 @@ import org.junit.Test;
  *
  * @author zoly
  */
-@SuppressFBWarnings("MDM_THREAD_YIELD")
+@SuppressFBWarnings({ "MDM_THREAD_YIELD", "PATH_TRAVERSAL_IN" })
 public final class FileBasedLockTest {
 
     private static final String LOCK_FILE = org.spf4j.base.Runtime.TMP_FOLDER + File.separatorChar

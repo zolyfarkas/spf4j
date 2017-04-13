@@ -40,7 +40,7 @@ import org.spf4j.concurrent.DefaultExecutor;
  *
  * @author zoly
  */
-@SuppressFBWarnings({ "MDM_THREAD_YIELD", "DM_DEFAULT_ENCODING" })
+@SuppressFBWarnings({ "MDM_THREAD_YIELD", "DM_DEFAULT_ENCODING", "UNENCRYPTED_SERVER_SOCKET", "UNENCRYPTED_SOCKET" })
 public final class NetworkMonitorAspectTest {
 
     private volatile boolean terminated = false;

@@ -33,6 +33,7 @@ import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.ExitException;
 import org.spf4j.base.NoExitSecurityManager;
 
+@SuppressFBWarnings("PREDICTABLE_RANDOM")
 public final class MonitorTest {
 
     private static SecurityManager original;

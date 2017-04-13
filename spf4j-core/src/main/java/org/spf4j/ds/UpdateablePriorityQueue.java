@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
  * @author zoly
  * @param <E> - the type of the elements in the queue.
  */
-
+@SuppressFBWarnings("DESERIALIZATION_GADGET")
 public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializable {
 
     private static final int DEFAULT_INITIAL_CAPACITY = 16;
@@ -464,9 +464,6 @@ public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializab
         // Write out element count, and any hidden stuff
         s.defaultWriteObject();
 
-        // Write out array length, for compatibility with 1.5 version
-        s.writeInt(Math.max(2, size + 1));
-
         // Write out all elements in the "proper order".
         for (int i = 0; i < size; i++) {
             s.writeObject(queue[i].elem);
@@ -478,9 +475,6 @@ public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializab
         throws java.io.IOException, ClassNotFoundException {
         // Read in size, and any hidden stuff
         s.defaultReadObject();
-
-        // Read in (and discard) array length
-        s.readInt();
 
         queue = (ElementRef[]) Array.newInstance(ElementRef.class, size);
 

@@ -18,6 +18,8 @@
  */
 package org.spf4j.perf.impl.ms;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import org.spf4j.jmx.Registry;
@@ -36,6 +38,7 @@ import org.spf4j.recyclable.ObjectCreationException;
 public enum StoreType {
     TSDB(new StoreFactory() {
         @Override
+        @SuppressFBWarnings("PATH_TRAVERSAL_IN") // not supplied by user
         public MeasurementStore create(final String pconfig) throws IOException {
             String config;
             if (!pconfig.endsWith("tsdb2"))  {
@@ -43,13 +46,14 @@ public enum StoreType {
             } else {
                 config = pconfig;
             }
-            return new TSDBMeasurementStore(config);
+            return new TSDBMeasurementStore(new File(config));
         }
     }),
     TSDB_TXT(new StoreFactory() {
         @Override
+        @SuppressFBWarnings("PATH_TRAVERSAL_IN") // not supplied by user
         public MeasurementStore create(final String config) throws IOException {
-            return new TSDBTxtMeasurementStore(config);
+            return new TSDBTxtMeasurementStore(new File(config));
         }
     }),
     GRAPHITE_UDP(new StoreFactory() {

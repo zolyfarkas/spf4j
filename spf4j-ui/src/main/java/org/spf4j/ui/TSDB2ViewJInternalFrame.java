@@ -62,13 +62,13 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
     /**
      * Creates new form TSDBViewJInternalFrame
      */
-    public TSDB2ViewJInternalFrame(final String databaseFile) throws IOException {
-        super(databaseFile);
+    public TSDB2ViewJInternalFrame(final File tsDb) throws IOException {
+        super(tsDb.getPath());
+        this.tsDb = tsDb;
         initComponents();
-        tsDb = new File(databaseFile);
         Multimap<String, TableDefEx> columnsInfo = TSDBQuery.getAllTablesWithDataRanges(tsDb);
         Map<String, DefaultMutableTreeNode> gNodes = new HashMap<>();
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(databaseFile);
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(tsDb.getName());
         long startDateMillis = System.currentTimeMillis();
         for (Map.Entry<String, Collection<TableDefEx>> info : columnsInfo.asMap().entrySet()) {
             String groupName = info.getKey();

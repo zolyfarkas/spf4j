@@ -36,7 +36,7 @@ import org.spf4j.tsdb2.TimeSeries;
  * @author zoly
  */
 @Ignore
-@SuppressFBWarnings("MDM_THREAD_YIELD")
+@SuppressFBWarnings({ "MDM_THREAD_YIELD", "COMMAND_INJECTION", "PATH_TRAVERSAL_IN" })
 public final class TSDBTailerTest {
 
     private static final String FILE_NAME = System.getProperty("java.io.tmpdir") + "/testdb.tsdb";
@@ -52,7 +52,7 @@ public final class TSDBTailerTest {
         if (new File(FILE_NAME).delete()) {
             System.out.println("existing tsdb file deleted");
         }
-        final TimeSeriesDatabase instance = new TimeSeriesDatabase(FILE_NAME, new byte[]{});
+        final TimeSeriesDatabase instance = new TimeSeriesDatabase(new File(FILE_NAME), new byte[]{});
         Future<Integer> tailFut = DefaultExecutor.INSTANCE.submit(new Callable<Integer>() {
 
             @Override
@@ -124,7 +124,7 @@ public final class TSDBTailerTest {
 
     public static void main(final String[] parameters) throws IOException {
         final MutableHolder<Integer> counter = new MutableHolder<>(0);
-        TimeSeriesDatabase tsdb = new TimeSeriesDatabase(parameters[0]);
+        TimeSeriesDatabase tsdb = new TimeSeriesDatabase(new File(parameters[0]));
         tsdb.tail(10, 0, new TSDataHandler() {
 
             private int count = 0;

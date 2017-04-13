@@ -20,6 +20,7 @@ package org.spf4j.concurrent.jdbc;
 
 import java.io.Serializable;
 import org.spf4j.jdbc.DbType;
+import org.spf4j.jdbc.JdbcTemplate;
 
 /*
  * CREATE TABLE HEARTBEATS (
@@ -31,7 +32,7 @@ import org.spf4j.jdbc.DbType;
  * );
  *
  * Table description for storing heartbeats for processes. (OWNER)
- * The main purpose of thistable is to detect dead OWNERS (when their heart stops beating)
+ * The main purpose of this table is to detect dead OWNERS (when their heart stops beating)
  * OWNER = String column uniquely identifying a process.
  * INTERVAL_MILLIS - the delay between heartbeats.
  * LAST_HEARTBEAT_INSTANT_MILLIS - the millis since epoch when the last heartbeat happened.
@@ -51,15 +52,19 @@ public final class HeartBeatTableDesc  implements Serializable {
    * H2 = TIMESTAMPDIFF('MILLISECOND', timestamp '1970-01-01 00:00:00', CURRENT_TIMESTAMP())
    * POSTGRES = extract(epoch FROM now()) * 1000
    */
-  private final String currentTimeMillisFunc;
+  private final DbType dbType;
 
   public HeartBeatTableDesc(final String tableName, final String ownerColun,
-          final String intervalColumn, final String lastHeartbeatColumn, final String currentTimeMillisFunc) {
+        final String intervalColumn, final String lastHeartbeatColumn, final DbType dbType) {
+    JdbcTemplate.checkJdbcObjectName(tableName);
+    JdbcTemplate.checkJdbcObjectName(ownerColun);
+    JdbcTemplate.checkJdbcObjectName(intervalColumn);
+    JdbcTemplate.checkJdbcObjectName(lastHeartbeatColumn);
     this.tableName = tableName;
     this.ownerColumn = ownerColun;
     this.intervalColumn = intervalColumn;
     this.lastHeartbeatColumn = lastHeartbeatColumn;
-    this.currentTimeMillisFunc = currentTimeMillisFunc;
+    this.dbType = dbType;
   }
 
   public String getTableName() {
@@ -78,8 +83,8 @@ public final class HeartBeatTableDesc  implements Serializable {
     return lastHeartbeatColumn;
   }
 
-  public String getCurrentTimeMillisFunc() {
-    return currentTimeMillisFunc;
+  public DbType getDbType() {
+    return dbType;
   }
 
   @Override
@@ -89,29 +94,6 @@ public final class HeartBeatTableDesc  implements Serializable {
   }
 
 
-  /**
-   * Return the SQL for a current time millis since a EPOCH...
-   *
-   * @param dbType - the database type.
-   * @return - the sql fragment taht returns the current sql millis.
-   * @throws ExceptionInInitializerError
-   */
-  public static String getCurrTSSqlFn(final DbType dbType) throws ExceptionInInitializerError {
-    switch (dbType) {
-      case H2:
-        return "TIMESTAMPDIFF('MILLISECOND', timestamp '1970-01-01 00:00:00', CURRENT_TIMESTAMP())";
-      case ORACLE:
-        return "(SYSDATE - TO_DATE('01-01-1970 00:00:00', 'DD-MM-YYYY HH24:MI:SS')) * 24 * 3600000";
-      case MSSQL:
-        return "DATEDIFF(ms, '1970-01-01 00:00:00', GETUTCDATE())";
-      case POSTGRES:
-        return "extract(epoch FROM now()) * 1000";
-      case COCKROACH_DB:
-        return "extract(epoch_nanosecond from now()) / 1e6";
-      default:
-        throw new ExceptionInInitializerError("Database not supported");
-    }
-  }
 
 
   public static final HeartBeatTableDesc DEFAULT = new HeartBeatTableDesc(
@@ -119,5 +101,5 @@ public final class HeartBeatTableDesc  implements Serializable {
           System.getProperty("spf4j.jdbc.heartBeats.sql.ownerColumn", "OWNER"),
           System.getProperty("spf4j.jdbc.heartBeats.sql.intervalMillisColumn", "INTERVAL_MILLIS"),
           System.getProperty("spf4j.jdbc.heartBeats.sql.lastHeartBeatMillisColumn", "LAST_HEARTBEAT_INSTANT_MILLIS"),
-          System.getProperty("spf4j.jdbc.heartBeats.sql.currTsSqlFunction", getCurrTSSqlFn(DbType.DEFAULT)));
+          DbType.valueOf(System.getProperty("spf4j.jdbc.heartBeats.sql.dbType", "DEFAULT")));
 }

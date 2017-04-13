@@ -47,12 +47,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.InvalidObjectException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.text.AttributedCharacterIterator;
-import java.text.AttributedString;
 import java.text.CharacterIterator;
 import java.text.ChoiceFormat;
 import java.text.DateFormat;
@@ -71,6 +66,7 @@ import java.util.List;
 import java.util.Locale;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.spf4j.base.CharSequences;
 import org.spf4j.base.Strings;
 
 /**
@@ -775,7 +771,7 @@ public final class MessageFormat extends Format {
    * by the format element(s) that use it.
    */
   public final Appendable format(Object[] arguments, Appendable result,
-          FieldPosition pos) throws IOException {
+          @Nullable FieldPosition pos) throws IOException {
     return subformat(arguments, result, pos, null);
   }
 
@@ -855,9 +851,9 @@ public final class MessageFormat extends Format {
     if (iterators.isEmpty()) {
       return createAttributedCharacterIterator("");
     }
-    return createAttributedCharacterIterator(
+    return new AttributedString(
             iterators.toArray(
-                    new AttributedCharacterIterator[iterators.size()]));
+                    new AttributedCharacterIterator[iterators.size()])).getIterator();
   }
 
   /**
@@ -1052,7 +1048,7 @@ public final class MessageFormat extends Format {
   public int hashCode() {
     int h = hash;
     if (h == 0) {
-      h = Strings.hashcode(pattern);
+      h = CharSequences.hashcode(pattern);
       hash = h;
     }
     return h;
@@ -1069,53 +1065,6 @@ public final class MessageFormat extends Format {
     }
   }
 
-  /**
-   * Defines constants that are used as attribute keys in the <code>AttributedCharacterIterator</code> returned from
-   * <code>MessageFormat.formatToCharacterIterator</code>.
-   *
-   * @since 1.4
-   */
-  public static class Field extends Format.Field {
-
-    // Proclaim serial compatibility with 1.4 FCS
-    private static final long serialVersionUID = 7899943957617360810L;
-
-    /**
-     * Creates a Field with the specified name.
-     *
-     * @param name Name of the attribute
-     */
-    protected Field(String name) {
-      super(name);
-    }
-
-    /**
-     * Resolves instances being deserialized to the predefined constants.
-     *
-     * @throws InvalidObjectException if the constant could not be resolved.
-     * @return resolved MessageFormat.Field constant
-     */
-    protected Object readResolve() throws InvalidObjectException {
-      final Class<? extends Field> aClass = this.getClass();
-      if (aClass != MessageFormat.Field.class) {
-        throw new InvalidObjectException("subclass didn't correctly implement readResolve: " + aClass);
-      }
-
-      return ARGUMENT;
-    }
-
-    //
-    // The constants
-    //
-    /**
-     * Constant identifying a portion of a message that was generated from an argument passed into
-     * <code>formatToCharacterIterator</code>. The value associated with the key will be an <code>Integer</code>
-     * indicating the index in the <code>arguments</code> array of the argument from which the text was generated.
-     */
-    public final static Field ARGUMENT
-            = new Field("message argument field");
-  }
-
   // ===========================privates============================
   /**
    * The locale to use for formatting numbers and dates.
@@ -1130,7 +1079,7 @@ public final class MessageFormat extends Format {
    *
    * @serial
    */
-  private StringBuilder pattern;
+  private transient CharSequence pattern;
 
   /**
    * An array of formatters, which are used to format the arguments.
@@ -1228,7 +1177,7 @@ public final class MessageFormat extends Format {
           if (last != cl2) {
             characterIterators.add(
                     createAttributedCharacterIterator(
-                            subIterator, Field.ARGUMENT,
+                            subIterator, java.text.MessageFormat.Field.ARGUMENT,
                             Integer.valueOf(argumentNumber)));
             last = cl2;
           }
@@ -1238,7 +1187,7 @@ public final class MessageFormat extends Format {
           result.append(arg);
           characterIterators.add(
                   createAttributedCharacterIterator(
-                          arg, Field.ARGUMENT,
+                          arg, java.text.MessageFormat.Field.ARGUMENT,
                           Integer.valueOf(argumentNumber)));
           last = cs.length();
         }
@@ -1248,7 +1197,7 @@ public final class MessageFormat extends Format {
         }
         last = cs.length();
         result.append(arg);
-        if (i == 0 && fp != null && Field.ARGUMENT.equals(
+        if (i == 0 && fp != null && java.text.MessageFormat.Field.ARGUMENT.equals(
                 fp.getFieldAttribute())) {
           fp.setBeginIndex(last);
           fp.setEndIndex(cs.length());
@@ -1481,13 +1430,23 @@ public final class MessageFormat extends Format {
     }
   }
 
+    private void writeObject(final java.io.ObjectOutputStream s)
+        throws java.io.IOException {
+        // Write out element count, and any hidden stuff
+        s.defaultWriteObject();
+        s.writeUTF(pattern.toString());
+    }
+
+
   /**
    * After reading an object from the input stream, do a simple verification to maintain class invariants.
    *
    * @throws InvalidObjectException if the objects read from the stream is invalid.
    */
+  @SuppressFBWarnings({"WEM_WEAK_EXCEPTION_MESSAGING", "DESERIALIZATION_GADGET"})
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
     in.defaultReadObject();
+    pattern = in.readUTF();
     boolean isValid = maxOffset >= -1
             && formats.length > maxOffset;
     if (isValid) {
@@ -1504,7 +1463,7 @@ public final class MessageFormat extends Format {
       }
     }
     if (!isValid) {
-      throw new InvalidObjectException("Could not reconstruct MessageFormat from corrupt stream: " + in);
+      throw new InvalidObjectException("Could not reconstruct MessageFormat from corrupt stream");
     }
   }
 
@@ -1515,48 +1474,9 @@ public final class MessageFormat extends Format {
    * @return AttributedCharacterIterator wrapping s
    */
   static AttributedCharacterIterator createAttributedCharacterIterator(String s) {
-    java.text.AttributedString as = new java.text.AttributedString(s);
-
-    return as.getIterator();
+    return new java.text.AttributedString(s).getIterator();
   }
 
-  /**
-   * Creates an <code>AttributedCharacterIterator</code> containing the concatenated contents of the passed in
-   * <code>AttributedCharacterIterator</code>s.
-   *
-   * @param iterators AttributedCharacterIterators used to create resulting AttributedCharacterIterators
-   * @return AttributedCharacterIterator wrapping passed in AttributedCharacterIterators
-   */
-  static AttributedCharacterIterator createAttributedCharacterIterator(
-          AttributedCharacterIterator[] iterators) {
-    AttributedString as;
-    try {
-      as = ASC.newInstance(iterators);
-    } catch (InstantiationException | IllegalAccessException | InvocationTargetException ex) {
-      throw new RuntimeException(ex);
-    }
-
-    return as.getIterator();
-  }
-
-  private static final Constructor<AttributedString> ASC;
-
-  static {
-    ASC = AccessController.doPrivileged(new PrivilegedAction<Constructor<AttributedString>>() {
-      @Override
-      public Constructor<AttributedString> run() {
-        try {
-          Constructor<AttributedString> constructor
-                  = AttributedString.class.getDeclaredConstructor(AttributedCharacterIterator[].class);
-          constructor.setAccessible(true);
-          return constructor;
-        } catch (NoSuchMethodException | SecurityException ex) {
-          throw new RuntimeException(ex);
-        }
-
-      }
-    });
-  }
 
   /**
    * Returns an AttributedCharacterIterator with the String <code>string</code> and additional key/value pair

@@ -39,6 +39,7 @@ import org.spf4j.ssdump2.Converter;
  *
  * @author zoly
  */
+@SuppressFBWarnings("PATH_TRAVERSAL_IN")
 public final class JmhProfiler implements InternalProfiler {
 
     /**

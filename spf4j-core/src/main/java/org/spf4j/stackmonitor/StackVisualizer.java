@@ -28,7 +28,7 @@ import java.util.Map;
  * utility class to generate svg and html out of stack samples.
  * @author zoly
  */
-@SuppressFBWarnings("CBX_CUSTOM_BUILT_XML")
+@SuppressFBWarnings({ "CBX_CUSTOM_BUILT_XML", "PREDICTABLE_RANDOM" })
 public final class StackVisualizer {
 
     private StackVisualizer() {

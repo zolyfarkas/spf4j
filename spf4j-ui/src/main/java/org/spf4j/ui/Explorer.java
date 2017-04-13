@@ -37,10 +37,10 @@ public class Explorer extends javax.swing.JFrame {
     /**
      * Creates new form Explorer
      */
-    public Explorer(final String ... openFiles) throws IOException {
+    public Explorer(final File ... openFiles) throws IOException {
         initComponents();
-        for (String file : openFiles) {
-            openFile(new File(file));
+        for (File file : openFiles) {
+            openFile(file);
         }
     }
 
@@ -174,16 +174,15 @@ public class Explorer extends javax.swing.JFrame {
     private void openFile(final File file) throws IOException {
         String fileName = file.getName();
         JInternalFrame frame;
-        final String absolutePath = file.getAbsolutePath();
         if (fileName.endsWith("tsdb")) {
-            frame = new TSDBViewJInternalFrame(absolutePath);
+            frame = new TSDBViewJInternalFrame(file);
         } else if (fileName.endsWith("tsdb2")) {
-            frame = new TSDB2ViewJInternalFrame(absolutePath);
+            frame = new TSDB2ViewJInternalFrame(file);
         } else if (fileName.endsWith("ssdump") || fileName.endsWith("ssdump2")) {
-            frame = new StackDumpJInternalFrame(absolutePath, true);
+            frame = new StackDumpJInternalFrame(file, true);
             frame.setVisible(true);
             desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
-            frame = new StackDumpJInternalFrame(absolutePath, false);
+            frame = new StackDumpJInternalFrame(file, false);
         } else {
             throw new RuntimeException("Unsupported file format " + fileName);
         }
@@ -223,8 +222,13 @@ public class Explorer extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new AbstractRunnable(false) {
             @Override
+            @SuppressFBWarnings("PATH_TRAVERSAL_IN")
             public void doRun() throws IOException {
-                new Explorer(args).setVisible(true);
+                File [] files = new File[args.length];
+                for (int i = 0; i < args.length; i++) {
+                  files[i] = new File(args[i]);
+                }
+                new Explorer(files).setVisible(true);
             }
         });
     }

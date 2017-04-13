@@ -18,6 +18,7 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -34,6 +35,7 @@ public final class Objects {
     private Objects() {
     }
 
+    @SuppressFBWarnings("OBJECT_DESERIALIZATION")
     public static <T extends Serializable> T clone(final T t) {
         try (ByteArrayBuilder bos = new ByteArrayBuilder(256);
              ObjectOutputStream out = new ObjectOutputStream(bos)) {

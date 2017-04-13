@@ -168,6 +168,7 @@ public final class SntpClient {
      * Writes system time (milliseconds since January 1, 1970) as an NTP time stamp
      * at the given offset in the buffer.
      */
+    @SuppressFBWarnings("PREDICTABLE_RANDOM")
     private static void writeTimeStamp(final byte[] buffer, final int poffset, final long time) {
         int offset = poffset;
         long seconds = time / 1000L;

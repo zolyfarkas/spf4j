@@ -79,11 +79,12 @@ import static org.spf4j.perf.impl.chart.Charts.fillGaps;
  * TableInfo:
  * DataFragment:
  * EOF
- * 
+ *
  * @deprecated please use org.spf4j.tsdb2
  * @author zoly
  */
 @Deprecated
+@SuppressFBWarnings("PATH_TRAVERSAL_IN")
 public final class TimeSeriesDatabase implements Closeable {
 
     public static final int VERSION = 1;
@@ -99,19 +100,19 @@ public final class TimeSeriesDatabase implements Closeable {
 
     private static final Interner<String> INTERNER = Interners.newStrongInterner();
 
-    public TimeSeriesDatabase(final String pathToDatabaseFile) throws IOException {
+    public TimeSeriesDatabase(final File pathToDatabaseFile) throws IOException {
         this(pathToDatabaseFile, false);
     }
 
-    public TimeSeriesDatabase(final String pathToDatabaseFile, final byte ... metaData) throws IOException {
+    public TimeSeriesDatabase(final File pathToDatabaseFile, final byte ... metaData) throws IOException {
         this(pathToDatabaseFile, true, metaData);
     }
 
-    public TimeSeriesDatabase(final String pathToDatabaseFile, final boolean isWrite, final byte... metaData)
+    public TimeSeriesDatabase(final File pathToDatabaseFile, final boolean isWrite, final byte... metaData)
             throws IOException {
         file = new RandomAccessFile(pathToDatabaseFile, isWrite ? "rw" : "r");
         // uniques per process string for sync purposes.
-        this.path = INTERNER.intern(new File(pathToDatabaseFile).getPath());
+        this.path = INTERNER.intern(pathToDatabaseFile.getPath());
         tables = new ConcurrentHashMap<>();
         writeDataFragments = new HashMap<>();
         // read or create header

@@ -39,12 +39,6 @@ public final class MeasuredFileInputStream extends FileInputStream {
     private final File file;
     private final MeasurementRecorderSource recorderSource;
 
-    public MeasuredFileInputStream(final String name, final Class<?> from,
-            final MeasurementRecorderSource recorderSource)
-            throws FileNotFoundException {
-        this(new File(name), from, recorderSource);
-    }
-
     public MeasuredFileInputStream(final File file, final Class<?> from, final MeasurementRecorderSource recorderSource)
             throws FileNotFoundException {
         super(file);

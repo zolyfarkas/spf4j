@@ -18,6 +18,7 @@
 package org.spf4j.zel.instr.var;
 
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 
@@ -26,13 +27,12 @@ public final class RANDOM implements Method {
 
     public static final Method INSTANCE = new RANDOM();
 
-    private static final long serialVersionUID = 5154431044890636019L;
-
     private RANDOM() {
     }
 
 
     @Override
+    @SuppressFBWarnings("PREDICTABLE_RANDOM")
     public Object invoke(final ExecutionContext context, final Object[] parameters) {
         return Math.random();
     }

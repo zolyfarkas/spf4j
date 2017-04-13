@@ -1,5 +1,6 @@
 package org.spf4j.base;
 
+import java.io.File;
 import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -410,5 +411,17 @@ public final class CharSequences {
     }
     return true;
   }
+
+  public static boolean isValidFileName(@Nonnull final CharSequence fileName) {
+    return !containsAnyChar(fileName, '/', '\\');
+  }
+
+  public static <T extends CharSequence> T validatedFileName(@Nonnull final T fileName) {
+    if  (containsAnyChar(fileName, File.separatorChar)) {
+      throw new IllegalArgumentException("Invalid file name: " + fileName);
+    }
+    return fileName;
+  }
+
 
 }

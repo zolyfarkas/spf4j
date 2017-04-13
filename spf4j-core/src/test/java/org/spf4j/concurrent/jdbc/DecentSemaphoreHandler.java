@@ -1,7 +1,6 @@
 package org.spf4j.concurrent.jdbc;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.h2.jdbcx.JdbcDataSource;
@@ -11,6 +10,7 @@ import org.spf4j.stackmonitor.FastStackCollector;
  *
  * @author zoly
  */
+@SuppressFBWarnings({"PREDICTABLE_RANDOM", "HARD_CODE_PASSWORD" })
 public final class DecentSemaphoreHandler {
 
   static {

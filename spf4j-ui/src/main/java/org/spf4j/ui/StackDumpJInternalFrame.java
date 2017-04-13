@@ -46,17 +46,17 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     /**
      * Creates new form StackDumpJInternalFrame
      */
-    public StackDumpJInternalFrame(final String sampleFile, final boolean isPro) throws IOException {
-        super(sampleFile);
+    public StackDumpJInternalFrame(final File sampleFile, final boolean isPro) throws IOException {
+        super(sampleFile.getPath());
         initComponents();
-        if (sampleFile.endsWith("ssdump")) {
+        if (sampleFile.getName().endsWith("ssdump")) {
             try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sampleFile))) {
                 final CodedInputStream is = CodedInputStream.newInstance(bis);
                 is.setRecursionLimit(Short.MAX_VALUE);
                 samples = Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));
             }
         } else {
-            samples = org.spf4j.ssdump2.Converter.load(new File(sampleFile));
+            samples = org.spf4j.ssdump2.Converter.load(sampleFile);
         }
         if (samples == null) {
           samples = new SampleNode(new StackTraceElement[] {new StackTraceElement("NO SAMPLES", "", "", -1)}, 0);

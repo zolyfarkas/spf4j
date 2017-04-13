@@ -1,5 +1,6 @@
 package org.spf4j.junit;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
@@ -45,6 +46,7 @@ import org.spf4j.stackmonitor.Sampler;
  *
  * @author zoly
  */
+@SuppressFBWarnings("PATH_TRAVERSAL_IN")
 public final class Spf4jRunListener extends RunListener {
 
   private final Sampler sampler = new Sampler(Integer.getInteger("spf4j.junit.sampleTimeMillis", 5),

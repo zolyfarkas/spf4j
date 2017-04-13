@@ -36,6 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.CharSequences;
 import org.spf4j.base.IntMath;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.jmx.JmxExport;
@@ -90,6 +91,7 @@ public final class Sampler {
 
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final StackCollector collector,
           final String dumpFolder, final String dumpFilePrefix) {
+    CharSequences.validatedFileName(dumpFilePrefix);
     stopped = true;
     if (sampleTimeMillis < 1) {
       throw new IllegalArgumentException("Invalid sample time " + sampleTimeMillis);
@@ -188,12 +190,13 @@ public final class Sampler {
    */
   @JmxExport(value = "dumpToSpecificFile", description = "save stack samples to file")
   @Nullable
+  @SuppressFBWarnings("PATH_TRAVERSAL_IN") // not possible the provided ID is validated for path separators.
   public synchronized File dumpToFile(
           @JmxExport(value = "fileID", description = "the ID that will be part of the file name")
           @Nullable final String id) throws IOException {
-    String fileName = filePrefix + '_' + ((id == null) ? "" : id + '_')
+    String fileName = filePrefix + CharSequences.validatedFileName(((id == null) ? "" : '_' + id) + '_'
             + TS_FORMAT.print(lastDumpTime) + '_'
-            + TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump2";
+            + TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump2");
     File file = new File(fileName);
     return dumpToFile(file);
   }

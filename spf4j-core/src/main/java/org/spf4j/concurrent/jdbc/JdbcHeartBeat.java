@@ -67,7 +67,7 @@ import org.spf4j.jmx.Registry;
  * @author zoly
  */
 @SuppressFBWarnings(value = {"SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING",
-  "PMB_POSSIBLE_MEMORY_BLOAT"}, justification = "The db object names are configurable,"
+  "PMB_POSSIBLE_MEMORY_BLOAT", "SQL_INJECTION_JDBC"}, justification = "The db object names are configurable,"
         + "we for know allow heartbeats to multiple data sources, should be one mostly")
 @ParametersAreNonnullByDefault
 @ThreadSafe
@@ -77,7 +77,11 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   private final JdbcTemplate jdbc;
 
+  private final String insertHeartbeatSql;
+
   private final String updateHeartbeatSql;
+
+  private final String selectLastRunSql;
 
   private final int jdbcTimeoutSeconds;
 
@@ -148,10 +152,11 @@ public final class JdbcHeartBeat implements AutoCloseable {
     this.isClosed = false;
     String hbTableName = hbTableDesc.getTableName();
     String lastHeartbeatColumn = hbTableDesc.getLastHeartbeatColumn();
-    String currentTimeMillisFunc = hbTableDesc.getCurrentTimeMillisFunc();
+    String currentTimeMillisFunc = hbTableDesc.getDbType().getCurrTSSqlFn();
     String intervalColumn = hbTableDesc.getIntervalColumn();
     String ownerColumn = hbTableDesc.getOwnerColumn();
-
+    this.insertHeartbeatSql = "insert into " + hbTableName + " (" + ownerColumn + ',' + intervalColumn + ','
+                + lastHeartbeatColumn + ") VALUES (?, ?, " + currentTimeMillisFunc + ")";
     this.updateHeartbeatSql = "UPDATE " + hbTableName + " SET " + lastHeartbeatColumn + " = " + currentTimeMillisFunc
             + " WHERE " + ownerColumn + " = ? AND " + lastHeartbeatColumn + " + " + intervalColumn
             + " * 2 > " + currentTimeMillisFunc;
@@ -159,6 +164,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
             + " WHERE " + ownerColumn + " = ?";
     this.deleteSql = "DELETE FROM " + hbTableName + " WHERE " + lastHeartbeatColumn + " + " + intervalColumn
             + " * 2 < " + currentTimeMillisFunc;
+    this.selectLastRunSql = "select " + lastHeartbeatColumn + " FROM " + hbTableName
+            + " where " + ownerColumn + " = ?";
     this.lifecycleHooks = new CopyOnWriteArrayList<>();
     long startTimeNanos =  System.nanoTime();
     createHeartbeatRow();
@@ -190,10 +197,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
     try {
       jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
 
-        try (PreparedStatement insert = conn.prepareStatement("insert into " + hbTableDesc.getTableName()
-                + " (" + hbTableDesc.getOwnerColumn() + ',' + hbTableDesc.getIntervalColumn() + ','
-                + hbTableDesc.getLastHeartbeatColumn() + ") VALUES (?, ?, "
-                + hbTableDesc.getCurrentTimeMillisFunc() + ")")) {
+        try (PreparedStatement insert = conn.prepareStatement(insertHeartbeatSql)) {
           insert.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
           insert.setLong(2, this.intervalMillis);
           insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
@@ -353,8 +357,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
       @Override
       @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
       public Long handle(final Connection conn, final long deadlineNanos) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement("select " + hbTableDesc.getLastHeartbeatColumn()
-                + " FROM " + hbTableDesc.getTableName() + " where " + hbTableDesc.getOwnerColumn() + " = ?")) {
+        try (PreparedStatement stmt = conn.prepareStatement(selectLastRunSql)) {
           stmt.setQueryTimeout(10);
           stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
           try (ResultSet rs = stmt.executeQuery()) {

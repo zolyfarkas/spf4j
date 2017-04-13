@@ -25,6 +25,7 @@ import org.junit.Test;
  *
  * @author zoly
  */
+@SuppressFBWarnings({"HARD_CODE_PASSWORD", "SQL_INJECTION_JDBC" })
 public class JdbcSemaphoreTest {
 
   private static String hbddl;

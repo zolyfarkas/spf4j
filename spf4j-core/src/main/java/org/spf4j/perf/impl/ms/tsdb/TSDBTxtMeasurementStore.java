@@ -47,9 +47,9 @@ public final class TSDBTxtMeasurementStore
 
     private static final Interner<String> INTERNER = Interners.newStrongInterner();
 
-    public TSDBTxtMeasurementStore(final String fileName) throws IOException {
-        this.writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName, true), Charsets.UTF_8));
-        this.fileName = INTERNER.intern(new File(fileName).getPath());
+    public TSDBTxtMeasurementStore(final File file) throws IOException {
+        this.writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), Charsets.UTF_8));
+        this.fileName = INTERNER.intern(file.getPath());
     }
 
     @Override

@@ -19,7 +19,6 @@
 package org.spf4j.perf.io;
 
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
@@ -32,22 +31,11 @@ import org.spf4j.perf.MeasurementRecorderSource;
  * @author zoly
  */
 @CleanupObligation
-@SuppressFBWarnings("OBL_UNSATISFIED_OBLIGATION")
 public final class MeasuredFileOutputStream extends FileOutputStream {
 
     private final Class<?> from;
     private final MeasurementRecorderSource recorderSource;
     private final File file;
-
-    public MeasuredFileOutputStream(final String name, final Class<?> from,
-            final MeasurementRecorderSource recorderSource) throws FileNotFoundException {
-        this(new File(name), from, recorderSource);
-    }
-
-    public MeasuredFileOutputStream(final String name, final boolean append,
-            final Class<?> from, final MeasurementRecorderSource recorderSource) throws FileNotFoundException {
-        this(new File(name), append, from, recorderSource);
-    }
 
     public MeasuredFileOutputStream(final File file, final Class<?> from,
             final MeasurementRecorderSource recorderSource) throws FileNotFoundException {

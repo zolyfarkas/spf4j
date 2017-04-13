@@ -18,6 +18,7 @@
  */
 package org.spf4j.perf.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.impl.ms.StoreType;
 import org.spf4j.perf.impl.ms.graphite.GraphiteTcpStore;
 import org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore;
@@ -28,6 +29,7 @@ import java.lang.management.ManagementFactory;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.spf4j.base.CharSequences;
 import org.spf4j.io.Csv;
 import org.spf4j.io.csv.CsvParseException;
 import org.spf4j.perf.MeasurementRecorder;
@@ -61,14 +63,17 @@ public final class RecorderFactory {
      * @return a measurement store.
      */
     @Nonnull
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN") // the config is not supplied by a user.
     private static MeasurementStore buildStoreFromConfig(@Nullable final String configuration)
             throws IOException, ObjectCreationException {
 
         if (configuration == null || configuration.trim().isEmpty()) {
-            return new TSDBMeasurementStore(System.getProperty("spf4j.perf.ms.defaultTsdbFolderPath",
+            return new TSDBMeasurementStore(new File(
+                    System.getProperty("spf4j.perf.ms.defaultTsdbFolderPath",
                     System.getProperty("java.io.tmpdir"))
-                    + File.separator + System.getProperty("spf4j.perf.ms.defaultTsdbFileNamePrefix",
-                    ManagementFactory.getRuntimeMXBean().getName() + ".tsdb2"));
+                    + File.separator
+                    + CharSequences.validatedFileName(System.getProperty("spf4j.perf.ms.defaultTsdbFileNamePrefix",
+                    ManagementFactory.getRuntimeMXBean().getName() + ".tsdb2"))));
         }
 
         List<String> stores;
