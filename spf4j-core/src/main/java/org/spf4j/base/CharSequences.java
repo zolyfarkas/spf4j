@@ -406,7 +406,7 @@ public final class CharSequences {
   }
 
   public static <T extends CharSequence> T validatedFileName(@Nonnull final T fileName) {
-    if  (isValidFileName(fileName)) {
+    if  (!isValidFileName(fileName)) {
       throw new IllegalArgumentException("Invalid file name: " + fileName);
     }
     return fileName;
