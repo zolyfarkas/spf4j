@@ -22,12 +22,12 @@ public class CharSequencesTest {
 
   @Test
   public void testID() {
-    Assert.assertFalse(CharSequences.isJavaIdentifier(""));
-    Assert.assertFalse(CharSequences.isJavaIdentifier(null));
-    Assert.assertFalse(CharSequences.isJavaIdentifier("12A"));
-    Assert.assertTrue(CharSequences.isJavaIdentifier("_a"));
-    Assert.assertTrue(CharSequences.isJavaIdentifier("a"));
-    Assert.assertTrue(CharSequences.isJavaIdentifier("a123FGH"));
+    Assert.assertFalse(JavaUtils.isJavaIdentifier(""));
+    Assert.assertFalse(JavaUtils.isJavaIdentifier(null));
+    Assert.assertFalse(JavaUtils.isJavaIdentifier("12A"));
+    Assert.assertTrue(JavaUtils.isJavaIdentifier("_a"));
+    Assert.assertTrue(JavaUtils.isJavaIdentifier("a"));
+    Assert.assertTrue(JavaUtils.isJavaIdentifier("a123FGH"));
   }
 
 

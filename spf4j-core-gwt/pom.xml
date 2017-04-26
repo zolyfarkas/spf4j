@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright (c) 2001-2015, Zoltan Farkas All Rights Reserved.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.spf4j</groupId>
+  <artifactId>spf4j-core-gwt</artifactId>
+  <packaging>jar</packaging>
+  <parent>
+    <groupId>org.spf4j</groupId>
+    <artifactId>spf4j</artifactId>
+    <version>8.3.3-SNAPSHOT</version>
+  </parent>
+  <name>${project.artifactId}</name>
+  <description>A contiously growing collection of gwt compatible components from spf4-core</description>
+  <properties>
+    <argLine>-Djava.io.tmpdir=./target -Xmx64m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false</argLine>
+    <gwt.version>2.8.0</gwt.version>
+    <gwt.plugin.version>2.8.0</gwt.plugin.version>
+    <gwt.logLevel>WARN</gwt.logLevel>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.spf4j</groupId>
+      <artifactId>spf4j-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava-gwt</artifactId>
+      <version>${guava.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-dev</artifactId>
+      <version>${gwt.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-user</artifactId>
+      <version>${gwt.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+  
+  <build>
+      <plugins>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+        </plugin>
+        <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+        </plugin>
+        <plugin>
+          <artifactId>maven-source-plugin</artifactId>
+        </plugin>
+        <plugin>
+          <artifactId>maven-javadoc-plugin</artifactId>
+        </plugin>
+        <!-- Disable "normal" testing, which doesn't work for GWT tests. -->
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <skip>true</skip>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>unpack-sf4j-core-sources</id>
+              <phase>generate-resources</phase>
+              <goals>
+                <goal>unpack-dependencies</goal>
+              </goals>
+              <configuration>
+                <includeArtifactIds>spf4j-core</includeArtifactIds>
+                <classifier>sources</classifier>
+                <excludeTransitive>true</excludeTransitive>
+                <excludes>META-INF/MANIFEST.MF</excludes>
+                <outputDirectory>${project.build.directory}/spf4j-sources</outputDirectory>
+                <type>java-source</type>
+                <silent>false</silent>
+              </configuration>
+            </execution>
+          </executions>
+          <dependencies>
+            <dependency>
+              <groupId>org.spf4j</groupId>
+              <artifactId>spf4j-core</artifactId>
+              <version>${project.version}</version>
+              <classifier>sources</classifier>
+            </dependency>
+          </dependencies>
+        </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>copy-gwt-files</id>
+            <phase>generate-resources</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <target name="copy-gwt-resources">
+                <copy toDir="${project.build.directory}/spf4j-gwt-sources"
+                      verbose="true">
+                  <fileset dir="${project.build.directory}/spf4j-sources">
+                    <contains text="@GwtCompatible"/>
+                  </fileset>
+                </copy>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>gwt-maven-plugin</artifactId>
+        <version>${gwt.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>gwt-compile</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <module>org.spf4j.ForceSpf4jCompilation</module>
+              <failOnError>true</failOnError>
+              <logLevel>${gwt.logLevel}</logLevel>
+              <validateOnly>true</validateOnly>
+              <sourceLevel>1.8</sourceLevel>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      </plugins>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>${project.build.directory}/spf4j-gwt-sources</directory>
+      </resource>
+    </resources>
+
+  </build>
+  
+  
+  
+</project>

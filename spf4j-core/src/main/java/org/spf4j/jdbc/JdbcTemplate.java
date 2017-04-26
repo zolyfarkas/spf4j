@@ -8,8 +8,8 @@ import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 import org.spf4j.base.CallablesNano;
 import org.spf4j.base.CallablesNanoNonInterrupt;
-import org.spf4j.base.CharSequences;
 import org.spf4j.base.HandlerNano;
+import org.spf4j.base.JavaUtils;
 
 /**
  * A very simple JdbTemplate.
@@ -26,7 +26,7 @@ public final class JdbcTemplate {
   }
 
   public static void checkJdbcObjectName(final CharSequence name) {
-    if (!CharSequences.isJavaIdentifier(name) || name.length() > 30) {
+    if (!JavaUtils.isJavaIdentifier(name) || name.length() > 30) {
       throw new IllegalArgumentException("Invalid database Object identifier " + name);
     }
   }

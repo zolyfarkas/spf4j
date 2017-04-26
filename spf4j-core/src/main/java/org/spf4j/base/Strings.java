@@ -341,7 +341,7 @@ public final class Strings {
         if (len == 0) {
             return Arrays.EMPTY_BYTE_ARRAY;
         }
-        byte[] ba = Arrays.getBytesTmp(getmaxNrBytes(ce, len));
+        byte[] ba = TLScratch.getBytesTmp(getmaxNrBytes(ce, len));
         int nrBytes = encode(ce, ca, off, len, ba);
         return java.util.Arrays.copyOf(ba, nrBytes);
     }
@@ -383,7 +383,7 @@ public final class Strings {
             return "";
         }
         int en = (int) (len * (double) cd.maxCharsPerByte());
-        char[] ca = Arrays.getCharsTmp(en);
+        char[] ca = TLScratch.getCharsTmp(en);
         if (cd instanceof ArrayDecoder) {
             int clen = ((ArrayDecoder) cd).decode(ba, off, len, ca);
             return new String(ca, 0, clen);

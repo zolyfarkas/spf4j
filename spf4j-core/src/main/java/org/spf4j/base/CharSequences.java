@@ -1,6 +1,7 @@
 package org.spf4j.base;
 
-import java.io.File;
+import com.google.common.annotations.GwtCompatible;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -10,6 +11,7 @@ import javax.annotation.Nullable;
  *
  * @author zoly
  */
+@GwtCompatible
 public final class CharSequences {
 
   private CharSequences() {
@@ -144,13 +146,20 @@ public final class CharSequences {
     }
 
     @Override
+    @SuppressFBWarnings("STT_STRING_PARSING_A_FIELD")
     public String toString() {
-      char[] chars = new char[length];
-      int idx = startIdx;
-      for (int i = 0; i < length; i++, idx++) {
-        chars[i] = underlyingSequence.charAt(idx);
+      if (underlyingSequence instanceof String) {
+        return ((String) underlyingSequence).substring(startIdx, startIdx + length);
+      } else if (underlyingSequence instanceof StringBuilder) {
+        return ((StringBuilder) underlyingSequence).substring(startIdx, startIdx + length);
+      } else {
+        char[] chars = new char[length];
+        int idx = startIdx;
+        for (int i = 0; i < length; i++, idx++) {
+          chars[i] = underlyingSequence.charAt(idx);
+        }
+        return new String(chars);
       }
-      return Strings.wrap(chars);
     }
 
   }
@@ -392,32 +401,12 @@ public final class CharSequences {
     return false;
   }
 
-
-  public static boolean isJavaIdentifier(@Nullable final CharSequence cs) {
-    if (cs == null) {
-      return false;
-    }
-    final int length = cs.length();
-    if (length <= 0) {
-      return false;
-    }
-    if (!Character.isJavaIdentifierStart(cs.charAt(0))) {
-      return false;
-    }
-    for (int i = 1; i < length; i++) {
-      if (!Character.isJavaIdentifierPart(cs.charAt(i))) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   public static boolean isValidFileName(@Nonnull final CharSequence fileName) {
     return !containsAnyChar(fileName, '/', '\\');
   }
 
   public static <T extends CharSequence> T validatedFileName(@Nonnull final T fileName) {
-    if  (containsAnyChar(fileName, File.separatorChar)) {
+    if  (isValidFileName(fileName)) {
       throw new IllegalArgumentException("Invalid file name: " + fileName);
     }
     return fileName;

@@ -18,14 +18,15 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
-import java.lang.ref.SoftReference;
-import java.lang.reflect.Array;
+import com.google.common.annotations.GwtCompatible;
+import com.google.common.collect.ObjectArrays;
 
 /**
  * Array utilities.
  *
  * @author zoly
  */
+@GwtCompatible
 public final class Arrays {
 
   private Arrays() {
@@ -131,10 +132,7 @@ public final class Arrays {
     if (newLength < 0) {
       throw new IllegalArgumentException(from + " > " + to);
     }
-    Class<?> newType = original.getClass();
-    T[] copy = ((Object) newType == (Object) Object[].class)
-            ? (T[]) new Object[newLength]
-            : (T[]) Array.newInstance(newType.getComponentType(), newLength);
+    T[] copy = ObjectArrays.newArray(original, newLength);
     for (int i = from, j = 0; i < to; i++, j++) {
       copy[j] = original[i];
       original[i] = null;
@@ -151,10 +149,7 @@ public final class Arrays {
     for (T[] arr : arrays) {
       newLength += arr.length;
     }
-    Class<?> newType = arrays[0].getClass();
-    T[] result = ((Object) newType == (Object) Object[].class)
-            ? (T[]) new Object[newLength]
-            : (T[]) Array.newInstance(newType.getComponentType(), newLength);
+    T[] result = ObjectArrays.newArray(arrays[0], newLength);
     int destIdx = 0;
     for (T[] arr : arrays) {
       System.arraycopy(arr, 0, result, destIdx, arr.length);
@@ -173,54 +168,6 @@ public final class Arrays {
 
   public static final int[] EMPTY_INT_ARRAY = new int[]{};
 
-  private static final ThreadLocal<SoftReference<byte[]>> BYTES_TMP = new ThreadLocal<>();
-
-  private static final ThreadLocal<SoftReference<char[]>> CHARS_TMP = new ThreadLocal<>();
-
-  /**
-   * returns a thread local byte array of at least the size requested. use only for temporary purpose. This method needs
-   * to be carefully used!
-   *
-   * @param size - the minimum size of the temporary buffer requested.
-   * @return - the temporary buffer.
-   */
-  public static byte[] getBytesTmp(final int size) {
-    SoftReference<byte[]> sr = BYTES_TMP.get();
-    byte[] result;
-    if (sr == null) {
-      result = new byte[size];
-      BYTES_TMP.set(new SoftReference<>(result));
-    } else {
-      result = sr.get();
-      if (result == null || result.length < size) {
-        result = new byte[size];
-        BYTES_TMP.set(new SoftReference<>(result));
-      }
-    }
-    return result;
-  }
-
-  /**
-   * returns a thread local char array of at least the requested size. Use only for temporary purpose.
-   *
-   * @param size - the minimum size of the temporary buffer requested.
-   * @return - the temporary buffer.
-   */
-  public static char[] getCharsTmp(final int size) {
-    SoftReference<char[]> sr = CHARS_TMP.get();
-    char[] result;
-    if (sr == null) {
-      result = new char[size];
-      CHARS_TMP.set(new SoftReference<>(result));
-    } else {
-      result = sr.get();
-      if (result == null || result.length < size) {
-        result = new char[size];
-        CHARS_TMP.set(new SoftReference<>(result));
-      }
-    }
-    return result;
-  }
 
   public static <T> int indexOf(final T[] array, final T content) {
     int result = -1;

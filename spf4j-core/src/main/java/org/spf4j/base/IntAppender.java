@@ -1,12 +1,14 @@
 
 package org.spf4j.base;
 
+import com.google.common.annotations.GwtCompatible;
 import java.io.IOException;
 
 /**
  *
  * @author zoly
  */
+@GwtCompatible
 public interface IntAppender {
 
   void append(int number, Appendable appendTo) throws IOException;
