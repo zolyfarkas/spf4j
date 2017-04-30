@@ -124,12 +124,9 @@ public final class Schemas {
           case SKIP_SUBTREE:
             throw new UnsupportedOperationException();
           case SKIP_SIBLINGS:
-            //CHECKSTYLE:OFF InnerAssignment
-            while ((current = dq.getLast()) instanceof Schema) {
-              // just skip
+            while (dq.getLast() instanceof Schema) {
+               dq.removeLast();
             }
-            //CHECKSTYLE:ON
-            dq.addLast(current);
             break;
           case TERMINATE:
             return visitor.get();
@@ -203,13 +200,9 @@ public final class Schemas {
         dq.addLast((Supplier<SchemaVisitorAction>) () -> visitor.afterVisitNonTerminal(schema));
         break;
       case SKIP_SIBLINGS:
-        Object current;
-        //CHECKSTYLE:OFF InnerAssignment
-        while ((current = dq.getLast()) instanceof Schema) {
-          // just skip
+        while (!dq.isEmpty() && dq.getLast() instanceof Schema) {
+          dq.removeLast();
         }
-        //CHECKSTYLE:ON
-        dq.addLast(current);
         break;
       case TERMINATE:
         return true;
