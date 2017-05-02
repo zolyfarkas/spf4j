@@ -22,12 +22,12 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.hash.THashMap;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -49,6 +49,11 @@ import org.spf4j.io.PushbackReader;
 @ParametersAreNonnullByDefault
 @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // FB gets it wrong here
 public final class CharSeparatedValues {
+
+  /**
+   * http://unicode.org/faq/utf_bom.html#BOM
+   */
+  public static final int UTF_BOM = '\uFEFF';
 
   private final char separator;
   private final char[] toEscape;
@@ -132,14 +137,14 @@ public final class CharSeparatedValues {
 
   public <T> T read(final File file, final Charset charset,
           final CsvMapHandler<T> handler) throws IOException, CsvParseException {
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(Files.newInputStream(file.toPath()), charset))) {
       return read(br, handler);
     }
   }
 
   public <T> T read(final File file, final Charset charset,
           final CsvHandler<T> handler) throws IOException, CsvParseException {
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(Files.newInputStream(file.toPath()), charset))) {
       return read(br, handler);
     }
   }
@@ -170,11 +175,6 @@ public final class CharSeparatedValues {
     }
     return readNoBom(reader, handler);
   }
-
-  /**
-   * http://unicode.org/faq/utf_bom.html#BOM
-   */
-  public static final int UTF_BOM = '\uFEFF';
 
   /**
    * reads CSV format until EOF of reader.

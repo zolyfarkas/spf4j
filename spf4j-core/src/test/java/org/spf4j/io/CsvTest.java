@@ -17,8 +17,8 @@
  */
 package org.spf4j.io;
 
-import avro.shaded.com.google.common.collect.Lists;
 import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
 import com.google.common.io.CharSource;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
@@ -32,6 +32,7 @@ import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -140,7 +141,7 @@ public final class CsvTest {
         File testFile = File.createTempFile("csvTest", ".csv");
         System.out.println("test file : " + testFile);
         try (BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(new FileOutputStream(testFile), Charsets.UTF_8))) {
+                new OutputStreamWriter(Files.newOutputStream(testFile.toPath()), Charsets.UTF_8))) {
             Csv.writeCsvRow(writer, "a", "b", "c", "d");
             Csv.writeCsvRow(writer, "1.2\r", "1", "1,3", 1);
             Csv.writeCsvRow(writer, "0", "\"", "0\n", "1,3");

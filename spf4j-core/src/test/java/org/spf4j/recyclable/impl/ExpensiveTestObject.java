@@ -30,13 +30,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 @SuppressFBWarnings("PREDICTABLE_RANDOM") //not security related
 public final class ExpensiveTestObject implements Closeable {
 
+    private static final AtomicInteger OBJ_COUNT = new AtomicInteger();
+
     private final long maxIdleMillis;
     private final int nrUsesToFailAfter;
     private final long minOperationMillis;
     private final long maxOperationMillis;
     private long lastTouchedTimeMillis;
     private int nrUses;
-    private static final AtomicInteger OBJ_COUNT = new AtomicInteger();
     private final String id;
 
     @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")

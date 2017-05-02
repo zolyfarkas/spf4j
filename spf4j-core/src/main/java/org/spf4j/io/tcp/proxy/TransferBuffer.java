@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory;
  */
 public final class TransferBuffer {
 
+  private static final Logger LOG = LoggerFactory.getLogger(TransferBuffer.class);
+
   public enum Operation {
     READ, WRITE
   };
@@ -59,8 +61,6 @@ public final class TransferBuffer {
     this.readException = null;
     this.writeException = null;
   }
-
-  private static final Logger LOG = LoggerFactory.getLogger(TransferBuffer.class);
 
   public synchronized int read(final SocketChannel channel) {
     if (lastOperation == Operation.WRITE) {

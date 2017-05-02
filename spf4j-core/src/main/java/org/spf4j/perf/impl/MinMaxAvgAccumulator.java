@@ -28,13 +28,13 @@ import org.spf4j.perf.MeasurementsInfo;
 public final class MinMaxAvgAccumulator
     extends AbstractMeasurementAccumulator {
 
+    private static final String[] MEASUREMENTS = {"count", "total", "min", "max"};
+
     private long counter;
     private long total;
     private long min;
     private long max;
     private final MeasurementsInfo info;
-
-    private static final String[] MEASUREMENTS = {"count", "total", "min", "max"};
 
     private MinMaxAvgAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
             final long counter, final long total, final long min, final long max) {

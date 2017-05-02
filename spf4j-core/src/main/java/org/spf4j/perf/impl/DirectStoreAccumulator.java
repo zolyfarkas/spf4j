@@ -34,8 +34,9 @@ import org.spf4j.perf.MeasurementRecorder;
  */
 public final class DirectStoreAccumulator implements MeasurementRecorder, Closeable {
 
-    private final MeasurementsInfo info;
     private static final String[] MEASUREMENTS = {"value"};
+
+    private final MeasurementsInfo info;
     private final MeasurementStore measurementStore;
     private final long tableId;
 

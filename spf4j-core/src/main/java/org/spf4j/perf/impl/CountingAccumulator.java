@@ -28,10 +28,11 @@ import org.spf4j.perf.MeasurementsInfo;
 public final class CountingAccumulator
         extends AbstractMeasurementAccumulator {
 
+    private static final String[] MEASUREMENTS = {"count", "total"};
+
     private long counter;
     private long total;
     private final MeasurementsInfo info;
-    private static final String[] MEASUREMENTS = {"count", "total"};
 
     private CountingAccumulator(final Object measuredEntity, final String description,
             final String unitOfMeasurement, final long counter, final long total) {

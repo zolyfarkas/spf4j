@@ -46,16 +46,17 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
 
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurableAppenderSupplier.class);
 
-  private final ConcurrentMap<Class<?>, ObjectAppender<?>> lookup;
-
-  private final LinkedList<Pair<Class<?>, ObjectAppender<?>>> registry;
-
   public static final Predicate<Class<?>> NO_FILTER = new Predicate<Class<?>>() {
     @Override
     public boolean apply(final Class<?> input) {
       return false;
     }
   };
+
+  private final ConcurrentMap<Class<?>, ObjectAppender<?>> lookup;
+
+  private final LinkedList<Pair<Class<?>, ObjectAppender<?>>> registry;
+
 
   public ConfigurableAppenderSupplier() {
     this(true, NO_FILTER);

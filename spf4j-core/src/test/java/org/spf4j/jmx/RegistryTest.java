@@ -128,6 +128,8 @@ public final class RegistryTest {
 
     public static final class JmxTest2 {
 
+        private static volatile String testStr;
+
         private volatile String stringVal;
 
         @JmxExport("stringVal2")
@@ -139,8 +141,6 @@ public final class RegistryTest {
         public void setStringVal(final String stringVal) {
             this.stringVal = stringVal;
         }
-
-        private static volatile String testStr;
 
         @JmxExport
         public static String getTestStr() {

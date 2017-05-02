@@ -40,6 +40,9 @@ import org.spf4j.recyclable.SmartRecyclingSupplier;
  */
 final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<ObjectHolder<T>> {
 
+    private static final  Either<Action, ObjectHolder<?>> REQ_MADE = Either.left(Action.REQUEST_MADE);
+    private static final  Either<Action, ObjectHolder<?>> NONE = Either.left(Action.NONE);
+
     private final Queue<ObjectHolder<T>> localObjects;
     private final Map<T, ObjectHolder<T>> borrowedObjects;
     private final SmartRecyclingSupplier<ObjectHolder<T>> globalPool;
@@ -123,9 +126,6 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
         }
     }
 
-
-    private static final  Either<Action, ObjectHolder<?>> REQ_MADE = Either.left(Action.REQUEST_MADE);
-    private static final  Either<Action, ObjectHolder<?>> NONE = Either.left(Action.NONE);
 
     @Override
     public Either<Action, ObjectHolder<T>> tryRequestReturnObject() throws InterruptedException {
