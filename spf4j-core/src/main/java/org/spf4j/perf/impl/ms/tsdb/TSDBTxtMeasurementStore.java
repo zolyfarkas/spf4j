@@ -24,9 +24,10 @@ import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.io.Csv;
@@ -41,14 +42,15 @@ import org.spf4j.perf.impl.ms.Id2Info;
 public final class TSDBTxtMeasurementStore
     implements MeasurementStore {
 
+    private static final Interner<String> INTERNER = Interners.newStrongInterner();
+
     private final BufferedWriter writer;
 
     private final String fileName;
 
-    private static final Interner<String> INTERNER = Interners.newStrongInterner();
-
     public TSDBTxtMeasurementStore(final File file) throws IOException {
-        this.writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), Charsets.UTF_8));
+        this.writer = new BufferedWriter(new OutputStreamWriter(
+                Files.newOutputStream(file.toPath(), StandardOpenOption.APPEND), Charsets.UTF_8));
         this.fileName = INTERNER.intern(file.getPath());
     }
 

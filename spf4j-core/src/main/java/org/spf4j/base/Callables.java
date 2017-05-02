@@ -514,7 +514,7 @@ public final class Callables {
    *
    * @param <T> - The type of callable to retry result;
    * @param <EX> - the exception thrown by the callable to retry.
-   * @param what - the callable to retry.
+   * @param pwhat - the callable to retry.
    * @param retryOnReturnVal - the predicate to control retry on return value.
    * @param retryOnException - the predicate to return on retry value.
    * @return the result of the retried callable if successful.

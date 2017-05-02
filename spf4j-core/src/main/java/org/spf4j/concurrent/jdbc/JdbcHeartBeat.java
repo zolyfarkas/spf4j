@@ -41,6 +41,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
@@ -74,6 +75,14 @@ import org.spf4j.jmx.Registry;
 public final class JdbcHeartBeat implements AutoCloseable {
 
   private static final Logger LOG = LoggerFactory.getLogger(JdbcHeartBeat.class);
+
+  private static final Map<DataSource, JdbcHeartBeat> HEARTBEATS = new IdentityHashMap<>();
+
+  private static final int HEARTBEAT_INTERVAL_MILLIS =
+          Integer.getInteger("spf4j.jdbc.heartBeats.defaultIntervalMillis", 10000);
+
+  @GuardedBy("HEARTBEATS")
+  private static boolean isShuttingdown = false;
 
   private final JdbcTemplate jdbc;
 
@@ -390,13 +399,6 @@ public final class JdbcHeartBeat implements AutoCloseable {
   public String getLastRunTimeStampString() {
     return ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastRun), ZoneId.systemDefault()).toString();
   }
-
-  private static final Map<DataSource, JdbcHeartBeat> HEARTBEATS = new IdentityHashMap<>();
-
-  private static final int HEARTBEAT_INTERVAL_MILLIS =
-          Integer.getInteger("spf4j.jdbc.heartBeats.defaultIntervalMillis", 10000);
-
-  private static boolean isShuttingdown = false;
 
   /**
    * Get a reference to the hearbeat instance.

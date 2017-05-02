@@ -24,6 +24,8 @@ package org.spf4j.base;
  */
 public final  class Holder<T> {
 
+    public static final Holder OF_NULL = Holder.of(null);
+  
     private final T value;
 
     public Holder(final T value) {
@@ -46,7 +48,5 @@ public final  class Holder<T> {
     public static <T> Holder<T> of(final T value) {
         return new Holder<>(value);
     }
-
-    public static final Holder OF_NULL = Holder.of(null);
 
 }

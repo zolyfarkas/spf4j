@@ -73,6 +73,8 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   private static final Logger LOG = LoggerFactory.getLogger(JdbcSemaphore.class);
 
+  private static final Interner<String> INTERNER = Interners.newStrongInterner();
+
   private final JdbcTemplate jdbc;
 
   private final String availablePermitsSql;
@@ -116,8 +118,6 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   private volatile boolean isHealthy;
 
   private Error heartBeatFailure;
-
-  private static final Interner<String> INTERNER = Interners.newStrongInterner();
 
   private final int acquirePollMillis;
 

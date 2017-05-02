@@ -345,6 +345,7 @@ import org.spf4j.base.Strings;
  *
  * @author Mark Davis
  */
+@SuppressFBWarnings("IMC_IMMATURE_CLASS_WRONG_FIELD_ORDER")
 public final class MessageFormat extends Format {
 
   private static final long serialVersionUID = 1L;

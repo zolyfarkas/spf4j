@@ -130,15 +130,6 @@ public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializab
     }
 
 
-    private static final Comparator<? extends Comparable> DEFAULT_COMPARATOR =
-            new Comparator<Comparable>() {
-
-                @Override
-                public int compare(final Comparable e1, final Comparable e2) {
-                    return e1.compareTo(e2);
-                }
-            };
-
     public UpdateablePriorityQueue(final int initialCapacity,
             final Comparator<? super E> comparator) {
 
@@ -147,7 +138,7 @@ public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializab
         }
         this.queue = (ElementRef[]) Array.newInstance(ElementRef.class, initialCapacity);
         if (comparator == null) {
-            this.comparator = (Comparator<? super E>) DEFAULT_COMPARATOR;
+            this.comparator = (Comparator<? super E>) Comparator.naturalOrder();
         } else {
             this.comparator = comparator;
         }

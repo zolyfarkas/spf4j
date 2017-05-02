@@ -12,6 +12,8 @@ public final class InvokedMethod implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  public static final InvokedMethod ROOT = new InvokedMethod(Method.ROOT, 0);
+
   private final int invocationId;
 
   private final Method method;
@@ -57,8 +59,6 @@ public final class InvokedMethod implements Serializable {
   public InvokedMethod withNewId() {
     return new InvokedMethod(this.method, invocationId + 1);
   }
-
-  public static final InvokedMethod ROOT = new InvokedMethod(Method.ROOT, 0);
 
   @Override
   public String toString() {

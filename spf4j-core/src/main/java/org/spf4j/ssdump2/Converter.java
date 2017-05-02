@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PushbackInputStream;
+import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -80,7 +81,7 @@ public final class Converter {
 
     public static void save(final File file, final SampleNode collected) throws IOException {
         try (BufferedOutputStream bos = new BufferedOutputStream(
-                new FileOutputStream(file))) {
+                Files.newOutputStream(file.toPath()))) {
             final SpecificDatumWriter<ASample> writer = new SpecificDatumWriter<>(ASample.SCHEMA$);
             final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);
             Converter.convert(Method.ROOT, collected,
@@ -98,7 +99,8 @@ public final class Converter {
 
     @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
     public static SampleNode load(final File file) throws IOException {
-        try (MemorizingBufferedInputStream bis = new MemorizingBufferedInputStream(new FileInputStream(file))) {
+        try (MemorizingBufferedInputStream bis =
+                new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()))) {
             final PushbackInputStream pis = new PushbackInputStream(bis);
             final SpecificDatumReader<ASample> reader = new SpecificDatumReader<>(ASample.SCHEMA$);
             final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(pis, null);

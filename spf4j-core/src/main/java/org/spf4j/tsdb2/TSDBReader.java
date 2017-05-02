@@ -23,10 +23,10 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
@@ -55,6 +55,8 @@ import org.spf4j.tsdb2.avro.TableDef;
 @SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
 public final  class TSDBReader implements Closeable {
 
+    private static final boolean CORUPTION_LENIENT = Boolean.getBoolean("spf4j.tsdb2.lenientRead");
+
     private final CountingInputStream bis;
     private final Header header;
     private long size;
@@ -62,12 +64,11 @@ public final  class TSDBReader implements Closeable {
     private final SpecificDatumReader<Object> recordReader;
     private RandomAccessFile raf;
     private final File file;
-    private static final boolean CORUPTION_LENIENT = Boolean.getBoolean("spf4j.tsdb2.lenientRead");
 
 
     public TSDBReader(final File file, final int bufferSize) throws IOException {
         this.file = file;
-        final FileInputStream fis = new FileInputStream(file);
+        final InputStream fis = Files.newInputStream(file.toPath());
         bis = new CountingInputStream(fis);
         SpecificDatumReader<Header> reader = new SpecificDatumReader<>(Header.getClassSchema());
         decoder = DecoderFactory.get().directBinaryDecoder(bis, null);

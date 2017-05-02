@@ -28,6 +28,11 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractRunnable implements Runnable {
 
+    @Deprecated
+    public static final int ERROR_EXIT_CODE = SysExits.EX_SOFTWARE.exitCode();
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRunnable.class);
+
     private final boolean lenient;
 
     private final String threadName;
@@ -60,11 +65,6 @@ public abstract class AbstractRunnable implements Runnable {
     public AbstractRunnable(final String threadName) {
         this(false, null);
     }
-
-    @Deprecated
-    public static final int ERROR_EXIT_CODE = SysExits.EX_SOFTWARE.exitCode();
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRunnable.class);
 
     @Override
     public final void run() {

@@ -55,6 +55,14 @@ import org.spf4j.ssdump2.Converter;
 @ThreadSafe
 public final class Sampler {
 
+  private static final int STOP_FLAG_READ_MILLIS = 2000;
+
+  private static final StackTraceElement[] GC_FAKE_STACK = new StackTraceElement[]{
+    new StackTraceElement("java.lang.System", "gc", "System.java", -1)
+  };
+
+  private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();
+ 
   private volatile boolean stopped;
   private volatile int sampleTimeMillis;
   private volatile int dumpTimeMillis;
@@ -106,13 +114,7 @@ public final class Sampler {
     Registry.export(this);
   }
 
-  private static final StackTraceElement[] GC_FAKE_STACK = new StackTraceElement[]{
-    new StackTraceElement("java.lang.System", "gc", "System.java", -1)
-  };
-
   private final IntMath.XorShift32 random = new IntMath.XorShift32();
-
-  private static final int STOP_FLAG_READ_MILLIS = 2000;
 
   @JmxExport(description = "start stack sampling")
   public synchronized void start() {
@@ -172,8 +174,6 @@ public final class Sampler {
     }
 
   }
-
-  private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();
 
   @JmxExport(description = "save stack samples to file")
   @Nullable

@@ -177,6 +177,19 @@ public enum SysExits {
    */
   EX_UNKNOWN(-1);
 
+  private static final TIntObjectMap<SysExits> CODE2ENUM;
+
+  static {
+    SysExits[] values = SysExits.values();
+    TIntObjectMap<SysExits> c2e = new TIntObjectHashMap<>(values.length);
+    for (SysExits e : values) {
+      if (c2e.put(e.exitCode(), e) != null) {
+        throw new ExceptionInInitializerError("Duplicate exit code " + e);
+      }
+    }
+    CODE2ENUM = c2e;
+  }
+
   SysExits(final int code) {
     this.exitCode = code;
   }
@@ -194,20 +207,6 @@ public enum SysExits {
   public boolean isError() {
     return exitCode != 0;
   }
-
-  private static final TIntObjectMap<SysExits> CODE2ENUM;
-
-  static {
-    SysExits[] values = SysExits.values();
-    TIntObjectMap<SysExits> c2e = new TIntObjectHashMap<>(values.length);
-    for (SysExits e : values) {
-      if (c2e.put(e.exitCode(), e) != null) {
-        throw new ExceptionInInitializerError("Duplicate exit code " + e);
-      }
-    }
-    CODE2ENUM = c2e;
-  }
-
 
   /**
    * @param exitCode

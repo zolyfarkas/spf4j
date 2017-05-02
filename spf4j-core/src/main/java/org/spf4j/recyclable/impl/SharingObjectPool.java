@@ -23,6 +23,17 @@ import org.spf4j.recyclable.RecyclingSupplier;
  */
 public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
 
+  private static final Logger LOG = LoggerFactory.getLogger(SharingObjectPool.class);
+  
+  private static final Comparator<SharedObject<?>> SH_COMP = new Comparator<SharedObject<?>>() {
+
+    @Override
+    public int compare(final SharedObject<?> o1, final SharedObject<?> o2) {
+      return o1.nrTimesShared - o2.nrTimesShared;
+    }
+
+  };
+
   private final Factory<T> factory;
 
   public static final class SharedObject<T> {
@@ -63,14 +74,6 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
 
   }
 
-  private static final Comparator<SharedObject<?>> SH_COMP = new Comparator<SharedObject<?>>() {
-
-    @Override
-    public int compare(final SharedObject<?> o1, final SharedObject<?> o2) {
-      return o1.nrTimesShared - o2.getNrTimesShared();
-    }
-
-  };
 
   private final UpdateablePriorityQueue<SharedObject<T>> pooledObjects;
   private final Map<T, UpdateablePriorityQueue<SharedObject<T>>.ElementRef> o2QueueRefMap;
@@ -154,8 +157,6 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
       returnToQueue(object);
     }
   }
-
-  private static final Logger LOG = LoggerFactory.getLogger(SharingObjectPool.class);
 
   @SuppressFBWarnings("REC_CATCH_EXCEPTION")
   private synchronized void validate(final T object, final Exception e) {

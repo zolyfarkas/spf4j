@@ -27,10 +27,10 @@ import gnu.trove.map.TLongObjectMap;
 import gnu.trove.map.hash.TLongObjectHashMap;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -217,7 +217,8 @@ public final class TSDBQuery {
 
     public static void writeCsvTable(final File tsDB, final String tableName, final File output)
             throws IOException {
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8))) {
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+                Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
             writeAsCsv(writer, tsDB, tableName);
         }
     }
@@ -255,7 +256,8 @@ public final class TSDBQuery {
         }
         ListMultimap<String, TableDef> tables = getTables(tsDB, tableNames);
         DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8))) {
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+                Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
             TableDef table = tables.values().iterator().next();
             Csv.writeCsvElement("table", writer);
             writer.append(',');

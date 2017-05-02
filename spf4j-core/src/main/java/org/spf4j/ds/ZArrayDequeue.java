@@ -70,6 +70,13 @@ import java.util.NoSuchElementException;
 public class ZArrayDequeue<E> extends AbstractCollection<E>
                            implements Deque<E>, Cloneable, Serializable
 {
+
+    /**
+     * The minimum capacity that we'll use for a newly created deque.
+     * Must be a power of 2.
+     */
+    private static final int MIN_INITIAL_CAPACITY = 8;
+
     /**
      * The array in which the elements of the deque are stored.
      * The capacity of the deque is the length of this array, which is
@@ -95,11 +102,6 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
      */
     private transient int tail;
 
-    /**
-     * The minimum capacity that we'll use for a newly created deque.
-     * Must be a power of 2.
-     */
-    private static final int MIN_INITIAL_CAPACITY = 8;
 
     // ******  Array allocation and resizing utilities ******
 

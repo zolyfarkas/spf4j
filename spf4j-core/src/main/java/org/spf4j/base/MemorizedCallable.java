@@ -27,17 +27,17 @@ import java.util.concurrent.Callable;
 @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
 public final class MemorizedCallable<V> implements Callable<V> {
 
+    private static final Object NOTHING = new Object();
+
     private volatile V value;
-    
+
     private final Callable<V> callable;
 
-    private static final Object NOTHING = new Object();
-    
     public MemorizedCallable(final Callable<V> callable) {
         this.callable = callable;
         value = (V) NOTHING;
     }
-       
+
     @Override
     public V call() throws Exception {
         V result = value;
@@ -57,5 +57,5 @@ public final class MemorizedCallable<V> implements Callable<V> {
     public String toString() {
         return "MemorizedCallable{" + "value=" + value + '}';
     }
-   
+
 }

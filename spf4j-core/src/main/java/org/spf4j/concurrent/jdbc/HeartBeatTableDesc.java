@@ -37,9 +37,17 @@ import org.spf4j.jdbc.JdbcTemplate;
  * INTERVAL_MILLIS - the delay between heartbeats.
  * LAST_HEARTBEAT_INSTANT_MILLIS - the millis since epoch when the last heartbeat happened.
  */
-public final class HeartBeatTableDesc  implements Serializable {
+public final class HeartBeatTableDesc implements Serializable {
 
   private static final long serialVersionUID = 1L;
+
+  public static final HeartBeatTableDesc DEFAULT = new HeartBeatTableDesc(
+          System.getProperty("spf4j.jdbc.heartBeats.sql.tableName", "HEARTBEATS"),
+          System.getProperty("spf4j.jdbc.heartBeats.sql.ownerColumn", "OWNER"),
+          System.getProperty("spf4j.jdbc.heartBeats.sql.intervalMillisColumn", "INTERVAL_MILLIS"),
+          System.getProperty("spf4j.jdbc.heartBeats.sql.lastHeartBeatMillisColumn", "LAST_HEARTBEAT_INSTANT_MILLIS"),
+          DbType.valueOf(System.getProperty("spf4j.jdbc.heartBeats.sql.dbType", "DEFAULT")));
+
 
   private final String tableName;
   private final String ownerColumn;
@@ -93,13 +101,4 @@ public final class HeartBeatTableDesc  implements Serializable {
             + intervalColumn + ", lastHeartbeatColumn=" + lastHeartbeatColumn + '}';
   }
 
-
-
-
-  public static final HeartBeatTableDesc DEFAULT = new HeartBeatTableDesc(
-          System.getProperty("spf4j.jdbc.heartBeats.sql.tableName", "HEARTBEATS"),
-          System.getProperty("spf4j.jdbc.heartBeats.sql.ownerColumn", "OWNER"),
-          System.getProperty("spf4j.jdbc.heartBeats.sql.intervalMillisColumn", "INTERVAL_MILLIS"),
-          System.getProperty("spf4j.jdbc.heartBeats.sql.lastHeartBeatMillisColumn", "LAST_HEARTBEAT_INSTANT_MILLIS"),
-          DbType.valueOf(System.getProperty("spf4j.jdbc.heartBeats.sql.dbType", "DEFAULT")));
 }
