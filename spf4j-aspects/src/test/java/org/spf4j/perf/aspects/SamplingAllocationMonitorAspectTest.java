@@ -20,7 +20,6 @@ package org.spf4j.perf.aspects;
 
 import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.IOException;
 import org.junit.Test;
 import org.spf4j.perf.io.OpenFilesSampler;
 import org.spf4j.perf.memory.MemoryUsageSampler;
@@ -35,7 +34,7 @@ public final class SamplingAllocationMonitorAspectTest {
 
     private static void testAllocInStaticContext() throws InterruptedException {
         for (int i = 0; i < 1000; i++) {
-            System.err.println("S" + i + Strings.repeat("A", i % 2 * 10));
+            System.err.println("S" + i + Strings.repeat("A", i % 2 * 2));
             if (i % 100 == 0) {
                 Thread.sleep(100);
             }
