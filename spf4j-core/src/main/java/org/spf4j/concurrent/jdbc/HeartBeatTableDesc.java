@@ -46,7 +46,7 @@ public final class HeartBeatTableDesc implements Serializable {
           System.getProperty("spf4j.jdbc.heartBeats.sql.ownerColumn", "OWNER"),
           System.getProperty("spf4j.jdbc.heartBeats.sql.intervalMillisColumn", "INTERVAL_MILLIS"),
           System.getProperty("spf4j.jdbc.heartBeats.sql.lastHeartBeatMillisColumn", "LAST_HEARTBEAT_INSTANT_MILLIS"),
-          DbType.valueOf(System.getProperty("spf4j.jdbc.heartBeats.sql.dbType", "DEFAULT")));
+          DbType.valueOf(System.getProperty("spf4j.jdbc.heartBeats.sql.dbType", "H2")));
 
 
   private final String tableName;
