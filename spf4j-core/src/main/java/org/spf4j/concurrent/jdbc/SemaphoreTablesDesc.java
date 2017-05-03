@@ -28,17 +28,6 @@ public final class SemaphoreTablesDesc implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  private final String semaphoreTableName;
-  private final String semNameColumn;
-  private final String availablePermitsColumn;
-  private final String totalPermitsColumn;
-  private final String lastModifiedByColumn;
-  private final String lastModifiedAtColumn;
-  private final String permitsByOwnerTableName;
-  private final String ownerColumn;
-  private final String ownerPermitsColumn;
-  private final HeartBeatTableDesc heartBeatTableDesc;
-
   public static final SemaphoreTablesDesc DEFAULT = new SemaphoreTablesDesc(
           System.getProperty("spf4j.jdbc.semaphore.sql.tableName", "SEMAPHORES"),
           System.getProperty("spf4j.jdbc.semaphore.sql.semaphoreNameColumn", "SEMAPHORE_NAME"),
@@ -51,6 +40,16 @@ public final class SemaphoreTablesDesc implements Serializable {
           System.getProperty("spf4j.jdbc.semaphore.sql.permitsColumn", "PERMITS"),
           HeartBeatTableDesc.DEFAULT);
 
+  private final String semaphoreTableName;
+  private final String semNameColumn;
+  private final String availablePermitsColumn;
+  private final String totalPermitsColumn;
+  private final String lastModifiedByColumn;
+  private final String lastModifiedAtColumn;
+  private final String permitsByOwnerTableName;
+  private final String ownerColumn;
+  private final String ownerPermitsColumn;
+  private final HeartBeatTableDesc heartBeatTableDesc;
 
   public SemaphoreTablesDesc(final String semaphoreTableName, final String semNameColumn,
           final String availablePermitsColumn,

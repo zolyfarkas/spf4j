@@ -37,10 +37,11 @@ public final class BufferedInputStream extends FilterInputStream {
 
     private static int defaultBufferSize = 8192;
 
-    private volatile byte[] buf;
-
     private static final AtomicReferenceFieldUpdater<BufferedInputStream, byte[]> BUF_UPDATER
             = AtomicReferenceFieldUpdater.newUpdater(BufferedInputStream.class, byte[].class, "buf");
+
+
+    private volatile byte[] buf;
 
     private int count;
 

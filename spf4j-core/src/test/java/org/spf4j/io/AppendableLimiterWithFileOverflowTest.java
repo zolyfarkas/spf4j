@@ -4,10 +4,10 @@ package org.spf4j.io;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -36,7 +36,8 @@ public class AppendableLimiterWithFileOverflowTest {
     System.out.println(destination);
     Assert.assertEquals(90, destination.length());
     System.out.println(destination);
-    String oContent = CharStreams.toString(new InputStreamReader(new FileInputStream(ovflow), StandardCharsets.UTF_8));
+    String oContent = CharStreams.toString(new InputStreamReader(Files.newInputStream(ovflow.toPath()),
+            StandardCharsets.UTF_8));
     System.out.println(oContent);
     Assert.assertEquals(testStr, oContent);
   }
@@ -59,7 +60,8 @@ public class AppendableLimiterWithFileOverflowTest {
     System.out.println(destination);
     Assert.assertEquals(90, destination.length());
     System.out.println(destination);
-    String oContent = CharStreams.toString(new InputStreamReader(new FileInputStream(ovflow), StandardCharsets.UTF_8));
+    String oContent = CharStreams.toString(new InputStreamReader(Files.newInputStream(ovflow.toPath()),
+            StandardCharsets.UTF_8));
     System.out.println(oContent);
     Assert.assertEquals(testStr, oContent);
   }
@@ -83,7 +85,8 @@ public class AppendableLimiterWithFileOverflowTest {
     Assert.assertEquals(90, destination.length());
     Assert.assertEquals(testStr, destination.toString());
     System.out.println(destination);
-    String oContent = CharStreams.toString(new InputStreamReader(new FileInputStream(ovflow), StandardCharsets.UTF_8));
+    String oContent = CharStreams.toString(new InputStreamReader(Files.newInputStream(ovflow.toPath()),
+            StandardCharsets.UTF_8));
     System.out.println(oContent);
     Assert.assertEquals("", oContent);
   }

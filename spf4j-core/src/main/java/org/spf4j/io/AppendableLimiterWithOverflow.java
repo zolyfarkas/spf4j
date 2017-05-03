@@ -7,12 +7,11 @@ import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 
 /**
  * Utility class that limits the nr of characters written to a particular Appender.
@@ -26,7 +25,7 @@ import java.nio.charset.Charset;
 @CleanupObligation
 public final class AppendableLimiterWithOverflow implements Appendable, Closeable {
 
-  
+
   private final int directWriteLimit;
   private final int limit;
   private final Appendable destination;
@@ -36,7 +35,7 @@ public final class AppendableLimiterWithOverflow implements Appendable, Closeabl
   private final StringBuilder buffer;
   private StringBuilder asideBuffer;
   private final OverflowSupplier owflSupplier;
-  
+
   /**
    * provide the overflow.
    */
@@ -46,15 +45,15 @@ public final class AppendableLimiterWithOverflow implements Appendable, Closeabl
      * this string is used as a suffix for the appender that is being limited.
      */
     CharSequence getOverflowReference();
-    
+
     /**
      * @return - a writer to write the overflow.
      */
     Writer getOverflowWriter() throws IOException;
   }
-  
-  
-  
+
+
+
   public AppendableLimiterWithOverflow(final int limit, final File overflowFile,
           final CharSequence destinationSuffix, final Charset characterSet, final Appendable destination) {
     this(limit, destination, new OverflowSupplier() {
@@ -68,13 +67,13 @@ public final class AppendableLimiterWithOverflow implements Appendable, Closeabl
       }
 
       @Override
-      public Writer getOverflowWriter() throws FileNotFoundException {
+      public Writer getOverflowWriter() throws IOException {
         return new BufferedWriter(
-              new OutputStreamWriter(new FileOutputStream(overflowFile, false), characterSet));
+              new OutputStreamWriter(Files.newOutputStream(overflowFile.toPath()), characterSet));
       }
     });
   }
-  
+
   public AppendableLimiterWithOverflow(final int limit, final Appendable destination,
           final OverflowSupplier owflSupplier) {
     this.limit = limit;
@@ -96,7 +95,7 @@ public final class AppendableLimiterWithOverflow implements Appendable, Closeabl
     this.owflSupplier = owflSupplier;
   }
 
-  
+
   @Override
   public Appendable append(final CharSequence csq) throws IOException {
     append(csq, 0, csq.length());
@@ -129,7 +128,7 @@ public final class AppendableLimiterWithOverflow implements Appendable, Closeabl
     }
     return this;
   }
-  
+
   @Override
   public Appendable append(final char c) throws IOException {
     int charsToWrite = Math.min(directWriteLimit - count, 1);
@@ -154,7 +153,7 @@ public final class AppendableLimiterWithOverflow implements Appendable, Closeabl
     }
     return this;
   }
-  
+
 
   public void createOverflowIfNeeded() throws IOException {
     if (count >= limit && overflowWriter == null) {

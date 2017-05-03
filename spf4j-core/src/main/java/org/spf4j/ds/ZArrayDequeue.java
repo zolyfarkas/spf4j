@@ -72,6 +72,11 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
 {
 
     /**
+     * Appease the serialization gods.
+     */
+    private static final long serialVersionUID = 2340985798034038923L;
+
+    /**
      * The minimum capacity that we'll use for a newly created deque.
      * Must be a power of 2.
      */
@@ -831,11 +836,6 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
             throw new AssertionError();
         }
     }
-
-    /**
-     * Appease the serialization gods.
-     */
-    private static final long serialVersionUID = 2340985798034038923L;
 
     /**
      * Serialize this deque.

@@ -14,8 +14,8 @@ import javax.annotation.Nullable;
 public final class LinkedHashMapEx<K, V> extends LinkedHashMap<K, V>
         implements LinkedMap<K, V> {
 
-  private static final Field TAIL;
   private static final long serialVersionUID = 1L;
+  private static final Field TAIL;
 
   static {
 

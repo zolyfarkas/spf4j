@@ -42,6 +42,16 @@ import org.spf4j.base.TimeoutRunnable;
  */
 public class RetryExecutor {
 
+  public static final
+          ParameterizedSupplier<Callables.RetryPredicate<Object, Object>, Callable<Object>> NO_RETRY_SUPPLIER
+          = new ParameterizedSupplier<Callables.RetryPredicate<Object, Object>, Callable<Object>>() {
+
+    @Override
+    public Callables.RetryPredicate<Object, Object> get(final Callable<Object> parameter) {
+      return Callables.RetryPredicate.NORETRY_DELAY_PREDICATE;
+    }
+  };
+
   private final ExecutorService executionService;
   /**
    * can contain: DelayedCallables for execution. (delayed retries) or FailedExecutionResults for results.
@@ -276,15 +286,6 @@ public class RetryExecutor {
 
   }
 
-  public static final
-          ParameterizedSupplier<Callables.RetryPredicate<Object, Object>, Callable<Object>> NO_RETRY_SUPPLIER
-          = new ParameterizedSupplier<Callables.RetryPredicate<Object, Object>, Callable<Object>>() {
-
-    @Override
-    public Callables.RetryPredicate<Object, Object> get(final Callable<Object> parameter) {
-      return Callables.RetryPredicate.NORETRY_DELAY_PREDICATE;
-    }
-  };
 
   public RetryExecutor(final ExecutorService exec,
           final ParameterizedSupplier<Callables.RetryPredicate<Exception, Object>,

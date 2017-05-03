@@ -41,6 +41,8 @@ public final class Method implements Serializable {
 
     public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), "ROOT");
 
+    private static final Map<String, Map<String, Method>> INSTANCE_REPO = new THashMap<>(1024);
+
     @Nonnull
     private final String declaringClass;
 
@@ -107,8 +109,6 @@ public final class Method implements Serializable {
         w.append(htmlEscaper.escape(methodName)).append(htmlEscaper.escape("@")).
                 append(htmlEscaper.escape(declaringClass));
     }
-
-    private static final Map<String, Map<String, Method>> INSTANCE_REPO = new THashMap<>(1024);
 
     public static Method getMethod(final StackTraceElement elem) {
         return getMethod(elem.getClassName(), elem.getMethodName());

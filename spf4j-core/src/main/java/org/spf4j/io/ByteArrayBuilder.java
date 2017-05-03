@@ -38,6 +38,15 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
 @CleanupObligation
 public final class ByteArrayBuilder extends OutputStream {
 
+    /**
+     * The maximum size of array to allocate.
+     * Some VMs reserve some header words in an array.
+     * Attempts to allocate larger arrays may result in
+     * OutOfMemoryError: Requested array size exceeds VM limit
+     */
+    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+
+
     public ByteArrayBuilder() {
         this(256, ArraySuppliers.Bytes.TL_SUPPLIER);
     }
@@ -105,14 +114,6 @@ public final class ByteArrayBuilder extends OutputStream {
             grow(minCapacity);
         }
     }
-
-    /**
-     * The maximum size of array to allocate.
-     * Some VMs reserve some header words in an array.
-     * Attempts to allocate larger arrays may result in
-     * OutOfMemoryError: Requested array size exceeds VM limit
-     */
-    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
     /**
      * Increases the capacity to ensure that it can hold at least the

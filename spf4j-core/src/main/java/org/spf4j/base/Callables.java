@@ -361,6 +361,8 @@ public final class Callables {
 
   public static final class RetryDecision<R> {
 
+    private static final RetryDecision ABORT = new RetryDecision(Type.Abort, -1, null, null);
+
     public enum Type {
       Abort, Retry
     }
@@ -388,8 +390,6 @@ public final class Callables {
     public static <R> RetryDecision<R> retry(final long retryMillis, @Nonnull final Callable<R> callable) {
       return new RetryDecision(Type.Retry, retryMillis, null, callable);
     }
-
-    private static final RetryDecision ABORT = new RetryDecision(Type.Abort, -1, null, null);
 
     public static RetryDecision abort() {
       return ABORT;

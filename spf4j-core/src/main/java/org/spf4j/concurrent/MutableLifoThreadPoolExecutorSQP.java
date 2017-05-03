@@ -36,6 +36,7 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.GuardedBy;
+import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.SysExits;
 import static org.spf4j.concurrent.LifoThreadPoolExecutorSQP.CORE_MINWAIT_NANOS;
 import static org.spf4j.concurrent.RejectedExecutionHandler.REJECT_EXCEPTION_EXEC_HANDLER;
@@ -493,7 +494,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
     @SuppressFBWarnings
     public void signal() {
-      toRun.offer(LifoThreadPoolExecutorSQP.VOID);
+      toRun.offer(AbstractRunnable.NOP);
     }
 
     public boolean isRunning() {

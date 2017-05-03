@@ -21,84 +21,92 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  *
  * @author zoly
  */
 public abstract class AbstractRunnable implements Runnable {
 
-    @Deprecated
-    public static final int ERROR_EXIT_CODE = SysExits.EX_SOFTWARE.exitCode();
+  @Deprecated
+  public static final int ERROR_EXIT_CODE = SysExits.EX_SOFTWARE.exitCode();
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRunnable.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRunnable.class);
 
-    private final boolean lenient;
-
-    private final String threadName;
-
-    /**
-     * Create runnable lenient or not with a specific thread name during its execution.
-     *
-     * @param lenient - If lenient is true, it means that nobody is waiting for this runnable's result(finish)
-     * so To not loose the exception, the runnable will LOG it as an error, and not retrow it
-     * @param threadName - the thread name during the execution of this runnable.
-     */
-    public AbstractRunnable(final boolean lenient, @Nullable final String threadName) {
-        this.lenient = lenient;
-        this.threadName = threadName;
-    }
-
-    /**
-     * create runnable.
-     * @param lenient - If lenient is true, it means that nobody is waiting for this runnable's result(finish)
-     * so To not loose the exception, the runnable will LOG it as an error, and not retrow it
-     */
-    public AbstractRunnable(final boolean lenient) {
-       this(lenient, null);
-    }
-
-    public AbstractRunnable() {
-        this(false, null);
-    }
-
-    public AbstractRunnable(final String threadName) {
-        this(false, null);
-    }
+  public static final Runnable NOP = new Runnable() {
 
     @Override
-    public final void run() {
-        Thread thread = null;
-        String origName = null;
-        if (threadName != null) {
-             thread = Thread.currentThread();
-             origName = thread.getName();
-             thread.setName(threadName);
-        }
-
-        try {
-            doRun();
-        } catch (Exception ex) {
-            if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {
-                Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);
-            }
-            if (lenient) {
-                LOGGER.error("Exception in runnable: ", ex);
-            } else {
-                throw new RuntimeException(ex);
-            }
-        } catch (Throwable ex) {
-            if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {
-                Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);
-            }
-            throw ex;
-        } finally {
-            if (thread != null) {
-               thread.setName(origName);
-            }
-        }
+    public void run() {
     }
 
-    public abstract void doRun() throws Exception;
+  };
+
+  private final boolean lenient;
+
+  private final String threadName;
+
+  /**
+   * Create runnable lenient or not with a specific thread name during its execution.
+   *
+   * @param lenient - If lenient is true, it means that nobody is waiting for this runnable's result(finish) so To not
+   * loose the exception, the runnable will LOG it as an error, and not retrow it
+   * @param threadName - the thread name during the execution of this runnable.
+   */
+  public AbstractRunnable(final boolean lenient, @Nullable final String threadName) {
+    this.lenient = lenient;
+    this.threadName = threadName;
+  }
+
+  /**
+   * create runnable.
+   *
+   * @param lenient - If lenient is true, it means that nobody is waiting for this runnable's result(finish) so To not
+   * loose the exception, the runnable will LOG it as an error, and not retrow it
+   */
+  public AbstractRunnable(final boolean lenient) {
+    this(lenient, null);
+  }
+
+  public AbstractRunnable() {
+    this(false, null);
+  }
+
+  public AbstractRunnable(final String threadName) {
+    this(false, null);
+  }
+
+  @Override
+  public final void run() {
+    Thread thread = null;
+    String origName = null;
+    if (threadName != null) {
+      thread = Thread.currentThread();
+      origName = thread.getName();
+      thread.setName(threadName);
+    }
+
+    try {
+      doRun();
+    } catch (Exception ex) {
+      if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {
+        Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);
+      }
+      if (lenient) {
+        LOGGER.error("Exception in runnable: ", ex);
+      } else {
+        throw new RuntimeException(ex);
+      }
+    } catch (Throwable ex) {
+      if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {
+        Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);
+      }
+      throw ex;
+    } finally {
+      if (thread != null) {
+        thread.setName(origName);
+      }
+    }
+  }
+
+  public abstract void doRun() throws Exception;
 
 }

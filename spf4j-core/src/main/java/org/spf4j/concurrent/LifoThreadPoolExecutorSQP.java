@@ -35,6 +35,7 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.GuardedBy;
+import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.SysExits;
 import static org.spf4j.concurrent.RejectedExecutionHandler.REJECT_EXCEPTION_EXEC_HANDLER;
 import org.spf4j.ds.ZArrayDequeue;
@@ -70,6 +71,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
    * to optimize it...
    */
   static final long CORE_MINWAIT_NANOS = Long.getLong("spf4j.lifoTp.coreMaxWaitNanos", 1000000000);
+
+  static final int LL_THRESHOLD = Integer.getInteger("spf4j.lifoTp.llQueueSizeThreshold", 64000);
 
   @GuardedBy("stateLock")
   private final Queue<Runnable> taskQueue;
@@ -123,8 +126,6 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
             new ArrayDeque<Runnable>(Math.min(queueSize, LL_THRESHOLD)),
             queueSize, daemonThreads, 1024, REJECT_EXCEPTION_EXEC_HANDLER);
   }
-
-  static final int LL_THRESHOLD = Integer.getInteger("spf4j.lifoTp.llQueueSizeThreshold", 64000);
 
   public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
           final int maxSize, final int maxIdleTimeMillis,
@@ -364,14 +365,6 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
     return queueSizeLimit;
   }
 
-  static final Runnable VOID = new Runnable() {
-
-    @Override
-    public void run() {
-    }
-
-  };
-
   @Override
   public void unregisterJmx() {
     Registry.unregister(LifoThreadPoolExecutorSQP.class.getName(), poolName);
@@ -442,7 +435,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
     @SuppressFBWarnings
     public void signal() {
-      toRun.offer(VOID);
+      toRun.offer(AbstractRunnable.NOP);
     }
 
     public boolean isRunning() {

@@ -41,6 +41,8 @@ import org.spf4j.io.tcp.SelectorEventHandler;
 @ParametersAreNonnullByDefault
 public final class ProxyBufferTransferHandler extends SelectorEventHandler {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ProxyBufferTransferHandler.class);
+
     private final SocketChannel channel;
 
     private final Selector selector;
@@ -61,8 +63,6 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
     private final TransferBuffer out;
 
     private final BlockingQueue<Runnable> tasksToRunBySelector;
-
-    private static final Logger LOG = LoggerFactory.getLogger(ProxyBufferTransferHandler.class);
 
     public ProxyBufferTransferHandler(final TransferBuffer in, final TransferBuffer out,
             @Nullable final SnifferFactory snifferFactory,
