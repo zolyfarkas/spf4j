@@ -43,7 +43,7 @@ public final class AllocationMonitorAspectTest {
 
     private static void testAllocInStaticContext() throws InterruptedException {
         for (int i = 0; i < 1000; i++) {
-            System.err.println("S" + i + Strings.repeat("A", i % 2 * 10));
+            System.err.println("S" + i + Strings.repeat("A", i % 2 * 2));
             if (i % 100 == 0) {
                 Thread.sleep(100);
             }
