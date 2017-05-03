@@ -19,14 +19,15 @@
 package org.spf4j.perf.aspects;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.spf4j.perf.io.MeasuredFileInputStream;
-import org.spf4j.perf.io.MeasuredFileOutputStream;
 import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.impl.RecorderFactory;
+import org.spf4j.perf.io.MeasuredInputStream;
+import org.spf4j.perf.io.MeasuredOutputStream;
 
 /**
  * Aspect that intercepts File Read and File Write.
@@ -37,6 +38,8 @@ import org.spf4j.perf.impl.RecorderFactory;
 public final class FileMonitorAspect {
 
     public static final int SAMPLE_TIME = Integer.getInteger("spf4j.perf.file.sampleTimeMillis", 300000);
+
+    public static final boolean ADD_FILE_DETAIL = Boolean.getBoolean("spf4j.perf.file.addFileDetail");
 
     private static final MeasurementRecorderSource RECORDER_READ =
             RecorderFactory.createScalableCountingRecorderSource("file-read", "bytes",
@@ -79,17 +82,33 @@ public final class FileMonitorAspect {
         return result;
     }
 
+    @SuppressFBWarnings("ISB_TOSTRING_APPENDING")
+    private static String getLogInfo(final ProceedingJoinPoint pjp) {
+      String logInfo = pjp.getSourceLocation().getWithinType().getName();
+      if (ADD_FILE_DETAIL) {
+        logInfo += ':' + pjp.getArgs()[0].toString();
+      }
+      return logInfo;
+    }
+
     @Around("call(java.io.FileInputStream.new(java.io.File))")
     public Object fileIS(final ProceedingJoinPoint pjp) throws Throwable {
-        pjp.proceed();
-        return new MeasuredFileInputStream((File) pjp.getArgs()[0],
-                pjp.getSourceLocation().getWithinType(), RECORDER_READ);
+      return new MeasuredInputStream((InputStream) pjp.proceed(), getLogInfo(pjp), RECORDER_READ);
+    }
+
+    @Around("call(java.io.InputStream java.nio.file.Files.newInputStream(..))")
+    public Object filesIS(final ProceedingJoinPoint pjp) throws Throwable {
+      return new MeasuredInputStream((InputStream) pjp.proceed(), getLogInfo(pjp), RECORDER_READ);
     }
 
     @Around("call(java.io.FileOutputStream.new(java.io.File))")
     public Object fileOS(final ProceedingJoinPoint pjp) throws Throwable {
-        pjp.proceed();
-        return new MeasuredFileOutputStream((File) pjp.getArgs()[0],
-                pjp.getSourceLocation().getWithinType(), RECORDER_WRITE);
+        return new MeasuredOutputStream((OutputStream) pjp.proceed(), getLogInfo(pjp), RECORDER_WRITE);
     }
+
+    @Around("call(java.io.OutputStream java.nio.file.Files.newOutputStream(..))")
+    public Object filesOS(final ProceedingJoinPoint pjp) throws Throwable {
+        return new MeasuredOutputStream((OutputStream) pjp.proceed(), getLogInfo(pjp), RECORDER_WRITE);
+    }
+
 }

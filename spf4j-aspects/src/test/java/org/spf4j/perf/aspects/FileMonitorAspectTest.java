@@ -21,8 +21,6 @@ import com.google.common.collect.ListMultimap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -78,10 +76,10 @@ public final class FileMonitorAspectTest {
     System.out.println("Tables" +  allTables);
     Map<String, Collection<TableDefEx>> asMap = allTables.asMap();
     Assert.assertThat(asMap, (Matcher)
-            Matchers.hasKey("file-write,class org.spf4j.perf.aspects.FileMonitorAspectTest"));
+            Matchers.hasKey("file-write,org.spf4j.perf.aspects.FileMonitorAspectTest"));
     Assert.assertThat(asMap, (Matcher)
-            Matchers.hasKey("file-read,class org.spf4j.perf.aspects.FileMonitorAspectTest"));
-    List<TableDefEx> get = allTables.get("file-write,class org.spf4j.perf.aspects.FileMonitorAspectTest");
+            Matchers.hasKey("file-read,org.spf4j.perf.aspects.FileMonitorAspectTest"));
+    List<TableDefEx> get = allTables.get("file-write,org.spf4j.perf.aspects.FileMonitorAspectTest");
     Assert.assertTrue(get.get(0).getStartTime() != 0);
   }
 
