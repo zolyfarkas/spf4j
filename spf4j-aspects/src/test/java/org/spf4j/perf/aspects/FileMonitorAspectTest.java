@@ -27,6 +27,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +55,7 @@ public final class FileMonitorAspectTest {
     System.setProperty("spf4j.perf.file.sampleTimeMillis", "1000");
     File tempFile = File.createTempFile("test", ".tmp");
     tempFile.deleteOnExit();
-    try (Writer fw = new OutputStreamWriter(new FileOutputStream(tempFile), StandardCharsets.UTF_8)) {
+    try (Writer fw = new OutputStreamWriter(Files.newOutputStream(tempFile.toPath()), StandardCharsets.UTF_8)) {
       for (int i = 0; i < 10; i++) {
         fw.write("bla bla test\n");
         Thread.sleep(500);
@@ -62,7 +63,7 @@ public final class FileMonitorAspectTest {
     }
     Thread.sleep(1000);
     try (BufferedReader fr = new BufferedReader(new InputStreamReader(
-            new FileInputStream(tempFile), StandardCharsets.UTF_8))) {
+            Files.newInputStream(tempFile.toPath()), StandardCharsets.UTF_8))) {
       String line = fr.readLine();
       while (line != null) {
         System.out.println(line);

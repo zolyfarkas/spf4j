@@ -27,6 +27,11 @@ public final class SimpleStack<T>
         implements List<T> {
 
     /**
+     * stack default initial size
+     */
+    private static final int DEFAULT_SIZE = 32;
+
+    /**
      * the stack storage
      */
     private T[] elems;
@@ -34,11 +39,6 @@ public final class SimpleStack<T>
      * the top element position
      */
     private int top;
-    /**
-     * stack default initial size
-     */
-    private static final int DEFAULT_SIZE = 32;
-
     /**
      * construct a stack with specified size
      */
@@ -134,7 +134,7 @@ public final class SimpleStack<T>
         }
         return result;
     }
-    
+
     public void popTo(final T[] to, final int n) {
         int ot = top;
         top -= n;

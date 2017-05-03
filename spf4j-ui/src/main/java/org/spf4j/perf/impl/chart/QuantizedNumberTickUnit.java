@@ -11,6 +11,8 @@ import org.spf4j.perf.impl.Quanta;
  */
 public final class QuantizedNumberTickUnit extends NumberTickUnit {
 
+    private static final long serialVersionUID = 1L;
+    
     private final List<ComparablePair<Quanta, Integer>> quantas;
 
     public QuantizedNumberTickUnit(final double size, final List<ComparablePair<Quanta, Integer>> quantas) {
@@ -52,6 +54,4 @@ public final class QuantizedNumberTickUnit extends NumberTickUnit {
         return (!(this.quantas != other.quantas && (this.quantas == null || !this.quantas.equals(other.quantas))));
     }
 
-    private static final long serialVersionUID = 1L;
-    
 }

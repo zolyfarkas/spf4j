@@ -27,6 +27,7 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
     private static final String DEFAULT_OPTIONS = System.getProperty("jmh.fr.options",
             "defaultrecording=true,settings=profile");
 
+    private static volatile String benchmarkName;
 
 
     @Override
@@ -35,8 +36,6 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
     }
 
     private volatile String dumpFile;
-
-    private static volatile String benchmarkName;
 
     public static String benchmarkName() {
         return benchmarkName;

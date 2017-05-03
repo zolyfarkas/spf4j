@@ -30,6 +30,8 @@ import org.spf4j.base.Reflections;
 @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
 public final class JavaMethodCall implements Method {
 
+    private static final Class<?>[] EMPTY_CL_ARR = new Class<?>[0];
+
     private final String name;
     private final Class<?> objectClass;
     private final Object object;
@@ -44,8 +46,6 @@ public final class JavaMethodCall implements Method {
             this.object = object;
         }
     }
-
-    private static final Class<?>[] EMPTY_CL_ARR = new Class<?>[0];
 
     @Override
     public Object invoke(final ExecutionContext context, final Object[] parameters) {

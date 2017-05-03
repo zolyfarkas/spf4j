@@ -41,7 +41,8 @@ public final class ProgramBuilder {
 
     private static final int DEFAULT_SIZE = 16;
 
-
+    private static final AtomicInteger COUNTER = new AtomicInteger();
+    
     private Instruction[] instructions;
 
     private final List<Location> debugInfo;
@@ -51,8 +52,6 @@ public final class ProgramBuilder {
     private Program.Type type;
 
     private Program.ExecutionType execType;
-
-    private static final AtomicInteger COUNTER = new AtomicInteger();
 
     private final Interner<String> stringInterner;
 

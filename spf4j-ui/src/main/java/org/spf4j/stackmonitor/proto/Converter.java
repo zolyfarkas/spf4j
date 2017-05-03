@@ -21,8 +21,8 @@ import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import org.spf4j.base.Method;
 import org.spf4j.stackmonitor.SampleNode;
 import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
@@ -41,7 +41,7 @@ public final class Converter {
 
     public static void saveToFile(@Nonnull final File file, @Nonnull final SampleNode input) throws IOException {
         try (BufferedOutputStream bos = new BufferedOutputStream(
-                new FileOutputStream(file))) {
+                Files.newOutputStream(file.toPath()))) {
             fromSampleNodeToProto(input).writeTo(bos);
         }
     }

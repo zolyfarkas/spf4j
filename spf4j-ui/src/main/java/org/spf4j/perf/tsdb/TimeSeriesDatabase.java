@@ -32,7 +32,6 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
@@ -40,6 +39,7 @@ import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -88,6 +88,8 @@ import static org.spf4j.perf.impl.chart.Charts.fillGaps;
 public final class TimeSeriesDatabase implements Closeable {
 
     public static final int VERSION = 1;
+    private static final Interner<String> INTERNER = Interners.newStrongInterner();
+
     private final ConcurrentMap<String, TSTable> tables;
     private final RandomAccessFile file;
     private final Header header;
@@ -97,8 +99,6 @@ public final class TimeSeriesDatabase implements Closeable {
     private final Map<String, DataFragment> writeDataFragments;
     private final String path;
     private final FileChannel ch;
-
-    private static final Interner<String> INTERNER = Interners.newStrongInterner();
 
     public TimeSeriesDatabase(final File pathToDatabaseFile) throws IOException {
         this(pathToDatabaseFile, false);
@@ -594,7 +594,8 @@ public final class TimeSeriesDatabase implements Closeable {
         TSTable table = getTSTable(tableName);
         TimeSeries data = readAll(tableName);
         DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8))) {
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+                Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
             Csv.writeCsvElement("timestamp", writer);
             for (String colName : table.getColumnNames()) {
                 writer.append(',');
@@ -616,7 +617,8 @@ public final class TimeSeriesDatabase implements Closeable {
 
     public void writeCsvTables(final List<String> tableNames, final File output) throws IOException {
         DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), Charsets.UTF_8))) {
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+                Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
             String firstTable = tableNames.get(0);
             TSTable table = getTSTable(firstTable);
             Csv.writeCsvElement("table", writer);

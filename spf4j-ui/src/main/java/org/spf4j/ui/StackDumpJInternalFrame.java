@@ -22,8 +22,8 @@ import com.google.protobuf.CodedInputStream;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import org.spf4j.stackmonitor.SampleNode;
 import org.spf4j.stackmonitor.proto.Converter;
 import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
@@ -50,7 +50,8 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
         super(sampleFile.getPath());
         initComponents();
         if (sampleFile.getName().endsWith("ssdump")) {
-            try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sampleFile))) {
+            try (BufferedInputStream bis = new BufferedInputStream(
+                    Files.newInputStream(sampleFile.toPath()))) {
                 final CodedInputStream is = CodedInputStream.newInstance(bis);
                 is.setRecursionLimit(Short.MAX_VALUE);
                 samples = Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));

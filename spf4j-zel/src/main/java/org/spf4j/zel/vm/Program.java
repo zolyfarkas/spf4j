@@ -74,6 +74,28 @@ public final class Program implements Serializable {
 
   private static final long serialVersionUID = 748365748433474932L;
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(Program.class);
+
+  private static final MemoryBuilder ZEL_GLOBAL_FUNC;
+
+  private static volatile boolean terminated = false;
+
+  static {
+    ZEL_GLOBAL_FUNC = new MemoryBuilder();
+    ZEL_GLOBAL_FUNC.addSymbol("out", OUT.INSTANCE);
+    ZEL_GLOBAL_FUNC.addSymbol("sqrt", SQRT.INSTANCE);
+    ZEL_GLOBAL_FUNC.addSymbol("int", INT.INSTANCE);
+    ZEL_GLOBAL_FUNC.addSymbol("log", LOG.INSTANCE);
+    ZEL_GLOBAL_FUNC.addSymbol("log10", LOG.INSTANCE);
+    ZEL_GLOBAL_FUNC.addSymbol("min", MIN.INSTANCE);
+    ZEL_GLOBAL_FUNC.addSymbol("max", MAX.INSTANCE);
+    ZEL_GLOBAL_FUNC.addSymbol("array", ARRAY.INSTANCE);
+    ZEL_GLOBAL_FUNC.addSymbol("random", RANDOM.INSTANCE);
+    ZEL_GLOBAL_FUNC.addSymbol("channel", Channel.Factory.INSTANCE);
+    ZEL_GLOBAL_FUNC.addSymbol("EOF", Channel.EOF);
+    ZEL_GLOBAL_FUNC.addSymbol("decode", DECODE.INSTANCE);
+  }
+
   public enum Type {
     DETERMINISTIC, NONDETERMINISTIC
   };
@@ -312,23 +334,6 @@ public final class Program implements Serializable {
     return execute(null, System.in, System.out, System.err, args);
   }
 
-  private static final MemoryBuilder ZEL_GLOBAL_FUNC;
-
-  static {
-    ZEL_GLOBAL_FUNC = new MemoryBuilder();
-    ZEL_GLOBAL_FUNC.addSymbol("out", OUT.INSTANCE);
-    ZEL_GLOBAL_FUNC.addSymbol("sqrt", SQRT.INSTANCE);
-    ZEL_GLOBAL_FUNC.addSymbol("int", INT.INSTANCE);
-    ZEL_GLOBAL_FUNC.addSymbol("log", LOG.INSTANCE);
-    ZEL_GLOBAL_FUNC.addSymbol("log10", LOG.INSTANCE);
-    ZEL_GLOBAL_FUNC.addSymbol("min", MIN.INSTANCE);
-    ZEL_GLOBAL_FUNC.addSymbol("max", MAX.INSTANCE);
-    ZEL_GLOBAL_FUNC.addSymbol("array", ARRAY.INSTANCE);
-    ZEL_GLOBAL_FUNC.addSymbol("random", RANDOM.INSTANCE);
-    ZEL_GLOBAL_FUNC.addSymbol("channel", Channel.Factory.INSTANCE);
-    ZEL_GLOBAL_FUNC.addSymbol("EOF", Channel.EOF);
-    ZEL_GLOBAL_FUNC.addSymbol("decode", DECODE.INSTANCE);
-  }
 
   public Object execute(@Nullable final VMExecutor execService,
           @Nullable final InputStream in,
@@ -455,9 +460,6 @@ public final class Program implements Serializable {
     return result.toString();
   }
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(Program.class);
-
-  private static volatile boolean terminated = false;
   /**
    * *
    * This allows to run ZEL in an interactive mode
