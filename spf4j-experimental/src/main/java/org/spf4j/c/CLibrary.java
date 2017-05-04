@@ -8,7 +8,10 @@ import com.sun.jna.StringArray;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.PointerType;
+import com.sun.jna.Structure;
 import com.sun.jna.ptr.IntByReference;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * GNU C library.
@@ -66,6 +69,21 @@ public interface CLibrary extends Library {
      *      If -1, error.
      */
     int readlink(String filename, Memory buffer, NativeLong size);
+
+    /** corresponds to struct rlimit */
+    public static final class Rlimit extends Structure implements Structure.ByReference {
+        public NativeLong rlim_cur = new NativeLong(0);
+        public NativeLong rlim_max = new NativeLong(0);
+
+        @Override
+        protected List<String> getFieldOrder() {
+            return Arrays.asList("rlim_cur", "rlim_max");
+        }
+    }
+
+    int getrlimit(int resource, Rlimit rlimit);
+    int setrlimit(int resource, Rlimit rlimit);
+
 
     public static final CLibrary LIBC = (CLibrary) Native.loadLibrary("c", CLibrary.class);
 }
