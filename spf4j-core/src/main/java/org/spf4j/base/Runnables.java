@@ -3,7 +3,6 @@ package org.spf4j.base;
 import javax.annotation.Nullable;
 
 /**
- *
  * @author zoly
  */
 public final class Runnables {
@@ -14,9 +13,9 @@ public final class Runnables {
   @Nullable
   public static RuntimeException runAll(final Runnable... runnables) {
     RuntimeException ex = null;
-    for (Runnable closeable : runnables) {
+    for (Runnable r : runnables) {
       try {
-        closeable.run();
+        r.run();
       } catch (RuntimeException ex1) {
         if (ex == null) {
           ex = ex1;
