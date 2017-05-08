@@ -1,5 +1,6 @@
 package org.spf4j.base;
 
+import com.sun.jna.Native;
 import com.sun.jna.platform.unix.Resource;
 
 /**
@@ -9,6 +10,7 @@ import com.sun.jna.platform.unix.Resource;
  * @author zoly
  */
 public enum UnixResources {
+
 
   /**
    * 0 Per-process CPU limit, in seconds.
@@ -120,14 +122,14 @@ public enum UnixResources {
   }
 
   private static Resource.Rlimit getRLimit(final UnixResources resourceId) {
-    final Resource.Rlimit limit = new Resource.Rlimit();
     int id = Runtime.isMacOsx() ? resourceId.macId : resourceId.gnuId;
     if (id < 0) {
       throw new UnsupportedOperationException("Unsupported " + id + " limit on " + Runtime.OS_NAME);
     }
+    final Resource.Rlimit limit = new Resource.Rlimit();
     int err = com.sun.jna.platform.unix.LibC.INSTANCE.getrlimit(id, limit);
     if (err != 0) {
-      throw new RuntimeException("Error code " + err  + " for getrlimit(" + id + ", " + limit + '\'');
+      throw new RuntimeException("Error code " + Native.getLastError()  + " for getrlimit(" + id + ", " + limit + '\'');
     }
     return limit;
   }
@@ -142,7 +144,7 @@ public enum UnixResources {
     limit.rlim_max = hardValue;
     int err = com.sun.jna.platform.unix.LibC.INSTANCE.setrlimit(id, limit);
     if (err != 0) {
-      throw new RuntimeException("Error code " + err + " for setrlimit(" + id + ", " + limit + '\'');
+      throw new RuntimeException("Error code " + Native.getLastError() + " for setrlimit(" + id + ", " + limit + '\'');
     }
   }
 
