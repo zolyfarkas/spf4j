@@ -29,6 +29,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.ref.WeakReference;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -267,6 +268,21 @@ public final class Runtime {
         return IS_WINDOWS;
     }
 
+    public static boolean haveJnaPlatform() {
+      URL resource = Thread.currentThread().getContextClassLoader().getResource("com/sun/jna/platform/package.html");
+      return (resource != null);
+    }
+
+    @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_RETURN_FALSE")
+    public static boolean haveJnaPlatformClib() {
+      try {
+        Class.forName("com.sun.jna.platform.unix.LibC");
+        return true;
+      } catch (ClassNotFoundException ex) {
+        return false;
+      }
+    }
+
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     public static final class Lsof {
 
@@ -294,15 +310,12 @@ public final class Runtime {
 
     }
 
+   /**
+    * see UnixResources for better/faster alternative.
+    *
+    */
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     public static final class Ulimit {
-
-        private static final File BASH = new File("/bin/bash");
-
-        private static final File SH = new File("/bin/sh");
-
-        private static final File ULIMIT = new File("/usr/bin/ulimit");
-
 
         private static final String[] ULIMIT_CMD;
 
@@ -310,24 +323,42 @@ public final class Runtime {
 
         static {
             int mfiles;
-            if (ULIMIT.exists() && ULIMIT.canExecute()) {
-                ULIMIT_CMD = new String[]{ULIMIT.getPath()};
-            } else if (BASH.exists() && BASH.canExecute()) {
-                ULIMIT_CMD = new String[]{BASH.getPath(), "-c", "ulimit"};
-            }  else if (SH.exists() && SH.canExecute()) {
-                ULIMIT_CMD = new String[]{SH.getPath(), "-c", "ulimit"};
+            if (Runtime.IS_WINDOWS) {
+              ULIMIT_CMD = null;
+              MAX_NR_OPENFILES = Integer.MAX_VALUE;
             } else {
-                ULIMIT_CMD = null;
+              ULIMIT_CMD = findUlimitCmd();
+              if (haveJnaPlatformClib()) {
+                MAX_NR_OPENFILES = (int) UnixResources.RLIMIT_NOFILE.getSoftLimit();
+              } else {
+                if (ULIMIT_CMD == null) {
+                    Lazy.LOGGER.warn("No ulimit available on {}, assuming no limit for nr open files",
+                            Runtime.OS_NAME);
+                    mfiles = Integer.MAX_VALUE;
+                } else {
+                    mfiles = runUlimit("-Sn");
+                }
+                MAX_NR_OPENFILES = mfiles;
+              }
             }
-            if (ULIMIT_CMD == null) {
-                Lazy.LOGGER.warn("No ulimit available on {}, assuming no limit for nr open files",
-                        Runtime.OS_NAME);
-                mfiles = Integer.MAX_VALUE;
-            } else {
-                mfiles = runUlimit("-Sn");
-            }
-            MAX_NR_OPENFILES = mfiles;
         }
+
+      @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
+      private static String[] findUlimitCmd() {
+        final File bash = new File("/bin/bash");
+        final File sh = new File("/bin/sh");
+        final File uLimit = new File("/usr/bin/ulimit");
+        if (uLimit.exists() && uLimit.canExecute()) {
+          return new String[]{uLimit.getPath()};
+        } else if (bash.exists() && bash.canExecute()) {
+          return new String[]{bash.getPath(), "-c", "ulimit"};
+        } else if (sh.exists() && sh.canExecute()) {
+          return new String[]{sh.getPath(), "-c", "ulimit"};
+        } else {
+          return null;
+        }
+      }
+
 
         /**
          * @param options
