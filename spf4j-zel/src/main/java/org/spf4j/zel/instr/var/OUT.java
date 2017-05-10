@@ -34,7 +34,7 @@ public final class OUT implements Method {
     @Override
     @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
     public Object invoke(final ExecutionContext context, final Object[] parameters) {
-        final PrintStream out = context.getOut();
+        final PrintStream out = context.getIo().getOut();
         synchronized (out) {
             for (Object obj : parameters) {
                out.print(obj);

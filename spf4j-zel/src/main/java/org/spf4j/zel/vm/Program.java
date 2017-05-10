@@ -24,9 +24,7 @@ import com.google.common.base.Throwables;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -318,31 +316,28 @@ public final class Program implements Serializable {
   }
 
   public Object execute() throws ExecutionException, InterruptedException {
-    return execute(System.in, System.out, System.err);
+    return execute(ProcessIOStreams.DEFAULT);
   }
 
   public Object execute(final Object... args) throws ExecutionException, InterruptedException {
-    return execute(System.in, System.out, System.err, args);
+    return execute(ProcessIOStreams.DEFAULT, args);
   }
 
   public Object execute(@Nonnull final ExecutorService execService,
           final Object... args) throws ExecutionException, InterruptedException {
-    return execute(new VMExecutor(execService), System.in, System.out, System.err, args);
+    return execute(new VMExecutor(execService), ProcessIOStreams.DEFAULT, args);
   }
 
   public Object executeSingleThreaded(final Object... args) throws ExecutionException, InterruptedException {
-    return execute(null, System.in, System.out, System.err, args);
+    return execute(null, ProcessIOStreams.DEFAULT, args);
   }
 
-
   public Object execute(@Nullable final VMExecutor execService,
-          @Nullable final InputStream in,
-          @Nullable final PrintStream out,
-          @Nullable final PrintStream err,
+          @Nullable final ProcessIO io,
           final Object... args)
           throws ExecutionException, InterruptedException {
     Object[] localMem = allocMem(args);
-    final ExecutionContext ectx = new ExecutionContext(this, globalMem, localMem, in, out, err, execService);
+    final ExecutionContext ectx = new ExecutionContext(this, globalMem, localMem, io, execService);
     return execute(ectx);
   }
 
@@ -358,16 +353,14 @@ public final class Program implements Serializable {
     return localMem;
   }
 
-  public Pair<Object, ExecutionContext> executeX(@Nullable final VMExecutor execService,
-          @Nullable final InputStream in,
-          @Nullable final PrintStream out,
-          @Nullable final PrintStream err,
+  public Pair<Object, ExecutionContext> execute(@Nullable final VMExecutor execService,
+          @Nullable final ProcessIO io,
           final ResultCache resultCache,
           final Object... args)
           throws ExecutionException, InterruptedException {
     Object[] localMem = allocMem(args);
     final ExecutionContext ectx = new ExecutionContext(this, globalMem, localMem,
-            resultCache, in, out, err, execService);
+            resultCache, io, execService);
     return Pair.of(execute(ectx), ectx);
   }
 
@@ -390,13 +383,12 @@ public final class Program implements Serializable {
     }
   }
 
-  public Object execute(@Nonnull final InputStream in,
-          @Nonnull final PrintStream out, @Nonnull final PrintStream err, final Object... args)
+  public Object execute(final ProcessIO io, final Object... args)
           throws ExecutionException, InterruptedException {
     if (execType == ExecutionType.SYNC) {
-      return execute((VMExecutor) null, in, out, err, args);
+      return execute((VMExecutor) null, io, args);
     } else {
-      return execute(VMExecutor.Lazy.DEFAULT, in, out, err, args);
+      return execute(VMExecutor.Lazy.DEFAULT, io, args);
     }
   }
 
@@ -496,8 +488,8 @@ public final class Program implements Serializable {
             globalSymTable = prog.getGlobalSymbolTable();
             gmem = prog.getGlobalMem();
             long startTime = System.nanoTime();
-            Pair<Object, ExecutionContext> res = prog.executeX(
-                    VMExecutor.Lazy.DEFAULT, System.in, System.out, System.err, resCache, mem);
+            Pair<Object, ExecutionContext> res = prog.execute(
+                    VMExecutor.Lazy.DEFAULT, ProcessIOStreams.DEFAULT, resCache, mem);
             long elapsed = System.nanoTime() - startTime;
             final Object result = res.getFirst();
             System.out.println("result>" + result);

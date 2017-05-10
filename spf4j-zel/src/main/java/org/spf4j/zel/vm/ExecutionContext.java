@@ -18,8 +18,6 @@
 package org.spf4j.zel.vm;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.InputStream;
-import java.io.PrintStream;
 import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,17 +75,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
   /**
    * Standard Input
    */
-  private final transient InputStream in;
-
-  /**
-   * Standard Output
-   */
-  private final transient PrintStream out;
-
-  /**
-   * Standard Error Output
-   */
-  private final transient PrintStream err;
+  private final transient ProcessIO io;
 
   private List<VMFuture<Object>> suspendedAt;
 
@@ -95,9 +83,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
 
   private ExecutionContext(final ExecutionContext parent, @Nullable final VMExecutor service,
           final Program program, final Object[] localMem) {
-    this.in = parent.in;
-    this.out = parent.out;
-    this.err = parent.err;
+    this.io = parent.io;
     this.mem = localMem;
     this.globalMem = parent.globalMem;
     this.execService = service;
@@ -118,29 +104,27 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
    * @param err
    */
   ExecutionContext(final Program program, final Object[] globalMem,
-          @Nullable final InputStream in, @Nullable final PrintStream out, @Nullable final PrintStream err,
+          @Nullable final ProcessIO io,
           @Nullable final VMExecutor execService) {
     this(program, globalMem, new Object[program.getLocalMemSize()],
             program.hasDeterministicFunctions() ? new SimpleResultCache() : null,
-            in, out, err, execService);
+            io, execService);
   }
-  
+
   ExecutionContext(final Program program, final Object[] globalMem, final Object[] localMem,
-          @Nullable final InputStream in, @Nullable final PrintStream out, @Nullable final PrintStream err,
+          @Nullable final ProcessIO io,
           @Nullable final VMExecutor execService) {
     this(program, globalMem, localMem,
             program.hasDeterministicFunctions() ? new SimpleResultCache() : null,
-            in, out, err, execService);
+            io, execService);
   }
 
   ExecutionContext(final Program program, final Object[] globalMem, final Object[] localMem,
           @Nullable final ResultCache resultCache,
-          @Nullable final InputStream in, @Nullable final PrintStream out, @Nullable final PrintStream err,
+          @Nullable final ProcessIO io,
           @Nullable final VMExecutor execService) {
     this.code = program;
-    this.in = in;
-    this.out = out;
-    this.err = err;
+    this.io = io;
     this.execService = execService;
     this.stack = new SimpleStack<>(8);
     this.ip = 0;
@@ -151,35 +135,28 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
     this.mathContext = MathContext.DECIMAL128;
   }
 
-  public InputStream getIn() {
-    return in;
+  public ProcessIO getIo() {
+    return io;
   }
 
-  public PrintStream getOut() {
-    return out;
-  }
-
-  public PrintStream getErr() {
-    return err;
-  }
 
   @SuppressFBWarnings("EI_EXPOSE_REP")
   public Object[] getMem() {
     return mem;
   }
-  
+
   public void globalPoke(final int addr, final Object value) {
     globalMem[addr] = value;
   }
-  
+
   public void localPoke(final int addr, final Object value) {
     mem[addr] = value;
   }
-  
+
   public Object localPeek(final int addr) {
     return mem[addr];
   }
-  
+
   public Object globalPeek(final int addr) {
     return globalMem[addr];
   }
@@ -276,8 +253,8 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
   public List<VMFuture<Object>> getSuspendedAt() {
     return suspendedAt;
   }
-  
-  
+
+
   /**
    * pops object out of stack
    *
@@ -334,7 +311,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
   public Object[] popStackVals(final int nvals) {
     return stack.pop(nvals);
   }
-  
+
   public void popStackVals(final Object[] to, final int nvals) {
     stack.popTo(to, nvals);
   }
@@ -491,8 +468,8 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
     Object[] localMem = program.allocMem(parameters);
     return new ExecutionContext(this, null, program, localMem);
   }
-  
-  
+
+
   @Override
   public String toString() {
     return "ExecutionContext{" + "execService=" + getExecService() + ",\nresultCache="
@@ -501,8 +478,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
             + ",\nglobalMem=" + Arrays.toString(globalMem)
             + ",\nglobalSymbolTable=" + code.getGlobalSymbolTable()
             + ",\ncode=" + code + ", ip=" + ip + ", terminated=" + terminated
-            + ",\nstack=" + stack + ", in=" + in
-            + ",\nout=" + out + ", err=" + err + '}';
+            + ",\nstack=" + stack + ", io=" + io + '}';
   }
 
   public boolean isChildContext() {

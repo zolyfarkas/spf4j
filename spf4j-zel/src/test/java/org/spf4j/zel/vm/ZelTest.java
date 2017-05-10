@@ -41,8 +41,8 @@ public final class ZelTest {
     public void helloWorld()
             throws CompileException, ExecutionException, InterruptedException, UnsupportedEncodingException {
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      Program.compile("out(\"Hello World\")").execute(System.in,
-                new PrintStream(bos, true, StandardCharsets.UTF_8.toString()), System.err);
+      Program.compile("out(\"Hello World\")").execute(new ProcessIOStreams(System.in,
+                new PrintStream(bos, true, StandardCharsets.UTF_8.toString()), System.err));
       Assert.assertEquals("Hello World", new String(bos.toByteArray(), StandardCharsets.UTF_8));
     }
 
