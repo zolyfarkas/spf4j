@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -31,70 +31,83 @@ import org.apache.http.ConnectionClosedException;
 @SuppressFBWarnings("PREDICTABLE_RANDOM") //not security related
 public final class ExpensiveTestObject implements Closeable {
 
-    private static final AtomicInteger OBJ_COUNT = new AtomicInteger();
+  private static final AtomicInteger OBJ_COUNT = new AtomicInteger();
 
-    private final long maxIdleMillis;
-    private final int nrUsesToFailAfter;
-    private final long minOperationMillis;
-    private final long maxOperationMillis;
-    private long lastTouchedTimeMillis;
-    private int nrUses;
-    private final String id;
+  private static volatile boolean FAILALL = false;
 
-    @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
-    public ExpensiveTestObject(final long maxIdleMillis, final int nrUsesToFailAfter,
-            final long minOperationMillis, final long maxOperationMillis) {
-        this.maxIdleMillis = maxIdleMillis;
-        this.nrUsesToFailAfter = nrUsesToFailAfter;
-        this.minOperationMillis = minOperationMillis;
-        this.maxOperationMillis = maxOperationMillis;
-        lastTouchedTimeMillis = System.currentTimeMillis();
-        nrUses = 0;
-        simulateDoStuff(maxOperationMillis - minOperationMillis);
-        id = "Test Object " + OBJ_COUNT.getAndIncrement();
+  private final long maxIdleMillis;
+  private final int nrUsesToFailAfter;
+  private final long minOperationMillis;
+  private final long maxOperationMillis;
+  private long lastTouchedTimeMillis;
+  private int nrUses;
+  private final String id;
+
+  public static boolean isFAILALL() {
+    return FAILALL;
+  }
+
+  public static void setFAILALL(final boolean FAILALL) {
+    ExpensiveTestObject.FAILALL = FAILALL;
+  }
+
+  @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
+  public ExpensiveTestObject(final long maxIdleMillis, final int nrUsesToFailAfter,
+          final long minOperationMillis, final long maxOperationMillis) {
+    this.maxIdleMillis = maxIdleMillis;
+    this.nrUsesToFailAfter = nrUsesToFailAfter;
+    this.minOperationMillis = minOperationMillis;
+    this.maxOperationMillis = maxOperationMillis;
+    lastTouchedTimeMillis = System.currentTimeMillis();
+    nrUses = 0;
+    simulateDoStuff(maxOperationMillis - minOperationMillis);
+    id = "Test Object " + OBJ_COUNT.getAndIncrement();
+  }
+
+  public void doStuff() throws IOException {
+    if (FAILALL) {
+      throw new IOExceptionImpl("Failall " + id);
     }
-
-    public void doStuff() throws IOException {
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
-            throw new  ConnectionClosedException("Connection closed for " + id);
-        }
-        if (nrUses > nrUsesToFailAfter) {
-            throw new IOExceptionImpl("Simulated random crap " + id);
-        }
-        simulateDoStuff(maxOperationMillis - minOperationMillis);
-        nrUses++;
-        lastTouchedTimeMillis = System.currentTimeMillis();
+    long currentTime = System.currentTimeMillis();
+    if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
+      throw new ConnectionClosedException("Connection closed for " + id);
     }
-
-    public void testObject() throws IOException {
-        System.out.println("Test oid " + id);
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
-            throw new IOException("Connection closed " + id);
-        }
-        if (nrUses > nrUsesToFailAfter) {
-            throw new IOExceptionImpl("Simulated random crap " + id);
-        }
-        simulateDoStuff(0);
-        nrUses++;
-        lastTouchedTimeMillis = System.currentTimeMillis();
+    if (nrUses > nrUsesToFailAfter) {
+      throw new IOExceptionImpl("Simulated random crap " + id);
     }
+    simulateDoStuff(maxOperationMillis - minOperationMillis);
+    nrUses++;
+    lastTouchedTimeMillis = System.currentTimeMillis();
+  }
 
-    @Override
-    public void close() throws IOException {
-        doStuff();
+  public void testObject() throws IOException {
+    System.out.println("Test " + id);
+    long currentTime = System.currentTimeMillis();
+    if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
+      throw new IOException("Connection closed " + id);
     }
+    if (nrUses > nrUsesToFailAfter) {
+      throw new IOExceptionImpl("Simulated random crap " + id);
+    }
+    simulateDoStuff(0);
+    nrUses++;
+    lastTouchedTimeMillis = System.currentTimeMillis();
+  }
 
-    @SuppressFBWarnings("MDM_THREAD_YIELD")
-    private void simulateDoStuff(final long time) {
-        long sleepTime = (long) (Math.random() * (time));
-        try {
-            Thread.sleep(minOperationMillis + sleepTime);
-        } catch (InterruptedException ex) {
-            throw new RuntimeException(ex);
-        }
+  @Override
+  public void close() throws IOException {
+    doStuff();
+  }
+
+  @SuppressFBWarnings("MDM_THREAD_YIELD")
+  private void simulateDoStuff(final long time) {
+    long sleepTime = (long) (Math.random() * (time));
+    try {
+      Thread.sleep(minOperationMillis + sleepTime);
+    } catch (InterruptedException ex) {
+      throw new RuntimeException(ex);
     }
+  }
 
   @Override
   public String toString() {
@@ -115,7 +128,5 @@ public final class ExpensiveTestObject implements Closeable {
       return this;
     }
   }
-
-
 
 }

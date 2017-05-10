@@ -144,6 +144,7 @@ public final class ObjectPoolBuilderTest {
 
         runTest(pool, 0, 10000);
         try {
+            ExpensiveTestObject.setFAILALL(true);
             pool.dispose();
             Assert.fail();
         } catch (ObjectDisposeException ex) {
@@ -209,7 +210,7 @@ public final class ObjectPoolBuilderTest {
             Thread.sleep(sleepBetweenSubmit);
         }
         for (int i = 0; i < nrTests; i++) {
-            System.out.println("Task " + completionQueue.take().get() + " finished ");
+            System.out.println("Done(" + completionQueue.take().get() + ')');
         }
         monitor.interrupt();
         monitor.join();
