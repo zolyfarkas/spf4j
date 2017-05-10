@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.Throwables;
@@ -46,6 +47,7 @@ import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
  * @author zoly
  */
 @SuppressFBWarnings({ "MDM_THREAD_YIELD", "SIC_INNER_SHOULD_BE_STATIC_ANON" })
+@NotThreadSafe
 public final class ObjectPoolBuilderTest {
 
     /**
@@ -149,6 +151,8 @@ public final class ObjectPoolBuilderTest {
             Assert.fail();
         } catch (ObjectDisposeException ex) {
             Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
+        } finally {
+          ExpensiveTestObject.setFAILALL(false);
         }
     }
 
