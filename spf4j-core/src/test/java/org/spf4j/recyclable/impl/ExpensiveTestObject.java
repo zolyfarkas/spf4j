@@ -21,6 +21,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.http.ConnectionClosedException;
 
 /**
  * This is a pooled object implementation, that behaves like a connection object.
@@ -56,7 +57,7 @@ public final class ExpensiveTestObject implements Closeable {
     public void doStuff() throws IOException {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
-            throw new IOExceptionImpl("Connection closed for " + id);
+            throw new  ConnectionClosedException("Connection closed for " + id);
         }
         if (nrUses > nrUsesToFailAfter) {
             throw new IOExceptionImpl("Simulated random crap " + id);

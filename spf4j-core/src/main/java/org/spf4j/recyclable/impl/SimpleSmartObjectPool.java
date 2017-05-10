@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.CheckReturnValue;
 import org.spf4j.base.Either;
 import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
@@ -233,7 +234,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
                 if (!available.await(waitTime, TimeUnit.MILLISECONDS)) {
                     return false;
                 }
-                disposeReturnedObjects(exception);
+                exception = disposeReturnedObjects(exception);
             }
             if (exception != null) {
                 throw exception;
@@ -246,6 +247,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
         }
     }
 
+    @CheckReturnValue
     private ObjectDisposeException disposeReturnedObjects(final ObjectDisposeException exception) {
         ObjectDisposeException result = exception;
         for (T obj : availableObjects) {

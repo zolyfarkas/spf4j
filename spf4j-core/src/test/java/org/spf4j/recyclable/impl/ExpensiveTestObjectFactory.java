@@ -17,10 +17,10 @@
  */
 package org.spf4j.recyclable.impl;
 
-import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import java.io.IOException;
+import org.apache.http.ConnectionClosedException;
 
 /**
  *
@@ -56,6 +56,8 @@ public final class ExpensiveTestObjectFactory implements RecyclingSupplier.Facto
     public void dispose(final ExpensiveTestObject object) throws ObjectDisposeException {
         try {
             object.close();
+        } catch (ConnectionClosedException ex) {
+          // connection is already closed.
         } catch (IOException ex) {
             throw new ObjectDisposeException(ex);
         }
