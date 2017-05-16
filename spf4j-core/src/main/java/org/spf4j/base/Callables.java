@@ -539,13 +539,13 @@ public final class Callables {
       lastEx = e;
     }
     Exception lastExChain = lastEx; // last exception chained with all previous exceptions
-    RetryDecision decision;
+    RetryDecision decision = null;
     //CHECKSTYLE IGNORE InnerAssignment FOR NEXT 5 LINES
     while ((lastEx != null
             && (decision = retryOnException.getDecision(lastEx, what)).getDecisionType()
                 == RetryDecision.Type.Retry)
-            || (decision = retryOnReturnVal.getDecision(result, what)).getDecisionType()
-                == RetryDecision.Type.Retry) {
+            || (lastEx == null && (decision = retryOnReturnVal.getDecision(result, what)).getDecisionType()
+                == RetryDecision.Type.Retry)) {
       if (Thread.interrupted()) {
         Thread.currentThread().interrupt();
         throw new InterruptedException();
@@ -569,6 +569,9 @@ public final class Callables {
           lastExChain = lastEx;
         }
       }
+    }
+    if (decision == null) {
+      throw new IllegalStateException("Decission should have ben initialized " + lastEx + ", " + result);
     }
     if (decision.getDecisionType() == RetryDecision.Type.Abort) {
         Exception ex = decision.getException();
