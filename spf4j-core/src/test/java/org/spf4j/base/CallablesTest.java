@@ -47,9 +47,9 @@ public final class CallablesTest {
     }, 3, 10, TestException.class);
   }
 
-  @Test(expected = RuntimeException.class)
-  public void testExceptionPropagation2() throws InterruptedException {
-    Callables.executeWithRetry(new TimeoutCallable<Integer, RuntimeException>(60000) {
+  @Test(expected = TimeoutException.class)
+  public void testExceptionPropagation2() throws InterruptedException, TimeoutException {
+    Callables.executeWithRetry(new TimeoutCallable<Integer, RuntimeException>(3000) {
       @Override
       public Integer call(final long deadline) throws TimeoutException {
         throw new TimeoutException();
@@ -99,7 +99,6 @@ public final class CallablesTest {
 
   @Test
   public void testExecuteWithRetryFailureTest() throws IOException, InterruptedException {
-    System.out.println("executeWithRetry");
     try {
       Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(100) {
 
@@ -109,7 +108,7 @@ public final class CallablesTest {
         }
       }, 4, 100, IOException.class);
       Assert.fail("Should not get here");
-    } catch (IOException e) {
+    } catch (IOException | TimeoutException e) {
       Assert.assertTrue("must have supressed exceptions: "
               + com.google.common.base.Throwables.getStackTraceAsString(e),
               Throwables.getSuppressed(e).length >= 1);
@@ -119,7 +118,7 @@ public final class CallablesTest {
 
   @Test
   @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
-  public void testSuppression() throws InterruptedException, IOException  {
+  public void testSuppression() throws InterruptedException, IOException, TimeoutException  {
     System.out.println("executeWithRetry");
     long startTime = System.currentTimeMillis();
     Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(60000) {
@@ -150,28 +149,32 @@ public final class CallablesTest {
     Assert.assertTrue("Operation has to take at least 10 ms and not " + elapsedTime, elapsedTime > 10L);
   }
 
-  @Test(expected = IOException.class)
-  public void testExecuteWithRetryTimeout() throws InterruptedException, IOException {
-    Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(1000) {
-      private int count;
+  @Test
+  public void testExecuteWithRetryTimeout() {
+    try {
+      Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(1000) {
+        private int count;
 
-      @Override
-      @SuppressFBWarnings("MDM_THREAD_YIELD")
-      public Integer call(final long deadline) throws IOException, InterruptedException {
-        Thread.sleep(2000);
-        count++;
-        if (count < 5) {
-          throw new SocketException("Aaaaaaaaaaa" + count);
+        @Override
+        @SuppressFBWarnings("MDM_THREAD_YIELD")
+        public Integer call(final long deadline) throws IOException, InterruptedException {
+          Thread.sleep(2000);
+          count++;
+          if (count < 5) {
+            throw new SocketException("Aaaaaaaaaaa" + count);
+          }
+          return 1;
         }
-        return 1;
-      }
-    }, 1, 10, IOException.class);
-    Assert.assertEquals(1L, result.longValue());
+      }, 1, 10, IOException.class);
+      Assert.fail();
+    } catch (InterruptedException | IOException | TimeoutException ex) {
+      Throwables.writeTo(ex, System.err, Throwables.Detail.NONE);
+    }
   }
 
-  @Test(expected = IOException.class)
-  public void testExecuteWithRetryTimeout2() throws InterruptedException, IOException {
-    Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(1000) {
+  @Test(expected = TimeoutException.class)
+  public void testExecuteWithRetryTimeout2() throws InterruptedException, IOException, TimeoutException {
+    Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(1000) {
       private int count = 0;
 
       @Override
@@ -184,7 +187,7 @@ public final class CallablesTest {
         return 1;
       }
     }, 0, 100, IOException.class);
-    Assert.assertEquals(1L, result.longValue());
+    Assert.fail();
   }
 
   /**

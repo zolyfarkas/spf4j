@@ -45,7 +45,7 @@ public final class CallablesNano {
   public static <T, EX extends Exception> T executeWithRetry(final NanoTimeoutCallable<T, EX> what,
           final int nrImmediateRetries,
           final long maxRetryWaitNanos, final Class<EX> exceptionClass)
-          throws InterruptedException, EX {
+          throws InterruptedException, EX, TimeoutException {
     return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,
             (TimeoutNanoRetryPredicate<? super T, T>) TimeoutNanoRetryPredicate.NORETRY_FOR_RESULT,
             DEFAULT_EXCEPTION_RETRY, exceptionClass);
@@ -56,7 +56,7 @@ public final class CallablesNano {
           final long maxRetryWaitNanos,
           final AdvancedRetryPredicate<Exception> retryOnException,
           final Class<EX> exceptionClass)
-          throws InterruptedException, EX {
+          throws InterruptedException, EX, TimeoutException {
     return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,
             (TimeoutNanoRetryPredicate<? super T, T>) TimeoutNanoRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, exceptionClass);
@@ -82,7 +82,7 @@ public final class CallablesNano {
           final TimeoutNanoRetryPredicate<? super T, T> retryOnReturnVal,
           final AdvancedRetryPredicate<Exception> retryOnException,
           final Class<EX> exceptionClass)
-          throws InterruptedException, EX {
+          throws InterruptedException, EX, TimeoutException {
     final long deadline = what.getDeadline();
     return Callables.executeWithRetry(what, new TimeoutDelayPredicate2DelayPredicate<>(deadline, retryOnReturnVal),
             new FibonacciBackoffRetryPredicate<>(retryOnException, nrImmediateRetries,
@@ -107,13 +107,13 @@ public final class CallablesNano {
           final TimeoutNanoRetryPredicate<T, T> retryOnReturnVal,
           final TimeoutNanoRetryPredicate<Exception, T> retryOnException,
           final Class<EX> exceptionClass)
-          throws InterruptedException, EX {
+          throws InterruptedException, EX, TimeoutException {
     return Callables.executeWithRetry(what, retryOnReturnVal, retryOnException, exceptionClass);
   }
 
   public static <T, EX extends Exception> T executeWithRetry(final NanoTimeoutCallable<T, EX> what,
           final TimeoutNanoRetryPredicate<Exception, T> retryOnException, final Class<EX> exceptionClass)
-          throws InterruptedException, EX {
+          throws InterruptedException, EX, TimeoutException {
     return Callables.executeWithRetry(what,
             (TimeoutRetryPredicate<T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, exceptionClass);

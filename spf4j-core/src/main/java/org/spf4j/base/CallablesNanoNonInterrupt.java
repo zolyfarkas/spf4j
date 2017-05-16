@@ -19,6 +19,7 @@ package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Callables.AdvancedRetryPredicate;
 import static org.spf4j.base.Callables.DEFAULT_EXCEPTION_RETRY;
@@ -87,7 +88,7 @@ public final class CallablesNanoNonInterrupt {
                 new FibonacciBackoffRetryPredicate<>(retryOnException, nrImmediateRetries,
                         maxWaitNanos / 100, maxWaitNanos, Callables::rootClass, deadline,
                         () -> System.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);
-      } catch (InterruptedException ex) {
+      } catch (InterruptedException | TimeoutException ex) {
        throw new RuntimeException(ex);
       }
     }
@@ -99,7 +100,7 @@ public final class CallablesNanoNonInterrupt {
             throws EX {
       try {
         return Callables.executeWithRetry(what, retryOnReturnVal, retryOnException, exceptionClass);
-      } catch (InterruptedException ex) {
+      } catch (InterruptedException | TimeoutException ex) {
         throw new RuntimeException(ex);
       }
     }
@@ -111,7 +112,7 @@ public final class CallablesNanoNonInterrupt {
         return Callables.executeWithRetry(what,
                 (TimeoutRetryPredicate<T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
                 retryOnException, exceptionClass);
-      } catch (InterruptedException ex) {
+      } catch (InterruptedException | TimeoutException ex) {
         throw new RuntimeException(ex);
       }
     }

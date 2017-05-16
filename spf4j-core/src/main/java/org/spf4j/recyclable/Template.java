@@ -44,14 +44,14 @@ public final class Template<T, E extends Exception> {
     }
 
     public void doOnSupplied(final Handler<T, E> handler)
-            throws InterruptedException, E {
+            throws InterruptedException, E, TimeoutException {
         doOnSupplied(handler, pool, nrImmediateRetries, retryWaitMillis, timeout, exClass);
     }
 
     public static  <T, E extends Exception> void doOnSupplied(final Handler<T, E> handler,
             final RecyclingSupplier<T> pool, final int nrImmediateRetries,
              final int retryWaitMillis, final int timeoutMillis, final Class<E> exClass)
-            throws E, InterruptedException {
+            throws E, InterruptedException, TimeoutException {
         Callables.executeWithRetry(new TimeoutCallable<Void, E>(timeoutMillis) {
 
             @Override

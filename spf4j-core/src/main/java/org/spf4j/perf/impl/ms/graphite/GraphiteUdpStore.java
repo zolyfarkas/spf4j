@@ -11,6 +11,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.util.concurrent.TimeoutException;
 import org.spf4j.base.Handler;
 import org.spf4j.base.Strings;
 import org.spf4j.io.ByteArrayBuilder;
@@ -113,7 +114,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
     try {
       Template.doOnSupplied(new HandlerImpl(measurements, Id2Info.getInfo(tableId), timeStampMillis),
               datagramChannelSupplier, 3, 1000, 60000, IOException.class);
-    } catch (InterruptedException ex) {
+    } catch (InterruptedException | TimeoutException ex) {
       throw new RuntimeException(ex);
     }
 

@@ -25,6 +25,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeoutException;
 import org.spf4j.base.Callables;
 
 /**
@@ -52,7 +53,7 @@ public final class SntpClient {
 
     private static final int MAX_SOCKET_TIMEOUT = 1000; // 5 seconds
     public static Timing requestTimeHA(final int timeoutMillis, final String ... hosts)
-            throws IOException, InterruptedException {
+            throws IOException, InterruptedException, TimeoutException {
         return requestTimeHA(timeoutMillis, MAX_SOCKET_TIMEOUT, hosts);
     }
 
@@ -69,7 +70,7 @@ public final class SntpClient {
      */
     @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION") //findbugs nonsense
     public static Timing requestTimeHA(final int timeoutMillis, final int ntpResponseTimeout, final String ... hosts)
-            throws IOException, InterruptedException {
+            throws IOException, InterruptedException, TimeoutException {
         return Callables.executeWithRetry(new Callables.TimeoutCallable<Timing, IOException>(timeoutMillis) {
 
             private int i = 0;

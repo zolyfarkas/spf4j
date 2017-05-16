@@ -94,7 +94,7 @@ public final class Callables {
   public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
           final int nrImmediateRetries,
           final int maxRetryWaitMillis, final Class<EX> exceptionClass)
-          throws InterruptedException, EX {
+          throws InterruptedException, EX, TimeoutException {
     return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,
             (TimeoutRetryPredicate<? super T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             DEFAULT_EXCEPTION_RETRY, exceptionClass);
@@ -102,7 +102,7 @@ public final class Callables {
 
   public static <T> T executeWithRetry(final TimeoutCallable<T, RuntimeException> what,
           final int nrImmediateRetries, final int maxRetryWaitMillis)
-          throws InterruptedException {
+          throws InterruptedException, TimeoutException {
     return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,
             (TimeoutRetryPredicate<? super T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             DEFAULT_EXCEPTION_RETRY, RuntimeException.class);
@@ -115,7 +115,7 @@ public final class Callables {
           final int maxRetryWaitMillis,
           final AdvancedRetryPredicate<Exception> retryOnException,
           final Class<EX> exceptionClass)
-          throws InterruptedException, EX {
+          throws InterruptedException, EX, TimeoutException {
     return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,
             (TimeoutRetryPredicate<? super T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, exceptionClass);
@@ -124,7 +124,7 @@ public final class Callables {
   public static <T> T executeWithRetry(final TimeoutCallable<T, RuntimeException> what,
           final int nrImmediateRetries, final int maxRetryWaitMillis,
           final AdvancedRetryPredicate<Exception> retryOnException)
-          throws InterruptedException {
+          throws InterruptedException, TimeoutException {
     return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,
             (TimeoutRetryPredicate<? super T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, RuntimeException.class);
@@ -150,7 +150,7 @@ public final class Callables {
           final TimeoutRetryPredicate<? super T, T> retryOnReturnVal,
           final AdvancedRetryPredicate<Exception> retryOnException,
           final Class<EX> exceptionClass)
-          throws InterruptedException, EX {
+          throws InterruptedException, EX, TimeoutException {
     long deadline = what.getDeadline();
     return executeWithRetry(what,  new TimeoutDelayPredicate2DelayPredicate<>(deadline, retryOnReturnVal),
             new FibonacciBackoffRetryPredicate<>(retryOnException, nrImmediateRetries,
@@ -298,7 +298,7 @@ public final class Callables {
   public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
           final TimeoutRetryPredicate<? super T, T> retryOnReturnVal,
           final TimeoutRetryPredicate<Exception, T> retryOnException, final Class<EX> exceptionClass)
-          throws InterruptedException, EX {
+          throws InterruptedException, EX, TimeoutException {
     final long deadline = what.getDeadline();
     return executeWithRetry(what,
             new TimeoutDelayPredicate2DelayPredicate<>(deadline, retryOnReturnVal),
@@ -436,7 +436,7 @@ public final class Callables {
 
   public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
           final TimeoutRetryPredicate<Exception, T> retryOnException, final Class<EX> exceptionClass)
-          throws InterruptedException, EX {
+          throws InterruptedException, EX, TimeoutException {
     return (T) executeWithRetry(what, (TimeoutRetryPredicate<T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, exceptionClass);
   }
@@ -527,7 +527,7 @@ public final class Callables {
           final RetryPredicate<? super T, T> retryOnReturnVal,
           final RetryPredicate<Exception, T> retryOnException,
           final Class<EX> exceptionClass)
-          throws InterruptedException, EX {
+          throws InterruptedException, TimeoutException, EX {
     Callable<T> what = pwhat;
     T result = null;
     Exception lastEx = null; // last exception
@@ -587,6 +587,8 @@ public final class Callables {
     if (lastEx != null) {
       if (lastExChain instanceof RuntimeException) {
         throw (RuntimeException) lastExChain;
+      } else if (lastExChain instanceof TimeoutException) {
+        throw (TimeoutException) lastExChain;
       } else if (lastExChain == null) {
         return null;
       } else if (exceptionClass.isAssignableFrom(lastExChain.getClass())) {

@@ -11,6 +11,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.TimeoutException;
 import javax.net.SocketFactory;
 import org.spf4j.base.Handler;
 import org.spf4j.perf.MeasurementsInfo;
@@ -113,7 +114,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
         try {
             Template.doOnSupplied(new HandlerImpl(measurements, Id2Info.getInfo(tableId), timeStampMillis),
                     socketWriterSupplier, 3, 1000, 60000, IOException.class);
-        } catch (InterruptedException ex) {
+        } catch (InterruptedException | TimeoutException ex) {
             throw new RuntimeException(ex);
         }
 

@@ -1,6 +1,7 @@
 package org.spf4j.net;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -14,7 +15,7 @@ import org.junit.Test;
 public final class SntpClientTest {
 
   @Test
-  public void test() throws IOException, InterruptedException {
+  public void test() throws IOException, InterruptedException, TimeoutException {
     Timing requestTime = SntpClient.requestTimeHA(60000, "us.pool.ntp.org");
     long currentTimeMachine = System.currentTimeMillis();
     long currentTimeNtp = requestTime.getTime();

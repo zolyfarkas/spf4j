@@ -22,6 +22,7 @@ import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.recyclable.Template;
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeoutException;
 
 /**
  *
@@ -38,7 +39,7 @@ public final class TestCallable implements Callable<Integer> {
 
     @Override
     @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION")
-    public Integer call() throws IOException, InterruptedException {
+    public Integer call() throws IOException, InterruptedException, TimeoutException {
         Template.doOnSupplied((final ExpensiveTestObject object, final long deadline) -> {
           object.doStuff();
         }, pool, 5, 1000, 60000, IOException.class);
