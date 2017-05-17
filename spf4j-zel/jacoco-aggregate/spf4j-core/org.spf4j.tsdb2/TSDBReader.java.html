@@ -17,15 +17,16 @@
  */
 package org.spf4j.tsdb2;
 
+import com.google.common.io.CountingInputStream;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
@@ -43,7 +44,6 @@ import org.apache.avro.specific.SpecificDatumReader;
 import org.spf4j.base.Either;
 import org.spf4j.base.Handler;
 import org.spf4j.concurrent.DefaultExecutor;
-import org.spf4j.io.MemorizingBufferedInputStream;
 import org.spf4j.tsdb2.avro.DataBlock;
 import org.spf4j.tsdb2.avro.Header;
 import org.spf4j.tsdb2.avro.TableDef;
@@ -55,7 +55,9 @@ import org.spf4j.tsdb2.avro.TableDef;
 @SuppressFBWarnings(&quot;IICU_INCORRECT_INTERNAL_CLASS_USE&quot;)
 public final  class TSDBReader implements Closeable {
 
-    private final MemorizingBufferedInputStream bis;
+<span class="fc" id="L58">    private static final boolean CORUPTION_LENIENT = Boolean.getBoolean(&quot;spf4j.tsdb2.lenientRead&quot;);</span>
+
+    private final CountingInputStream bis;
     private final Header header;
     private long size;
     private final BinaryDecoder decoder;
@@ -63,20 +65,21 @@ public final  class TSDBReader implements Closeable {
     private RandomAccessFile raf;
     private final File file;
 
-<span class="fc" id="L66">    public TSDBReader(final File file, final int bufferSize) throws IOException {</span>
-<span class="fc" id="L67">        this.file = file;</span>
-<span class="fc" id="L68">        final FileInputStream fis = new FileInputStream(file);</span>
-<span class="fc" id="L69">        bis = new MemorizingBufferedInputStream(fis);</span>
-<span class="fc" id="L70">        SpecificDatumReader&lt;Header&gt; reader = new SpecificDatumReader&lt;&gt;(Header.getClassSchema());</span>
-<span class="fc" id="L71">        decoder = DecoderFactory.get().directBinaryDecoder(bis, null);</span>
-<span class="fc" id="L72">        TSDBWriter.validateType(bis);</span>
-<span class="fc" id="L73">        DataInputStream dis = new DataInputStream(bis);</span>
-<span class="fc" id="L74">        size = dis.readLong();</span>
-<span class="fc" id="L75">        header = reader.read(null, decoder);</span>
-<span class="fc" id="L76">        recordReader = new SpecificDatumReader&lt;&gt;(</span>
-<span class="fc" id="L77">                new Schema.Parser().parse(header.getContentSchema()),</span>
-<span class="fc" id="L78">                Schema.createUnion(Arrays.asList(TableDef.SCHEMA$, DataBlock.SCHEMA$)));</span>
-<span class="fc" id="L79">    }</span>
+
+<span class="fc" id="L69">    public TSDBReader(final File file, final int bufferSize) throws IOException {</span>
+<span class="fc" id="L70">        this.file = file;</span>
+<span class="fc" id="L71">        final InputStream fis = Files.newInputStream(file.toPath());</span>
+<span class="fc" id="L72">        bis = new CountingInputStream(fis);</span>
+<span class="fc" id="L73">        SpecificDatumReader&lt;Header&gt; reader = new SpecificDatumReader&lt;&gt;(Header.getClassSchema());</span>
+<span class="fc" id="L74">        decoder = DecoderFactory.get().directBinaryDecoder(bis, null);</span>
+<span class="fc" id="L75">        TSDBWriter.validateType(bis);</span>
+<span class="fc" id="L76">        DataInputStream dis = new DataInputStream(bis);</span>
+<span class="fc" id="L77">        size = dis.readLong();</span>
+<span class="fc" id="L78">        header = reader.read(null, decoder);</span>
+<span class="fc" id="L79">        recordReader = new SpecificDatumReader&lt;&gt;(</span>
+<span class="fc" id="L80">                new Schema.Parser().parse(header.getContentSchema()),</span>
+<span class="fc" id="L81">                Schema.createUnion(Arrays.asList(TableDef.SCHEMA$, DataBlock.SCHEMA$)));</span>
+<span class="fc" id="L82">    }</span>
 
 
     /**
@@ -85,57 +88,66 @@ public final  class TSDBReader implements Closeable {
      * @throws IOException
      */
     public synchronized boolean reReadSize() throws IOException {
-<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (raf == null) {</span>
-<span class="fc" id="L89">            raf = new RandomAccessFile(file, &quot;r&quot;);</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (raf == null) {</span>
+<span class="fc" id="L92">            raf = new RandomAccessFile(file, &quot;r&quot;);</span>
         }
-<span class="fc" id="L91">        raf.seek(TSDBWriter.MAGIC.length);</span>
-<span class="fc" id="L92">        long old = size;</span>
-<span class="fc" id="L93">        size = raf.readLong();</span>
-<span class="fc bfc" id="L94" title="All 2 branches covered.">        return size != old;</span>
+<span class="fc" id="L94">        raf.seek(TSDBWriter.MAGIC.length);</span>
+<span class="fc" id="L95">        long old = size;</span>
+<span class="fc" id="L96">        size = raf.readLong();</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">        return size != old;</span>
     }
 
 
     @Nullable
     public synchronized Either&lt;TableDef, DataBlock&gt; read() throws IOException {
-<span class="fc" id="L100">        final long position = bis.getReadBytes();</span>
-<span class="fc bfc" id="L101" title="All 2 branches covered.">        if (position &gt;= size) {</span>
-<span class="fc" id="L102">            return null;</span>
+<span class="fc" id="L103">        final long position = bis.getCount();</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">        if (position &gt;= size) {</span>
+<span class="fc" id="L105">            return null;</span>
         }
-<span class="fc" id="L104">        Object result = recordReader.read(null, decoder);</span>
-<span class="fc bfc" id="L105" title="All 2 branches covered.">        if (result instanceof TableDef) {</span>
-<span class="fc" id="L106">            final TableDef td = (TableDef) result;</span>
-<span class="pc bpc" id="L107" title="1 of 2 branches missed.">            if (position != td.id) {</span>
-<span class="nc" id="L108">                throw new IOException(&quot;Table Id should be equal with file position &quot; + position + &quot;, &quot; + td.id);</span>
+        Object result;
+        try {
+<span class="fc" id="L109">          result = recordReader.read(null, decoder);</span>
+<span class="nc" id="L110">        } catch (IOException | RuntimeException ex) {</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">          if (CORUPTION_LENIENT) {</span>
+<span class="nc" id="L112">            return null;</span>
+          } else {
+<span class="nc" id="L114">            throw ex;</span>
+          }
+<span class="fc" id="L116">        }</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">        if (result instanceof TableDef) {</span>
+<span class="fc" id="L118">            final TableDef td = (TableDef) result;</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">            if (position != td.id) {</span>
+<span class="nc" id="L120">                throw new IOException(&quot;Table Id should be equal with file position &quot; + position + &quot;, &quot; + td.id);</span>
             }
-<span class="fc" id="L110">            return Either.left(td);</span>
+<span class="fc" id="L122">            return Either.left(td);</span>
         } else {
-<span class="fc" id="L112">            return Either.right((DataBlock) result);</span>
+<span class="fc" id="L124">            return Either.right((DataBlock) result);</span>
         }
     }
 
 
     @Override
     public synchronized void close() throws IOException {
-<span class="pc" id="L119">        try (InputStream is = bis) {</span>
-<span class="fc bfc" id="L120" title="All 2 branches covered.">            if (raf != null) {</span>
-<span class="fc" id="L121">                raf.close();</span>
+<span class="pc" id="L131">        try (InputStream is = bis) {</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">            if (raf != null) {</span>
+<span class="fc" id="L133">                raf.close();</span>
             }
-<span class="pc bpc" id="L123" title="6 of 8 branches missed.">        }</span>
-<span class="fc" id="L124">    }</span>
+<span class="pc bpc" id="L135" title="6 of 8 branches missed.">        }</span>
+<span class="fc" id="L136">    }</span>
 
     public synchronized long getSize() {
-<span class="nc" id="L127">        return size;</span>
+<span class="nc" id="L139">        return size;</span>
     }
 
     public Header getHeader() {
-<span class="nc" id="L131">        return header;</span>
+<span class="nc" id="L143">        return header;</span>
     }
 
     private volatile boolean watch;
 
     public void stopWatching() {
-<span class="fc" id="L137">        watch =  false;</span>
-<span class="fc" id="L138">    }</span>
+<span class="fc" id="L149">        watch =  false;</span>
+<span class="fc" id="L150">    }</span>
 
 
     //CHECKSTYLE:OFF
@@ -143,19 +155,19 @@ public final  class TSDBReader implements Closeable {
             final Handler&lt;Either&lt;TableDef, DataBlock&gt;, E&gt; handler,
             final EventSensitivity es) {
         //CHECKSTYLE:ON
-<span class="fc" id="L146">        return DefaultExecutor.INSTANCE.submit(new Callable&lt;Void&gt;() {</span>
+<span class="fc" id="L158">        return DefaultExecutor.INSTANCE.submit(new Callable&lt;Void&gt;() {</span>
 
             @Override
             public Void call() throws Exception {
-<span class="fc" id="L150">                watch(handler, es);</span>
-<span class="fc" id="L151">                return null;</span>
+<span class="fc" id="L162">                watch(handler, es);</span>
+<span class="fc" id="L163">                return null;</span>
             }
         });
     }
 
 
-<span class="pc" id="L157">    public enum EventSensitivity {</span>
-<span class="fc" id="L158">        HIGH, MEDIUM, LOW</span>
+<span class="pc" id="L169">    public enum EventSensitivity {</span>
+<span class="fc" id="L170">        HIGH, MEDIUM, LOW</span>
     }
 
 
@@ -165,73 +177,73 @@ public final  class TSDBReader implements Closeable {
             final EventSensitivity es)
             throws IOException, InterruptedException, E {
         //CHECKSTYLE:ON
-<span class="fc" id="L168">        synchronized (this) {</span>
-<span class="pc bpc" id="L169" title="1 of 2 branches missed.">          if (watch) {</span>
-<span class="nc" id="L170">              throw new IllegalStateException(&quot;File is already watched &quot; + file);</span>
+<span class="fc" id="L180">        synchronized (this) {</span>
+<span class="pc bpc" id="L181" title="1 of 2 branches missed.">          if (watch) {</span>
+<span class="nc" id="L182">              throw new IllegalStateException(&quot;File is already watched &quot; + file);</span>
           }
-<span class="fc" id="L172">          watch = true;</span>
-<span class="pc" id="L173">        }</span>
+<span class="fc" id="L184">          watch = true;</span>
+<span class="pc" id="L185">        }</span>
         SensitivityWatchEventModifier sensitivity;
-<span class="pc bpc" id="L175" title="3 of 4 branches missed.">        switch (es) {</span>
+<span class="pc bpc" id="L187" title="3 of 4 branches missed.">        switch (es) {</span>
             case LOW:
-<span class="nc" id="L177">                sensitivity = SensitivityWatchEventModifier.LOW;</span>
-<span class="nc" id="L178">                break;</span>
+<span class="nc" id="L189">                sensitivity = SensitivityWatchEventModifier.LOW;</span>
+<span class="nc" id="L190">                break;</span>
             case MEDIUM:
-<span class="nc" id="L180">                sensitivity = SensitivityWatchEventModifier.MEDIUM;</span>
-<span class="nc" id="L181">                break;</span>
+<span class="nc" id="L192">                sensitivity = SensitivityWatchEventModifier.MEDIUM;</span>
+<span class="nc" id="L193">                break;</span>
             case HIGH:
-<span class="fc" id="L183">                sensitivity = SensitivityWatchEventModifier.HIGH;</span>
-<span class="fc" id="L184">                break;</span>
+<span class="fc" id="L195">                sensitivity = SensitivityWatchEventModifier.HIGH;</span>
+<span class="fc" id="L196">                break;</span>
             default:
-<span class="nc" id="L186">                throw new UnsupportedOperationException(&quot;Unsupported sensitivity &quot; + es);</span>
+<span class="nc" id="L198">                throw new UnsupportedOperationException(&quot;Unsupported sensitivity &quot; + es);</span>
         }
-<span class="fc" id="L188">        final Path path = file.getParentFile().toPath();</span>
-<span class="pc" id="L189">        try (WatchService watchService = path.getFileSystem().newWatchService()) {</span>
-<span class="fc" id="L190">            path.register(watchService, new WatchEvent.Kind[] {StandardWatchEventKinds.ENTRY_MODIFY,</span>
+<span class="fc" id="L200">        final Path path = file.getParentFile().toPath();</span>
+<span class="pc" id="L201">        try (WatchService watchService = path.getFileSystem().newWatchService()) {</span>
+<span class="fc" id="L202">            path.register(watchService, new WatchEvent.Kind[] {StandardWatchEventKinds.ENTRY_MODIFY,</span>
                 StandardWatchEventKinds.OVERFLOW
             }, sensitivity);
-<span class="fc" id="L193">            readAll(handler);</span>
+<span class="fc" id="L205">            readAll(handler);</span>
             do {
-<span class="fc" id="L195">                WatchKey key = watchService.poll(1000, TimeUnit.MILLISECONDS);</span>
-<span class="fc bfc" id="L196" title="All 2 branches covered.">                if (key == null) {</span>
-<span class="fc bfc" id="L197" title="All 2 branches covered.">                    if (reReadSize()) {</span>
-<span class="fc" id="L198">                        readAll(handler);</span>
+<span class="fc" id="L207">                WatchKey key = watchService.poll(1000, TimeUnit.MILLISECONDS);</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">                if (key == null) {</span>
+<span class="fc bfc" id="L209" title="All 2 branches covered.">                    if (reReadSize()) {</span>
+<span class="fc" id="L210">                        readAll(handler);</span>
                     }
                     continue;
                 }
-<span class="pc bpc" id="L202" title="1 of 2 branches missed.">                if (!key.isValid()) {</span>
-<span class="nc" id="L203">                    key.cancel();</span>
-<span class="nc" id="L204">                    break;</span>
+<span class="pc bpc" id="L214" title="1 of 2 branches missed.">                if (!key.isValid()) {</span>
+<span class="nc" id="L215">                    key.cancel();</span>
+<span class="nc" id="L216">                    break;</span>
                 }
-<span class="pc bpc" id="L206" title="1 of 2 branches missed.">                if (!key.pollEvents().isEmpty()) {</span>
-<span class="pc bpc" id="L207" title="1 of 2 branches missed.">                    if (reReadSize()) {</span>
-<span class="fc" id="L208">                        readAll(handler);</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">                if (!key.pollEvents().isEmpty()) {</span>
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">                    if (reReadSize()) {</span>
+<span class="fc" id="L220">                        readAll(handler);</span>
                     }
                 }
-<span class="pc bpc" id="L211" title="1 of 2 branches missed.">                if (!key.reset()) {</span>
-<span class="nc" id="L212">                    key.cancel();</span>
-<span class="nc" id="L213">                    break;</span>
+<span class="pc bpc" id="L223" title="1 of 2 branches missed.">                if (!key.reset()) {</span>
+<span class="nc" id="L224">                    key.cancel();</span>
+<span class="nc" id="L225">                    break;</span>
                 }
-<span class="fc bfc" id="L215" title="All 2 branches covered.">            } while (watch);</span>
-<span class="pc bpc" id="L216" title="6 of 8 branches missed.">        } finally {</span>
-<span class="pc" id="L217">            watch = false;</span>
-<span class="fc" id="L218">        }</span>
-<span class="fc" id="L219">    }</span>
+<span class="fc bfc" id="L227" title="All 2 branches covered.">            } while (watch);</span>
+<span class="pc bpc" id="L228" title="6 of 8 branches missed.">        } finally {</span>
+<span class="pc" id="L229">            watch = false;</span>
+<span class="fc" id="L230">        }</span>
+<span class="fc" id="L231">    }</span>
 
     //CHECKSTYLE:OFF
     public synchronized &lt;E extends Exception&gt; void readAll(final Handler&lt;Either&lt;TableDef, DataBlock&gt;, E&gt; handler)
             throws IOException, E {
         //CHECKSTYLE:ON
         Either&lt;TableDef, DataBlock&gt; data;
-<span class="fc bfc" id="L226" title="All 2 branches covered.">        while ((data = read()) != null) {</span>
-<span class="fc" id="L227">            handler.handle(data, Long.MAX_VALUE);</span>
+<span class="fc bfc" id="L238" title="All 2 branches covered.">        while ((data = read()) != null) {</span>
+<span class="fc" id="L239">            handler.handle(data, Long.MAX_VALUE);</span>
         }
-<span class="fc" id="L229">    }</span>
+<span class="fc" id="L241">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L233">        return &quot;TSDBReader{&quot; + &quot;size=&quot; + size + &quot;, raf=&quot; + raf + &quot;, file=&quot; + file + '}';</span>
+<span class="nc" id="L245">        return &quot;TSDBReader{&quot; + &quot;size=&quot; + size + &quot;, raf=&quot; + raf + &quot;, file=&quot; + file + '}';</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

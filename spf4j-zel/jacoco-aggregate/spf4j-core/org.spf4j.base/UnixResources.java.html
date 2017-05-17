@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UnixResources.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">UnixResources.java</span></div><h1>UnixResources.java</h1><pre class="source lang-java linenums">package org.spf4j.base;
+
+import com.sun.jna.Native;
+import com.sun.jna.platform.unix.Resource;
+
+/**
+ * Possible values of the first parameter to getrlimit()/setrlimit()
+ * A combination of com.sun.jna.platform.unix.Resource and MACOSX resource.h
+ * this class requires jna-platforn which is a optional dependency.
+ * @author zoly
+ */
+<span class="pc" id="L12">public enum UnixResources {</span>
+
+
+  /**
+   * 0 Per-process CPU limit, in seconds.
+   */
+<span class="fc" id="L18">  RLIMIT_CPU(0),</span>
+  /**
+   * 1 Largest file that can be created, in bytes.
+   */
+<span class="fc" id="L22">  RLIMIT_FSIZE(1),</span>
+  /**
+   * 2 Maximum size of data segment, in bytes.
+   */
+<span class="fc" id="L26">  RLIMIT_DATA(2),</span>
+  /**
+   * 3 Maximum size of stack segment, in bytes.
+   */
+<span class="fc" id="L30">  RLIMIT_STACK(3),</span>
+  /**
+   * 4 Largest core file that can be created, in bytes.
+   */
+<span class="fc" id="L34">  RLIMIT_CORE(4),</span>
+  /**
+   * 5 Largest resident set size, in bytes. This affects swapping; processes that are exceeding their resident set size
+   * will be more likely to have physical memory taken from them.
+   */
+<span class="fc" id="L39">  RLIMIT_RSS(5),</span>
+  /**
+   * 6 Number of processes.
+   */
+<span class="fc" id="L43">  RLIMIT_NPROC(6, 7),</span>
+  /**
+   * 7 Number of open files.
+   */
+<span class="fc" id="L47">  RLIMIT_NOFILE(7, 8),</span>
+  /**
+   * 8 Locked-in-memory address space.
+   */
+<span class="fc" id="L51">  RLIMIT_MEMLOCK(8, 6),</span>
+  /**
+   * 9 Address space limit.
+   */
+<span class="fc" id="L55">  RLIMIT_AS(9, 5),</span>
+  /**
+   * 10 Maximum number of file locks.
+   */
+<span class="fc" id="L59">  RLIMIT_LOCKS(10, -1),</span>
+  /**
+   * 11 Maximum number of pending signals.
+   */
+<span class="fc" id="L63">  RLIMIT_SIGPENDING(11, -1),</span>
+  /**
+   * 12 Maximum bytes in POSIX message queues.
+   */
+<span class="fc" id="L67">  RLIMIT_MSGQUEUE(12, -1),</span>
+  /**
+   * 13 Maximum nice priority allowed to raise to. Nice levels 19 .. -20 correspond to 0 .. 39 values of this resource
+   * limit.
+   */
+<span class="fc" id="L72">  RLIMIT_NICE(13, -1),</span>
+  /**
+   * 14
+   */
+<span class="fc" id="L76">  RLIMIT_RTPRIO(14, -1),</span>
+  /**
+   * 15 Maximum CPU time in microseconds that a process scheduled under a real-time scheduling policy may consume
+   * without making a blocking system call before being forcibly de-scheduled.
+   */
+<span class="fc" id="L81">  RLIMIT_RTTIME(15, -1),</span>
+  /**
+   * 16 Number of {@code rlimit} values
+   */
+<span class="fc" id="L85">  RLIMIT_NLIMITS(16, 9);</span>
+
+  private final int macId;
+  private final int gnuId;
+
+<span class="fc" id="L90">  UnixResources(final int gnuId) {</span>
+<span class="fc" id="L91">    this.macId = gnuId;</span>
+<span class="fc" id="L92">    this.gnuId = gnuId;</span>
+<span class="fc" id="L93">  }</span>
+
+<span class="fc" id="L95">  UnixResources(final int gnuId, final int macId) {</span>
+<span class="fc" id="L96">    this.macId = macId;</span>
+<span class="fc" id="L97">    this.gnuId = gnuId;</span>
+<span class="fc" id="L98">  }</span>
+
+  public int getMacId() {
+<span class="nc" id="L101">    return macId;</span>
+  }
+
+  public int getGnuId() {
+<span class="nc" id="L105">    return gnuId;</span>
+  }
+
+  public long getSoftLimit() {
+<span class="fc" id="L109">    return getRLimit(this).rlim_cur;</span>
+  }
+
+  public void setSoftLimit(final long limit) {
+<span class="fc" id="L113">    setRLimit(this, limit, getHardLimit());</span>
+<span class="fc" id="L114">  }</span>
+
+  public void setLimits(final long softLimit, final long hardlimit) {
+<span class="nc" id="L117">    setRLimit(this, softLimit, hardlimit);</span>
+<span class="nc" id="L118">  }</span>
+
+  public long getHardLimit() {
+<span class="fc" id="L121">    return getRLimit(this).rlim_max;</span>
+  }
+
+  private static Resource.Rlimit getRLimit(final UnixResources resourceId) {
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">    int id = Runtime.isMacOsx() ? resourceId.macId : resourceId.gnuId;</span>
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">    if (id &lt; 0) {</span>
+<span class="nc" id="L127">      throw new UnsupportedOperationException(&quot;Unsupported &quot; + id + &quot; limit on &quot; + Runtime.OS_NAME);</span>
+    }
+<span class="fc" id="L129">    final Resource.Rlimit limit = new Resource.Rlimit();</span>
+<span class="fc" id="L130">    int err = com.sun.jna.platform.unix.LibC.INSTANCE.getrlimit(id, limit);</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">    if (err != 0) {</span>
+<span class="nc" id="L132">      throw new RuntimeException(&quot;Error code &quot; + Native.getLastError()  + &quot; for getrlimit(&quot; + id + &quot;, &quot; + limit + '\'');</span>
+    }
+<span class="fc" id="L134">    return limit;</span>
+  }
+
+  private static void setRLimit(final UnixResources resourceId, final long softValue, final long hardValue) {
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">    int id = Runtime.isMacOsx() ? resourceId.macId : resourceId.gnuId;</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">    if (id &lt; 0) {</span>
+<span class="nc" id="L140">      throw new UnsupportedOperationException(&quot;Unsupported &quot; + id + &quot; limit on &quot; + Runtime.OS_NAME);</span>
+    }
+<span class="fc" id="L142">    final Resource.Rlimit limit = new Resource.Rlimit();</span>
+<span class="fc" id="L143">    limit.rlim_cur = softValue;</span>
+<span class="fc" id="L144">    limit.rlim_max = hardValue;</span>
+<span class="fc" id="L145">    int err = com.sun.jna.platform.unix.LibC.INSTANCE.setrlimit(id, limit);</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">    if (err != 0) {</span>
+<span class="nc" id="L147">      throw new RuntimeException(&quot;Error code &quot; + Native.getLastError() + &quot; for setrlimit(&quot; + id + &quot;, &quot; + limit + '\'');</span>
+    }
+<span class="fc" id="L149">  }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

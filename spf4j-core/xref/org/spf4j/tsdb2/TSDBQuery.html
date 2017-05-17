@@ -35,10 +35,10 @@
 <a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> gnu.trove.map.hash.TLongObjectHashMap;
 <a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> java.io.BufferedWriter;
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> java.io.File;
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> java.io.FileOutputStream;
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> java.io.OutputStreamWriter;
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> java.io.Writer;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> java.io.OutputStreamWriter;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> java.io.Writer;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> java.nio.file.Files;
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.util.Collection;
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.util.List;
@@ -225,129 +225,131 @@
 <a class="jxr_linenumber" name="L217" href="#L217">217</a> 
 <a class="jxr_linenumber" name="L218" href="#L218">218</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> writeCsvTable(<strong class="jxr_keyword">final</strong> File tsDB, <strong class="jxr_keyword">final</strong> String tableName, <strong class="jxr_keyword">final</strong> File output)
 <a class="jxr_linenumber" name="L219" href="#L219">219</a>             <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L220" href="#L220">220</a>         <strong class="jxr_keyword">try</strong> (Writer writer = <strong class="jxr_keyword">new</strong> BufferedWriter(<strong class="jxr_keyword">new</strong> OutputStreamWriter(<strong class="jxr_keyword">new</strong> FileOutputStream(output), Charsets.UTF_8))) {
-<a class="jxr_linenumber" name="L221" href="#L221">221</a>             writeAsCsv(writer, tsDB, tableName);
-<a class="jxr_linenumber" name="L222" href="#L222">222</a>         }
-<a class="jxr_linenumber" name="L223" href="#L223">223</a>     }
-<a class="jxr_linenumber" name="L224" href="#L224">224</a> 
-<a class="jxr_linenumber" name="L225" href="#L225">225</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong>  DateTimeFormatter DATE_FMT = ISODateTimeFormat.dateTime();
-<a class="jxr_linenumber" name="L226" href="#L226">226</a> 
-<a class="jxr_linenumber" name="L227" href="#L227">227</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> writeAsCsv(<strong class="jxr_keyword">final</strong> Appendable writer, <strong class="jxr_keyword">final</strong> File tsDB, <strong class="jxr_keyword">final</strong> String tableName)
-<a class="jxr_linenumber" name="L228" href="#L228">228</a>             <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L229" href="#L229">229</a> 
-<a class="jxr_linenumber" name="L230" href="#L230">230</a>         List&lt;TableDef&gt; tableDefs = getTableDef(tsDB, tableName);
-<a class="jxr_linenumber" name="L231" href="#L231">231</a>         <a href="../../../org/spf4j/tsdb2/TimeSeries.html">TimeSeries</a> data = getTimeSeries(tsDB, getIds(tableDefs), 0, Long.MAX_VALUE);
-<a class="jxr_linenumber" name="L232" href="#L232">232</a> 
-<a class="jxr_linenumber" name="L233" href="#L233">233</a>         Csv.writeCsvElement(<span class="jxr_string">"timestamp"</span>, writer);
-<a class="jxr_linenumber" name="L234" href="#L234">234</a>         <strong class="jxr_keyword">for</strong> (ColumnDef col : tableDefs.get(0).getColumns()) {
-<a class="jxr_linenumber" name="L235" href="#L235">235</a>             writer.append(',');
-<a class="jxr_linenumber" name="L236" href="#L236">236</a>             Csv.writeCsvElement(col.getName(), writer);
-<a class="jxr_linenumber" name="L237" href="#L237">237</a>         }
-<a class="jxr_linenumber" name="L238" href="#L238">238</a>         writer.append('\n');
-<a class="jxr_linenumber" name="L239" href="#L239">239</a>         <strong class="jxr_keyword">long</strong>[] timestamps = data.getTimeStamps();
-<a class="jxr_linenumber" name="L240" href="#L240">240</a>         <strong class="jxr_keyword">long</strong>[][] values = data.getValues();
-<a class="jxr_linenumber" name="L241" href="#L241">241</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; timestamps.length; i++) {
-<a class="jxr_linenumber" name="L242" href="#L242">242</a>             Csv.writeCsvElement(DATE_FMT.print(timestamps[i]), writer);
-<a class="jxr_linenumber" name="L243" href="#L243">243</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">long</strong> val : values[i]) {
-<a class="jxr_linenumber" name="L244" href="#L244">244</a>                 writer.append(',');
-<a class="jxr_linenumber" name="L245" href="#L245">245</a>                 Csv.writeCsvElement(Long.toString(val), writer);
-<a class="jxr_linenumber" name="L246" href="#L246">246</a>             }
-<a class="jxr_linenumber" name="L247" href="#L247">247</a>             writer.append('\n');
-<a class="jxr_linenumber" name="L248" href="#L248">248</a>         }
-<a class="jxr_linenumber" name="L249" href="#L249">249</a>     }
-<a class="jxr_linenumber" name="L250" href="#L250">250</a> 
-<a class="jxr_linenumber" name="L251" href="#L251">251</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> writeCsvTables(<strong class="jxr_keyword">final</strong> File tsDB, <strong class="jxr_keyword">final</strong> Set&lt;String&gt; tableNames, <strong class="jxr_keyword">final</strong> File output)
-<a class="jxr_linenumber" name="L252" href="#L252">252</a>             <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L253" href="#L253">253</a>         <strong class="jxr_keyword">if</strong> (tableNames.isEmpty()) {
-<a class="jxr_linenumber" name="L254" href="#L254">254</a>             <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L255" href="#L255">255</a>         }
-<a class="jxr_linenumber" name="L256" href="#L256">256</a>         ListMultimap&lt;String, TableDef&gt; tables = getTables(tsDB, tableNames);
-<a class="jxr_linenumber" name="L257" href="#L257">257</a>         DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
-<a class="jxr_linenumber" name="L258" href="#L258">258</a>         <strong class="jxr_keyword">try</strong> (Writer writer = <strong class="jxr_keyword">new</strong> BufferedWriter(<strong class="jxr_keyword">new</strong> OutputStreamWriter(<strong class="jxr_keyword">new</strong> FileOutputStream(output), Charsets.UTF_8))) {
-<a class="jxr_linenumber" name="L259" href="#L259">259</a>             TableDef table = tables.values().iterator().next();
-<a class="jxr_linenumber" name="L260" href="#L260">260</a>             Csv.writeCsvElement(<span class="jxr_string">"table"</span>, writer);
-<a class="jxr_linenumber" name="L261" href="#L261">261</a>             writer.append(',');
-<a class="jxr_linenumber" name="L262" href="#L262">262</a>             Csv.writeCsvElement(<span class="jxr_string">"timestamp"</span>, writer);
-<a class="jxr_linenumber" name="L263" href="#L263">263</a>             <strong class="jxr_keyword">for</strong> (ColumnDef col : table.getColumns()) {
-<a class="jxr_linenumber" name="L264" href="#L264">264</a>                 writer.append(',');
-<a class="jxr_linenumber" name="L265" href="#L265">265</a>                 Csv.writeCsvElement(col.getName(), writer);
-<a class="jxr_linenumber" name="L266" href="#L266">266</a>             }
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>             writer.write('\n');
-<a class="jxr_linenumber" name="L268" href="#L268">268</a> 
-<a class="jxr_linenumber" name="L269" href="#L269">269</a>             <strong class="jxr_keyword">for</strong> (Map.Entry&lt;String, Collection&lt;TableDef&gt;&gt; tEntry : tables.asMap().entrySet()) {
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>         <strong class="jxr_keyword">try</strong> (Writer writer = <strong class="jxr_keyword">new</strong> BufferedWriter(<strong class="jxr_keyword">new</strong> OutputStreamWriter(
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>                 Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>             writeAsCsv(writer, tsDB, tableName);
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>         }
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>     }
+<a class="jxr_linenumber" name="L225" href="#L225">225</a> 
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong>  DateTimeFormatter DATE_FMT = ISODateTimeFormat.dateTime();
+<a class="jxr_linenumber" name="L227" href="#L227">227</a> 
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> writeAsCsv(<strong class="jxr_keyword">final</strong> Appendable writer, <strong class="jxr_keyword">final</strong> File tsDB, <strong class="jxr_keyword">final</strong> String tableName)
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>             <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L230" href="#L230">230</a> 
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>         List&lt;TableDef&gt; tableDefs = getTableDef(tsDB, tableName);
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>         <a href="../../../org/spf4j/tsdb2/TimeSeries.html">TimeSeries</a> data = getTimeSeries(tsDB, getIds(tableDefs), 0, Long.MAX_VALUE);
+<a class="jxr_linenumber" name="L233" href="#L233">233</a> 
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>         Csv.writeCsvElement(<span class="jxr_string">"timestamp"</span>, writer);
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>         <strong class="jxr_keyword">for</strong> (ColumnDef col : tableDefs.get(0).getColumns()) {
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>             writer.append(',');
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>             Csv.writeCsvElement(col.getName(), writer);
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>         }
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>         writer.append('\n');
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>         <strong class="jxr_keyword">long</strong>[] timestamps = data.getTimeStamps();
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>         <strong class="jxr_keyword">long</strong>[][] values = data.getValues();
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; timestamps.length; i++) {
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>             Csv.writeCsvElement(DATE_FMT.print(timestamps[i]), writer);
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">long</strong> val : values[i]) {
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>                 writer.append(',');
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>                 Csv.writeCsvElement(Long.toString(val), writer);
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>             }
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>             writer.append('\n');
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>         }
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>     }
+<a class="jxr_linenumber" name="L251" href="#L251">251</a> 
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> writeCsvTables(<strong class="jxr_keyword">final</strong> File tsDB, <strong class="jxr_keyword">final</strong> Set&lt;String&gt; tableNames, <strong class="jxr_keyword">final</strong> File output)
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>             <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>         <strong class="jxr_keyword">if</strong> (tableNames.isEmpty()) {
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>         }
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>         ListMultimap&lt;String, TableDef&gt; tables = getTables(tsDB, tableNames);
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>         DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>         <strong class="jxr_keyword">try</strong> (Writer writer = <strong class="jxr_keyword">new</strong> BufferedWriter(<strong class="jxr_keyword">new</strong> OutputStreamWriter(
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>                 Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>             TableDef table = tables.values().iterator().next();
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>             Csv.writeCsvElement(<span class="jxr_string">"table"</span>, writer);
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>             writer.append(',');
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>             Csv.writeCsvElement(<span class="jxr_string">"timestamp"</span>, writer);
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>             <strong class="jxr_keyword">for</strong> (ColumnDef col : table.getColumns()) {
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>                 writer.append(',');
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>                 Csv.writeCsvElement(col.getName(), writer);
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>             }
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>             writer.write('\n');
 <a class="jxr_linenumber" name="L270" href="#L270">270</a> 
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>                 <a href="../../../org/spf4j/tsdb2/TimeSeries.html">TimeSeries</a> data = getTimeSeries(tsDB, getIds(tEntry.getValue()), 0, Long.MAX_VALUE);
-<a class="jxr_linenumber" name="L272" href="#L272">272</a>                 <strong class="jxr_keyword">long</strong>[] timestamps = data.getTimeStamps();
-<a class="jxr_linenumber" name="L273" href="#L273">273</a>                 <strong class="jxr_keyword">long</strong>[][] values = data.getValues();
-<a class="jxr_linenumber" name="L274" href="#L274">274</a>                 <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; timestamps.length; i++) {
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>                     Csv.writeCsvElement(tEntry.getKey(), writer);
-<a class="jxr_linenumber" name="L276" href="#L276">276</a>                     writer.append(',');
-<a class="jxr_linenumber" name="L277" href="#L277">277</a>                     Csv.writeCsvElement(formatter.print(timestamps[i]), writer);
-<a class="jxr_linenumber" name="L278" href="#L278">278</a>                     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">long</strong> val : values[i]) {
-<a class="jxr_linenumber" name="L279" href="#L279">279</a>                         writer.append(',');
-<a class="jxr_linenumber" name="L280" href="#L280">280</a>                         Csv.writeCsvElement(Long.toString(val), writer);
-<a class="jxr_linenumber" name="L281" href="#L281">281</a>                     }
-<a class="jxr_linenumber" name="L282" href="#L282">282</a>                     writer.write('\n');
-<a class="jxr_linenumber" name="L283" href="#L283">283</a>                 }
-<a class="jxr_linenumber" name="L284" href="#L284">284</a>             }
-<a class="jxr_linenumber" name="L285" href="#L285">285</a>         }
-<a class="jxr_linenumber" name="L286" href="#L286">286</a>     }
-<a class="jxr_linenumber" name="L287" href="#L287">287</a> 
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>     @Nullable
-<a class="jxr_linenumber" name="L289" href="#L289">289</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> ColumnDef getColumnDefIfExists(<strong class="jxr_keyword">final</strong> TableDef td, <strong class="jxr_keyword">final</strong> String columnName) {
-<a class="jxr_linenumber" name="L290" href="#L290">290</a>         <strong class="jxr_keyword">for</strong> (ColumnDef cdef : td.getColumns()) {
-<a class="jxr_linenumber" name="L291" href="#L291">291</a>             <strong class="jxr_keyword">if</strong> (Strings.equals(columnName, cdef.getName())) {
-<a class="jxr_linenumber" name="L292" href="#L292">292</a>                 <strong class="jxr_keyword">return</strong> cdef;
-<a class="jxr_linenumber" name="L293" href="#L293">293</a>             }
-<a class="jxr_linenumber" name="L294" href="#L294">294</a>         }
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L296" href="#L296">296</a>     }
-<a class="jxr_linenumber" name="L297" href="#L297">297</a> 
-<a class="jxr_linenumber" name="L298" href="#L298">298</a>     @Nonnull
-<a class="jxr_linenumber" name="L299" href="#L299">299</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> ColumnDef getColumnDef(<strong class="jxr_keyword">final</strong> TableDef td, <strong class="jxr_keyword">final</strong> String columnName) {
-<a class="jxr_linenumber" name="L300" href="#L300">300</a>         <strong class="jxr_keyword">for</strong> (ColumnDef cdef : td.getColumns()) {
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>             <strong class="jxr_keyword">if</strong> (Strings.equals(columnName, cdef.getName())) {
-<a class="jxr_linenumber" name="L302" href="#L302">302</a>                 <strong class="jxr_keyword">return</strong> cdef;
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>             }
-<a class="jxr_linenumber" name="L304" href="#L304">304</a>         }
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Column "</span> + columnName + <span class="jxr_string">" not found in "</span> + td);
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>     }
-<a class="jxr_linenumber" name="L307" href="#L307">307</a> 
-<a class="jxr_linenumber" name="L308" href="#L308">308</a> 
-<a class="jxr_linenumber" name="L309" href="#L309">309</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> getColumnIndex(<strong class="jxr_keyword">final</strong> TableDef td, <strong class="jxr_keyword">final</strong> String columnName) {
-<a class="jxr_linenumber" name="L310" href="#L310">310</a>         <strong class="jxr_keyword">int</strong> i = 0;
-<a class="jxr_linenumber" name="L311" href="#L311">311</a>         <strong class="jxr_keyword">for</strong> (ColumnDef cdef : td.getColumns()) {
-<a class="jxr_linenumber" name="L312" href="#L312">312</a>             <strong class="jxr_keyword">if</strong> (Strings.equals(columnName, cdef.getName())) {
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>                 <strong class="jxr_keyword">return</strong> i;
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>             }
-<a class="jxr_linenumber" name="L315" href="#L315">315</a>             i++;
-<a class="jxr_linenumber" name="L316" href="#L316">316</a>         }
-<a class="jxr_linenumber" name="L317" href="#L317">317</a>         <strong class="jxr_keyword">return</strong> -1;
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>     }
-<a class="jxr_linenumber" name="L319" href="#L319">319</a> 
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String[] getColumnNames(<strong class="jxr_keyword">final</strong> TableDef td) {
-<a class="jxr_linenumber" name="L321" href="#L321">321</a>         List&lt;ColumnDef&gt; columns = td.getColumns();
-<a class="jxr_linenumber" name="L322" href="#L322">322</a>         String[] result = <strong class="jxr_keyword">new</strong> String[columns.size()];
-<a class="jxr_linenumber" name="L323" href="#L323">323</a>         <strong class="jxr_keyword">int</strong> i = 0;
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>         <strong class="jxr_keyword">for</strong> (ColumnDef cd : columns) {
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>             result[i++] = cd.getName();
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>         }
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>         <strong class="jxr_keyword">return</strong> result;
-<a class="jxr_linenumber" name="L328" href="#L328">328</a>     }
-<a class="jxr_linenumber" name="L329" href="#L329">329</a> 
-<a class="jxr_linenumber" name="L330" href="#L330">330</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String[] getColumnUnitsOfMeasurement(<strong class="jxr_keyword">final</strong> TableDef td) {
-<a class="jxr_linenumber" name="L331" href="#L331">331</a>         List&lt;ColumnDef&gt; columns = td.getColumns();
-<a class="jxr_linenumber" name="L332" href="#L332">332</a>         String[] result = <strong class="jxr_keyword">new</strong> String[columns.size()];
-<a class="jxr_linenumber" name="L333" href="#L333">333</a>         <strong class="jxr_keyword">int</strong> i = 0;
-<a class="jxr_linenumber" name="L334" href="#L334">334</a>         <strong class="jxr_keyword">for</strong> (ColumnDef cd : columns) {
-<a class="jxr_linenumber" name="L335" href="#L335">335</a>             result[i++] = cd.getUnitOfMeasurement();
-<a class="jxr_linenumber" name="L336" href="#L336">336</a>         }
-<a class="jxr_linenumber" name="L337" href="#L337">337</a>         <strong class="jxr_keyword">return</strong> result;
-<a class="jxr_linenumber" name="L338" href="#L338">338</a>     }
-<a class="jxr_linenumber" name="L339" href="#L339">339</a> 
-<a class="jxr_linenumber" name="L340" href="#L340">340</a> }
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>             <strong class="jxr_keyword">for</strong> (Map.Entry&lt;String, Collection&lt;TableDef&gt;&gt; tEntry : tables.asMap().entrySet()) {
+<a class="jxr_linenumber" name="L272" href="#L272">272</a> 
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>                 <a href="../../../org/spf4j/tsdb2/TimeSeries.html">TimeSeries</a> data = getTimeSeries(tsDB, getIds(tEntry.getValue()), 0, Long.MAX_VALUE);
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>                 <strong class="jxr_keyword">long</strong>[] timestamps = data.getTimeStamps();
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>                 <strong class="jxr_keyword">long</strong>[][] values = data.getValues();
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>                 <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; timestamps.length; i++) {
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>                     Csv.writeCsvElement(tEntry.getKey(), writer);
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>                     writer.append(',');
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>                     Csv.writeCsvElement(formatter.print(timestamps[i]), writer);
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>                     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">long</strong> val : values[i]) {
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>                         writer.append(',');
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>                         Csv.writeCsvElement(Long.toString(val), writer);
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>                     }
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>                     writer.write('\n');
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>                 }
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>             }
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>         }
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>     }
+<a class="jxr_linenumber" name="L289" href="#L289">289</a> 
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>     @Nullable
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> ColumnDef getColumnDefIfExists(<strong class="jxr_keyword">final</strong> TableDef td, <strong class="jxr_keyword">final</strong> String columnName) {
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>         <strong class="jxr_keyword">for</strong> (ColumnDef cdef : td.getColumns()) {
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>             <strong class="jxr_keyword">if</strong> (Strings.equals(columnName, cdef.getName())) {
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>                 <strong class="jxr_keyword">return</strong> cdef;
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>             }
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>         }
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>     }
+<a class="jxr_linenumber" name="L299" href="#L299">299</a> 
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>     @Nonnull
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> ColumnDef getColumnDef(<strong class="jxr_keyword">final</strong> TableDef td, <strong class="jxr_keyword">final</strong> String columnName) {
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>         <strong class="jxr_keyword">for</strong> (ColumnDef cdef : td.getColumns()) {
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>             <strong class="jxr_keyword">if</strong> (Strings.equals(columnName, cdef.getName())) {
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>                 <strong class="jxr_keyword">return</strong> cdef;
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>             }
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>         }
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Column "</span> + columnName + <span class="jxr_string">" not found in "</span> + td);
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>     }
+<a class="jxr_linenumber" name="L309" href="#L309">309</a> 
+<a class="jxr_linenumber" name="L310" href="#L310">310</a> 
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> getColumnIndex(<strong class="jxr_keyword">final</strong> TableDef td, <strong class="jxr_keyword">final</strong> String columnName) {
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>         <strong class="jxr_keyword">int</strong> i = 0;
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>         <strong class="jxr_keyword">for</strong> (ColumnDef cdef : td.getColumns()) {
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>             <strong class="jxr_keyword">if</strong> (Strings.equals(columnName, cdef.getName())) {
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>                 <strong class="jxr_keyword">return</strong> i;
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>             }
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>             i++;
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>         }
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>         <strong class="jxr_keyword">return</strong> -1;
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>     }
+<a class="jxr_linenumber" name="L321" href="#L321">321</a> 
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String[] getColumnNames(<strong class="jxr_keyword">final</strong> TableDef td) {
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>         List&lt;ColumnDef&gt; columns = td.getColumns();
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>         String[] result = <strong class="jxr_keyword">new</strong> String[columns.size()];
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>         <strong class="jxr_keyword">int</strong> i = 0;
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>         <strong class="jxr_keyword">for</strong> (ColumnDef cd : columns) {
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>             result[i++] = cd.getName();
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>         }
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>         <strong class="jxr_keyword">return</strong> result;
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>     }
+<a class="jxr_linenumber" name="L331" href="#L331">331</a> 
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String[] getColumnUnitsOfMeasurement(<strong class="jxr_keyword">final</strong> TableDef td) {
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>         List&lt;ColumnDef&gt; columns = td.getColumns();
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>         String[] result = <strong class="jxr_keyword">new</strong> String[columns.size()];
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>         <strong class="jxr_keyword">int</strong> i = 0;
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>         <strong class="jxr_keyword">for</strong> (ColumnDef cd : columns) {
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>             result[i++] = cd.getUnitOfMeasurement();
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>         }
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>         <strong class="jxr_keyword">return</strong> result;
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>     }
+<a class="jxr_linenumber" name="L341" href="#L341">341</a> 
+<a class="jxr_linenumber" name="L342" href="#L342">342</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2016. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2017. All rights reserved.</div>
 </body>
 </html>

@@ -70,13 +70,13 @@
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>      <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>  <em class="jxr_javadoccomment">     * Creates new form TSDBViewJInternalFrame</em>
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/ui/TSDB2ViewJInternalFrame.html">TSDB2ViewJInternalFrame</a>(<strong class="jxr_keyword">final</strong> String databaseFile) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>          <strong class="jxr_keyword">super</strong>(databaseFile);
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>          initComponents();
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>          tsDb = <strong class="jxr_keyword">new</strong> File(databaseFile);
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/ui/TSDB2ViewJInternalFrame.html">TSDB2ViewJInternalFrame</a>(<strong class="jxr_keyword">final</strong> File tsDb) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          <strong class="jxr_keyword">super</strong>(tsDb.getPath());
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>          <strong class="jxr_keyword">this</strong>.tsDb = tsDb;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          initComponents();
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>          Multimap&lt;String, TableDefEx&gt; columnsInfo = TSDBQuery.getAllTablesWithDataRanges(tsDb);
 <a class="jxr_linenumber" name="L70" href="#L70">70</a>          Map&lt;String, DefaultMutableTreeNode&gt; gNodes = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>          DefaultMutableTreeNode root = <strong class="jxr_keyword">new</strong> DefaultMutableTreeNode(databaseFile);
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>          DefaultMutableTreeNode root = <strong class="jxr_keyword">new</strong> DefaultMutableTreeNode(tsDb.getName());
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>          <strong class="jxr_keyword">long</strong> startDateMillis = System.currentTimeMillis();
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>          <strong class="jxr_keyword">for</strong> (Map.Entry&lt;String, Collection&lt;TableDefEx&gt;&gt; info : columnsInfo.asMap().entrySet()) {
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>              String groupName = info.getKey();
@@ -351,6 +351,6 @@
 <a class="jxr_linenumber" name="L343" href="#L343">343</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2016. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2017. All rights reserved.</div>
 </body>
 </html>

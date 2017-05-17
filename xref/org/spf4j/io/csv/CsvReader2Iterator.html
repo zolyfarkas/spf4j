@@ -15,7 +15,7 @@
 <a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.util.List;
 <a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> java.util.NoSuchElementException;
 <a class="jxr_linenumber" name="L9" href="#L9">9</a>   
-<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/spf4j/io/csv/CsvReader2Iterator.html">CsvReader2Iterator</a> <strong class="jxr_keyword">implements</strong> Iterator&lt;List&lt;String&gt;&gt; {
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/spf4j/io/csv/CsvReader2Iterator.html">CsvReader2Iterator</a> <strong class="jxr_keyword">implements</strong> Iterator&lt;Iterable&lt;String&gt;&gt; {
 <a class="jxr_linenumber" name="L11" href="#L11">11</a>  
 <a class="jxr_linenumber" name="L12" href="#L12">12</a>    <strong class="jxr_keyword">public</strong> <a href="../../../../org/spf4j/io/csv/CsvReader2Iterator.html">CsvReader2Iterator</a>(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/io/csv/CsvReader.html">CsvReader</a> preader) {
 <a class="jxr_linenumber" name="L13" href="#L13">13</a>      <strong class="jxr_keyword">this</strong>.reader = preader;
@@ -25,7 +25,7 @@
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> List&lt;String&gt; row = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;();
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> haveParsedRow = false;
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>    <strong class="jxr_keyword">private</strong> CsvReader.TokenType readRow() <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>    <strong class="jxr_keyword">private</strong> CsvReader.TokenType readRow() <strong class="jxr_keyword">throws</strong> IOException, CsvParseException {
 <a class="jxr_linenumber" name="L21" href="#L21">21</a>      row.clear();
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>      CsvReader.TokenType token;
 <a class="jxr_linenumber" name="L23" href="#L23">23</a>      <strong class="jxr_keyword">boolean</strong> loop = <strong class="jxr_keyword">true</strong>;
@@ -57,7 +57,7 @@
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>          } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>            <strong class="jxr_keyword">return</strong> token != CsvReader.TokenType.END_DOCUMENT;
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>          }
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>        } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>        } <strong class="jxr_keyword">catch</strong> (IOException | CsvParseException ex) {
 <a class="jxr_linenumber" name="L53" href="#L53">53</a>          <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>        }
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>      } <strong class="jxr_keyword">else</strong> {
@@ -66,7 +66,7 @@
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>    }
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>  
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>    @Override
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>    <strong class="jxr_keyword">public</strong> List&lt;String&gt; next() {
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>    <strong class="jxr_keyword">public</strong> Iterable&lt;String&gt; next() {
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">if</strong> (!hasNext()) {
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>        <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> NoSuchElementException();
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>      } <strong class="jxr_keyword">else</strong> {
@@ -79,11 +79,11 @@
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>    <strong class="jxr_keyword">public</strong> String toString() {
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">return</strong> <span class="jxr_string">"CsvReader2Iterator{"</span> + <span class="jxr_string">"reader="</span> + reader + <span class="jxr_string">", row="</span> + row + <span class="jxr_string">", haveParsedRow="</span> + haveParsedRow + '}';
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>    }
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>    
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  
 <a class="jxr_linenumber" name="L75" href="#L75">75</a>  
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2016. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2017. All rights reserved.</div>
 </body>
 </html>

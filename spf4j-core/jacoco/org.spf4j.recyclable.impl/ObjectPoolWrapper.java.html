@@ -37,13 +37,13 @@ import org.spf4j.base.Handler;
 @ParametersAreNonnullByDefault
 final class ObjectPoolWrapper&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Scanable&lt;ObjectHolder&lt;T&gt;&gt; {
 
+<span class="nc" id="L40">    private static final Logger LOG = LoggerFactory.getLogger(ObjectPoolWrapper.class);</span>
+
     private final RecyclingSupplier&lt;T&gt; pool;
 
     private final Handler&lt;T, ? extends Exception&gt; borrowHook;
 
     private final Handler&lt;T, ? extends Exception&gt; returnHook;
-
-<span class="nc" id="L46">    private static final Logger LOG = LoggerFactory.getLogger(ObjectPoolWrapper.class);</span>
 
     ObjectPoolWrapper(final RecyclingSupplier&lt;T&gt; pool,
             @Nullable final Handler&lt;T, ? extends Exception&gt; borrowHook,
@@ -92,9 +92,9 @@ final class ObjectPoolWrapper&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Sc
 <span class="nc" id="L92">    }</span>
 
     @Override
-    public void dispose() throws ObjectDisposeException, InterruptedException {
-<span class="nc" id="L96">        pool.dispose();</span>
-<span class="nc" id="L97">    }</span>
+    public boolean tryDispose(final long timeoutMillis) throws ObjectDisposeException, InterruptedException {
+<span class="nc" id="L96">        return pool.tryDispose(timeoutMillis);</span>
+    }
 
     @Override
     public boolean scan(final ScanHandler&lt;ObjectHolder&lt;T&gt;&gt; handler) throws Exception {
@@ -119,4 +119,4 @@ final class ObjectPoolWrapper&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Sc
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

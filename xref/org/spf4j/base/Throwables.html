@@ -68,7 +68,7 @@
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>    }
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>  
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> MAX_THROWABLE_CHAIN
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>            = Integer.getInteger(<span class="jxr_string">"spf4j.throwables.defaultMaxSuppressChain"</span>, 200);
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>            = Integer.getInteger(<span class="jxr_string">"spf4j.throwables.defaultMaxSuppressChain"</span>, 100);
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>  
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Field CAUSE_FIELD;
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>  
@@ -218,7 +218,7 @@
 <a class="jxr_linenumber" name="L210" href="#L210">210</a>     T result;
 <a class="jxr_linenumber" name="L211" href="#L211">211</a>     <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L212" href="#L212">212</a>       result = Objects.clone(t);
-<a class="jxr_linenumber" name="L213" href="#L213">213</a>     } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>     } <strong class="jxr_keyword">catch</strong> (RuntimeException ex) {
 <a class="jxr_linenumber" name="L214" href="#L214">214</a>       result = t;
 <a class="jxr_linenumber" name="L215" href="#L215">215</a>       Lazy.LOG.info(<span class="jxr_string">"Unable to clone exception {}"</span>, t, ex);
 <a class="jxr_linenumber" name="L216" href="#L216">216</a>     }
@@ -256,7 +256,7 @@
 <a class="jxr_linenumber" name="L248" href="#L248">248</a>     T clone;
 <a class="jxr_linenumber" name="L249" href="#L249">249</a>     <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L250" href="#L250">250</a>       clone = Objects.clone(t);
-<a class="jxr_linenumber" name="L251" href="#L251">251</a>     } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>     } <strong class="jxr_keyword">catch</strong> (RuntimeException ex) {
 <a class="jxr_linenumber" name="L252" href="#L252">252</a>       clone = t;
 <a class="jxr_linenumber" name="L253" href="#L253">253</a>       Lazy.LOG.info(<span class="jxr_string">"Unable to clone exception"</span>, t);
 <a class="jxr_linenumber" name="L254" href="#L254">254</a>     }
@@ -517,99 +517,146 @@
 <a class="jxr_linenumber" name="L509" href="#L509">509</a> <em class="jxr_javadoccomment">   * @return true if a Throwable matching the predicate is found.</em>
 <a class="jxr_linenumber" name="L510" href="#L510">510</a> <em class="jxr_javadoccomment">   */</em>
 <a class="jxr_linenumber" name="L511" href="#L511">511</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> contains(@Nonnull <strong class="jxr_keyword">final</strong> Throwable t, <strong class="jxr_keyword">final</strong> Predicate&lt;Throwable&gt; predicate) {
-<a class="jxr_linenumber" name="L512" href="#L512">512</a>     ArrayDeque&lt;Throwable&gt; toScan =  <strong class="jxr_keyword">new</strong> ArrayDeque&lt;&gt;();
-<a class="jxr_linenumber" name="L513" href="#L513">513</a>     toScan.addFirst(t);
-<a class="jxr_linenumber" name="L514" href="#L514">514</a>     Throwable th;
-<a class="jxr_linenumber" name="L515" href="#L515">515</a>     THashSet&lt;Throwable&gt; seen = <strong class="jxr_keyword">new</strong> IdentityHashSet&lt;&gt;();
-<a class="jxr_linenumber" name="L516" href="#L516">516</a>     <strong class="jxr_keyword">while</strong> ((th = toScan.pollFirst()) != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L517" href="#L517">517</a>       <strong class="jxr_keyword">if</strong> (seen.contains(th)) {
-<a class="jxr_linenumber" name="L518" href="#L518">518</a>         <strong class="jxr_keyword">continue</strong>;
-<a class="jxr_linenumber" name="L519" href="#L519">519</a>       }
-<a class="jxr_linenumber" name="L520" href="#L520">520</a>       <strong class="jxr_keyword">if</strong> (predicate.test(th)) {
-<a class="jxr_linenumber" name="L521" href="#L521">521</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L522" href="#L522">522</a>       } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L523" href="#L523">523</a>         Throwable cause = th.getCause();
-<a class="jxr_linenumber" name="L524" href="#L524">524</a>         <strong class="jxr_keyword">if</strong> (cause != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L525" href="#L525">525</a>           toScan.addFirst(cause);
-<a class="jxr_linenumber" name="L526" href="#L526">526</a>         }
-<a class="jxr_linenumber" name="L527" href="#L527">527</a>         <strong class="jxr_keyword">for</strong> (Throwable supp : th.getSuppressed()) {
-<a class="jxr_linenumber" name="L528" href="#L528">528</a>           toScan.addLast(supp);
-<a class="jxr_linenumber" name="L529" href="#L529">529</a>         }
-<a class="jxr_linenumber" name="L530" href="#L530">530</a>       }
-<a class="jxr_linenumber" name="L531" href="#L531">531</a>       seen.add(th);
-<a class="jxr_linenumber" name="L532" href="#L532">532</a>     }
-<a class="jxr_linenumber" name="L533" href="#L533">533</a>     <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L534" href="#L534">534</a>   }
-<a class="jxr_linenumber" name="L535" href="#L535">535</a> 
-<a class="jxr_linenumber" name="L536" href="#L536">536</a> 
-<a class="jxr_linenumber" name="L537" href="#L537">537</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Predicate&lt;Throwable&gt; getNonRecoverablePredicate() {
-<a class="jxr_linenumber" name="L538" href="#L538">538</a>     <strong class="jxr_keyword">return</strong> nrPredicate;
-<a class="jxr_linenumber" name="L539" href="#L539">539</a>   }
-<a class="jxr_linenumber" name="L540" href="#L540">540</a> 
-<a class="jxr_linenumber" name="L541" href="#L541">541</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> setNonRecoverablePredicate(<strong class="jxr_keyword">final</strong> Predicate&lt;Throwable&gt; predicate) {
-<a class="jxr_linenumber" name="L542" href="#L542">542</a>     Throwables.nrPredicate = predicate;
-<a class="jxr_linenumber" name="L543" href="#L543">543</a>   }
-<a class="jxr_linenumber" name="L544" href="#L544">544</a> 
-<a class="jxr_linenumber" name="L545" href="#L545">545</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">volatile</strong> Predicate&lt;Throwable&gt; nrPredicate = <strong class="jxr_keyword">new</strong> Predicate&lt;Throwable&gt;() {
-<a class="jxr_linenumber" name="L546" href="#L546">546</a>     @Override
-<a class="jxr_linenumber" name="L547" href="#L547">547</a>     @SuppressFBWarnings(<span class="jxr_string">"ITC_INHERITANCE_TYPE_CHECKING"</span>)
-<a class="jxr_linenumber" name="L548" href="#L548">548</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> test(<strong class="jxr_keyword">final</strong> Throwable t) {
-<a class="jxr_linenumber" name="L549" href="#L549">549</a>       <strong class="jxr_keyword">if</strong> (t instanceof Error &amp;&amp; !(t instanceof StackOverflowError)) {
-<a class="jxr_linenumber" name="L550" href="#L550">550</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L551" href="#L551">551</a>       }
-<a class="jxr_linenumber" name="L552" href="#L552">552</a>       <strong class="jxr_keyword">if</strong> (t instanceof IOException) {
-<a class="jxr_linenumber" name="L553" href="#L553">553</a>         String message = t.getMessage();
-<a class="jxr_linenumber" name="L554" href="#L554">554</a>         <strong class="jxr_keyword">if</strong> (message != <strong class="jxr_keyword">null</strong> &amp;&amp; message.contains(<span class="jxr_string">"Too many open files"</span>)) {
-<a class="jxr_linenumber" name="L555" href="#L555">555</a>           <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L556" href="#L556">556</a>         }
-<a class="jxr_linenumber" name="L557" href="#L557">557</a>       }
-<a class="jxr_linenumber" name="L558" href="#L558">558</a>       <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L559" href="#L559">559</a>     }
-<a class="jxr_linenumber" name="L560" href="#L560">560</a>   };
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>     <strong class="jxr_keyword">return</strong> first(t, predicate) != <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L513" href="#L513">513</a>   }
+<a class="jxr_linenumber" name="L514" href="#L514">514</a> 
+<a class="jxr_linenumber" name="L515" href="#L515">515</a> 
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L517" href="#L517">517</a> <em class="jxr_javadoccomment">   * return first Exception in the causal chain Assignable to clasz.</em>
+<a class="jxr_linenumber" name="L518" href="#L518">518</a> <em class="jxr_javadoccomment">   * @param &lt;T&gt;</em>
+<a class="jxr_linenumber" name="L519" href="#L519">519</a> <em class="jxr_javadoccomment">   * @param t</em>
+<a class="jxr_linenumber" name="L520" href="#L520">520</a> <em class="jxr_javadoccomment">   * @param clasz</em>
+<a class="jxr_linenumber" name="L521" href="#L521">521</a> <em class="jxr_javadoccomment">   * @return</em>
+<a class="jxr_linenumber" name="L522" href="#L522">522</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>   @Nullable
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>   @CheckReturnValue
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> &lt;T <strong class="jxr_keyword">extends</strong> Throwable&gt; T first(@Nonnull <strong class="jxr_keyword">final</strong> Throwable t, <strong class="jxr_keyword">final</strong> Class&lt;T&gt; clasz) {
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>     <strong class="jxr_keyword">return</strong> (T) first(t, (Throwable th) -&gt; clasz.isAssignableFrom(th.getClass()));
+<a class="jxr_linenumber" name="L527" href="#L527">527</a>   }
+<a class="jxr_linenumber" name="L528" href="#L528">528</a> 
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L530" href="#L530">530</a> <em class="jxr_javadoccomment">   * Returns the first Throwable that matches the predicate in the causal and suppressed chain.</em>
+<a class="jxr_linenumber" name="L531" href="#L531">531</a> <em class="jxr_javadoccomment">   * @param t the Throwable</em>
+<a class="jxr_linenumber" name="L532" href="#L532">532</a> <em class="jxr_javadoccomment">   * @param predicate the Predicate</em>
+<a class="jxr_linenumber" name="L533" href="#L533">533</a> <em class="jxr_javadoccomment">   * @return the Throwable the first matches the predicate or null is none matches.</em>
+<a class="jxr_linenumber" name="L534" href="#L534">534</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>   @Nullable
+<a class="jxr_linenumber" name="L536" href="#L536">536</a>   @CheckReturnValue
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Throwable first(@Nonnull <strong class="jxr_keyword">final</strong> Throwable t, <strong class="jxr_keyword">final</strong> Predicate&lt;Throwable&gt; predicate) {
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>     ArrayDeque&lt;Throwable&gt; toScan =  <strong class="jxr_keyword">new</strong> ArrayDeque&lt;&gt;();
+<a class="jxr_linenumber" name="L539" href="#L539">539</a>     toScan.addFirst(t);
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>     Throwable th;
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>     THashSet&lt;Throwable&gt; seen = <strong class="jxr_keyword">new</strong> IdentityHashSet&lt;&gt;();
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>     <strong class="jxr_keyword">while</strong> ((th = toScan.pollFirst()) != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L543" href="#L543">543</a>       <strong class="jxr_keyword">if</strong> (seen.contains(th)) {
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>         <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>       }
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>       <strong class="jxr_keyword">if</strong> (predicate.test(th)) {
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>         <strong class="jxr_keyword">return</strong> th;
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>       } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>         Throwable cause = th.getCause();
+<a class="jxr_linenumber" name="L550" href="#L550">550</a>         <strong class="jxr_keyword">if</strong> (cause != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L551" href="#L551">551</a>           toScan.addFirst(cause);
+<a class="jxr_linenumber" name="L552" href="#L552">552</a>         }
+<a class="jxr_linenumber" name="L553" href="#L553">553</a>         <strong class="jxr_keyword">for</strong> (Throwable supp : th.getSuppressed()) {
+<a class="jxr_linenumber" name="L554" href="#L554">554</a>           toScan.addLast(supp);
+<a class="jxr_linenumber" name="L555" href="#L555">555</a>         }
+<a class="jxr_linenumber" name="L556" href="#L556">556</a>       }
+<a class="jxr_linenumber" name="L557" href="#L557">557</a>       seen.add(th);
+<a class="jxr_linenumber" name="L558" href="#L558">558</a>     }
+<a class="jxr_linenumber" name="L559" href="#L559">559</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L560" href="#L560">560</a>   }
 <a class="jxr_linenumber" name="L561" href="#L561">561</a> 
 <a class="jxr_linenumber" name="L562" href="#L562">562</a> 
-<a class="jxr_linenumber" name="L563" href="#L563">563</a> 
-<a class="jxr_linenumber" name="L564" href="#L564">564</a> 
-<a class="jxr_linenumber" name="L565" href="#L565">565</a> <em class="jxr_comment">//    public static final class RepeatingStack {</em>
-<a class="jxr_linenumber" name="L566" href="#L566">566</a> <em class="jxr_comment">//        private final int count;</em>
-<a class="jxr_linenumber" name="L567" href="#L567">567</a> <em class="jxr_comment">//        private final List&lt;Either&lt;StackTraceElement, RepeatingStack&gt;&gt; stack;</em>
-<a class="jxr_linenumber" name="L568" href="#L568">568</a> <em class="jxr_comment">//</em>
-<a class="jxr_linenumber" name="L569" href="#L569">569</a> <em class="jxr_comment">//        public RepeatingStack(final int count, final List&lt;Either&lt;StackTraceElement, RepeatingStack&gt;&gt; stack) {</em>
-<a class="jxr_linenumber" name="L570" href="#L570">570</a> <em class="jxr_comment">//            this.count = count;</em>
-<a class="jxr_linenumber" name="L571" href="#L571">571</a> <em class="jxr_comment">//            this.stack = stack;</em>
-<a class="jxr_linenumber" name="L572" href="#L572">572</a> <em class="jxr_comment">//        }</em>
-<a class="jxr_linenumber" name="L573" href="#L573">573</a> <em class="jxr_comment">//    }</em>
-<a class="jxr_linenumber" name="L574" href="#L574">574</a> <em class="jxr_comment">//</em>
-<a class="jxr_linenumber" name="L575" href="#L575">575</a> <em class="jxr_comment">//</em>
-<a class="jxr_linenumber" name="L576" href="#L576">576</a> <em class="jxr_comment">//    public static List&lt;Either&lt;StackTraceElement, RepeatingStack&gt;&gt; compress(final StackTraceElement [] trace) {</em>
-<a class="jxr_linenumber" name="L577" href="#L577">577</a> <em class="jxr_comment">//        Map&lt;StackTraceElement, Integer&gt; elementLocation = new HashMap&lt;&gt;(trace.length);</em>
-<a class="jxr_linenumber" name="L578" href="#L578">578</a> <em class="jxr_comment">//        for (int i = 0; i &lt; trace.length; i++) {</em>
-<a class="jxr_linenumber" name="L579" href="#L579">579</a> <em class="jxr_comment">//            StackTraceElement elem = trace[i];</em>
-<a class="jxr_linenumber" name="L580" href="#L580">580</a> <em class="jxr_comment">//            if (elementLocation.containsKey(elem)) {</em>
-<a class="jxr_linenumber" name="L581" href="#L581">581</a> <em class="jxr_comment">//                // potentially repeating stack trace</em>
-<a class="jxr_linenumber" name="L582" href="#L582">582</a> <em class="jxr_comment">//                int j = elementLocation.get(elem);</em>
-<a class="jxr_linenumber" name="L583" href="#L583">583</a> <em class="jxr_comment">//                boolean repeating = true;</em>
-<a class="jxr_linenumber" name="L584" href="#L584">584</a> <em class="jxr_comment">//                for (int k = j + 1; k &lt; i; k++) {</em>
-<a class="jxr_linenumber" name="L585" href="#L585">585</a> <em class="jxr_comment">//                    if (!trace[k].equals(trace[i + k])) {</em>
-<a class="jxr_linenumber" name="L586" href="#L586">586</a> <em class="jxr_comment">//                        repeating = false;</em>
-<a class="jxr_linenumber" name="L587" href="#L587">587</a> <em class="jxr_comment">//                        break;</em>
-<a class="jxr_linenumber" name="L588" href="#L588">588</a> <em class="jxr_comment">//                    }</em>
-<a class="jxr_linenumber" name="L589" href="#L589">589</a> <em class="jxr_comment">//                }</em>
-<a class="jxr_linenumber" name="L590" href="#L590">590</a> <em class="jxr_comment">//                if (repeating) {</em>
-<a class="jxr_linenumber" name="L591" href="#L591">591</a> <em class="jxr_comment">//                    for (int k = j; k &lt; i; k++) {</em>
-<a class="jxr_linenumber" name="L592" href="#L592">592</a> <em class="jxr_comment">//</em>
-<a class="jxr_linenumber" name="L593" href="#L593">593</a> <em class="jxr_comment">//                    }</em>
-<a class="jxr_linenumber" name="L594" href="#L594">594</a> <em class="jxr_comment">//                }</em>
-<a class="jxr_linenumber" name="L595" href="#L595">595</a> <em class="jxr_comment">//</em>
-<a class="jxr_linenumber" name="L596" href="#L596">596</a> <em class="jxr_comment">//            } else {</em>
-<a class="jxr_linenumber" name="L597" href="#L597">597</a> <em class="jxr_comment">//                elementLocation.put(elem, i);</em>
-<a class="jxr_linenumber" name="L598" href="#L598">598</a> <em class="jxr_comment">//            }</em>
-<a class="jxr_linenumber" name="L599" href="#L599">599</a> <em class="jxr_comment">//        }</em>
-<a class="jxr_linenumber" name="L600" href="#L600">600</a> <em class="jxr_comment">//    }</em>
-<a class="jxr_linenumber" name="L601" href="#L601">601</a> 
-<a class="jxr_linenumber" name="L602" href="#L602">602</a> }
+<a class="jxr_linenumber" name="L563" href="#L563">563</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L564" href="#L564">564</a> <em class="jxr_javadoccomment">   * Returns first Throwable in the causality chain that is matching the provided predicate.</em>
+<a class="jxr_linenumber" name="L565" href="#L565">565</a> <em class="jxr_javadoccomment">   * @param throwable the Throwable to go through.</em>
+<a class="jxr_linenumber" name="L566" href="#L566">566</a> <em class="jxr_javadoccomment">   * @param predicate the predicate to apply</em>
+<a class="jxr_linenumber" name="L567" href="#L567">567</a> <em class="jxr_javadoccomment">   * @return the first Throwable from the chain that the predicate matches.</em>
+<a class="jxr_linenumber" name="L568" href="#L568">568</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L569" href="#L569">569</a> 
+<a class="jxr_linenumber" name="L570" href="#L570">570</a>   @Nullable
+<a class="jxr_linenumber" name="L571" href="#L571">571</a>   @CheckReturnValue
+<a class="jxr_linenumber" name="L572" href="#L572">572</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Throwable firstCause(@Nonnull <strong class="jxr_keyword">final</strong> Throwable throwable, <strong class="jxr_keyword">final</strong> Predicate&lt;Throwable&gt; predicate) {
+<a class="jxr_linenumber" name="L573" href="#L573">573</a>     Throwable t = throwable;
+<a class="jxr_linenumber" name="L574" href="#L574">574</a>     <strong class="jxr_keyword">do</strong> {
+<a class="jxr_linenumber" name="L575" href="#L575">575</a>       <strong class="jxr_keyword">if</strong> (predicate.test(t)) {
+<a class="jxr_linenumber" name="L576" href="#L576">576</a>         <strong class="jxr_keyword">return</strong> t;
+<a class="jxr_linenumber" name="L577" href="#L577">577</a>       }
+<a class="jxr_linenumber" name="L578" href="#L578">578</a>       t = t.getCause();
+<a class="jxr_linenumber" name="L579" href="#L579">579</a>     } <strong class="jxr_keyword">while</strong> (t != <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L580" href="#L580">580</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L581" href="#L581">581</a>   }
+<a class="jxr_linenumber" name="L582" href="#L582">582</a> 
+<a class="jxr_linenumber" name="L583" href="#L583">583</a> 
+<a class="jxr_linenumber" name="L584" href="#L584">584</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Predicate&lt;Throwable&gt; getNonRecoverablePredicate() {
+<a class="jxr_linenumber" name="L585" href="#L585">585</a>     <strong class="jxr_keyword">return</strong> nrPredicate;
+<a class="jxr_linenumber" name="L586" href="#L586">586</a>   }
+<a class="jxr_linenumber" name="L587" href="#L587">587</a> 
+<a class="jxr_linenumber" name="L588" href="#L588">588</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> setNonRecoverablePredicate(<strong class="jxr_keyword">final</strong> Predicate&lt;Throwable&gt; predicate) {
+<a class="jxr_linenumber" name="L589" href="#L589">589</a>     Throwables.nrPredicate = predicate;
+<a class="jxr_linenumber" name="L590" href="#L590">590</a>   }
+<a class="jxr_linenumber" name="L591" href="#L591">591</a> 
+<a class="jxr_linenumber" name="L592" href="#L592">592</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">volatile</strong> Predicate&lt;Throwable&gt; nrPredicate = <strong class="jxr_keyword">new</strong> Predicate&lt;Throwable&gt;() {
+<a class="jxr_linenumber" name="L593" href="#L593">593</a>     @Override
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>     @SuppressFBWarnings(<span class="jxr_string">"ITC_INHERITANCE_TYPE_CHECKING"</span>)
+<a class="jxr_linenumber" name="L595" href="#L595">595</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> test(<strong class="jxr_keyword">final</strong> Throwable t) {
+<a class="jxr_linenumber" name="L596" href="#L596">596</a>       <strong class="jxr_keyword">if</strong> (t instanceof Error &amp;&amp; !(t instanceof StackOverflowError)) {
+<a class="jxr_linenumber" name="L597" href="#L597">597</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>       }
+<a class="jxr_linenumber" name="L599" href="#L599">599</a>       <strong class="jxr_keyword">if</strong> (t instanceof IOException) {
+<a class="jxr_linenumber" name="L600" href="#L600">600</a>         String message = t.getMessage();
+<a class="jxr_linenumber" name="L601" href="#L601">601</a>         <strong class="jxr_keyword">if</strong> (message != <strong class="jxr_keyword">null</strong> &amp;&amp; message.contains(<span class="jxr_string">"Too many open files"</span>)) {
+<a class="jxr_linenumber" name="L602" href="#L602">602</a>           <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L603" href="#L603">603</a>         }
+<a class="jxr_linenumber" name="L604" href="#L604">604</a>       }
+<a class="jxr_linenumber" name="L605" href="#L605">605</a>       <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L606" href="#L606">606</a>     }
+<a class="jxr_linenumber" name="L607" href="#L607">607</a>   };
+<a class="jxr_linenumber" name="L608" href="#L608">608</a> 
+<a class="jxr_linenumber" name="L609" href="#L609">609</a> 
+<a class="jxr_linenumber" name="L610" href="#L610">610</a> 
+<a class="jxr_linenumber" name="L611" href="#L611">611</a> 
+<a class="jxr_linenumber" name="L612" href="#L612">612</a> <em class="jxr_comment">//    public static final class RepeatingStack {</em>
+<a class="jxr_linenumber" name="L613" href="#L613">613</a> <em class="jxr_comment">//        private final int count;</em>
+<a class="jxr_linenumber" name="L614" href="#L614">614</a> <em class="jxr_comment">//        private final List&lt;Either&lt;StackTraceElement, RepeatingStack&gt;&gt; stack;</em>
+<a class="jxr_linenumber" name="L615" href="#L615">615</a> <em class="jxr_comment">//</em>
+<a class="jxr_linenumber" name="L616" href="#L616">616</a> <em class="jxr_comment">//        public RepeatingStack(final int count, final List&lt;Either&lt;StackTraceElement, RepeatingStack&gt;&gt; stack) {</em>
+<a class="jxr_linenumber" name="L617" href="#L617">617</a> <em class="jxr_comment">//            this.count = count;</em>
+<a class="jxr_linenumber" name="L618" href="#L618">618</a> <em class="jxr_comment">//            this.stack = stack;</em>
+<a class="jxr_linenumber" name="L619" href="#L619">619</a> <em class="jxr_comment">//        }</em>
+<a class="jxr_linenumber" name="L620" href="#L620">620</a> <em class="jxr_comment">//    }</em>
+<a class="jxr_linenumber" name="L621" href="#L621">621</a> <em class="jxr_comment">//</em>
+<a class="jxr_linenumber" name="L622" href="#L622">622</a> <em class="jxr_comment">//</em>
+<a class="jxr_linenumber" name="L623" href="#L623">623</a> <em class="jxr_comment">//    public static List&lt;Either&lt;StackTraceElement, RepeatingStack&gt;&gt; compress(final StackTraceElement [] trace) {</em>
+<a class="jxr_linenumber" name="L624" href="#L624">624</a> <em class="jxr_comment">//        Map&lt;StackTraceElement, Integer&gt; elementLocation = new HashMap&lt;&gt;(trace.length);</em>
+<a class="jxr_linenumber" name="L625" href="#L625">625</a> <em class="jxr_comment">//        for (int i = 0; i &lt; trace.length; i++) {</em>
+<a class="jxr_linenumber" name="L626" href="#L626">626</a> <em class="jxr_comment">//            StackTraceElement elem = trace[i];</em>
+<a class="jxr_linenumber" name="L627" href="#L627">627</a> <em class="jxr_comment">//            if (elementLocation.containsKey(elem)) {</em>
+<a class="jxr_linenumber" name="L628" href="#L628">628</a> <em class="jxr_comment">//                // potentially repeating stack trace</em>
+<a class="jxr_linenumber" name="L629" href="#L629">629</a> <em class="jxr_comment">//                int j = elementLocation.get(elem);</em>
+<a class="jxr_linenumber" name="L630" href="#L630">630</a> <em class="jxr_comment">//                boolean repeating = true;</em>
+<a class="jxr_linenumber" name="L631" href="#L631">631</a> <em class="jxr_comment">//                for (int k = j + 1; k &lt; i; k++) {</em>
+<a class="jxr_linenumber" name="L632" href="#L632">632</a> <em class="jxr_comment">//                    if (!trace[k].equals(trace[i + k])) {</em>
+<a class="jxr_linenumber" name="L633" href="#L633">633</a> <em class="jxr_comment">//                        repeating = false;</em>
+<a class="jxr_linenumber" name="L634" href="#L634">634</a> <em class="jxr_comment">//                        break;</em>
+<a class="jxr_linenumber" name="L635" href="#L635">635</a> <em class="jxr_comment">//                    }</em>
+<a class="jxr_linenumber" name="L636" href="#L636">636</a> <em class="jxr_comment">//                }</em>
+<a class="jxr_linenumber" name="L637" href="#L637">637</a> <em class="jxr_comment">//                if (repeating) {</em>
+<a class="jxr_linenumber" name="L638" href="#L638">638</a> <em class="jxr_comment">//                    for (int k = j; k &lt; i; k++) {</em>
+<a class="jxr_linenumber" name="L639" href="#L639">639</a> <em class="jxr_comment">//</em>
+<a class="jxr_linenumber" name="L640" href="#L640">640</a> <em class="jxr_comment">//                    }</em>
+<a class="jxr_linenumber" name="L641" href="#L641">641</a> <em class="jxr_comment">//                }</em>
+<a class="jxr_linenumber" name="L642" href="#L642">642</a> <em class="jxr_comment">//</em>
+<a class="jxr_linenumber" name="L643" href="#L643">643</a> <em class="jxr_comment">//            } else {</em>
+<a class="jxr_linenumber" name="L644" href="#L644">644</a> <em class="jxr_comment">//                elementLocation.put(elem, i);</em>
+<a class="jxr_linenumber" name="L645" href="#L645">645</a> <em class="jxr_comment">//            }</em>
+<a class="jxr_linenumber" name="L646" href="#L646">646</a> <em class="jxr_comment">//        }</em>
+<a class="jxr_linenumber" name="L647" href="#L647">647</a> <em class="jxr_comment">//    }</em>
+<a class="jxr_linenumber" name="L648" href="#L648">648</a> 
+<a class="jxr_linenumber" name="L649" href="#L649">649</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2016. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2017. All rights reserved.</div>
 </body>
 </html>

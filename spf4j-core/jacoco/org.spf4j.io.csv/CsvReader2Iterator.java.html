@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public final class CsvReader2Iterator implements Iterator&lt;List&lt;String&gt;&gt; {
+public final class CsvReader2Iterator implements Iterator&lt;Iterable&lt;String&gt;&gt; {
 
 <span class="fc" id="L12">  public CsvReader2Iterator(final CsvReader preader) {</span>
 <span class="fc" id="L13">    this.reader = preader;</span>
@@ -17,7 +17,7 @@ public final class CsvReader2Iterator implements Iterator&lt;List&lt;String&gt;&
 <span class="fc" id="L17">  private final List&lt;String&gt; row = new ArrayList&lt;&gt;();</span>
 <span class="fc" id="L18">  private boolean haveParsedRow = false;</span>
 
-  private CsvReader.TokenType readRow() throws IOException {
+  private CsvReader.TokenType readRow() throws IOException, CsvParseException {
 <span class="fc" id="L21">    row.clear();</span>
     CsvReader.TokenType token;
 <span class="fc" id="L23">    boolean loop = true;</span>
@@ -49,7 +49,7 @@ public final class CsvReader2Iterator implements Iterator&lt;List&lt;String&gt;&
         } else {
 <span class="pc bpc" id="L50" title="1 of 2 branches missed.">          return token != CsvReader.TokenType.END_DOCUMENT;</span>
         }
-<span class="nc" id="L52">      } catch (IOException ex) {</span>
+<span class="nc" id="L52">      } catch (IOException | CsvParseException ex) {</span>
 <span class="nc" id="L53">        throw new RuntimeException(ex);</span>
       }
     } else {
@@ -58,7 +58,7 @@ public final class CsvReader2Iterator implements Iterator&lt;List&lt;String&gt;&
   }
 
   @Override
-  public List&lt;String&gt; next() {
+  public Iterable&lt;String&gt; next() {
 <span class="pc bpc" id="L62" title="1 of 2 branches missed.">    if (!hasNext()) {</span>
 <span class="nc" id="L63">      throw new NoSuchElementException();</span>
     } else {
@@ -71,7 +71,7 @@ public final class CsvReader2Iterator implements Iterator&lt;List&lt;String&gt;&
   public String toString() {
 <span class="nc" id="L72">    return &quot;CsvReader2Iterator{&quot; + &quot;reader=&quot; + reader + &quot;, row=&quot; + row + &quot;, haveParsedRow=&quot; + haveParsedRow + '}';</span>
   }
-  
+
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

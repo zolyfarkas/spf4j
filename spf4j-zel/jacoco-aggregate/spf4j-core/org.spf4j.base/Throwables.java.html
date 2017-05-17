@@ -60,7 +60,7 @@ public final class Throwables {
   }
 
 <span class="fc" id="L62">  public static final int MAX_THROWABLE_CHAIN</span>
-<span class="fc" id="L63">          = Integer.getInteger(&quot;spf4j.throwables.defaultMaxSuppressChain&quot;, 200);</span>
+<span class="fc" id="L63">          = Integer.getInteger(&quot;spf4j.throwables.defaultMaxSuppressChain&quot;, 100);</span>
 
   private static final Field CAUSE_FIELD;
 
@@ -210,7 +210,7 @@ public final class Throwables {
     T result;
     try {
 <span class="fc" id="L212">      result = Objects.clone(t);</span>
-<span class="nc" id="L213">    } catch (IOException ex) {</span>
+<span class="nc" id="L213">    } catch (RuntimeException ex) {</span>
 <span class="nc" id="L214">      result = t;</span>
 <span class="nc" id="L215">      Lazy.LOG.info(&quot;Unable to clone exception {}&quot;, t, ex);</span>
 <span class="fc" id="L216">    }</span>
@@ -248,7 +248,7 @@ public final class Throwables {
     T clone;
     try {
 <span class="fc" id="L250">      clone = Objects.clone(t);</span>
-<span class="nc" id="L251">    } catch (IOException ex) {</span>
+<span class="nc" id="L251">    } catch (RuntimeException ex) {</span>
 <span class="nc" id="L252">      clone = t;</span>
 <span class="nc" id="L253">      Lazy.LOG.info(&quot;Unable to clone exception&quot;, t);</span>
 <span class="fc" id="L254">    }</span>
@@ -509,53 +509,100 @@ public final class Throwables {
    * @return true if a Throwable matching the predicate is found.
    */
   public static boolean contains(@Nonnull final Throwable t, final Predicate&lt;Throwable&gt; predicate) {
-<span class="fc" id="L512">    ArrayDeque&lt;Throwable&gt; toScan =  new ArrayDeque&lt;&gt;();</span>
-<span class="fc" id="L513">    toScan.addFirst(t);</span>
+<span class="fc bfc" id="L512" title="All 2 branches covered.">    return first(t, predicate) != null;</span>
+  }
+
+
+  /**
+   * return first Exception in the causal chain Assignable to clasz.
+   * @param &lt;T&gt;
+   * @param t
+   * @param clasz
+   * @return
+   */
+  @Nullable
+  @CheckReturnValue
+  public static &lt;T extends Throwable&gt; T first(@Nonnull final Throwable t, final Class&lt;T&gt; clasz) {
+<span class="nc" id="L526">    return (T) first(t, (Throwable th) -&gt; clasz.isAssignableFrom(th.getClass()));</span>
+  }
+
+  /**
+   * Returns the first Throwable that matches the predicate in the causal and suppressed chain.
+   * @param t the Throwable
+   * @param predicate the Predicate
+   * @return the Throwable the first matches the predicate or null is none matches.
+   */
+  @Nullable
+  @CheckReturnValue
+  public static Throwable first(@Nonnull final Throwable t, final Predicate&lt;Throwable&gt; predicate) {
+<span class="fc" id="L538">    ArrayDeque&lt;Throwable&gt; toScan =  new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L539">    toScan.addFirst(t);</span>
     Throwable th;
-<span class="fc" id="L515">    THashSet&lt;Throwable&gt; seen = new IdentityHashSet&lt;&gt;();</span>
-<span class="fc bfc" id="L516" title="All 2 branches covered.">    while ((th = toScan.pollFirst()) != null) {</span>
-<span class="pc bpc" id="L517" title="1 of 2 branches missed.">      if (seen.contains(th)) {</span>
-<span class="nc" id="L518">        continue;</span>
+<span class="fc" id="L541">    THashSet&lt;Throwable&gt; seen = new IdentityHashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L542" title="All 2 branches covered.">    while ((th = toScan.pollFirst()) != null) {</span>
+<span class="pc bpc" id="L543" title="1 of 2 branches missed.">      if (seen.contains(th)) {</span>
+<span class="nc" id="L544">        continue;</span>
       }
-<span class="fc bfc" id="L520" title="All 2 branches covered.">      if (predicate.test(th)) {</span>
-<span class="fc" id="L521">        return true;</span>
+<span class="fc bfc" id="L546" title="All 2 branches covered.">      if (predicate.test(th)) {</span>
+<span class="fc" id="L547">        return th;</span>
       } else {
-<span class="fc" id="L523">        Throwable cause = th.getCause();</span>
-<span class="fc bfc" id="L524" title="All 2 branches covered.">        if (cause != null) {</span>
-<span class="fc" id="L525">          toScan.addFirst(cause);</span>
+<span class="fc" id="L549">        Throwable cause = th.getCause();</span>
+<span class="fc bfc" id="L550" title="All 2 branches covered.">        if (cause != null) {</span>
+<span class="fc" id="L551">          toScan.addFirst(cause);</span>
         }
-<span class="fc bfc" id="L527" title="All 2 branches covered.">        for (Throwable supp : th.getSuppressed()) {</span>
-<span class="fc" id="L528">          toScan.addLast(supp);</span>
+<span class="fc bfc" id="L553" title="All 2 branches covered.">        for (Throwable supp : th.getSuppressed()) {</span>
+<span class="fc" id="L554">          toScan.addLast(supp);</span>
         }
       }
-<span class="fc" id="L531">      seen.add(th);</span>
+<span class="fc" id="L557">      seen.add(th);</span>
     }
-<span class="fc" id="L533">    return false;</span>
+<span class="fc" id="L559">    return null;</span>
+  }
+
+
+  /**
+   * Returns first Throwable in the causality chain that is matching the provided predicate.
+   * @param throwable the Throwable to go through.
+   * @param predicate the predicate to apply
+   * @return the first Throwable from the chain that the predicate matches.
+   */
+
+  @Nullable
+  @CheckReturnValue
+  public static Throwable firstCause(@Nonnull final Throwable throwable, final Predicate&lt;Throwable&gt; predicate) {
+<span class="fc" id="L573">    Throwable t = throwable;</span>
+    do {
+<span class="fc bfc" id="L575" title="All 2 branches covered.">      if (predicate.test(t)) {</span>
+<span class="fc" id="L576">        return t;</span>
+      }
+<span class="fc" id="L578">      t = t.getCause();</span>
+<span class="fc bfc" id="L579" title="All 2 branches covered.">    } while (t != null);</span>
+<span class="fc" id="L580">    return null;</span>
   }
 
 
   public static Predicate&lt;Throwable&gt; getNonRecoverablePredicate() {
-<span class="nc" id="L538">    return nrPredicate;</span>
+<span class="nc" id="L585">    return nrPredicate;</span>
   }
 
   public static void setNonRecoverablePredicate(final Predicate&lt;Throwable&gt; predicate) {
-<span class="nc" id="L542">    Throwables.nrPredicate = predicate;</span>
-<span class="nc" id="L543">  }</span>
+<span class="nc" id="L589">    Throwables.nrPredicate = predicate;</span>
+<span class="nc" id="L590">  }</span>
 
-<span class="fc" id="L545">  private static volatile Predicate&lt;Throwable&gt; nrPredicate = new Predicate&lt;Throwable&gt;() {</span>
+<span class="fc" id="L592">  private static volatile Predicate&lt;Throwable&gt; nrPredicate = new Predicate&lt;Throwable&gt;() {</span>
     @Override
     @SuppressFBWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
     public boolean test(final Throwable t) {
-<span class="fc bfc" id="L549" title="All 4 branches covered.">      if (t instanceof Error &amp;&amp; !(t instanceof StackOverflowError)) {</span>
-<span class="fc" id="L550">        return true;</span>
+<span class="fc bfc" id="L596" title="All 4 branches covered.">      if (t instanceof Error &amp;&amp; !(t instanceof StackOverflowError)) {</span>
+<span class="fc" id="L597">        return true;</span>
       }
-<span class="fc bfc" id="L552" title="All 2 branches covered.">      if (t instanceof IOException) {</span>
-<span class="fc" id="L553">        String message = t.getMessage();</span>
-<span class="fc bfc" id="L554" title="All 4 branches covered.">        if (message != null &amp;&amp; message.contains(&quot;Too many open files&quot;)) {</span>
-<span class="fc" id="L555">          return true;</span>
+<span class="fc bfc" id="L599" title="All 2 branches covered.">      if (t instanceof IOException) {</span>
+<span class="fc" id="L600">        String message = t.getMessage();</span>
+<span class="fc bfc" id="L601" title="All 4 branches covered.">        if (message != null &amp;&amp; message.contains(&quot;Too many open files&quot;)) {</span>
+<span class="fc" id="L602">          return true;</span>
         }
       }
-<span class="fc" id="L558">      return false;</span>
+<span class="fc" id="L605">      return false;</span>
     }
   };
 
@@ -600,4 +647,4 @@ public final class Throwables {
 //    }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

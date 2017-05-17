@@ -61,9 +61,9 @@ final class ScalableObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;,  
 <span class="fc" id="L61">    }</span>
 
     @Override
-    public void dispose() throws ObjectDisposeException, InterruptedException {
-<span class="fc" id="L65">        globalPool.dispose();</span>
-<span class="fc" id="L66">    }</span>
+    public boolean tryDispose(final long timeoutMillis) throws ObjectDisposeException, InterruptedException {
+<span class="fc" id="L65">       return globalPool.tryDispose(timeoutMillis);</span>
+    }
 
     @Override
     public boolean scan(final ScanHandler&lt;ObjectHolder&lt;T&gt;&gt; handler) throws Exception {
@@ -85,4 +85,4 @@ final class ScalableObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;,  
 <span class="nc" id="L85">    }</span>
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

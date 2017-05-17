@@ -21,8 +21,8 @@ import javax.annotation.Nullable;
  * @author zoly
  * @param &lt;E&gt; - the type of the elements in the queue.
  */
-
-<span class="pc bpc" id="L25" title="1 of 2 branches missed.">public final class UpdateablePriorityQueue&lt;E&gt; implements Iterable&lt;E&gt;, Serializable {</span>
+<span class="pc bpc" id="L24" title="1 of 2 branches missed.">@SuppressFBWarnings(&quot;DESERIALIZATION_GADGET&quot;)</span>
+public final class UpdateablePriorityQueue&lt;E&gt; implements Iterable&lt;E&gt;, Serializable {
 
     private static final int DEFAULT_INITIAL_CAPACITY = 16;
     private static final long serialVersionUID = 1L;
@@ -130,164 +130,155 @@ import javax.annotation.Nullable;
 <span class="fc" id="L130">    }</span>
 
 
-<span class="fc" id="L133">    private static final Comparator&lt;? extends Comparable&gt; DEFAULT_COMPARATOR =</span>
-<span class="fc" id="L134">            new Comparator&lt;Comparable&gt;() {</span>
-
-                @Override
-                public int compare(final Comparable e1, final Comparable e2) {
-<span class="fc" id="L138">                    return e1.compareTo(e2);</span>
-                }
-            };
-
     public UpdateablePriorityQueue(final int initialCapacity,
-<span class="fc" id="L143">            final Comparator&lt;? super E&gt; comparator) {</span>
+<span class="fc" id="L134">            final Comparator&lt;? super E&gt; comparator) {</span>
 
-<span class="pc bpc" id="L145" title="1 of 2 branches missed.">        if (initialCapacity &lt; 0) {</span>
-<span class="nc" id="L146">            throw new IllegalArgumentException(&quot;Invalid initial capacity &quot; + initialCapacity);</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">        if (initialCapacity &lt; 0) {</span>
+<span class="nc" id="L137">            throw new IllegalArgumentException(&quot;Invalid initial capacity &quot; + initialCapacity);</span>
         }
-<span class="fc" id="L148">        this.queue = (ElementRef[]) Array.newInstance(ElementRef.class, initialCapacity);</span>
-<span class="fc bfc" id="L149" title="All 2 branches covered.">        if (comparator == null) {</span>
-<span class="fc" id="L150">            this.comparator = (Comparator&lt;? super E&gt;) DEFAULT_COMPARATOR;</span>
+<span class="fc" id="L139">        this.queue = (ElementRef[]) Array.newInstance(ElementRef.class, initialCapacity);</span>
+<span class="fc bfc" id="L140" title="All 2 branches covered.">        if (comparator == null) {</span>
+<span class="fc" id="L141">            this.comparator = (Comparator&lt;? super E&gt;) Comparator.naturalOrder();</span>
         } else {
-<span class="fc" id="L152">            this.comparator = comparator;</span>
+<span class="fc" id="L143">            this.comparator = comparator;</span>
         }
-<span class="fc" id="L154">    }</span>
+<span class="fc" id="L145">    }</span>
 
     private void grow(final int minCapacity) {
-<span class="pc bpc" id="L157" title="1 of 2 branches missed.">        if (minCapacity &lt; 0) { // overflow</span>
-<span class="nc" id="L158">            throw new OutOfMemoryError();</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">        if (minCapacity &lt; 0) { // overflow</span>
+<span class="nc" id="L149">            throw new OutOfMemoryError();</span>
         }
-<span class="fc" id="L160">        int oldCapacity = queue.length;</span>
+<span class="fc" id="L151">        int oldCapacity = queue.length;</span>
         // Double size if small; else grow by 50%
-<span class="pc bpc" id="L162" title="1 of 2 branches missed.">        int newCapacity = ((oldCapacity &lt; 64) ? ((oldCapacity + 1) * 2) : ((oldCapacity / 2) * 3));</span>
-<span class="pc bpc" id="L163" title="1 of 2 branches missed.">        if (newCapacity &lt; 0) { // overflow</span>
-<span class="nc" id="L164">            newCapacity = Integer.MAX_VALUE;</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">        int newCapacity = ((oldCapacity &lt; 64) ? ((oldCapacity + 1) * 2) : ((oldCapacity / 2) * 3));</span>
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">        if (newCapacity &lt; 0) { // overflow</span>
+<span class="nc" id="L155">            newCapacity = Integer.MAX_VALUE;</span>
         }
-<span class="pc bpc" id="L166" title="1 of 2 branches missed.">        if (newCapacity &lt; minCapacity) {</span>
-<span class="nc" id="L167">            newCapacity = minCapacity;</span>
+<span class="pc bpc" id="L157" title="1 of 2 branches missed.">        if (newCapacity &lt; minCapacity) {</span>
+<span class="nc" id="L158">            newCapacity = minCapacity;</span>
         }
-<span class="fc" id="L169">        queue = Arrays.copyOf(queue, newCapacity);</span>
-<span class="fc" id="L170">    }</span>
+<span class="fc" id="L160">        queue = Arrays.copyOf(queue, newCapacity);</span>
+<span class="fc" id="L161">    }</span>
 
     public ElementRef add(@Nonnull final E e) {
-<span class="pc bpc" id="L173" title="1 of 2 branches missed.">        if (e == null) {</span>
-<span class="nc" id="L174">            throw new NullPointerException();</span>
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">        if (e == null) {</span>
+<span class="nc" id="L165">            throw new NullPointerException();</span>
         }
-<span class="fc" id="L176">        modCount++;</span>
-<span class="fc" id="L177">        int i = size;</span>
-<span class="fc bfc" id="L178" title="All 2 branches covered.">        if (i &gt;= queue.length) {</span>
-<span class="fc" id="L179">            grow(i + 1);</span>
+<span class="fc" id="L167">        modCount++;</span>
+<span class="fc" id="L168">        int i = size;</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">        if (i &gt;= queue.length) {</span>
+<span class="fc" id="L170">            grow(i + 1);</span>
         }
-<span class="fc" id="L181">        size = i + 1;</span>
-<span class="fc" id="L182">        ElementRef qe = new ElementRef(e, 0);</span>
-<span class="fc bfc" id="L183" title="All 2 branches covered.">        if (i == 0) {</span>
-<span class="fc" id="L184">            queue[0] = qe;</span>
+<span class="fc" id="L172">        size = i + 1;</span>
+<span class="fc" id="L173">        ElementRef qe = new ElementRef(e, 0);</span>
+<span class="fc bfc" id="L174" title="All 2 branches covered.">        if (i == 0) {</span>
+<span class="fc" id="L175">            queue[0] = qe;</span>
         } else {
-<span class="fc" id="L186">            siftUp(i, qe);</span>
+<span class="fc" id="L177">            siftUp(i, qe);</span>
         }
-<span class="fc" id="L188">        return qe;</span>
+<span class="fc" id="L179">        return qe;</span>
     }
 
     @Nullable
     public E peek() {
-<span class="pc bpc" id="L193" title="1 of 2 branches missed.">        if (size == 0) {</span>
-<span class="nc" id="L194">            return null;</span>
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">        if (size == 0) {</span>
+<span class="nc" id="L185">            return null;</span>
         }
-<span class="fc" id="L196">        return queue[0].elem;</span>
+<span class="fc" id="L187">        return queue[0].elem;</span>
     }
 
     @Nullable
     public ElementRef peekEntry() {
-<span class="fc bfc" id="L201" title="All 2 branches covered.">        if (size == 0) {</span>
-<span class="fc" id="L202">            return null;</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">        if (size == 0) {</span>
+<span class="fc" id="L193">            return null;</span>
         }
-<span class="fc" id="L204">        return queue[0];</span>
+<span class="fc" id="L195">        return queue[0];</span>
     }
 
 
     private int indexOf(final E o) {
-<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (o != null) {</span>
-<span class="nc bnc" id="L210" title="All 2 branches missed.">            for (int i = 0; i &lt; size; i++) {</span>
-<span class="nc bnc" id="L211" title="All 2 branches missed.">                if (o.equals(queue[i].elem)) {</span>
-<span class="nc" id="L212">                    return i;</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">        if (o != null) {</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">            for (int i = 0; i &lt; size; i++) {</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">                if (o.equals(queue[i].elem)) {</span>
+<span class="nc" id="L203">                    return i;</span>
                 }
             }
         }
-<span class="nc" id="L216">        return -1;</span>
+<span class="nc" id="L207">        return -1;</span>
     }
 
     public boolean remove(final ElementRef qe) {
-<span class="nc" id="L220">        int i = qe.index;</span>
-<span class="nc bnc" id="L221" title="All 2 branches missed.">        if (i == -1) {</span>
-<span class="nc" id="L222">            return false;</span>
+<span class="nc" id="L211">        int i = qe.index;</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        if (i == -1) {</span>
+<span class="nc" id="L213">            return false;</span>
         } else {
-<span class="nc" id="L224">            removeAt(i);</span>
-<span class="nc" id="L225">            return true;</span>
+<span class="nc" id="L215">            removeAt(i);</span>
+<span class="nc" id="L216">            return true;</span>
         }
     }
 
     public boolean remove(final E o) {
-<span class="nc" id="L230">        int i = indexOf(o);</span>
-<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (i == -1) {</span>
-<span class="nc" id="L232">            return false;</span>
+<span class="nc" id="L221">        int i = indexOf(o);</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        if (i == -1) {</span>
+<span class="nc" id="L223">            return false;</span>
         } else {
-<span class="nc" id="L234">            removeAt(i);</span>
-<span class="nc" id="L235">            return true;</span>
+<span class="nc" id="L225">            removeAt(i);</span>
+<span class="nc" id="L226">            return true;</span>
         }
     }
 
     public boolean isEmpty() {
-<span class="nc bnc" id="L240" title="All 2 branches missed.">        return size == 0;</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        return size == 0;</span>
     }
 
     boolean removeEq(final Object o) {
-<span class="nc bnc" id="L244" title="All 2 branches missed.">        for (int i = 0; i &lt; size; i++) {</span>
-<span class="nc bnc" id="L245" title="All 2 branches missed.">            if (o == queue[i]) {</span>
-<span class="nc" id="L246">                removeAt(i);</span>
-<span class="nc" id="L247">                return true;</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        for (int i = 0; i &lt; size; i++) {</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">            if (o == queue[i]) {</span>
+<span class="nc" id="L237">                removeAt(i);</span>
+<span class="nc" id="L238">                return true;</span>
             }
         }
-<span class="nc" id="L250">        return false;</span>
+<span class="nc" id="L241">        return false;</span>
     }
 
     public boolean contains(final E o) {
-<span class="nc bnc" id="L254" title="All 2 branches missed.">        return indexOf(o) != -1;</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">        return indexOf(o) != -1;</span>
     }
 
     public Object[] toArray() {
-<span class="nc" id="L258">        return Arrays.copyOf(queue, size);</span>
+<span class="nc" id="L249">        return Arrays.copyOf(queue, size);</span>
     }
 
 
     @SuppressWarnings(&quot;unchecked&quot;)
     public &lt;T&gt; T[] toArray(final T[] a) {
-<span class="nc bnc" id="L264" title="All 2 branches missed.">        if (a.length &lt; size) { // Make a new array of a's runtime type, but my contents:</span>
-<span class="nc" id="L265">            return (T[]) Arrays.copyOf(queue, size, a.getClass());</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">        if (a.length &lt; size) { // Make a new array of a's runtime type, but my contents:</span>
+<span class="nc" id="L256">            return (T[]) Arrays.copyOf(queue, size, a.getClass());</span>
         }
-<span class="nc" id="L267">        System.arraycopy(queue, 0, a, 0, size);</span>
-<span class="nc bnc" id="L268" title="All 2 branches missed.">        if (a.length &gt; size) {</span>
-<span class="nc" id="L269">            a[size] = null;</span>
+<span class="nc" id="L258">        System.arraycopy(queue, 0, a, 0, size);</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">        if (a.length &gt; size) {</span>
+<span class="nc" id="L260">            a[size] = null;</span>
         }
-<span class="nc" id="L271">        return a;</span>
+<span class="nc" id="L262">        return a;</span>
     }
 
     @Override
     public Iterator&lt;E&gt; iterator() {
-<span class="fc" id="L276">        return new Itr();</span>
+<span class="fc" id="L267">        return new Itr();</span>
     }
 
-<span class="fc" id="L279">    private final class Itr implements Iterator&lt;E&gt; {</span>
+<span class="fc" id="L270">    private final class Itr implements Iterator&lt;E&gt; {</span>
 
         /**
          * Index (into queue array) of element to be returned by subsequent call to next.
          */
-<span class="fc" id="L284">        private int cursor = 0;</span>
+<span class="fc" id="L275">        private int cursor = 0;</span>
 
         /**
          * Index of element returned by most recent call to next, unless that element came from the forgetMeNot list.
          * Set to -1 if element is deleted by a call to remove.
          */
-<span class="fc" id="L290">        private int lastRet = -1;</span>
+<span class="fc" id="L281">        private int lastRet = -1;</span>
 
         /**
          * A queue of elements that were moved from the unvisited portion of the heap into the visited portion as a
@@ -297,216 +288,210 @@ import javax.annotation.Nullable;
          *
          * We expect that most iterations, even those involving removals, will not need to store elements in this field.
          */
-<span class="fc" id="L300">        private ArrayDeque&lt;E&gt; forgetMeNot = null;</span>
+<span class="fc" id="L291">        private ArrayDeque&lt;E&gt; forgetMeNot = null;</span>
 
         /**
          * Element returned by the most recent call to next iff that element was drawn from the forgetMeNot list.
          */
-<span class="fc" id="L305">        private E lastRetElt = null;</span>
+<span class="fc" id="L296">        private E lastRetElt = null;</span>
 
 
-<span class="fc" id="L308">        private int expectedModCount = modCount;</span>
+<span class="fc" id="L299">        private int expectedModCount = modCount;</span>
 
         @Override
         public boolean hasNext() {
-<span class="pc bpc" id="L312" title="2 of 4 branches missed.">            return cursor &lt; size</span>
-<span class="pc bnc" id="L313" title="All 2 branches missed.">                    || (forgetMeNot != null &amp;&amp; !forgetMeNot.isEmpty());</span>
+<span class="pc bpc" id="L303" title="2 of 4 branches missed.">            return cursor &lt; size</span>
+<span class="pc bnc" id="L304" title="All 2 branches missed.">                    || (forgetMeNot != null &amp;&amp; !forgetMeNot.isEmpty());</span>
         }
 
         @Override
         public E next() {
-<span class="pc bpc" id="L318" title="1 of 2 branches missed.">            if (expectedModCount != modCount) {</span>
-<span class="nc" id="L319">                throw new ConcurrentModificationException();</span>
+<span class="pc bpc" id="L309" title="1 of 2 branches missed.">            if (expectedModCount != modCount) {</span>
+<span class="nc" id="L310">                throw new ConcurrentModificationException();</span>
             }
-<span class="pc bpc" id="L321" title="1 of 2 branches missed.">            if (cursor &lt; size) {</span>
+<span class="pc bpc" id="L312" title="1 of 2 branches missed.">            if (cursor &lt; size) {</span>
                 //CHECKSTYLE:OFF
-<span class="fc" id="L323">                return queue[lastRet = cursor++].elem;</span>
+<span class="fc" id="L314">                return queue[lastRet = cursor++].elem;</span>
                 //CHECKSTYLE:ON
             }
-<span class="nc bnc" id="L326" title="All 2 branches missed.">            if (forgetMeNot != null) {</span>
-<span class="nc" id="L327">                lastRet = -1;</span>
-<span class="nc" id="L328">                lastRetElt = forgetMeNot.poll();</span>
-<span class="nc bnc" id="L329" title="All 2 branches missed.">                if (lastRetElt != null) {</span>
-<span class="nc" id="L330">                    return lastRetElt;</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">            if (forgetMeNot != null) {</span>
+<span class="nc" id="L318">                lastRet = -1;</span>
+<span class="nc" id="L319">                lastRetElt = forgetMeNot.poll();</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">                if (lastRetElt != null) {</span>
+<span class="nc" id="L321">                    return lastRetElt;</span>
                 }
             }
-<span class="nc" id="L333">            throw new NoSuchElementException();</span>
+<span class="nc" id="L324">            throw new NoSuchElementException();</span>
         }
 
         @Override
         public void remove() {
-<span class="pc bpc" id="L338" title="1 of 2 branches missed.">            if (expectedModCount != modCount) {</span>
-<span class="nc" id="L339">                throw new ConcurrentModificationException();</span>
+<span class="pc bpc" id="L329" title="1 of 2 branches missed.">            if (expectedModCount != modCount) {</span>
+<span class="nc" id="L330">                throw new ConcurrentModificationException();</span>
             }
-<span class="pc bpc" id="L341" title="1 of 2 branches missed.">            if (lastRet != -1) {</span>
-<span class="fc" id="L342">                E moved = UpdateablePriorityQueue.this.removeAt(lastRet);</span>
-<span class="fc" id="L343">                lastRet = -1;</span>
-<span class="pc bpc" id="L344" title="1 of 2 branches missed.">                if (moved == null) {</span>
-<span class="fc" id="L345">                    cursor--;</span>
+<span class="pc bpc" id="L332" title="1 of 2 branches missed.">            if (lastRet != -1) {</span>
+<span class="fc" id="L333">                E moved = UpdateablePriorityQueue.this.removeAt(lastRet);</span>
+<span class="fc" id="L334">                lastRet = -1;</span>
+<span class="pc bpc" id="L335" title="1 of 2 branches missed.">                if (moved == null) {</span>
+<span class="fc" id="L336">                    cursor--;</span>
                 } else {
-<span class="nc bnc" id="L347" title="All 2 branches missed.">                    if (forgetMeNot == null) {</span>
-<span class="nc" id="L348">                        forgetMeNot = new ArrayDeque&lt;&gt;();</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">                    if (forgetMeNot == null) {</span>
+<span class="nc" id="L339">                        forgetMeNot = new ArrayDeque&lt;&gt;();</span>
                     }
-<span class="nc" id="L350">                    forgetMeNot.add(moved);</span>
+<span class="nc" id="L341">                    forgetMeNot.add(moved);</span>
                 }
-<span class="pc bnc" id="L352" title="All 2 branches missed.">            } else if (lastRetElt != null) {</span>
-<span class="nc" id="L353">                UpdateablePriorityQueue.this.removeEq(lastRetElt);</span>
-<span class="nc" id="L354">                lastRetElt = null;</span>
+<span class="pc bnc" id="L343" title="All 2 branches missed.">            } else if (lastRetElt != null) {</span>
+<span class="nc" id="L344">                UpdateablePriorityQueue.this.removeEq(lastRetElt);</span>
+<span class="nc" id="L345">                lastRetElt = null;</span>
             } else {
-<span class="nc" id="L356">                throw new IllegalStateException();</span>
+<span class="nc" id="L347">                throw new IllegalStateException();</span>
             }
-<span class="fc" id="L358">            expectedModCount = modCount;</span>
-<span class="fc" id="L359">        }</span>
+<span class="fc" id="L349">            expectedModCount = modCount;</span>
+<span class="fc" id="L350">        }</span>
     }
 
     public int size() {
-<span class="fc" id="L363">        return size;</span>
+<span class="fc" id="L354">        return size;</span>
     }
 
     public void clear() {
-<span class="nc" id="L367">        modCount++;</span>
-<span class="nc bnc" id="L368" title="All 2 branches missed.">        for (int i = 0; i &lt; size; i++) {</span>
-<span class="nc" id="L369">            final ElementRef ref = queue[i];</span>
-<span class="nc" id="L370">            ref.index = -1;</span>
-<span class="nc" id="L371">            queue[i] = null;</span>
+<span class="nc" id="L358">        modCount++;</span>
+<span class="nc bnc" id="L359" title="All 2 branches missed.">        for (int i = 0; i &lt; size; i++) {</span>
+<span class="nc" id="L360">            final ElementRef ref = queue[i];</span>
+<span class="nc" id="L361">            ref.index = -1;</span>
+<span class="nc" id="L362">            queue[i] = null;</span>
         }
-<span class="nc" id="L373">        size = 0;</span>
-<span class="nc" id="L374">    }</span>
+<span class="nc" id="L364">        size = 0;</span>
+<span class="nc" id="L365">    }</span>
 
     @Nullable
     @SuppressFBWarnings(&quot;BAS_BLOATED_ASSIGNMENT_SCOPE&quot;)
     public E poll() {
-<span class="pc bpc" id="L379" title="1 of 2 branches missed.">        if (size == 0) {</span>
-<span class="nc" id="L380">            return null;</span>
+<span class="pc bpc" id="L370" title="1 of 2 branches missed.">        if (size == 0) {</span>
+<span class="nc" id="L371">            return null;</span>
         }
-<span class="fc" id="L382">        int s = --size;</span>
-<span class="fc" id="L383">        modCount++;</span>
-<span class="fc" id="L384">        final ElementRef removedRef = queue[0];</span>
-<span class="fc" id="L385">        removedRef.index = -1;</span>
-<span class="fc" id="L386">        E result = removedRef.elem;</span>
-<span class="fc" id="L387">        ElementRef x = queue[s];</span>
-<span class="fc" id="L388">        queue[s] = null;</span>
-<span class="pc bpc" id="L389" title="1 of 2 branches missed.">        if (s != 0) {</span>
-<span class="fc" id="L390">            siftDown(0, x);</span>
+<span class="fc" id="L373">        int s = --size;</span>
+<span class="fc" id="L374">        modCount++;</span>
+<span class="fc" id="L375">        final ElementRef removedRef = queue[0];</span>
+<span class="fc" id="L376">        removedRef.index = -1;</span>
+<span class="fc" id="L377">        E result = removedRef.elem;</span>
+<span class="fc" id="L378">        ElementRef x = queue[s];</span>
+<span class="fc" id="L379">        queue[s] = null;</span>
+<span class="pc bpc" id="L380" title="1 of 2 branches missed.">        if (s != 0) {</span>
+<span class="fc" id="L381">            siftDown(0, x);</span>
         }
-<span class="fc" id="L392">        return result;</span>
+<span class="fc" id="L383">        return result;</span>
     }
 
 
     private E removeAt(final int i) {
-<span class="pc bpc" id="L397" title="3 of 6 branches missed.">        assert i &gt;= 0 &amp;&amp; i &lt; size;</span>
-<span class="fc" id="L398">        modCount++;</span>
-<span class="fc" id="L399">        queue[i].index = -1;</span>
-<span class="fc" id="L400">        int s = --size;</span>
-<span class="pc bpc" id="L401" title="1 of 2 branches missed.">        if (s == i) { // removed last element</span>
-<span class="nc" id="L402">            queue[i] = null;</span>
+<span class="pc bpc" id="L388" title="3 of 6 branches missed.">        assert i &gt;= 0 &amp;&amp; i &lt; size;</span>
+<span class="fc" id="L389">        modCount++;</span>
+<span class="fc" id="L390">        queue[i].index = -1;</span>
+<span class="fc" id="L391">        int s = --size;</span>
+<span class="pc bpc" id="L392" title="1 of 2 branches missed.">        if (s == i) { // removed last element</span>
+<span class="nc" id="L393">            queue[i] = null;</span>
         } else {
-<span class="fc" id="L404">            ElementRef moved = queue[s];</span>
-<span class="fc" id="L405">            queue[s] = null;</span>
-<span class="fc" id="L406">            siftDown(i, moved);</span>
-<span class="fc bfc" id="L407" title="All 2 branches covered.">            if (queue[i] == moved) {</span>
-<span class="fc" id="L408">                siftUp(i, moved);</span>
-<span class="pc bpc" id="L409" title="1 of 2 branches missed.">                if (queue[i] != moved) {</span>
-<span class="nc" id="L410">                    return moved.elem;</span>
+<span class="fc" id="L395">            ElementRef moved = queue[s];</span>
+<span class="fc" id="L396">            queue[s] = null;</span>
+<span class="fc" id="L397">            siftDown(i, moved);</span>
+<span class="fc bfc" id="L398" title="All 2 branches covered.">            if (queue[i] == moved) {</span>
+<span class="fc" id="L399">                siftUp(i, moved);</span>
+<span class="pc bpc" id="L400" title="1 of 2 branches missed.">                if (queue[i] != moved) {</span>
+<span class="nc" id="L401">                    return moved.elem;</span>
                 }
             }
         }
-<span class="fc" id="L414">        return null;</span>
+<span class="fc" id="L405">        return null;</span>
     }
 
 
     private void siftUp(final int pk, final ElementRef x) {
-<span class="fc" id="L419">        int k = pk;</span>
-<span class="fc bfc" id="L420" title="All 2 branches covered.">        while (k &gt; 0) {</span>
-<span class="fc" id="L421">            int parent = (k - 1) &gt;&gt;&gt; 1;</span>
-<span class="fc" id="L422">            ElementRef e = queue[parent];</span>
-<span class="fc bfc" id="L423" title="All 2 branches covered.">            if (x.compareTo(e) &gt;= 0) {</span>
-<span class="fc" id="L424">                break;</span>
+<span class="fc" id="L410">        int k = pk;</span>
+<span class="fc bfc" id="L411" title="All 2 branches covered.">        while (k &gt; 0) {</span>
+<span class="fc" id="L412">            int parent = (k - 1) &gt;&gt;&gt; 1;</span>
+<span class="fc" id="L413">            ElementRef e = queue[parent];</span>
+<span class="fc bfc" id="L414" title="All 2 branches covered.">            if (x.compareTo(e) &gt;= 0) {</span>
+<span class="fc" id="L415">                break;</span>
             }
-<span class="fc" id="L426">            queue[k] = e;</span>
-<span class="fc" id="L427">            e.index = k;</span>
-<span class="fc" id="L428">            k = parent;</span>
-<span class="fc" id="L429">        }</span>
-<span class="fc" id="L430">        queue[k] = x;</span>
-<span class="fc" id="L431">        x.index = k;</span>
-<span class="fc" id="L432">    }</span>
+<span class="fc" id="L417">            queue[k] = e;</span>
+<span class="fc" id="L418">            e.index = k;</span>
+<span class="fc" id="L419">            k = parent;</span>
+<span class="fc" id="L420">        }</span>
+<span class="fc" id="L421">        queue[k] = x;</span>
+<span class="fc" id="L422">        x.index = k;</span>
+<span class="fc" id="L423">    }</span>
 
     private void siftDown(final int pk, final ElementRef x) {
-<span class="fc" id="L435">        int k = pk;</span>
-<span class="fc" id="L436">        int half = size &gt;&gt;&gt; 1;        // loop while a non-leaf</span>
-<span class="fc bfc" id="L437" title="All 2 branches covered.">        while (k &lt; half) {</span>
-<span class="fc" id="L438">            int child = (k &lt;&lt; 1) + 1; // assume left child is least</span>
-<span class="fc" id="L439">            ElementRef c = queue[child];</span>
-<span class="fc" id="L440">            int right = child + 1;</span>
-<span class="fc bfc" id="L441" title="All 4 branches covered.">            if (right &lt; size &amp;&amp; c.compareTo(queue[right]) &gt; 0) {</span>
+<span class="fc" id="L426">        int k = pk;</span>
+<span class="fc" id="L427">        int half = size &gt;&gt;&gt; 1;        // loop while a non-leaf</span>
+<span class="fc bfc" id="L428" title="All 2 branches covered.">        while (k &lt; half) {</span>
+<span class="fc" id="L429">            int child = (k &lt;&lt; 1) + 1; // assume left child is least</span>
+<span class="fc" id="L430">            ElementRef c = queue[child];</span>
+<span class="fc" id="L431">            int right = child + 1;</span>
+<span class="fc bfc" id="L432" title="All 4 branches covered.">            if (right &lt; size &amp;&amp; c.compareTo(queue[right]) &gt; 0) {</span>
                 //CHECKSTYLE:OFF
-<span class="fc" id="L443">                c = queue[child = right];</span>
+<span class="fc" id="L434">                c = queue[child = right];</span>
                 //CHECKSTYLE:ON
             }
-<span class="fc bfc" id="L446" title="All 2 branches covered.">            if (x.compareTo(c) &lt;= 0) {</span>
-<span class="fc" id="L447">                break;</span>
+<span class="fc bfc" id="L437" title="All 2 branches covered.">            if (x.compareTo(c) &lt;= 0) {</span>
+<span class="fc" id="L438">                break;</span>
             }
-<span class="fc" id="L449">            queue[k] = c;</span>
-<span class="fc" id="L450">            c.index = k;</span>
-<span class="fc" id="L451">            k = child;</span>
-<span class="fc" id="L452">        }</span>
-<span class="fc" id="L453">        queue[k] = x;</span>
-<span class="fc" id="L454">        x.index = k;</span>
-<span class="fc" id="L455">    }</span>
+<span class="fc" id="L440">            queue[k] = c;</span>
+<span class="fc" id="L441">            c.index = k;</span>
+<span class="fc" id="L442">            k = child;</span>
+<span class="fc" id="L443">        }</span>
+<span class="fc" id="L444">        queue[k] = x;</span>
+<span class="fc" id="L445">        x.index = k;</span>
+<span class="fc" id="L446">    }</span>
 
     public Comparator&lt;? super E&gt; comparator() {
-<span class="nc" id="L458">        return comparator;</span>
+<span class="nc" id="L449">        return comparator;</span>
     }
 
 
     private void writeObject(final java.io.ObjectOutputStream s)
         throws java.io.IOException {
         // Write out element count, and any hidden stuff
-<span class="nc" id="L465">        s.defaultWriteObject();</span>
-
-        // Write out array length, for compatibility with 1.5 version
-<span class="nc" id="L468">        s.writeInt(Math.max(2, size + 1));</span>
+<span class="nc" id="L456">        s.defaultWriteObject();</span>
 
         // Write out all elements in the &quot;proper order&quot;.
-<span class="nc bnc" id="L471" title="All 2 branches missed.">        for (int i = 0; i &lt; size; i++) {</span>
-<span class="nc" id="L472">            s.writeObject(queue[i].elem);</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">        for (int i = 0; i &lt; size; i++) {</span>
+<span class="nc" id="L460">            s.writeObject(queue[i].elem);</span>
         }
-<span class="nc" id="L474">    }</span>
+<span class="nc" id="L462">    }</span>
 
 
     private void readObject(final java.io.ObjectInputStream s)
         throws java.io.IOException, ClassNotFoundException {
         // Read in size, and any hidden stuff
-<span class="nc" id="L480">        s.defaultReadObject();</span>
+<span class="nc" id="L468">        s.defaultReadObject();</span>
 
-        // Read in (and discard) array length
-<span class="nc" id="L483">        s.readInt();</span>
-
-<span class="nc" id="L485">        queue = (ElementRef[]) Array.newInstance(ElementRef.class, size);</span>
+<span class="nc" id="L470">        queue = (ElementRef[]) Array.newInstance(ElementRef.class, size);</span>
 
         // Read in all elements.
-<span class="nc bnc" id="L488" title="All 2 branches missed.">        for (int i = 0; i &lt; size; i++) {</span>
-<span class="nc" id="L489">            queue[i] = new ElementRef((E) s.readObject(), i);</span>
+<span class="nc bnc" id="L473" title="All 2 branches missed.">        for (int i = 0; i &lt; size; i++) {</span>
+<span class="nc" id="L474">            queue[i] = new ElementRef((E) s.readObject(), i);</span>
         }
 
         // Elements are guaranteed to be in &quot;proper order&quot;, but the
         // spec has never explained what that might be.
-<span class="nc" id="L494">        heapify();</span>
-<span class="nc" id="L495">    }</span>
+<span class="nc" id="L479">        heapify();</span>
+<span class="nc" id="L480">    }</span>
 
     public void heapify() {
-<span class="nc bnc" id="L498" title="All 2 branches missed.">        for (int i = (size &gt;&gt;&gt; 1) - 1; i &gt;= 0; i--) {</span>
-<span class="nc" id="L499">            siftDown(i, queue[i]);</span>
+<span class="nc bnc" id="L483" title="All 2 branches missed.">        for (int i = (size &gt;&gt;&gt; 1) - 1; i &gt;= 0; i--) {</span>
+<span class="nc" id="L484">            siftDown(i, queue[i]);</span>
         }
-<span class="nc" id="L501">    }</span>
+<span class="nc" id="L486">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L505">        return &quot;UpdateablePriorityQueue{&quot; + &quot;queue=&quot; + Arrays.toString(queue) + &quot;, size=&quot; + size + &quot;, comparator=&quot;</span>
+<span class="nc" id="L490">        return &quot;UpdateablePriorityQueue{&quot; + &quot;queue=&quot; + Arrays.toString(queue) + &quot;, size=&quot; + size + &quot;, comparator=&quot;</span>
                 + comparator + &quot;, modCount=&quot; + modCount + '}';
     }
 
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

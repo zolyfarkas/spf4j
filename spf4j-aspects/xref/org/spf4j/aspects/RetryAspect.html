@@ -43,7 +43,7 @@
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  @Aspect
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/aspects/RetryAspect.html">RetryAspect</a> {
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>  
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>      
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> ThreadLocal&lt;Long&gt; DEADLINE = <strong class="jxr_keyword">new</strong> ThreadLocal&lt;Long&gt;() {
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>          @Override
@@ -52,12 +52,12 @@
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>          }
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>      };
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>      
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>      
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">long</strong> getDeadline() {
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>          <strong class="jxr_keyword">return</strong> DEADLINE.get();
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>      }
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>      
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
 <a class="jxr_linenumber" name="L53" href="#L53">53</a>      @Around(value = <span class="jxr_string">"execution(@org.spf4j.annotations.Retry * *(..)) &amp;&amp; @annotation(annot)"</span>,
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>              argNames = <span class="jxr_string">"pjp,annot"</span>)
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>      <strong class="jxr_keyword">public</strong> Object performanceMonitoredMethod(<strong class="jxr_keyword">final</strong> ProceedingJoinPoint pjp, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/annotations/Retry.html">Retry</a> annot)
@@ -80,12 +80,12 @@
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>              }
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>          }, annot.immediateRetries(), annot.retryDelayMillis(),
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>                  annot.exRetry() == VoidPredicate.<strong class="jxr_keyword">class</strong> ? Callables.DEFAULT_EXCEPTION_RETRY
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>                          : annot.exRetry().newInstance());
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>                          : annot.exRetry().newInstance(), Exception.<strong class="jxr_keyword">class</strong>);
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>  
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>      }
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2016. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2017. All rights reserved.</div>
 </body>
 </html>

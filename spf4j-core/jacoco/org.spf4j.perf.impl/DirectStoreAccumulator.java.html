@@ -34,8 +34,9 @@ import org.spf4j.perf.MeasurementRecorder;
  */
 public final class DirectStoreAccumulator implements MeasurementRecorder, Closeable {
 
+<span class="fc" id="L37">    private static final String[] MEASUREMENTS = {&quot;value&quot;};</span>
+
     private final MeasurementsInfo info;
-<span class="fc" id="L38">    private static final String[] MEASUREMENTS = {&quot;value&quot;};</span>
     private final MeasurementStore measurementStore;
     private final long tableId;
 
@@ -44,86 +45,86 @@ public final class DirectStoreAccumulator implements MeasurementRecorder, Closea
     private volatile long lastRecordedValue;
 
     public DirectStoreAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
-<span class="fc" id="L47">            final int sampleTimeMillis, final MeasurementStore measurementStore) {</span>
-<span class="fc" id="L48">        this.info = new MeasurementsInfoImpl(measuredEntity, description,</span>
+<span class="fc" id="L48">            final int sampleTimeMillis, final MeasurementStore measurementStore) {</span>
+<span class="fc" id="L49">        this.info = new MeasurementsInfoImpl(measuredEntity, description,</span>
                 MEASUREMENTS, new String[]{unitOfMeasurement});
-<span class="fc" id="L50">        this.measurementStore = measurementStore;</span>
+<span class="fc" id="L51">        this.measurementStore = measurementStore;</span>
         try {
-<span class="fc" id="L52">            tableId = measurementStore.alocateMeasurements(info, sampleTimeMillis);</span>
-<span class="nc" id="L53">        } catch (IOException ex) {</span>
-<span class="nc" id="L54">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L55">        }</span>
-<span class="fc" id="L56">    }</span>
+<span class="fc" id="L53">            tableId = measurementStore.alocateMeasurements(info, sampleTimeMillis);</span>
+<span class="nc" id="L54">        } catch (IOException ex) {</span>
+<span class="nc" id="L55">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L56">        }</span>
+<span class="fc" id="L57">    }</span>
 
     @JmxExport
     public String getUnitOfMeasurement() {
-<span class="nc" id="L60">        return info.getMeasurementUnit(0);</span>
+<span class="nc" id="L61">        return info.getMeasurementUnit(0);</span>
     }
 
 
     @Override
     public void record(final long measurement) {
-<span class="fc" id="L66">        recordAt(System.currentTimeMillis(), measurement);</span>
-<span class="fc" id="L67">    }</span>
+<span class="fc" id="L67">        recordAt(System.currentTimeMillis(), measurement);</span>
+<span class="fc" id="L68">    }</span>
 
     @Override
     @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
     public synchronized void recordAt(final long timestampMillis, final long measurement) {
-<span class="fc" id="L72">        lastRecordedValue = measurement;</span>
-<span class="fc" id="L73">        lastRecordedTS = timestampMillis;</span>
+<span class="fc" id="L73">        lastRecordedValue = measurement;</span>
+<span class="fc" id="L74">        lastRecordedTS = timestampMillis;</span>
         try {
-<span class="fc" id="L75">            measurementStore.saveMeasurements(tableId, timestampMillis, measurement);</span>
-<span class="nc" id="L76">        } catch (IOException ex) {</span>
-<span class="nc" id="L77">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L78">        }</span>
-<span class="fc" id="L79">    }</span>
+<span class="fc" id="L76">            measurementStore.saveMeasurements(tableId, timestampMillis, measurement);</span>
+<span class="nc" id="L77">        } catch (IOException ex) {</span>
+<span class="nc" id="L78">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L79">        }</span>
+<span class="fc" id="L80">    }</span>
 
     public void registerJmx() {
-<span class="fc" id="L82">        Registry.export(&quot;org.spf4j.perf.recorders&quot;, info.getMeasuredEntity().toString(), this);</span>
-<span class="fc" id="L83">    }</span>
+<span class="fc" id="L83">        Registry.export(&quot;org.spf4j.perf.recorders&quot;, info.getMeasuredEntity().toString(), this);</span>
+<span class="fc" id="L84">    }</span>
 
     @Override
     public void close() {
-<span class="nc" id="L87">        Registry.unregister(&quot;org.spf4j.perf.recorders&quot;, info.getMeasuredEntity().toString());</span>
-<span class="nc" id="L88">    }</span>
+<span class="nc" id="L88">        Registry.unregister(&quot;org.spf4j.perf.recorders&quot;, info.getMeasuredEntity().toString());</span>
+<span class="nc" id="L89">    }</span>
 
     public static final class RecordedValue {
         private final long ts;
         private final long value;
 
         @ConstructorProperties({&quot;ts&quot;, &quot;value&quot; })
-<span class="nc" id="L95">        public RecordedValue(final long ts, final long value) {</span>
-<span class="nc" id="L96">            this.ts = ts;</span>
-<span class="nc" id="L97">            this.value = value;</span>
-<span class="nc" id="L98">        }</span>
+<span class="nc" id="L96">        public RecordedValue(final long ts, final long value) {</span>
+<span class="nc" id="L97">            this.ts = ts;</span>
+<span class="nc" id="L98">            this.value = value;</span>
+<span class="nc" id="L99">        }</span>
 
         public long getTs() {
-<span class="nc" id="L101">            return ts;</span>
+<span class="nc" id="L102">            return ts;</span>
         }
 
         public long getValue() {
-<span class="nc" id="L105">            return value;</span>
+<span class="nc" id="L106">            return value;</span>
         }
     }
 
     @JmxExport(description = &quot;Last recorded value&quot;)
     public RecordedValue getLastRecorded() {
-<span class="nc" id="L111">        return new RecordedValue(lastRecordedTS, lastRecordedValue);</span>
+<span class="nc" id="L112">        return new RecordedValue(lastRecordedTS, lastRecordedValue);</span>
     }
 
     @JmxExport
     @SuppressFBWarnings(&quot;SPP_NON_USEFUL_TOSTRING&quot;)
     public String getInfo() {
-<span class="nc" id="L117">        return info.toString();</span>
+<span class="nc" id="L118">        return info.toString();</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L122">        return &quot;DirectStoreAccumulator{&quot; + &quot;info=&quot; + info + &quot;, measurementStore=&quot; + measurementStore</span>
+<span class="nc" id="L123">        return &quot;DirectStoreAccumulator{&quot; + &quot;info=&quot; + info + &quot;, measurementStore=&quot; + measurementStore</span>
                 + &quot;, tableId=&quot; + tableId + &quot;, lastRecordedTS=&quot; + lastRecordedTS + &quot;, lastRecordedValue=&quot;
                 + lastRecordedValue + '}';
     }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

@@ -39,6 +39,10 @@ public final class Method implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+<span class="fc" id="L42">    public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), &quot;ROOT&quot;);</span>
+
+<span class="fc" id="L44">    private static final Map&lt;String, Map&lt;String, Method&gt;&gt; INSTANCE_REPO = new THashMap&lt;&gt;(1024);</span>
+
     @Nonnull
     private final String declaringClass;
 
@@ -46,73 +50,68 @@ public final class Method implements Serializable {
     private final String methodName;
 
     public Method(final StackTraceElement elem) {
-<span class="nc" id="L49">      this(elem.getClassName(), elem.getMethodName());</span>
-<span class="nc" id="L50">    }</span>
-
-    public Method(final Class&lt;?&gt; clasz, @Nonnull final String methodName) {
-<span class="nc" id="L53">      this(clasz.getName(), methodName);</span>
+<span class="nc" id="L53">      this(elem.getClassName(), elem.getMethodName());</span>
 <span class="nc" id="L54">    }</span>
 
-<span class="fc" id="L56">    public Method(@Nonnull final String declaringClass, @Nonnull final String methodName) {</span>
-<span class="fc" id="L57">        this.declaringClass = declaringClass;</span>
-<span class="fc" id="L58">        this.methodName = methodName;</span>
-<span class="fc" id="L59">    }</span>
+    public Method(final Class&lt;?&gt; clasz, @Nonnull final String methodName) {
+<span class="nc" id="L57">      this(clasz.getName(), methodName);</span>
+<span class="nc" id="L58">    }</span>
+
+<span class="fc" id="L60">    public Method(@Nonnull final String declaringClass, @Nonnull final String methodName) {</span>
+<span class="fc" id="L61">        this.declaringClass = declaringClass;</span>
+<span class="fc" id="L62">        this.methodName = methodName;</span>
+<span class="fc" id="L63">    }</span>
 
     @Nonnull
     public String getDeclaringClass() {
-<span class="fc" id="L63">        return declaringClass;</span>
+<span class="fc" id="L67">        return declaringClass;</span>
     }
 
     @Nonnull
     public String getMethodName() {
-<span class="fc" id="L68">        return methodName;</span>
+<span class="fc" id="L72">        return methodName;</span>
     }
 
     @Override
     public int hashCode() {
-<span class="fc" id="L73">        return 47 * declaringClass.hashCode() + methodName.hashCode();</span>
+<span class="fc" id="L77">        return 47 * declaringClass.hashCode() + methodName.hashCode();</span>
     }
 
     @Override
     public boolean equals(final Object obj) {
-<span class="fc bfc" id="L78" title="All 2 branches covered.">        if (this == obj) {</span>
-<span class="fc" id="L79">            return true;</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">        if (this == obj) {</span>
+<span class="fc" id="L83">            return true;</span>
         }
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L82">            return false;</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L86">            return false;</span>
         }
-<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L85">            return false;</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L89">            return false;</span>
         }
-<span class="fc" id="L87">        final Method other = (Method) obj;</span>
-<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (!this.declaringClass.equals(other.declaringClass)) {</span>
-<span class="fc" id="L89">            return false;</span>
+<span class="fc" id="L91">        final Method other = (Method) obj;</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (!this.declaringClass.equals(other.declaringClass)) {</span>
+<span class="fc" id="L93">            return false;</span>
         }
-<span class="fc" id="L91">        return this.methodName.equals(other.methodName);</span>
+<span class="fc" id="L95">        return this.methodName.equals(other.methodName);</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L96">        return methodName + '@' + declaringClass;</span>
+<span class="fc" id="L100">        return methodName + '@' + declaringClass;</span>
     }
 
     public void toWriter(final Writer w) throws IOException {
-<span class="nc" id="L100">        w.append(methodName).append(&quot;@&quot;).append(declaringClass);</span>
-<span class="nc" id="L101">    }</span>
+<span class="nc" id="L104">        w.append(methodName).append(&quot;@&quot;).append(declaringClass);</span>
+<span class="nc" id="L105">    }</span>
 
     public void toHtmlWriter(final Writer w) throws IOException {
-<span class="nc" id="L104">        Escaper htmlEscaper = HtmlEscapers.htmlEscaper();</span>
-<span class="nc" id="L105">        w.append(htmlEscaper.escape(methodName)).append(htmlEscaper.escape(&quot;@&quot;)).</span>
-<span class="nc" id="L106">                append(htmlEscaper.escape(declaringClass));</span>
-<span class="nc" id="L107">    }</span>
-<span class="fc" id="L108">    public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), &quot;ROOT&quot;);</span>
-
-
-<span class="fc" id="L111">    private static final Map&lt;String, Map&lt;String, Method&gt;&gt; INSTANCE_REPO = new THashMap&lt;&gt;(1024);</span>
-
+<span class="nc" id="L108">        Escaper htmlEscaper = HtmlEscapers.htmlEscaper();</span>
+<span class="nc" id="L109">        w.append(htmlEscaper.escape(methodName)).append(htmlEscaper.escape(&quot;@&quot;)).</span>
+<span class="nc" id="L110">                append(htmlEscaper.escape(declaringClass));</span>
+<span class="nc" id="L111">    }</span>
 
     public static Method getMethod(final StackTraceElement elem) {
-<span class="fc" id="L115">        return getMethod(elem.getClassName(), elem.getMethodName());</span>
+<span class="fc" id="L114">        return getMethod(elem.getClassName(), elem.getMethodName());</span>
     }
 
     /*
@@ -121,22 +120,22 @@ public final class Method implements Serializable {
      */
     @SuppressFBWarnings(&quot;PMB_POSSIBLE_MEMORY&quot;)
     public static synchronized Method getMethod(final String className, final String methodName) {
-<span class="fc" id="L124">        Map&lt;String, Method&gt; mtom = INSTANCE_REPO.get(className);</span>
+<span class="fc" id="L123">        Map&lt;String, Method&gt; mtom = INSTANCE_REPO.get(className);</span>
         Method result;
-<span class="fc bfc" id="L126" title="All 2 branches covered.">        if (mtom == null) {</span>
-<span class="fc" id="L127">            mtom = new THashMap&lt;&gt;(4);</span>
-<span class="fc" id="L128">            result = new Method(className, methodName);</span>
-<span class="fc" id="L129">            mtom.put(methodName, result);</span>
-<span class="fc" id="L130">            INSTANCE_REPO.put(className, mtom);</span>
+<span class="fc bfc" id="L125" title="All 2 branches covered.">        if (mtom == null) {</span>
+<span class="fc" id="L126">            mtom = new THashMap&lt;&gt;(4);</span>
+<span class="fc" id="L127">            result = new Method(className, methodName);</span>
+<span class="fc" id="L128">            mtom.put(methodName, result);</span>
+<span class="fc" id="L129">            INSTANCE_REPO.put(className, mtom);</span>
         } else {
-<span class="fc" id="L132">            result = mtom.get(methodName);</span>
-<span class="fc bfc" id="L133" title="All 2 branches covered.">            if (result == null) {</span>
-<span class="fc" id="L134">                result = new Method(className, methodName);</span>
-<span class="fc" id="L135">                mtom.put(methodName, result);</span>
+<span class="fc" id="L131">            result = mtom.get(methodName);</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">            if (result == null) {</span>
+<span class="fc" id="L133">                result = new Method(className, methodName);</span>
+<span class="fc" id="L134">                mtom.put(methodName, result);</span>
             }
         }
-<span class="fc" id="L138">        return result;</span>
+<span class="fc" id="L137">        return result;</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

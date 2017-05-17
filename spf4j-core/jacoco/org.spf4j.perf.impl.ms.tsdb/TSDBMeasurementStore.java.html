@@ -43,8 +43,8 @@ public final class TSDBMeasurementStore
     private final TSDBWriter database;
 
 
-<span class="fc" id="L46">    public TSDBMeasurementStore(final String databaseName) throws IOException {</span>
-<span class="fc" id="L47">        this.database = new TSDBWriter(new File(databaseName), 1024, &quot;&quot;, false);</span>
+<span class="fc" id="L46">    public TSDBMeasurementStore(final File databaseFile) throws IOException {</span>
+<span class="fc" id="L47">        this.database = new TSDBWriter(databaseFile, 1024, &quot;&quot;, false);</span>
 <span class="fc" id="L48">    }</span>
 
 
@@ -106,25 +106,14 @@ public final class TSDBMeasurementStore
 <span class="nc" id="L106">        return result.toString();</span>
     }
 
-    @JmxExport(description = &quot;export As Csv to file&quot;)
-    public void writeTableAsCsv(@JmxExport(&quot;tableName&quot;) final String tableName,
-            @JmxExport(&quot;csvFileName&quot;) final String csvFileName) throws IOException {
-<span class="nc" id="L112">        File csv = new File(csvFileName);</span>
-<span class="nc" id="L113">        File parent = csv.getParentFile();</span>
-<span class="nc bnc" id="L114" title="All 4 branches missed.">        if (parent == null || !parent.exists()) {</span>
-<span class="nc" id="L115">            csv = new File(database.getFile().getParentFile().getAbsolutePath() + File.separator + csv.getName());</span>
-        }
-<span class="nc" id="L117">        TSDBQuery.writeCsvTable(database.getFile(), tableName, csv);</span>
-<span class="nc" id="L118">    }</span>
-
     @Override
     public String toString() {
-<span class="fc" id="L122">        return &quot;TSDBMeasurementStore{&quot; + &quot;database=&quot; + database + '}';</span>
+<span class="fc" id="L111">        return &quot;TSDBMeasurementStore{&quot; + &quot;database=&quot; + database + '}';</span>
     }
 
     public TSDBWriter getDBWriter() {
-<span class="fc" id="L126">        return database;</span>
+<span class="fc" id="L115">        return database;</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

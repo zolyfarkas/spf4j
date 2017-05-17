@@ -13,5 +13,42 @@ package org.spf4j.jdbc;
    */
 <span class="fc" id="L14">  public static final DbType DEFAULT = DbType.valueOf(System.getProperty(&quot;spf4j.jdbc.defaultDbType&quot;, &quot;H2&quot;));</span>
 
+
+  /**
+   * Return the SQL for a current time millis since a EPOCH...
+   *
+   * @param dbType - the database type.
+   * @return - the sql fragment taht returns the current sql millis.
+   * @throws ExceptionInInitializerError
+   */
+  public static String getCurrTSSqlFn(final DbType dbType) throws ExceptionInInitializerError {
+<span class="pc bpc" id="L25" title="5 of 6 branches missed.">    switch (dbType) {</span>
+      case H2:
+<span class="fc" id="L27">        return &quot;TIMESTAMPDIFF('MILLISECOND', timestamp '1970-01-01 00:00:00', CURRENT_TIMESTAMP())&quot;;</span>
+      case ORACLE:
+<span class="nc" id="L29">        return &quot;(SYSDATE - TO_DATE('01-01-1970 00:00:00', 'DD-MM-YYYY HH24:MI:SS')) * 24 * 3600000&quot;;</span>
+      case MSSQL:
+<span class="nc" id="L31">        return &quot;DATEDIFF(ms, '1970-01-01 00:00:00', GETUTCDATE())&quot;;</span>
+      case POSTGRES:
+<span class="nc" id="L33">        return &quot;extract(epoch FROM now()) * 1000&quot;;</span>
+      case COCKROACH_DB:
+<span class="nc" id="L35">        return &quot;extract(epoch_nanosecond from now()) / 1e6&quot;;</span>
+      default:
+<span class="nc" id="L37">        throw new IllegalArgumentException(&quot;Database not supported &quot; + dbType);</span>
+    }
+  }
+
+  /**
+   * Return the SQL for a current time millis since a EPOCH...
+   *
+   * @param dbType - the database type.
+   * @return - the sql fragment taht returns the current sql millis.
+   * @throws ExceptionInInitializerError
+   */
+  public String getCurrTSSqlFn() throws ExceptionInInitializerError {
+<span class="fc" id="L49">    return getCurrTSSqlFn(this);</span>
+  }
+
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
