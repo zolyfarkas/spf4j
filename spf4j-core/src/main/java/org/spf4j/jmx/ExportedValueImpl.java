@@ -95,7 +95,7 @@ class ExportedValueImpl implements ExportedValue<Object> {
             } else {
                 return getMethod.invoke(object);
             }
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+        } catch (IllegalAccessException | InvocationTargetException ex) {
             throw new RuntimeException(ex);
         }
     }
