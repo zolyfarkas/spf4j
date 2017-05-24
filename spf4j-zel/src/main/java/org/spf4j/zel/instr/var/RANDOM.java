@@ -30,7 +30,6 @@ public final class RANDOM implements Method {
     private RANDOM() {
     }
 
-
     @Override
     @SuppressFBWarnings("PREDICTABLE_RANDOM")
     public Object invoke(final ExecutionContext context, final Object[] parameters) {

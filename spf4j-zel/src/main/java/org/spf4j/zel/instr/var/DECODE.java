@@ -25,12 +25,10 @@ import org.spf4j.zel.vm.Method;
 
 public final class DECODE implements Method {
 
-    private static final long serialVersionUID = -5424036740352433092L;
+    public static final Method INSTANCE = new DECODE();
 
     private DECODE() {
     }
-
-    public static final Method INSTANCE = new DECODE();
 
     @Override
     public Object invoke(final ExecutionContext context, final Object[] parameters) {

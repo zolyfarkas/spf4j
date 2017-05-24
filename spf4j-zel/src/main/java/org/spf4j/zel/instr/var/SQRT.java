@@ -24,8 +24,6 @@ public final class SQRT implements Method {
 
     public static final Method INSTANCE = new SQRT();
 
-    private static final long serialVersionUID = -2959988309644882051L;
-
     private SQRT() {
     }
 

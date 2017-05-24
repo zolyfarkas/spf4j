@@ -30,11 +30,8 @@ public final class INT implements Method {
 
     public static final Method INSTANCE = new INT();
 
-    private static final long serialVersionUID = 5154431044890636019L;
-
     private INT() {
     }
-
 
     @Override
     public Object invoke(final ExecutionContext context, final Object[] parameters) {

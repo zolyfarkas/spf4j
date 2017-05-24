@@ -24,12 +24,10 @@ import org.spf4j.zel.vm.Method;
 
 public final class LOG10 implements Method {
 
-    private static final long serialVersionUID = -5424036740352433092L;
+    public static final Method INSTANCE = new LOG10();
 
     private LOG10() {
     }
-
-    public static final Method INSTANCE = new LOG10();
 
     @Override
     public Object invoke(final ExecutionContext context, final Object[] parameters) {

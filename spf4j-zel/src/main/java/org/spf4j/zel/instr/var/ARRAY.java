@@ -29,8 +29,6 @@ public final class ARRAY implements Method {
 
     public static final Method INSTANCE = new ARRAY();
 
-    private static final long serialVersionUID = 5154431044890636019L;
-
     private ARRAY() {
     }
 

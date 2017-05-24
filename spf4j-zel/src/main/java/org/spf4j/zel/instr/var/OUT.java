@@ -24,12 +24,10 @@ import org.spf4j.zel.vm.Method;
 
 public final class OUT implements Method {
 
-    private static final long serialVersionUID = -1902851538294062563L;
+    public static final Method INSTANCE = new OUT();
 
     private OUT() {
     }
-
-    public static final Method INSTANCE = new OUT();
 
     @Override
     @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
