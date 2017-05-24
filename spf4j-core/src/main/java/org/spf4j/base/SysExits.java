@@ -190,11 +190,11 @@ public enum SysExits {
     CODE2ENUM = c2e;
   }
 
+  private final int exitCode;
+
   SysExits(final int code) {
     this.exitCode = code;
   }
-
-  private final int exitCode;
 
   public int exitCode() {
     return exitCode;
