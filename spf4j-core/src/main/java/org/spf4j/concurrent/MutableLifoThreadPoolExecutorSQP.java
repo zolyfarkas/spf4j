@@ -43,6 +43,7 @@ import static org.spf4j.concurrent.RejectedExecutionHandler.REJECT_EXCEPTION_EXE
 import org.spf4j.ds.ZArrayDequeue;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
+import org.spf4j.stackmonitor.StackTrace;
 //CHECKSTYLE:OFF
 import sun.misc.Contended;
 //CHECKSTYLE:ON
@@ -69,6 +70,7 @@ import sun.misc.Contended;
 @SuppressFBWarnings({ "MDM_THREAD_PRIORITIES", "MDM_WAIT_WITHOUT_TIMEOUT" })
 @Beta
 public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorService implements  MutableLifoThreadPool {
+
 
   @GuardedBy("stateLock")
   private final Queue<Runnable> taskQueue;
@@ -627,17 +629,13 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
       }
     }
 
-   private static final StackTraceElement[] EMPTY_STACK_TRACE
-        = new StackTraceElement[0];
-
-
     @Override
     public String toString() {
       StackTraceElement[] stackTrace;
       try {
         stackTrace = this.getStackTrace();
       } catch (RuntimeException ex) {
-        stackTrace = EMPTY_STACK_TRACE;
+        stackTrace = StackTrace.EMPTY_STACK_TRACE;
       }
       return "QueuedThread{name = " + getName() + ", running=" + running + ", lastRunNanos="
               + lastRunNanos + ", stack =" + Arrays.toString(stackTrace)

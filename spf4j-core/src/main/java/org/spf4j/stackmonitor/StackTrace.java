@@ -26,56 +26,57 @@ import java.util.Arrays;
  */
 public final class StackTrace {
 
-    private final StackTraceElement[] stackTrace;
+  public static final StackTraceElement[] EMPTY_STACK_TRACE
+        = new StackTraceElement[0];
 
-    private final int relevantFramesStart;
+  private final StackTraceElement[] stackTrace;
 
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public StackTrace(final StackTraceElement[] stackTrace, final int relevantFramesStart) {
-        this.stackTrace = stackTrace;
-        this.relevantFramesStart = relevantFramesStart;
+  private final int relevantFramesStart;
+
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
+  public StackTrace(final StackTraceElement[] stackTrace, final int relevantFramesStart) {
+    this.stackTrace = stackTrace;
+    this.relevantFramesStart = relevantFramesStart;
+  }
+
+  public static StackTrace from(final StackTraceElement[] stackTrace, final int relevantFramesStart) {
+    return new StackTrace(stackTrace, relevantFramesStart);
+  }
+
+  @SuppressFBWarnings("EI_EXPOSE_REP")
+  public StackTraceElement[] getStackTrace() {
+    return stackTrace;
+  }
+
+  @Override
+  public int hashCode() {
+    int hash = 7;
+    return 53 * hash + Arrays.deepHashCode(this.stackTrace);
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (obj == null) {
+      return false;
     }
-
-    public static StackTrace from(final StackTraceElement[] stackTrace, final int relevantFramesStart) {
-        return new StackTrace(stackTrace, relevantFramesStart);
+    if (getClass() != obj.getClass()) {
+      return false;
     }
-
-    @SuppressFBWarnings("EI_EXPOSE_REP")
-    public StackTraceElement[] getStackTrace() {
-        return stackTrace;
+    final StackTrace other = (StackTrace) obj;
+    if (!org.spf4j.base.Arrays.deepEquals(this.stackTrace, other.stackTrace, relevantFramesStart)) {
+      return false;
     }
+    return true;
+  }
 
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        return 53 * hash + Arrays.deepHashCode(this.stackTrace);
+  @Override
+  public String toString() {
+    StringBuilder result = new StringBuilder();
+    for (int i = relevantFramesStart; i < stackTrace.length; i++) {
+      StackTraceElement elem = stackTrace[i];
+      result.append(elem.getMethodName()).append('@').append(elem.getClassName()).append("->");
     }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final StackTrace other = (StackTrace) obj;
-        if (!org.spf4j.base.Arrays.deepEquals(this.stackTrace, other.stackTrace, relevantFramesStart)) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder result = new StringBuilder();
-        for (int i = relevantFramesStart; i < stackTrace.length; i++) {
-            StackTraceElement elem = stackTrace[i];
-            result.append(elem.getMethodName()).append('@').append(elem.getClassName()).append("->");
-        }
-        return result.toString();
-    }
-
-
+    return result.toString();
+  }
 
 }
