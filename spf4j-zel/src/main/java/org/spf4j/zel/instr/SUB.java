@@ -30,6 +30,8 @@ public final class SUB extends Instruction {
 
     private static final long serialVersionUID = 2469612346855489913L;
 
+    public static final Instruction INSTANCE = new SUB();
+
     private SUB() {
     }
 
@@ -41,8 +43,6 @@ public final class SUB extends Instruction {
         context.push(Operators.apply(Operator.Enum.Sub, vals[0], vals[1]));
         return 1;
     }
-
-    public static final Instruction INSTANCE = new SUB();
 
     @Override
     public Object[] getParameters() {
