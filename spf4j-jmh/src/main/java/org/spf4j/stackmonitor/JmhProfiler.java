@@ -52,11 +52,11 @@ public final class JmhProfiler implements InternalProfiler {
     private static final Sampler SAMPLER = new Sampler(SAMPLE_PERIOD_MSEC, Integer.MAX_VALUE,
             new FastStackCollector(true));
 
+    private static volatile String benchmarkName;
+
     public static Sampler getStackSampler() {
         return SAMPLER;
     }
-
-    private static volatile String benchmarkName;
 
     public static String benchmarkName() {
         return benchmarkName;
