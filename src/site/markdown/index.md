@@ -11,19 +11,17 @@
  Zel is easy to extend to your needs and also has some cool features like async functions, memorization...
  You can learn more by checking out the [spf4j-zel](http://www.spf4j.org/spf4j-zel/index.html) module.
 
-## 2. License
+## 2. License and Contributions
 
  This library is [LGPL](http://www.gnu.org/licenses/lgpl.html) licensed.
 
  Contributions/Contributors to spf4j are welcome.
 
- Articles about java, and this library are on my [blog](http://blogs.zoltran.com)
-
 ## 3. Code, Binaries, Build
 
  [SPF4J Github hosted repo](https://github.com/zolyfarkas/spf4j/)
 
- Look for latest releases [at](http://search.maven.org/#search|ga|1|spf4j)
+ Look for latest releases on [maven central repo](http://search.maven.org/#search|ga|1|spf4j)
 
  Spf4j is available in the maven central repository, so adding it to your project is as easy as:
 
@@ -36,6 +34,8 @@
  Download snapshot and release artifacts [from] (https://oss.sonatype.org/content/groups/public)
 
  More info can be found on the [blog] (https://blogs.zoltran.com)
+
+ [![Gitter chat](https://badges.gitter.im/zolyfarkas/spf4j.png)](https://gitter.im/spf4j/Lobby)
 
  [![Coverity Badge](https://scan.coverity.com/projects/3158/badge.svg)](https://scan.coverity.com/projects/3158)
 
