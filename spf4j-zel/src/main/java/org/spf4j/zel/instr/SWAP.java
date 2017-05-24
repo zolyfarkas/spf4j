@@ -27,6 +27,8 @@ public final class SWAP extends Instruction {
 
     private static final long serialVersionUID = -7101682855885757988L;
 
+    public static final Instruction INSTANCE = new SWAP();
+
     private SWAP() {
     }
 
@@ -46,8 +48,6 @@ public final class SWAP extends Instruction {
         }
         return 1;
     }
-
-    public static final Instruction INSTANCE = new SWAP();
 
     @Override
     public Object[] getParameters() {
