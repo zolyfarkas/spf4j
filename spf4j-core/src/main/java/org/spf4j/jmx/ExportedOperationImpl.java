@@ -84,7 +84,7 @@ final class ExportedOperationImpl implements ExportedOperation {
     public Object invoke(final Object[] parameters) {
         try {
             return method.invoke(object, parameters);
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+        } catch (IllegalAccessException | InvocationTargetException ex) {
             throw new RuntimeException(ex);
         }
     }
