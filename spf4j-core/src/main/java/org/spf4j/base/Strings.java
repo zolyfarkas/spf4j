@@ -18,7 +18,7 @@
  */
 package org.spf4j.base;
 
-import com.google.common.base.Charsets;
+
 import com.google.common.base.Preconditions;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
@@ -42,6 +42,7 @@ import sun.nio.cs.ArrayEncoder;
 //CHECKSTYLE:ON
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 
 /**
  *
@@ -50,98 +51,135 @@ import java.lang.invoke.MethodHandles;
 @SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
 public final class Strings {
 
-    private Strings() {
+  private static final Logger LOG = LoggerFactory.getLogger(Strings.class);
+
+  private static final MethodHandle CHARS_FIELD_GET;
+
+  //String(char[] value, boolean share) {
+  private static final MethodHandle PROTECTED_STR_CONSTR_HANDLE;
+  private static final Class<?>[] PROTECTED_STR_CONSTR_PARAM_TYPES;
+
+  public static final String EOL = System.getProperty("line.separator", "\n");
+
+  private static final String[][] JAVA_CTRL_CHARS_UNESCAPE = {
+    {"\\b", "\b"},
+    {"\\n", "\n"},
+    {"\\t", "\t"},
+    {"\\f", "\f"},
+    {"\\r", "\r"}
+  };
+
+  private static final CharSequenceTranslator UNESCAPE_JAVA
+          = new AggregateTranslator(
+                  new OctalUnescaper(),
+                  new UnicodeUnescaper(),
+                  new LookupTranslator(JAVA_CTRL_CHARS_UNESCAPE),
+                  new LookupTranslator(
+                          new String[][]{
+                            {"\\\\", "\\"},
+                            {"\\\"", "\""},
+                            {"\\'", "'"},
+                            {"\\", ""}
+                          })
+          );
+
+  private static final char[] DIGITS = {
+    '0', '1', '2', '3', '4', '5',
+    '6', '7', '8', '9', 'a', 'b',
+    'c', 'd', 'e', 'f', 'g', 'h',
+    'i', 'j', 'k', 'l', 'm', 'n',
+    'o', 'p', 'q', 'r', 's', 't',
+    'u', 'v', 'w', 'x', 'y', 'z'
+  };
+
+  private static final ThreadLocal<char[]> BUFF = new ThreadLocal<char[]>() {
+
+    @Override
+    @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+    protected char[] initialValue() {
+      return new char[64];
     }
 
-    public static final String EOL = System.getProperty("line.separator", "\n");
+  };
 
+  private static final boolean LENIENT_CODING = Boolean.getBoolean("spf4j.encoding.lenient");
 
-    private static final String[][] JAVA_CTRL_CHARS_UNESCAPE = {
-        {"\\b", "\b"},
-        {"\\n", "\n"},
-        {"\\t", "\t"},
-        {"\\f", "\f"},
-        {"\\r", "\r"}
-    };
+  private static final ThreadLocal<CharsetDecoder> UTF8_DECODER = new ThreadLocal<CharsetDecoder>() {
 
-    private static final CharSequenceTranslator UNESCAPE_JAVA
-            = new AggregateTranslator(
-                    new OctalUnescaper(),
-                    new UnicodeUnescaper(),
-                    new LookupTranslator(JAVA_CTRL_CHARS_UNESCAPE),
-                    new LookupTranslator(
-                            new String[][]{
-                                {"\\\\", "\\"},
-                                {"\\\"", "\""},
-                                {"\\'", "'"},
-                                {"\\", ""}
-                            })
-            );
-
-
-    /**
-     * @deprecated use CharSequences.distance instead.
-     */
-    @Deprecated
-    public static int distance(@Nonnull final String s1, @Nonnull final String s2) {
-      return CharSequences.distance(s1, s2);
+    @Override
+    protected CharsetDecoder initialValue() {
+      return createUtf8Decoder();
     }
 
-    public static String unescape(final String what) {
-        return UNESCAPE_JAVA.translate(what);
+  };
+
+  private static final ThreadLocal<CharsetEncoder> UTF8_ENCODER = new ThreadLocal<CharsetEncoder>() {
+
+    @Override
+    protected CharsetEncoder initialValue() {
+      return createUtf8Encoder();
     }
 
-    public static boolean contains(final String string, final char... chars) {
-        for (char c : chars) {
-            if (string.indexOf(c) >= 0) {
-                return true;
-            }
-        }
-        return false;
+  };
+
+  private Strings() {
+  }
+
+  /**
+   * @deprecated use CharSequences.distance instead.
+   */
+  @Deprecated
+  public static int distance(@Nonnull final String s1, @Nonnull final String s2) {
+    return CharSequences.distance(s1, s2);
+  }
+
+  public static String unescape(final String what) {
+    return UNESCAPE_JAVA.translate(what);
+  }
+
+  public static boolean contains(final String string, final char... chars) {
+    for (char c : chars) {
+      if (string.indexOf(c) >= 0) {
+        return true;
+      }
     }
+    return false;
+  }
 
-    /**
-     * @deprecated use CharSequences.containsAnyChar instead.
-     */
-    @Deprecated
-    public static boolean contains(final CharSequence string, final char... chars) {
-      return CharSequences.containsAnyChar(string, chars);
+  /**
+   * @deprecated use CharSequences.containsAnyChar instead.
+   */
+  @Deprecated
+  public static boolean contains(final CharSequence string, final char... chars) {
+    return CharSequences.containsAnyChar(string, chars);
+  }
+
+  public static String withFirstCharLower(final String str) {
+    if (str.isEmpty()) {
+      return str;
     }
-
-    public static String withFirstCharLower(final String str) {
-        if (str.isEmpty()) {
-            return str;
-        }
-        if (Character.isLowerCase(str.charAt(0))) {
-            return str;
-        }
-        int l = str.length();
-        StringBuilder result = new StringBuilder(l);
-        result.append(Character.toLowerCase(str.charAt(0)));
-        for (int i = 1; i < l; i++) {
-            result.append(str.charAt(i));
-        }
-        return result.toString();
+    if (Character.isLowerCase(str.charAt(0))) {
+      return str;
     }
-
-    public static void writeReplaceWhitespaces(final String str, final char replacement, final Appendable writer)
-            throws IOException {
-        for (char c : steal(str)) {
-            if (Character.isWhitespace(c)) {
-                writer.append(replacement);
-            } else {
-                writer.append(c);
-            }
-        }
+    int l = str.length();
+    StringBuilder result = new StringBuilder(l);
+    result.append(Character.toLowerCase(str.charAt(0)));
+    for (int i = 1; i < l; i++) {
+      result.append(str.charAt(i));
     }
+    return result.toString();
+  }
 
-    private static final Logger LOG = LoggerFactory.getLogger(Strings.class);
-
-    private static final MethodHandle CHARS_FIELD_GET;
-
-    //String(char[] value, boolean share) {
-    private static final MethodHandle PROTECTED_STR_CONSTR_HANDLE;
-    private static final Class<?>[] PROTECTED_STR_CONSTR_PARAM_TYPES;
+  public static void writeReplaceWhitespaces(final String str, final char replacement, final Appendable writer)
+          throws IOException {
+    for (char c : steal(str)) {
+      if (Character.isWhitespace(c)) {
+        writer.append(replacement);
+      } else {
+        writer.append(c);
+      }
+    }
+  }
 
   static {
     Field charsField = AccessController.doPrivileged(new PrivilegedAction<Field>() {
@@ -168,7 +206,7 @@ public final class Strings {
         throw new ExceptionInInitializerError(ex);
       }
     } else {
-        CHARS_FIELD_GET = null;
+      CHARS_FIELD_GET = null;
     }
 
     // up until u45 String(int offset, int count, char value[]) {
@@ -213,205 +251,184 @@ public final class Strings {
     }
   }
 
-    /**
-     * Steal the underlying character array of a String.
-     *
-     * @param str
-     * @return
-     */
-    public static char[] steal(final String str) {
-        if (CHARS_FIELD_GET == null) {
-            return str.toCharArray();
-        } else {
-            try {
-                return (char[]) CHARS_FIELD_GET.invokeExact(str);
-            } catch (RuntimeException | Error ex) {
-              throw ex;
-            } catch (Throwable ex) {
-                throw new RuntimeException(ex);
-            }
-        }
+  /**
+   * Steal the underlying character array of a String.
+   *
+   * @param str
+   * @return
+   */
+  public static char[] steal(final String str) {
+    if (CHARS_FIELD_GET == null) {
+      return str.toCharArray();
+    } else {
+      try {
+        return (char[]) CHARS_FIELD_GET.invokeExact(str);
+      } catch (RuntimeException | Error ex) {
+        throw ex;
+      } catch (Throwable ex) {
+        throw new RuntimeException(ex);
+      }
     }
+  }
 
-    /**
-     * Create a String based on the provided character array. No copy of the array is made.
-     *
-     * @param chars
-     * @return
-     */
-    public static String wrap(final char[] chars) {
-        if (PROTECTED_STR_CONSTR_PARAM_TYPES != null) {
-            try {
-                if (PROTECTED_STR_CONSTR_PARAM_TYPES.length == 3) {
-                    return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(0, chars.length, chars);
-                } else {
-                    return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(chars, true);
-                }
-            } catch (Error | RuntimeException ex) {
-              throw ex;
-            } catch (Throwable ex) {
-                throw new RuntimeException(ex);
-            }
+  /**
+   * Create a String based on the provided character array. No copy of the array is made.
+   *
+   * @param chars
+   * @return
+   */
+  public static String wrap(final char[] chars) {
+    if (PROTECTED_STR_CONSTR_PARAM_TYPES != null) {
+      try {
+        if (PROTECTED_STR_CONSTR_PARAM_TYPES.length == 3) {
+          return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(0, chars.length, chars);
         } else {
-            return new String(chars);
+          return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(chars, true);
         }
+      } catch (Error | RuntimeException ex) {
+        throw ex;
+      } catch (Throwable ex) {
+        throw new RuntimeException(ex);
+      }
+    } else {
+      return new String(chars);
     }
-
-    private static final boolean LENIENT_CODING  = Boolean.getBoolean("spf4j.encoding.lenient");
-
-    private static final ThreadLocal<CharsetEncoder> UTF8_ENCODER = new ThreadLocal<CharsetEncoder>() {
-
-        @Override
-        protected CharsetEncoder initialValue() {
-            return createUtf8Encoder();
-        }
-
-    };
+  }
 
   public static CharsetEncoder createUtf8Encoder() {
     if (LENIENT_CODING) {
-      return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
+      return StandardCharsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
               .onUnmappableCharacter(CodingErrorAction.REPLACE);
     } else {
-      return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPORT)
+      return StandardCharsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPORT)
               .onUnmappableCharacter(CodingErrorAction.REPORT);
     }
   }
 
-    private static final ThreadLocal<CharsetDecoder> UTF8_DECODER = new ThreadLocal<CharsetDecoder>() {
-
-        @Override
-        protected CharsetDecoder initialValue() {
-          return createUtf8Decoder();
-        }
-
-    };
 
   public static CharsetDecoder createUtf8Decoder() {
     if (LENIENT_CODING) {
-      return Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
+      return StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
               .onUnmappableCharacter(CodingErrorAction.REPLACE);
     } else {
-      return Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+      return StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
               .onUnmappableCharacter(CodingErrorAction.REPORT);
     }
   }
 
-    public static CharsetEncoder getUTF8CharsetEncoder() {
-        return UTF8_ENCODER.get();
-    }
+  public static CharsetEncoder getUTF8CharsetEncoder() {
+    return UTF8_ENCODER.get();
+  }
 
-    public static CharsetDecoder getUTF8CharsetDecoder() {
-        return UTF8_DECODER.get();
-    }
+  public static CharsetDecoder getUTF8CharsetDecoder() {
+    return UTF8_DECODER.get();
+  }
 
-    @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
-    public static byte[] encode(final CharsetEncoder ce, final char[] ca, final int off, final int len) {
-        if (len == 0) {
-            return Arrays.EMPTY_BYTE_ARRAY;
+  @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+  public static byte[] encode(final CharsetEncoder ce, final char[] ca, final int off, final int len) {
+    if (len == 0) {
+      return Arrays.EMPTY_BYTE_ARRAY;
+    }
+    byte[] ba = TLScratch.getBytesTmp(getmaxNrBytes(ce, len));
+    int nrBytes = encode(ce, ca, off, len, ba);
+    return java.util.Arrays.copyOf(ba, nrBytes);
+  }
+
+  public static int getmaxNrBytes(final CharsetEncoder ce, final int nrChars) {
+    return (int) (nrChars * (double) ce.maxBytesPerChar());
+  }
+
+  public static int encode(final CharsetEncoder ce, final char[] ca, final int off, final int len,
+          final byte[] targetArray) {
+    if (len == 0) {
+      return 0;
+    }
+    if (ce instanceof ArrayEncoder) {
+      return ((ArrayEncoder) ce).encode(ca, off, len, targetArray);
+    } else {
+      ce.reset();
+      ByteBuffer bb = ByteBuffer.wrap(targetArray);
+      CharBuffer cb = CharBuffer.wrap(ca, off, len);
+      try {
+        CoderResult cr = ce.encode(cb, bb, true);
+        if (!cr.isUnderflow()) {
+          cr.throwException();
         }
-        byte[] ba = TLScratch.getBytesTmp(getmaxNrBytes(ce, len));
-        int nrBytes = encode(ce, ca, off, len, ba);
-        return java.util.Arrays.copyOf(ba, nrBytes);
-    }
-
-    public static int getmaxNrBytes(final CharsetEncoder ce, final int nrChars) {
-        return (int) (nrChars * (double) ce.maxBytesPerChar());
-    }
-
-    public static int encode(final CharsetEncoder ce, final char[] ca, final int off, final int len,
-            final byte[] targetArray) {
-        if (len == 0) {
-            return 0;
+        cr = ce.flush(bb);
+        if (!cr.isUnderflow()) {
+          cr.throwException();
         }
-        if (ce instanceof ArrayEncoder) {
-            return ((ArrayEncoder) ce).encode(ca, off, len, targetArray);
-        } else {
-            ce.reset();
-            ByteBuffer bb = ByteBuffer.wrap(targetArray);
-            CharBuffer cb = CharBuffer.wrap(ca, off, len);
-            try {
-                CoderResult cr = ce.encode(cb, bb, true);
-                if (!cr.isUnderflow()) {
-                    cr.throwException();
-                }
-                cr = ce.flush(bb);
-                if (!cr.isUnderflow()) {
-                    cr.throwException();
-                }
-            } catch (CharacterCodingException x) {
-                throw new Error(x);
-            }
-            return bb.position();
-        }
+      } catch (CharacterCodingException x) {
+        throw new Error(x);
+      }
+      return bb.position();
     }
+  }
 
-    @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
-    public static String decode(final CharsetDecoder cd, final byte[] ba, final int off, final int len) {
-        if (len == 0) {
-            return "";
-        }
-        int en = (int) (len * (double) cd.maxCharsPerByte());
-        char[] ca = TLScratch.getCharsTmp(en);
-        if (cd instanceof ArrayDecoder) {
-            int clen = ((ArrayDecoder) cd).decode(ba, off, len, ca);
-            return new String(ca, 0, clen);
-        }
-        cd.reset();
-        ByteBuffer bb = ByteBuffer.wrap(ba, off, len);
-        CharBuffer cb = CharBuffer.wrap(ca);
-        try {
-            CoderResult cr = cd.decode(bb, cb, true);
-            if (!cr.isUnderflow()) {
-                cr.throwException();
-            }
-            cr = cd.flush(cb);
-            if (!cr.isUnderflow()) {
-                cr.throwException();
-            }
-        } catch (CharacterCodingException x) {
-            throw new Error(x);
-        }
-        return new String(ca, 0, cb.position());
+  @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+  public static String decode(final CharsetDecoder cd, final byte[] ba, final int off, final int len) {
+    if (len == 0) {
+      return "";
     }
+    int en = (int) (len * (double) cd.maxCharsPerByte());
+    char[] ca = TLScratch.getCharsTmp(en);
+    if (cd instanceof ArrayDecoder) {
+      int clen = ((ArrayDecoder) cd).decode(ba, off, len, ca);
+      return new String(ca, 0, clen);
+    }
+    cd.reset();
+    ByteBuffer bb = ByteBuffer.wrap(ba, off, len);
+    CharBuffer cb = CharBuffer.wrap(ca);
+    try {
+      CoderResult cr = cd.decode(bb, cb, true);
+      if (!cr.isUnderflow()) {
+        cr.throwException();
+      }
+      cr = cd.flush(cb);
+      if (!cr.isUnderflow()) {
+        cr.throwException();
+      }
+    } catch (CharacterCodingException x) {
+      throw new Error(x);
+    }
+    return new String(ca, 0, cb.position());
+  }
 
-    /**
-     * Optimized UTF8 decoder.
-     *
-     * Here is a benchmark comparison with the JDK implementation
-     * (see EncodingBenchmark.java in the benchmark project):
-     *
-     * EncodingBenchmark.stringDecode             thrpt   10  16759798.463 ± 343505.144  ops/s
-     * EncodingBenchmark.fastStringDecode         thrpt   10  17413298.464 ± 301756.867  ops/s
-     *
-     *
-     * @param bytes
-     * @return
-     */
-    public static String fromUtf8(final byte[] bytes) {
-        return decode(UTF8_DECODER.get(), bytes, 0, bytes.length);
-    }
+  /**
+   * Optimized UTF8 decoder.
+   *
+   * Here is a benchmark comparison with the JDK implementation (see EncodingBenchmark.java in the benchmark project):
+   *
+   * EncodingBenchmark.stringDecode thrpt 10 16759798.463 ± 343505.144 ops/s EncodingBenchmark.fastStringDecode thrpt 10
+   * 17413298.464 ± 301756.867 ops/s
+   *
+   *
+   * @param bytes
+   * @return
+   */
+  public static String fromUtf8(final byte[] bytes) {
+    return decode(UTF8_DECODER.get(), bytes, 0, bytes.length);
+  }
 
-    public static String fromUtf8(final byte[] bytes, final int startIdx, final int length) {
-        return decode(UTF8_DECODER.get(), bytes, startIdx, length);
-    }
+  public static String fromUtf8(final byte[] bytes, final int startIdx, final int length) {
+    return decode(UTF8_DECODER.get(), bytes, startIdx, length);
+  }
 
-    /**
-     * Optimized UTF8 string encoder.
-     *
-     * comparison with the stock JDK implementation
-     * (see EncodingBenchmark.java in the benchmark project):
-     *
-     * EncodingBenchmark.stringEncode             thrpt   10   9481668.776 ± 252543.135  ops/s
-     * EncodingBenchmark.fastStringEncode         thrpt   10  22469383.612 ± 898677.892  ops/s
-     *
-     * @param str
-     * @return
-     */
-    public static byte[] toUtf8(final String str) {
-        final char[] chars = steal(str);
-        return encode(UTF8_ENCODER.get(), chars, 0, chars.length);
-    }
+  /**
+   * Optimized UTF8 string encoder.
+   *
+   * comparison with the stock JDK implementation (see EncodingBenchmark.java in the benchmark project):
+   *
+   * EncodingBenchmark.stringEncode thrpt 10 9481668.776 ± 252543.135 ops/s EncodingBenchmark.fastStringEncode thrpt 10
+   * 22469383.612 ± 898677.892 ops/s
+   *
+   * @param str
+   * @return
+   */
+  public static byte[] toUtf8(final String str) {
+    final char[] chars = steal(str);
+    return encode(UTF8_ENCODER.get(), chars, 0, chars.length);
+  }
 
   /**
    * @deprecated use CharSequences.compare
@@ -465,7 +482,6 @@ public final class Strings {
     }
   }
 
-
   public static void appendJsonStringEscapedChar(final char c, final StringBuilder jsonString) {
     switch (c) {
       case '\\':
@@ -497,7 +513,6 @@ public final class Strings {
         }
     }
   }
-
 
   public static void appendJsonStringEscapedChar(final char c, final Appendable jsonString) throws IOException {
     switch (c) {
@@ -531,128 +546,97 @@ public final class Strings {
     }
   }
 
-    private static final char[] DIGITS = {
-        '0', '1', '2', '3', '4', '5',
-        '6', '7', '8', '9', 'a', 'b',
-        'c', 'd', 'e', 'f', 'g', 'h',
-        'i', 'j', 'k', 'l', 'm', 'n',
-        'o', 'p', 'q', 'r', 's', 't',
-        'u', 'v', 'w', 'x', 'y', 'z'
-    };
+  public static void appendUnsignedString(final StringBuilder sb, final long nr, final int shift) {
+    long i = nr;
+    char[] buf = BUFF.get();
+    int charPos = 64;
+    int radix = 1 << shift;
+    long mask = radix - 1;
+    do {
+      buf[--charPos] = DIGITS[(int) (i & mask)];
+      i >>>= shift;
+    } while (i != 0);
+    sb.append(buf, charPos, 64 - charPos);
+  }
 
-    private static final ThreadLocal<char[]> BUFF = new ThreadLocal<char[]>() {
+  public static void appendUnsignedString(final StringBuilder sb, final int nr, final int shift) {
+    long i = nr;
+    char[] buf = BUFF.get();
+    int charPos = 32;
+    int radix = 1 << shift;
+    long mask = radix - 1;
+    do {
+      buf[--charPos] = DIGITS[(int) (i & mask)];
+      i >>>= shift;
+    } while (i != 0);
+    sb.append(buf, charPos, 32 - charPos);
+  }
 
-        @Override
-        @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
-        protected char[] initialValue() {
-            return new char[64];
-        }
-
-    };
-
-    public static void appendUnsignedString(final StringBuilder sb, final long nr, final int shift) {
-        long i = nr;
-        char[] buf = BUFF.get();
-        int charPos = 64;
-        int radix = 1 << shift;
-        long mask = radix - 1;
-        do {
-            buf[--charPos] = DIGITS[(int) (i & mask)];
-            i >>>= shift;
-        } while (i != 0);
-        sb.append(buf, charPos, 64 - charPos);
-    }
-
-    public static void appendUnsignedString(final StringBuilder sb, final int nr, final int shift) {
-        long i = nr;
-        char[] buf = BUFF.get();
-        int charPos = 32;
-        int radix = 1 << shift;
-        long mask = radix - 1;
-        do {
-            buf[--charPos] = DIGITS[(int) (i & mask)];
-            i >>>= shift;
-        } while (i != 0);
-        sb.append(buf, charPos, 32 - charPos);
-    }
-
-    public static void appendUnsignedStringPadded(final StringBuilder sb, final int nr, final int shift,
-            final int padTo) {
-        long i = nr;
-        char[] buf = BUFF.get();
-        int charPos = 32;
-        int radix = 1 << shift;
-        long mask = radix - 1;
-        do {
-            buf[--charPos] = DIGITS[(int) (i & mask)];
-            i >>>= shift;
-        } while (i != 0);
-        final int nrChars = 32 - charPos;
-        if (nrChars > padTo) {
-            throw new IllegalArgumentException("Your pad to value " + padTo
-                    + " is to small, must be at least " + nrChars);
-        } else {
-            for (int j = 0, n = padTo - nrChars; j < n; j++) {
-                sb.append('0');
-            }
-        }
-        sb.append(buf, charPos, nrChars);
-    }
-
-    public static void appendUnsignedStringPadded(final Appendable sb, final int nr, final int shift,
-            final int padTo) throws IOException {
-        long i = nr;
-        char[] buf = BUFF.get();
-        int charPos = 32;
-        int radix = 1 << shift;
-        long mask = radix - 1;
-        do {
-            buf[--charPos] = DIGITS[(int) (i & mask)];
-            i >>>= shift;
-        } while (i != 0);
-        final int nrChars = 32 - charPos;
-        if (nrChars > padTo) {
-            throw new IllegalArgumentException("Your pad to value " + padTo
-                    + " is to small, must be at least " + nrChars);
-        } else {
-            for (int j = 0, n = padTo - nrChars; j < n; j++) {
-                sb.append('0');
-            }
-        }
-        sb.append(CharBuffer.wrap(buf), charPos, charPos + nrChars);
-    }
-
-    public static void appendSpaces(final Appendable to, final int nrSpaces) throws IOException {
-      for (int i = 0; i < nrSpaces; i++) {
-        to.append(' ');
+  public static void appendUnsignedStringPadded(final StringBuilder sb, final int nr, final int shift,
+          final int padTo) {
+    long i = nr;
+    char[] buf = BUFF.get();
+    int charPos = 32;
+    int radix = 1 << shift;
+    long mask = radix - 1;
+    do {
+      buf[--charPos] = DIGITS[(int) (i & mask)];
+      i >>>= shift;
+    } while (i != 0);
+    final int nrChars = 32 - charPos;
+    if (nrChars > padTo) {
+      throw new IllegalArgumentException("Your pad to value " + padTo
+              + " is to small, must be at least " + nrChars);
+    } else {
+      for (int j = 0, n = padTo - nrChars; j < n; j++) {
+        sb.append('0');
       }
     }
+    sb.append(buf, charPos, nrChars);
+  }
 
-    public static void appendSpaces(final StringBuilder to, final int nrSpaces) {
-      for (int i = 0; i < nrSpaces; i++) {
-        to.append(' ');
+  public static void appendUnsignedStringPadded(final Appendable sb, final int nr, final int shift,
+          final int padTo) throws IOException {
+    long i = nr;
+    char[] buf = BUFF.get();
+    int charPos = 32;
+    int radix = 1 << shift;
+    long mask = radix - 1;
+    do {
+      buf[--charPos] = DIGITS[(int) (i & mask)];
+      i >>>= shift;
+    } while (i != 0);
+    final int nrChars = 32 - charPos;
+    if (nrChars > padTo) {
+      throw new IllegalArgumentException("Your pad to value " + padTo
+              + " is to small, must be at least " + nrChars);
+    } else {
+      for (int j = 0, n = padTo - nrChars; j < n; j++) {
+        sb.append('0');
       }
     }
+    sb.append(CharBuffer.wrap(buf), charPos, charPos + nrChars);
+  }
+
+  public static void appendSpaces(final Appendable to, final int nrSpaces) throws IOException {
+    for (int i = 0; i < nrSpaces; i++) {
+      to.append(' ');
+    }
+  }
+
+  public static void appendSpaces(final StringBuilder to, final int nrSpaces) {
+    for (int i = 0; i < nrSpaces; i++) {
+      to.append(' ');
+    }
+  }
 
   /**
-   * See String.regionMatches.
+   * @deprecated use CharSequences.regionMatches.
    */
+  @Deprecated
   public static boolean regionMatches(final CharSequence t, final int toffset,
           final CharSequence other, final int ooffset, final int plen) {
-    int to = toffset;
-    int po = ooffset;
-    // Note: toffset, ooffset, or len might be near -1>>>1.
-    if ((ooffset < 0) || (toffset < 0) || (toffset > (long) t.length() - plen)
-            || (ooffset > (long) other.length() - plen)) {
-      return false;
-    }
-    int len = plen;
-    while (len-- > 0) {
-      if (t.charAt(to++) != other.charAt(po++)) {
-        return false;
-      }
-    }
-    return true;
+    return CharSequences.regionMatches(t, toffset, other, ooffset, plen);
   }
 
   public static String truncate(@Nonnull final String value, final int length) {
@@ -663,9 +647,8 @@ public final class Strings {
     }
   }
 
-
   @Nonnull
-  public static String commonPrefix(@Nonnull final String ... strs) {
+  public static String commonPrefix(@Nonnull final String... strs) {
     Preconditions.checkArgument(strs.length > 0, "Must have at least 1 string %s", strs);
     String common = strs[0];
     for (int i = 1; i < strs.length; i++) {
@@ -673,7 +656,5 @@ public final class Strings {
     }
     return common;
   }
-
-
 
 }
