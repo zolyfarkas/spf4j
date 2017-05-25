@@ -288,7 +288,7 @@ public final class Callables {
           }
           return RetryDecision.retry(tu.toMillis(delay), callable);
         default:
-          throw new RuntimeException("Unsupperted Retry Action " + action);
+          throw new UnsupportedOperationException("Unsupperted Retry Action " + action);
 
       }
     }
