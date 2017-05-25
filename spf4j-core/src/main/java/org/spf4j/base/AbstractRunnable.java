@@ -71,7 +71,7 @@ public abstract class AbstractRunnable implements Runnable {
   }
 
   public AbstractRunnable(final String threadName) {
-    this(false, null);
+    this(false, threadName);
   }
 
   @Override
