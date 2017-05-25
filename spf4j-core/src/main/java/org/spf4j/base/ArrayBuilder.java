@@ -38,7 +38,7 @@ public final class ArrayBuilder<T> {
     }
   }
 
-  void expandCapacity(final int minimumCapacity) {
+  private void expandCapacity(final int minimumCapacity) {
     int newCapacity = array.length + array.length >> 1;
     if (newCapacity < minimumCapacity) {
       newCapacity = minimumCapacity;
