@@ -33,6 +33,8 @@ public final class ObservableStackCollector extends AbstractStackCollector {
 
   private final ConcurrentMap<Thread, Consumer<StackTraceElement[]>> stConsumers;
 
+  private Thread[] requestFor = new Thread[]{};
+
   public ObservableStackCollector(final boolean collectForMain, final String... xtraIgnoredThreads) {
     this(FastStackCollector.createNameBasedFilter(collectForMain, xtraIgnoredThreads));
   }
@@ -51,8 +53,6 @@ public final class ObservableStackCollector extends AbstractStackCollector {
   public Consumer<StackTraceElement[]> unregisterConsumer(final Thread thread) {
     return stConsumers.remove(thread);
   }
-
-  private Thread[] requestFor = new Thread[]{};
 
   @Override
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
