@@ -202,7 +202,10 @@ public final class SnappyFrameUtils {
         if (length < 0) {
           throw new IOException("invalid length: " + length + " for chunk flag: " + Integer.toHexString(flag));
         }
-        in.skip(length);
+        long skipped = in.skip(length);
+        if (skipped != length) {
+          throw new IOException("Unable to skip " + length + " bytes, managed only " + skipped);
+        }
         return new Frame(FrameType.SKIPPABLE, length, null);
     }
   }
