@@ -28,6 +28,8 @@ public final class DIV extends Instruction {
 
     private static final long serialVersionUID = -2148283081301406237L;
 
+    public static final Instruction INSTANCE = new DIV();
+
     private DIV() {
     }
 
@@ -38,8 +40,6 @@ public final class DIV extends Instruction {
         context.push(Operators.apply(Operator.Enum.Div, vals[0], vals[1]));
         return 1;
     }
-
-    public static final Instruction INSTANCE = new DIV();
 
     @Override
     public Object[] getParameters() {

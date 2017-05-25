@@ -25,6 +25,8 @@ public final class DUP extends Instruction {
 
     private static final long serialVersionUID = -5165232100964035429L;
 
+    public static final Instruction INSTANCE = new DUP();
+
     private DUP() {
     }
 
@@ -33,8 +35,6 @@ public final class DUP extends Instruction {
         context.push(context.peek());
         return 1;
     }
-
-    public static final Instruction INSTANCE = new DUP();
 
     @Override
     public Object[] getParameters() {

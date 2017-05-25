@@ -30,6 +30,8 @@ public final class POW extends Instruction {
 
     private static final long serialVersionUID = 2547392478211590371L;
 
+    public static final Instruction INSTANCE = new POW();
+
     private POW() {
     }
 
@@ -41,8 +43,6 @@ public final class POW extends Instruction {
         context.push(Operators.apply(Operator.Enum.Pow, vals[0], vals[1]));
         return 1;
     }
-
-    public static final Instruction INSTANCE = new POW();
 
     @Override
     public Object[] getParameters() {

@@ -27,6 +27,8 @@ public final class AND extends Instruction {
 
     private static final long serialVersionUID = -7010871353287467986L;
 
+    public static final Instruction INSTANCE = new AND();
+
     private AND() {
     }
 
@@ -38,8 +40,6 @@ public final class AND extends Instruction {
         context.push(((java.lang.Boolean) vals[0]) && ((java.lang.Boolean) vals[1]));
         return 1;
     }
-
-    public static final Instruction INSTANCE = new AND();
 
     @Override
     public Object[] getParameters() {

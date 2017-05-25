@@ -33,6 +33,8 @@ public final class REF extends Instruction {
 
     private static final long serialVersionUID = 1L;
 
+    public static final Instruction INSTANCE = new REF();
+
     private REF() {
     }
 
@@ -65,10 +67,6 @@ public final class REF extends Instruction {
         }
         return 1;
     }
-    /**
-     * instance
-     */
-    public static final Instruction INSTANCE = new REF();
 
     @Override
     public Object[] getParameters() {

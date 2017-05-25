@@ -26,6 +26,8 @@ public final class GT extends Instruction {
 
     private static final long serialVersionUID = 9127950519503616845L;
 
+    public static final Instruction INSTANCE = new GT();
+
     private GT() {
     }
 
@@ -38,8 +40,6 @@ public final class GT extends Instruction {
                 compareTo(vals[0]) < 0);
         return 1;
     }
-
-    public static final Instruction INSTANCE = new GT();
 
     @Override
     public Object[] getParameters() {

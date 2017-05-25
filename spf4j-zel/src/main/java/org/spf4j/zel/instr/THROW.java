@@ -31,6 +31,8 @@ public final class THROW extends Instruction {
 
     private static final long serialVersionUID = 1L;
 
+    public static final Instruction INSTANCE = new THROW();
+
     private THROW() {
     }
 
@@ -40,8 +42,6 @@ public final class THROW extends Instruction {
         Object param = context.popStackVal();
         throw new ZExecutionException(param);
     }
-
-    public static final Instruction INSTANCE = new THROW();
 
     @Override
     public Object[] getParameters() {

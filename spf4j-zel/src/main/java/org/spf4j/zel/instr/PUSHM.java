@@ -25,16 +25,16 @@ public final class PUSHM extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
 
+    public static final Instruction INSTANCE = new PUSHM();
+
     private PUSHM() {
     }
-    
+
     @Override
     public int execute(final ExecutionContext context) {
         context.push(context.getMem());
         return 1;
     }
-
-    public static final Instruction INSTANCE = new PUSHM();
 
     @Override
     public Object[] getParameters() {

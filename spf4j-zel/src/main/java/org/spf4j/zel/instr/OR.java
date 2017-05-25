@@ -28,6 +28,8 @@ public final class OR extends Instruction {
 
     private static final long serialVersionUID = 1052309045965557132L;
 
+    public static final Instruction INSTANCE = new OR();
+
     private OR() {
     }
 
@@ -42,8 +44,6 @@ public final class OR extends Instruction {
         context.push(v1 || v2);
         return 1;
     }
-
-    public static final Instruction INSTANCE = new OR();
 
     @Override
     public Object[] getParameters() {

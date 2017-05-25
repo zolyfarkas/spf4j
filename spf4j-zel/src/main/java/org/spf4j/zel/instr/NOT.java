@@ -27,6 +27,8 @@ public final class NOT extends Instruction {
 
     private static final long serialVersionUID = -2668500366026272510L;
 
+    public static final Instruction INSTANCE = new NOT();
+
     private NOT() {
     }
 
@@ -36,8 +38,6 @@ public final class NOT extends Instruction {
         context.push(!((java.lang.Boolean) context.popSyncStackVal()));
         return 1;
     }
-
-    public static final Instruction INSTANCE = new NOT();
 
     @Override
     public Object[] getParameters() {

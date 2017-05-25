@@ -27,6 +27,8 @@ public final class LT extends Instruction {
 
     private static final long serialVersionUID = -3923389719742934857L;
 
+    public static final Instruction INSTANCE = new LT();
+
     private LT() {
     }
 
@@ -39,8 +41,6 @@ public final class LT extends Instruction {
                 compareTo(vals[0]) > 0);
         return 1;
     }
-
-    public static final Instruction INSTANCE = new LT();
 
     @Override
     public Object[] getParameters() {

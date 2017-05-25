@@ -30,6 +30,8 @@ public final class MOD extends Instruction {
 
     private static final long serialVersionUID = -8318761232689949542L;
 
+    public static final Instruction INSTANCE = new MOD();
+
     private MOD() {
     }
 
@@ -41,8 +43,6 @@ public final class MOD extends Instruction {
         context.push(Operators.apply(Operator.Enum.Mod, vals[0], vals[1]));
         return 1;
     }
-
-    public static final Instruction INSTANCE = new MOD();
 
     @Override
     public Object[] getParameters() {

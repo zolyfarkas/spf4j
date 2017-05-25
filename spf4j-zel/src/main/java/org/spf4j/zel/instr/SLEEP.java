@@ -35,6 +35,8 @@ public final class SLEEP extends Instruction {
 
     private static final long serialVersionUID = -104479947741779060L;
 
+    public static final Instruction INSTANCE = new SLEEP();
+
     private SLEEP() {
     }
 
@@ -57,8 +59,6 @@ public final class SLEEP extends Instruction {
         return 1;
 
     }
-
-    public static final Instruction INSTANCE = new SLEEP();
 
     @Override
     public Object[] getParameters() {

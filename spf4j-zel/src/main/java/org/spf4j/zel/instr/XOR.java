@@ -32,6 +32,8 @@ public final class XOR extends Instruction {
 
     private static final long serialVersionUID = 173371262128951181L;
 
+    public static final Instruction INSTANCE = new XOR();
+
     private XOR() {
     }
 
@@ -45,8 +47,6 @@ public final class XOR extends Instruction {
         context.push(v1 ^ v2);
         return 1;
     }
-
-    public static final Instruction INSTANCE = new XOR();
 
     @Override
     public Object[] getParameters() {

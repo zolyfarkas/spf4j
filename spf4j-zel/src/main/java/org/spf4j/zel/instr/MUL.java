@@ -30,6 +30,8 @@ public final class MUL extends Instruction {
 
     private static final long serialVersionUID = -872688683600090372L;
 
+    public static final Instruction INSTANCE = new MUL();
+
     private MUL() {
     }
 
@@ -42,8 +44,6 @@ public final class MUL extends Instruction {
         context.push(Operators.apply(Operator.Enum.Mul, vals[0], vals[1]));
         return 1;
     }
-
-    public static final Instruction INSTANCE = new MUL();
 
     @Override
     public Object[] getParameters() {

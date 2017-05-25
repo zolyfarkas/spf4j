@@ -28,6 +28,8 @@ public final class EQ extends Instruction {
 
     private static final long serialVersionUID = 3636486821507786259L;
 
+    public static final Instruction INSTANCE = new EQ();
+
     private EQ() {
     }
 
@@ -38,8 +40,6 @@ public final class EQ extends Instruction {
         context.push(Objects.equal(vals[0], vals[1]));
         return 1;
     }
-
-    public static final Instruction INSTANCE = new EQ();
 
     @Override
     public Object[] getParameters() {

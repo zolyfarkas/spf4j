@@ -30,6 +30,8 @@ public final class SYNC extends Instruction {
 
     private static final long serialVersionUID = -5165232100964035429L;
 
+    public static final Instruction INSTANCE = new SYNC();
+
     private SYNC() {
     }
 
@@ -38,8 +40,6 @@ public final class SYNC extends Instruction {
             context.syncStackVal();
             return 1;
     }
-
-    public static final Instruction INSTANCE = new SYNC();
 
     @Override
     public Object[] getParameters() {

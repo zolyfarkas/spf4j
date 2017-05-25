@@ -27,6 +27,8 @@ public final class GE extends Instruction {
 
     private static final long serialVersionUID = 3547837369204585282L;
 
+    public static final Instruction INSTANCE = new GE();
+
     private GE() {
     }
 
@@ -38,8 +40,6 @@ public final class GE extends Instruction {
                 compareTo(vals[1]) >= 0);
         return 1;
     }
-
-    public static final Instruction INSTANCE = new GE();
 
     @Override
     public Object[] getParameters() {

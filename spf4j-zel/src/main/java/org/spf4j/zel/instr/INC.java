@@ -30,6 +30,9 @@ public final class INC extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
 
+    public static final Instruction INSTANCE = new INC();
+
+
     private INC() {
     }
 
@@ -48,10 +51,6 @@ public final class INC extends Instruction {
         }
         return 1;
     }
-    /**
-     * Add instance
-     */
-    public static final Instruction INSTANCE = new INC();
 
     @Override
     public Object[] getParameters() {

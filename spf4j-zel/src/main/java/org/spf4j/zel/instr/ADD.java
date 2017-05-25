@@ -29,6 +29,8 @@ public final class ADD extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
 
+    public static final Instruction INSTANCE = new ADD();
+
     private ADD() {
     }
 
@@ -40,8 +42,6 @@ public final class ADD extends Instruction {
         context.push(Operators.apply(Operator.Enum.Add, vals[0], vals[1]));
         return 1;
     }
-
-    public static final Instruction INSTANCE = new ADD();
 
     @Override
     public Object[] getParameters() {

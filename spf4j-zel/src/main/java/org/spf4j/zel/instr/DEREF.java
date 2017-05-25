@@ -29,9 +29,10 @@ public final class DEREF extends Instruction {
 
     private static final long serialVersionUID = 1L;
 
+    public static final Instruction INSTANCE = new DEREF();
+
     private DEREF() {
     }
-
 
     @Override
     public int execute(final ExecutionContext context)
@@ -67,8 +68,6 @@ public final class DEREF extends Instruction {
             context.push(new JavaMethodCall(relativeTo, (String) ref));
         }
     }
-
-    public static final Instruction INSTANCE = new DEREF();
 
     @Override
     public Object[] getParameters() {

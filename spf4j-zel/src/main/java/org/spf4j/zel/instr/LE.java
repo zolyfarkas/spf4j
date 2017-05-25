@@ -29,6 +29,8 @@ public final class LE extends Instruction {
 
     private static final long serialVersionUID = -3993717987392417186L;
 
+    public static final Instruction INSTANCE = new LE();
+
     @Override
     public int execute(final ExecutionContext context)
             throws SuspendedException, ExecutionException {
@@ -38,8 +40,6 @@ public final class LE extends Instruction {
                 compareTo(vals[0]) >= 0);
         return 1;
     }
-
-    public static final Instruction INSTANCE = new LE();
 
     @Override
     public Object[] getParameters() {

@@ -24,6 +24,8 @@ public final class NOP extends Instruction {
 
     private static final long serialVersionUID = -5452813246760275419L;
 
+    public static final Instruction INSTANCE = new NOP();
+
     private NOP() {
     }
 
@@ -35,8 +37,6 @@ public final class NOP extends Instruction {
         // Do nothing, guaranteed no bugs
         return 1;
     }
-
-    public static final Instruction INSTANCE = new NOP();
 
     @Override
     public Object[] getParameters() {

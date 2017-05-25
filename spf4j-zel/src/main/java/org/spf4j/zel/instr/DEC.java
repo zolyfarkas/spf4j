@@ -29,6 +29,8 @@ public final class DEC extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
 
+    public static final Instruction INSTANCE = new DEC();
+
     private DEC() {
     }
 
@@ -48,8 +50,6 @@ public final class DEC extends Instruction {
         }
         return 1;
     }
-
-    public static final Instruction INSTANCE = new DEC();
 
     @Override
     public Object[] getParameters() {

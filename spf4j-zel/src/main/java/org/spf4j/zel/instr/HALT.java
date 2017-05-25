@@ -28,6 +28,8 @@ public final class HALT extends Instruction {
 
     private static final long serialVersionUID = 569446978264434892L;
 
+    public static final Instruction INSTANCE = new HALT();
+
     private HALT() {
     }
 
@@ -36,8 +38,6 @@ public final class HALT extends Instruction {
         context.terminate();
         return 0;
     }
-
-    public static final Instruction INSTANCE = new HALT();
 
     @Override
     public Object[] getParameters() {

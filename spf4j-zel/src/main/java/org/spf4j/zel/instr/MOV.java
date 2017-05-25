@@ -28,6 +28,8 @@ public final class MOV extends Instruction {
 
     private static final long serialVersionUID = -7101682855885757988L;
 
+    public static final Instruction INSTANCE = new MOV();
+
     private MOV() {
     }
 
@@ -46,8 +48,6 @@ public final class MOV extends Instruction {
         }
         return 1;
     }
-
-    public static final Instruction INSTANCE = new MOV();
 
     @Override
     public Object[] getParameters() {

@@ -26,11 +26,11 @@ public final class FJMP extends Instruction {
 
     private static final long serialVersionUID = 584597000187469774L;
 
+    private final int relAddr;
+
     public FJMP(final int relAddr) {
         this.relAddr = relAddr;
     }
-
-    private final int relAddr;
 
     @Override
     public int execute(final ExecutionContext context)

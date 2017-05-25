@@ -28,6 +28,8 @@ public final class NEQ extends Instruction {
 
     private static final long serialVersionUID = -2608208783491820358L;
 
+    public static final Instruction INSTANCE = new NEQ();
+
     private NEQ() {
     }
 
@@ -39,8 +41,6 @@ public final class NEQ extends Instruction {
         context.push(!Objects.equal(vals[0], vals[1]));
         return 1;
     }
-
-    public static final Instruction INSTANCE = new NEQ();
 
     @Override
     public Object[] getParameters() {
