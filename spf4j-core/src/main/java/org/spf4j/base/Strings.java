@@ -192,8 +192,6 @@ public final class Strings {
         } catch (NoSuchFieldException ex) {
           LOG.info("char array stealing from String not supported", ex);
           charsField = null;
-        } catch (SecurityException ex) {
-          throw new RuntimeException(ex);
         }
         return charsField;
       }
@@ -227,12 +225,7 @@ public final class Strings {
             ex2.addSuppressed(ex);
             LOG.info("building String from char[] fast not supported", ex2);
             constr = null;
-          } catch (SecurityException ex2) {
-            ex2.addSuppressed(ex);
-            throw new RuntimeException(ex2);
           }
-        } catch (SecurityException ex) {
-          throw new RuntimeException(ex);
         }
         return constr;
       }
