@@ -19,7 +19,6 @@ package org.spf4j.base;
 
 import org.junit.Assert;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -29,11 +28,11 @@ public final class StringsTest {
 
     @Test
     public void testDistance() {
-        assertEquals(3, Strings.distance("abc", "abcdef"));
-        assertEquals(3, Strings.distance("def", "abcdef"));
-        assertEquals(1, Strings.distance("abc", "bc"));
-        assertEquals(3, Strings.distance("abc", "def"));
-        assertEquals(1, Strings.distance("zoltran", "zoltan"));
+        Assert.assertEquals(3, Strings.distance("abc", "abcdef"));
+        Assert.assertEquals(3, Strings.distance("def", "abcdef"));
+        Assert.assertEquals(1, Strings.distance("abc", "bc"));
+        Assert.assertEquals(3, Strings.distance("abc", "def"));
+        Assert.assertEquals(1, Strings.distance("zoltran", "zoltan"));
     }
 
     @Test
@@ -58,7 +57,7 @@ public final class StringsTest {
     @Test
     public void testSubSequence() {
         String str = "dsfhjgsdjfgwuergfedhgfjhwheriufwiueruhfguyerugfweuyrygfwueyrghfuwoeruhgfdgwsjhfg";
-        assertEquals(0, CharSequences.compare(str, 3, 12, str, 3, 12));
+        Assert.assertEquals(0, CharSequences.compare(str, 3, 12, str, 3, 12));
         Assert.assertTrue(Strings.equals(str.subSequence(15, 15), Strings.subSequence(str, 15, 15)));
         Assert.assertTrue(Strings.equals(str.subSequence(0, str.length()), Strings.subSequence(str, 0, str.length())));
         Assert.assertEquals(str.subSequence(3, 15).toString(), Strings.subSequence(str, 3, 15).toString());
