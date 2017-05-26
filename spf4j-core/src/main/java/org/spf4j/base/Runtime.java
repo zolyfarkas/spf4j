@@ -52,8 +52,6 @@ import javax.annotation.Nullable;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.spf4j.base.Runtime.Lsof.LSOF;
-import static org.spf4j.base.Runtime.Lsof.LSOF_CMD;
 import org.spf4j.concurrent.Futures;
 import org.spf4j.io.AppendableOutputStream;
 import org.spf4j.io.ByteArrayBuilder;
@@ -404,7 +402,7 @@ public final class Runtime {
           return -1;
         }
         LineCountCharHandler handler = new LineCountCharHandler();
-        run(LSOF_CMD, handler, 60000);
+        run(Lsof.LSOF_CMD, handler, 60000);
         return handler.getLineCount() - 1;
       } else {
         if (Files.isDirectory(FD_FOLDER)) {
@@ -441,11 +439,11 @@ public final class Runtime {
     @Nullable
     @CheckReturnValue
     public static CharSequence getLsofOutput() {
-        if (LSOF == null) {
+        if (Lsof.LSOF == null) {
             return null;
         }
       try {
-        return run(LSOF_CMD, 60000);
+        return run(Lsof.LSOF_CMD, 60000);
       } catch (IOException | ExecutionException | TimeoutException ex) {
          Lazy.LOGGER.warn("Unable to run lsof", ex);
          return null;

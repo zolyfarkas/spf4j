@@ -95,7 +95,7 @@ public final class CharSequences {
   public static int compare(@Nonnull final CharSequence s, final int sFrom, final int sLength,
           @Nonnull final CharSequence t, final int tFrom, final int tLength) {
 
-    int lim = Math.min(sLength, tLength);
+    int lim = min(sLength, tLength);
     int i = sFrom, j = tFrom;
     int sTo = sFrom + lim;
     while (i < sTo) {

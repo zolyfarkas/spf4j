@@ -53,7 +53,7 @@ public final class OpenFilesSampler {
   private static volatile CharSequence lastWarnLsof = "";
 
   static {
-    org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
+    Runtime.queueHook(2, new AbstractRunnable(true) {
       @Override
       public void doRun() {
         stop();
