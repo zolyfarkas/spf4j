@@ -27,7 +27,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.Assert;
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 /**
@@ -51,7 +50,7 @@ public final class ZelTest {
             throws CompileException, ExecutionException, InterruptedException {
         Program prog = Program.compile("// simple expression \n 1+5*4/(1+1)");
         Number result = (Number) prog.execute();
-        assertEquals(11, result.intValue());
+        Assert.assertEquals(11, result.intValue());
     }
 
     @Test
@@ -59,7 +58,7 @@ public final class ZelTest {
             throws CompileException, ExecutionException, InterruptedException {
         Program prog = Program.compile("a.toString().substring(0, 1 + 1)", "a");
         String result = (String) prog.execute(Integer.valueOf(100));
-        assertEquals("100".substring(0, 2), result);
+        Assert.assertEquals("100".substring(0, 2), result);
     }
 
     @Test
@@ -67,7 +66,7 @@ public final class ZelTest {
             throws CompileException, ExecutionException, InterruptedException {
         Program prog = Program.compile("s.format(\"Number %d\", 3)", "s");
         String result = (String) prog.execute(String.class);
-        assertEquals(String.format("Number %d", 3), result);
+        Assert.assertEquals(String.format("Number %d", 3), result);
     }
 
     @Test
@@ -75,7 +74,7 @@ public final class ZelTest {
             throws CompileException, ExecutionException, InterruptedException {
         Program prog = Program.compile("a = a + 1", "a");
         Integer result = (Integer) prog.execute(100);
-        assertEquals(101, result.intValue());
+        Assert.assertEquals(101, result.intValue());
     }
 
     @Test
