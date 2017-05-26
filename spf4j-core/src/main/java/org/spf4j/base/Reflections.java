@@ -86,7 +86,8 @@ public final class Reflections {
   }
 
   /**
-   * Equivalent to Class.getMethod which returns a null instead of throwing an exception.
+   * Equivalent to Class.getDeclaredMethod which returns a null instead of throwing an exception.
+   * returned method is also made accessible.
    *
    * @param c
    * @param methodName
@@ -103,6 +104,13 @@ public final class Reflections {
     for (Method m : c.getDeclaredMethods()) {
       if (m.getName() == internedName
               && Arrays.equals(paramTypes, m.getParameterTypes())) {
+        AccessController.doPrivileged(new PrivilegedAction<Void>() {
+          @Override
+          public Void run() {
+             m.setAccessible(true);
+             return null;
+          }
+        });
         return m;
       }
     }
@@ -110,12 +118,20 @@ public final class Reflections {
   }
 
   /**
-   * Equivalent to Class.getConstructor, only that it does not throw an exception.
+   * Equivalent to Class.getDeclaredConstructor, only that it does not throw an exception if no constructor,
+   * it returns null instead, also makes all constructors accessible..
    */
   @Nullable
   public static Constructor<?> getConstructor(final Class<?> c, final Class<?>... paramTypes) {
     for (Constructor cons : c.getDeclaredConstructors()) {
       if (Arrays.equals(cons.getParameterTypes(), paramTypes)) {
+        AccessController.doPrivileged(new PrivilegedAction<Void>() {
+          @Override
+          public Void run() {
+             cons.setAccessible(true);
+             return null;
+          }
+        });
         return cons;
       }
     }
