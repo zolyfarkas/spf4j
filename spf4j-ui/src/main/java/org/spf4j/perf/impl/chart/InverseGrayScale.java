@@ -22,6 +22,7 @@ import java.awt.Paint;
 import java.io.Serializable;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.util.PublicCloneable;
+import org.spf4j.base.CloneFailedException;
 
 /**
  * A paint scale that returns shades of gray.
@@ -196,7 +197,7 @@ public final class InverseGrayScale
         try {
             return (InverseGrayScale) super.clone();
         } catch (CloneNotSupportedException ex) {
-           throw new RuntimeException(ex);
+           throw new CloneFailedException("Failed cloning " + this,  ex);
         }
     }
 

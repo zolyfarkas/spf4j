@@ -32,10 +32,9 @@ public final class GraphiteUdpStore implements MeasurementStore {
 
   public static final int MAX_UDP_MSG_SIZE = 512;
 
-  @Override
-  public void flush() {
-    // No buffering yet
-  }
+  private final RecyclingSupplier<DatagramChannel> datagramChannelSupplier;
+
+  private final InetSocketAddress address;
 
   private static class DatagramChannelSupplierFactory implements RecyclingSupplier.Factory<DatagramChannel> {
 
@@ -83,10 +82,6 @@ public final class GraphiteUdpStore implements MeasurementStore {
 
   }
 
-  private final RecyclingSupplier<DatagramChannel> datagramChannelSupplier;
-
-  private final InetSocketAddress address;
-
   public GraphiteUdpStore(final String hostPort) throws ObjectCreationException, URISyntaxException {
     this(new URI("graphiteUdp://" + hostPort));
   }
@@ -99,6 +94,11 @@ public final class GraphiteUdpStore implements MeasurementStore {
     address = new InetSocketAddress(hostName, port);
     datagramChannelSupplier = new RecyclingSupplierBuilder<>(1,
             new DatagramChannelSupplierFactory(address)).build();
+  }
+
+  @Override
+  public void flush() {
+    // No buffering yet
   }
 
   @Override

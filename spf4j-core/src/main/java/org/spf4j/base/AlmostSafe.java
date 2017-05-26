@@ -33,24 +33,21 @@ import sun.misc.Unsafe;
 @SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
 public final class AlmostSafe {
 
-    private AlmostSafe() { }
-
     public static final Unsafe USF;
+
+    private AlmostSafe() { }
 
     static {
 
-        USF = AccessController.doPrivileged(new PrivilegedAction<Unsafe>() {
-            @Override
-            public Unsafe run() {
-                try {
-                    Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
-                    theUnsafe.setAccessible(true);
-                    return (Unsafe) theUnsafe.get(null);
-                } catch (IllegalArgumentException | IllegalAccessException
-                        | NoSuchFieldException | SecurityException ex) {
-                    throw new ExceptionInInitializerError(ex);
-                }
-            }
+        USF = AccessController.doPrivileged((PrivilegedAction<Unsafe>) () -> {
+          try {
+            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+            theUnsafe.setAccessible(true);
+            return (Unsafe) theUnsafe.get(null);
+          } catch (IllegalArgumentException | IllegalAccessException
+                  | NoSuchFieldException | SecurityException ex) {
+            throw new ExceptionInInitializerError(ex);
+          }
         });
     }
 

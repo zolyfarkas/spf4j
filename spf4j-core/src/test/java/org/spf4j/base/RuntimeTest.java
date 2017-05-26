@@ -126,12 +126,8 @@ public final class RuntimeTest {
   public static final class TestError2 {
 
     public static void main(final String[] args) {
-      Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-
-        @Override
-        public void uncaughtException(final Thread t, final Throwable e) {
-          Throwables.writeTo(e, System.err, Throwables.Detail.STANDARD);
-        }
+      Thread.setDefaultUncaughtExceptionHandler((final Thread t, final Throwable e) -> {
+        Throwables.writeTo(e, System.err, Throwables.Detail.STANDARD);
       });
       throw new RuntimeException();
     }
@@ -140,20 +136,10 @@ public final class RuntimeTest {
   public static final class TestError3 {
 
     public static void main(final String[] args) {
-      Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-
-        @Override
-        public void uncaughtException(final Thread t, final Throwable e) {
-          Throwables.writeTo(e, System.err, Throwables.Detail.STANDARD);
-        }
+      Thread.setDefaultUncaughtExceptionHandler((final Thread t, final Throwable e) -> {
+        Throwables.writeTo(e, System.err, Throwables.Detail.STANDARD);
       });
-      DefaultScheduler.INSTANCE.scheduleAtFixedRate(new Runnable() {
-
-        @Override
-        public void run() {
-        }
-      }, 10, 10, TimeUnit.MILLISECONDS);
-
+      DefaultScheduler.INSTANCE.scheduleAtFixedRate(AbstractRunnable.NOP, 10, 10, TimeUnit.MILLISECONDS);
       throw new RuntimeException();
     }
   }

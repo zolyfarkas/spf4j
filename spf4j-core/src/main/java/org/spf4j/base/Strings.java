@@ -352,7 +352,7 @@ public final class Strings {
           cr.throwException();
         }
       } catch (CharacterCodingException x) {
-        throw new Error(x);
+        throw new InternalError("Should never throw a CharacterCodingException, probably a JVM issue", x);
       }
       return bb.position();
     }

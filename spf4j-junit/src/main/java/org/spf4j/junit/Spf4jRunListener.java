@@ -3,8 +3,6 @@ package org.spf4j.junit;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
@@ -63,7 +61,7 @@ public final class Spf4jRunListener extends RunListener {
 
   @Override
   public void testFailure(final Failure failure)
-          throws IOException, InterruptedException, ExecutionException, TimeoutException {
+          throws IOException, InterruptedException {
     sampler.stop();
     File dumpToFile = sampler.dumpToFile(new File(destinationFolder, failure.getTestHeader() + ".ssdump2"));
     if (dumpToFile != null) {
@@ -73,7 +71,7 @@ public final class Spf4jRunListener extends RunListener {
 
   @Override
   public void testFinished(final Description description)
-          throws IOException, InterruptedException, ExecutionException, TimeoutException {
+          throws IOException, InterruptedException {
     sampler.stop();
     File dumpToFile = sampler.dumpToFile(new File(destinationFolder, description.getDisplayName() + ".ssdump2"));
     if (dumpToFile != null) {

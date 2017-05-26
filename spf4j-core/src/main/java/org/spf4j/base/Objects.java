@@ -27,7 +27,6 @@ import java.io.Serializable;
 import org.spf4j.io.ByteArrayBuilder;
 
 /**
- *
  * @author zoly
  */
 public final class Objects {
@@ -46,7 +45,7 @@ public final class Objects {
                 return (T) in.readObject();
             }
         } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new CloneFailedException("Failed to clone " + t, e);
         }
     }
 

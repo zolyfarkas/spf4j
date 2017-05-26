@@ -181,7 +181,7 @@ public final class Callables {
       this.maxDelay = maxDelay;
     }
 
-    long nextDelay() {
+    private long nextDelay() {
       if (immediateLeft > 0) {
         immediateLeft--;
         return 0;
