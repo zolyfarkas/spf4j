@@ -65,6 +65,7 @@ public final  class TSDBReader implements Closeable {
     private final SpecificDatumReader<Object> recordReader;
     private RandomAccessFile raf;
     private final File file;
+    private volatile boolean watch;
 
 
     public TSDBReader(final File file, final int bufferSize) throws IOException {
@@ -143,8 +144,6 @@ public final  class TSDBReader implements Closeable {
     public Header getHeader() {
         return header;
     }
-
-    private volatile boolean watch;
 
     public void stopWatching() {
         watch =  false;
