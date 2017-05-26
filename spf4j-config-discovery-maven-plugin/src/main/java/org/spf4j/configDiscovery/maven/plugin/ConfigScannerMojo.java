@@ -48,7 +48,7 @@ public class ConfigScannerMojo
     JAVA2AVROTYPE.put(double.class, "double");
     JAVA2AVROTYPE.put(Map.class, "map<string>");
   }
-  
+
   /**
    * Location of the file.
    */
@@ -197,7 +197,6 @@ public class ConfigScannerMojo
     // do subRecords first.
     for (Map.Entry<String, Object> entry : record.entrySet()) {
       Object value = entry.getValue();
-      String ns;
       if (value instanceof Map) {
         String key = entry.getKey();
         writeRecord(w, childNameSpace(nameSpace, key),
