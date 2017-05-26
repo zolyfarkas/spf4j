@@ -32,6 +32,23 @@ import org.spf4j.base.asm.Scanner;
 public class ConfigScannerMojo
         extends AbstractMojo {
 
+  public static final Map<Class, String> JAVA2AVROTYPE = new HashMap<>();
+
+  static {
+    JAVA2AVROTYPE.put(String.class, "string");
+    JAVA2AVROTYPE.put(Integer.class, "int");
+    JAVA2AVROTYPE.put(int.class, "int");
+    JAVA2AVROTYPE.put(Long.class, "long");
+    JAVA2AVROTYPE.put(long.class, "long");
+    JAVA2AVROTYPE.put(Boolean.class, "boolean");
+    JAVA2AVROTYPE.put(boolean.class, "boolean");
+    JAVA2AVROTYPE.put(Float.class, "float");
+    JAVA2AVROTYPE.put(float.class, "float");
+    JAVA2AVROTYPE.put(Double.class, "double");
+    JAVA2AVROTYPE.put(double.class, "double");
+    JAVA2AVROTYPE.put(Map.class, "map<string>");
+  }
+  
   /**
    * Location of the file.
    */
@@ -167,23 +184,6 @@ public class ConfigScannerMojo
 
       }
     }
-  }
-
-  public static final Map<Class, String> JAVA2AVROTYPE = new HashMap<>();
-
-  static {
-    JAVA2AVROTYPE.put(String.class, "string");
-    JAVA2AVROTYPE.put(Integer.class, "int");
-    JAVA2AVROTYPE.put(int.class, "int");
-    JAVA2AVROTYPE.put(Long.class, "long");
-    JAVA2AVROTYPE.put(long.class, "long");
-    JAVA2AVROTYPE.put(Boolean.class, "boolean");
-    JAVA2AVROTYPE.put(boolean.class, "boolean");
-    JAVA2AVROTYPE.put(Float.class, "float");
-    JAVA2AVROTYPE.put(float.class, "float");
-    JAVA2AVROTYPE.put(Double.class, "double");
-    JAVA2AVROTYPE.put(double.class, "double");
-    JAVA2AVROTYPE.put(Map.class, "map<string>");
   }
 
 

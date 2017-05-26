@@ -84,6 +84,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
   @GuardedBy("HEARTBEATS")
   private static boolean isShuttingdown = false;
 
+  private final List<LifecycleHook> lifecycleHooks;
+
   private final JdbcTemplate jdbc;
 
   private final String insertHeartbeatSql;
@@ -109,6 +111,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
   private ListenableScheduledFuture<?> scheduledHearbeat;
 
   private final long beatDurationNanos;
+
+  private ScheduledHeartBeat heartbeatRunnable;
 
   @Override
   public void close() throws SQLException {
@@ -139,8 +143,6 @@ public final class JdbcHeartBeat implements AutoCloseable {
     void onClose() throws SQLException;
 
   }
-
-  private final List<LifecycleHook> lifecycleHooks;
 
   private JdbcHeartBeat(final DataSource dataSource, final long intervalMillis,
           final int jdbcTimeoutSeconds) throws InterruptedException {
@@ -235,7 +237,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
     }
   }
 
-  void removeHeartBeatRow(final int timeoutSeconds)
+  private void removeHeartBeatRow(final int timeoutSeconds)
           throws SQLException {
     jdbc.transactOnConnectionNonInterrupt((final Connection conn, final long deadlineNanos) -> {
       try (PreparedStatement stmt = conn.prepareStatement(deleteHeartBeatSql)) {
@@ -260,8 +262,6 @@ public final class JdbcHeartBeat implements AutoCloseable {
       }
     });
   }
-
-  private ScheduledHeartBeat heartbeatRunnable;
 
   private ScheduledHeartBeat getHeartBeatRunnable() {
     if (heartbeatRunnable == null) {
