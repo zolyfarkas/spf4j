@@ -83,8 +83,8 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
             writeHolderInfo();
         } catch (IOException ex) {
             unlockInternal();
-            throw new RuntimeException(ex);
-        } catch (RuntimeException ex) {
+            throw new LockIOException(ex);
+        } catch (Throwable ex) {
             unlockInternal();
             throw ex;
         }
@@ -96,7 +96,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
         if (reentranceCount == 0) {
             owner = null;
         } else if (reentranceCount < 0) {
-            throw new RuntimeException("Not owner of this lock " + this);
+            throw new UnsupportedOperationException("Not owner of this lock " + this);
         }
     }
 
@@ -128,7 +128,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
             throw ex;
         } catch (IOException ex) {
             unlockInternal();
-            throw new RuntimeException(ex);
+            throw new LockIOException(ex);
         }
     }
 
@@ -154,7 +154,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
                 }
             } catch (IOException ex) {
                 unlockInternal();
-                throw new RuntimeException(ex);
+                throw new LockIOException(ex);
             } catch (RuntimeException ex) {
                 unlockInternal();
                 throw ex;
@@ -201,7 +201,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
                 throw ex;
             } catch (IOException ex) {
                 unlockInternal();
-                throw new RuntimeException(ex);
+                throw new LockIOException(ex);
             }
         } else {
             return false;
