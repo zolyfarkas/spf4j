@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
-import org.spf4j.base.Handler;
 import org.spf4j.ssdump2.avro.ASample;
 import org.spf4j.base.Method;
 import org.spf4j.stackmonitor.SampleNode;

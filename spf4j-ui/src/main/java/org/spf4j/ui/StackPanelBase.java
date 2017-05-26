@@ -46,7 +46,6 @@ import org.spf4j.ds.RTree;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
- *
  * @author zoly
  */
 public abstract class StackPanelBase extends JPanel
@@ -90,8 +89,8 @@ public abstract class StackPanelBase extends JPanel
     }
 
 
-        // disable finbugs since I don't care about internationalization for now.
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings
+    // disable finbugs since I don't care about internationalization for now.
+    @SuppressFBWarnings("S508C_NON_TRANSLATABLE_STRING")
     private static JPopupMenu buildPopupMenu(final ActionListener listener) {
         JPopupMenu result = new JPopupMenu("Actions");
         JMenuItem filter = new JMenuItem("Filter");
