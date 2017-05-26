@@ -400,7 +400,7 @@ public final class Program implements Serializable {
    * @throws Exception
    * @return Object
    */
-  public static Object getValue(@Nonnull final java.util.Map mem, @Nonnull final String name)
+  public static Object getValue(@Nonnull final Map mem, @Nonnull final String name)
           throws CompileException, InterruptedException, ExecutionException {
     return Program.compile(name + ';').execute(mem);
   }
@@ -413,7 +413,7 @@ public final class Program implements Serializable {
    * @param value Object
    * @throws java.lang.InterruptedException
    */
-  public static void addValue(@Nonnull final java.util.Map mem, @Nonnull final String name,
+  public static void addValue(@Nonnull final Map mem, @Nonnull final String name,
           final Object value)
           throws CompileException, InterruptedException, ExecutionException {
     Program.compile(name + '=' + value + ';').execute(mem);
@@ -439,7 +439,7 @@ public final class Program implements Serializable {
       return "";
     }
     StringBuilder result = new StringBuilder();
-    if (mem instanceof java.util.Map) {
+    if (mem instanceof Map) {
       org.spf4j.base.Strings.appendSpaces(result, indent);
       result.append(name).append('\n');
       for (Map.Entry<Object, Object> elem : ((Map<Object, Object>) mem).entrySet()) {

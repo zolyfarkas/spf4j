@@ -22,8 +22,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -46,7 +44,7 @@ public final class SsdumpTest {
     }
 
     @Test
-    public void testProto() throws InterruptedException, IOException, ExecutionException, TimeoutException  {
+    public void testProto() throws InterruptedException, IOException  {
 
         Sampler sampler = new Sampler(1);
         sampler.registerJmx();

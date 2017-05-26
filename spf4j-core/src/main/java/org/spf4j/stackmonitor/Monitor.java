@@ -20,8 +20,6 @@ package org.spf4j.stackmonitor;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
@@ -102,7 +100,7 @@ public final class Monitor {
         Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable() {
 
             @Override
-            public void doRun() throws InterruptedException, IOException, ExecutionException, TimeoutException {
+            public void doRun() throws InterruptedException, IOException {
                 sampler.stop();
                 sampler.dumpToFile();
                 sampler.dispose();

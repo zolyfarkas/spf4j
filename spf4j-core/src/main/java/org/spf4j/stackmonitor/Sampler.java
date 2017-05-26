@@ -62,7 +62,7 @@ public final class Sampler {
   };
 
   private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();
- 
+
   private volatile boolean stopped;
   private volatile int sampleTimeMillis;
   private volatile int dumpTimeMillis;
@@ -70,8 +70,11 @@ public final class Sampler {
   private volatile long lastDumpTime = System.currentTimeMillis();
 
   @GuardedBy("this")
-  private Future<?> samplingThread;
+  private Future<?> samplerFuture;
+
   private final String filePrefix;
+
+  private final IntMath.XorShift32 random = new IntMath.XorShift32();
 
   @Override
   public String toString() {
@@ -114,15 +117,13 @@ public final class Sampler {
     Registry.export(this);
   }
 
-  private final IntMath.XorShift32 random = new IntMath.XorShift32();
-
   @JmxExport(description = "start stack sampling")
   public synchronized void start() {
     if (stopped) {
       stopped = false;
       final int stMillis = sampleTimeMillis;
       final List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
-      samplingThread = DefaultExecutor.INSTANCE.submit(new AbstractRunnable("SPF4J-Sampling-Thread") {
+      samplerFuture = DefaultExecutor.INSTANCE.submit(new AbstractRunnable("SPF4J-Sampling-Thread") {
 
         @SuppressWarnings("SleepWhileInLoop")
         @SuppressFBWarnings("MDM_THREAD_YIELD")
@@ -216,14 +217,16 @@ public final class Sampler {
   }
 
   @JmxExport(description = "stop stack sampling")
-  public synchronized void stop() throws InterruptedException, ExecutionException, TimeoutException {
+  public synchronized void stop() throws InterruptedException {
     if (!stopped) {
       stopped = true;
       try {
-        samplingThread.get(STOP_FLAG_READ_MILLIS << 2, TimeUnit.MILLISECONDS);
+        samplerFuture.get(STOP_FLAG_READ_MILLIS << 2, TimeUnit.MILLISECONDS);
       } catch (TimeoutException ex) {
-        samplingThread.cancel(true);
-        throw ex;
+        samplerFuture.cancel(true);
+        throw new SamplerException(ex);
+      } catch (ExecutionException ex) {
+        throw new SamplerException(ex);
       }
     }
   }
@@ -253,7 +256,7 @@ public final class Sampler {
   }
 
   @PreDestroy
-  public void dispose() throws InterruptedException, ExecutionException, TimeoutException {
+  public void dispose() throws InterruptedException {
     stop();
     Registry.unregister(this);
   }

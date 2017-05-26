@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import org.openjdk.jmh.infra.BenchmarkParams;
 import org.openjdk.jmh.infra.IterationParams;
 import org.openjdk.jmh.profile.InternalProfiler;
@@ -77,8 +75,6 @@ public final class JmhProfiler implements InternalProfiler {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             return null;
-        } catch (ExecutionException | TimeoutException ex) {
-            throw new RuntimeException(ex);
         }
         SampleNode collected = SAMPLER.getStackCollector().clear();
         try {

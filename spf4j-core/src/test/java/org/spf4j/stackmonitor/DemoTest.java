@@ -23,8 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -44,7 +42,7 @@ public final class DemoTest {
     }
 
     @Test
-    public void testJmx() throws InterruptedException, IOException, ExecutionException, TimeoutException {
+    public void testJmx() throws InterruptedException, IOException {
         Sampler sampler = new Sampler(new SimpleStackCollector());
         sampler.registerJmx();
         sampler.start();

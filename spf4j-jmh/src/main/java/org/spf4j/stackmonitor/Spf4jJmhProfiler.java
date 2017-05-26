@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;
 import org.openjdk.jmh.infra.BenchmarkParams;
@@ -88,8 +86,6 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
       return null;
-    } catch (ExecutionException | TimeoutException ex) {
-      throw new RuntimeException(ex);
     }
     SampleNode collected = SAMPLER.getStackCollector().clear();
     String iterationId;

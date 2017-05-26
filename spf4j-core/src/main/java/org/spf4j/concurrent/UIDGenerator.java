@@ -26,7 +26,6 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Strings;
-import static org.spf4j.base.Strings.appendUnsignedString;
 
 /**
  * Unique ID Generator Based on the assumptions:
@@ -61,7 +60,7 @@ public final class UIDGenerator implements Supplier<CharSequence> {
     public UIDGenerator(final Sequence sequence, final String prefix, final long customEpoch) {
         this(sequence, BaseEncoding.base64Url(), customEpoch, '.', prefix);
     }
-    
+
     /**
      * Construct a UID Generator
      * @param sequence
@@ -92,9 +91,9 @@ public final class UIDGenerator implements Supplier<CharSequence> {
             }
             sb.append(baseEncoding.encode(intfMac)).append(separator);
         }
-        appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);
+        Strings.appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);
         sb.append(separator);
-        appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);
+        Strings.appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);
         sb.append(separator);
         base = sb;
         maxSize = base.length() + 16;

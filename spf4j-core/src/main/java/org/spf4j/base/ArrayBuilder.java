@@ -27,7 +27,7 @@ public final class ArrayBuilder<T> {
   }
 
   public void clear() {
-    java.util.Arrays.fill(array, 0, size, null);
+    Arrays.fill(array, 0, size, null);
     size = 0;
   }
 
@@ -49,7 +49,7 @@ public final class ArrayBuilder<T> {
       }
       newCapacity = Integer.MAX_VALUE;
     }
-    array = java.util.Arrays.copyOf(array, newCapacity);
+    array = Arrays.copyOf(array, newCapacity);
   }
 
   @SuppressFBWarnings("EI_EXPOSE_REP")
