@@ -44,6 +44,7 @@ import org.apache.avro.specific.SpecificDatumReader;
 import org.spf4j.base.Either;
 import org.spf4j.base.Handler;
 import org.spf4j.concurrent.DefaultExecutor;
+import org.spf4j.io.MemorizingBufferedInputStream;
 import org.spf4j.tsdb2.avro.DataBlock;
 import org.spf4j.tsdb2.avro.Header;
 import org.spf4j.tsdb2.avro.TableDef;
@@ -68,7 +69,7 @@ public final  class TSDBReader implements Closeable {
 
     public TSDBReader(final File file, final int bufferSize) throws IOException {
         this.file = file;
-        final InputStream fis = Files.newInputStream(file.toPath());
+        final InputStream fis = new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()), bufferSize);
         bis = new CountingInputStream(fis);
         SpecificDatumReader<Header> reader = new SpecificDatumReader<>(Header.getClassSchema());
         decoder = DecoderFactory.get().directBinaryDecoder(bis, null);
