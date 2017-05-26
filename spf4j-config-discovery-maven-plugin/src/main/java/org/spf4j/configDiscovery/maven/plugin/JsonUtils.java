@@ -9,6 +9,26 @@ import javax.annotation.Nonnull;
  */
 public final class JsonUtils {
 
+  private static final ThreadLocal<char[]> BUFF = new ThreadLocal<char[]>() {
+
+    @Override
+    @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+    protected char[] initialValue() {
+      return new char[64];
+    }
+
+  };
+
+  private static final char[] DIGITS = {
+    '0', '1', '2', '3', '4', '5',
+    '6', '7', '8', '9', 'a', 'b',
+    'c', 'd', 'e', 'f', 'g', 'h',
+    'i', 'j', 'k', 'l', 'm', 'n',
+    'o', 'p', 'q', 'r', 's', 't',
+    'u', 'v', 'w', 'x', 'y', 'z'
+  };
+
+
   private JsonUtils() {
   }
 
@@ -82,24 +102,5 @@ public final class JsonUtils {
     }
     sb.append(buf, charPos, nrChars);
   }
-
-  private static final ThreadLocal<char[]> BUFF = new ThreadLocal<char[]>() {
-
-    @Override
-    @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
-    protected char[] initialValue() {
-      return new char[64];
-    }
-
-  };
-
-  private static final char[] DIGITS = {
-    '0', '1', '2', '3', '4', '5',
-    '6', '7', '8', '9', 'a', 'b',
-    'c', 'd', 'e', 'f', 'g', 'h',
-    'i', 'j', 'k', 'l', 'm', 'n',
-    'o', 'p', 'q', 'r', 's', 't',
-    'u', 'v', 'w', 'x', 'y', 'z'
-  };
 
 }

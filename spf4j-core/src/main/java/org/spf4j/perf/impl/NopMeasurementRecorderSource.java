@@ -29,7 +29,7 @@ import org.spf4j.perf.MeasurementRecorderSource;
 
 public final class NopMeasurementRecorderSource implements MeasurementRecorderSource {
     private NopMeasurementRecorderSource() { }
-    
+
     public static final NopMeasurementRecorderSource INSTANCE = new NopMeasurementRecorderSource();
 
     @Override
@@ -39,6 +39,7 @@ public final class NopMeasurementRecorderSource implements MeasurementRecorderSo
 
     @Override
     public void close() {
+      //nothing to close for NOP
     }
-    
+
 }

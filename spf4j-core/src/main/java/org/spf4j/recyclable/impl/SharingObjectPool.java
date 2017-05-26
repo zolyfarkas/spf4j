@@ -24,7 +24,7 @@ import org.spf4j.recyclable.RecyclingSupplier;
 public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
 
   private static final Logger LOG = LoggerFactory.getLogger(SharingObjectPool.class);
-  
+
   private static final Comparator<SharedObject<?>> SH_COMP = new Comparator<SharedObject<?>>() {
 
     @Override
@@ -35,6 +35,14 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
   };
 
   private final Factory<T> factory;
+
+  private final UpdateablePriorityQueue<SharedObject<T>> pooledObjects;
+  private final Map<T, UpdateablePriorityQueue<SharedObject<T>>.ElementRef> o2QueueRefMap;
+
+  private int nrObjects;
+  private final int maxSize;
+  private boolean closed;
+  private final boolean asyncValidate;
 
   public static final class SharedObject<T> {
 
@@ -73,15 +81,6 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
     }
 
   }
-
-
-  private final UpdateablePriorityQueue<SharedObject<T>> pooledObjects;
-  private final Map<T, UpdateablePriorityQueue<SharedObject<T>>.ElementRef> o2QueueRefMap;
-
-  private int nrObjects;
-  private final int maxSize;
-  private boolean closed;
-  private final boolean asyncValidate;
 
   public SharingObjectPool(final Factory<T> factory, final int coreSize, final int maxSize)
           throws ObjectCreationException {
