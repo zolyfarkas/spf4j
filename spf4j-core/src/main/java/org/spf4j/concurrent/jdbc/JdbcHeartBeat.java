@@ -33,7 +33,6 @@ import java.time.ZonedDateTime;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
@@ -46,7 +45,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.base.HandlerNano;
 import org.spf4j.base.Iterables;
 import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.DefaultExecutor;
@@ -145,12 +143,12 @@ public final class JdbcHeartBeat implements AutoCloseable {
   }
 
   private JdbcHeartBeat(final DataSource dataSource, final long intervalMillis,
-          final int jdbcTimeoutSeconds) throws InterruptedException {
+          final int jdbcTimeoutSeconds) throws InterruptedException, SQLException {
     this(dataSource, HeartBeatTableDesc.DEFAULT, intervalMillis, jdbcTimeoutSeconds);
   }
 
   private JdbcHeartBeat(final DataSource dataSource, final HeartBeatTableDesc hbTableDesc, final long intervalMillis,
-          final int jdbcTimeoutSeconds) throws InterruptedException {
+          final int jdbcTimeoutSeconds) throws InterruptedException, SQLException {
     if (intervalMillis < 1000) {
       throw new IllegalArgumentException("The heartbeat interval should be at least 1s and not "
               + intervalMillis + " ms");
@@ -204,8 +202,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
     lifecycleHooks.remove(hook);
   }
 
-  void createHeartbeatRow() throws InterruptedException {
-    try {
+  private void createHeartbeatRow() throws InterruptedException, SQLException {
       jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
 
         try (PreparedStatement insert = conn.prepareStatement(insertHeartbeatSql)) {
@@ -216,9 +213,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
         }
         return null;
       }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-    } catch (SQLException ex) {
-      throw new RuntimeException(ex);
-    }
+
   }
 
   @JmxExport(description = "Remove all dead hearbeat rows")
@@ -255,12 +250,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   @JmxExport(description = "Remove all dead hearbeat rows async")
   public Future<Integer> removeDeadHeartBeatRowsAsync(final int timeoutSeconds) {
-    return DefaultExecutor.INSTANCE.submit(new Callable<Integer>() {
-      @Override
-      public Integer call() throws SQLException, InterruptedException {
-        return removeDeadHeartBeatRows(timeoutSeconds);
-      }
-    });
+    return DefaultExecutor.INSTANCE.submit(() -> removeDeadHeartBeatRows(timeoutSeconds));
   }
 
   private ScheduledHeartBeat getHeartBeatRunnable() {
@@ -315,13 +305,9 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   @JmxExport
   public void beat() throws SQLException, InterruptedException {
-    jdbc.transactOnConnection(new HandlerNano<Connection, Void, SQLException>() {
-      @Override
-      @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
-      public Void handle(final Connection conn, final long deadlineNanos) {
-        beat(conn, deadlineNanos);
-        return null;
-      }
+    jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
+      beat(conn, deadlineNanos);
+      return null;
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
     lastRun = System.currentTimeMillis();
   }
@@ -362,23 +348,19 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   @JmxExport(description = "The last run time recorded in the DB by this process")
   public long getLastRunDB() throws SQLException, InterruptedException {
-    return jdbc.transactOnConnection(new HandlerNano<Connection, Long, SQLException>() {
-      @Override
-      @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
-      public Long handle(final Connection conn, final long deadlineNanos) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(selectLastRunSql)) {
-          stmt.setQueryTimeout(10);
-          stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
-          try (ResultSet rs = stmt.executeQuery()) {
+    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
+      try (PreparedStatement stmt = conn.prepareStatement(selectLastRunSql)) {
+        stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
+        stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
+        try (ResultSet rs = stmt.executeQuery()) {
+          if (rs.next()) {
+            long result = rs.getLong(1);
             if (rs.next()) {
-              long result = rs.getLong(1);
-              if (rs.next()) {
-                throw new IllegalStateException("Multible beats for same owner " + org.spf4j.base.Runtime.PROCESS_ID);
-              }
-              return result;
-            } else {
-              return 0L;
+              throw new IllegalStateException("Multible beats for same owner " + org.spf4j.base.Runtime.PROCESS_ID);
             }
+            return result;
+          } else {
+            return 0L;
           }
         }
       }
@@ -409,13 +391,14 @@ public final class JdbcHeartBeat implements AutoCloseable {
    */
   public static JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
           final HeartBeatTableDesc hbTableDesc,
-          @Nullable final LifecycleHook hook) throws InterruptedException {
+          @Nullable final LifecycleHook hook) throws InterruptedException, SQLException {
     return getHeartBeatAndSubscribe(dataSource, hbTableDesc, hook, HEARTBEAT_INTERVAL_MILLIS);
   }
 
   public static JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
           final HeartBeatTableDesc hbTableDesc,
-          @Nullable final LifecycleHook hook, final int heartBeatIntevalMillis) throws InterruptedException {
+          @Nullable final LifecycleHook hook, final int heartBeatIntevalMillis)
+          throws InterruptedException, SQLException {
     JdbcHeartBeat beat;
     synchronized (HEARTBEATS) {
       if (isShuttingdown) {

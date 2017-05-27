@@ -1,6 +1,7 @@
 package org.spf4j.concurrent.jdbc;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.h2.jdbcx.JdbcDataSource;
@@ -16,7 +17,7 @@ public class BadSemaphoreHandler {
     System.setProperty("spf4j.heartbeat.intervalMillis", "2000"); // 2 second heartbeat
   }
 
-  public static void main(final String[] args) throws InterruptedException, TimeoutException {
+  public static void main(final String[] args) throws InterruptedException, TimeoutException, SQLException {
 
     String connectionString = args[0];
     String semaphoreName = args[1];

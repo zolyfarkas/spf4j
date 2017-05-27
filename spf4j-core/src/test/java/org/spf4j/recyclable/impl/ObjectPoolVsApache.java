@@ -48,7 +48,7 @@ public final class ObjectPoolVsApache {
         System.out.println("poolUse");
         final RecyclingSupplier<ExpensiveTestObject> pool
                 = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory(1000, 100, 0, 1)).build();
-        final org.apache.commons.pool.impl.GenericObjectPool apool
+        final GenericObjectPool apool
                 = new GenericObjectPool(new ExpensiveTestObjectFactoryApache(1000, 10, 0, 1), 10);
         ExecutorService execService = Executors.newFixedThreadPool(10);
         BlockingQueue<Future<?>> completionQueue = new LinkedBlockingDeque<>();
@@ -83,7 +83,7 @@ public final class ObjectPoolVsApache {
 
 
     private long testPoolApache(final RetryExecutor exec,
-            final org.apache.commons.pool.impl.GenericObjectPool pool,
+            final GenericObjectPool pool,
             final BlockingQueue<Future<?>> completionQueue) throws InterruptedException, ExecutionException {
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < TEST_TASKS; i++) {

@@ -1204,7 +1204,6 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
             boolean cleanSweep = true;
             if (mcsum != 0) {
                 for (int i = 0; i < segments.length; ++i) {
-                    int c = segments[i].count;
                     if (mc[i] != segments[i].modCount) {
                         cleanSweep = false;
                         break;

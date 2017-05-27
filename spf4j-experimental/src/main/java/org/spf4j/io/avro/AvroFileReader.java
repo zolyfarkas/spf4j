@@ -68,7 +68,7 @@ public final class AvroFileReader<T extends IndexedRecord> implements Closeable 
           throws IOException {
     this.file = file;
     final FileInputStream fis = new FileInputStream(file);
-    bis = new MemorizingBufferedInputStream(fis);
+    bis = new MemorizingBufferedInputStream(fis, bufferSize);
     SpecificDatumReader<Header> reader = new SpecificDatumReader<>(Header.getClassSchema());
     decoder = DecoderFactory.get().directBinaryDecoder(bis, null);
     AvroFileWriter.validateType(bis);

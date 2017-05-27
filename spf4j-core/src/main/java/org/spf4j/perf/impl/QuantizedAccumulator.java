@@ -17,11 +17,13 @@
  */
 package org.spf4j.perf.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.math.IntMath;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.MeasurementAccumulator;
 import org.spf4j.perf.MeasurementsInfo;
 import java.util.Arrays;
+import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -30,6 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * @author zoly
  */
 @ThreadSafe
+@ParametersAreNonnullByDefault
 public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
 
   private long minMeasurement;
@@ -257,8 +260,9 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
  * @param value
  * @return
  */
+  @VisibleForTesting
   static int findBucket(final long[] bucketLimits, final long value) {
-    int idx = java.util.Arrays.binarySearch(bucketLimits, value);
+    int idx = Arrays.binarySearch(bucketLimits, value);
     if (idx >= 0) {
       return idx + 1;
     } else {

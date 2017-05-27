@@ -83,7 +83,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
             writeHolderInfo();
         } catch (IOException ex) {
             unlockInternal();
-            throw new LockIOException(ex);
+            throw new LockRuntimeException(ex);
         } catch (Throwable ex) {
             unlockInternal();
             throw ex;
@@ -128,7 +128,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
             throw ex;
         } catch (IOException ex) {
             unlockInternal();
-            throw new LockIOException(ex);
+            throw new LockRuntimeException(ex);
         }
     }
 
@@ -154,7 +154,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
                 }
             } catch (IOException ex) {
                 unlockInternal();
-                throw new LockIOException(ex);
+                throw new LockRuntimeException(ex);
             } catch (RuntimeException ex) {
                 unlockInternal();
                 throw ex;
@@ -201,7 +201,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
                 throw ex;
             } catch (IOException ex) {
                 unlockInternal();
-                throw new LockIOException(ex);
+                throw new LockRuntimeException(ex);
             }
         } else {
             return false;

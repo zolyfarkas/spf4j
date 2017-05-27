@@ -22,6 +22,7 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.SQLTimeoutException;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
@@ -40,13 +41,14 @@ public final class PooledDataSource implements DataSource {
     private final RecyclingSupplier<Connection> pool;
 
 
-    public PooledDataSource(final int coreSize, final int maxSize,
+    public PooledDataSource(final int initialSize, final int maxSize,
             final String driverName, final String url, final String user, final String password)
             throws ObjectCreationException {
         final JdbcConnectionFactory jdbcConnectionFactory =
                 new JdbcConnectionFactory(driverName, url, user, password);
         RecyclingSupplierBuilder<Connection> builder =
                 new RecyclingSupplierBuilder<>(maxSize, jdbcConnectionFactory);
+        builder.withInitialSize(initialSize);
         pool = builder.build();
         jdbcConnectionFactory.setPool(pool);
     }
@@ -55,34 +57,37 @@ public final class PooledDataSource implements DataSource {
     public Connection getConnection() throws SQLException {
         try {
             return pool.get();
-        } catch (InterruptedException | TimeoutException | ObjectBorrowException | ObjectCreationException ex) {
+        } catch (InterruptedException | ObjectBorrowException | ObjectCreationException ex) {
             throw new SQLException(ex);
+        } catch (TimeoutException ex) {
+          throw new SQLTimeoutException(ex);
         }
     }
 
     @Override
-    public Connection getConnection(final String username, final String password) {
-        throw new UnsupportedOperationException("Unsupported operation");
+    public Connection getConnection(final String username, final String password)
+            throws SQLFeatureNotSupportedException {
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
-    public PrintWriter getLogWriter() {
-        throw new UnsupportedOperationException("Unsupported operation");
+    public PrintWriter getLogWriter() throws SQLFeatureNotSupportedException {
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
-    public void setLogWriter(final PrintWriter out) {
-        throw new UnsupportedOperationException("Unsupported operation");
+    public void setLogWriter(final PrintWriter out) throws SQLFeatureNotSupportedException {
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
-    public void setLoginTimeout(final int seconds) {
-        throw new UnsupportedOperationException("Unsupported operation");
+    public void setLoginTimeout(final int seconds) throws SQLFeatureNotSupportedException {
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
-    public int getLoginTimeout() {
-        throw new UnsupportedOperationException("Unsupported operation");
+    public int getLoginTimeout() throws SQLFeatureNotSupportedException {
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override

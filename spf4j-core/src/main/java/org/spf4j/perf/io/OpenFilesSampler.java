@@ -42,8 +42,6 @@ import org.spf4j.jmx.Registry;
  */
 public final class OpenFilesSampler {
 
-  private OpenFilesSampler() {
-  }
 
   private static ScheduledFuture<?> samplingFuture;
   private static AccumulatorRunnable accumulator;
@@ -55,11 +53,14 @@ public final class OpenFilesSampler {
   static {
     Runtime.queueHook(2, new AbstractRunnable(true) {
       @Override
-      public void doRun() {
+      public void doRun() throws IOException {
         stop();
       }
     });
     Registry.export(OpenFilesSampler.class);
+  }
+
+  private OpenFilesSampler() {
   }
 
   public static void start(final long sampleTimeMillis) {
@@ -98,12 +99,15 @@ public final class OpenFilesSampler {
   }
 
   @JmxExport
-  public static synchronized void stop() {
+  public static synchronized void stop() throws IOException {
     if (samplingFuture != null) {
       samplingFuture.cancel(false);
       samplingFuture = null;
-      accumulator.close();
-      accumulator = null;
+      try {
+        accumulator.close();
+      } finally {
+        accumulator = null;
+      }
     }
   }
 
@@ -161,7 +165,7 @@ public final class OpenFilesSampler {
     }
 
     @Override
-    public void doRun() throws Exception {
+    public void doRun() {
       long time = System.currentTimeMillis();
       int nrOf = Runtime.getNrOpenFiles();
       if (nrOf > errorThreshold) {
@@ -185,12 +189,8 @@ public final class OpenFilesSampler {
     }
 
     @Override
-    public void close() {
-      try {
+    public void close() throws IOException {
         this.nrOpenFiles.close();
-      } catch (IOException ex) {
-        throw new RuntimeException(ex);
-      }
     }
 
     public int getErrorThreshold() {

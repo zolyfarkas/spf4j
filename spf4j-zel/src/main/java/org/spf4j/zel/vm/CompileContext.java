@@ -17,11 +17,12 @@
  */
 package org.spf4j.zel.vm;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 import org.spf4j.zel.instr.Instruction;
 
 
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("CD_CIRCULAR_DEPENDENCY")
+@SuppressFBWarnings("CD_CIRCULAR_DEPENDENCY")
 public final class CompileContext implements ParsingContext {
 
     private final ProgramBuilder prog;
@@ -53,12 +54,11 @@ public final class CompileContext implements ParsingContext {
     }
 
     /**
-     * Do no aditional processing
-     *
      * @param obj Object
      */
     @Override
     public void process(final Object obj) {
+      //Do no aditional processing
     }
 
 

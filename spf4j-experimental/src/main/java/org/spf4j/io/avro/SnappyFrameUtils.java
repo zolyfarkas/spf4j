@@ -18,8 +18,6 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  */
 public final class SnappyFrameUtils {
 
-  private SnappyFrameUtils() {
-  }
 
   public static final int COMPRESSED_DATA_FLAG = 0x00;
 
@@ -34,6 +32,9 @@ public final class SnappyFrameUtils {
    */
   public static final byte[] HEADER_BYTES = new byte[]{(byte) STREAM_IDENTIFIER_FLAG,
     0x06, 0x00, 0x00, 0x73, 0x4e, 0x61, 0x50, 0x70, 0x59};
+
+  private SnappyFrameUtils() {
+  }
 
   public static void writeFrame(final OutputStream out, final byte[] pdata,
           final int poffset, final int plength, final float compressionThreshold)

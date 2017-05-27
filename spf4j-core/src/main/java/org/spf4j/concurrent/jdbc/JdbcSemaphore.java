@@ -42,6 +42,7 @@ import org.spf4j.base.HandlerNano;
 import org.spf4j.base.IntMath;
 import org.spf4j.base.MutableHolder;
 import org.spf4j.concurrent.DefaultExecutor;
+import org.spf4j.concurrent.LockRuntimeException;
 import org.spf4j.jdbc.JdbcTemplate;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
@@ -131,7 +132,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
    * @param nrPermits  the number of initial permits.
    */
   public JdbcSemaphore(final DataSource dataSource, final String semaphoreName, final int nrPermits)
-          throws InterruptedException {
+          throws InterruptedException, SQLException {
     this(dataSource, semaphoreName, nrPermits, false);
   }
 
@@ -145,13 +146,13 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
    * IllegalArgumentException will be thrown.
    */
   public JdbcSemaphore(final DataSource dataSource, final String semaphoreName,
-          final int nrPermits, final boolean strict) throws InterruptedException {
+          final int nrPermits, final boolean strict) throws InterruptedException, SQLException {
     this(dataSource, SemaphoreTablesDesc.DEFAULT, semaphoreName, nrPermits, 10, strict);
   }
 
   public JdbcSemaphore(final DataSource dataSource, final SemaphoreTablesDesc semTableDesc,
           final String semaphoreName, final int nrPermits, final int jdbcTimeoutSeconds,
-          final boolean strictReservations) throws InterruptedException {
+          final boolean strictReservations) throws InterruptedException, SQLException {
     this(dataSource, semTableDesc, semaphoreName, nrPermits, jdbcTimeoutSeconds, strictReservations,
             Integer.getInteger("spf4j.jdbc.semaphore.defaultMaxPollIntervalMillis", 1000));
   }
@@ -160,7 +161,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   @SuppressFBWarnings({"CBX_CUSTOM_BUILT_XML", "STT_TOSTRING_STORED_IN_FIELD"}) // no sql builder (yet)
   public JdbcSemaphore(final DataSource dataSource, final SemaphoreTablesDesc semTableDesc,
           final String semaphoreName, final int nrPermits, final int jdbcTimeoutSeconds,
-          final boolean strictReservations, final int acquirePollMillis) throws InterruptedException {
+          final boolean strictReservations, final int acquirePollMillis) throws InterruptedException, SQLException {
     if (nrPermits < 0) {
       throw new IllegalArgumentException("Permits must be positive and not " + nrPermits);
     }
@@ -284,18 +285,11 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
         // RACE condition while creating the row, will retry to validate if everything is OK.
         createLockRowIfNotPresent(strictReservations, nrPermits);
       } catch (SQLException ex1) {
-        RuntimeException rx = new RuntimeException(ex1);
-        rx.addSuppressed(ex);
-        throw rx;
+        ex1.addSuppressed(ex);
+        throw ex1;
       }
-    } catch (SQLException ex) {
-      throw new RuntimeException(ex);
     }
-    try {
-      createOwnerRow();
-    } catch (SQLException ex) {
-      throw new RuntimeException(ex);
-    }
+    createOwnerRow();
   }
 
   public void registerJmx() {
@@ -444,7 +438,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
             }
           }, timeout, unit);
         } catch (SQLException ex) {
-          throw new RuntimeException(ex);
+          throw new LockRuntimeException(ex);
         }
         if (beat.getValue()) { // we did a heartbeat as part of the acquisition.
           heartBeat.updateLastRun(System.currentTimeMillis());
@@ -462,16 +456,20 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
             //removing dead entries did not finish in time, but continues in the background.
             break;
           } catch (ExecutionException ex) {
-            throw new RuntimeException(ex);
+            throw new LockRuntimeException(ex);
           }
-          if (releaseDeadOwnerPermits(nrPermits) <= 0) { //wait of we did not find anything dead to release.
-            long wtimeMilis = Math.min(TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime()),
-                    Math.abs(rnd.nextInt()) % acquirePollMillis);
-            if (wtimeMilis > 0) {
-              semName.wait(wtimeMilis);
-            } else {
-              break;
+          try {
+            if (releaseDeadOwnerPermits(nrPermits) <= 0) { //wait of we did not find anything dead to release.
+              long wtimeMilis = Math.min(TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime()),
+                      Math.abs(rnd.nextInt()) % acquirePollMillis);
+              if (wtimeMilis > 0) {
+                semName.wait(wtimeMilis);
+              } else {
+                break;
+              }
             }
+          } catch (SQLException ex) {
+            throw new LockRuntimeException(ex);
           }
 
         }
@@ -513,7 +511,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
           }
         }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
       } catch (SQLException ex) {
-        throw new RuntimeException(ex);
+        throw new LockRuntimeException(ex);
       }
       ownedReservations -= nrReservations;
       if (ownedReservations < 0) {
@@ -641,8 +639,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   @CheckReturnValue
   public int releaseDeadOwnerPermits(@JmxExport(value = "wishPermits",
           description = "how many we whish to release") final int wishPermits)
-          throws InterruptedException {
-    try {
+          throws InterruptedException, SQLException {
       return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
         List<OwnerPermits> deadOwnerPermits = getDeadOwnerPermits(conn, deadlineNanos, wishPermits);
         int released = 0;
@@ -663,9 +660,6 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
         }
         return released;
       }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-    } catch (SQLException ex) {
-      throw new RuntimeException(ex);
-    }
   }
 
   @JmxExport(description = "Change the total available permits to the provided number")

@@ -51,13 +51,14 @@ import org.spf4j.ds.IdentityHashSet;
 @ParametersAreNonnullByDefault
 public final class Throwables {
 
-  private Throwables() {
-  }
-
-  static final class Lazy {
-
-    private static final Logger LOG = LoggerFactory.getLogger(Throwables.Lazy.class);
-  }
+  /**
+   * Caption for labeling suppressed exception stack traces
+   */
+  public static final String SUPPRESSED_CAPTION = "Suppressed: ";
+  /**
+   * Caption for labeling causative exception stack traces
+   */
+  public static final String CAUSE_CAPTION = "Caused by: ";
 
   public static final int MAX_THROWABLE_CHAIN
           = Integer.getInteger("spf4j.throwables.defaultMaxSuppressChain", 100);
@@ -67,35 +68,39 @@ public final class Throwables {
   private static final Field SUPPRESSED_FIELD;
 
   static {
-    CAUSE_FIELD = AccessController.doPrivileged(new PrivilegedAction<Field>() {
-      @Override
-      public Field run() {
-        Field causeField;
-        try {
-          causeField = Throwable.class.getDeclaredField("cause");
-        } catch (NoSuchFieldException | SecurityException ex) {
-          throw new RuntimeException(ex);
-        }
-        causeField.setAccessible(true);
-        return causeField;
+    CAUSE_FIELD = AccessController.doPrivileged((PrivilegedAction<Field>) () -> {
+      Field causeField;
+      try {
+        causeField = Throwable.class.getDeclaredField("cause");
+      } catch (NoSuchFieldException | SecurityException ex) {
+        throw new ExceptionInInitializerError(ex);
       }
+      causeField.setAccessible(true);
+      return causeField;
     });
 
-    SUPPRESSED_FIELD = AccessController.doPrivileged(new PrivilegedAction<Field>() {
-      @Override
-      public Field run() {
-        Field suppressedField;
-        try {
-          suppressedField = Throwable.class.getDeclaredField("suppressedExceptions");
-        } catch (NoSuchFieldException | SecurityException ex) {
-          Lazy.LOG.info("No access to suppressed Exceptions", ex);
-          return null;
-        }
-        suppressedField.setAccessible(true);
-        return suppressedField;
+    SUPPRESSED_FIELD = AccessController.doPrivileged((PrivilegedAction<Field>) () -> {
+      Field suppressedField;
+      try {
+        suppressedField = Throwable.class.getDeclaredField("suppressedExceptions");
+      } catch (NoSuchFieldException | SecurityException ex) {
+        Lazy.LOG.info("No access to suppressed Exceptions", ex);
+        return null;
       }
+      suppressedField.setAccessible(true);
+      return suppressedField;
     });
   }
+
+
+  private Throwables() {
+  }
+
+  static final class Lazy {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Throwables.Lazy.class);
+  }
+
 
   public static int getNrSuppressedExceptions(final Throwable t) {
     try {
@@ -249,8 +254,9 @@ public final class Throwables {
     try {
       clone = Objects.clone(t);
     } catch (RuntimeException ex) {
+      t.addSuppressed(ex);
       clone = t;
-      Lazy.LOG.info("Unable to clone exception", t);
+      Lazy.LOG.debug("Unable to clone exception, will mutate instead", t);
     }
     clone.addSuppressed(suppressed);
     while (getNrRecursiveSuppressedExceptions(clone) > maxSuppressed) {
@@ -484,15 +490,6 @@ public final class Throwables {
     }
   }
 
-  /**
-   * Caption for labeling suppressed exception stack traces
-   */
-  public static final String SUPPRESSED_CAPTION = "Suppressed: ";
-  /**
-   * Caption for labeling causative exception stack traces
-   */
-  public static final String CAUSE_CAPTION = "Caused by: ";
-
   public static boolean isNonRecoverable(@Nonnull final Throwable t) {
     return nrPredicate.test(t);
   }
@@ -605,45 +602,5 @@ public final class Throwables {
       return false;
     }
   };
-
-
-
-
-//    public static final class RepeatingStack {
-//        private final int count;
-//        private final List<Either<StackTraceElement, RepeatingStack>> stack;
-//
-//        public RepeatingStack(final int count, final List<Either<StackTraceElement, RepeatingStack>> stack) {
-//            this.count = count;
-//            this.stack = stack;
-//        }
-//    }
-//
-//
-//    public static List<Either<StackTraceElement, RepeatingStack>> compress(final StackTraceElement [] trace) {
-//        Map<StackTraceElement, Integer> elementLocation = new HashMap<>(trace.length);
-//        for (int i = 0; i < trace.length; i++) {
-//            StackTraceElement elem = trace[i];
-//            if (elementLocation.containsKey(elem)) {
-//                // potentially repeating stack trace
-//                int j = elementLocation.get(elem);
-//                boolean repeating = true;
-//                for (int k = j + 1; k < i; k++) {
-//                    if (!trace[k].equals(trace[i + k])) {
-//                        repeating = false;
-//                        break;
-//                    }
-//                }
-//                if (repeating) {
-//                    for (int k = j; k < i; k++) {
-//
-//                    }
-//                }
-//
-//            } else {
-//                elementLocation.put(elem, i);
-//            }
-//        }
-//    }
 
 }

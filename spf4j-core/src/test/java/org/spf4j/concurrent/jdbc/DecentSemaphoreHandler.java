@@ -1,6 +1,7 @@
 package org.spf4j.concurrent.jdbc;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.h2.jdbcx.JdbcDataSource;
@@ -18,7 +19,7 @@ public final class DecentSemaphoreHandler {
   }
 
   @SuppressFBWarnings("MDM_THREAD_YIELD")
-  public static void main(final String[] args) throws InterruptedException, TimeoutException {
+  public static void main(final String[] args) throws InterruptedException, TimeoutException, SQLException {
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {

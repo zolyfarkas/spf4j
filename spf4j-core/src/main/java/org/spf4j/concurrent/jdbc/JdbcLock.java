@@ -1,10 +1,12 @@
 package org.spf4j.concurrent.jdbc;
 
+import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import javax.sql.DataSource;
+import org.spf4j.concurrent.LockRuntimeException;
 
 /**
  * A Jdbc Lock implementation.
@@ -17,7 +19,7 @@ public final class JdbcLock implements Lock, AutoCloseable {
   private final int jdbcTimeoutSeconds;
 
   public JdbcLock(final DataSource dataSource, final SemaphoreTablesDesc semTableDesc,
-          final String lockName, final int jdbcTimeoutSeconds) throws InterruptedException {
+          final String lockName, final int jdbcTimeoutSeconds) throws InterruptedException, SQLException {
     this.semaphore = new JdbcSemaphore(dataSource, semTableDesc, lockName, 1, jdbcTimeoutSeconds, true);
     this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;
     this.semaphore.registerJmx();
@@ -28,7 +30,7 @@ public final class JdbcLock implements Lock, AutoCloseable {
     try {
       semaphore.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
     } catch (InterruptedException | TimeoutException ex) {
-      throw new RuntimeException(ex);
+      throw new LockRuntimeException(ex);
     }
   }
 
@@ -37,7 +39,7 @@ public final class JdbcLock implements Lock, AutoCloseable {
     try {
       semaphore.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
     } catch (TimeoutException ex) {
-      throw new RuntimeException(ex);
+      throw new LockRuntimeException(ex);
     }
   }
 
@@ -46,7 +48,7 @@ public final class JdbcLock implements Lock, AutoCloseable {
     try {
       return semaphore.tryAcquire(((long) jdbcTimeoutSeconds) * 4, TimeUnit.SECONDS);
     } catch (InterruptedException ex) {
-      throw new RuntimeException(ex);
+      throw new LockRuntimeException(ex);
     }
   }
 

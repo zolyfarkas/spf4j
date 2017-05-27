@@ -46,6 +46,19 @@ public final class ByteArrayBuilder extends OutputStream {
      */
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
+    /**
+     * The buffer where data is stored.
+     */
+    private byte[] buf;
+
+    /**
+     * The number of valid bytes in the buffer.
+     */
+    private int count;
+
+
+    private final SizedRecyclingSupplier<byte[]> arraySupplier;
+
 
     public ByteArrayBuilder() {
         this(256, ArraySuppliers.Bytes.TL_SUPPLIER);
@@ -60,19 +73,6 @@ public final class ByteArrayBuilder extends OutputStream {
     public synchronized byte[] getBuffer() {
         return buf;
     }
-
-    /**
-     * The buffer where data is stored.
-     */
-    private byte[] buf;
-
-    /**
-     * The number of valid bytes in the buffer.
-     */
-    private int count;
-
-
-    private final SizedRecyclingSupplier<byte[]> arraySupplier;
 
     /**
      * Creates a new byte array output stream, with a buffer capacity of
