@@ -32,37 +32,34 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
 @Threads(value = 4)
 public class TestRecyclingAlocator {
 
+  private static final int SIZE = 1024 * 8;
 
-    private static byte [] testArray(final int size) {
-        IntMath.XorShift32 rnd = new IntMath.XorShift32();
-        byte [] result = new byte[size];
-        for (int i = 0; i < size; i++) {
-            result[i] = (byte) ('A' + Math.abs(rnd.nextInt()) % 22);
-        }
-        return result;
+  private static final byte[] TEST_ARRAY = testArray(SIZE);
+
+  private static byte[] testArray(final int size) {
+    IntMath.XorShift32 rnd = new IntMath.XorShift32();
+    byte[] result = new byte[size];
+    for (int i = 0; i < size; i++) {
+      result[i] = (byte) ('A' + Math.abs(rnd.nextInt()) % 22);
     }
+    return result;
+  }
 
-    private static final int SIZE = 1024 * 8;
+  @Benchmark
+  public String testNew() throws IOException {
+    byte[] array = new byte[SIZE];
+    System.arraycopy(TEST_ARRAY, 0, array, 0, SIZE);
+    return Strings.fromUtf8(array);
+  }
 
-    private static final byte[] TEST_ARRAY = testArray(SIZE);
-
-
-
-    @Benchmark
-    public String testNew() throws IOException {
-        byte[] array = new byte[SIZE];
-        System.arraycopy(TEST_ARRAY, 0, array, 0, SIZE);
-        return Strings.fromUtf8(array);
+  @Benchmark
+  public String testRecycler() throws IOException {
+    byte[] array = ArraySuppliers.Bytes.TL_SUPPLIER.get(SIZE);
+    try {
+      System.arraycopy(TEST_ARRAY, 0, array, 0, SIZE);
+      return Strings.fromUtf8(array);
+    } finally {
+      ArraySuppliers.Bytes.TL_SUPPLIER.recycle(array);
     }
-
-    @Benchmark
-    public String testRecycler() throws IOException {
-        byte[] array = ArraySuppliers.Bytes.TL_SUPPLIER.get(SIZE);
-        try {
-        System.arraycopy(TEST_ARRAY, 0, array, 0, SIZE);
-        return Strings.fromUtf8(array);
-        } finally {
-            ArraySuppliers.Bytes.TL_SUPPLIER.recycle(array);
-        }
-    }
+  }
 }

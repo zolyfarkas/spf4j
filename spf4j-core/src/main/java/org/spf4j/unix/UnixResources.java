@@ -1,7 +1,8 @@
-package org.spf4j.base;
+package org.spf4j.unix;
 
 import com.sun.jna.Native;
 import com.sun.jna.platform.unix.Resource;
+import org.spf4j.base.Runtime;
 
 /**
  * Possible values of the first parameter to getrlimit()/setrlimit()
@@ -105,46 +106,49 @@ public enum UnixResources {
     return gnuId;
   }
 
-  public long getSoftLimit() {
+  public long getSoftLimit() throws UnixException {
     return getRLimit(this).rlim_cur;
   }
 
-  public void setSoftLimit(final long limit) {
+  public void setSoftLimit(final long limit) throws UnixException {
     setRLimit(this, limit, getHardLimit());
   }
 
-  public void setLimits(final long softLimit, final long hardlimit) {
+  public void setLimits(final long softLimit, final long hardlimit) throws UnixException {
     setRLimit(this, softLimit, hardlimit);
   }
 
-  public long getHardLimit() {
+  public long getHardLimit() throws UnixException {
     return getRLimit(this).rlim_max;
   }
 
-  private static Resource.Rlimit getRLimit(final UnixResources resourceId) {
+  private static Resource.Rlimit getRLimit(final UnixResources resourceId) throws UnixException {
     int id = Runtime.isMacOsx() ? resourceId.macId : resourceId.gnuId;
     if (id < 0) {
-      throw new UnsupportedOperationException("Unsupported " + id + " limit on " + Runtime.OS_NAME);
+      throw new UnixException("Unsupported " + id + " limit on " + Runtime.OS_NAME, 0);
     }
     final Resource.Rlimit limit = new Resource.Rlimit();
     int err = com.sun.jna.platform.unix.LibC.INSTANCE.getrlimit(id, limit);
     if (err != 0) {
-      throw new RuntimeException("Error code " + Native.getLastError()  + " for getrlimit(" + id + ", " + limit + '\'');
+      int lastError = Native.getLastError();
+      throw new UnixException("Error code " + lastError  + " for getrlimit(" + id + ", " + limit + '\'', lastError);
     }
     return limit;
   }
 
-  private static void setRLimit(final UnixResources resourceId, final long softValue, final long hardValue) {
+  private static void setRLimit(final UnixResources resourceId, final long softValue, final long hardValue)
+          throws UnixException {
     int id = Runtime.isMacOsx() ? resourceId.macId : resourceId.gnuId;
     if (id < 0) {
-      throw new UnsupportedOperationException("Unsupported " + id + " limit on " + Runtime.OS_NAME);
+      throw new UnixException("Unsupported " + id + " limit on " + Runtime.OS_NAME, 0);
     }
     final Resource.Rlimit limit = new Resource.Rlimit();
     limit.rlim_cur = softValue;
     limit.rlim_max = hardValue;
     int err = com.sun.jna.platform.unix.LibC.INSTANCE.setrlimit(id, limit);
     if (err != 0) {
-      throw new RuntimeException("Error code " + Native.getLastError() + " for setrlimit(" + id + ", " + limit + '\'');
+      int lastError = Native.getLastError();
+      throw new UnixException("Error code " + lastError + " for setrlimit(" + id + ", " + limit + '\'', lastError);
     }
   }
 

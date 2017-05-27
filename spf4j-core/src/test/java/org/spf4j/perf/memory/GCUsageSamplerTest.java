@@ -19,6 +19,7 @@
 package org.spf4j.perf.memory;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,7 +31,7 @@ public final class GCUsageSamplerTest {
 
     @Test
     @SuppressFBWarnings("MDM_THREAD_YIELD")
-    public void testSomeMethod() throws InterruptedException {
+    public void testSomeMethod() throws InterruptedException, IOException {
         System.setProperty("perf.memory.sampleAggMillis", "1000");
         GCUsageSampler.start(100);
         MemoryUsageSampler.start(100);
