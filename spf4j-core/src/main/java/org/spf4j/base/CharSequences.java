@@ -58,7 +58,6 @@ public final class CharSequences {
     }
   }
 
-
   /**
    * compare s to t.
    *
@@ -81,9 +80,9 @@ public final class CharSequences {
     return compare(s, 0, sLength, t, 0, tLength);
   }
 
-
   /**
    * compare 2 CharSequence fragments.
+   *
    * @param s the charsequence to compare
    * @param sFrom the index for the first chars to compare.
    * @param sLength the number of characters to compare.
@@ -448,7 +447,7 @@ public final class CharSequences {
   }
 
   public static <T extends CharSequence> T validatedFileName(@Nonnull final T fileName) {
-    if  (!isValidFileName(fileName)) {
+    if (!isValidFileName(fileName)) {
       throw new IllegalArgumentException("Invalid file name: " + fileName);
     }
     return fileName;
@@ -475,5 +474,45 @@ public final class CharSequences {
     return true;
   }
 
+  /**
+   * Equivalent/based on to String.regionMatches.
+   */
+  public static boolean regionMatchesIgnoreCase(final CharSequence ta, final int toffset,
+          final CharSequence pa, final int ooffset, final int plen) {
+    int to = toffset;
+    int po = ooffset;
+    // Note: toffset, ooffset, or len might be near -1>>>1.
+    if ((ooffset < 0) || (toffset < 0)
+            || (toffset > (long) ta.length() - plen)
+            || (ooffset > (long) pa.length() - plen)) {
+      return false;
+    }
+    int len = plen;
+    while (len-- > 0) {
+      char c1 = ta.charAt(to++);
+      char c2 = pa.charAt(po++);
+      if (c1 == c2) {
+        continue;
+      }
+      // If characters don't match but case may be ignored,
+      // try converting both characters to uppercase.
+      // If the results match, then the comparison scan should
+      // continue.
+      char u1 = Character.toUpperCase(c1);
+      char u2 = Character.toUpperCase(c2);
+      if (u1 == u2) {
+        continue;
+      }
+      // Unfortunately, conversion to uppercase does not work properly
+      // for the Georgian alphabet, which has strange rules about case
+      // conversion.  So we need to make one last check before
+      // exiting.
+      if (Character.toLowerCase(u1) == Character.toLowerCase(u2)) {
+        continue;
+      }
+      return false;
+    }
+    return true;
+  }
 
 }
