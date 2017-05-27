@@ -23,13 +23,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.spf4j.base.Throwables;
 import org.spf4j.ssdump2.Converter;
 
+@NotThreadSafe
 public final class DemoTest {
+
+   private static volatile boolean stopped;
 
     @BeforeClass
     public static void init() {
@@ -57,7 +61,6 @@ public final class DemoTest {
         Assert.assertEquals(original, loaded);
         sampler.stop();
     }
-    private static volatile boolean stopped;
 
     @SuppressFBWarnings("MDM_THREAD_YIELD")
     public static void main(final String[] args) throws InterruptedException {

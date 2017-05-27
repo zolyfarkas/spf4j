@@ -57,6 +57,10 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
   private static final Sampler SAMPLER = new Sampler(SAMPLE_PERIOD_MSEC, Integer.MAX_VALUE,
           new FastStackCollector(true));
 
+  private static final AtomicInteger MEASUREMENT_ITERATION_COUNTER = new AtomicInteger(1);
+
+  private static final AtomicInteger WARMUP_ITERATION_COUNTER = new AtomicInteger(1);
+
   public static Sampler getStackSampler() {
     return SAMPLER;
   }
@@ -73,10 +77,6 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
     benchmarkName = benchmarkParams.id();
     SAMPLER.start();
   }
-
-  private static final AtomicInteger MEASUREMENT_ITERATION_COUNTER = new AtomicInteger(1);
-
-  private static final AtomicInteger WARMUP_ITERATION_COUNTER = new AtomicInteger(1);
 
   @Override
   public Collection<? extends Result> afterIteration(final BenchmarkParams benchmarkParams,
@@ -100,11 +100,7 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
       default:
         throw new IllegalStateException("Unknown type of iteration " + itType);
     }
-    try {
-      return Arrays.asList(new StackResult(collected, benchmarkParams.id(), iterationId));
-    } catch (IOException ex) {
-      throw new RuntimeException(ex);
-    }
+    return Arrays.asList(new StackResult(collected, benchmarkParams.id(), iterationId));
   }
 
   @Override
@@ -122,14 +118,18 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
 
     private final String id;
 
-    public StackResult(@Nullable final SampleNode samples, final String benchmark, final String iterationId)
-            throws IOException {
+    public StackResult(@Nullable final SampleNode samples, final String benchmark, final String iterationId) {
       super(ResultRole.SECONDARY, "@stack", of(Double.NaN), "---", AggregationPolicy.AVG);
       this.id = iterationId;
       this.benchmark = benchmark;
       if (samples != null) {
-        this.perfDataFile = new File(DUMP_FOLDER + '/' + benchmark + '_' + iterationId + ".ssdump2");
-        Converter.save(this.perfDataFile, samples);
+        File file = new File(DUMP_FOLDER + '/' + benchmark + '_' + iterationId + ".ssdump2");
+        try {
+          Converter.save(file, samples);
+          this.perfDataFile = file;
+        } catch (IOException ex) {
+          throw new Spf4jProfilerException("Failed to persist profile data to " + file, ex);
+        }
       } else {
         this.perfDataFile = null;
       }
@@ -168,59 +168,55 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
 
   }
 
-  private static final  AtomicSequence SEQ = new AtomicSequence(0);
-
   public static final class StackAggregator implements Aggregator<StackResult> {
+
+    private static final  AtomicSequence SEQ = new AtomicSequence(0);
 
     @Override
     public StackResult aggregate(final Collection<StackResult> results) {
       if (results.isEmpty()) {
         throw new IllegalArgumentException("Nothig to aggregate: " + results);
-      } else if (results.size() == 1) {
-        return results.iterator().next();
       }
-
       Iterator<StackResult> it = results.iterator();
+      if (results.size() == 1) {
+        return it.next();
+      }
       StackResult result = it.next();
       StringBuilder aggId = new StringBuilder();
       aggId.append("aggregation_");
       SampleNode agg;
       try {
         agg = result.getSamples();
-      } catch (IOException ex) {
-        throw new RuntimeException(ex);
-      }
-      aggId.append(result.getId());
-      final String benchmark = result.getBenchmark();
-      while (it.hasNext()) {
-        result = it.next();
-        String obenchmark = result.getBenchmark();
-        if (!benchmark.equals(obenchmark)) {
-          throw new RuntimeException("Should not aggregate " + benchmark + " with " + obenchmark);
-        }
-        try {
+        aggId.append(result.getId());
+        final String benchmark = result.getBenchmark();
+        while (it.hasNext()) {
+          result = it.next();
+          String obenchmark = result.getBenchmark();
+          if (!benchmark.equals(obenchmark)) {
+            throw new UnsupportedOperationException("Should not aggregate " + benchmark + " with " + obenchmark);
+          }
           SampleNode sss = result.getSamples();
           if (agg == null) {
             agg = sss;
           } else if (sss != null) {
             agg = SampleNode.aggregate(agg, sss);
           }
-        } catch (IOException ex) {
-          throw new RuntimeException(ex);
+          aggId.append('_').append(result.getId());
         }
-        aggId.append('_').append(result.getId());
+        truncateId(aggId, 100);
+        return new StackResult(agg, benchmark, aggId.toString());
+      } catch (IOException ex) {
+        throw new Spf4jProfilerException("Failed to aggregate " + results, ex);
       }
+    }
+
+    private static void truncateId(final StringBuilder aggId, final int size) {
       int length = aggId.length();
-      if (length > 100) {
+      if (length > size) {
         CharSequence id = new UIDGenerator(SEQ).next();
         aggId.setLength(length - id.length() - 1);
         aggId.append('_');
         aggId.append(id);
-      }
-      try {
-        return new StackResult(agg, benchmark, aggId.toString());
-      } catch (IOException ex) {
-        throw new RuntimeException(ex);
       }
     }
 

@@ -224,9 +224,9 @@ public final class Sampler {
         samplerFuture.get(STOP_FLAG_READ_MILLIS << 2, TimeUnit.MILLISECONDS);
       } catch (TimeoutException ex) {
         samplerFuture.cancel(true);
-        throw new SamplerException(ex);
+        throw new Spf4jProfilerException(ex);
       } catch (ExecutionException ex) {
-        throw new SamplerException(ex);
+        throw new Spf4jProfilerException(ex);
       }
     }
   }
