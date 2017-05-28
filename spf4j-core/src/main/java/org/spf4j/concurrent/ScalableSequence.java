@@ -29,6 +29,8 @@ public final class ScalableSequence implements Sequence {
 
     private final long bucketSize;
 
+    private final ThreadLocal<Bucket> buckets;
+
     private static final class Bucket {
 
         private long current;
@@ -53,8 +55,6 @@ public final class ScalableSequence implements Sequence {
         }
 
     }
-
-    private final ThreadLocal<Bucket> buckets;
 
     public ScalableSequence(final long start, final int bucketSize) {
         if (bucketSize < 10) {

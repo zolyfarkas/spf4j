@@ -80,7 +80,7 @@ public final class JmhProfiler implements InternalProfiler {
         try {
             return Arrays.asList(new StackResult(collected, benchmarkParams.id(), true));
         } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            throw new Spf4jProfilerException(ex);
         }
     }
 
@@ -159,7 +159,7 @@ public final class JmhProfiler implements InternalProfiler {
             try {
                 return new StackResult(agg, benchmark, false);
             } catch (IOException ex) {
-                throw new RuntimeException(ex);
+                throw new Spf4jProfilerException(ex);
             }
         }
 

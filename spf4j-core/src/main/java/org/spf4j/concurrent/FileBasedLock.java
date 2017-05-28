@@ -216,7 +216,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
         try {
             fileLock.release();
         } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            throw new LockRuntimeException(ex);
         } finally {
             unlockInternal();
         }

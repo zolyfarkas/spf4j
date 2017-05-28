@@ -17,12 +17,12 @@
  */
 package org.spf4j.base;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author zoly
  */
 public abstract class AbstractRunnable implements Runnable {
@@ -36,6 +36,7 @@ public abstract class AbstractRunnable implements Runnable {
 
     @Override
     public void run() {
+      //The nop runnable should do nothing...
     }
 
   };
@@ -93,7 +94,7 @@ public abstract class AbstractRunnable implements Runnable {
       if (lenient) {
         LOGGER.error("Exception in runnable: ", ex);
       } else {
-        throw new RuntimeException(ex);
+        throw new UncheckedExecutionException(ex);
       }
     } catch (Throwable ex) {
       if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {

@@ -17,6 +17,7 @@
  */
 package org.spf4j.base;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.net.SocketException;
 import java.sql.SQLRecoverableException;
@@ -594,7 +595,7 @@ public final class Callables {
       } else if (exceptionClass.isAssignableFrom(lastExChain.getClass())) {
         throw (EX) lastExChain;
       } else {
-        throw new RuntimeException(lastExChain);
+        throw new UncheckedExecutionException(lastExChain);
       }
     }
     return result;

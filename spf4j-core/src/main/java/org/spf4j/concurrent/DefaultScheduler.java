@@ -28,63 +28,62 @@ import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
 import static org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_MILLIS;
 
-
 /**
  *
  * @author zoly
  */
 public final class DefaultScheduler {
 
-    private DefaultScheduler() { }
+  private static final long HOUR_MILLIS = 3600000;
 
+  private static final long DAY_MILLIS = HOUR_MILLIS * 24;
 
-    public static final ScheduledExecutorService INSTANCE =
-            new ScheduledThreadPoolExecutor(
-                    Integer.getInteger("spf4j.executors.defaultScheduler.coreThreads", 2),
-            new CustomThreadFactory("DefaultScheduler", Boolean.getBoolean("spf4j.executors.defaultScheduler.daemon"),
-            Integer.getInteger("spf4j.executors.defaultScheduler.priority", Thread.NORM_PRIORITY)));
+  public static final ScheduledExecutorService INSTANCE
+          = new ScheduledThreadPoolExecutor(
+                  Integer.getInteger("spf4j.executors.defaultScheduler.coreThreads", 2),
+                  new CustomThreadFactory("DefaultScheduler", Boolean.getBoolean("spf4j.executors.defaultScheduler.daemon"),
+                          Integer.getInteger("spf4j.executors.defaultScheduler.priority", Thread.NORM_PRIORITY)));
 
-    public static final ListeningScheduledExecutorService LISTENABLE_INSTANCE =
-            MoreExecutors.listeningDecorator(INSTANCE);
+  public static final ListeningScheduledExecutorService LISTENABLE_INSTANCE
+          = MoreExecutors.listeningDecorator(INSTANCE);
 
+  static {
+    org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {
 
-    static {
-        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {
+      @Override
+      public void doRun() throws InterruptedException {
+        INSTANCE.shutdown();
+        INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
+        List<Runnable> remaining = INSTANCE.shutdownNow();
+        if (remaining.size() > 0) {
+          System.err.println("Remaining tasks: " + remaining);
+        }
+      }
+    });
+  }
 
-                @Override
-                public void doRun() throws InterruptedException {
-                    INSTANCE.shutdown();
-                    INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
-                    List<Runnable> remaining = INSTANCE.shutdownNow();
-                    if (remaining.size() > 0) {
-                        System.err.println("Remaining tasks: " + remaining);
-                    }
-                }
-        });
+  private DefaultScheduler() {
+  }
+
+  /**
+   * this will schedule a runnable aligned to the hour or day at a fixed rate.
+   *
+   * @param command - the Runnable to execute.
+   * @param millisInterval - the schedule interval in milliseconds.
+   * @return - Future that allows to cancel the schedule.
+   */
+  public static ScheduledFuture<?> scheduleAllignedAtFixedRateMillis(
+          final Runnable command, final long millisInterval) {
+    long currentTime = System.currentTimeMillis();
+    long nextScheduleTime;
+    if (millisInterval < HOUR_MILLIS) {
+      long millisPastHour = currentTime % HOUR_MILLIS;
+      nextScheduleTime = (millisPastHour / millisInterval + 1) * millisInterval + currentTime - millisPastHour;
+    } else {
+      long millisPastDay = currentTime % DAY_MILLIS;
+      nextScheduleTime = (millisPastDay / millisInterval + 1) * millisInterval + currentTime - millisPastDay;
     }
-
-    private static final long HOUR_MILLIS = 3600000;
-
-    private static final long DAY_MILLIS = HOUR_MILLIS * 24;
-
-    /**
-     * this will schedule a runnable aligned to the hour or day at a fixed rate.
-     * @param command - the Runnable to execute.
-     * @param millisInterval - the schedule interval in milliseconds.
-     * @return - Future that allows to cancel the schedule.
-     */
-    public static ScheduledFuture<?> scheduleAllignedAtFixedRateMillis(
-            final Runnable command, final long millisInterval) {
-       long currentTime = System.currentTimeMillis();
-       long nextScheduleTime;
-       if (millisInterval < HOUR_MILLIS) {
-            long millisPastHour = currentTime % HOUR_MILLIS;
-            nextScheduleTime = (millisPastHour / millisInterval + 1) * millisInterval + currentTime - millisPastHour;
-       } else {
-           long millisPastDay = currentTime % DAY_MILLIS;
-           nextScheduleTime = (millisPastDay / millisInterval + 1) * millisInterval + currentTime - millisPastDay;
-       }
-       return INSTANCE.scheduleAtFixedRate(
-               command, nextScheduleTime - currentTime, millisInterval, TimeUnit.MILLISECONDS);
-    }
+    return INSTANCE.scheduleAtFixedRate(
+            command, nextScheduleTime - currentTime, millisInterval, TimeUnit.MILLISECONDS);
+  }
 }

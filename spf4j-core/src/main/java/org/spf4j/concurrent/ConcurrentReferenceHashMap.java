@@ -401,7 +401,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
                 case STRONG:
                 return value;
                 default:
-                    throw new RuntimeException("Unsupported refference type " + valueType);
+                    throw new UnsupportedOperationException("Unsupported refference type " + valueType);
             }
         }
 

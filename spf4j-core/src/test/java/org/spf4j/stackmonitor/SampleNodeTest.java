@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.spf4j.stackmonitor;
 
 import org.spf4j.base.Method;
@@ -16,10 +12,6 @@ import org.spf4j.base.IntMath;
  * @author zoly
  */
 public final class SampleNodeTest {
-
-    public SampleNodeTest() {
-    }
-
 
     @Test
     public void testMod() {

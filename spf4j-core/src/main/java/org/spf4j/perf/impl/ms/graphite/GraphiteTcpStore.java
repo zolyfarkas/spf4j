@@ -30,136 +30,136 @@ import org.spf4j.recyclable.impl.RecyclingSupplierBuilder;
  */
 public final class GraphiteTcpStore implements MeasurementStore {
 
-    private static class WriterSupplierFactory implements RecyclingSupplier.Factory<Writer> {
+  private final RecyclingSupplier<Writer> socketWriterSupplier;
 
-        private final String hostName;
-        private final int port;
-        private final SocketFactory socketFactory;
+  private final InetSocketAddress address;
 
-        WriterSupplierFactory(final SocketFactory socketFactory, final String hostName, final int port) {
-            this.hostName = hostName;
-            this.port = port;
-            this.socketFactory = socketFactory;
-        }
+  private static class WriterSupplierFactory implements RecyclingSupplier.Factory<Writer> {
 
-        @Override
-        public Writer create() throws ObjectCreationException {
-            Socket socket;
-            try {
-                socket = socketFactory.createSocket(hostName, port);
-            } catch (IOException ex) {
-                throw new ObjectCreationException(ex);
-            }
-            try {
-                return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), Charsets.UTF_8));
-            } catch (IOException ex) {
-                try {
-                    socket.close();
-                } catch (IOException ex1) {
-                    ex1.addSuppressed(ex);
-                    throw new ObjectCreationException(ex1);
-                }
-                throw new ObjectCreationException(ex);
-            }
-        }
+    private final String hostName;
+    private final int port;
+    private final SocketFactory socketFactory;
 
-        @Override
-        public void dispose(final Writer object) throws ObjectDisposeException {
-            try {
-                object.close();
-            } catch (IOException ex) {
-                throw new ObjectDisposeException(ex);
-            }
-        }
-
-        @Override
-        public boolean validate(final Writer object, final Exception e) {
-            return e == null || !(Throwables.getRootCause(e) instanceof IOException);
-        }
-
-    }
-
-    private final RecyclingSupplier<Writer> socketWriterSupplier;
-
-    private final InetSocketAddress address;
-
-    public GraphiteTcpStore(final String hostPort) throws ObjectCreationException, URISyntaxException {
-        this(new URI("graphiteTcp://" + hostPort));
-    }
-
-    public GraphiteTcpStore(final URI uri) throws ObjectCreationException {
-        this(uri.getHost(), uri.getPort());
-    }
-
-    public GraphiteTcpStore(final String hostName, final int port) throws ObjectCreationException {
-        this(hostName, port, SocketFactory.getDefault());
-    }
-
-    public GraphiteTcpStore(final String hostName, final int port, final SocketFactory socketFactory)
-            throws ObjectCreationException {
-        address = new InetSocketAddress(hostName, port);
-        socketWriterSupplier = new RecyclingSupplierBuilder<>(1,
-                new WriterSupplierFactory(socketFactory, hostName, port)).build();
+    WriterSupplierFactory(final SocketFactory socketFactory, final String hostName, final int port) {
+      this.hostName = hostName;
+      this.port = port;
+      this.socketFactory = socketFactory;
     }
 
     @Override
-    public long alocateMeasurements(final MeasurementsInfo measurement, final int sampleTimeMillis) {
-        return Id2Info.getId(measurement);
-    }
-
-    @Override
-    @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION") // fb nonsense
-    public void saveMeasurements(final long tableId,
-            final long timeStampMillis, final long... measurements) throws IOException {
+    public Writer create() throws ObjectCreationException {
+      Socket socket;
+      try {
+        socket = socketFactory.createSocket(hostName, port);
+      } catch (IOException ex) {
+        throw new ObjectCreationException(ex);
+      }
+      try {
+        return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), Charsets.UTF_8));
+      } catch (IOException ex) {
         try {
-            Template.doOnSupplied(new HandlerImpl(measurements, Id2Info.getInfo(tableId), timeStampMillis),
-                    socketWriterSupplier, 3, 1000, 60000, IOException.class);
-        } catch (InterruptedException | TimeoutException ex) {
-            throw new RuntimeException(ex);
+          socket.close();
+        } catch (IOException ex1) {
+          ex1.addSuppressed(ex);
+          throw new ObjectCreationException(ex1);
         }
-
+        throw new ObjectCreationException(ex);
+      }
     }
 
     @Override
-    public String toString() {
-        return "GraphiteTcpStore{address=" + address + '}';
+    public void dispose(final Writer object) throws ObjectDisposeException {
+      try {
+        object.close();
+      } catch (IOException ex) {
+        throw new ObjectDisposeException(ex);
+      }
     }
 
     @Override
-    public void close() {
-        try {
-            socketWriterSupplier.dispose();
-        } catch (ObjectDisposeException | InterruptedException ex) {
-            throw new RuntimeException(ex);
-        }
+    public boolean validate(final Writer object, final Exception e) {
+      return e == null || !(Throwables.getRootCause(e) instanceof IOException);
     }
 
-    private static class HandlerImpl implements Handler<Writer, IOException> {
+  }
 
-        private final long[] measurements;
-        private final MeasurementsInfo measurementInfo;
-        private final long timeStampMillis;
+  public GraphiteTcpStore(final String hostPort) throws ObjectCreationException, URISyntaxException {
+    this(new URI("graphiteTcp://" + hostPort));
+  }
 
-        HandlerImpl(final long[] measurements, final MeasurementsInfo measurementInfo,
-                final long timeStampMillis) {
-            this.measurements = measurements;
-            this.measurementInfo = measurementInfo;
-            this.timeStampMillis = timeStampMillis;
-        }
+  public GraphiteTcpStore(final URI uri) throws ObjectCreationException {
+    this(uri.getHost(), uri.getPort());
+  }
 
-        @Override
-        public void handle(final Writer socketWriter, final long deadline) throws IOException {
-            for (int i = 0; i < measurements.length; i++) {
-                writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),
-                        measurements[i], timeStampMillis, socketWriter);
-            }
-            socketWriter.flush();
-        }
+  public GraphiteTcpStore(final String hostName, final int port) throws ObjectCreationException {
+    this(hostName, port, SocketFactory.getDefault());
+  }
+
+  public GraphiteTcpStore(final String hostName, final int port, final SocketFactory socketFactory)
+          throws ObjectCreationException {
+    address = new InetSocketAddress(hostName, port);
+    socketWriterSupplier = new RecyclingSupplierBuilder<>(1,
+            new WriterSupplierFactory(socketFactory, hostName, port)).build();
+  }
+
+  @Override
+  public long alocateMeasurements(final MeasurementsInfo measurement, final int sampleTimeMillis) {
+    return Id2Info.getId(measurement);
+  }
+
+  @Override
+  @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION") // fb nonsense
+  public void saveMeasurements(final long tableId,
+          final long timeStampMillis, final long... measurements) throws IOException {
+    try {
+      Template.doOnSupplied(new HandlerImpl(measurements, Id2Info.getInfo(tableId), timeStampMillis),
+              socketWriterSupplier, 3, 1000, 60000, IOException.class);
+    } catch (InterruptedException | TimeoutException ex) {
+      throw new RuntimeException(ex);
+    }
+
+  }
+
+  @Override
+  public String toString() {
+    return "GraphiteTcpStore{address=" + address + '}';
+  }
+
+  @Override
+  public void close() {
+    try {
+      socketWriterSupplier.dispose();
+    } catch (ObjectDisposeException | InterruptedException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
+  private static class HandlerImpl implements Handler<Writer, IOException> {
+
+    private final long[] measurements;
+    private final MeasurementsInfo measurementInfo;
+    private final long timeStampMillis;
+
+    HandlerImpl(final long[] measurements, final MeasurementsInfo measurementInfo,
+            final long timeStampMillis) {
+      this.measurements = measurements;
+      this.measurementInfo = measurementInfo;
+      this.timeStampMillis = timeStampMillis;
     }
 
     @Override
-    public void flush() {
-        // No buffering yet
+    public void handle(final Writer socketWriter, final long deadline) throws IOException {
+      for (int i = 0; i < measurements.length; i++) {
+        writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),
+                measurements[i], timeStampMillis, socketWriter);
+      }
+      socketWriter.flush();
     }
+  }
+
+  @Override
+  public void flush() {
+    // No buffering yet
+  }
 
 }

@@ -18,9 +18,6 @@ import org.openjdk.jmh.annotations.Threads;
 @Threads(value = 8)
 public class Base64Benchmark {
 
-
-
-
     private static final byte [] TEST_ARRAY = Strings.toUtf8("ajkfhskhfkdsjhfkshdkfgj"
             + "$%^&IOJHBVCDSERT%TYUIO)(*&^%$#@!@#$%^&*()(*&^%$#WSDVBNJKIUYFEWERTYUI)(*"
             + " XCVBNM<>LKJHG   POIY TRYYT OUPOJ^%$#WSedtfgh itrcsdxcsvko1poisuwcytr542"
@@ -50,6 +47,7 @@ public class Base64Benchmark {
             + " XCVBNM<>LKJHG   POIY TRYYT OUPOJ^%$#WSedtfgh itrcsdxcsvko1poisuwcytr542"
             + "gfdgykio9876redfghjkiugfrtghjkjhgtrghjiduygfghjk167890-vokcnsacghd&^%$h");
 
+    private static final BaseEncoding G_BASE64 = BaseEncoding.base64();
 
     private static final byte [] TEST_ARRAY_LARGE;
 
@@ -75,9 +73,6 @@ public class Base64Benchmark {
         String encodeBase64 = DatatypeConverter.printBase64Binary(TEST_ARRAY);
         return DatatypeConverter.parseBase64Binary(encodeBase64);
     }
-
-    private static final BaseEncoding G_BASE64 = BaseEncoding.base64();
-
 
     @Benchmark
     public byte [] testGuavaBase64() {

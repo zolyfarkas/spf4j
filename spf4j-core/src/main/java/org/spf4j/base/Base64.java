@@ -14,6 +14,8 @@ public final class Base64 {
 
   private static final byte[] DECODE_MAP = initDecodeMap();
 
+  private static final char[] ENCODE_MAP = initEncodeMap();
+  
   private static final byte PADDING = 127;
 
   private Base64() {
@@ -223,8 +225,6 @@ public final class Base64 {
     System.arraycopy(out, 0, nb, 0, o);
     return nb;
   }
-
-  private static final char[] ENCODE_MAP = initEncodeMap();
 
   private static char[] initEncodeMap() {
     char[] map = new char[64];
