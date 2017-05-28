@@ -52,6 +52,7 @@ public final class GraphiteUdpStoreTest {
 
 
   private static final File tsdbtxt;
+
   static {
     File tsdb;
     try {
@@ -64,6 +65,11 @@ public final class GraphiteUdpStoreTest {
             "TSDB@" + tsdb.getAbsolutePath() + "," + "TSDB_TXT@" + tsdbtxt.getAbsolutePath()
             + ",GRAPHITE_UDP@127.0.0.1:1976");
   }
+
+  private static volatile boolean terminated = false;
+  private static volatile Future<?> server;
+  private static final BlockingQueue<String> queue = new LinkedBlockingQueue<>();
+
 
   @Test
   public void testGraphiteUdpStore() throws IOException, ObjectCreationException, InterruptedException {
@@ -113,10 +119,6 @@ public final class GraphiteUdpStoreTest {
     Assert.assertThat(line, Matchers.containsString("test-measurement"));
 
   }
-
-  private static volatile boolean terminated = false;
-  private static volatile Future<?> server;
-  private static final BlockingQueue<String> queue = new LinkedBlockingQueue<>();
 
   @BeforeClass
   public static void runUdpServer() {

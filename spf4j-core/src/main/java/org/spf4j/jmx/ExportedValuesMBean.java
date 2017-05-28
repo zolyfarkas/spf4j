@@ -18,8 +18,7 @@
  */
 package org.spf4j.jmx;
 
-
-import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -38,191 +37,195 @@ import javax.management.ObjectName;
 import javax.management.openmbean.OpenType;
 import org.spf4j.base.Reflections;
 
-
 public final class ExportedValuesMBean implements DynamicMBean {
 
+  private static final Pattern INVALID_CHARS = Pattern.compile("[^a-zA-Z0-9_\\-\\.]");
 
-    private static final Pattern INVALID_CHARS = Pattern.compile("[^a-zA-Z0-9_\\-\\.]");
+  private final Map<String, ExportedValue<?>> exportedValues;
 
-    private final Map<String, ExportedValue<?>> exportedValues;
+  private final Map<String, ExportedOperation> exportedOperations;
 
-    private final Map<String, ExportedOperation> exportedOperations;
+  private final ObjectName objectName;
 
-    private final ObjectName objectName;
+  private final MBeanInfo beanInfo;
 
-    private final MBeanInfo beanInfo;
-
-
-    ExportedValuesMBean(final ObjectName objectName,
-            final ExportedValue<?>[] exported, final ExportedOperation[] operations) {
-        this.exportedValues = new HashMap<>(exported.length);
-        for (ExportedValue<?> val : exported) {
-            this.exportedValues.put(val.getName(), val);
-        }
-        this.exportedOperations = new HashMap<>(operations.length);
-        for (ExportedOperation op : operations) {
-            this.exportedOperations.put(op.getName(), op);
-        }
-        this.objectName = objectName;
-        this.beanInfo = createBeanInfo();
+  ExportedValuesMBean(final ObjectName objectName,
+          final ExportedValue<?>[] exported, final ExportedOperation[] operations) {
+    this.exportedValues = new HashMap<>(exported.length);
+    for (ExportedValue<?> val : exported) {
+      this.exportedValues.put(val.getName(), val);
     }
-
-    ExportedValuesMBean(final ExportedValuesMBean extend,
-            final ExportedValue<?>[] exported, final ExportedOperation[] operations) {
-        this.exportedValues = new HashMap<>(exported.length + extend.exportedValues.size());
-        this.exportedValues.putAll(extend.exportedValues);
-        for (ExportedValue<?> val : exported) {
-            this.exportedValues.put(val.getName(), val);
-        }
-        this.exportedOperations = new HashMap<>(operations.length + extend.exportedOperations.size());
-        this.exportedOperations.putAll(extend.exportedOperations);
-        for (ExportedOperation op : operations) {
-            this.exportedOperations.put(op.getName(), op);
-        }
-        this.objectName = extend.getObjectName();
-        this.beanInfo = extend.beanInfo;
+    this.exportedOperations = new HashMap<>(operations.length);
+    for (ExportedOperation op : operations) {
+      this.exportedOperations.put(op.getName(), op);
     }
+    this.objectName = objectName;
+    this.beanInfo = createBeanInfo();
+  }
 
-
-
-    /**
-     * @return - the object name of this mbean.
-     */
-    public ObjectName getObjectName() {
-        return objectName;
+  ExportedValuesMBean(final ExportedValuesMBean extend,
+          final ExportedValue<?>[] exported, final ExportedOperation[] operations) {
+    this.exportedValues = new HashMap<>(exported.length + extend.exportedValues.size());
+    this.exportedValues.putAll(extend.exportedValues);
+    for (ExportedValue<?> val : exported) {
+      this.exportedValues.put(val.getName(), val);
     }
-
-    /** {@inheritDoc} */
-    @Override
-    public Object getAttribute(final String name) throws AttributeNotFoundException {
-        ExportedValue<?> result = exportedValues.get(name);
-        if (result == null) {
-            throw new AttributeNotFoundException(name);
-        }
-        return result.get();
+    this.exportedOperations = new HashMap<>(operations.length + extend.exportedOperations.size());
+    this.exportedOperations.putAll(extend.exportedOperations);
+    for (ExportedOperation op : operations) {
+      this.exportedOperations.put(op.getName(), op);
     }
+    this.objectName = extend.getObjectName();
+    this.beanInfo = extend.beanInfo;
+  }
 
-    /** {@inheritDoc} */
-    @Override
-    public void setAttribute(final Attribute attribute)
-            throws  AttributeNotFoundException, InvalidAttributeValueException {
-        String name = attribute.getName();
-        ExportedValue<Object> result = (ExportedValue<Object>) exportedValues.get(name);
-        if (result == null) {
-            throw new AttributeNotFoundException(name);
-        }
-        result.set(attribute.getValue());
+  /**
+   * @return - the object name of this mbean.
+   */
+  public ObjectName getObjectName() {
+    return objectName;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Object getAttribute(final String name) throws AttributeNotFoundException {
+    ExportedValue<?> result = exportedValues.get(name);
+    if (result == null) {
+      throw new AttributeNotFoundException(name);
     }
+    return result.get();
+  }
 
-    /** {@inheritDoc} */
-    @Override
-    public AttributeList getAttributes(final String[] names) {
-        AttributeList list = new AttributeList(names.length);
-        for (String name : names) {
-            list.add(new Attribute(name, exportedValues.get(name).get()));
-        }
-        return list;
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setAttribute(final Attribute attribute)
+          throws AttributeNotFoundException, InvalidAttributeValueException {
+    String name = attribute.getName();
+    ExportedValue<Object> result = (ExportedValue<Object>) exportedValues.get(name);
+    if (result == null) {
+      throw new AttributeNotFoundException(name);
     }
+    result.set(attribute.getValue());
+  }
 
-    /** {@inheritDoc} */
-    @Override
-    public AttributeList setAttributes(final AttributeList list) {
-        AttributeList result = new AttributeList(list.size());
-        for (Attribute attr : list.asList()) {
-            ExportedValue<Object> eval = (ExportedValue<Object>) exportedValues.get(attr.getName());
-            if (eval != null) {
-                try {
-                    eval.set(attr.getValue());
-                    result.add(attr);
-                } catch (InvalidAttributeValueException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-        }
-        return result;
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public AttributeList getAttributes(final String[] names) {
+    AttributeList list = new AttributeList(names.length);
+    for (String name : names) {
+      list.add(new Attribute(name, exportedValues.get(name).get()));
     }
+    return list;
+  }
 
-    /** {@inheritDoc} */
-    @Override
-    public Object invoke(final String name, final Object[] args, final String[] sig) {
-        return exportedOperations.get(name).invoke(args);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public MBeanInfo getMBeanInfo() {
-        return beanInfo;
-    }
-
-    public static ObjectName createObjectName(final String domain, final String name) {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public AttributeList setAttributes(final AttributeList list) {
+    AttributeList result = new AttributeList(list.size());
+    for (Attribute attr : list.asList()) {
+      ExportedValue<Object> eval = (ExportedValue<Object>) exportedValues.get(attr.getName());
+      if (eval != null) {
         try {
-            final String sanitizedDomain = INVALID_CHARS.matcher(domain).replaceAll("_");
-            final String sanitizedName = INVALID_CHARS.matcher(name).replaceAll("_");
-            StringBuilder builder = new StringBuilder();
-            builder.append(sanitizedDomain).append(':');
-            builder.append("name=").append(sanitizedName);
-            return new ObjectName(builder.toString());
-        } catch (MalformedObjectNameException e) {
-            throw Throwables.propagate(e);
+          eval.set(attr.getValue());
+          result.add(attr);
+        } catch (InvalidAttributeValueException ex) {
+          throw new UncheckedExecutionException(ex);
         }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Object invoke(final String name, final Object[] args, final String[] sig) {
+    return exportedOperations.get(name).invoke(args);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MBeanInfo getMBeanInfo() {
+    return beanInfo;
+  }
+
+  public static ObjectName createObjectName(final String domain, final String name) {
+    try {
+      final String sanitizedDomain = INVALID_CHARS.matcher(domain).replaceAll("_");
+      final String sanitizedName = INVALID_CHARS.matcher(name).replaceAll("_");
+      StringBuilder builder = new StringBuilder();
+      builder.append(sanitizedDomain).append(':');
+      builder.append("name=").append(sanitizedName);
+      return new ObjectName(builder.toString());
+    } catch (MalformedObjectNameException e) {
+      throw new IllegalArgumentException("Invalid name for " + domain + ", " + name, e);
+    }
+  }
+
+  private MBeanInfo createBeanInfo() {
+    MBeanAttributeInfo[] attrs = new MBeanAttributeInfo[exportedValues.size()];
+    int i = 0;
+    for (ExportedValue<?> val : exportedValues.values()) {
+      attrs[i++] = createAttributeInfo(val);
+    }
+    MBeanOperationInfo[] operations = new MBeanOperationInfo[exportedOperations.size()];
+    i = 0;
+    for (ExportedOperation op : exportedOperations.values()) {
+      MBeanParameterInfo[] paramInfos = op.getParameterInfos();
+      operations[i++] = new MBeanOperationInfo(op.getName(), op.getDescription(),
+              paramInfos, op.getReturnType().getName(), MBeanOperationInfo.UNKNOWN);
+    }
+    return new MBeanInfo(
+            this.getClass().getName(),
+            "JmxMBean",
+            attrs,
+            null, // constructors
+            operations, // operations
+            null); // notifications
+  }
+
+  private static MBeanAttributeInfo createAttributeInfo(final ExportedValue<?> val) {
+    final Class<?> oClass = val.getValueClass();
+    Class<?> valClass = Reflections.primitiveToWrapper(oClass);
+    OpenType openType = OpenTypeConverter.getOpenType(oClass);
+    String type;
+    if (Number.class.isAssignableFrom(valClass)) {
+      type = Number.class.getName();
+    } else if (valClass == Boolean.class || valClass == String.class) {
+      type = valClass.getName();
+    } else if (Enum.class.isAssignableFrom(valClass)) {
+      type = String.class.getName();
+    } else {
+      type = openType.getTypeName();
     }
 
-    private MBeanInfo createBeanInfo() {
-        MBeanAttributeInfo[] attrs = new MBeanAttributeInfo[exportedValues.size()];
-        int i = 0;
-        for (ExportedValue<?> val : exportedValues.values()) {
-            attrs[i++] = createAttributeInfo(val);
-        }
-        MBeanOperationInfo[] operations = new MBeanOperationInfo[exportedOperations.size()];
-        i = 0;
-        for (ExportedOperation op : exportedOperations.values()) {
-            MBeanParameterInfo[] paramInfos = op.getParameterInfos();
-            operations[i++] = new MBeanOperationInfo(op.getName(), op.getDescription(),
-                    paramInfos, op.getReturnType().getName(), MBeanOperationInfo.UNKNOWN);
-        }
-        return new MBeanInfo(
-                this.getClass().getName(),
-                "JmxMBean",
-                attrs,
-                null,  // constructors
-                operations,  // operations
-                null); // notifications
-    }
+    return new MBeanAttributeInfo(
+            val.getName(),
+            type,
+            val.getDescription(),
+            true, // isReadable
+            val.isWriteable(), // isWritable
+            valClass == Boolean.class,
+            new ImmutableDescriptor(new String[]{"openType", "originalType"},
+            new Object[]{openType, oClass.getName()}));
 
-    private static MBeanAttributeInfo createAttributeInfo(final ExportedValue<?> val) {
-        final Class<?> oClass = val.getValueClass();
-        Class<?> valClass = Reflections.primitiveToWrapper(oClass);
-        OpenType openType =  OpenTypeConverter.getOpenType(oClass);
-        String type;
-        if (Number.class.isAssignableFrom(valClass)) {
-            type = Number.class.getName();
-        } else if (valClass == Boolean.class || valClass == String.class) {
-            type = valClass.getName();
-        } else if (Enum.class.isAssignableFrom(valClass)) {
-            type = String.class.getName();
-        } else {
-            type = openType.getTypeName();
-        }
+  }
 
-        return new MBeanAttributeInfo(
-                val.getName(),
-                type,
-                val.getDescription(),
-                true,   // isReadable
-                val.isWriteable(),  // isWritable
-                valClass == Boolean.class,
-                new ImmutableDescriptor(new String[] {"openType", "originalType"},
-                        new Object[] {openType, oClass.getName()}));
-
-
-    }
-
-    @Override
-    public String toString() {
-        return "ExportedValuesMBean{" + "exportedValues=" + exportedValues + ", exportedOperations="
-                + exportedOperations + ", objectName=" + objectName + ", beanInfo=" + beanInfo + '}';
-    }
-
-
+  @Override
+  public String toString() {
+    return "ExportedValuesMBean{" + "exportedValues=" + exportedValues + ", exportedOperations="
+            + exportedOperations + ", objectName=" + objectName + ", beanInfo=" + beanInfo + '}';
+  }
 
 }

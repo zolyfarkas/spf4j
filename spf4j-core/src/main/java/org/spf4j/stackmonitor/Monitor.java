@@ -32,8 +32,6 @@ import org.spf4j.base.SysExits;
  */
 public final class Monitor {
 
-    private Monitor() { }
-
     public static final String DEFAULT_SS_DUMP_FOLDER = System.getProperty("spf4j.perf.ms.defaultSsdumpFolder",
                 System.getProperty("java.io.tmpdir"));
 
@@ -64,6 +62,8 @@ public final class Monitor {
 
     }
 
+    private Monitor() { }
+    
     public static void main(final String[] args)
             throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
             InvocationTargetException  {

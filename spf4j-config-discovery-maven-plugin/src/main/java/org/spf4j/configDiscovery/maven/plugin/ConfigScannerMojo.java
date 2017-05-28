@@ -91,8 +91,8 @@ public class ConfigScannerMojo
               Long.class.getDeclaredMethod("getLong", String.class, Long.class),
               Long.class.getDeclaredMethod("getLong", String.class, long.class),
               Boolean.class.getDeclaredMethod("getBoolean", String.class));
-    } catch (NoSuchMethodException | SecurityException ex) {
-      throw new RuntimeException(ex);
+    } catch (NoSuchMethodException ex) {
+      throw new ExceptionInInitializerError(ex);
     }
   }
 

@@ -22,18 +22,21 @@ import org.spf4j.base.MutableInteger;
 
 /**
  * This class should not be weaved.
+ *
  * @author zoly
  */
 public final class Counter {
-    
-    private Counter() { }
-       
-    static final ThreadLocal<MutableInteger> SAMPLING_COUNTER = new ThreadLocal<MutableInteger>() {
 
-       @Override
-       protected MutableInteger initialValue() {
-           return new MutableInteger(0);
-       }
-       
-   };
+  static final ThreadLocal<MutableInteger> SAMPLING_COUNTER = new ThreadLocal<MutableInteger>() {
+
+    @Override
+    protected MutableInteger initialValue() {
+      return new MutableInteger(0);
+    }
+
+  };
+
+  private Counter() {
+  }
+
 }

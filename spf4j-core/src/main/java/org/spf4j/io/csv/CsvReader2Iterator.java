@@ -9,13 +9,17 @@ import java.util.NoSuchElementException;
 
 public final class CsvReader2Iterator implements Iterator<Iterable<String>> {
 
-  public CsvReader2Iterator(final CsvReader preader) {
-    this.reader = preader;
-  }
   private final CsvReader reader;
 
-  private final List<String> row = new ArrayList<>();
-  private boolean haveParsedRow = false;
+  private final List<String> row;
+
+  private boolean haveParsedRow;
+
+  public CsvReader2Iterator(final CsvReader preader) {
+    this.reader = preader;
+    haveParsedRow = false;
+    row = new ArrayList<>();
+  }
 
   private CsvReader.TokenType readRow() throws IOException, CsvParseException {
     row.clear();

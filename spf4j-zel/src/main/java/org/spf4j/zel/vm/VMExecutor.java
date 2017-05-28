@@ -43,6 +43,13 @@ public final class VMExecutor {
 
   private final Executor exec;
 
+  /**
+   * Map from Future -> Suspendables suspended at this futures and their futures.
+   */
+  private final ConcurrentMap<VMFuture<Object>, List<Pair<Suspendable<Object>, VMFuture<Object>>>> futToSuspMap
+          = new ConcurrentHashMap<>();
+
+
   public static class Lazy {
 
     private static final ExecutorService DEF_EXEC
@@ -150,12 +157,6 @@ public final class VMExecutor {
     submit(callable, resultFuture);
     return resultFuture;
   }
-
-  /**
-   * Map from Future -> Suspendables suspended at this futures and their futures.
-   */
-  private final ConcurrentMap<VMFuture<Object>, List<Pair<Suspendable<Object>, VMFuture<Object>>>> futToSuspMap
-          = new ConcurrentHashMap<>();
 
   @Nullable
   public List<Pair<Suspendable<Object>, VMFuture<Object>>> resumeSuspendables(final VMFuture<Object> future) {

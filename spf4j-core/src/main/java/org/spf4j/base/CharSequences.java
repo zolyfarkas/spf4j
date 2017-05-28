@@ -96,7 +96,8 @@ public final class CharSequences {
           @Nonnull final CharSequence t, final int tFrom, final int tLength) {
 
     int lim = min(sLength, tLength);
-    int i = sFrom, j = tFrom;
+    int i = sFrom;
+    int j = tFrom;
     int sTo = sFrom + lim;
     while (i < sTo) {
       char c1 = s.charAt(i);

@@ -21,6 +21,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -121,110 +122,7 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
 
     @Override
     public ConcurrentMap<K, V> asMap() {
-        return new ConcurrentMap<K, V>() {
-          @Override
-          public V putIfAbsent(final K key, final V value) {
-            Callable<? extends V> result =  map.putIfAbsent(key, () -> value);
-            try {
-              return result == null ? null : result.call();
-            } catch (Exception ex) {
-              throw new RuntimeException(ex);
-            }
-          }
-
-          @Override
-          public boolean remove(final Object key, final Object value) {
-            throw new UnsupportedOperationException("Not supported yet.");
-          }
-
-          @Override
-          public boolean replace(final K key, final V oldValue, final V newValue) {
-            throw new UnsupportedOperationException("Not supported yet.");
-          }
-
-          @Override
-          public V replace(final K key, final V value) {
-            throw new UnsupportedOperationException("Not supported yet.");
-          }
-
-          @Override
-          public int size() {
-            return map.size();
-          }
-
-          @Override
-          public boolean isEmpty() {
-            return map.isEmpty();
-          }
-
-          @Override
-          public boolean containsKey(final Object key) {
-            return map.containsKey(key);
-          }
-
-          @Override
-          public boolean containsValue(final Object value) {
-            throw new UnsupportedOperationException("Not supported yet.");
-          }
-
-          @Override
-          public V get(final Object key) {
-            Callable<? extends V> result = map.get(key);
-            try {
-              return result == null ? null : result.call();
-            } catch (Exception ex) {
-              throw new RuntimeException(ex);
-            }
-          }
-
-          @Override
-          public V put(final K key, final V value) {
-            Callable<? extends V> result =  map.put(key, () ->  value);
-            try {
-              return result == null ? null : result.call();
-            } catch (Exception ex) {
-              throw new RuntimeException(ex);
-            }
-          }
-
-          @Override
-          public V remove(final Object key) {
-            Callable<? extends V> result = map.remove(key);
-            try {
-              return result == null ? null : result.call();
-            } catch (Exception ex) {
-              throw new RuntimeException(ex);
-            }
-          }
-
-          @Override
-          public void putAll(final Map<? extends K, ? extends V> m) {
-            for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
-              map.put(entry.getKey(), () -> entry.getValue());
-            }
-          }
-
-          @Override
-          public void clear() {
-            map.clear();
-          }
-
-          @Override
-          public Set<K> keySet() {
-            return map.keySet();
-          }
-
-          @Override
-          public Collection<V> values() {
-              throw new UnsupportedOperationException("Not supported yet.");
-          }
-
-          @Override
-          public Set<Map.Entry<K, V>> entrySet() {
-            throw new UnsupportedOperationException("Not supported yet.");
-          }
-
-        };
+        return new MapView();
     }
 
     @Override
@@ -322,5 +220,110 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
     public String toString() {
         return "UnboundedLoadingCache{" + "map=" + map + ", loader=" + loader + '}';
     }
+
+  private class MapView implements ConcurrentMap<K, V> {
+
+    @Override
+    public V putIfAbsent(final K key, final V value) {
+      Callable<? extends V> result =  map.putIfAbsent(key, () -> value);
+      try {
+        return result == null ? null : result.call();
+      } catch (Exception ex) {
+        throw new UncheckedExecutionException(ex);
+      }
+    }
+
+    @Override
+    public boolean remove(final Object key, final Object value) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean replace(final K key, final V oldValue, final V newValue) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public V replace(final K key, final V value) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int size() {
+      return map.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return map.isEmpty();
+    }
+
+    @Override
+    public boolean containsKey(final Object key) {
+      return map.containsKey(key);
+    }
+
+    @Override
+    public boolean containsValue(final Object value) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public V get(final Object key) {
+      Callable<? extends V> result = map.get(key);
+      try {
+        return result == null ? null : result.call();
+      } catch (Exception ex) {
+        throw new UncheckedExecutionException(ex);
+      }
+    }
+
+    @Override
+    public V put(final K key, final V value) {
+      Callable<? extends V> result =  map.put(key, () ->  value);
+      try {
+        return result == null ? null : result.call();
+      } catch (Exception ex) {
+        throw new UncheckedExecutionException(ex);
+      }
+    }
+
+    @Override
+    public V remove(final Object key) {
+      Callable<? extends V> result = map.remove(key);
+      try {
+        return result == null ? null : result.call();
+      } catch (Exception ex) {
+        throw new UncheckedExecutionException(ex);
+      }
+    }
+
+    @Override
+    public void putAll(final Map<? extends K, ? extends V> m) {
+      for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
+        map.put(entry.getKey(), () -> entry.getValue());
+      }
+    }
+
+    @Override
+    public void clear() {
+      map.clear();
+    }
+
+    @Override
+    public Set<K> keySet() {
+      return map.keySet();
+    }
+
+    @Override
+    public Collection<V> values() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Map.Entry<K, V>> entrySet() {
+      throw new UnsupportedOperationException();
+    }
+  }
 
 }

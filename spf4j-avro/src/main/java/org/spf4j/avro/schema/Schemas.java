@@ -37,6 +37,8 @@ public final class Schemas {
         for (String alias : aliases) {
           to.addAlias(alias);
         }
+      default:
+        //ignore unnamed one's
     }
     //CHECKSTYLE:OFF
   }

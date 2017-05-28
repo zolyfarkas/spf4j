@@ -35,6 +35,14 @@ import javax.annotation.Nullable;
  */
 public class Pair<A, B> implements Map.Entry<A, B>, Writeable {
 
+  //CHECKSTYLE:OFF
+  @Nullable
+  protected final A first;
+
+  @Nullable
+  protected final B second;
+  //CHECKSTYLE:ON
+
   @ConstructorProperties({"first", "second"})
   public Pair(@Nullable final A first, @Nullable final B second) {
     this.first = first;
@@ -78,18 +86,6 @@ public class Pair<A, B> implements Map.Entry<A, B>, Writeable {
     }
     return Pair.of(first.toString(), second.toString());
   }
-
-  public static final char SUFFIX = ')';
-
-  public static final char PREFIX = '(';
-
-  //CHECKSTYLE:OFF
-  @Nullable
-  protected final A first;
-
-  @Nullable
-  protected final B second;
-  //CHECKSTYLE:ON
 
   public final A getFirst() {
     return first;

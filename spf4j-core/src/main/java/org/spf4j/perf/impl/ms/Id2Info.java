@@ -13,11 +13,11 @@ import org.spf4j.perf.MeasurementsInfo;
  */
 public final class Id2Info {
 
-    private Id2Info() { }
-
     private static final TObjectLongMap<MeasurementsInfo> INFO2ID = new TObjectLongHashMap<>();
     private static final TLongObjectMap<MeasurementsInfo> ID2INFO = new TLongObjectHashMap<>();
     private static long idSeq = 1;
+
+    private Id2Info() { }
 
     public static synchronized long getId(final MeasurementsInfo info) {
         long id = INFO2ID.get(info);

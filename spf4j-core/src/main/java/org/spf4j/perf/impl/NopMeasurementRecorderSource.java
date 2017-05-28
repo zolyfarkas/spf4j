@@ -28,9 +28,10 @@ import org.spf4j.perf.MeasurementRecorderSource;
 
 
 public final class NopMeasurementRecorderSource implements MeasurementRecorderSource {
-    private NopMeasurementRecorderSource() { }
 
     public static final NopMeasurementRecorderSource INSTANCE = new NopMeasurementRecorderSource();
+
+    private NopMeasurementRecorderSource() { }
 
     @Override
     public MeasurementRecorder getRecorder(final Object forWhat) {

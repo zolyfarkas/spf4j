@@ -7,7 +7,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- *
  * @author zoly
  */
 @SuppressFBWarnings("MDM_THREAD_YIELD")
@@ -38,7 +37,7 @@ public final class DefaultSchedulerTest {
             @Override
             public void run() {
                 long time = System.currentTimeMillis();
-                if (!(time % 1000 < 50)) {
+                if (time % 1000 >= 50) {
                     notAligned = true;
                 }
                 System.out.println(time);
@@ -46,7 +45,7 @@ public final class DefaultSchedulerTest {
                     try {
                         Thread.sleep(2000);
                     } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        return;
                     }
                     first = false;
                 }
