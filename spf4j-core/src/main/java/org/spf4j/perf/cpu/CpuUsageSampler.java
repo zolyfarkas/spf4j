@@ -1,4 +1,3 @@
-
 package org.spf4j.perf.cpu;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -20,72 +19,71 @@ import org.spf4j.perf.impl.RecorderFactory;
 @SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
 public final class CpuUsageSampler {
 
-    private CpuUsageSampler() { }
+  private static final com.sun.management.OperatingSystemMXBean OS_MBEAN;
 
-    private static final com.sun.management.OperatingSystemMXBean OS_MBEAN;
+  static {
+    OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
+    if (operatingSystemMXBean instanceof com.sun.management.OperatingSystemMXBean) {
+      OS_MBEAN = (com.sun.management.OperatingSystemMXBean) operatingSystemMXBean;
+    } else {
+      OS_MBEAN = null;
+    }
+    Registry.export(CpuUsageSampler.class);
+  }
 
-    static {
-        OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
-        if (operatingSystemMXBean instanceof com.sun.management.OperatingSystemMXBean) {
-            OS_MBEAN = (com.sun.management.OperatingSystemMXBean) operatingSystemMXBean;
-        } else {
-            OS_MBEAN = null;
+  private CpuUsageSampler() {
+  }
+
+  @JmxExport
+  public static long getProcessCpuTimeNanos() {
+    return OS_MBEAN.getProcessCpuTime();
+  }
+
+  private static ScheduledFuture<?> samplingFuture;
+
+  static {
+    if (OS_MBEAN != null) {
+      org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
+        @Override
+        public void doRun() {
+          stop();
         }
-        Registry.export(CpuUsageSampler.class);
+      });
     }
+  }
 
+  @JmxExport
+  public static synchronized void start(@JmxExport("sampleTimeMillis") final int sampleTime) {
+    if (samplingFuture == null) {
+      final MeasurementRecorder cpuUsage
+              = RecorderFactory.createDirectRecorder("cpu-time", "ns", sampleTime);
+      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
 
-    @JmxExport
-    public static long getProcessCpuTimeNanos() {
-        return OS_MBEAN.getProcessCpuTime();
-    }
+        private long lastValue = 0;
 
-
-    private static ScheduledFuture<?> samplingFuture;
-
-    static {
-        if (OS_MBEAN != null) {
-            org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
-                @Override
-                public void doRun() {
-                    stop();
-                }
-            });
+        @Override
+        public void doRun() {
+          long currTime = OS_MBEAN.getProcessCpuTime();
+          cpuUsage.record(currTime - lastValue);
+          lastValue = currTime;
         }
+      }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
+    } else {
+      throw new IllegalStateException("Cpu time Sampling already started " + samplingFuture);
     }
+  }
 
-    @JmxExport
-    public static synchronized void start(@JmxExport("sampleTimeMillis") final int sampleTime) {
-        if (samplingFuture == null) {
-            final MeasurementRecorder cpuUsage =
-                RecorderFactory.createDirectRecorder("cpu-time", "ns", sampleTime);
-            samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
-
-                private long lastValue = 0;
-
-                @Override
-                public void doRun() {
-                     long currTime = OS_MBEAN.getProcessCpuTime();
-                     cpuUsage.record(currTime - lastValue);
-                     lastValue = currTime;
-                }
-            }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
-        } else {
-            throw new IllegalStateException("Cpu time Sampling already started " + samplingFuture);
-        }
+  @JmxExport
+  public static synchronized void stop() {
+    if (samplingFuture != null) {
+      samplingFuture.cancel(false);
+      samplingFuture = null;
     }
+  }
 
-    @JmxExport
-    public static synchronized void stop() {
-        if (samplingFuture != null) {
-            samplingFuture.cancel(false);
-            samplingFuture = null;
-        }
-    }
-
-    @JmxExport
-    public static synchronized boolean isStarted() {
-        return samplingFuture != null;
-    }
+  @JmxExport
+  public static synchronized boolean isStarted() {
+    return samplingFuture != null;
+  }
 
 }
