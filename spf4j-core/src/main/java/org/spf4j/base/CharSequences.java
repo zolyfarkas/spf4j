@@ -284,7 +284,7 @@ public final class CharSequences {
    *
    * @see java.lang.Integer.parseInt
    */
-  public static int parseInt(final CharSequence s) {
+  public static int parseInt(@Nonnull final CharSequence s) {
     return parseInt(s, 10);
   }
 
@@ -293,16 +293,7 @@ public final class CharSequences {
    *
    * @see java.lang.Integer.parseInt
    */
-  public static int parseInt(final CharSequence cs, final int radix) {
-    /*
-         * WARNING: This method may be invoked early during VM initialization
-         * before IntegerCache is initialized. Care must be taken to not use
-         * the valueOf method.
-     */
-
-    if (cs == null) {
-      throw new NumberFormatException("cs is null for radix = " + radix);
-    }
+  public static int parseInt(@Nonnull final CharSequence cs, final int radix) {
 
     if (radix < Character.MIN_RADIX) {
       throw new NumberFormatException("radix " + radix
@@ -364,7 +355,7 @@ public final class CharSequences {
    *
    * @see java.lang.Long.parseLong
    */
-  public static long parseLong(final CharSequence cs) {
+  public static long parseLong(@Nonnull final CharSequence cs) {
     return parseLong(cs, 10);
   }
 
@@ -373,10 +364,7 @@ public final class CharSequences {
    *
    * @see java.lang.Long.parseLong
    */
-  public static long parseLong(final CharSequence cs, final int radix) {
-    if (cs == null) {
-      throw new NumberFormatException("cs is null for radix = " + radix);
-    }
+  public static long parseLong(@Nonnull final CharSequence cs, final int radix) {
 
     if (radix < Character.MIN_RADIX) {
       throw new NumberFormatException("radix " + radix
