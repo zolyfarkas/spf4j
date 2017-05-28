@@ -58,7 +58,7 @@ final class ObjectPoolWrapper<T> implements RecyclingSupplier<T>, Scanable<Objec
 
 
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
     @Override
     public T get()
             throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
@@ -72,7 +72,7 @@ final class ObjectPoolWrapper<T> implements RecyclingSupplier<T>, Scanable<Objec
             try {
                 pool.recycle(result, e);
             } catch (RuntimeException ex) {
-                throw Throwables.suppress(new RuntimeException(ex), e);
+                throw Throwables.suppress(ex, e);
             }
             throw new ObjectBorrowException("Exception while executing borrow hook " + borrowHook, e);
         }

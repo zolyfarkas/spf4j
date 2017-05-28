@@ -287,7 +287,7 @@ public final class CsvTest {
       for(Iterable<String> line : Csv.asIterable(new StringReader("bla,\"bla\"\nuhu,uhu2\n"))) {
         System.out.println(line);
         nr++;
-      };
+      }
       Assert.assertEquals(3, nr);
     }
 

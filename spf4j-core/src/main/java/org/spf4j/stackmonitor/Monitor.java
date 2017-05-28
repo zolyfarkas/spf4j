@@ -25,6 +25,7 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.CharSequences;
+import org.spf4j.base.SysExits;
 
 /**
  * @author zoly
@@ -92,7 +93,7 @@ public final class Monitor {
         } catch (CmdLineException e) {
             System.err.println("Error: " + e.getMessage() + "\nUsage:");
             parser.printUsage(System.err);
-            System.exit(1);
+            System.exit(SysExits.EX_USAGE.exitCode());
         }
 
         final Sampler sampler = new Sampler(options.sampleInterval, options.dumpInterval, new SimpleStackCollector(),
@@ -113,7 +114,7 @@ public final class Monitor {
             sampler.start();
         }
         Class.forName(options.mainClass).getMethod("main", String[].class).invoke(null, (Object) newArgs);
-        System.exit(0);
+        System.exit(SysExits.OK.exitCode());
     }
 
 

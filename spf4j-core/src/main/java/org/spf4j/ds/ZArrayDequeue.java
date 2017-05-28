@@ -808,7 +808,8 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
      *         this deque
      * @throws NullPointerException if the specified array is null
      */
-    public <T> T[] toArray(T[] a) {
+    public <T> T[] toArray(final T[] pa) {
+        T[] a = pa;
         int size = size();
         if (a.length < size)
             a = (T[])java.lang.reflect.Array.newInstance(

@@ -9,11 +9,11 @@ import java.lang.ref.SoftReference;
  */
 public final class TLScratch {
 
-  private TLScratch() { }
-
   private static final ThreadLocal<SoftReference<byte[]>> BYTES_TMP = new ThreadLocal<>();
 
   private static final ThreadLocal<SoftReference<char[]>> CHARS_TMP = new ThreadLocal<>();
+  
+  private TLScratch() { }
 
   /**
    * returns a thread local byte array of at least the size requested. use only for temporary purpose. This method needs

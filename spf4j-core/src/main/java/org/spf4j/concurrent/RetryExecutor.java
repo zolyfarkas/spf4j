@@ -17,6 +17,7 @@
  */
 package org.spf4j.concurrent;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -329,7 +330,7 @@ public class RetryExecutor {
     try {
       this.retryManagerFuture.get();
     } catch (ExecutionException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedExecutionException(ex);
     }
     return executionService.awaitTermination(timeout, unit);
   }

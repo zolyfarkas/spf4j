@@ -44,6 +44,8 @@ import org.spf4j.io.csv.CsvReader;
 @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // FB gets it wrong here
 public final class Csv {
 
+  public static final CharSeparatedValues CSV = new CharSeparatedValues(',');
+  
   private Csv() {
   }
 
@@ -55,8 +57,6 @@ public final class Csv {
 
   public interface CsvMapHandler<T> extends org.spf4j.io.csv.CsvMapHandler<T> {
   }
-
-  public static final CharSeparatedValues CSV = new CharSeparatedValues(',');
 
   public static void writeCsvRow(final Appendable writer, final Object... elems) throws IOException {
     CSV.writeCsvRow(writer, elems);

@@ -26,55 +26,54 @@ import org.spf4j.zel.instr.NOP;
  */
 public final class NullParsingContext implements ParsingContext {
 
-    private NullParsingContext() {
-    }
+  public static final NullParsingContext INSTANCE = new NullParsingContext();
 
-    /**
-     * return the current code address
-     *
-     * @return
-     */
-    @Override
-    public int getAddress() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+  private NullParsingContext() {
+  }
 
-    @Override
-    public void process(final Object obj) {
-    }
+  /**
+   * return the current code address
+   *
+   * @return
+   */
+  @Override
+  public int getAddress() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
 
-    @Override
-    public ProgramBuilder getProgramBuilder() {
-        return null;
-    }
+  @Override
+  public ProgramBuilder getProgramBuilder() {
+    return null;
+  }
 
-    @Override
-    public void generateCodeAll(final ParsingContext parsingContext) {
-    }
+  @Override
+  public void generateCodeAll(final ParsingContext parsingContext) {
+    //this is a null context
+  }
 
-    @Override
-    public NullParsingContext createSubContext() {
-        return INSTANCE;
-    }
+  @Override
+  public NullParsingContext createSubContext() {
+    return INSTANCE;
+  }
 
-    public static final NullParsingContext INSTANCE = new NullParsingContext();
+  @Override
+  public void staticSymbol(final String name, final Object object) {
+    //this is a null context
+  }
 
+  @Override
+  public Instruction getLast() {
+    return NOP.INSTANCE;
+  }
 
-    @Override
-    public void staticSymbol(final String name, final Object object) {
-    }
+  @Override
+  public void generateCode(final Location[] loc, final Instruction... args) {
+    //this is a null context
+  }
 
-    @Override
-    public Instruction getLast() {
-        return NOP.INSTANCE;
-    }
-
-    @Override
-    public void generateCode(final Location[] loc, final Instruction... args) {
-    }
-
-    @Override
-    public void generateCode(final Location loc, final Instruction instr) {
-    }
+  @Override
+  public void generateCode(final Location loc, final Instruction instr) {
+    //this is a null context
+  }
 
 }

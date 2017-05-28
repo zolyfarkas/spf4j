@@ -16,6 +16,8 @@ public interface IntAppender {
 
   final class CommentNumberAppender implements IntAppender {
 
+    public static final  CommentNumberAppender INSTANCE = new CommentNumberAppender();
+
     private CommentNumberAppender() { }
 
     @Override
@@ -23,11 +25,11 @@ public interface IntAppender {
       appendTo.append("/* ").append(Integer.toString(number)).append(" */ ");
     }
 
-    public static final  CommentNumberAppender INSTANCE = new CommentNumberAppender();
-
   }
 
   final class SimplePrefixNumberAppender implements IntAppender {
+
+    public static final  SimplePrefixNumberAppender INSTANCE = new SimplePrefixNumberAppender();
 
     private SimplePrefixNumberAppender() { }
 
@@ -35,8 +37,6 @@ public interface IntAppender {
     public void append(final int number, final Appendable appendTo) throws IOException {
       appendTo.append(Integer.toString(number)).append(": ");
     }
-
-    public static final  SimplePrefixNumberAppender INSTANCE = new SimplePrefixNumberAppender();
 
   }
 

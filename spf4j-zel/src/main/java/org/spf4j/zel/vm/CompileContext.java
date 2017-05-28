@@ -53,14 +53,6 @@ public final class CompileContext implements ParsingContext {
         return prog.size();
     }
 
-    /**
-     * @param obj Object
-     */
-    @Override
-    public void process(final Object obj) {
-      //Do no aditional processing
-    }
-
 
     @Override
     public ProgramBuilder getProgramBuilder() {

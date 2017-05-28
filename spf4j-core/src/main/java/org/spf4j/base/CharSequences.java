@@ -3,6 +3,7 @@ package org.spf4j.base;
 import com.google.common.annotations.GwtCompatible;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import static java.lang.Math.min;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -274,7 +275,7 @@ public final class CharSequences {
     try {
       lineNumbered(startLineNr, destination, ia).append(source);
     } catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedIOException(ex);
     }
     return destination;
   }
@@ -495,10 +496,9 @@ public final class CharSequences {
       // for the Georgian alphabet, which has strange rules about case
       // conversion.  So we need to make one last check before
       // exiting.
-      if (Character.toLowerCase(u1) == Character.toLowerCase(u2)) {
-        continue;
+      if (Character.toLowerCase(u1) != Character.toLowerCase(u2)) {
+        return false;
       }
-      return false;
     }
     return true;
   }

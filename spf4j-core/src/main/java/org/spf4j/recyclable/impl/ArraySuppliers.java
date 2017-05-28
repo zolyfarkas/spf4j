@@ -15,7 +15,6 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.recyclable.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -28,122 +27,114 @@ import org.spf4j.recyclable.SizedRecyclingSupplier;
  */
 public final class ArraySuppliers {
 
-    private ArraySuppliers() { }
+  private ArraySuppliers() {
+  }
 
-    public static final class Objects {
+  public static final class Objects {
 
-       private Objects() { }
+    public static final SizedRecyclingSupplier<Object[]> TL_SUPPLIER
+            = new Powerof2ThreadLocalRecyclingSupplier<>(new SizedRecyclingSupplier.Factory<Object[]>() {
 
-       private static final SizedRecyclingSupplier.Factory<Object[]> FACTORY =
-               new SizedRecyclingSupplier.Factory<Object[]>() {
+      @Override
+      @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+      public Object[] create(final int size) {
+        return new Object[size];
+      }
 
-            @Override
-            @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
-            public Object[] create(final int size) {
-                return new Object[size];
-            }
+      @Override
+      public int size(final Object[] object) {
+        return object.length;
+      }
+    }, ReferenceType.SOFT);
 
-            @Override
-            public int size(final Object[] object) {
-                return object.length;
-            }
-        };
-
-      public static final SizedRecyclingSupplier<Object[]> TL_SUPPLIER
-              = new Powerof2ThreadLocalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
+    private Objects() {
     }
 
+  }
 
+  public static final class Bytes {
 
-    public static final class Bytes {
+    private static final SizedRecyclingSupplier.Factory<byte[]> FACTORY
+            = new SizedRecyclingSupplier.Factory<byte[]>() {
 
-        private Bytes() { }
+      @Override
+      @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+      public byte[] create(final int size) {
+        return new byte[size];
+      }
 
+      @Override
+      public int size(final byte[] object) {
+        return object.length;
+      }
+    };
 
-       private static final SizedRecyclingSupplier.Factory<byte[]> FACTORY =
-               new SizedRecyclingSupplier.Factory<byte[]>() {
+    public static final SizedRecyclingSupplier<byte[]> TL_SUPPLIER
+            = new Powerof2ThreadLocalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
 
-            @Override
-            @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
-            public byte[] create(final int size) {
-                return new byte[size];
-            }
+    public static final SizedRecyclingSupplier<byte[]> GL_SUPPLIER
+            = new Powerof2SizedGlobalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
 
-            @Override
-            public int size(final byte[] object) {
-                return object.length;
-            }
-        };
+    public static final SizedRecyclingSupplier<byte[]> JAVA_NEW
+            = new SizedRecyclingSupplier<byte[]>() {
+      @Override
+      @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+      public byte[] get(final int size) {
+        return new byte[size];
+      }
 
-      public static final SizedRecyclingSupplier<byte[]> TL_SUPPLIER
-              = new Powerof2ThreadLocalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
+      @Override
+      public void recycle(final byte[] object) {
+        // Let the GC deal with this
+      }
+    };
 
-      public static final SizedRecyclingSupplier<byte[]> GL_SUPPLIER
-              = new Powerof2SizedGlobalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
-
-      public static final SizedRecyclingSupplier<byte[]> JAVA_NEW
-              = new SizedRecyclingSupplier<byte[]>() {
-
-            @Override
-            @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
-            public byte[] get(final int size) {
-                return new byte[size];
-            }
-
-            @Override
-            public void recycle(final byte[] object) {
-                // Let the GC deal with this
-            }
-        };
-
-
+    private Bytes() {
     }
-    
-    public static final class Chars {
 
-        private Chars() { }
+  }
 
+  public static final class Chars {
 
-       private static final SizedRecyclingSupplier.Factory<char[]> FACTORY =
-               new SizedRecyclingSupplier.Factory<char[]>() {
+    private static final SizedRecyclingSupplier.Factory<char[]> FACTORY
+            = new SizedRecyclingSupplier.Factory<char[]>() {
 
-            @Override
-            @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
-            public char[] create(final int size) {
-                return new char[size];
-            }
+      @Override
+      @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+      public char[] create(final int size) {
+        return new char[size];
+      }
 
-            @Override
-            public int size(final char[] object) {
-                return object.length;
-            }
-        };
+      @Override
+      public int size(final char[] object) {
+        return object.length;
+      }
+    };
 
-      public static final SizedRecyclingSupplier<char[]> TL_SUPPLIER
-              = new Powerof2ThreadLocalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
+    public static final SizedRecyclingSupplier<char[]> TL_SUPPLIER
+            = new Powerof2ThreadLocalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
 
-      public static final SizedRecyclingSupplier<char[]> GL_SUPPLIER
-              = new Powerof2SizedGlobalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
+    public static final SizedRecyclingSupplier<char[]> GL_SUPPLIER
+            = new Powerof2SizedGlobalRecyclingSupplier<>(FACTORY, ReferenceType.SOFT);
 
-      public static final SizedRecyclingSupplier<char[]> JAVA_NEW
-              = new SizedRecyclingSupplier<char[]>() {
+    public static final SizedRecyclingSupplier<char[]> JAVA_NEW
+            = new SizedRecyclingSupplier<char[]>() {
 
-            @Override
-            @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
-            public char[] get(final int size) {
-                return new char[size];
-            }
+      @Override
+      @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
+      public char[] get(final int size) {
+        return new char[size];
+      }
 
-            @Override
-            public void recycle(final char[] object) {
-                // Let the GC deal with this
-            }
-        };
+      @Override
+      public void recycle(final char[] object) {
+        // Let the GC deal with this
+      }
+    };
 
-
+    private Chars() {
     }
-    
-    
-    
+
+  }
 
 }

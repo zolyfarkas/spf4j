@@ -19,6 +19,7 @@
 package org.spf4j.concurrent;
 
 import com.google.common.annotations.Beta;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.set.hash.THashSet;
 import java.util.ArrayDeque;
@@ -516,7 +517,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
             uexh.uncaughtException(this, e);
           } catch (RuntimeException ex) {
             ex.addSuppressed(e);
-            throw new Error("Uncaught exception handler blew up: " + uexh, ex);
+            throw new UncheckedExecutionException("Uncaught exception handler blew up: " + uexh, ex);
           }
         } catch (Error e) {
           /** from sysexits.h EX_SOFTWARE = 70 */

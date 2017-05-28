@@ -115,15 +115,15 @@ public final class MemoryUsageSampler {
 
   private static class AccumulatorRunnable extends AbstractRunnable {
 
+    private final MeasurementRecorder heapCommited;
+    private final MeasurementRecorder heapUsed;
+
     AccumulatorRunnable(final int accumulationIntervalMillis) {
       heapCommited
               = RecorderFactory.createScalableMinMaxAvgRecorder("heap-commited", "bytes", accumulationIntervalMillis);
       heapUsed
               = RecorderFactory.createScalableMinMaxAvgRecorder("heap-used", "bytes", accumulationIntervalMillis);
     }
-
-    private final MeasurementRecorder heapCommited;
-    private final MeasurementRecorder heapUsed;
 
     @Override
     public void doRun() throws Exception {

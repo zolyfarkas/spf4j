@@ -20,6 +20,7 @@
 package org.spf4j.jmx;
 
 import com.google.common.base.Converter;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
@@ -96,7 +97,7 @@ class ExportedValueImpl implements ExportedValue<Object> {
                 return getMethod.invoke(object);
             }
         } catch (IllegalAccessException | InvocationTargetException ex) {
-            throw new RuntimeException(ex);
+            throw new UncheckedExecutionException(ex);
         }
     }
 
@@ -113,7 +114,7 @@ class ExportedValueImpl implements ExportedValue<Object> {
                 setMethod.invoke(object, value);
             }
         } catch (IllegalAccessException | InvocationTargetException ex) {
-            throw new RuntimeException(ex);
+            throw new UncheckedExecutionException(ex);
         }
     }
 

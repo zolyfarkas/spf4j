@@ -25,11 +25,11 @@ import org.spf4j.zel.vm.SuspendedException;
 
 public final class LE extends Instruction {
 
-    private LE() { }
-
-    private static final long serialVersionUID = -3993717987392417186L;
+    private static final long serialVersionUID = 1L;
 
     public static final Instruction INSTANCE = new LE();
+
+    private LE() { }
 
     @Override
     public int execute(final ExecutionContext context)

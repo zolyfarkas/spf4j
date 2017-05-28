@@ -83,13 +83,6 @@ public interface ParsingContext {
     Instruction getLast();
 
     /**
-     * send a object for processing
-     *
-     * @param obj Object
-     */
-    void process(Object obj);
-
-    /**
      * get the code generated in this context
      *
      * @return Object[]

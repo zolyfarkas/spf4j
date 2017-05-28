@@ -25,6 +25,7 @@ import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -34,7 +35,10 @@ import org.spf4j.base.ExitException;
 import org.spf4j.base.NoExitSecurityManager;
 
 @SuppressFBWarnings("PREDICTABLE_RANDOM")
+@NotThreadSafe
 public final class MonitorTest {
+
+    private static volatile boolean stopped;
 
     private static SecurityManager original;
     @BeforeClass
@@ -80,9 +84,6 @@ public final class MonitorTest {
         Assert.assertEquals(0, ex.getExitCode());
       }
     }
-
-
-    private static volatile boolean stopped;
 
     @SuppressFBWarnings("MDM_THREAD_YIELD")
     public static void main(final String[] args) throws InterruptedException {
