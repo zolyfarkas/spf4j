@@ -44,9 +44,6 @@ import org.slf4j.LoggerFactory;
 //CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES
 public final class Callables {
 
-  private Callables() {
-  }
-
   private static final Logger LOG = LoggerFactory.getLogger(Callables.class);
 
   public static final SimpleRetryPredicate<?> RETRY_FOR_NULL_RESULT = new SimpleRetryPredicate<Object>() {
@@ -91,6 +88,8 @@ public final class Callables {
     }
 
   };
+
+  private Callables() { }
 
   public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
           final int nrImmediateRetries,

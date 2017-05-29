@@ -372,15 +372,16 @@ public final class CharSeparatedValues {
   private static class CsvMapHandler2CsvHandler<T> implements CsvHandler<T> {
 
     private final CsvMapHandler<T> handler;
-
-    CsvMapHandler2CsvHandler(final CsvMapHandler<T> handler) {
-      this.handler = handler;
-    }
     private boolean first = true;
     private final List<String> header = new ArrayList<>();
     private int elemIdx;
     private Map<String, String> row = null;
     private int lineNr;
+
+
+    CsvMapHandler2CsvHandler(final CsvMapHandler<T> handler) {
+      this.handler = handler;
+    }
 
     @Override
     public void startRow(final int ln) {
@@ -422,14 +423,14 @@ public final class CharSeparatedValues {
   private class CsvReaderImpl implements CsvReader {
 
     private final PushbackReader reader;
-
-    CsvReaderImpl(final PushbackReader reader) {
-      this.reader = reader;
-    }
     private final StringBuilder currentElement = new StringBuilder();
     private TokenType currentToken;
     private TokenType nextToken;
     private int lineNr = 0;
+
+    CsvReaderImpl(final PushbackReader reader) {
+      this.reader = reader;
+    }
 
     private void readCurrentElement() throws IOException, CsvParseException {
       currentElement.setLength(0);

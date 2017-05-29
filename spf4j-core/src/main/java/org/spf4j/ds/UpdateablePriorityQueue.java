@@ -162,9 +162,6 @@ public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializab
     }
 
     public ElementRef add(@Nonnull final E e) {
-        if (e == null) {
-            throw new NullPointerException();
-        }
         modCount++;
         int i = size;
         if (i >= queue.length) {

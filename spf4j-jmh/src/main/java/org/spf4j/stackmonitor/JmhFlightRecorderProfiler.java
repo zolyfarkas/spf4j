@@ -29,13 +29,12 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
 
     private static volatile String benchmarkName;
 
+    private volatile String dumpFile;
 
     @Override
     public Collection<String> addJVMInvokeOptions(final BenchmarkParams params) {
         return Collections.emptyList();
     }
-
-    private volatile String dumpFile;
 
     public static String benchmarkName() {
         return benchmarkName;

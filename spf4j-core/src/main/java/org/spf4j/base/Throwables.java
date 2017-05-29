@@ -92,6 +92,8 @@ public final class Throwables {
     });
   }
 
+  private static final Detail DEFAULT_DETAIL
+          = Detail.valueOf(System.getProperty("spf4j.throwables.defaultStackTraceDetail", "SHORT_PACKAGE"));
 
   private Throwables() {
   }
@@ -358,9 +360,6 @@ public final class Throwables {
     SHORT_PACKAGE,
     LONG_PACKAGE
   }
-
-  private static final Detail DEFAULT_DETAIL
-          = Detail.valueOf(System.getProperty("spf4j.throwables.defaultStackTraceDetail", "SHORT_PACKAGE"));
 
   public static String toString(final Throwable t) {
     return toString(t, DEFAULT_DETAIL);

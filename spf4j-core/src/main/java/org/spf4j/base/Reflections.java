@@ -35,8 +35,7 @@ import org.spf4j.concurrent.UnboundedLoadingCache;
 @ParametersAreNonnullByDefault
 public final class Reflections {
 
-  private Reflections() {
-  }
+  private static final PackageInfo NONE = new PackageInfo(null, null);
 
   private static final BiMap<Class<?>, Class<?>> PRIMITIVE_MAP = HashBiMap.create(8);
 
@@ -50,6 +49,8 @@ public final class Reflections {
     PRIMITIVE_MAP.put(float.class, Float.class);
     PRIMITIVE_MAP.put(double.class, Double.class);
   }
+
+  private Reflections() { }
 
   public static Class<?> primitiveToWrapper(final Class<?> clasz) {
     if (clasz.isPrimitive()) {
@@ -446,9 +447,6 @@ public final class Reflections {
     }
 
   }
-
-  private static final PackageInfo NONE = new PackageInfo(null, null);
-
 
   @Nonnull
   public static PackageInfo getPackageInfoDirect(@Nonnull final String className) {

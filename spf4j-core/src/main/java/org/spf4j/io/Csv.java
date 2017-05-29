@@ -45,6 +45,8 @@ import org.spf4j.io.csv.CsvReader;
 public final class Csv {
 
   public static final CharSeparatedValues CSV = new CharSeparatedValues(',');
+
+  private static final char[] TO_ESCAPE = new char[]{',', '\n', '\r', '"'};
   
   private Csv() {
   }
@@ -148,8 +150,6 @@ public final class Csv {
   public static CsvReader readerNoBOM(final PushbackReader reader) {
     return CSV.readerNoBOM(reader);
   }
-
-  private static final char[] TO_ESCAPE = new char[]{',', '\n', '\r', '"'};
 
   public static void writeCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
     if (CharSequences.containsAnyChar(elem, TO_ESCAPE)) {

@@ -33,86 +33,86 @@ import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 
 /**
- * This class allows you to poll and recordAt to a file the heap commited and heap used for your java process.
- * start data
- * recording by calling the startMemoryUsageSampling method, stop the data recording by calling the method:
+ * This class allows you to poll and recordAt to a file the heap commited and heap used for your java process. start
+ * data recording by calling the startMemoryUsageSampling method, stop the data recording by calling the method:
  * startMemoryUsageSampling.
  *
  * @author zoly
  */
 public final class GCUsageSampler {
 
-    private GCUsageSampler() {
-    }
-    private static final List<GarbageCollectorMXBean> MBEANS = ManagementFactory.getGarbageCollectorMXBeans();
-    private static ScheduledFuture<?> samplingFuture;
+  private static final List<GarbageCollectorMXBean> MBEANS = ManagementFactory.getGarbageCollectorMXBeans();
+  private static ScheduledFuture<?> samplingFuture;
 
-    static {
-        org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
-            @Override
-            public void doRun() {
-                stop();
-            }
-        });
-        Registry.export(GCUsageSampler.class);
-    }
+  static {
+    org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
+      @Override
+      public void doRun() {
+        stop();
+      }
+    });
+    Registry.export(GCUsageSampler.class);
+  }
 
-    @JmxExport
-    public static synchronized void start(@JmxExport("sampleTimeMillis") final int sampleTime) {
-        if (samplingFuture == null) {
-            final MeasurementRecorder gcUsage =
-                RecorderFactory.createDirectRecorder("gc-time", "ms", sampleTime);
-            samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
+  private GCUsageSampler() {
+  }
 
-                private final TObjectLongMap lastValues = new TObjectLongHashMap();
+  @JmxExport
+  public static synchronized void start(@JmxExport("sampleTimeMillis") final int sampleTime) {
+    if (samplingFuture == null) {
+      final MeasurementRecorder gcUsage
+              = RecorderFactory.createDirectRecorder("gc-time", "ms", sampleTime);
+      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
 
-                @Override
-                public void doRun() {
-                    synchronized (lastValues) {
-                        gcUsage.record(getGCTimeDiff(MBEANS, lastValues));
-                    }
-                }
-            }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
-        } else {
-            throw new IllegalStateException("GC usage sampling already started " + samplingFuture);
+        private final TObjectLongMap lastValues = new TObjectLongHashMap();
+
+        @Override
+        public void doRun() {
+          synchronized (lastValues) {
+            gcUsage.record(getGCTimeDiff(MBEANS, lastValues));
+          }
         }
+      }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
+    } else {
+      throw new IllegalStateException("GC usage sampling already started " + samplingFuture);
     }
+  }
 
-    @JmxExport
-    public static synchronized void stop() {
-        if (samplingFuture != null) {
-            samplingFuture.cancel(false);
-            samplingFuture = null;
-        }
+  @JmxExport
+  public static synchronized void stop() {
+    if (samplingFuture != null) {
+      samplingFuture.cancel(false);
+      samplingFuture = null;
     }
+  }
 
-    public static long getGCTimeDiff(final List<GarbageCollectorMXBean> gcBeans, final TObjectLongMap lastValues) {
-        long gcTime = 0;
-        for (GarbageCollectorMXBean gcBean : gcBeans) {
-            long prevVal = lastValues.get(gcBean);
-            long currVal = gcBean.getCollectionTime();
-            gcTime += currVal - prevVal;
-            lastValues.put(gcBean, currVal);
-        }
-        return gcTime;
+  public static long getGCTimeDiff(final List<GarbageCollectorMXBean> gcBeans, final TObjectLongMap lastValues) {
+    long gcTime = 0;
+    for (GarbageCollectorMXBean gcBean : gcBeans) {
+      long prevVal = lastValues.get(gcBean);
+      long currVal = gcBean.getCollectionTime();
+      gcTime += currVal - prevVal;
+      lastValues.put(gcBean, currVal);
     }
+    return gcTime;
+  }
 
-    public static long getGCTime(final List<GarbageCollectorMXBean> gcBeans) {
-        long gcTime = 0;
-        for (GarbageCollectorMXBean gcBean : gcBeans) {
-            gcTime += gcBean.getCollectionTime();
-        }
-        return gcTime;
+  public static long getGCTime(final List<GarbageCollectorMXBean> gcBeans) {
+    long gcTime = 0;
+    for (GarbageCollectorMXBean gcBean : gcBeans) {
+      gcTime += gcBean.getCollectionTime();
     }
+    return gcTime;
+  }
 
-    @JmxExport(description = "Get the total GC time in millis since the JVM started")
-    public static long getGCTime() {
-        return getGCTime(MBEANS);
-    }
+  @JmxExport(description = "Get the total GC time in millis since the JVM started")
+  public static long getGCTime() {
+    return getGCTime(MBEANS);
+  }
 
-    @JmxExport
-    public static synchronized boolean isStarted() {
-        return samplingFuture != null;
-    }
+  @JmxExport
+  public static synchronized boolean isStarted() {
+    return samplingFuture != null;
+  }
 
 }

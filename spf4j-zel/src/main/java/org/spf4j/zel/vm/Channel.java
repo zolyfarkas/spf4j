@@ -12,85 +12,84 @@ import java.util.Queue;
 @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
 public final class Channel {
 
-    public static final Object EOF = new Object();
+  public static final Object EOF = new Object();
 
-    private final Queue<Object> queue;
+  private final Queue<Object> queue;
 
-    private final Queue<VMFuture<Object>> readers;
+  private final Queue<VMFuture<Object>> readers;
 
-    private final VMExecutor exec;
+  private final VMExecutor exec;
 
-    private boolean closed;
+  private boolean closed;
 
-    public Channel(final VMExecutor exec) {
-        this.queue = new LinkedList<>();
-        this.readers = new LinkedList<>();
-        this.exec = exec;
-        this.closed = false;
-    }
+  public Channel(final VMExecutor exec) {
+    this.queue = new LinkedList<>();
+    this.readers = new LinkedList<>();
+    this.exec = exec;
+    this.closed = false;
+  }
 
-    @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
-    public Object read() {
-        synchronized (this) {
-            Object obj = queue.poll();
-            if (obj == null) {
-                VMASyncFuture<Object> fut = new VMASyncFuture<>();
-                readers.add(fut);
-                return fut;
-            } else {
-                if (obj == EOF) {
-                    queue.add(EOF);
-                }
-                return obj;
-            }
+  @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
+  public Object read() {
+    synchronized (this) {
+      Object obj = queue.poll();
+      if (obj == null) {
+        VMASyncFuture<Object> fut = new VMASyncFuture<>();
+        readers.add(fut);
+        return fut;
+      } else {
+        if (obj == EOF) {
+          queue.add(EOF);
         }
+        return obj;
+      }
     }
+  }
 
-    public void write(final Object obj) {
-        synchronized (this) {
-            if (closed) {
-                throw new IllegalStateException("Channel is closed, cannot write " + obj + " into it");
-            }
-            VMFuture<Object> reader = readers.poll();
-            if (reader != null) {
-                reader.setResult(obj);
-                exec.resumeSuspendables(reader);
-            } else {
-                queue.add(obj);
-            }
-        }
+  public void write(final Object obj) {
+    synchronized (this) {
+      if (closed) {
+        throw new IllegalStateException("Channel is closed, cannot write " + obj + " into it");
+      }
+      VMFuture<Object> reader = readers.poll();
+      if (reader != null) {
+        reader.setResult(obj);
+        exec.resumeSuspendables(reader);
+      } else {
+        queue.add(obj);
+      }
     }
+  }
 
-    public void close() {
-        synchronized (this) {
-            VMFuture<Object> reader;
-            while ((reader = readers.poll()) != null) {
-                reader.setResult(EOF);
-                exec.resumeSuspendables(reader);
-            }
-            queue.add(EOF);
-            closed = true;
-        }
+  public void close() {
+    synchronized (this) {
+      VMFuture<Object> reader;
+      while ((reader = readers.poll()) != null) {
+        reader.setResult(EOF);
+        exec.resumeSuspendables(reader);
+      }
+      queue.add(EOF);
+      closed = true;
     }
+  }
 
-    public static final class Factory implements Method {
+  public static final class Factory implements Method {
 
-        private Factory() { }
+    public static final Factory INSTANCE = new Factory();
 
-        @Override
-        public Object invoke(final ExecutionContext context, final Object[] parameters) {
-            return new Channel(context.getExecService());
-        }
-
-        public static final Factory INSTANCE = new Factory();
-
+    private Factory() {
     }
 
     @Override
-    public String toString() {
-        return "Channel{" + "queue=" + queue + ", readers=" + readers + ", exec=" + exec + ", closed=" + closed + '}';
+    public Object invoke(final ExecutionContext context, final Object[] parameters) {
+      return new Channel(context.getExecService());
     }
 
- 
+  }
+
+  @Override
+  public String toString() {
+    return "Channel{" + "queue=" + queue + ", readers=" + readers + ", exec=" + exec + ", closed=" + closed + '}';
+  }
 
 }

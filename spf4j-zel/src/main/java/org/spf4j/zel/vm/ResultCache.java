@@ -30,6 +30,8 @@ import javax.annotation.Nullable;
  */
 public interface ResultCache {
 
+    Object NULL = new Object();
+
     void putPermanentResult(Program program, @Nonnull List<Object> params, @Nullable Object result);
 
     void putTransientResult(Program program, @Nonnull List<Object> params,  @Nullable Object result);
@@ -37,7 +39,5 @@ public interface ResultCache {
     @Nullable
     Object getResult(Program program, @Nonnull List<Object> params, Callable<Object> compute)
             throws ExecutionException;
-
-    Object NULL = new Object();
 
 }
