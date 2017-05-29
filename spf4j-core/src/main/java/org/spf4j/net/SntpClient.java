@@ -36,8 +36,6 @@ import org.spf4j.base.Callables;
 
 public final class SntpClient {
 
-    private SntpClient() { }
-
     private static final int ORIGINATE_TIME_OFFSET = 24;
     private static final int RECEIVE_TIME_OFFSET = 32;
     private static final int TRANSMIT_TIME_OFFSET = 40;
@@ -52,10 +50,14 @@ public final class SntpClient {
     private static final long OFFSET_1900_TO_1970 = ((365L * 70L) + 17L) * 24L * 60L * 60L;
 
     private static final int MAX_SOCKET_TIMEOUT = 1000; // 5 seconds
+
+    private SntpClient() { }
+
     public static Timing requestTimeHA(final int timeoutMillis, final String ... hosts)
             throws IOException, InterruptedException, TimeoutException {
         return requestTimeHA(timeoutMillis, MAX_SOCKET_TIMEOUT, hosts);
     }
+
 
     /**
      * Request NTP time with retries.

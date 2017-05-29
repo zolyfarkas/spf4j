@@ -66,7 +66,7 @@ public final class JmhFlightRecorderProfiler implements ExternalProfiler {
         final List<String> inputArguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
         if (new Version(org.spf4j.base.Runtime.JAVA_VERSION).compareTo(new Version("1.8.0_40")) <= 0
                 && !inputArguments.contains("-XX:+UnlockCommercialFeatures")) {
-            throw new RuntimeException("-XX:+UnlockCommercialFeatures must pre present in the JVM options,"
+            throw new Spf4jProfilerException("-XX:+UnlockCommercialFeatures must pre present in the JVM options,"
                     + " current options are: " + inputArguments);
         }
     }

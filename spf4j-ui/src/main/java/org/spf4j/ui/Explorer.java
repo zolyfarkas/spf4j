@@ -21,6 +21,7 @@ package org.spf4j.ui;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import javax.swing.JFileChooser;
 import javax.swing.JInternalFrame;
 import javax.swing.filechooser.FileFilter;
@@ -168,7 +169,7 @@ public class Explorer extends javax.swing.JFrame {
         try {
           openFile(file);
         } catch (IOException ex) {
-          throw new RuntimeException(ex);
+          throw new UncheckedIOException(ex);
         }
       }
     }//GEN-LAST:event_openMenuItemActionPerformed

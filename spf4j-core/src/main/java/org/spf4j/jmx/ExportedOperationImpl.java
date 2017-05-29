@@ -18,6 +18,7 @@
  */
 package org.spf4j.jmx;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -85,7 +86,7 @@ final class ExportedOperationImpl implements ExportedOperation {
         try {
             return method.invoke(object, parameters);
         } catch (IllegalAccessException | InvocationTargetException ex) {
-            throw new RuntimeException(ex);
+            throw new UncheckedExecutionException(ex);
         }
     }
 

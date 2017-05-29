@@ -68,48 +68,6 @@ import org.spf4j.unix.UnixException;
  */
 public final class Runtime {
 
-  private Runtime() {
-  }
-
-  public enum Version {
-
-    V1_0, V1_1, V1_2, V1_3, V1_4, V1_5, V1_6, V1_7, V1_8, V1_9_PLUSZ;
-
-    public static Version fromSpecVersion(final String specVersion) {
-      return Version.values()[Integer.parseInt(specVersion.split("\\.")[1])];
-    }
-  }
-
-  public static final Version JAVA_PLATFORM;
-
-  private static class Lazy {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Lazy.class);
-  }
-
-  public static void goDownWithError(final SysExits exitCode) {
-    goDownWithError(null, exitCode.exitCode());
-  }
-
-  public static void goDownWithError(@Nullable final Throwable t, final SysExits exitCode) {
-    goDownWithError(t, exitCode.exitCode());
-  }
-
-  // Calling Halt is the only sensible thing to do when the JVM is hosed.
-  @SuppressFBWarnings("MDM_RUNTIME_EXIT_OR_HALT")
-  public static void goDownWithError(@Nullable final Throwable t, final int exitCode) {
-    try {
-      if (t != null) {
-        Throwables.writeTo(t, System.err, Throwables.Detail.NONE); //High probability attempt to log first
-        Throwables.writeTo(t, System.err, Throwables.Detail.STANDARD); //getting more curageous :-)
-        Lazy.LOGGER.error("Error, going down with exit code {}", exitCode, t); //Now we are pushing it...
-      } else {
-        Lazy.LOGGER.error("Error, going down with exit code {}", exitCode);
-      }
-    } finally {
-      java.lang.Runtime.getRuntime().halt(exitCode);
-    }
-  }
 
   public static final int WAIT_FOR_SHUTDOWN_MILLIS = Integer.getInteger("spf4j.waitForShutdownMillis", 30000);
   public static final String TMP_FOLDER = System.getProperty("java.io.tmpdir");
@@ -128,6 +86,15 @@ public final class Runtime {
   public static final String JAVA_HOME = System.getProperty("java.home");
   private static final boolean IS_MAC_OSX;
   private static final boolean IS_WINDOWS;
+
+  public static final ThreadLocal<Long> DEADLINE = new ThreadLocal<Long>() {
+
+    @Override
+    protected Long initialValue() {
+      return Long.MAX_VALUE;
+    }
+
+  };
 
   private static final SortedMap<Integer, Set<Runnable>> SHUTDOWN_HOOKS = new TreeMap<>();
 
@@ -253,6 +220,49 @@ public final class Runtime {
     }
   }
 
+  private Runtime() {
+  }
+
+  public enum Version {
+
+    V1_0, V1_1, V1_2, V1_3, V1_4, V1_5, V1_6, V1_7, V1_8, V1_9_PLUSZ;
+
+    public static Version fromSpecVersion(final String specVersion) {
+      return Version.values()[Integer.parseInt(specVersion.split("\\.")[1])];
+    }
+  }
+
+  public static final Version JAVA_PLATFORM;
+
+  private static class Lazy {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Lazy.class);
+  }
+
+  public static void goDownWithError(final SysExits exitCode) {
+    goDownWithError(null, exitCode.exitCode());
+  }
+
+  public static void goDownWithError(@Nullable final Throwable t, final SysExits exitCode) {
+    goDownWithError(t, exitCode.exitCode());
+  }
+
+  // Calling Halt is the only sensible thing to do when the JVM is hosed.
+  @SuppressFBWarnings("MDM_RUNTIME_EXIT_OR_HALT")
+  public static void goDownWithError(@Nullable final Throwable t, final int exitCode) {
+    try {
+      if (t != null) {
+        Throwables.writeTo(t, System.err, Throwables.Detail.NONE); //High probability attempt to log first
+        Throwables.writeTo(t, System.err, Throwables.Detail.STANDARD); //getting more curageous :-)
+        Lazy.LOGGER.error("Error, going down with exit code {}", exitCode, t); //Now we are pushing it...
+      } else {
+        Lazy.LOGGER.error("Error, going down with exit code {}", exitCode);
+      }
+    } finally {
+      java.lang.Runtime.getRuntime().halt(exitCode);
+    }
+  }
+
   public static boolean isMacOsx() {
     return IS_MAC_OSX;
   }
@@ -365,7 +375,8 @@ public final class Runtime {
      */
     public static int runUlimit(final String... options) {
       if (ULIMIT_CMD == null) {
-        throw new RuntimeException("Ulimit not available on " + Runtime.OS_NAME);
+        Lazy.LOGGER.warn("Ulimit not available, assuming no limits");
+        return Integer.MAX_VALUE;
       }
       int mfiles;
       try {
@@ -377,11 +388,12 @@ public final class Runtime {
           try {
             mfiles = Integer.parseInt(result.trim());
           } catch (NumberFormatException ex) {
-            throw new RuntimeException("Invalid value returned by " + java.util.Arrays.toString(cmd), ex);
+            Lazy.LOGGER.warn("Error while parsing ulimit output, assuming no limit", ex);
+            mfiles = Integer.MAX_VALUE;
           }
         }
       } catch (TimeoutException | IOException | InterruptedException | ExecutionException ex) {
-        Lazy.LOGGER.error("Error while running ulimit, assuming no limit", ex);
+        Lazy.LOGGER.warn("Error while running ulimit, assuming no limit", ex);
         mfiles = Integer.MAX_VALUE;
       }
       return mfiles;
@@ -581,10 +593,11 @@ public final class Runtime {
    */
   public static final class LineCountCharHandler implements ProcOutputHandler {
 
+    private int lineCount;
+
     public LineCountCharHandler() {
       lineCount = 0;
     }
-    private int lineCount;
 
     @Override
     public void handleStdOut(final byte[] buffer, final int length) {
@@ -719,15 +732,6 @@ public final class Runtime {
     }
     return false;
   }
-
-  public static final ThreadLocal<Long> DEADLINE = new ThreadLocal<Long>() {
-
-    @Override
-    protected Long initialValue() {
-      return Long.MAX_VALUE;
-    }
-
-  };
 
   public static long getDeadline() {
     return DEADLINE.get();

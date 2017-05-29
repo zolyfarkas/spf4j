@@ -79,7 +79,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     try {
       tableId = measurementStore.alocateMeasurements(processor.getInfo(), sampleTimeMillis);
     } catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedIOException(ex);
     }
     persister = new Persister(measurementStore, tableId, processor);
     samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);
