@@ -9,14 +9,11 @@ import org.junit.Test;
  */
 public final class StackTraceTest {
 
-    public StackTraceTest() {
-    }
-
-    @Test
-    public void testSomeMethod() {
-        StackTraceElement [] stack = Thread.currentThread().getStackTrace();
-        StackTrace st = new StackTrace(stack, 1);
-        System.out.println(st);
-        Assert.assertFalse(st.toString().contains("getStackTrace"));
-    }
+  @Test
+  public void testSomeMethod() {
+    StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+    StackTrace st = new StackTrace(stack, 1);
+    System.out.println(st);
+    Assert.assertFalse(st.toString().contains("getStackTrace"));
+  }
 }

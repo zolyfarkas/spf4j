@@ -340,7 +340,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
-  void createOwnerRow()
+  private void createOwnerRow()
           throws SQLException, InterruptedException {
 
     jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {

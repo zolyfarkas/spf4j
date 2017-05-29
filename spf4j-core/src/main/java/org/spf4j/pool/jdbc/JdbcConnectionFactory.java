@@ -36,6 +36,11 @@ import org.spf4j.recyclable.RecyclingSupplier;
 @Beta
 public final class JdbcConnectionFactory  implements RecyclingSupplier.Factory<Connection> {
 
+    private final String url;
+    private final String user;
+    private final String password;
+    private RecyclingSupplier<Connection> pool;
+
     public JdbcConnectionFactory(final String driverName, final String url,
             final String user, final String password) {
         try {
@@ -47,11 +52,6 @@ public final class JdbcConnectionFactory  implements RecyclingSupplier.Factory<C
         this.password = password;
         this.user = user;
     }
-
-    private final String url;
-    private final String user;
-    private final String password;
-    private RecyclingSupplier<Connection> pool;
 
 
     @Override

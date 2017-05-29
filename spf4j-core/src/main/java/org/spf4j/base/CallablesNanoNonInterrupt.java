@@ -18,6 +18,8 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.google.common.util.concurrent.UncheckedTimeoutException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -88,8 +90,10 @@ public final class CallablesNanoNonInterrupt {
                 new FibonacciBackoffRetryPredicate<>(retryOnException, nrImmediateRetries,
                         maxWaitNanos / 100, maxWaitNanos, Callables::rootClass, deadline,
                         () -> System.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);
-      } catch (InterruptedException | TimeoutException ex) {
-       throw new RuntimeException(ex);
+      } catch (InterruptedException ex) {
+        throw new UncheckedExecutionException(ex);
+      } catch (TimeoutException ex) {
+        throw new UncheckedTimeoutException(ex);
       }
     }
 
@@ -100,8 +104,10 @@ public final class CallablesNanoNonInterrupt {
             throws EX {
       try {
         return Callables.executeWithRetry(what, retryOnReturnVal, retryOnException, exceptionClass);
-      } catch (InterruptedException | TimeoutException ex) {
-        throw new RuntimeException(ex);
+      } catch (InterruptedException ex) {
+        throw new UncheckedExecutionException(ex);
+      } catch (TimeoutException ex) {
+        throw new UncheckedTimeoutException(ex);
       }
     }
 
@@ -112,8 +118,10 @@ public final class CallablesNanoNonInterrupt {
         return Callables.executeWithRetry(what,
                 (TimeoutRetryPredicate<T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
                 retryOnException, exceptionClass);
-      } catch (InterruptedException | TimeoutException ex) {
-        throw new RuntimeException(ex);
+      } catch (InterruptedException ex) {
+        throw new UncheckedExecutionException(ex);
+      } catch (TimeoutException ex) {
+        throw new UncheckedTimeoutException(ex);
       }
     }
 

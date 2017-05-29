@@ -32,9 +32,6 @@ import org.spf4j.tsdb2.TimeSeries;
 @SuppressFBWarnings({ "CLI_CONSTANT_LIST_INDEX", "MDM_THREAD_YIELD", "PATH_TRAVERSAL_IN" })
 public final class TimeSeriesDatabaseTest {
 
-    public TimeSeriesDatabaseTest() {
-    }
-
     private static final String FILE_NAME = System.getProperty("java.io.tmpdir") + "/testdb.tsdb";
 
     /**

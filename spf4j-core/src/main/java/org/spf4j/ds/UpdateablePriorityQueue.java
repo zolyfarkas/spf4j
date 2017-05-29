@@ -27,6 +27,19 @@ public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializab
     private static final int DEFAULT_INITIAL_CAPACITY = 16;
     private static final long serialVersionUID = 1L;
 
+    private transient ElementRef[] queue;
+
+    private int size = 0;
+
+
+    private final Comparator<? super E> comparator;
+
+    /**
+     * modification count;
+     */
+    private transient int modCount = 0;
+
+
     public final class ElementRef implements Comparable<ElementRef> {
 
         private E elem;
@@ -108,18 +121,6 @@ public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializab
         }
 
     }
-
-    private transient ElementRef[] queue;
-
-    private int size = 0;
-
-
-    private final Comparator<? super E> comparator;
-
-    /**
-     * modification count;
-     */
-    private transient int modCount = 0;
 
     public UpdateablePriorityQueue() {
         this(DEFAULT_INITIAL_CAPACITY, null);
@@ -231,7 +232,7 @@ public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializab
         return size == 0;
     }
 
-    boolean removeEq(final Object o) {
+    private boolean removeEq(final Object o) {
         for (int i = 0; i < size; i++) {
             if (o == queue[i]) {
                 removeAt(i);

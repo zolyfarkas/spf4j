@@ -23,6 +23,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -234,7 +235,7 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
                 addChartToPanel(tableName, content);
             }
         } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            throw new UncheckedIOException(ex);
         }
         chartPannel.repaint();
     }//GEN-LAST:event_jButton1ActionPerformed

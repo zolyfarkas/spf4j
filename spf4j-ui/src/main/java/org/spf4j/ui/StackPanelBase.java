@@ -200,16 +200,19 @@ public abstract class StackPanelBase extends JPanel
     @Override
     @SuppressFBWarnings
     public  void mouseClicked(final MouseEvent e) {
+      // default do nothing
     }
 
     @Override
     @SuppressFBWarnings
     public void mouseEntered(final MouseEvent e) {
+      // default do nothing
     }
 
     @Override
     @SuppressFBWarnings
     public void mouseExited(final MouseEvent e) {
+      // default do nothing
     }
 
     public static void setElementColor(final int depth, final Graphics2D g2) {

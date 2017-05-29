@@ -48,10 +48,8 @@ public final class IntMath {
 
         public XorShift32() {
           x = (int) System.currentTimeMillis();
-          {
-            while (x == 0) {
-              x = (int) System.currentTimeMillis();
-            }
+          while (x == 0) {
+            x = (int) System.currentTimeMillis();
           }
         }
 
