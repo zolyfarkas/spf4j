@@ -12,6 +12,7 @@ public interface CsvHandler<T> {
   }
 
   default void startRow() {
+    // do nothing by default.
   }
 
   /**
@@ -21,6 +22,7 @@ public interface CsvHandler<T> {
   void element(CharSequence elem) throws CsvParseException;
 
   default void endRow() throws CsvParseException {
+    // do nothing by default.
   }
 
   T eof();

@@ -41,6 +41,8 @@ import static org.spf4j.zel.vm.Program.ExecutionType.SYNC;
 @ParametersAreNonnullByDefault
 public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
 
+  private final Object[] tuple = new Object[2];
+
   @Nonnull
   private MathContext mathContext;
 
@@ -332,8 +334,6 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
     popSyncStackVals(result);
     return result;
   }
-
-  private final Object[] tuple = new Object[2];
 
   @SuppressFBWarnings
   public Object[] tuple() {

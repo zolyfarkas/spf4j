@@ -2,6 +2,7 @@
 package org.spf4j.io.csv;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -53,8 +54,10 @@ public final class CsvReader2Iterator implements Iterator<Iterable<String>> {
         } else {
           return token != CsvReader.TokenType.END_DOCUMENT;
         }
-      } catch (IOException | CsvParseException ex) {
-        throw new RuntimeException(ex);
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      } catch (CsvParseException ex) {
+        throw new UncheckedCsvParseException(ex);
       }
     } else {
       return true;

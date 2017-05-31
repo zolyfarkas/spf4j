@@ -57,13 +57,13 @@ public final class Operators {
             if (type instanceof ParameterizedType) {
               leftOClasz = (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
             } else {
-              throw new RuntimeException("Operators class improperly implemented " + subClasz);
+              throw new ExceptionInInitializerError("Operators class improperly implemented " + subClasz);
             }
             Operator<?, ?, ?> op = (Operator<?, ?, ?>) subClasz.newInstance();
             Operator.Enum ope = Operator.Enum.valueOf(claszName);
             OPS[ope.ordinal()].put(leftOClasz, (Operator<Object, Object, Object>) op);
           } catch (InstantiationException | IllegalAccessException ex) {
-            throw new RuntimeException(ex);
+            throw new ExceptionInInitializerError(ex);
           }
         }
       }

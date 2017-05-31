@@ -166,14 +166,14 @@ public final class Slf4jMessageFormatter {
     return len;
   }
 
-  static boolean isEscapedDelimeter(final String messagePattern, final int delimeterStartIndex) {
+  private static boolean isEscapedDelimeter(final String messagePattern, final int delimeterStartIndex) {
     if (delimeterStartIndex == 0) {
       return false;
     }
     return messagePattern.charAt(delimeterStartIndex - 1) == ESCAPE_CHAR;
   }
 
-  static boolean isDoubleEscaped(final String messagePattern, final int delimeterStartIndex) {
+  private static boolean isDoubleEscaped(final String messagePattern, final int delimeterStartIndex) {
     return delimeterStartIndex >= 2 && messagePattern.charAt(delimeterStartIndex - 2) == ESCAPE_CHAR;
   }
 
