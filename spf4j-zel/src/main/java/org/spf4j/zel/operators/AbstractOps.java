@@ -10,7 +10,7 @@ import java.util.Map;
 abstract class AbstractOps<L> implements Operator<L, Number, Number> {
 
   //CHECKSTYLE:OFF
-  final Map<Class, Operator<L, Number, Number>> operations;
+  protected final Map<Class, Operator<L, Number, Number>> operations;
   //CHECKSTYLE:ON
 
   AbstractOps() {
