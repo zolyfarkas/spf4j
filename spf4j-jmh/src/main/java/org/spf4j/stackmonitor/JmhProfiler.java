@@ -20,6 +20,7 @@ package org.spf4j.stackmonitor;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -80,7 +81,7 @@ public final class JmhProfiler implements InternalProfiler {
         try {
             return Arrays.asList(new StackResult(collected, benchmarkParams.id(), true));
         } catch (IOException ex) {
-            throw new Spf4jProfilerException(ex);
+            throw new UncheckedIOException(ex);
         }
     }
 
@@ -152,14 +153,14 @@ public final class JmhProfiler implements InternalProfiler {
                 result = it.next();
                 String obenchmark = result.getBenchmark();
                 if (!benchmark.equals(obenchmark)) {
-                    throw new RuntimeException("Should not aggregate " + benchmark + " with " + obenchmark);
+                    throw new Spf4jProfilerException("Should not aggregate " + benchmark + " with " + obenchmark);
                 }
                 agg = SampleNode.aggregate(agg, result.getSamples());
             }
             try {
                 return new StackResult(agg, benchmark, false);
             } catch (IOException ex) {
-                throw new Spf4jProfilerException(ex);
+                throw new UncheckedIOException(ex);
             }
         }
 

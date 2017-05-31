@@ -131,7 +131,7 @@ public final class LongOperators {
                     if (leadingZeros > Long.SIZE + 1) {
                         return a * bb;
                     }
-                    if (!(leadingZeros >= Long.SIZE)) {
+                    if (leadingZeros < Long.SIZE) {
                         return BigInteger.valueOf(a).multiply(BigInteger.valueOf(bb));
                     }
                     if (!(a >= 0 | bb != Long.MIN_VALUE)) {

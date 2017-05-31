@@ -18,6 +18,7 @@
  */
 package org.spf4j.aspects;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -62,10 +63,10 @@ public final class RetryAspect {
                 DEADLINE.set(dealine);
                 try {
                     return pjp.proceed();
-                } catch (Exception e) {
+                } catch (Exception | Error e) {
                   throw e;
                 } catch (Throwable ex) {
-                    throw new Error(ex);
+                    throw new UncheckedExecutionException(ex);
                 } finally {
                     DEADLINE.set(Long.MAX_VALUE);
                 }

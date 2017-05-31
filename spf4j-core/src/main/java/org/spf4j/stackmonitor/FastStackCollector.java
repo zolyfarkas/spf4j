@@ -80,10 +80,8 @@ public final class FastStackCollector extends AbstractStackCollector {
 
       getThreads = Thread.class.getDeclaredMethod("getThreads");
       dumpThreads = Thread.class.getDeclaredMethod("dumpThreads", Thread[].class);
-    } catch (SecurityException ex) {
-      throw new RuntimeException(ex);
     } catch (NoSuchMethodException ex) {
-      throw new RuntimeException(ex);
+      throw new ExceptionInInitializerError(ex);
     }
     AccessController.doPrivileged((PrivilegedAction) () -> {
       getThreads.setAccessible(true);
@@ -95,7 +93,7 @@ public final class FastStackCollector extends AbstractStackCollector {
       GET_THREADS = lookup.unreflect(getThreads);
       DUMP_THREADS = lookup.unreflect(dumpThreads);
     } catch (IllegalAccessException ex) {
-      throw new RuntimeException(ex);
+      throw new ExceptionInInitializerError(ex);
     }
 
   }

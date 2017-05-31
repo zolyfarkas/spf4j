@@ -3,6 +3,7 @@ package org.spf4j.perf.impl;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import org.spf4j.base.Arrays;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
@@ -32,7 +33,7 @@ public final class DirectStoreMultiAccumulator implements MultiMeasurementRecord
             this.tableId = measurementStore.alocateMeasurements(info, 0);
             this.lastRecorded = Arrays.EMPTY_LONG_ARRAY;
         } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            throw new UncheckedIOException(ex);
         }
     }
 
@@ -49,7 +50,7 @@ public final class DirectStoreMultiAccumulator implements MultiMeasurementRecord
         try {
             measurementStore.saveMeasurements(tableId, timestampMillis, measurement);
         } catch (IOException ex) {
-           throw new RuntimeException(ex);
+           throw new UncheckedIOException(ex);
         } finally {
             lastRecorded = measurement;
         }

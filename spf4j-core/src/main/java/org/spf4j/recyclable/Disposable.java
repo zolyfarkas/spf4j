@@ -29,7 +29,7 @@ public interface Disposable extends AutoCloseable {
       try {
         dispose(Long.MAX_VALUE);
       } catch (TimeoutException ex) {
-        throw new RuntimeException(ex);
+        throw new ObjectDisposeException(ex);
       }
     }
 

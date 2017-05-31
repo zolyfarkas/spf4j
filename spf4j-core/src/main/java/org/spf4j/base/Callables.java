@@ -240,7 +240,7 @@ public final class Callables {
       this.tu = tu;
     }
 
-    RetryData getRetryData(final T value, final AdvancedAction action) {
+    private RetryData getRetryData(final T value, final AdvancedAction action) {
       Object rootCauseClass = mapper.apply(value);
       RetryData data = retryRegistry.get(rootCauseClass);
       if (data == null) {
