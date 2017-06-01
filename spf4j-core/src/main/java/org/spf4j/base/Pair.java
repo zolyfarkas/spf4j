@@ -23,6 +23,7 @@ import com.google.common.base.Objects;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.UncheckedIOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +83,7 @@ public class Pair<A, B> implements Map.Entry<A, B>, Writeable {
         return null;
       }
     } catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedIOException(ex);
     }
     return Pair.of(first.toString(), second.toString());
   }
