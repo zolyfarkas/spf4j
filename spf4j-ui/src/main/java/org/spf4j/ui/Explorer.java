@@ -187,7 +187,7 @@ public class Explorer extends javax.swing.JFrame {
       desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
       frame = new StackDumpJInternalFrame(file, false);
     } else {
-      throw new RuntimeException("Unsupported file format " + fileName);
+      throw new IOException("Unsupported file format " + fileName);
     }
 
     frame.setVisible(true);

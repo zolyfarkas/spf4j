@@ -61,11 +61,11 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
 
   private static final AtomicInteger WARMUP_ITERATION_COUNTER = new AtomicInteger(1);
 
+  private static volatile String benchmarkName;
+
   public static Sampler getStackSampler() {
     return SAMPLER;
   }
-
-  private static volatile String benchmarkName;
 
   public static String benchmarkName() {
     return benchmarkName;

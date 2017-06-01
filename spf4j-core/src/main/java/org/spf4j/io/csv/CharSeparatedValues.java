@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -249,7 +250,7 @@ public final class CharSeparatedValues {
       try {
         return new CsvReader2Iterator(reader(preader));
       } catch (IOException ex) {
-        throw new RuntimeException(ex);
+        throw new UncheckedIOException(ex);
       }
     };
 
@@ -297,7 +298,7 @@ public final class CharSeparatedValues {
       try {
         writeQuotedCsvElement(elem, sw);
       } catch (IOException ex) {
-        throw new RuntimeException(ex);
+        throw new UncheckedIOException(ex);
       }
       return sw.toString();
     } else {

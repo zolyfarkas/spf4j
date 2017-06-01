@@ -63,10 +63,7 @@ public final class StackTrace {
       return false;
     }
     final StackTrace other = (StackTrace) obj;
-    if (!org.spf4j.base.Arrays.deepEquals(this.stackTrace, other.stackTrace, relevantFramesStart)) {
-      return false;
-    }
-    return true;
+    return org.spf4j.base.Arrays.deepEquals(this.stackTrace, other.stackTrace, relevantFramesStart);
   }
 
   @Override

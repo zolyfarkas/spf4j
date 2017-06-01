@@ -229,7 +229,7 @@ public final class ScalableMeasurementRecorderSource implements
       }
 
     } catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedIOException(ex);
     }
     return sw.toString();
   }

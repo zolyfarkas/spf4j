@@ -93,7 +93,7 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
         try {
             return get(key);
         } catch (ExecutionException ex) {
-            throw new RuntimeException(ex);
+            throw new UncheckedExecutionException(ex);
         }
     }
 

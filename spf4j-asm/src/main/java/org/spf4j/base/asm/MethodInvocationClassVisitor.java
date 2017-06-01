@@ -93,19 +93,17 @@ class MethodInvocationClassVisitor extends ClassVisitor {
       if (invokedMethod != null) {
         Object[] parameters = new Object[parameterTypes.length];
         for (int i = parameterTypes.length - 1; i >= 0; i--) {
-          if (!stack.isEmpty()) {
-            parameters[i] = stack.pop();
-          } else {
-            throw new RuntimeException("Not enough params in stack for invocation of " + desc + " at "
+          if (stack.isEmpty()) {
+            throw new IllegalStateException("Not enough params in stack for invocation of " + desc + " at "
                     + className + '.' + methodName + '.' + lineNumber);
+          } else {
+            parameters[i] = stack.pop();
           }
         }
         addCaleesTo.add(new Invocation(className, methodName, methodDesc, parameters,
                 source, lineNumber, invokedMethod));
-        if (opcode != Opcodes.INVOKESTATIC) {
-          if (!stack.isEmpty()) {
-            stack.pop();
-          }
+        if (opcode != Opcodes.INVOKESTATIC && !stack.isEmpty()) {
+          stack.pop();
         }
       } else {
         int length = parameterTypes.length;
