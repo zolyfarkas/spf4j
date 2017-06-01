@@ -69,9 +69,9 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  * character data that must be decoded for further use.
  * <p>
  * Instances of {@link AppendableOutputStream} are not thread safe.
- * 
+ *
  * @see org.apache.commons.io.input.ReaderInputStream
- * 
+ *
  * @since 7.2.25
  */
 //CHECKSTYLE IGNORE DesignForExtension FOR NEXT 2000 LINES
@@ -101,7 +101,7 @@ public class AppendableOutputStream extends OutputStream {
      * Constructs a new {@link WriterOutputStream} with a default output buffer size of
      * 1024 characters. The output buffer will only be flushed when it overflows or when
      * {@link #flush()} or {@link #close()} is called.
-     * 
+     *
      * @param writer the target {@link Writer}
      * @param decoder the charset decoder
      * @since 2.1
@@ -112,7 +112,7 @@ public class AppendableOutputStream extends OutputStream {
 
     /**
      * Constructs a new {@link WriterOutputStream}.
-     * 
+     *
      * @param writer the target {@link Writer}
      * @param decoder the charset decoder
      * @param bufferSize the size of the output buffer in number of characters
@@ -128,7 +128,7 @@ public class AppendableOutputStream extends OutputStream {
 
     /**
      * Constructs a new {@link WriterOutputStream}.
-     * 
+     *
      * @param writer the target {@link Writer}
      * @param charset the charset encoding
      * @param bufferSize the size of the output buffer in number of characters
@@ -146,7 +146,7 @@ public class AppendableOutputStream extends OutputStream {
      * Constructs a new {@link WriterOutputStream} with a default output buffer size of
      * 1024 characters. The output buffer will only be flushed when it overflows or when
      * {@link #flush()} or {@link #close()} is called.
-     * 
+     *
      * @param writer the target {@link Writer}
      * @param charset the charset encoding
      */
@@ -156,7 +156,7 @@ public class AppendableOutputStream extends OutputStream {
 
     /**
      * Constructs a new {@link WriterOutputStream}.
-     * 
+     *
      * @param writer the target {@link Writer}
      * @param charsetName the name of the charset encoding
      * @param bufferSize the size of the output buffer in number of characters
@@ -169,7 +169,7 @@ public class AppendableOutputStream extends OutputStream {
      * Constructs a new {@link WriterOutputStream} with a default output buffer size of
      * 1024 characters. The output buffer will only be flushed when it overflows or when
      * {@link #flush()} or {@link #close()} is called.
-     * 
+     *
      * @param writer the target {@link Writer}
      * @param charsetName the name of the charset encoding
      */
@@ -180,7 +180,7 @@ public class AppendableOutputStream extends OutputStream {
 
     /**
      * Write bytes from the specified byte array to the stream.
-     * 
+     *
      * @param b the byte array containing the bytes to write
      * @param poff the start offset in the byte array
      * @param plen the number of bytes to write
@@ -201,7 +201,7 @@ public class AppendableOutputStream extends OutputStream {
 
     /**
      * Write bytes from the specified byte array to the stream.
-     * 
+     *
      * @param b the byte array containing the bytes to write
      * @throws IOException if an I/O error occurs
      */
@@ -212,7 +212,7 @@ public class AppendableOutputStream extends OutputStream {
 
     /**
      * Write a single byte to the stream.
-     * 
+     *
      * @param b the byte to write
      * @throws IOException if an I/O error occurs
      */
@@ -262,7 +262,7 @@ public class AppendableOutputStream extends OutputStream {
 
     /**
      * Decode the contents of the input ByteBuffer into a CharBuffer.
-     * 
+     *
      * @param endOfInput indicates end of input
      * @throws IOException if an I/O error occurs
      */
@@ -288,7 +288,7 @@ public class AppendableOutputStream extends OutputStream {
 
     /**
      * Flush the output.
-     * 
+     *
      * @throws IOException if an I/O error occurs
      */
     protected void flushOutput() throws IOException {
@@ -302,9 +302,9 @@ public class AppendableOutputStream extends OutputStream {
             decoderOut.limit(limit);
         }
     }
-    
-    
-    static void checkIbmJdkWithBrokenUTF16(final Charset charset) {
+
+
+    private static void checkIbmJdkWithBrokenUTF16(final Charset charset) {
         if (!"UTF-16".equals(charset.name())) {
             return;
         }
@@ -341,7 +341,7 @@ public class AppendableOutputStream extends OutputStream {
     public String toString() {
         return "AppendableOutputStream{" + "writer=" + writer + '}';
     }
-    
-    
-    
+
+
+
 }

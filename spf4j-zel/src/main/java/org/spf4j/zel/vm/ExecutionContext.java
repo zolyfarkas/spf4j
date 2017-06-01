@@ -189,7 +189,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
       try {
         return this.call();
       } catch (SuspendedException ex) {
-        throw new RuntimeException(ex);
+        throw new ExecutionException("Suspending not supported in current context " + this, ex);
       }
     }
   }

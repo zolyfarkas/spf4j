@@ -139,7 +139,7 @@ public final class CallablesTest {
       public AdvancedAction apply(final Exception input) {
         final Throwable[] suppressed = Throwables.getSuppressed(input);
         if (suppressed.length > 0) {
-          throw new RuntimeException();
+          throw new UnsupportedOperationException();
         }
         return AdvancedAction.RETRY;
       }

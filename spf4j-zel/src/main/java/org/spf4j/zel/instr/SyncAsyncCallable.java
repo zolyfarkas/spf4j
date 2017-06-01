@@ -2,6 +2,7 @@
 package org.spf4j.zel.instr;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.ExecutionContext;
 
 public final class SyncAsyncCallable implements Callable<Object> {
@@ -13,7 +14,7 @@ public final class SyncAsyncCallable implements Callable<Object> {
     }
 
     @Override
-    public Object call() throws Exception {
+    public Object call() throws ExecutionException, InterruptedException  {
         return nctx.executeSyncOrAsync();
     }
 

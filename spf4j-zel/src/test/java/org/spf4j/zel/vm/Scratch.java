@@ -29,6 +29,12 @@ import org.junit.Test;
 public final  class Scratch {
 
 
+   @Test
+    public void testX() throws CompileException, ExecutionException, InterruptedException {
+     Program program = Program.compile("a = ");
+    }
+
+
     @Test
     public void test() throws CompileException, ExecutionException, InterruptedException {
 //        Program p1 = Program.compile("a-b+1+c.length()", "a", "b", "c");
