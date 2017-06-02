@@ -73,7 +73,7 @@ public final class ProxyClientHandler implements ClientHandler {
             final ExecutorService exec, final BlockingQueue<Runnable> tasksToRunBySelector,
             final UpdateablePriorityQueue<DeadlineAction> deadlineActions)  throws IOException {
         final InetSocketAddress socketAddress = new InetSocketAddress(
-                fwdDestination.getHostText(), fwdDestination.getPort());
+                fwdDestination.getHost(), fwdDestination.getPort());
         final SocketChannel proxyChannel = SocketChannel.open();
         try {
             proxyChannel.configureBlocking(false);
