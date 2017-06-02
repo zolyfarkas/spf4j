@@ -344,6 +344,21 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         return nrSkipped;
     }
 
+  @Override
+  public boolean markSupported() {
+    return false;
+  }
+
+  @Override
+  public synchronized void reset() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public synchronized void mark(final int readlimit) {
+    throw new UnsupportedOperationException();
+  }
+
 
 
 
