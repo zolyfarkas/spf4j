@@ -121,7 +121,7 @@ public class LifoThreadPoolExecutorTest2 {
                 long sleep = (long) (50 * Math.random());
                 if (sleep < 10) {
                     exNr.increment();
-                    throw new RuntimeException();
+                    throw new IllegalStateException();
                 }
               try {
                 Thread.sleep(sleep);

@@ -2,6 +2,7 @@ package org.spf4j.perf.impl.ms.graphite;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -130,7 +131,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
     try {
       socketWriterSupplier.dispose();
     } catch (ObjectDisposeException | InterruptedException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedExecutionException(ex);
     }
   }
 

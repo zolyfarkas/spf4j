@@ -28,55 +28,55 @@ import org.spf4j.base.AbstractRunnable;
 import static org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_MILLIS;
 
 /**
- * This executor aims to be a general purpose executor for async tasks.
- * (equivalent to ForkJoinPool.commonPool())
+ * This executor aims to be a general purpose executor for async tasks. (equivalent to ForkJoinPool.commonPool())
+ *
  * @author zoly
  */
 @SuppressFBWarnings("HES_EXECUTOR_NEVER_SHUTDOWN") // THere is a shutdownhook being registered which FB does not see
 public final class DefaultExecutor {
 
-    private DefaultExecutor() {
-    }
+  public static final ExecutorService INSTANCE;
 
-    public static final ExecutorService INSTANCE;
-
-    static {
-        final int coreThreads = Integer.getInteger("spf4j.executors.defaultExecutor.coreThreads", 0);
-        final int maxIdleMillis = Integer.getInteger("spf4j.executors.defaultExecutor.maxIdleMillis", 60000);
-        final boolean isDaemon = Boolean.getBoolean("spf4j.executors.defaultExecutor.daemon");
-        final String impParam = "spf4j.executors.defaultExecutor.implementation";
-        final String value = System.getProperty(impParam, "spf4j");
-        switch (value) {
-          case "spf4j":
-            LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP("defaultExecutor", coreThreads,
-                    Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon,
-                    Integer.getInteger("spf4j.executors.defaultExecutor.spinlockCount",
-                            1024));
-            lifoExec.exportJmx();
-            INSTANCE = lifoExec;
-            break;
-          case "fjp": // EXPERIMENTAL! canceling with interrupt a future of taks submited does not seem to work!
-            INSTANCE = new ForkJoinPool(32767);
-            break;
-          case "legacy":
-            new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,
+  static {
+    final int coreThreads = Integer.getInteger("spf4j.executors.defaultExecutor.coreThreads", 0);
+    final int maxIdleMillis = Integer.getInteger("spf4j.executors.defaultExecutor.maxIdleMillis", 60000);
+    final boolean isDaemon = Boolean.getBoolean("spf4j.executors.defaultExecutor.daemon");
+    final String impParam = "spf4j.executors.defaultExecutor.implementation";
+    final String value = System.getProperty(impParam, "spf4j");
+    switch (value) {
+      case "spf4j":
+        LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP("defaultExecutor", coreThreads,
+                Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon,
+                Integer.getInteger("spf4j.executors.defaultExecutor.spinlockCount",
+                        1024));
+        lifoExec.exportJmx();
+        INSTANCE = lifoExec;
+        break;
+      case "fjp": // EXPERIMENTAL! canceling with interrupt a future of taks submited does not seem to work!
+        INSTANCE = new ForkJoinPool(32767);
+        break;
+      case "legacy":
+        new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,
                 new SynchronousQueue<Runnable>(), new CustomThreadFactory("DefaultExecutor", isDaemon));
-          default:
-            throw new IllegalArgumentException("Ivalid setting for " + impParam + " = " + value);
-        }
-
-        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {
-
-            @Override
-            public void doRun() throws InterruptedException {
-                INSTANCE.shutdown();
-                INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
-                List<Runnable> remaining = INSTANCE.shutdownNow();
-                if (remaining.size() > 0) {
-                    System.err.println("Remaining tasks: " + remaining);
-                }
-            }
-        });
+      default:
+        throw new IllegalArgumentException("Ivalid setting for " + impParam + " = " + value);
     }
+
+    org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {
+
+      @Override
+      public void doRun() throws InterruptedException {
+        INSTANCE.shutdown();
+        INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
+        List<Runnable> remaining = INSTANCE.shutdownNow();
+        if (remaining.size() > 0) {
+          System.err.println("Remaining tasks: " + remaining);
+        }
+      }
+    });
+  }
+
+  private DefaultExecutor() {
+  }
 
 }

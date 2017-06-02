@@ -2,6 +2,8 @@ package org.spf4j.perf.impl.ms.graphite;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.google.common.util.concurrent.UncheckedTimeoutException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -114,8 +116,10 @@ public final class GraphiteUdpStore implements MeasurementStore {
     try {
       Template.doOnSupplied(new HandlerImpl(measurements, Id2Info.getInfo(tableId), timeStampMillis),
               datagramChannelSupplier, 3, 1000, 60000, IOException.class);
-    } catch (InterruptedException | TimeoutException ex) {
-      throw new RuntimeException(ex);
+    } catch (TimeoutException ex) {
+      throw new UncheckedTimeoutException(ex);
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
     }
 
   }
@@ -153,7 +157,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
     try {
       datagramChannelSupplier.dispose();
     } catch (ObjectDisposeException | InterruptedException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedExecutionException(ex);
     }
   }
 
