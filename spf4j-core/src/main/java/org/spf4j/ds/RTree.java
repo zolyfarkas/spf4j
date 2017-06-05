@@ -161,7 +161,7 @@ public final class RTree<T> {
     assert (dimensions.length == numDims);
     Node l = findLeaf(root, coords, dimensions, entry);
     if (l == null) {
-      throw new RuntimeException("leaf not found for entry " + entry);
+      throw new IllegalArgumentException("leaf not found for entry " + entry);
     }
     ListIterator<Node> li = l.children.listIterator();
     T removed = null;
