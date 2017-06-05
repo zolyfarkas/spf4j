@@ -93,14 +93,11 @@ public final class ObjectHolder<T> {
             Exception vex = null;
             try {
                 isValid = factory.validate(object, e);
-            } catch (RuntimeException ex) {
-                isValid = false; // might consider rethrowing here
             } catch (Exception ex) {
                 isValid = false;
+                vex = ex;
             }
-            if (isValid) { //rethrow original exception since it is unrelated.
-                throw new RuntimeException(e);
-            } else {
+            if (!isValid) {
                 LOG.warn("Validation of {} failed, detail {}", obj, vex, e);
                 obj = null;
                 try {
