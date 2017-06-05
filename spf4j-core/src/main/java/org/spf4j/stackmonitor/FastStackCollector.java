@@ -18,6 +18,7 @@
 package org.spf4j.stackmonitor;
 
 import com.google.common.base.Predicate;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.set.hash.THashSet;
 import java.io.IOException;
@@ -104,7 +105,7 @@ public final class FastStackCollector extends AbstractStackCollector {
     } catch (RuntimeException | Error ex) {
       throw ex;
     } catch (Throwable ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedExecutionException(ex);
     }
   }
 
