@@ -59,7 +59,7 @@ public final class ObjectHolderFactory<T> implements RecyclingSupplier.Factory<O
     @Override
     public void dispose(final ObjectHolder<T> object) throws ObjectDisposeException {
         if (!object.disposeIfNotBorrowed()) {
-            throw new RuntimeException("Object from holder is borrowed " + object);
+            throw new IllegalArgumentException("Object from holder is borrowed " + object);
         }
     }
 
