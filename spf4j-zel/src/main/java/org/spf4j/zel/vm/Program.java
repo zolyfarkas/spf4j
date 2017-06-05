@@ -393,66 +393,6 @@ public final class Program implements Serializable {
   }
 
   /**
-   * get a value of a variable from memory, this function is syntax safe
-   *
-   * @param mem Map
-   * @param name String
-   * @throws Exception
-   * @return Object
-   */
-  public static Object getValue(@Nonnull final Map mem, @Nonnull final String name)
-          throws CompileException, InterruptedException, ExecutionException {
-    return Program.compile(name + ';').execute(mem);
-  }
-
-  /**
-   * Load a value into memory Have to go through the VM so that the assignement is acurate
-   *
-   * @param mem
-   * @param name String
-   * @param value Object
-   * @throws java.lang.InterruptedException
-   */
-  public static void addValue(@Nonnull final Map mem, @Nonnull final String name,
-          final Object value)
-          throws CompileException, InterruptedException, ExecutionException {
-    Program.compile(name + '=' + value + ';').execute(mem);
-  }
-
-
-  /**
-   * Output Core, in hierarchical tab indented mode
-   *
-   * @param name
-   * @param mem
-   * @param indent
-   * @param maxIndent
-   * @return
-   */
-  @SuppressWarnings("unchecked")
-  @CheckReturnValue
-  public static String dumpCore(final String name, final Object mem, final int indent, final int maxIndent) {
-    if (mem == null) {
-      return "";
-    }
-    if (maxIndent > 0 && indent > maxIndent) {
-      return "";
-    }
-    StringBuilder result = new StringBuilder();
-    if (mem instanceof Map) {
-      org.spf4j.base.Strings.appendSpaces(result, indent);
-      result.append(name).append('\n');
-      for (Map.Entry<Object, Object> elem : ((Map<Object, Object>) mem).entrySet()) {
-        result.append(dumpCore(elem.getKey().toString(), elem.getValue(), indent + 1, maxIndent));
-      }
-    } else {
-     org.spf4j.base.Strings.appendSpaces(result, indent);
-      result.append(name).append('=').append(mem).append('\n');
-    }
-    return result.toString();
-  }
-
-  /**
    * *
    * This allows to run ZEL in an interactive mode
    *
