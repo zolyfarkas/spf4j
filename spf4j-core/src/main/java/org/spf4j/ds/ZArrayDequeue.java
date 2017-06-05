@@ -21,6 +21,7 @@ import java.util.ConcurrentModificationException;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import javax.annotation.Nonnull;
 
 /**
  * Resizable-array implementation of the {@link Deque} interface.  Array
@@ -215,9 +216,9 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
      * @param e the element to add
      * @throws NullPointerException if the specified element is null
      */
-    public void addFirst(E e) {
+    public void addFirst(@Nonnull E e) {
         if (e == null)
-            throw new NullPointerException();
+            throw new IllegalArgumentException("Argument cannot be " + e);
         elements[head = (head - 1) & (elements.length - 1)] = e;
         if (head == tail)
             doubleCapacity();
@@ -231,18 +232,18 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
      * @param e the element to add
      * @throws NullPointerException if the specified element is null
      */
-    public void addLast(E e) {
+    public void addLast(@Nonnull E e) {
         if (e == null)
-            throw new NullPointerException();
+            throw new IllegalArgumentException("Argument cannot be " + e);
         elements[tail] = e;
         if ( (tail = (tail + 1) & (elements.length - 1)) == head)
             doubleCapacity();
     }
 
 
-    public int addLastAndGetPtr(final E e) {
+    public int addLastAndGetPtr(@Nonnull final E e) {
         if (e == null)
-            throw new NullPointerException();
+            throw new IllegalArgumentException("Argument cannot be " + e);
         elements[tail] = e;
         int result = tail;
         if ( (tail = (tail + 1) & (elements.length - 1)) == head)
