@@ -25,103 +25,105 @@ import java.util.Enumeration;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.Strings;
 
 /**
- * Unique ID Generator Based on the assumptions:
- * 1. host MAC address is used. (each network interface has a Unique ID) (encoded with provided encoder)
- * 2. process id is used + current epoch seconds. it is assumed the PID is not recycled within a second.
- * 3. A process sequence is used. UIDs will cycle after Long.MaxValue is reached.
+ * Unique ID Generator Based on the assumptions: 1. host MAC address is used. (each network interface has a Unique ID)
+ * (encoded with provided encoder) 2. process id is used + current epoch seconds. it is assumed the PID is not recycled
+ * within a second. 3. A process sequence is used. UIDs will cycle after Long.MaxValue is reached.
  *
  * @author zoly
  */
 @ParametersAreNonnullByDefault
 public final class UIDGenerator implements Supplier<CharSequence> {
 
-    private final Sequence sequence;
+  private static final Logger LOG = LoggerFactory.getLogger(UIDGenerator.class);
 
-    private final StringBuilder base;
+  private final Sequence sequence;
 
-    private final int maxSize;
+  private final StringBuilder base;
 
-    public UIDGenerator(final Sequence sequence) {
-        this(sequence, 0);
-    }
+  private final int maxSize;
 
-    public UIDGenerator(final Sequence sequence, final String prefix) {
-        this(sequence, BaseEncoding.base64Url(), 0, '.', prefix);
-    }
+  public UIDGenerator(final Sequence sequence) {
+    this(sequence, 0);
+  }
 
+  public UIDGenerator(final Sequence sequence, final String prefix) {
+    this(sequence, BaseEncoding.base64Url(), 0, '.', prefix);
+  }
 
-    public UIDGenerator(final Sequence sequence, final long customEpoch) {
-        this(sequence, BaseEncoding.base64Url(), customEpoch, '.', "");
-    }
+  public UIDGenerator(final Sequence sequence, final long customEpoch) {
+    this(sequence, BaseEncoding.base64Url(), customEpoch, '.', "");
+  }
 
-    public UIDGenerator(final Sequence sequence, final String prefix, final long customEpoch) {
-        this(sequence, BaseEncoding.base64Url(), customEpoch, '.', prefix);
-    }
+  public UIDGenerator(final Sequence sequence, final String prefix, final long customEpoch) {
+    this(sequence, BaseEncoding.base64Url(), customEpoch, '.', prefix);
+  }
 
-    /**
-     * Construct a UID Generator
-     * @param sequence
-     * @param baseEncoding - if null MAC address based ID will not be included.
-     */
-    @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
-    public UIDGenerator(final Sequence sequence, @Nullable final BaseEncoding baseEncoding,
-            final long customEpoch, final char separator, final String prefix) {
-        this.sequence = sequence;
-        StringBuilder sb = new StringBuilder(16 + prefix.length());
-        sb.append(prefix);
-        if (baseEncoding != null) {
-            byte[] intfMac;
-            try {
-                Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
-                if (networkInterfaces != null && networkInterfaces.hasMoreElements()) {
-                    do {
-                        intfMac = networkInterfaces.nextElement().getHardwareAddress();
-                    } while ((intfMac == null || intfMac.length == 0) && networkInterfaces.hasMoreElements());
-                    if (intfMac == null) {
-                        intfMac = new byte[] {0};
-                    }
-                } else {
-                    intfMac = new byte[] {0};
-                }
-            } catch (SocketException ex) {
-                throw new RuntimeException(ex);
-            }
-            sb.append(baseEncoding.encode(intfMac)).append(separator);
+  /**
+   * Construct a UID Generator
+   *
+   * @param sequence
+   * @param baseEncoding - if null MAC address based ID will not be included.
+   */
+  @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
+  public UIDGenerator(final Sequence sequence, @Nullable final BaseEncoding baseEncoding,
+          final long customEpoch, final char separator, final String prefix) {
+    this.sequence = sequence;
+    StringBuilder sb = new StringBuilder(16 + prefix.length());
+    sb.append(prefix);
+    if (baseEncoding != null) {
+      byte[] intfMac;
+      try {
+        Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+        if (networkInterfaces != null && networkInterfaces.hasMoreElements()) {
+          do {
+            intfMac = networkInterfaces.nextElement().getHardwareAddress();
+          } while ((intfMac == null || intfMac.length == 0) && networkInterfaces.hasMoreElements());
+          if (intfMac == null) {
+            LOG.info("Unable to get interface MAC address for ID generation");
+            intfMac = new byte[]{0};
+          }
+        } else {
+          LOG.info("Unable to get interface MAC address for ID generation");
+          intfMac = new byte[]{0};
         }
-        Strings.appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);
-        sb.append(separator);
-        Strings.appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);
-        sb.append(separator);
-        base = sb;
-        maxSize = base.length() + 16;
+      } catch (SocketException ex) {
+        LOG.info("Unable to get interface MAC address for ID generation", ex);
+        intfMac = new byte[]{0};
+      }
+      sb.append(baseEncoding.encode(intfMac)).append(separator);
     }
+    Strings.appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);
+    sb.append(separator);
+    Strings.appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);
+    sb.append(separator);
+    base = sb;
+    maxSize = base.length() + 16;
+  }
 
-    public int getMaxSize() {
-        return maxSize;
-    }
+  public int getMaxSize() {
+    return maxSize;
+  }
 
-    public CharSequence next() {
-        StringBuilder result = new StringBuilder(maxSize);
-        result.append(base);
-        Strings.appendUnsignedString(result, sequence.next(), 5);
-        return result;
-    }
+  public CharSequence next() {
+    StringBuilder result = new StringBuilder(maxSize);
+    result.append(base);
+    Strings.appendUnsignedString(result, sequence.next(), 5);
+    return result;
+  }
 
+  @Override
+  public String toString() {
+    return "UIDGenerator{" + "sequence=" + sequence + ", base=" + base + ", maxSize=" + maxSize + '}';
+  }
 
-
-    @Override
-    public String toString() {
-        return "UIDGenerator{" + "sequence=" + sequence + ", base=" + base + ", maxSize=" + maxSize + '}';
-    }
-
-    @Override
-    public CharSequence get() {
-      return next();
-    }
-
-
+  @Override
+  public CharSequence get() {
+    return next();
+  }
 
 }
