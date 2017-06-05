@@ -179,7 +179,9 @@ public final class GraphiteUdpStore implements MeasurementStore {
       try (ByteArrayBuilder bos = new ByteArrayBuilder();
               OutputStreamWriter os = new OutputStreamWriter(bos, Charsets.UTF_8)) {
 
-        int msgStart = 0, msgEnd = 0, prevEnd = 0;
+        int msgStart = 0;
+        int msgEnd = 0;
+        int prevEnd = 0;
 
         for (int i = 0; i < measurements.length; i++) {
           writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),
