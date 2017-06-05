@@ -175,12 +175,10 @@ public final class CsvTest {
                 new Csv.CsvHandler<Long>() {
 
                     private long count = 0;
-                    @Override
-                    public void startRow() {
-                    }
 
                     @Override
                     public void element(CharSequence elem) {
+                      // do nothing, we are counting rows only
                     }
 
                     @Override
