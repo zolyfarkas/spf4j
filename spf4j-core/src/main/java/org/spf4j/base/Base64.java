@@ -15,7 +15,7 @@ public final class Base64 {
   private static final byte[] DECODE_MAP = initDecodeMap();
 
   private static final char[] ENCODE_MAP = initEncodeMap();
-  
+
   private static final byte PADDING = 127;
 
   private Base64() {
@@ -68,13 +68,12 @@ public final class Base64 {
     int j = to - 1;
     for (; j >= 0; j--) {
       byte code = DECODE_MAP[text.charAt(j)];
-      if (code == PADDING) {
-        continue;
+      if (code != PADDING) {
+        if (code == -1) { // most likely this base64 text is indented. go with the upper bound
+          return len / 4 * 3;
+        }
+        break;
       }
-      if (code == -1) { // most likely this base64 text is indented. go with the upper bound
-        return len / 4 * 3;
-      }
-      break;
     }
 
     j++;    // text.charAt(j) is now at some base64 char, so +1 to make it the size
@@ -95,13 +94,12 @@ public final class Base64 {
     int j = to - 1;
     for (; j >= 0; j--) {
       byte code = DECODE_MAP[text[j]];
-      if (code == PADDING) {
-        continue;
+      if (code != PADDING) {
+        if (code == -1) { // most likely this base64 text is indented. go with the upper bound
+          return len / 4 * 3;
+        }
+        break;
       }
-      if (code == -1) { // most likely this base64 text is indented. go with the upper bound
-        return len / 4 * 3;
-      }
-      break;
     }
 
     j++;    // text.charAt(j) is now at some base64 char, so +1 to make it the size
