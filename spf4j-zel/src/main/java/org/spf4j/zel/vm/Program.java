@@ -369,7 +369,7 @@ public final class Program implements Serializable {
     try {
       return ectx.call();
     } catch (SuspendedException ex) {
-      throw new ExecutionException("Suspension not supported in sync calls", ex);
+      throw new ExecutionException("Suspension not supported in sync calls " + ectx, ex);
     }
   }
 
