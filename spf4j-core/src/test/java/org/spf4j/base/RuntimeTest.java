@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -42,6 +43,13 @@ public final class RuntimeTest {
   @Test
   public void testHaveJnaPlatform() {
     Assert.assertTrue(Runtime.haveJnaPlatform());
+  }
+
+
+  @Test
+  public void testMaxOpenFiles() {
+    Assume.assumeFalse(Runtime.isWindows());
+    Assert.assertNotEquals(Integer.MAX_VALUE, Runtime.Ulimit.MAX_NR_OPENFILES);
   }
 
   /**
