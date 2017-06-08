@@ -18,8 +18,8 @@
 
 package org.spf4j.concurrent.jdbc;
 
+import org.spf4j.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  *
@@ -37,59 +37,11 @@ public final class ProcessLimitedJdbcSemaphore implements Semaphore {
   }
 
   @Override
-  public void acquire(final long timeout, final TimeUnit unit) throws InterruptedException, TimeoutException {
-    if (semaphore.tryAcquire(timeout, unit)) {
-      try {
-        jdbcSemaphore.acquire(timeout, unit);
-      } catch (InterruptedException | TimeoutException | RuntimeException e) {
-        semaphore.release();
-        throw e;
-      }
-    } else {
-      throw new TimeoutException("Timeout out after " + timeout + ' ' + unit);
-    }
-  }
-
-  @Override
-  public void acquire(final int nrPermits, final long timeout, final TimeUnit unit)
-          throws InterruptedException, TimeoutException {
-    if (semaphore.tryAcquire(nrPermits, timeout, unit)) {
-      try {
-        jdbcSemaphore.acquire(nrPermits, timeout, unit);
-      } catch (InterruptedException | TimeoutException | RuntimeException e) {
-        semaphore.release();
-        throw e;
-      }
-    } else {
-      throw new TimeoutException("Timeout out after " + timeout + ' ' + unit);
-    }
-  }
-
-  @Override
-  public void release() {
-    jdbcSemaphore.release();
-    semaphore.release();
-  }
-
-  @Override
   public void release(final int nrReservations) {
     jdbcSemaphore.release(nrReservations);
-    semaphore.release();
+    semaphore.release(nrReservations);
   }
 
-  @Override
-  public boolean tryAcquire(final long timeout, final TimeUnit unit) throws InterruptedException {
-    if (semaphore.tryAcquire(timeout, unit)) {
-      try {
-        return jdbcSemaphore.tryAcquire(timeout, unit);
-      } catch (InterruptedException | RuntimeException e) {
-        semaphore.release();
-        throw e;
-      }
-    } else {
-      return false;
-    }
-  }
 
   @Override
   public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit) throws InterruptedException {

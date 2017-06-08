@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.spf4j.concurrent.jdbc;
+package org.spf4j.concurrent;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -37,8 +37,11 @@ public interface Semaphore {
    * @throws InterruptedException - operation interrupted.
    * @throws TimeoutException - timed out.
    */
-  void acquire(long timeout, TimeUnit unit)
-          throws InterruptedException, TimeoutException;
+  default void acquire(final long timeout, final TimeUnit unit)
+          throws InterruptedException, TimeoutException {
+    acquire(1, timeout, unit);
+  }
+
 
   /**
    * Acquire a arbitrary number of permits.
@@ -48,9 +51,12 @@ public interface Semaphore {
    * @throws InterruptedException - operation interrupted.
    * @throws TimeoutException - timed out.
    */
-  void acquire(int nrPermits, long timeout, TimeUnit unit)
-          throws InterruptedException, TimeoutException;
-
+  default void acquire(final int nrPermits, final long timeout, final TimeUnit unit)
+          throws InterruptedException, TimeoutException {
+    if (!tryAcquire(nrPermits, timeout, unit)) {
+      throw new TimeoutException("Cannot acquire timeout after " + timeout + " " + unit);
+    }
+  }
 
   /**
    * try to acquire a permit.
@@ -60,8 +66,10 @@ public interface Semaphore {
    * @throws InterruptedException - operation interrupted.
    */
   @CheckReturnValue
-  boolean tryAcquire(long timeout, TimeUnit unit)
-          throws InterruptedException;
+  default boolean tryAcquire(final long timeout, final TimeUnit unit)
+          throws InterruptedException {
+    return tryAcquire(1, timeout, unit);
+  };
 
   /**
    * try to acquire a number of permits.
@@ -78,7 +86,9 @@ public interface Semaphore {
   /**
    * release 1 permit.
    */
-  void release();
+  default void release() {
+    release(1);
+  }
 
   /**
    * release a number of permits.

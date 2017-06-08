@@ -18,6 +18,7 @@
 
 package org.spf4j.concurrent.jdbc;
 
+import org.spf4j.concurrent.Semaphore;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
@@ -365,25 +366,6 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     }
   }
 
-  @Override
-  public void acquire(final long timeout, final TimeUnit unit)
-          throws InterruptedException, TimeoutException {
-    acquire(1, timeout, unit);
-  }
-
-  @Override
-  public void acquire(final int nrPermits, final long timeout, final TimeUnit unit)
-          throws InterruptedException, TimeoutException {
-    if (!tryAcquire(nrPermits, timeout, unit)) {
-      throw new TimeoutException("Cannot acquire timeout after " + timeout + " " + unit);
-    }
-  }
-
-  @Override
-  public boolean tryAcquire(final long timeout, final TimeUnit unit)
-          throws InterruptedException {
-    return tryAcquire(1, timeout, unit);
-  }
 
   @SuppressFBWarnings("UW_UNCOND_WAIT")
   @CheckReturnValue
@@ -482,10 +464,6 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     }
   }
 
-  @Override
-  public void release() {
-    release(1);
-  }
 
   @Override
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
