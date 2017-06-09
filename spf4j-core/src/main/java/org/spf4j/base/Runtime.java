@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
@@ -220,6 +221,8 @@ public final class Runtime {
     }
   }
 
+  public static final Version JAVA_PLATFORM;
+
   private Runtime() {
   }
 
@@ -231,8 +234,6 @@ public final class Runtime {
       return Version.values()[Integer.parseInt(specVersion.split("\\.")[1])];
     }
   }
-
-  public static final Version JAVA_PLATFORM;
 
   private static class Lazy {
 
@@ -620,10 +621,12 @@ public final class Runtime {
 
     @Override
     public void stdOutDone() {
+      //nothing to do
     }
 
     @Override
     public void stdErrDone() {
+      //nothing to do
     }
   }
 
@@ -652,7 +655,7 @@ public final class Runtime {
       try {
         stdout.write(buffer, 0, length);
       } catch (IOException ex) {
-        throw new RuntimeException(ex);
+        throw new UncheckedIOException(ex);
       }
     }
 
@@ -674,7 +677,7 @@ public final class Runtime {
       try {
         stderr.write(buffer, 0, length);
       } catch (IOException ex) {
-        throw new RuntimeException(ex);
+        throw new UncheckedIOException(ex);
       }
     }
 
@@ -683,7 +686,7 @@ public final class Runtime {
       try {
         stdout.close();
       } catch (IOException ex) {
-        throw new RuntimeException(ex);
+        throw new UncheckedIOException(ex);
       }
     }
 
@@ -692,7 +695,7 @@ public final class Runtime {
       try {
         stderr.close();
       } catch (IOException ex) {
-        throw new RuntimeException(ex);
+        throw new UncheckedIOException(ex);
       }
     }
   }
