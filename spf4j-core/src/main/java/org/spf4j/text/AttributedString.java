@@ -40,6 +40,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 
 /**
  * An AttributedString holds text and related attribute information. It
@@ -87,10 +88,7 @@ public final class AttributedString {
      * @throws NullPointerException if iterators is null
      */
     @SuppressFBWarnings("WEM_WEAK_EXCEPTION_MESSAGING")
-    AttributedString(AttributedCharacterIterator[] iterators) {
-        if (iterators == null) {
-            throw new NullPointerException("Iterators must not be null");
-        }
+    AttributedString(@Nonnull AttributedCharacterIterator[] iterators) {
         if (iterators.length == 0) {
             text = "";
         }
@@ -137,10 +135,7 @@ public final class AttributedString {
      * @param text The text for this attributed string.
      * @exception NullPointerException if <code>text</code> is null.
      */
-    public AttributedString(String text) {
-        if (text == null) {
-            throw new NullPointerException();
-        }
+    public AttributedString(@Nonnull String text) {
         this.text = text;
     }
 

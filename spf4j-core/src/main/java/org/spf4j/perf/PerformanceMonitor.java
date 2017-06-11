@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -28,110 +28,111 @@ import org.spf4j.perf.impl.NopMeasurementRecorder;
  */
 public final class PerformanceMonitor {
 
-    private PerformanceMonitor() {
-    }
-    private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitor.class);
 
-    public static <T> T callAndMonitor(
-            final long warnMillis, final long errorMillis, final Callable<T> callable) throws Exception {
-        return performanceMonitoredCallable(warnMillis, errorMillis, callable).call();
-    }
+  private PerformanceMonitor() {
+  }
 
-    public static <T> T callAndMonitor(final MeasurementRecorderSource mrs,
-            final long warnMillis, final long errorMillis, final Callable<T> callable) throws Exception {
-        return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable).call();
-    }
+  public static <T> T callAndMonitor(
+          final long warnMillis, final long errorMillis, final Callable<T> callable) throws Exception {
+    return performanceMonitoredCallable(warnMillis, errorMillis, callable).call();
+  }
 
-    public static <T> T callAndMonitor(final MeasurementRecorderSource mrs,
-            final long warnMillis, final long errorMillis, final Callable<T> callable,
-            final boolean isLogInfo, final Object... detail) throws Exception {
-        return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable, isLogInfo, detail)
-                .call();
-    }
+  public static <T> T callAndMonitor(final MeasurementRecorderSource mrs,
+          final long warnMillis, final long errorMillis, final Callable<T> callable) throws Exception {
+    return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable).call();
+  }
 
-    public static <T> Callable<T> performanceMonitoredCallable(final MeasurementRecorderSource mrs,
-            final long warnMillis, final long errorMillis, final Callable<T> callable) {
-        return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable, false);
-    }
+  public static <T> T callAndMonitor(final MeasurementRecorderSource mrs,
+          final long warnMillis, final long errorMillis, final Callable<T> callable,
+          final boolean isLogInfo, final Object... detail) throws Exception {
+    return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable, isLogInfo, detail)
+            .call();
+  }
 
-    public static <T> Callable<T> performanceMonitoredCallable(final MeasurementRecorderSource mrs,
-            final long warnMillis, final long errorMillis, final Callable<T> callable,
-            final boolean isLogInfo, final Object... detail) {
+  public static <T> Callable<T> performanceMonitoredCallable(final MeasurementRecorderSource mrs,
+          final long warnMillis, final long errorMillis, final Callable<T> callable) {
+    return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable, false);
+  }
 
-        return new Callable<T>() {
-            @Override
-            public T call() throws Exception {
-                final long start = System.currentTimeMillis();
-                T result = callable.call();
-                final long elapsed = System.currentTimeMillis() - start;
-                String callableName = callable.toString();
-                mrs.getRecorder(callableName).record(elapsed);
-                if (elapsed > warnMillis) {
-                    if (elapsed > errorMillis) {
-                        LOG.error("Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}",
-                                elapsed, callableName, errorMillis, detail);
-                    } else {
-                        LOG.warn("Execution time  {} ms for {} exceeds warning threshold of {} ms, detail: {}",
-                                elapsed, callableName, warnMillis, detail);
-                    }
-                } else {
-                    if (isLogInfo) {
-                        LOG.info("Execution time {} ms for {}, detail: {}", elapsed, callableName, detail);
-                    } else {
-                        LOG.debug("Execution time {} ms for {}, detail: {}", elapsed, callableName, detail);
-                    }
-                }
-                return result;
+  public static <T> Callable<T> performanceMonitoredCallable(final MeasurementRecorderSource mrs,
+          final long warnMillis, final long errorMillis, final Callable<T> callable,
+          final boolean isLogInfo, final Object... detail) {
 
-            }
-        };
+    return new Callable<T>() {
+      @Override
+      public T call() throws Exception {
+        final long start = System.currentTimeMillis();
+        T result = callable.call();
+        final long elapsed = System.currentTimeMillis() - start;
+        String callableName = callable.toString();
+        mrs.getRecorder(callableName).record(elapsed);
+        if (elapsed > warnMillis) {
+          if (elapsed > errorMillis) {
+            LOG.error("Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}",
+                    elapsed, callableName, errorMillis, detail);
+          } else {
+            LOG.warn("Execution time  {} ms for {} exceeds warning threshold of {} ms, detail: {}",
+                    elapsed, callableName, warnMillis, detail);
+          }
+        } else {
+          if (isLogInfo) {
+            LOG.info("Execution time {} ms for {}, detail: {}", elapsed, callableName, detail);
+          } else {
+            LOG.debug("Execution time {} ms for {}, detail: {}", elapsed, callableName, detail);
+          }
+        }
+        return result;
 
-    }
+      }
+    };
 
-    public static <T> Callable<T> performanceMonitoredCallable(
-            final long warnMillis, final long errorMillis, final Callable<T> callable) {
-        return performanceMonitoredCallable(NopMeasurementRecorder.INSTANCE,
-                warnMillis, errorMillis, callable, false);
-    }
+  }
 
-    public static <T> Callable<T> performanceMonitoredCallable(
-            final long warnMillis, final long errorMillis, final Callable<T> callable,
-            final boolean isLogInfo, final Object... detail) {
-        return performanceMonitoredCallable(NopMeasurementRecorder.INSTANCE,
-                warnMillis, errorMillis, callable, isLogInfo, detail);
-    }
+  public static <T> Callable<T> performanceMonitoredCallable(
+          final long warnMillis, final long errorMillis, final Callable<T> callable) {
+    return performanceMonitoredCallable(NopMeasurementRecorder.INSTANCE,
+            warnMillis, errorMillis, callable, false);
+  }
 
-    public static <T> Callable<T> performanceMonitoredCallable(final MeasurementRecorder mr,
-            final long warnMillis, final long errorMillis, final Callable<T> callable,
-            final boolean isLogInfo, final Object... detail) {
+  public static <T> Callable<T> performanceMonitoredCallable(
+          final long warnMillis, final long errorMillis, final Callable<T> callable,
+          final boolean isLogInfo, final Object... detail) {
+    return performanceMonitoredCallable(NopMeasurementRecorder.INSTANCE,
+            warnMillis, errorMillis, callable, isLogInfo, detail);
+  }
 
-        return new Callable<T>() {
-            @Override
-            public T call() throws Exception {
-                final long start = System.currentTimeMillis();
-                T result = callable.call();
-                final long elapsed = System.currentTimeMillis() - start;
-                mr.record(elapsed);
-                String callableName = callable.toString();
-                if (elapsed > warnMillis) {
-                    if (elapsed > errorMillis) {
-                        LOG.error("Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}",
-                                elapsed, callableName, errorMillis, detail);
-                    } else {
-                        LOG.warn("Execution time  {} ms for {} exceeds warning threshold of {} ms, detail: {}",
-                                elapsed, callableName, warnMillis, detail);
-                    }
-                } else {
-                    if (isLogInfo) {
-                        LOG.info("Execution time {} ms for {}, detail: {}", elapsed, callableName, detail);
-                    } else {
-                        LOG.debug("Execution time {} ms for {}, detail: {}", elapsed, callableName, detail);
-                    }
-                }
-                return result;
+  public static <T> Callable<T> performanceMonitoredCallable(final MeasurementRecorder mr,
+          final long warnMillis, final long errorMillis, final Callable<T> callable,
+          final boolean isLogInfo, final Object... detail) {
 
-            }
-        };
+    return new Callable<T>() {
+      @Override
+      public T call() throws Exception {
+        final long start = System.currentTimeMillis();
+        T result = callable.call();
+        final long elapsed = System.currentTimeMillis() - start;
+        mr.record(elapsed);
+        String callableName = callable.toString();
+        if (elapsed > warnMillis) {
+          if (elapsed > errorMillis) {
+            LOG.error("Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}",
+                    elapsed, callableName, errorMillis, detail);
+          } else {
+            LOG.warn("Execution time  {} ms for {} exceeds warning threshold of {} ms, detail: {}",
+                    elapsed, callableName, warnMillis, detail);
+          }
+        } else {
+          if (isLogInfo) {
+            LOG.info("Execution time {} ms for {}, detail: {}", elapsed, callableName, detail);
+          } else {
+            LOG.debug("Execution time {} ms for {}, detail: {}", elapsed, callableName, detail);
+          }
+        }
+        return result;
 
-    }
+      }
+    };
+
+  }
 }

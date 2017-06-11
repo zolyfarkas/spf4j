@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -34,198 +34,194 @@ import org.spf4j.base.MemorizedCallable;
 
 /**
  *
- * custom build high performance implementation for a unbounded guava cache:
- * UnboundedLoadingCache is implemented with JDK concurrent map
- * UnboundedLoadingCache2 is using the JDK 1.8 computing map functionality, but benchmarks show worse performance.
+ * custom build high performance implementation for a unbounded guava cache: UnboundedLoadingCache is implemented with
+ * JDK concurrent map UnboundedLoadingCache2 is using the JDK 1.8 computing map functionality, but benchmarks show worse
+ * performance.
  *
- * Benchmark                              Mode  Cnt         Score         Error  Units
- * CacheBenchmark.guavaCache             thrpt   15  29011674.275 ±  710672.413  ops/s
- * CacheBenchmark.spf4j2Cache            thrpt   15  30567248.015 ±  807965.535  ops/s
- * CacheBenchmark.spf4jCache             thrpt   15  37961593.882 ± 1136244.254  ops/s
- * CacheBenchmark.spf4jRacyCache         thrpt   15  37553655.751 ±  855349.501  ops/s
+ * Benchmark Mode Cnt Score Error Units CacheBenchmark.guavaCache thrpt 15 29011674.275 ± 710672.413 ops/s
+ * CacheBenchmark.spf4j2Cache thrpt 15 30567248.015 ± 807965.535 ops/s CacheBenchmark.spf4jCache thrpt 15 37961593.882 ±
+ * 1136244.254 ops/s CacheBenchmark.spf4jRacyCache thrpt 15 37553655.751 ± 855349.501 ops/s
  *
  * @author zoly
  */
 @ParametersAreNonnullByDefault
 public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
 
-    private final ConcurrentMap<K, Callable<? extends V>> map;
+  private final ConcurrentMap<K, Callable<? extends V>> map;
 
-    private final CacheLoader<K, V> loader;
+  private final CacheLoader<K, V> loader;
 
-    public UnboundedLoadingCache(final int initialSize, final CacheLoader<K, V> loader) {
-        this(initialSize, 8, loader);
-    }
+  public UnboundedLoadingCache(final int initialSize, final CacheLoader<K, V> loader) {
+    this(initialSize, 8, loader);
+  }
 
+  public UnboundedLoadingCache(final int initialSize, final int concurrency, final CacheLoader<K, V> loader) {
+    this.map = new ConcurrentHashMap<>(
+            initialSize, 0.75f, concurrency);
+    this.loader = loader;
+  }
 
-    public UnboundedLoadingCache(final int initialSize, final int concurrency, final CacheLoader<K, V> loader) {
-        this.map = new ConcurrentHashMap<>(
-                initialSize, 0.75f, concurrency);
-        this.loader = loader;
-    }
-
-
-    @Override
-    public V get(final K key) throws ExecutionException {
-        Callable<? extends V> existingValHolder = map.get(key);
-        if (existingValHolder == null) {
-            Callable<? extends V> newHolder = new MemorizedCallable(new Callable<V>() {
-                @Override
-                public V call() throws Exception {
-                    return loader.load(key);
-                }
-            });
-            existingValHolder = map.putIfAbsent(key, newHolder);
-            if (existingValHolder == null) {
-                existingValHolder = newHolder;
-            }
+  @Override
+  public V get(final K key) throws ExecutionException {
+    Callable<? extends V> existingValHolder = map.get(key);
+    if (existingValHolder == null) {
+      Callable<? extends V> newHolder = new MemorizedCallable(new Callable<V>() {
+        @Override
+        public V call() throws Exception {
+          return loader.load(key);
         }
-        try {
-            return existingValHolder.call();
-        } catch (Exception ex) {
-            throw new ExecutionException(ex);
-        }
-
+      });
+      existingValHolder = map.putIfAbsent(key, newHolder);
+      if (existingValHolder == null) {
+        existingValHolder = newHolder;
+      }
+    }
+    try {
+      return existingValHolder.call();
+    } catch (Exception ex) {
+      throw new ExecutionException(ex);
     }
 
-    @Override
-    public V getUnchecked(final K key) {
-        try {
-            return get(key);
-        } catch (ExecutionException ex) {
-            throw new UncheckedExecutionException(ex);
-        }
-    }
+  }
 
-    @Override
-    public ImmutableMap<K, V> getAll(final Iterable<? extends K> keys) throws ExecutionException {
-        ImmutableMap.Builder<K, V> builder = ImmutableMap.builder();
-        for (K key : keys) {
-            builder.put(key, get(key));
-        }
-        return builder.build();
+  @Override
+  public V getUnchecked(final K key) {
+    try {
+      return get(key);
+    } catch (ExecutionException ex) {
+      throw new UncheckedExecutionException(ex);
     }
+  }
 
-    @Override
-    public V apply(final K key) {
-        if (key == null) {
-            throw new IllegalArgumentException("key cannot be null for " + this);
-        } else {
-            return getUnchecked(key);
-        }
+  @Override
+  public ImmutableMap<K, V> getAll(final Iterable<? extends K> keys) throws ExecutionException {
+    ImmutableMap.Builder<K, V> builder = ImmutableMap.builder();
+    for (K key : keys) {
+      builder.put(key, get(key));
     }
+    return builder.build();
+  }
 
-    @Override
-    public void refresh(final K key) {
-        getUnchecked(key);
+  @Override
+  public V apply(final K key) {
+    if (key == null) {
+      throw new IllegalArgumentException("key cannot be null for " + this);
+    } else {
+      return getUnchecked(key);
     }
+  }
 
-    @Override
-    public ConcurrentMap<K, V> asMap() {
-        return new MapView();
-    }
+  @Override
+  public void refresh(final K key) {
+    getUnchecked(key);
+  }
 
-    @Override
-    public V getIfPresent(final Object key) {
-        Callable<? extends V> existingValHolder = map.get(key);
-        if (existingValHolder != null) {
-            try {
-                return existingValHolder.call();
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            }
-        } else {
-            return null;
-        }
-    }
+  @Override
+  public ConcurrentMap<K, V> asMap() {
+    return new MapView();
+  }
 
-    @Override
-    public V get(final K key, final Callable<? extends V> valueLoader) throws ExecutionException {
-        Callable<? extends V> existingValHolder = map.get(key);
-        if (existingValHolder == null) {
-            Callable<? extends V> newHolder = new MemorizedCallable(valueLoader);
-            existingValHolder = map.putIfAbsent(key, newHolder);
-            if (existingValHolder == null) {
-                existingValHolder = newHolder;
-            }
-        }
-        try {
-            return existingValHolder.call();
-        } catch (Exception ex) {
-            throw new ExecutionException(ex);
-        }
+  @Override
+  public V getIfPresent(final Object key) {
+    Callable<? extends V> existingValHolder = map.get(key);
+    if (existingValHolder != null) {
+      try {
+        return existingValHolder.call();
+      } catch (Exception ex) {
+        throw new UncheckedExecutionException(ex);
+      }
+    } else {
+      return null;
     }
+  }
 
-    @Override
-    public ImmutableMap<K, V> getAllPresent(final Iterable<?> keys) {
-        ImmutableMap.Builder<K, V> builder = ImmutableMap.builder();
-        for (K key : (Iterable<K>) keys) {
-            V val = getIfPresent(key);
-            if (val != null) {
-                builder.put(key, val);
-            }
-        }
-        return builder.build();
+  @Override
+  public V get(final K key, final Callable<? extends V> valueLoader) throws ExecutionException {
+    Callable<? extends V> existingValHolder = map.get(key);
+    if (existingValHolder == null) {
+      Callable<? extends V> newHolder = new MemorizedCallable(valueLoader);
+      existingValHolder = map.putIfAbsent(key, newHolder);
+      if (existingValHolder == null) {
+        existingValHolder = newHolder;
+      }
     }
+    try {
+      return existingValHolder.call();
+    } catch (Exception ex) {
+      throw new ExecutionException(ex);
+    }
+  }
 
-    @Override
-    public void put(final K key, final V value) {
-        map.put(key, (Callable<V>) () -> value);
+  @Override
+  public ImmutableMap<K, V> getAllPresent(final Iterable<?> keys) {
+    ImmutableMap.Builder<K, V> builder = ImmutableMap.builder();
+    for (K key : (Iterable<K>) keys) {
+      V val = getIfPresent(key);
+      if (val != null) {
+        builder.put(key, val);
+      }
     }
+    return builder.build();
+  }
 
-    @Override
-    public void putAll(final Map<? extends K, ? extends V> m) {
-        for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
-            put(entry.getKey(), entry.getValue());
-        }
-    }
+  @Override
+  public void put(final K key, final V value) {
+    map.put(key, (Callable<V>) () -> value);
+  }
 
-    @Override
-    public void invalidate(final Object key) {
-        map.remove(key);
+  @Override
+  public void putAll(final Map<? extends K, ? extends V> m) {
+    for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
+      put(entry.getKey(), entry.getValue());
     }
+  }
 
-    @Override
-    public void invalidateAll(final Iterable<?> keys) {
-        for (K key : (Iterable<K>) keys) {
-            invalidate(key);
-        }
-    }
+  @Override
+  public void invalidate(final Object key) {
+    map.remove(key);
+  }
 
-    @Override
-    public void invalidateAll() {
-        map.clear();
+  @Override
+  public void invalidateAll(final Iterable<?> keys) {
+    for (K key : (Iterable<K>) keys) {
+      invalidate(key);
     }
+  }
 
-    @Override
-    public long size() {
-        return map.size();
-    }
+  @Override
+  public void invalidateAll() {
+    map.clear();
+  }
 
-    @Override
-    public CacheStats stats() {
-        throw new UnsupportedOperationException("Not supported");
-    }
+  @Override
+  public long size() {
+    return map.size();
+  }
 
-    @Override
-    public void cleanUp() {
-        map.clear();
-    }
+  @Override
+  public CacheStats stats() {
+    throw new UnsupportedOperationException("Not supported");
+  }
 
-    public Set<K> getKeysLoaded() {
-      return map.keySet();
-    }
+  @Override
+  public void cleanUp() {
+    map.clear();
+  }
 
-    @Override
-    public String toString() {
-        return "UnboundedLoadingCache{" + "map=" + map + ", loader=" + loader + '}';
-    }
+  public Set<K> getKeysLoaded() {
+    return map.keySet();
+  }
+
+  @Override
+  public String toString() {
+    return "UnboundedLoadingCache{" + "map=" + map + ", loader=" + loader + '}';
+  }
 
   private class MapView implements ConcurrentMap<K, V> {
 
     @Override
     public V putIfAbsent(final K key, final V value) {
-      Callable<? extends V> result =  map.putIfAbsent(key, () -> value);
+      Callable<? extends V> result = map.putIfAbsent(key, () -> value);
       try {
         return result == null ? null : result.call();
       } catch (Exception ex) {
@@ -280,7 +276,7 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
 
     @Override
     public V put(final K key, final V value) {
-      Callable<? extends V> result =  map.put(key, () ->  value);
+      Callable<? extends V> result = map.put(key, () -> value);
       try {
         return result == null ? null : result.call();
       } catch (Exception ex) {

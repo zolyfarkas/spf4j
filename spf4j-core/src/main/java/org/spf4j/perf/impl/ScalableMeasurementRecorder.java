@@ -131,7 +131,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
         Csv.writeCsvRow(sw, values);
       }
     } catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedIOException(ex);
     }
     return sw.toString();
   }
@@ -223,6 +223,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     private final MeasurementStore measurementStore;
     private final long tableId;
     private final MeasurementAccumulator processor;
+    private volatile long lastRun = 0;
 
     Persister(final MeasurementStore measurementStore,
             final long tableId, final MeasurementAccumulator processor) {
@@ -231,7 +232,6 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
       this.tableId = tableId;
       this.processor = processor;
     }
-    private volatile long lastRun = 0;
 
     @Override
     public void doRun() throws IOException {

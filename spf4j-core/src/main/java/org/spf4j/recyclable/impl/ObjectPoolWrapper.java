@@ -101,7 +101,7 @@ final class ObjectPoolWrapper<T> implements RecyclingSupplier<T>, Scanable<Objec
         if (pool instanceof Scanable) {
             return ((Scanable<ObjectHolder<T>>) pool).scan(handler);
         } else {
-            throw new RuntimeException("Wrapped pool " + pool + " is not scanable");
+            throw new UnsupportedOperationException("Wrapped pool " + pool + " is not scanable");
         }
     }
 

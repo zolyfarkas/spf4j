@@ -31,6 +31,8 @@ public final class CpuUsageSampler {
     Registry.export(CpuUsageSampler.class);
   }
 
+  private static ScheduledFuture<?> samplingFuture;
+
   private CpuUsageSampler() {
   }
 
@@ -38,8 +40,6 @@ public final class CpuUsageSampler {
   public static long getProcessCpuTimeNanos() {
     return OS_MBEAN.getProcessCpuTime();
   }
-
-  private static ScheduledFuture<?> samplingFuture;
 
   static {
     if (OS_MBEAN != null) {
