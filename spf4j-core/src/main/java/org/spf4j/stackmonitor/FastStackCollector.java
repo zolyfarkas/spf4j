@@ -55,6 +55,8 @@ public final class FastStackCollector extends AbstractStackCollector {
 
   private final Predicate<Thread> threadFilter;
 
+  private Thread[] requestFor = new Thread[]{};
+  
   public FastStackCollector(final boolean collectForMain, final String... xtraIgnoredThreads) {
     this(createNameBasedFilter(collectForMain, xtraIgnoredThreads));
   }
@@ -140,8 +142,6 @@ public final class FastStackCollector extends AbstractStackCollector {
       }
     }
   }
-
-  private Thread[] requestFor = new Thread[]{};
 
   @Override
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")

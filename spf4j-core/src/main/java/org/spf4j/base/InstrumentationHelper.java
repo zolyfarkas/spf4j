@@ -20,14 +20,13 @@ package org.spf4j.base;
 import java.lang.instrument.Instrumentation;
 
 /**
- *
  * @author zoly
  */
 public final class InstrumentationHelper {
 
-    private InstrumentationHelper() { }
-
     private static Instrumentation instrumentation;
+
+    private InstrumentationHelper() { }
 
     public static void premain(final String args, final Instrumentation inst) {
         instrumentation = inst;

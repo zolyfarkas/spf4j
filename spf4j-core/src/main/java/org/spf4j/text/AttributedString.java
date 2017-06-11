@@ -149,12 +149,9 @@ public final class AttributedString {
      * and the attributes parameter is not an empty Map (attributes
      * cannot be applied to a 0-length range).
      */
-    public AttributedString(String text,
-                            Map<? extends Attribute, ?> attributes)
+    public AttributedString(@Nonnull String text,
+                            @Nonnull Map<? extends Attribute, ?> attributes)
     {
-        if (text == null || attributes == null) {
-            throw new NullPointerException();
-        }
         this.text = text;
 
         if (text.length() == 0) {

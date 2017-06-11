@@ -29,6 +29,18 @@ import com.google.common.collect.ObjectArrays;
 @GwtCompatible
 public final class Arrays {
 
+  public static final Object[] EMPTY_OBJ_ARRAY = new Object[]{};
+
+  public static final String[] EMPTY_STRING_ARRAY = new String[]{};
+
+  public static final byte[] EMPTY_BYTE_ARRAY = new byte[]{};
+
+  public static final long[] EMPTY_LONG_ARRAY = new long[]{};
+
+  public static final int[] EMPTY_INT_ARRAY = new int[]{};
+
+  private static final int ARR_CPY_THR = 128;
+
   private Arrays() {
   }
 
@@ -158,17 +170,6 @@ public final class Arrays {
     return result;
   }
 
-  public static final Object[] EMPTY_OBJ_ARRAY = new Object[]{};
-
-  public static final String[] EMPTY_STRING_ARRAY = new String[]{};
-
-  public static final byte[] EMPTY_BYTE_ARRAY = new byte[]{};
-
-  public static final long[] EMPTY_LONG_ARRAY = new long[]{};
-
-  public static final int[] EMPTY_INT_ARRAY = new int[]{};
-
-
   public static <T> int indexOf(final T[] array, final T content) {
     int result = -1;
     for (int i = 0; i < array.length; i++) {
@@ -221,7 +222,6 @@ public final class Arrays {
     }
   }
 
-  private static final int ARR_CPY_THR = 128;
 
   /**
    * implementation which is significantly faster for large arrays (> 500).

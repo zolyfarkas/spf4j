@@ -27,6 +27,8 @@ public final class ZExecutionException extends ExecutionException {
 
     private static final long serialVersionUID = 8823469923479284L;
 
+    private final List<ZelFrame> zelframes = new ArrayList<>();
+
     public ZExecutionException(final String message, final Exception e) {
         super(message, e);
         this.payload = null;
@@ -63,9 +65,6 @@ public final class ZExecutionException extends ExecutionException {
     public List<ZelFrame> getZelframes() {
         return zelframes;
     }
-
-
-    private final List<ZelFrame> zelframes = new ArrayList<>();
 
     @Override
     public String toString() {
