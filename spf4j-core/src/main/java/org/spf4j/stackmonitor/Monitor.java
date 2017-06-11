@@ -18,26 +18,19 @@
 package org.spf4j.stackmonitor;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.spf4j.base.AbstractRunnable;
-import org.spf4j.base.CharSequences;
 import org.spf4j.base.SysExits;
+import static org.spf4j.stackmonitor.Sampler.DEFAULT_SS_DUMP_FILE_NAME_PREFIX;
+import static org.spf4j.stackmonitor.Sampler.DEFAULT_SS_DUMP_FOLDER;
 
 /**
  * @author zoly
  */
 public final class Monitor {
-
-    public static final String DEFAULT_SS_DUMP_FOLDER = System.getProperty("spf4j.perf.ms.defaultSsdumpFolder",
-                System.getProperty("java.io.tmpdir"));
-
-    public static final String DEFAULT_SS_DUMP_FILE_NAME_PREFIX = CharSequences.validatedFileName(
-            System.getProperty("spf4j.perf.ms.defaultSsdumpFilePrefix",
-                    ManagementFactory.getRuntimeMXBean().getName()));
 
     private static class Options {
 
@@ -63,7 +56,7 @@ public final class Monitor {
     }
 
     private Monitor() { }
-    
+
     public static void main(final String[] args)
             throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
             InvocationTargetException  {

@@ -437,7 +437,6 @@ java.util.Calendar#getInstance()
                                 <goal>check</goal>
                             </goals>
                             <configuration>
-                                
                                 <rules>
                                     <rule implementation="org.jacoco.maven.RuleConfiguration">
                                         <element>BUNDLE</element>
@@ -540,5 +539,33 @@ java.util.Calendar#getInstance()
             </plugin>
         </plugins>
     </reporting>  
-  
+
+    <profiles>
+        <profile>
+            <id>jacoco</id>
+            <activation>
+              <file>
+                <exists>.travis.yml</exists>
+              </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>${jacoco.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>report-aggregate</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>

@@ -57,6 +57,15 @@ public final class Sampler {
 
   private static final int STOP_FLAG_READ_MILLIS = 2000;
 
+    public static final String DEFAULT_SS_DUMP_FOLDER = System.getProperty("spf4j.perf.ms.defaultSsdumpFolder",
+                System.getProperty("java.io.tmpdir"));
+
+    public static final String DEFAULT_SS_DUMP_FILE_NAME_PREFIX = CharSequences.validatedFileName(
+            System.getProperty("spf4j.perf.ms.defaultSsdumpFilePrefix",
+                    ManagementFactory.getRuntimeMXBean().getName()));
+
+
+
   private static final StackTraceElement[] GC_FAKE_STACK = new StackTraceElement[]{
     new StackTraceElement("java.lang.System", "gc", "System.java", -1)
   };
@@ -97,7 +106,7 @@ public final class Sampler {
 
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final StackCollector collector) {
     this(sampleTimeMillis, dumpTimeMillis, collector,
-            Monitor.DEFAULT_SS_DUMP_FOLDER, Monitor.DEFAULT_SS_DUMP_FILE_NAME_PREFIX);
+            DEFAULT_SS_DUMP_FOLDER, DEFAULT_SS_DUMP_FILE_NAME_PREFIX);
   }
 
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final StackCollector collector,

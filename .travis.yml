@@ -7,7 +7,6 @@ script: mvn -B -Dgpg.skip=true install
 
 before_install: 
   - echo "MAVEN_OPTS='-Xmx1024m'" > ~/.mavenrc
-  - echo "CODACY_PROJECT_TOKEN='be1763276d604a438f2a149cd04728cf'" >> ~/.mavenrc
   - sudo apt-get install jq
   - wget -O ~/codacy-coverage-reporter-assembly-latest.jar $(curl https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r .assets[0].browser_download_url)
 
@@ -30,4 +29,5 @@ addons:
     branch_pattern: master
 
 after_success:
-  - java -cp ~/codacy-coverage-reporter-assembly-latest.jar com.codacy.CodacyCoverageReporter -l Java -r build/reports/jacoco/test/jacocoTestReport.xml
+  - export CODACY_PROJECT_TOKEN=be1763276d604a438f2a149cd04728cf
+  - java -cp ~/codacy-coverage-reporter-assembly-latest.jar com.codacy.CodacyCoverageReporter -l Java -r target/site/jacoco-aggregate/jacoco.xml
