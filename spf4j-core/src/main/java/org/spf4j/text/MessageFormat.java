@@ -47,6 +47,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.InvalidObjectException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.UncheckedIOException;
 import java.text.AttributedCharacterIterator;
 import java.text.CharacterIterator;
 import java.text.ChoiceFormat;
@@ -349,6 +350,95 @@ import org.spf4j.base.Strings;
 public final class MessageFormat extends Format {
 
   private static final long serialVersionUID = 1L;
+
+  // Indices for segments
+  private static final int SEG_RAW = 0;
+  private static final int SEG_INDEX = 1;
+  private static final int SEG_TYPE = 2;
+  private static final int SEG_MODIFIER = 3; // modifier or subformat
+
+  // Indices for type keywords
+  private static final int TYPE_NULL = 0;
+  private static final int TYPE_NUMBER = 1;
+  private static final int TYPE_DATE = 2;
+  private static final int TYPE_TIME = 3;
+  private static final int TYPE_CHOICE = 4;
+
+  private static final String[] TYPE_KEYWORDS = {
+    "",
+    "number",
+    "date",
+    "time",
+    "choice"
+  };
+
+  // Indices for number modifiers
+  private static final int MODIFIER_DEFAULT = 0; // common in number and date-time
+  private static final int MODIFIER_CURRENCY = 1;
+  private static final int MODIFIER_PERCENT = 2;
+  private static final int MODIFIER_INTEGER = 3;
+
+  private static final String[] NUMBER_MODIFIER_KEYWORDS = {
+    "",
+    "currency",
+    "percent",
+    "integer"
+  };
+
+  private static final String[] DATE_TIME_MODIFIER_KEYWORDS = {
+    "",
+    "short",
+    "medium",
+    "long",
+    "full"
+  };
+
+  // Date-time style values corresponding to the date-time modifiers.
+  private static final int[] DATE_TIME_MODIFIERS = {
+    DateFormat.DEFAULT,
+    DateFormat.SHORT,
+    DateFormat.MEDIUM,
+    DateFormat.LONG,
+    DateFormat.FULL,};
+
+
+
+  // ===========================privates============================
+  /**
+   * The locale to use for formatting numbers and dates.
+   *
+   * @serial
+   */
+  private Locale locale;
+
+  /**
+   * The string that the formatted values are to be plugged into. In other words, this is the pattern supplied on
+   * construction with all of the {} expressions taken out.
+   *
+   * @serial
+   */
+  private transient CharSequence pattern;
+
+  /**
+   * An array of formatters, which are used to format the arguments.
+   *
+   * @serial
+   */
+  private FormatInfo[] formats = {};
+
+  /**
+   * One less than the number of entries in <code>offsets</code>. Can also be thought of as the index of the
+   * highest-numbered element in <code>offsets</code> that is being used. All of these arrays should have the same
+   * number of elements being used as <code>offsets</code> does, and so this variable suffices to tell us how many
+   * entries are in all of them.
+   *
+   * @serial
+   */
+  private int maxOffset = -1;
+
+
+  private int hash = 0;
+
 
   /**
    * Constructs a FastMessageFormat for the default {@link java.util.Locale.Category#FORMAT FORMAT} locale and the
@@ -845,7 +935,7 @@ public final class MessageFormat extends Format {
     try {
       subformat((Object[]) arguments, result, null, iterators);
     } catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedIOException(ex);
     }
     if (iterators.isEmpty()) {
       return createAttributedCharacterIterator("");
@@ -1053,49 +1143,15 @@ public final class MessageFormat extends Format {
     return h;
   }
 
-  private int hash = 0;
-
   @Override
   public StringBuffer format(Object obj, StringBuffer toAppendTo, FieldPosition pos) {
     try {
       return (StringBuffer) format(obj, (Appendable) toAppendTo, pos);
     } catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedIOException(ex);
     }
   }
 
-  // ===========================privates============================
-  /**
-   * The locale to use for formatting numbers and dates.
-   *
-   * @serial
-   */
-  private Locale locale;
-
-  /**
-   * The string that the formatted values are to be plugged into. In other words, this is the pattern supplied on
-   * construction with all of the {} expressions taken out.
-   *
-   * @serial
-   */
-  private transient CharSequence pattern;
-
-  /**
-   * An array of formatters, which are used to format the arguments.
-   *
-   * @serial
-   */
-  private FormatInfo[] formats = {};
-
-  /**
-   * One less than the number of entries in <code>offsets</code>. Can also be thought of as the index of the
-   * highest-numbered element in <code>offsets</code> that is being used. All of these arrays should have the same
-   * number of elements being used as <code>offsets</code> does, and so this variable suffices to tell us how many
-   * entries are in all of them.
-   *
-   * @serial
-   */
-  private int maxOffset = -1;
 
   /**
    * Internal routine used by format. If <code>characterIterators</code> is non-null, AttributedCharacterIterator will
@@ -1226,55 +1282,6 @@ public final class MessageFormat extends Format {
     }
   }
 
-  // Indices for segments
-  private static final int SEG_RAW = 0;
-  private static final int SEG_INDEX = 1;
-  private static final int SEG_TYPE = 2;
-  private static final int SEG_MODIFIER = 3; // modifier or subformat
-
-  // Indices for type keywords
-  private static final int TYPE_NULL = 0;
-  private static final int TYPE_NUMBER = 1;
-  private static final int TYPE_DATE = 2;
-  private static final int TYPE_TIME = 3;
-  private static final int TYPE_CHOICE = 4;
-
-  private static final String[] TYPE_KEYWORDS = {
-    "",
-    "number",
-    "date",
-    "time",
-    "choice"
-  };
-
-  // Indices for number modifiers
-  private static final int MODIFIER_DEFAULT = 0; // common in number and date-time
-  private static final int MODIFIER_CURRENCY = 1;
-  private static final int MODIFIER_PERCENT = 2;
-  private static final int MODIFIER_INTEGER = 3;
-
-  private static final String[] NUMBER_MODIFIER_KEYWORDS = {
-    "",
-    "currency",
-    "percent",
-    "integer"
-  };
-
-  private static final String[] DATE_TIME_MODIFIER_KEYWORDS = {
-    "",
-    "short",
-    "medium",
-    "long",
-    "full"
-  };
-
-  // Date-time style values corresponding to the date-time modifiers.
-  private static final int[] DATE_TIME_MODIFIERS = {
-    DateFormat.DEFAULT,
-    DateFormat.SHORT,
-    DateFormat.MEDIUM,
-    DateFormat.LONG,
-    DateFormat.FULL,};
 
   @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX") //jdk inherited
   private void makeFormat(int offsetNumber, StringBuilder[] textSegments) {
