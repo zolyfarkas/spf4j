@@ -3,6 +3,7 @@ package org.spf4j.perf.impl.ms.graphite;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.google.common.util.concurrent.UncheckedTimeoutException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -115,10 +116,12 @@ public final class GraphiteTcpStore implements MeasurementStore {
     try {
       Template.doOnSupplied(new HandlerImpl(measurements, Id2Info.getInfo(tableId), timeStampMillis),
               socketWriterSupplier, 3, 1000, 60000, IOException.class);
-    } catch (InterruptedException | TimeoutException ex) {
-      throw new RuntimeException(ex);
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      return;
+    } catch (TimeoutException ex) {
+      throw new UncheckedTimeoutException(ex);
     }
-
   }
 
   @Override
