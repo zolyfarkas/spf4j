@@ -5,6 +5,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import static java.lang.Math.min;
+import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -503,5 +504,75 @@ public final class CharSequences {
     }
     return true;
   }
+
+  /**
+   * regular wildcard matcher.
+   * * matches any number of consecutive characters.
+   * ? matches any single character.
+   * @param wildcard
+   * @param cs2Match
+   * @return
+   */
+  public static boolean match(final CharSequence wildcard, final CharSequence cs2Match) {
+    int i = 0;
+    int j = 0;
+    final int length = wildcard.length();
+    for (; i < length; i++, j++) {
+      final char some2 = wildcard.charAt(i);
+      if (some2 != cs2Match.charAt(j)) {
+        if (some2 == '*') {
+          i++;
+          if (i == length) {
+            return true;
+          }
+          final char some = wildcard.charAt(i);
+          while (some != cs2Match.charAt(j)) {
+            ++j;
+          }
+          j--;
+        } else if (some2 != '?') {
+          return false;
+        }
+      }
+    }
+    return j == cs2Match.length();
+  }
+
+
+  /**
+   * Transform a wildcard expression 2 a java regular expression.
+   * * matches any number of consecutive characters.
+   * ? matches any single character.
+   * @param wildcard
+   * @return
+   */
+  public CharSequence getJavaRegexpStr(final CharSequence wildcard) {
+    final StringBuilder buff = new StringBuilder();
+    final int length = wildcard.length();
+    for (int i = 0; i < length; i++) {
+      final char c = wildcard.charAt(i);
+      switch (c) {
+        case '*':
+          buff.append(".*");
+          break;
+        case '?':
+          buff.append('.');
+          break;
+        case '[':
+        case ']':
+        case '(':
+        case ')':
+        case '{':
+        case '}':
+        case '.':
+          buff.append('\\').append(c);
+          break;
+        default:
+          buff.append(c);
+      }
+    }
+    return buff;
+  }
+
 
 }
