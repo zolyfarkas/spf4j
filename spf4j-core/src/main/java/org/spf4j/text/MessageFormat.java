@@ -521,9 +521,7 @@ public final class MessageFormat extends Format {
       lastOffset = offset;
       result.append('{').append(finfo.getArgumentNumber());
       Format fmt = finfo.getFormat();
-      if (fmt == null) {
-        // do nothing, string format
-      } else if (fmt instanceof NumberFormat) {
+      if (fmt instanceof NumberFormat) {
         if (fmt.equals(NumberFormat.getInstance(locale))) {
           result.append(",number");
         } else if (fmt.equals(NumberFormat.getCurrencyInstance(locale))) {
@@ -564,7 +562,7 @@ public final class MessageFormat extends Format {
         } else if (index != MODIFIER_DEFAULT) {
           result.append(',').append(DATE_TIME_MODIFIER_KEYWORDS[index]);
         }
-      } else {
+      } else if (fmt != null) {
         throw new UnsupportedOperationException("Unsupported format " + fmt);
       }
       result.append('}');
