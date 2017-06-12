@@ -158,28 +158,28 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
 
     /* ---------------- Constants -------------- */
 
-    static final ReferenceType DEFAULT_KEY_TYPE = ReferenceType.WEAK;
+    private static final ReferenceType DEFAULT_KEY_TYPE = ReferenceType.WEAK;
 
-    static final ReferenceType DEFAULT_VALUE_TYPE = ReferenceType.STRONG;
+    private static final ReferenceType DEFAULT_VALUE_TYPE = ReferenceType.STRONG;
 
 
     /**
      * The default initial capacity for this table,
      * used when not otherwise specified in a constructor.
      */
-    static final int DEFAULT_INITIAL_CAPACITY = 16;
+    private static final int DEFAULT_INITIAL_CAPACITY = 16;
 
     /**
      * The default load factor for this table, used when not
      * otherwise specified in a constructor.
      */
-    static final float DEFAULT_LOAD_FACTOR = 0.75f;
+    private static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
     /**
      * The default concurrency level for this table, used when not
      * otherwise specified in a constructor.
      */
-    static final int DEFAULT_CONCURRENCY_LEVEL = 16;
+    private static final int DEFAULT_CONCURRENCY_LEVEL = 16;
 
     /**
      * The maximum capacity, used if a higher value is implicitly
@@ -187,13 +187,13 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
      * be a power of two <= 1<<30 to ensure that entries are indexable
      * using ints.
      */
-    static final int MAXIMUM_CAPACITY = 1 << 30;
+    private static final int MAXIMUM_CAPACITY = 1 << 30;
 
     /**
      * The maximum number of segments to allow; used to bound
      * constructor arguments.
      */
-    static final int MAX_SEGMENTS = 1 << 16; // slightly conservative
+    private static final int MAX_SEGMENTS = 1 << 16; // slightly conservative
 
     /**
      * Number of unsynchronized retries in size and containsValue
@@ -201,7 +201,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
      * unbounded retries if tables undergo continuous modification
      * which would make it impossible to obtain an accurate result.
      */
-    static final int RETRIES_BEFORE_LOCK = 2;
+    private static final int RETRIES_BEFORE_LOCK = 2;
 
     /* ---------------- Fields -------------- */
 
@@ -253,7 +253,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
      * @param hash the hash code for the key
      * @return the segment
      */
-    final Segment<K, V> segmentFor(final int hash) {
+    private final Segment<K, V> segmentFor(final int hash) {
         return segments[(hash >>> segmentShift) & segmentMask];
     }
 
@@ -264,7 +264,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
 
     /* ---------------- Inner Classes -------------- */
 
-    static interface KeyReference {
+    private static interface KeyReference {
         int keyHash();
         Object keyRef();
     }
@@ -272,7 +272,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
     /**
      * A weak-key reference which stores the key hash needed for reclamation.
      */
-    static final class WeakKeyReference<K> extends WeakReference<K>  implements KeyReference {
+    private static final class WeakKeyReference<K> extends WeakReference<K>  implements KeyReference {
         private final int hash;
         WeakKeyReference(final K key, final int hash, final ReferenceQueue<Object> refQueue) {
             super(key, refQueue);
@@ -293,7 +293,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
     /**
      * A soft-key reference which stores the key hash needed for reclamation.
      */
-    static final class SoftKeyReference<K> extends SoftReference<K> implements KeyReference {
+    private static final class SoftKeyReference<K> extends SoftReference<K> implements KeyReference {
         private final int hash;
         SoftKeyReference(final K key, final int hash, final ReferenceQueue<Object> refQueue) {
             super(key, refQueue);
@@ -331,7 +331,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
         }
     }
 
-    static final class SoftValueReference<V> extends SoftReference<V>  implements KeyReference {
+    private static final class SoftValueReference<V> extends SoftReference<V>  implements KeyReference {
         private final Object keyRef;
         private final int hash;
         SoftValueReference(final V value, final Object keyRef, final int hash, final ReferenceQueue<Object> refQueue) {
@@ -362,7 +362,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
      * backup in case a null (pre-initialized) value is ever seen in
      * an unsynchronized access method.
      */
-    static final class HashEntry<K, V> {
+    private static final class HashEntry<K, V> {
         private final Object keyRef;
         private final int hash;
         private volatile Object valueRef;
@@ -377,7 +377,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
             this.valueRef = newValueReference(value, valueType, refQueue);
         }
 
-        Object newKeyReference(final K key, final ReferenceType keyType,
+        private Object newKeyReference(final K key, final ReferenceType keyType,
                 final ReferenceQueue<Object> refQueue) {
             switch (keyType) {
                 case WEAK:
@@ -391,7 +391,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
             }
         }
 
-        Object newValueReference(final V value, final ReferenceType valueType,
+        private Object newValueReference(final V value, final ReferenceType valueType,
                 final ReferenceQueue<Object> refQueue) {
             switch (valueType) {
                 case WEAK:
@@ -406,31 +406,31 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
         }
 
         @SuppressWarnings("unchecked")
-        final K key() {
+        private final K key() {
             if (keyRef instanceof KeyReference)
                 return ((Reference<K>)keyRef).get();
 
             return (K) keyRef;
         }
 
-        final V value() {
+        private final V value() {
             return dereferenceValue(valueRef);
         }
 
         @SuppressWarnings("unchecked")
-        final V dereferenceValue(Object value) {
+        private final V dereferenceValue(Object value) {
             if (value instanceof KeyReference)
                 return ((Reference<V>)value).get();
 
             return (V) value;
         }
 
-        final void setValue(V value, ReferenceType valueType, ReferenceQueue<Object> refQueue) {
+        private final void setValue(V value, ReferenceType valueType, ReferenceQueue<Object> refQueue) {
             this.valueRef = newValueReference(value, valueType, refQueue);
         }
 
         @SuppressWarnings("unchecked")
-        static final <K,V> HashEntry<K,V>[] newArray(int i) {
+        private static final <K,V> HashEntry<K,V>[] newArray(int i) {
             return new HashEntry[i];
         }
     }
@@ -440,7 +440,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
      * subclasses from ReentrantLock opportunistically, just to
      * simplify some locking and avoid separate construction.
      */
-    static final class Segment<K,V> extends ReentrantLock implements Serializable {
+    private static final class Segment<K,V> extends ReentrantLock implements Serializable {
         /*
          * Segments maintain a table of entry lists that are ALWAYS
          * kept in a consistent state, so can be read without locking.
@@ -483,7 +483,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
         /**
          * The number of elements in this segment's region.
          */
-        transient volatile int count;
+        private transient volatile int count;
 
         /**
          * Number of updates that alter the size of the table. This is
@@ -493,19 +493,19 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
          * we might have an inconsistent view of state so (usually)
          * must retry.
          */
-        transient int modCount;
+        private transient int modCount;
 
         /**
          * The table is rehashed when its size exceeds this threshold.
          * (The value of this field is always <tt>(int)(capacity *
          * loadFactor)</tt>.)
          */
-        transient int threshold;
+        private transient int threshold;
 
         /**
          * The per-segment table.
          */
-        transient volatile HashEntry<K, V>[] table;
+        private transient volatile HashEntry<K, V>[] table;
 
         /**
          * The load factor for the hash table.  Even though this value
@@ -513,19 +513,19 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
          * links to outer object.
          * @serial
          */
-        final float loadFactor;
+        private final float loadFactor;
 
         /**
          * The collected weak-key reference queue for this segment.
          * This should be (re)initialized whenever table is assigned,
          */
-        transient volatile ReferenceQueue<Object> refQueue;
+        private transient volatile ReferenceQueue<Object> refQueue;
 
-        final ReferenceType keyType;
+        private final ReferenceType keyType;
 
-        final ReferenceType valueType;
+        private final ReferenceType valueType;
 
-        final boolean identityComparisons;
+        private final boolean identityComparisons;
 
         Segment(int initialCapacity, float lf, ReferenceType keyType,
                 ReferenceType valueType, boolean identityComparisons) {
@@ -537,7 +537,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
         }
 
         @SuppressWarnings("unchecked")
-        static final <K,V> Segment<K,V>[] newArray(int i) {
+        private static final <K,V> Segment<K,V>[] newArray(int i) {
             return new Segment[i];
         }
 
@@ -549,7 +549,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
          * Sets table to new HashEntry array.
          * Call only while holding lock or in constructor.
          */
-        void setTable(HashEntry<K,V>[] newTable) {
+        private void setTable(HashEntry<K,V>[] newTable) {
             threshold = (int)(newTable.length * loadFactor);
             table = newTable;
             refQueue = new ReferenceQueue<>();
@@ -558,12 +558,12 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
         /**
          * Returns properly casted first entry of bin for given hash.
          */
-        HashEntry<K,V> getFirst(int hash) {
+        private HashEntry<K,V> getFirst(int hash) {
             HashEntry<K,V>[] tab = table;
             return tab[hash & (tab.length - 1)];
         }
 
-        HashEntry<K,V> newHashEntry(K key, int hash, HashEntry<K, V> next, V value) {
+        private HashEntry<K,V> newHashEntry(K key, int hash, HashEntry<K, V> next, V value) {
             return new HashEntry<>(key, hash, next, value, keyType, valueType, refQueue);
         }
 
@@ -574,7 +574,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
          * its table assignment, which is legal under memory model
          * but is not known to ever occur.
          */
-        V readValueUnderLock(HashEntry<K,V> e) {
+        private V readValueUnderLock(HashEntry<K,V> e) {
             lock();
             try {
                 removeStale();
@@ -586,7 +586,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
 
         /* Specialized implementations of map methods */
 
-        V get(Object key, int hash) {
+        private V get(Object key, int hash) {
             if (count != 0) { // read-volatile
                 HashEntry<K,V> e = getFirst(hash);
                 while (e != null) {
@@ -603,7 +603,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
             return null;
         }
 
-        boolean containsKey(Object key, int hash) {
+        private boolean containsKey(Object key, int hash) {
             if (count != 0) { // read-volatile
                 HashEntry<K,V> e = getFirst(hash);
                 while (e != null) {
@@ -615,7 +615,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
             return false;
         }
 
-        boolean containsValue(Object value) {
+        private boolean containsValue(Object value) {
             if (count != 0) { // read-volatile
                 HashEntry<K,V>[] tab = table;
                 int len = tab.length;
@@ -637,7 +637,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
             return false;
         }
 
-        boolean replace(K key, int hash, V oldValue, V newValue) {
+        private boolean replace(K key, int hash, V oldValue, V newValue) {
             lock();
             try {
                 removeStale();
@@ -656,7 +656,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
             }
         }
 
-        V replace(K key, int hash, V newValue) {
+        private V replace(K key, int hash, V newValue) {
             lock();
             try {
                 removeStale();
@@ -676,7 +676,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
         }
 
 
-        V put(K key, int hash, V value, boolean onlyIfAbsent) {
+        private V put(K key, int hash, V value, boolean onlyIfAbsent) {
             lock();
             try {
                 removeStale();
@@ -712,7 +712,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
             }
         }
 
-        int rehash() {
+        private int rehash() {
             HashEntry<K,V>[] oldTable = table;
             int oldCapacity = oldTable.length;
             if (oldCapacity >= MAXIMUM_CAPACITY)
@@ -785,7 +785,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
         /**
          * Remove; match on key only if value null, else match both.
          */
-        V remove(final Object key, final int hash, final Object value, final boolean refRemove) {
+        private V remove(final Object key, final int hash, final Object value, final boolean refRemove) {
             lock();
             try {
                 if (!refRemove)
@@ -829,14 +829,14 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
             }
         }
 
-        final void removeStale() {
+        private final void removeStale() {
             KeyReference ref;
             while ((ref = (KeyReference) refQueue.poll()) != null) {
                 remove(ref.keyRef(), ref.keyHash(), null, true);
             }
         }
 
-        void clear() {
+        private void clear() {
             if (count != 0) {
                 lock();
                 try {
