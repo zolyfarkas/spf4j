@@ -256,10 +256,10 @@ public final class Strings {
     } else {
       try {
         return (char[]) CHARS_FIELD_GET.invokeExact(str);
-      } catch (RuntimeException | Error ex) {
-        throw ex;
       } catch (Throwable ex) {
-        throw new RuntimeException(ex);
+        UnknownError err = new UnknownError("Error while stealing String char array");
+        err.addSuppressed(ex);
+        throw err;
       }
     }
   }
@@ -278,10 +278,10 @@ public final class Strings {
         } else {
           return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(chars, true);
         }
-      } catch (Error | RuntimeException ex) {
-        throw ex;
       } catch (Throwable ex) {
-        throw new RuntimeException(ex);
+        UnknownError err = new UnknownError("Error while wrapping String char array");
+        err.addSuppressed(ex);
+        throw err;
       }
     } else {
       return new String(chars);
