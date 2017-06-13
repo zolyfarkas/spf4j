@@ -18,6 +18,7 @@
 package org.spf4j.io.tcp.proxy;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SocketChannel;
@@ -96,7 +97,7 @@ public final class TransferBuffer {
       try {
         channel.socket().shutdownInput(); // ? is this really necessary?
       } catch (IOException ex) {
-        throw new RuntimeException(ex);
+        throw new UncheckedIOException(ex);
       }
     } else if (oex == null && buffer.hasRemaining()) {
       isRoomInBufferHook.run();
@@ -133,7 +134,7 @@ public final class TransferBuffer {
         } catch (ClosedChannelException closed) {
           //channel is closed already
         } catch (IOException ex) {
-          throw new RuntimeException(ex);
+          throw new UncheckedIOException(ex);
         }
         return nrWritten;
       } else if (readException != null) {
