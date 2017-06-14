@@ -27,6 +27,7 @@ import java.nio.channels.OverlappingFileLockException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -122,6 +123,18 @@ public final class FileBasedLockTest {
       Assert.fail();
       lock1.release();
       lock.release();
+    }
+
+    @Test
+    public void testFileLock2() throws IOException, InterruptedException {
+      File tmp = File.createTempFile("test", ".lock");
+      tmp.deleteOnExit();
+      FileBasedLock lock = new FileBasedLock(tmp);
+      Assert.assertTrue(lock.tryLock());
+      FileBasedLock lock2 = new FileBasedLock(tmp);
+      Assert.assertTrue(lock2.tryLock(1, TimeUnit.SECONDS));
+      lock2.unlock();
+      lock.unlock();
     }
 
 }
