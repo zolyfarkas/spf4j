@@ -411,6 +411,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
         beat.addLyfecycleHook(new LifecycleHook() {
           @Override
           public void onError(final Error error) {
+            // this hook is only to remove the heartbeat from the registry.
           }
 
           @Override
