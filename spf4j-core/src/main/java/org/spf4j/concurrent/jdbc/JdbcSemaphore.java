@@ -307,7 +307,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     }
   }
 
-  void createLockRowIfNotPresent(final boolean strictReservations, final int nrPermits)
+  private void createLockRowIfNotPresent(final boolean strictReservations, final int nrPermits)
           throws SQLException, InterruptedException {
     jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
     try (PreparedStatement stmt = conn.prepareStatement(availablePermitsSql)) {
