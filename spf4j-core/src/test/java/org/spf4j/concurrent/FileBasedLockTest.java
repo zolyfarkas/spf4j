@@ -45,7 +45,7 @@ public final class FileBasedLockTest {
     @Test(timeout = 60000)
     public void test() throws IOException, InterruptedException, ExecutionException {
 
-        FileBasedLock lock = new FileBasedLock(new File(LOCK_FILE));
+        FileBasedLock lock = FileBasedLock.getLock(new File(LOCK_FILE));
         lock.lock();
         Future<Void> future = DefaultExecutor.INSTANCE.submit(new Callable<Void>() {
 
@@ -77,7 +77,7 @@ public final class FileBasedLockTest {
     @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
     public void testReentrace() throws IOException {
         File tmp = File.createTempFile("bla", ".lock");
-        try (FileBasedLock lock = new FileBasedLock(tmp)) {
+        try (FileBasedLock lock = FileBasedLock.getLock(tmp)) {
             lock.lock();
             try {
                 lock.lock();
@@ -101,7 +101,7 @@ public final class FileBasedLockTest {
 
 
     public static void main(final String[] args) throws  InterruptedException, IOException {
-        FileBasedLock lock = new FileBasedLock(new File(args[0]));
+        FileBasedLock lock = FileBasedLock.getLock(new File(args[0]));
         lock.lock();
         try {
             Thread.sleep(100);
@@ -129,9 +129,9 @@ public final class FileBasedLockTest {
     public void testFileLock2() throws IOException, InterruptedException {
       File tmp = File.createTempFile("test", ".lock");
       tmp.deleteOnExit();
-      FileBasedLock lock = new FileBasedLock(tmp);
+      FileBasedLock lock = FileBasedLock.getLock(tmp);
       Assert.assertTrue(lock.tryLock());
-      FileBasedLock lock2 = new FileBasedLock(tmp);
+      FileBasedLock lock2 = FileBasedLock.getLock(tmp);
       Assert.assertTrue(lock2.tryLock(1, TimeUnit.SECONDS));
       lock2.unlock();
       lock.unlock();
