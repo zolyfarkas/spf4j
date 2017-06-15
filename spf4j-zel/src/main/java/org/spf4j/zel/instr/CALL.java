@@ -52,9 +52,7 @@ public final class CALL extends Instruction {
                     nctx = context.getSubProgramContext(p, nrParameters);
                     context.pop();
                     List<Object> params = getParameters(nctx, nrParameters);
-                    obj = context.getResultCache().getResult(p,  params,
-                            new SyncAsyncCallable(nctx));
-
+                    obj = context.getResultCache().getResult(p,  params, () -> nctx.executeSyncOrAsync());
                     break;
                 case NONDETERMINISTIC:
                         nctx = context.getSubProgramContext(p, nrParameters);

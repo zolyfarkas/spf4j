@@ -84,12 +84,17 @@ public final class CALLREF extends Instruction {
                 switch (p.getType()) {
                     case DETERMINISTIC:
                         nctx = context.getSyncSubProgramContext(p, parameters);
-                        obj = context.getResultCache().getResult(p, Arrays.asList(parameters), new SyncCallable(nctx));
+                        obj = context.getResultCache().getResult(p, Arrays.asList(parameters),
+                                () -> nctx.call());
 
                         break;
                     case NONDETERMINISTIC:
                         nctx = context.getSyncSubProgramContext(p, parameters);
-                        obj = Program.executeSync(nctx);
+                        try {
+                          obj = nctx.call();
+                        } catch (SuspendedException ex) {
+                          throw new ZExecutionException("Suspension not supported for " + p, ex);
+                        }
                         break;
                     default:
                         throw new UnsupportedOperationException(p.getType().toString());
