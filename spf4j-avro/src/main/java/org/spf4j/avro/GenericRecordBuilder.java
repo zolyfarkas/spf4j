@@ -15,7 +15,6 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.spf4j.avro;
 
 import com.google.common.annotations.Beta;
@@ -39,15 +38,14 @@ import org.spf4j.io.SetFilesReadOnlyVisitor;
 /**
  * Bytecode generating GenericRecord builder.
  *
- * Microbenchmarks show a 10% performance improvement. but depending on your data your performance benefits can
- * be greater or smaller. The main benefit for this is the potential for eliminating the need for separate handling
- * or generic records vs specific records in the avro lib...
+ * Microbenchmarks show a 10% performance improvement. but depending on your data your performance benefits can be
+ * greater or smaller. The main benefit for this is the potential for eliminating the need for separate handling or
+ * generic records vs specific records in the avro lib...
  *
- * Benchmark                                                       Mode  Cnt         Score        Error  Units
- * GenericRecordBenchmark.testAvroGenericRecordNew                thrpt   10  36162498.300 ± 246967.965  ops/s
- * GenericRecordBenchmark.testSpf4jGenericRecordNew               thrpt   10  39773579.353 ± 939582.354  ops/s
- * GenericRecordBenchmark.testAvroGenericRecordNewSetGet          thrpt   10  36274035.575 ± 476132.764  ops/s
- * GenericRecordBenchmark.testSpf4jGenericRecordNewSetGet         thrpt   10  40111265.012 ± 600216.931  ops/s
+ * Benchmark Mode Cnt Score Error Units GenericRecordBenchmark.testAvroGenericRecordNew thrpt 10 36162498.300 ±
+ * 246967.965 ops/s GenericRecordBenchmark.testSpf4jGenericRecordNew thrpt 10 39773579.353 ± 939582.354 ops/s
+ * GenericRecordBenchmark.testAvroGenericRecordNewSetGet thrpt 10 36274035.575 ± 476132.764 ops/s
+ * GenericRecordBenchmark.testSpf4jGenericRecordNewSetGet thrpt 10 40111265.012 ± 600216.931 ops/s
  *
  *
  *
@@ -62,26 +60,25 @@ public final class GenericRecordBuilder implements Closeable {
 
   private final AbstractJavaSourceClassLoader source;
 
-  public GenericRecordBuilder(final Schema ... schemas) {
+  public GenericRecordBuilder(final Schema... schemas) {
     this(GenericData.StringType.String, schemas);
   }
 
-  public GenericRecordBuilder(final GenericData.StringType stringType, final Schema ... schemas) {
+  public GenericRecordBuilder(final GenericData.StringType stringType, final Schema... schemas) {
     tmpDir = com.google.common.io.Files.createTempDir();
     this.stringType = stringType;
     generateClasses(stringType, schemas);
     try {
       AbstractJavaSourceClassLoader src = CompilerFactoryFactory.getDefaultCompilerFactory()
               .newJavaSourceClassLoader(Thread.currentThread().getContextClassLoader());
-      src.setSourcePath(new File[] {tmpDir});
+      src.setSourcePath(new File[]{tmpDir});
       this.source = src;
     } catch (Exception ex) {
-     throw new RuntimeException(ex);
+      throw new RuntimeException(ex);
     }
   }
 
-
-  private void generateClasses(final GenericData.StringType st, final Schema ...schemas) {
+  private void generateClasses(final GenericData.StringType st, final Schema... schemas) {
     String[] namespaces = new String[schemas.length];
     for (int i = 0; i < schemas.length; i++) {
       String namespace = schemas[i].getNamespace();
@@ -98,7 +95,7 @@ public final class GenericRecordBuilder implements Closeable {
     proto.setTypes(Arrays.asList(schemas));
     SpecificCompiler sc = new SpecificCompiler(proto);
     sc.setStringType(st);
-     // use a custom template that does not contain the builder (janino can't compile builder).
+    // use a custom template that does not contain the builder (janino can't compile builder).
     sc.setTemplateDir("org/spf4j/avro/");
     try {
       sc.compileToDestination(null, tmpDir);
@@ -111,7 +108,6 @@ public final class GenericRecordBuilder implements Closeable {
       throw new RuntimeException(ex);
     }
   }
-
 
   public Class<? extends SpecificRecordBase> getClass(final Schema schema) {
     Preconditions.checkArgument(Schemas.hasGeneratedJavaClass(schema), "schema %s has no java class", schema);
@@ -135,8 +131,5 @@ public final class GenericRecordBuilder implements Closeable {
   public String toString() {
     return "GenericRecordBuilder{" + "tmpDir=" + tmpDir + ", stringType=" + stringType + ", source=" + source + '}';
   }
-
-
-
 
 }

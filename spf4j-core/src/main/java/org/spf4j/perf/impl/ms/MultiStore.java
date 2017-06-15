@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -35,126 +35,125 @@ import org.spf4j.perf.MeasurementStore;
  */
 public final class MultiStore implements MeasurementStore {
 
-    private final MeasurementStore[] stores;
-    private final TLongObjectMap<long[]> idToIds;
-    private final TObjectLongMap<MeasurementsInfo> infoToId;
-    private long idSeq;
+  private final MeasurementStore[] stores;
+  private final TLongObjectMap<long[]> idToIds;
+  private final TObjectLongMap<MeasurementsInfo> infoToId;
+  private long idSeq;
 
-    public MultiStore(final MeasurementStore ... stores) {
-        if (stores.length <= 1) {
-            throw new IllegalArgumentException("You need to supply more than 1 store, not " + Arrays.toString(stores));
-        }
-        this.stores = stores;
-        this.idToIds = new TLongObjectHashMap<>();
-        this.infoToId = new TObjectLongHashMap<>();
-        this.idSeq = 1L;
+  public MultiStore(final MeasurementStore... stores) {
+    if (stores.length <= 1) {
+      throw new IllegalArgumentException("You need to supply more than 1 store, not " + Arrays.toString(stores));
     }
+    this.stores = stores;
+    this.idToIds = new TLongObjectHashMap<>();
+    this.infoToId = new TObjectLongHashMap<>();
+    this.idSeq = 1L;
+  }
 
-
-    @Override
-    public long alocateMeasurements(final MeasurementsInfo measurement,
-            final int sampleTimeMillis) throws IOException {
-        IOException ex = null;
-        synchronized (idToIds) {
-            long id = infoToId.get(measurement);
-            if (id <= 0) {
-                long[] ids = new long[stores.length];
-                int i = 0;
-                for (MeasurementStore store : stores) {
-                    try {
-                        ids[i++] = store.alocateMeasurements(measurement, sampleTimeMillis);
-                    } catch (IOException e) {
-                        if (ex == null) {
-                            ex = e;
-                        } else {
-                            ex = Throwables.suppress(e, ex);
-                        }
-                    }
-                }
-                if (ex != null) {
-                    throw ex;
-                }
-                id = idSeq++;
-                infoToId.put(measurement, id);
-                idToIds.put(id, ids);
-            }
-            return id;
-        }
-    }
-
-    @Override
-    public void saveMeasurements(final long tableId,
-            final long timeStampMillis,  final long... measurements) throws IOException {
-                IOException ex = null;
-        long[] ids;
-        synchronized (idToIds) {
-            ids = idToIds.get(tableId);
-        }
-        if (ids == null) {
-            throw new IOException("Table id is invalid " + tableId);
-        }
+  @Override
+  public long alocateMeasurements(final MeasurementsInfo measurement,
+          final int sampleTimeMillis) throws IOException {
+    IOException ex = null;
+    synchronized (idToIds) {
+      long id = infoToId.get(measurement);
+      if (id <= 0) {
+        long[] ids = new long[stores.length];
         int i = 0;
         for (MeasurementStore store : stores) {
-            try {
-                store.saveMeasurements(ids[i++], timeStampMillis, measurements);
-            } catch (IOException e) {
-                if (ex == null) {
-                    ex = e;
-                } else {
-                    ex = Throwables.suppress(e, ex);
-                }
+          try {
+            ids[i++] = store.alocateMeasurements(measurement, sampleTimeMillis);
+          } catch (IOException e) {
+            if (ex == null) {
+              ex = e;
+            } else {
+              ex = Throwables.suppress(e, ex);
             }
+          }
         }
         if (ex != null) {
-            throw ex;
+          throw ex;
         }
+        id = idSeq++;
+        infoToId.put(measurement, id);
+        idToIds.put(id, ids);
+      }
+      return id;
     }
+  }
 
-    @Override
-    public void flush() throws IOException {
-                IOException ex = null;
-        for (MeasurementStore store : stores) {
-            try {
-                store.flush();
-            } catch (IOException e) {
-                if (ex == null) {
-                    ex = e;
-                } else {
-                    ex = Throwables.suppress(e, ex);
-                }
-            }
-        }
-        if (ex != null) {
-            throw ex;
-        }
+  @Override
+  public void saveMeasurements(final long tableId,
+          final long timeStampMillis, final long... measurements) throws IOException {
+    IOException ex = null;
+    long[] ids;
+    synchronized (idToIds) {
+      ids = idToIds.get(tableId);
     }
+    if (ids == null) {
+      throw new IOException("Table id is invalid " + tableId);
+    }
+    int i = 0;
+    for (MeasurementStore store : stores) {
+      try {
+        store.saveMeasurements(ids[i++], timeStampMillis, measurements);
+      } catch (IOException e) {
+        if (ex == null) {
+          ex = e;
+        } else {
+          ex = Throwables.suppress(e, ex);
+        }
+      }
+    }
+    if (ex != null) {
+      throw ex;
+    }
+  }
 
-    @Override
-    public void close() throws IOException {
-                IOException ex = null;
-        for (MeasurementStore store : stores) {
-            try {
-                store.close();
-            } catch (IOException e) {
-                if (ex == null) {
-                    ex = e;
-                } else {
-                    ex = Throwables.suppress(e, ex);
-                }
-            }
+  @Override
+  public void flush() throws IOException {
+    IOException ex = null;
+    for (MeasurementStore store : stores) {
+      try {
+        store.flush();
+      } catch (IOException e) {
+        if (ex == null) {
+          ex = e;
+        } else {
+          ex = Throwables.suppress(e, ex);
         }
-        if (ex != null) {
-            throw ex;
+      }
+    }
+    if (ex != null) {
+      throw ex;
+    }
+  }
+
+  @Override
+  public void close() throws IOException {
+    IOException ex = null;
+    for (MeasurementStore store : stores) {
+      try {
+        store.close();
+      } catch (IOException e) {
+        if (ex == null) {
+          ex = e;
+        } else {
+          ex = Throwables.suppress(e, ex);
         }
+      }
     }
+    if (ex != null) {
+      throw ex;
+    }
+  }
 
-    public List<MeasurementStore> getStores() {
-        return Collections.unmodifiableList(Arrays.asList(stores));
-    }
+  public List<MeasurementStore> getStores() {
+    return Collections.unmodifiableList(Arrays.asList(stores));
+  }
 
-    @Override
-    public String toString() {
-        return "MultiStore{" + "stores=" + Arrays.toString(stores) + '}';
-    }
+  @Override
+  public String toString() {
+    return "MultiStore{" + "stores=" + Arrays.toString(stores) + '}';
+  }
 
 }

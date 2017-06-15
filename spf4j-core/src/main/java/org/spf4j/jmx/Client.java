@@ -40,58 +40,58 @@ import javax.management.remote.JMXServiceURL;
 @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // FB gets it wrong here
 public final class Client {
 
-    private Client() { }
+  private Client() {
+  }
 
-    /**
-     * get a an attribute from a JMX mbean.
-     * @param serviceUrl in the form of: "service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"
-     * @param domain - mbean domain name.
-     * @param mbeanName -  mbean name.
-     * @param attribName - attribute name.
-     * @return - the attribute value.
-     * @throws java.io.IOException - IO issue communicating with mbean.
-     * @throws javax.management.InstanceNotFoundException - mbean not found.
-     * @throws javax.management.MBeanException - exception while getting the attribute.
-     * @throws javax.management.AttributeNotFoundException - attribute not found.
-     * @throws javax.management.ReflectionException - mbean reflection exception.
-     */
-    public static Object getAttribute(@Nonnull final String serviceUrl,
-            @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String attribName)
-            throws IOException, InstanceNotFoundException,
-            MBeanException, AttributeNotFoundException, ReflectionException {
-        JMXServiceURL url = new JMXServiceURL(serviceUrl);
-        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {
-            MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
-            return mbsc.getAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName), attribName);
-        }
+  /**
+   * get a an attribute from a JMX mbean.
+   *
+   * @param serviceUrl in the form of: "service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"
+   * @param domain - mbean domain name.
+   * @param mbeanName - mbean name.
+   * @param attribName - attribute name.
+   * @return - the attribute value.
+   * @throws java.io.IOException - IO issue communicating with mbean.
+   * @throws javax.management.InstanceNotFoundException - mbean not found.
+   * @throws javax.management.MBeanException - exception while getting the attribute.
+   * @throws javax.management.AttributeNotFoundException - attribute not found.
+   * @throws javax.management.ReflectionException - mbean reflection exception.
+   */
+  public static Object getAttribute(@Nonnull final String serviceUrl,
+          @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String attribName)
+          throws IOException, InstanceNotFoundException,
+          MBeanException, AttributeNotFoundException, ReflectionException {
+    JMXServiceURL url = new JMXServiceURL(serviceUrl);
+    try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {
+      MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
+      return mbsc.getAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName), attribName);
     }
+  }
 
-    public static void setAttribute(@Nonnull final String serviceUrl,
-            @Nonnull final String domain, @Nonnull final String mbeanName,
-            @Nonnull final String attribName, @Nonnull final Object attribValue)
-            throws IOException, InstanceNotFoundException,
-            MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
-        JMXServiceURL url = new JMXServiceURL(serviceUrl);
-        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {
-            MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
-            mbsc.setAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName),
-                    new Attribute(attribName, attribValue));
-        }
+  public static void setAttribute(@Nonnull final String serviceUrl,
+          @Nonnull final String domain, @Nonnull final String mbeanName,
+          @Nonnull final String attribName, @Nonnull final Object attribValue)
+          throws IOException, InstanceNotFoundException,
+          MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
+    JMXServiceURL url = new JMXServiceURL(serviceUrl);
+    try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {
+      MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
+      mbsc.setAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName),
+              new Attribute(attribName, attribValue));
     }
+  }
 
-
-    public static Object callOperation(@Nonnull final String serviceUrl,
-            @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String operationName,
-            final Object ... parameters)
-            throws IOException, InstanceNotFoundException,
-            MBeanException, ReflectionException {
-        JMXServiceURL url = new JMXServiceURL(serviceUrl);
-        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {
-            MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
-            return mbsc.invoke(ExportedValuesMBean.createObjectName(domain, mbeanName),
-                    operationName, parameters, null);
-        }
+  public static Object callOperation(@Nonnull final String serviceUrl,
+          @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String operationName,
+          final Object... parameters)
+          throws IOException, InstanceNotFoundException,
+          MBeanException, ReflectionException {
+    JMXServiceURL url = new JMXServiceURL(serviceUrl);
+    try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {
+      MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
+      return mbsc.invoke(ExportedValuesMBean.createObjectName(domain, mbeanName),
+              operationName, parameters, null);
     }
-
+  }
 
 }

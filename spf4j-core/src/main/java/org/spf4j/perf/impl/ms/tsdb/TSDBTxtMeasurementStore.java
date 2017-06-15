@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -36,68 +36,69 @@ import org.spf4j.perf.impl.ms.Id2Info;
 
 /**
  * File based store implementation.
+ *
  * @author zoly
  */
 @ThreadSafe
 public final class TSDBTxtMeasurementStore
-    implements MeasurementStore {
+        implements MeasurementStore {
 
-    private static final Interner<String> INTERNER = Interners.newStrongInterner();
+  private static final Interner<String> INTERNER = Interners.newStrongInterner();
 
-    private final BufferedWriter writer;
+  private final BufferedWriter writer;
 
-    private final String fileName;
+  private final String fileName;
 
-    public TSDBTxtMeasurementStore(final File file) throws IOException {
-        this.writer = new BufferedWriter(new OutputStreamWriter(
-                Files.newOutputStream(file.toPath(), StandardOpenOption.APPEND), Charsets.UTF_8));
-        this.fileName = INTERNER.intern(file.getPath());
-    }
+  public TSDBTxtMeasurementStore(final File file) throws IOException {
+    this.writer = new BufferedWriter(new OutputStreamWriter(
+            Files.newOutputStream(file.toPath(), StandardOpenOption.APPEND), Charsets.UTF_8));
+    this.fileName = INTERNER.intern(file.getPath());
+  }
 
-    @Override
-    public long alocateMeasurements(final MeasurementsInfo measurement,
-                                    final int sampleTimeMillis) {
-        return Id2Info.getId(measurement);
-    }
+  @Override
+  public long alocateMeasurements(final MeasurementsInfo measurement,
+          final int sampleTimeMillis) {
+    return Id2Info.getId(measurement);
+  }
 
-    @Override
-    public void saveMeasurements(final long tableId,
-            final long timeStampMillis, final long ... measurements)
-            throws IOException {
-        MeasurementsInfo measurementInfo = Id2Info.getInfo(tableId);
-        String groupName = measurementInfo.getMeasuredEntity().toString();
-        synchronized (fileName) {
-            Csv.writeCsvElement(groupName, writer);
-            writer.write(',');
-            writer.write(Long.toString(timeStampMillis));
+  @Override
+  public void saveMeasurements(final long tableId,
+          final long timeStampMillis, final long... measurements)
+          throws IOException {
+    MeasurementsInfo measurementInfo = Id2Info.getInfo(tableId);
+    String groupName = measurementInfo.getMeasuredEntity().toString();
+    synchronized (fileName) {
+      Csv.writeCsvElement(groupName, writer);
+      writer.write(',');
+      writer.write(Long.toString(timeStampMillis));
 //            writer.write(',');
 //            writer.write(Integer.toString(sampleTimeMillis));
-            for (int i = 0; i < measurements.length; i++) {
-                String measurementName = measurementInfo.getMeasurementName(i);
-                writer.write(',');
-                Csv.writeCsvElement(measurementName, writer);
-                writer.write(',');
-                writer.write(Long.toString(measurements[i]));
-            }
-            writer.write('\n');
-        }
+      for (int i = 0; i < measurements.length; i++) {
+        String measurementName = measurementInfo.getMeasurementName(i);
+        writer.write(',');
+        Csv.writeCsvElement(measurementName, writer);
+        writer.write(',');
+        writer.write(Long.toString(measurements[i]));
+      }
+      writer.write('\n');
     }
+  }
 
-    @PreDestroy
-    @Override
-    public void close() throws IOException {
-        writer.close();
-    }
+  @PreDestroy
+  @Override
+  public void close() throws IOException {
+    writer.close();
+  }
 
-    @JmxExport(description = "flush out buffers")
-    @Override
-    public void flush() throws IOException {
-        writer.flush();
-    }
+  @JmxExport(description = "flush out buffers")
+  @Override
+  public void flush() throws IOException {
+    writer.flush();
+  }
 
-    @Override
-    public String toString() {
-        return "TSDBTxtMeasurementStore{" + "fileName=" + fileName + '}';
-    }
+  @Override
+  public String toString() {
+    return "TSDBTxtMeasurementStore{" + "fileName=" + fileName + '}';
+  }
 
 }

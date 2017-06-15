@@ -24,7 +24,7 @@ public final class Futures {
   private Futures() { }
 
   @CheckReturnValue
-  public static RuntimeException cancelAll(final boolean mayInterrupt, final Future ... futures) {
+  public static RuntimeException cancelAll(final boolean mayInterrupt, final Future... futures) {
     RuntimeException ex = null;
     for (Future future : futures) {
       try {

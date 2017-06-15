@@ -24,8 +24,8 @@ package org.spf4j.perf;
  */
 public interface MultiMeasurementRecorder {
 
-    void record(long ... measurement);
+  void record(long... measurement);
 
-    void recordAt(long timestampMillis, long ... measurement);
+  void recordAt(long timestampMillis, long... measurement);
 
 }

@@ -22,34 +22,38 @@ import java.io.IOException;
 
 /**
  * A measurement store.
+ *
  * @author zoly
  */
 public interface MeasurementStore extends Closeable {
 
-    /**
-     * Make any allocations necessary for the following measurements.
-     * @param measurementInfo - the information about the measurement(s)
-     * @param sampleTimeMillis - the expected sample time. (interval between the stored measurements).
-     * @return - the id of the measurementInfo table.
-     * @throws IOException - IO issues.
-     */
-    long alocateMeasurements(MeasurementsInfo measurementInfo, int sampleTimeMillis)
-            throws IOException;
+  /**
+   * Make any allocations necessary for the following measurements.
+   *
+   * @param measurementInfo - the information about the measurement(s)
+   * @param sampleTimeMillis - the expected sample time. (interval between the stored measurements).
+   * @return - the id of the measurementInfo table.
+   * @throws IOException - IO issues.
+   */
+  long alocateMeasurements(MeasurementsInfo measurementInfo, int sampleTimeMillis)
+          throws IOException;
 
-    /**
-     * Save measurements.
-     * @param tableId - the table ID to store measurements for.
-     * @param timeStampMillis - the timestamp of the measurement (millis since Jan 1 1970 UTC)
-     * @param measurements - the measurements to persist. (same order as declared)
-     * @throws IOException - IO issues.
-     */
-    void saveMeasurements(long tableId, long timeStampMillis, long ... measurements)
-            throws IOException;
+  /**
+   * Save measurements.
+   *
+   * @param tableId - the table ID to store measurements for.
+   * @param timeStampMillis - the timestamp of the measurement (millis since Jan 1 1970 UTC)
+   * @param measurements - the measurements to persist. (same order as declared)
+   * @throws IOException - IO issues.
+   */
+  void saveMeasurements(long tableId, long timeStampMillis, long... measurements)
+          throws IOException;
 
-    /**
-     * flush all data that might be buffered by this store.
-     * @throws IOException - IO issues.
-     */
-    void flush() throws IOException;
+  /**
+   * flush all data that might be buffered by this store.
+   *
+   * @throws IOException - IO issues.
+   */
+  void flush() throws IOException;
 
 }

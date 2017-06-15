@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -38,81 +38,75 @@ import org.spf4j.tsdb2.avro.Type;
  */
 @ThreadSafe
 public final class TSDBMeasurementStore
-    implements MeasurementStore {
+        implements MeasurementStore {
 
-    private final TSDBWriter database;
+  private final TSDBWriter database;
 
+  public TSDBMeasurementStore(final File databaseFile) throws IOException {
+    this.database = new TSDBWriter(databaseFile, 1024, "", false);
+  }
 
-    public TSDBMeasurementStore(final File databaseFile) throws IOException {
-        this.database = new TSDBWriter(databaseFile, 1024, "", false);
+  @Override
+  public long alocateMeasurements(final MeasurementsInfo measurement,
+          final int sampleTimeMillis) throws IOException {
+    TableDef td = TableDef.newBuilder()
+            .setName(measurement.getMeasuredEntity().toString())
+            .setSampleTime(sampleTimeMillis)
+            .setId(-1).build();
+    int numberOfMeasurements = measurement.getNumberOfMeasurements();
+    List<ColumnDef> columns = new ArrayList<>(numberOfMeasurements);
+    for (int i = 0; i < numberOfMeasurements; i++) {
+      String mname = measurement.getMeasurementName(i);
+      String unit = measurement.getMeasurementUnit(i);
+      ColumnDef cd = new ColumnDef();
+      cd.name = mname;
+      cd.unitOfMeasurement = unit;
+      cd.type = Type.LONG;
+      cd.description = "";
+      columns.add(cd);
     }
+    td.columns = columns;
+    return database.writeTableDef(td);
+  }
 
+  @Override
+  public void saveMeasurements(final long tableId,
+          final long timeStampMillis, final long... measurements)
+          throws IOException {
+    database.writeDataRow(tableId, timeStampMillis, measurements);
+  }
 
-    @Override
-    public long alocateMeasurements(final MeasurementsInfo measurement,
-                                    final int sampleTimeMillis) throws IOException {
-        TableDef td = TableDef.newBuilder()
-                .setName(measurement.getMeasuredEntity().toString())
-                .setSampleTime(sampleTimeMillis)
-                .setId(-1).build();
-        int numberOfMeasurements = measurement.getNumberOfMeasurements();
-        List<ColumnDef> columns = new ArrayList<>(numberOfMeasurements);
-        for (int i = 0; i < numberOfMeasurements; i++) {
-            String mname = measurement.getMeasurementName(i);
-            String unit = measurement.getMeasurementUnit(i);
-            ColumnDef cd = new ColumnDef();
-            cd.name = mname;
-            cd.unitOfMeasurement = unit;
-            cd.type = Type.LONG;
-            cd.description = "";
-            columns.add(cd);
-        }
-        td.columns = columns;
-        return database.writeTableDef(td);
-    }
+  @Override
+  public void close() throws IOException {
+    database.close();
+  }
 
+  @JmxExport(description = "flush out buffers")
+  @Override
+  public void flush() throws IOException {
+    database.flush();
+  }
 
+  @JmxExport(description = "list all tables")
+  public String[] getTables() throws IOException {
+    final Set<String> metrics = TSDBQuery.getAllTables(database.getFile()).keySet();
+    return metrics.toArray(new String[metrics.size()]);
+  }
 
+  @JmxExport(description = "getTable As Csv")
+  public String getTableAsCsv(@JmxExport("tableName") final String tableName) throws IOException {
+    StringBuilder result = new StringBuilder(1024);
+    TSDBQuery.writeAsCsv(result, database.getFile(), tableName);
+    return result.toString();
+  }
 
-    @Override
-    public void saveMeasurements(final long tableId,
-            final long timeStampMillis, final long ... measurements)
-            throws IOException {
-        database.writeDataRow(tableId, timeStampMillis, measurements);
-    }
+  @Override
+  public String toString() {
+    return "TSDBMeasurementStore{" + "database=" + database + '}';
+  }
 
-    @Override
-    public void close() throws IOException {
-        database.close();
-    }
-
-
-    @JmxExport(description = "flush out buffers")
-    @Override
-    public void flush() throws IOException {
-        database.flush();
-    }
-
-    @JmxExport(description = "list all tables")
-    public String[] getTables() throws IOException {
-        final Set<String> metrics = TSDBQuery.getAllTables(database.getFile()).keySet();
-        return metrics.toArray(new String[metrics.size()]);
-    }
-
-    @JmxExport(description = "getTable As Csv")
-    public String getTableAsCsv(@JmxExport("tableName") final String tableName) throws IOException {
-        StringBuilder result = new StringBuilder(1024);
-        TSDBQuery.writeAsCsv(result, database.getFile(), tableName);
-        return result.toString();
-    }
-
-    @Override
-    public String toString() {
-        return "TSDBMeasurementStore{" + "database=" + database + '}';
-    }
-
-    public TSDBWriter getDBWriter() {
-        return database;
-    }
+  public TSDBWriter getDBWriter() {
+    return database;
+  }
 
 }
