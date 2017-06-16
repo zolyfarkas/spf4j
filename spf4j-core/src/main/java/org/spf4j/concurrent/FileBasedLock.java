@@ -259,4 +259,13 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     return "FileBasedLock{" + "file=" + file + '}';
   }
 
+  public int getLocalHoldCount() {
+    return jvmLock.getHoldCount();
+  }
+
+  @SuppressFBWarnings("MDM_LOCK_ISLOCKED")
+  public boolean isHeldByCurrentThread() {
+    return jvmLock.isHeldByCurrentThread();
+  }
+
 }
