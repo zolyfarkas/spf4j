@@ -236,14 +236,10 @@ public final class AttributedString {
      * @see java.text.Annotation
      */
     @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
-    public AttributedString(AttributedCharacterIterator text,
+    public AttributedString(@Nonnull AttributedCharacterIterator text,
                             int beginIndex,
                             int endIndex,
                             Attribute[] attributes) {
-        if (text == null) {
-            throw new NullPointerException();
-        }
-
         // Validate the given subrange
         int textBeginIndex = text.getBeginIndex();
         int textEndIndex = text.getEndIndex();
@@ -752,9 +748,7 @@ public final class AttributedString {
 
             if (AttributedString.this != that.getString())
                 return false;
-            if (currentIndex != that.currentIndex || beginIndex != that.beginIndex || endIndex != that.endIndex)
-                return false;
-            return true;
+            return !(currentIndex != that.currentIndex || beginIndex != that.beginIndex || endIndex != that.endIndex);
         }
 
         public int hashCode() {

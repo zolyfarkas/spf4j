@@ -126,12 +126,9 @@ public final class Reflections {
   public static Constructor<?> getConstructor(final Class<?> c, final Class<?>... paramTypes) {
     for (Constructor cons : c.getDeclaredConstructors()) {
       if (Arrays.equals(cons.getParameterTypes(), paramTypes)) {
-        AccessController.doPrivileged(new PrivilegedAction<Void>() {
-          @Override
-          public Void run() {
-             cons.setAccessible(true);
-             return null;
-          }
+        AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+          cons.setAccessible(true);
+          return null;
         });
         return cons;
       }

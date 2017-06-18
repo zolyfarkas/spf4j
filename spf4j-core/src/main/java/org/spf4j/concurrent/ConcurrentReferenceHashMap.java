@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.Nonnull;
 
 /**
  * An advanced hash table supporting configurable garbage collection semantics
@@ -1184,10 +1185,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
      * @throws NullPointerException if the specified value is null
      */
     @Override
-    public boolean containsValue(final Object value) {
-        if (value == null)
-            throw new NullPointerException();
-
+    public boolean containsValue(@Nonnull final Object value) {
         // See explanation of modCount use above
 
         final Segment<K,V>[] segments = this.segments;
@@ -1643,8 +1641,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V>
          * and cannot guarantee more.
          */
         @Override
-        public V setValue(final V value) {
-            if (value == null) throw new NullPointerException();
+        public V setValue(@Nonnull final V value) {
             V v = super.setValue(value);
             ConcurrentReferenceHashMap.this.put(getKey(), value);
             return v;
