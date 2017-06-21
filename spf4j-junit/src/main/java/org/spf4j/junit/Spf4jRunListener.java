@@ -3,6 +3,7 @@ package org.spf4j.junit;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
@@ -45,12 +46,14 @@ import org.spf4j.stackmonitor.Sampler;
  * @author zoly
  */
 @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+@NotThreadSafe
 public final class Spf4jRunListener extends RunListener {
 
   private final Sampler sampler;
 
   private final File destinationFolder;
 
+  private volatile File lastWrittenFile;
 
   public Spf4jRunListener() {
     sampler = new Sampler(Integer.getInteger("spf4j.junit.sampleTimeMillis", 5),
@@ -79,9 +82,10 @@ public final class Spf4jRunListener extends RunListener {
   public void testFinished(final Description description)
           throws IOException, InterruptedException {
     sampler.stop();
-    File dumpToFile = sampler.dumpToFile(new File(destinationFolder, description.getDisplayName() + ".ssdump2"));
-    if (dumpToFile != null) {
-      System.out.print("Profile saved to " + dumpToFile);
+    File dump = sampler.dumpToFile(new File(destinationFolder, description.getDisplayName() + ".ssdump2"));
+    if (dump != null) {
+      System.out.print("Profile saved to " + dump);
+      lastWrittenFile = dump;
     }
   }
 
@@ -89,6 +93,19 @@ public final class Spf4jRunListener extends RunListener {
   public void testStarted(final Description description) {
     sampler.start();
   }
+
+  public Sampler getSampler() {
+    return sampler;
+  }
+
+  public File getDestinationFolder() {
+    return destinationFolder;
+  }
+
+  public File getLastWrittenFile() {
+    return lastWrittenFile;
+  }
+
 
   @Override
   public String toString() {
