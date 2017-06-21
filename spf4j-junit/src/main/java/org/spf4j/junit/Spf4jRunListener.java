@@ -47,13 +47,19 @@ import org.spf4j.stackmonitor.Sampler;
 @SuppressFBWarnings("PATH_TRAVERSAL_IN")
 public final class Spf4jRunListener extends RunListener {
 
-  private final Sampler sampler = new Sampler(Integer.getInteger("spf4j.junit.sampleTimeMillis", 5),
+  private final Sampler sampler;
+
+  private final File destinationFolder;
+
+
+  public Spf4jRunListener() {
+    sampler = new Sampler(Integer.getInteger("spf4j.junit.sampleTimeMillis", 5),
           Integer.getInteger("spf4j.junit.dumpAfterMillis", Integer.MAX_VALUE),
           new FastStackCollector(true));
 
-  private final File destinationFolder = new File(System.getProperty("spf4j.junit.destinationFolder",
+    destinationFolder = new File(System.getProperty("spf4j.junit.destinationFolder",
           "target/junit-ssdump"));
-  {
+
     if (!destinationFolder.mkdirs() && !destinationFolder.canWrite()) {
       throw new ExceptionInInitializerError("Unable to write to " + destinationFolder);
     }
