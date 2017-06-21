@@ -99,14 +99,14 @@ public final class RunListenerRegister extends RunListener {
 
   @Override
   public void testRunFinished(final Result result) throws Exception {
-    for (RunListener listener : listenerRegister.listeners) {
+    for (RunListener listener : listeners) {
       listener.testRunFinished(result);
     }
   }
 
   @Override
   public void testRunStarted(final Description description) throws Exception {
-    for (RunListener listener : listenerRegister.listeners) {
+    for (RunListener listener : listeners) {
       listener.testRunStarted(description);
     }
   }
