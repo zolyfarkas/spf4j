@@ -18,7 +18,6 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
-import com.google.common.math.LongMath;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
