@@ -393,12 +393,13 @@ public final class JdbcHeartBeat implements AutoCloseable {
   public static JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
           final HeartBeatTableDesc hbTableDesc,
           @Nullable final LifecycleHook hook) throws InterruptedException, SQLException {
-    return getHeartBeatAndSubscribe(dataSource, hbTableDesc, hook, HEARTBEAT_INTERVAL_MILLIS);
+    return getHeartBeatAndSubscribe(dataSource, hbTableDesc,
+            hook, HEARTBEAT_INTERVAL_MILLIS, HEARTBEAT_INTERVAL_MILLIS);
   }
 
   public static JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
           final HeartBeatTableDesc hbTableDesc,
-          @Nullable final LifecycleHook hook, final int heartBeatIntevalMillis)
+          @Nullable final LifecycleHook hook, final int heartBeatIntevalMillis, final int jdbcTimeoutSeconds)
           throws InterruptedException, SQLException {
     JdbcHeartBeat beat;
     synchronized (HEARTBEATS) {
@@ -407,7 +408,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
       }
       beat = HEARTBEATS.get(dataSource);
       if (beat == null) {
-        beat = new JdbcHeartBeat(dataSource, hbTableDesc, heartBeatIntevalMillis, 5);
+        beat = new JdbcHeartBeat(dataSource, hbTableDesc, heartBeatIntevalMillis, jdbcTimeoutSeconds);
         beat.registerJmx();
         beat.addLyfecycleHook(new LifecycleHook() {
           @Override
