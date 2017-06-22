@@ -94,6 +94,27 @@ public class JdbcSemaphoreTest {
   }
 
 
+  @Test
+  public void testSingleMultipleInstance() throws SQLException, IOException, InterruptedException, TimeoutException {
+
+    JdbcDataSource ds = new JdbcDataSource();
+    ds.setURL("jdbc:h2:mem:test");
+    ds.setUser("sa");
+    ds.setPassword("sa");
+    try (Connection conn = ds.getConnection()) { // only to keep the schema arround in thsi section
+      createSchemaObjects(ds);
+      JdbcLock lock = new JdbcLock(ds, SemaphoreTablesDesc.DEFAULT, "testLock", 10);
+      JdbcLock lock2 = new JdbcLock(ds, SemaphoreTablesDesc.DEFAULT, "testLock", 10);
+      lock.lock();
+      Assert.assertFalse(lock.tryLock());
+      lock.unlock();
+      lock2.lock();
+      lock.unlock();
+    }
+
+  }
+
+
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   public void testReleaseAck(final DataSource ds, final String semName, final int maxReservations)
           throws SQLException, InterruptedException, TimeoutException {

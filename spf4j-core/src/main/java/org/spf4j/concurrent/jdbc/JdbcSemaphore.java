@@ -79,7 +79,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   private final JdbcTemplate jdbc;
 
-  private final String availablePermitsSql;
+  private final String permitsSql;
 
   private final String ownedPermitsSql;
 
@@ -146,7 +146,8 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
    */
   public JdbcSemaphore(final DataSource dataSource, final String semaphoreName,
           final int nrPermits, final boolean strict) throws InterruptedException, SQLException {
-    this(dataSource, SemaphoreTablesDesc.DEFAULT, semaphoreName, nrPermits, 10, strict);
+    this(dataSource, SemaphoreTablesDesc.DEFAULT, semaphoreName, nrPermits,
+            Integer.getInteger("spf4j.jdbc.semaphore.jdbcTimeoutSeconds", 10), strict);
   }
 
   public JdbcSemaphore(final DataSource dataSource, final SemaphoreTablesDesc semTableDesc,
@@ -239,7 +240,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
             + " - ?, " + lastModifiedAtColumn + " = " + currentTimeMillisFunc + " WHERE "
             + ownerColumn + " = ? AND " + semaphoreNameColumn + " = ? and " + ownerPermitsColumn + " >= ?";
 
-    this.availablePermitsSql = "SELECT " + availablePermitsColumn + ',' + totalPermitsColumn
+    this.permitsSql = "SELECT " + availablePermitsColumn + ',' + totalPermitsColumn
             + " FROM " + semaphoreTableName
             + " WHERE " + semaphoreNameColumn + " = ?";
 
@@ -307,7 +308,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   private void createLockRowIfNotPresent(final boolean strictReservations, final int nrPermits)
           throws SQLException, InterruptedException {
     jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
-    try (PreparedStatement stmt = conn.prepareStatement(availablePermitsSql)) {
+    try (PreparedStatement stmt = conn.prepareStatement(permitsSql)) {
         stmt.setNString(1, semName);
         stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
         try (ResultSet rs = stmt.executeQuery()) {
@@ -529,7 +530,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   @JmxExport(description = "Get the available semaphore permits")
   public int availablePermits() throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
-      try (PreparedStatement stmt = conn.prepareStatement(availablePermitsSql)) {
+      try (PreparedStatement stmt = conn.prepareStatement(permitsSql)) {
         stmt.setNString(1, semName);
         stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
         try (ResultSet rs = stmt.executeQuery()) {

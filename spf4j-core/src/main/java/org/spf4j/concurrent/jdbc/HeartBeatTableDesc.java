@@ -19,6 +19,8 @@
 package org.spf4j.concurrent.jdbc;
 
 import java.io.Serializable;
+import java.util.Objects;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.jdbc.DbType;
 import org.spf4j.jdbc.JdbcTemplate;
 
@@ -37,6 +39,7 @@ import org.spf4j.jdbc.JdbcTemplate;
  * INTERVAL_MILLIS - the delay between heartbeats.
  * LAST_HEARTBEAT_INSTANT_MILLIS - the millis since epoch when the last heartbeat happened.
  */
+@ParametersAreNonnullByDefault
 public final class HeartBeatTableDesc implements Serializable {
 
   private static final long serialVersionUID = 1L;
@@ -98,6 +101,41 @@ public final class HeartBeatTableDesc implements Serializable {
   public HeartBeatTableDesc withDbType(final DbType pdbType) {
     return new HeartBeatTableDesc(tableName, ownerColumn, intervalColumn, lastHeartbeatColumn, pdbType);
   }
+
+  @Override
+  public int hashCode() {
+    return tableName.hashCode();
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    final HeartBeatTableDesc other = (HeartBeatTableDesc) obj;
+    if (!Objects.equals(this.tableName, other.tableName)) {
+      return false;
+    }
+    if (!Objects.equals(this.ownerColumn, other.ownerColumn)) {
+      return false;
+    }
+    if (!Objects.equals(this.intervalColumn, other.intervalColumn)) {
+      return false;
+    }
+    if (!Objects.equals(this.lastHeartbeatColumn, other.lastHeartbeatColumn)) {
+      return false;
+    }
+    return this.dbType == other.dbType;
+  }
+
+
+
 
   @Override
   public String toString() {

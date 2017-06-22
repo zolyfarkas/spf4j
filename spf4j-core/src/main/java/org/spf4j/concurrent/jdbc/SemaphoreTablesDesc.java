@@ -19,12 +19,16 @@
 package org.spf4j.concurrent.jdbc;
 
 import java.io.Serializable;
+import java.util.Objects;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.jdbc.DbType;
 import org.spf4j.jdbc.JdbcTemplate;
 /**
  *
  * @author zoly
  */
+@ParametersAreNonnullByDefault
 public final class SemaphoreTablesDesc implements Serializable {
 
   private static final long serialVersionUID = 1L;
@@ -41,6 +45,7 @@ public final class SemaphoreTablesDesc implements Serializable {
           System.getProperty("spf4j.jdbc.semaphore.sql.permitsColumn", "PERMITS"),
           HeartBeatTableDesc.DEFAULT);
 
+  @Nonnull
   private final String semaphoreTableName;
   private final String semNameColumn;
   private final String availablePermitsColumn;
@@ -124,6 +129,58 @@ public final class SemaphoreTablesDesc implements Serializable {
             totalPermitsColumn, lastModifiedByColumn, lastModifiedAtColumn, permitsByOwnerTableName,
             ownerColumn, ownerPermitsColumn, heartBeatTableDesc.withDbType(dbType));
   }
+
+  @Override
+  public int hashCode() {
+    return this.semaphoreTableName.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    final SemaphoreTablesDesc other = (SemaphoreTablesDesc) obj;
+    if (!Objects.equals(this.semaphoreTableName, other.semaphoreTableName)) {
+      return false;
+    }
+    if (!Objects.equals(this.semNameColumn, other.semNameColumn)) {
+      return false;
+    }
+    if (!Objects.equals(this.availablePermitsColumn, other.availablePermitsColumn)) {
+      return false;
+    }
+    if (!Objects.equals(this.totalPermitsColumn, other.totalPermitsColumn)) {
+      return false;
+    }
+    if (!Objects.equals(this.lastModifiedByColumn, other.lastModifiedByColumn)) {
+      return false;
+    }
+    if (!Objects.equals(this.lastModifiedAtColumn, other.lastModifiedAtColumn)) {
+      return false;
+    }
+    if (!Objects.equals(this.permitsByOwnerTableName, other.permitsByOwnerTableName)) {
+      return false;
+    }
+    if (!Objects.equals(this.ownerColumn, other.ownerColumn)) {
+      return false;
+    }
+    if (!Objects.equals(this.ownerPermitsColumn, other.ownerPermitsColumn)) {
+      return false;
+    }
+    if (!Objects.equals(this.heartBeatTableDesc, other.heartBeatTableDesc)) {
+      return false;
+    }
+    return true;
+  }
+
+
 
   @Override
   public String toString() {
