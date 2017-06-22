@@ -23,7 +23,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import static org.spf4j.zel.operators.Operator.MATH_CONTEXT;
 
-@SuppressFBWarnings({ "NS_NON_SHORT_CIRCUIT", "SIC_INNER_SHOULD_BE_STATIC_ANON" })
+@SuppressFBWarnings({ "SIC_INNER_SHOULD_BE_STATIC_ANON" })
 public final class IntegerOperators {
 
     private IntegerOperators() {
@@ -56,7 +56,7 @@ public final class IntegerOperators {
                     long aa = a;
                     long bb = (Long) b;
                     long result = aa + bb;
-                    if ((aa ^ bb) < 0 | (aa ^ result) >= 0) {
+                    if ((aa ^ bb) < 0 || (aa ^ result) >= 0) {
                         return result;
                     } else {
                         BigInteger rr = BigInteger.valueOf(bb);
@@ -118,7 +118,7 @@ public final class IntegerOperators {
                     long aa = a;
                     long bb = (Long) b;
                     long result = aa - bb;
-                    if ((aa ^ bb) < 0 | (aa ^ result) >= 0) {
+                    if ((aa ^ bb) < 0 || (aa ^ result) >= 0) {
                         return result;
                     } else {
                         BigInteger rr = BigInteger.valueOf(bb);
@@ -188,7 +188,7 @@ public final class IntegerOperators {
                     if (!(leadingZeros >= Long.SIZE)) {
                         return BigInteger.valueOf(aa).multiply(BigInteger.valueOf(bb));
                     }
-                    if (!(aa >= 0 | bb != Long.MIN_VALUE)) {
+                    if (!(aa >= 0 || bb != Long.MIN_VALUE)) {
                         return BigInteger.valueOf(aa).multiply(BigInteger.valueOf(bb));
                     }
                     long tentativeResult = aa * bb;

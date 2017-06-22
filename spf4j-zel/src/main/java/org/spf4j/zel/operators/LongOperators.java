@@ -1,7 +1,19 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package org.spf4j.zel.operators;
 
@@ -11,7 +23,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import static org.spf4j.zel.operators.Operator.MATH_CONTEXT;
 
-@SuppressFBWarnings({"NS_DANGEROUS_NON_SHORT_CIRCUIT", "NS_NON_SHORT_CIRCUIT", "SIC_INNER_SHOULD_BE_STATIC_ANON" })
+@SuppressFBWarnings({"SIC_INNER_SHOULD_BE_STATIC_ANON" })
 public final class LongOperators {
 
     private LongOperators() {
@@ -28,7 +40,7 @@ public final class LongOperators {
                     long a = pa;
                     long bb = b.longValue();
                     long result = a + bb;
-                    if ((a ^ bb) < 0 | (a ^ result) >= 0) {
+                    if ((a ^ bb) < 0 || (a ^ result) >= 0) {
                         return result;
                     } else {
                         return BigInteger.valueOf(a).add(BigInteger.valueOf(bb));
@@ -77,7 +89,7 @@ public final class LongOperators {
                     long a = pa;
                     long bb = b.longValue();
                     long result = a - bb;
-                    if ((a ^ bb) < 0 | (a ^ result) >= 0) {
+                    if ((a ^ bb) < 0 || (a ^ result) >= 0) {
                         return result;
                     } else {
                         return BigInteger.valueOf(a).subtract(BigInteger.valueOf(bb));
@@ -134,7 +146,7 @@ public final class LongOperators {
                     if (leadingZeros < Long.SIZE) {
                         return BigInteger.valueOf(a).multiply(BigInteger.valueOf(bb));
                     }
-                    if (!(a >= 0 | bb != Long.MIN_VALUE)) {
+                    if (!(a >= 0 || bb != Long.MIN_VALUE)) {
                         return BigInteger.valueOf(a).multiply(BigInteger.valueOf(bb));
                     }
                     long result = a * bb;
