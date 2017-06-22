@@ -46,29 +46,31 @@ public final class SntpClient {
   // 70 years plus 17 leap days
   private static final long OFFSET_1900_TO_1970 = ((365L * 70L) + 17L) * 24L * 60L * 60L;
 
-  private static final int MAX_SOCKET_TIMEOUT = 1000; // 5 seconds
+  private static final int DEFAULT_SOCKET_TIMEOUT_MILLIS =
+          Integer.getInteger("spf4j.sntpClient.defaultSocketTimeoutMillis", 5000); // 5 seconds
 
   private SntpClient() {
   }
 
   public static Timing requestTimeHA(final int timeoutMillis, final String... hosts)
           throws IOException, InterruptedException, TimeoutException {
-    return requestTimeHA(timeoutMillis, MAX_SOCKET_TIMEOUT, hosts);
+    return requestTimeHA(timeoutMillis, DEFAULT_SOCKET_TIMEOUT_MILLIS, hosts);
   }
 
   /**
    * Request NTP time with retries.
    *
-   * @param hosts - NTP server hosts.
-   * @param timeoutMillis - Max time to attempt to get NTP time
-   * @param ntpResponseTimeout - the time after which if we do not receive a response from the NTP server, we consider
-   * the call failed (and will retry until timeoutMillis.
+   * @param hosts NTP server hosts.
+   * @param timeoutMillis Max time to attempt to get NTP time
+   * @param ntpResponseTimeoutMillis the time after which if we do not receive a response from the NTP server,
+   * we consider the call failed (and will retry until timeoutMillis.
    * @return Ntp timing info.
    * @throws IOException - thrown in case of time server connectivity issues.
    * @throws InterruptedException - thrown if exec interrupted.
    */
   @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION") //findbugs nonsense
-  public static Timing requestTimeHA(final int timeoutMillis, final int ntpResponseTimeout, final String... hosts)
+  public static Timing requestTimeHA(final int timeoutMillis,
+          final int ntpResponseTimeoutMillis, final String... hosts)
           throws IOException, InterruptedException, TimeoutException {
     return Callables.executeWithRetry(new Callables.TimeoutCallable<Timing, IOException>(timeoutMillis) {
 
@@ -79,7 +81,7 @@ public final class SntpClient {
       public Timing call(final long deadline) throws IOException {
         int hostIdx = Math.abs(i++) % hosts.length;
         return requestTime(hosts[hostIdx],
-                Math.min((int) (deadline - System.currentTimeMillis()), ntpResponseTimeout));
+                Math.min((int) (deadline - System.currentTimeMillis()), ntpResponseTimeoutMillis));
       }
     }, 3, 1000, IOException.class);
   }
