@@ -359,7 +359,7 @@ public final class ZelTest {
        Program p = Program.compile("" + Long.MAX_VALUE + " + " + 1);
        System.out.println(p);
        BigInteger result = (BigInteger) p.execute();
-       Assert.assertEquals(BigInteger.valueOf(Long.valueOf(Long.MAX_VALUE)).add(BigInteger.ONE),
+       Assert.assertEquals(BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE),
                result);
     }
 
@@ -368,7 +368,7 @@ public final class ZelTest {
        Program p = Program.compile("" + Long.MIN_VALUE + " - " + 1);
        System.out.println(p);
        BigInteger result = (BigInteger) p.execute();
-       Assert.assertEquals(BigInteger.valueOf(Long.valueOf(Long.MIN_VALUE)).subtract(BigInteger.ONE),
+       Assert.assertEquals(BigInteger.valueOf(Long.MIN_VALUE).subtract(BigInteger.ONE),
                result);
     }
 
@@ -378,7 +378,7 @@ public final class ZelTest {
        Program p = Program.compile("" + Long.MIN_VALUE + " - " + Long.MAX_VALUE);
        System.out.println(p);
        BigInteger result = (BigInteger) p.execute();
-       Assert.assertEquals(BigInteger.valueOf(Long.valueOf(Long.MIN_VALUE)).subtract(BigInteger.valueOf(Long.valueOf(Long.MAX_VALUE))),
+       Assert.assertEquals(BigInteger.valueOf(Long.MIN_VALUE).subtract(BigInteger.valueOf(Long.MAX_VALUE)),
                result);
     }
 
