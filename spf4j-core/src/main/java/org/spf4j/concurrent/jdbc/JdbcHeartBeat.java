@@ -202,6 +202,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
     lifecycleHooks.remove(hook);
   }
 
+
   private void createHeartbeatRow() throws InterruptedException, SQLException {
       jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
 

@@ -46,7 +46,7 @@ public final class JdbcLock implements Lock, AutoCloseable {
   @Override
   public boolean tryLock() {
     try {
-      return semaphore.tryAcquire(((long) jdbcTimeoutSeconds) * 4, TimeUnit.SECONDS);
+      return semaphore.tryAcquire(((long) jdbcTimeoutSeconds) * 2, TimeUnit.SECONDS);
     } catch (InterruptedException ex) {
       throw new LockRuntimeException(ex);
     }

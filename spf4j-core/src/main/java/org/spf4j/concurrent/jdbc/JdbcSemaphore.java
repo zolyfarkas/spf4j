@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
@@ -40,7 +41,6 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.HandlerNano;
-import org.spf4j.base.IntMath;
 import org.spf4j.base.MutableHolder;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.LockRuntimeException;
@@ -67,7 +67,7 @@ import org.spf4j.jmx.Registry;
  * @author zoly
  */
 @SuppressFBWarnings(value = {"NP_LOAD_OF_KNOWN_NULL_VALUE", "SQL_INJECTION_JDBC",
-  "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING"},
+  "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING", "PREDICTABLE_RANDOM"},
         justification = "Sql injection is not really possible since the parameterized values are"
                 + "  validated to be java ids")
 @Beta
@@ -110,8 +110,6 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   private final String insertPermitsByOwnerSql;
 
   private final int jdbcTimeoutSeconds;
-
-  private final IntMath.XorShift32 rnd;
 
   private final String semName;
 
@@ -170,7 +168,6 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     this.semName = INTERNER.intern(semaphoreName);
     this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;
     this.jdbc = new JdbcTemplate(dataSource);
-    this.rnd = new IntMath.XorShift32();
     this.isHealthy = true;
     this.ownedReservations = 0;
     this.failureHook = new JdbcHeartBeat.LifecycleHook() {
@@ -357,10 +354,10 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
-  public static int nanosToSeconds(final long nanos) {
+  public static int nanosToSeconds(final long nanos, final int maxTimeoutSeconds) {
     long seconds = TimeUnit.NANOSECONDS.toSeconds(nanos);
-    if (seconds > Integer.MAX_VALUE) {
-      return Integer.MAX_VALUE;
+    if (seconds > maxTimeoutSeconds) {
+      return maxTimeoutSeconds;
     } else {
       return (int) seconds;
     }
@@ -375,8 +372,20 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     if (nrPermits < 1) {
       throw new IllegalArgumentException("You should try to acquire something! not " + nrPermits);
     }
+    if (timeout <= 0) {
+      throw new IllegalArgumentException("Illegal timeout, please reasonable values, and not: " + timeout);
+    }
     synchronized (semName) {
-      long deadlineNanos = System.nanoTime() + unit.toNanos(timeout);
+      long toNanos = unit.toNanos(timeout);
+      long deadlineNanos;
+      if (toNanos < 0) {
+        deadlineNanos = Long.MAX_VALUE;
+      } else {
+        deadlineNanos = System.nanoTime() + toNanos;
+        if (deadlineNanos < 0) { //Overflow
+          deadlineNanos = Long.MAX_VALUE;
+        }
+      }
       boolean acquired = false;
       final MutableHolder<Boolean> beat = MutableHolder.of(Boolean.FALSE);
       do {
@@ -386,7 +395,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
             @Override
             public Boolean handle(final Connection conn, final long deadlineNanos) throws SQLException {
               try (PreparedStatement stmt = conn.prepareStatement(acquireSql)) {
-                stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
+                stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));
                 stmt.setInt(1, nrPermits);
                 stmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
                 stmt.setNString(3, semName);
@@ -398,7 +407,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
                     ostmt.setInt(1, nrPermits);
                     ostmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
                     ostmt.setNString(3, semName);
-                    ostmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
+                    ostmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));
                     int nrUpdated = ostmt.executeUpdate();
                     if (nrUpdated != 1) {
                       throw new IllegalStateException("Updated " + nrUpdated + " is incorrect for " + ostmt);
@@ -443,7 +452,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
           try {
             if (releaseDeadOwnerPermits(nrPermits) <= 0) { //wait of we did not find anything dead to release.
               long wtimeMilis = Math.min(TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime()),
-                      Math.abs(rnd.nextInt()) % acquirePollMillis);
+                      ThreadLocalRandom.current().nextInt(acquirePollMillis));
               if (wtimeMilis > 0) {
                 semName.wait(wtimeMilis);
               } else {
@@ -479,7 +488,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
               ostmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
               ostmt.setNString(3, semName);
               ostmt.setInt(4, nrReservations);
-              ostmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
+              ostmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));
               int nrUpdated = ostmt.executeUpdate();
               if (nrUpdated != 1) {
                 throw new IllegalStateException("Trying to release more than you own! " + ostmt);
@@ -508,7 +517,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   private void releaseReservations(final Connection conn, final long deadlineNanos, final int nrReservations)
           throws SQLException {
     try (PreparedStatement stmt = conn.prepareStatement(releaseSql)) {
-      stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
+      stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));
       stmt.setInt(1, nrReservations);
       stmt.setInt(2, nrReservations);
       stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
@@ -649,7 +658,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
       @Override
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(updatePermitsSql)) {
-          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
+          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));
           stmt.setInt(1, nrPermits);
           stmt.setInt(2, nrPermits);
           stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
@@ -670,7 +679,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
       @Override
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(reducePermitsSql)) {
-          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
+          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));
           stmt.setInt(1, nrPermits);
           stmt.setInt(2, nrPermits);
           stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
@@ -692,7 +701,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
       @Override
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(increasePermitsSql)) {
-          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime()));
+          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));
           stmt.setInt(1, nrPermits);
           stmt.setInt(2, nrPermits);
           stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);

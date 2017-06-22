@@ -19,6 +19,7 @@
 package org.spf4j.concurrent.jdbc;
 
 import java.io.Serializable;
+import org.spf4j.jdbc.DbType;
 import org.spf4j.jdbc.JdbcTemplate;
 /**
  *
@@ -53,26 +54,26 @@ public final class SemaphoreTablesDesc implements Serializable {
 
   public SemaphoreTablesDesc(final String semaphoreTableName, final String semNameColumn,
           final String availablePermitsColumn,
-          final String totalPermitsColumn, final String lastModifiedColumn,
-          final String lastModifiedAtColumn, final String reservationsByOwnerTableName,
+          final String totalPermitsColumn, final String lastModifiedByColumn,
+          final String lastModifiedAtColumn, final String permitsByOwnerTableName,
           final String ownerColumn, final String ownerPermitsColumn,
           final HeartBeatTableDesc heartBeatTableDesc) {
     JdbcTemplate.checkJdbcObjectName(semaphoreTableName);
     JdbcTemplate.checkJdbcObjectName(semNameColumn);
     JdbcTemplate.checkJdbcObjectName(availablePermitsColumn);
     JdbcTemplate.checkJdbcObjectName(totalPermitsColumn);
-    JdbcTemplate.checkJdbcObjectName(lastModifiedColumn);
+    JdbcTemplate.checkJdbcObjectName(lastModifiedByColumn);
     JdbcTemplate.checkJdbcObjectName(lastModifiedAtColumn);
-    JdbcTemplate.checkJdbcObjectName(reservationsByOwnerTableName);
+    JdbcTemplate.checkJdbcObjectName(permitsByOwnerTableName);
     JdbcTemplate.checkJdbcObjectName(ownerColumn);
     JdbcTemplate.checkJdbcObjectName(ownerPermitsColumn);
     this.semaphoreTableName = semaphoreTableName;
     this.semNameColumn = semNameColumn;
     this.availablePermitsColumn = availablePermitsColumn;
     this.totalPermitsColumn = totalPermitsColumn;
-    this.lastModifiedByColumn = lastModifiedColumn;
+    this.lastModifiedByColumn = lastModifiedByColumn;
     this.lastModifiedAtColumn = lastModifiedAtColumn;
-    this.permitsByOwnerTableName = reservationsByOwnerTableName;
+    this.permitsByOwnerTableName = permitsByOwnerTableName;
     this.ownerColumn = ownerColumn;
     this.ownerPermitsColumn = ownerPermitsColumn;
     this.heartBeatTableDesc = heartBeatTableDesc;
@@ -118,6 +119,11 @@ public final class SemaphoreTablesDesc implements Serializable {
     return heartBeatTableDesc;
   }
 
+  public SemaphoreTablesDesc withDbType(final DbType dbType) {
+    return new SemaphoreTablesDesc(semaphoreTableName, semNameColumn, availablePermitsColumn,
+            totalPermitsColumn, lastModifiedByColumn, lastModifiedAtColumn, permitsByOwnerTableName,
+            ownerColumn, ownerPermitsColumn, heartBeatTableDesc.withDbType(dbType));
+  }
 
   @Override
   public String toString() {

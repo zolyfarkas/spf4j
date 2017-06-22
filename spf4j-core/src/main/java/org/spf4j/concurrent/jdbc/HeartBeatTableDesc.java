@@ -95,6 +95,10 @@ public final class HeartBeatTableDesc implements Serializable {
     return dbType;
   }
 
+  public HeartBeatTableDesc withDbType(final DbType pdbType) {
+    return new HeartBeatTableDesc(tableName, ownerColumn, intervalColumn, lastHeartbeatColumn, pdbType);
+  }
+
   @Override
   public String toString() {
     return "HeartbeatTableDesc{" + "tableName=" + tableName + ", ownerColun=" + ownerColumn + ", intervalColumn="
