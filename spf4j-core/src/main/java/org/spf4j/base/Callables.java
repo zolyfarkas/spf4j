@@ -311,7 +311,7 @@ public final class Callables {
 
 
     public TimeoutCallable(final int timeoutMillis) {
-      mdeadline = System.currentTimeMillis() + timeoutMillis;
+      mdeadline = overflowSafeAdd(System.currentTimeMillis(), timeoutMillis);
     }
 
     TimeoutCallable(final long deadline) {
@@ -634,6 +634,21 @@ public final class Callables {
       }
 
     };
+  }
+
+  public static long overflowSafeAdd(final long currentTime, final long timeout) {
+    if (currentTime < 0) {
+      throw new IllegalArgumentException("Time must be positive, not " + currentTime);
+    }
+    if (timeout < 0) {
+      return currentTime;
+    }
+    long result = currentTime + timeout;
+    if ((currentTime ^ timeout) < 0 || (currentTime ^ result) >= 0) {
+      return result;
+    } else {
+      return Long.MAX_VALUE;
+    }
   }
 
 }

@@ -255,4 +255,11 @@ public final class CallablesTest {
 
   }
 
+  @Test
+  public void testOverflow() {
+    Assert.assertEquals(Long.MAX_VALUE, Callables.overflowSafeAdd(Long.MAX_VALUE, 1));
+    Assert.assertEquals(Long.MAX_VALUE, Callables.overflowSafeAdd(Long.MAX_VALUE, Long.MAX_VALUE));
+    Assert.assertEquals(3, Callables.overflowSafeAdd(1, 2));
+  }
+
 }
