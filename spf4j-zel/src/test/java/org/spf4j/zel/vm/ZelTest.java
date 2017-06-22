@@ -346,4 +346,42 @@ public final class ZelTest {
 
 
 
+    @Test
+    public void testType() throws CompileException, ExecutionException, InterruptedException {
+       Program p = Program.compile("" + Long.MAX_VALUE );
+       System.out.println(p);
+       Long result = (Long) p.execute();
+       Assert.assertEquals(Long.MAX_VALUE, result.longValue());
+    }
+
+    @Test
+    public void testOverflow() throws CompileException, ExecutionException, InterruptedException {
+       Program p = Program.compile("" + Long.MAX_VALUE + " + " + 1);
+       System.out.println(p);
+       BigInteger result = (BigInteger) p.execute();
+       Assert.assertEquals(BigInteger.valueOf(Long.valueOf(Long.MAX_VALUE)).add(BigInteger.ONE),
+               result);
+    }
+
+    @Test
+    public void testOverflow2() throws CompileException, ExecutionException, InterruptedException {
+       Program p = Program.compile("" + Long.MIN_VALUE + " - " + 1);
+       System.out.println(p);
+       BigInteger result = (BigInteger) p.execute();
+       Assert.assertEquals(BigInteger.valueOf(Long.valueOf(Long.MIN_VALUE)).subtract(BigInteger.ONE),
+               result);
+    }
+
+
+    @Test
+    public void testOverflow3() throws CompileException, ExecutionException, InterruptedException {
+       Program p = Program.compile("" + Long.MIN_VALUE + " - " + Long.MAX_VALUE);
+       System.out.println(p);
+       BigInteger result = (BigInteger) p.execute();
+       Assert.assertEquals(BigInteger.valueOf(Long.valueOf(Long.MIN_VALUE)).subtract(BigInteger.valueOf(Long.valueOf(Long.MAX_VALUE))),
+               result);
+    }
+
+
+
 }
