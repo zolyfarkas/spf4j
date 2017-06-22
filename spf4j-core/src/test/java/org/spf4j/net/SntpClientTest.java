@@ -2,6 +2,7 @@ package org.spf4j.net;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.joda.time.DateTime;
 import org.junit.Assert;
 //import org.junit.Ignore;
@@ -12,6 +13,7 @@ import org.junit.Test;
  * @author zoly
  */
 //@Ignore
+@NotThreadSafe
 public final class SntpClientTest {
 
   @Test
