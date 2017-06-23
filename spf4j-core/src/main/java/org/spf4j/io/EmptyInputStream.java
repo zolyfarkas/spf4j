@@ -23,13 +23,13 @@ import java.io.InputStream;
 
 public final class EmptyInputStream extends InputStream {
 
+    public static final InputStream EMPTY = new EmptyInputStream();
+
     private EmptyInputStream() { }
 
     @Override
     public int read() {
         return -1;
     }
-
-    public static final InputStream EMPTY = new EmptyInputStream();
 
 }
