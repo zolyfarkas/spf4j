@@ -136,7 +136,7 @@ public final class SemaphoreTablesDesc implements Serializable {
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
@@ -174,10 +174,7 @@ public final class SemaphoreTablesDesc implements Serializable {
     if (!Objects.equals(this.ownerPermitsColumn, other.ownerPermitsColumn)) {
       return false;
     }
-    if (!Objects.equals(this.heartBeatTableDesc, other.heartBeatTableDesc)) {
-      return false;
-    }
-    return true;
+    return Objects.equals(this.heartBeatTableDesc, other.heartBeatTableDesc);
   }
 
 
