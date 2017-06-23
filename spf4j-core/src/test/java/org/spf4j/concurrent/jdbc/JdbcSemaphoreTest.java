@@ -94,14 +94,14 @@ public class JdbcSemaphoreTest {
   }
 
 
-  @Test
+  @Test(expected = SQLException.class)
   public void testSingleMultipleInstance() throws SQLException, IOException, InterruptedException, TimeoutException {
 
     JdbcDataSource ds = new JdbcDataSource();
     ds.setURL("jdbc:h2:mem:test");
     ds.setUser("sa");
     ds.setPassword("sa");
-    try (Connection conn = ds.getConnection()) { // only to keep the schema arround in thsi section
+    try (Connection conn = ds.getConnection()) { // only to keep the schema arround in this section
       createSchemaObjects(ds);
       JdbcLock lock = new JdbcLock(ds, SemaphoreTablesDesc.DEFAULT, "testLock", 10);
       JdbcLock lock2 = new JdbcLock(ds, SemaphoreTablesDesc.DEFAULT, "testLock", 10);
