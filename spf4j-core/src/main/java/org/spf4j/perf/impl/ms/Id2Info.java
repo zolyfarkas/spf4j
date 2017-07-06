@@ -5,10 +5,10 @@ import gnu.trove.map.TLongObjectMap;
 import gnu.trove.map.TObjectLongMap;
 import gnu.trove.map.hash.TLongObjectHashMap;
 import gnu.trove.map.hash.TObjectLongHashMap;
+import javax.annotation.Nonnull;
 import org.spf4j.perf.MeasurementsInfo;
 
 /**
- *
  * @author zoly
  */
 public final class Id2Info {
@@ -19,7 +19,7 @@ public final class Id2Info {
 
     private Id2Info() { }
 
-    public static synchronized long getId(final MeasurementsInfo info) {
+    public static synchronized long getId(@Nonnull final MeasurementsInfo info) {
         long id = INFO2ID.get(info);
         if (id <= 0) {
             id = idSeq++;
@@ -29,8 +29,13 @@ public final class Id2Info {
         return id;
     }
 
+    @Nonnull
     public static synchronized MeasurementsInfo getInfo(final long id) {
-        return ID2INFO.get(id);
+        MeasurementsInfo result = ID2INFO.get(id);
+        if (result == null) {
+          throw new IllegalArgumentException("ID " + id + " not known");
+        }
+        return result;
     }
 
 }
