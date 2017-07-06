@@ -200,7 +200,7 @@ public final class RegistryTest {
                 "test", "Test", "doubleVal", 0.0);
             Assert.fail();
         } catch (InvalidAttributeValueException e) {
-            Throwables.writeTo(e, System.err, Throwables.Detail.STANDARD);
+            Throwables.writeTo(e, System.err, Throwables.PackageDetail.SHORT);
         }
 
     }
@@ -245,7 +245,7 @@ public final class RegistryTest {
                 "test", "Test", "doubleVal", 0.0);
             Assert.fail();
         } catch (InvalidAttributeValueException e) {
-          Throwables.writeTo(e, System.err, Throwables.Detail.NONE);
+          Throwables.writeTo(e, System.err, Throwables.PackageDetail.NONE);
         }
 
         testObj2.setStringVal("cucu");

@@ -168,7 +168,7 @@ public final class CallablesTest {
       }, 1, 10, IOException.class);
       Assert.fail();
     } catch (InterruptedException | IOException | TimeoutException ex) {
-      Throwables.writeTo(ex, System.err, Throwables.Detail.NONE);
+      Throwables.writeTo(ex, System.err, Throwables.PackageDetail.NONE);
     }
   }
 

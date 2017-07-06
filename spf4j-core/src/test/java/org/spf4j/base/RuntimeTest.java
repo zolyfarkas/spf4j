@@ -106,10 +106,10 @@ public final class RuntimeTest {
           canCancel.countDown();
           Runtime.jrun(RuntimeTest.TestError3.class, 10000);
         } catch (InterruptedException ex) {
-          Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
+          Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
           latch.countDown();
         } catch (Exception ex) {
-          Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
+          Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
         }
       }
     });
@@ -135,7 +135,7 @@ public final class RuntimeTest {
 
     public static void main(final String[] args) {
       Thread.setDefaultUncaughtExceptionHandler((final Thread t, final Throwable e) -> {
-        Throwables.writeTo(e, System.err, Throwables.Detail.STANDARD);
+        Throwables.writeTo(e, System.err, Throwables.PackageDetail.SHORT);
       });
       throw new RuntimeException();
     }
@@ -145,7 +145,7 @@ public final class RuntimeTest {
 
     public static void main(final String[] args) {
       Thread.setDefaultUncaughtExceptionHandler((final Thread t, final Throwable e) -> {
-        Throwables.writeTo(e, System.err, Throwables.Detail.STANDARD);
+        Throwables.writeTo(e, System.err, Throwables.PackageDetail.SHORT);
       });
       DefaultScheduler.INSTANCE.scheduleAtFixedRate(AbstractRunnable.NOP, 10, 10, TimeUnit.MILLISECONDS);
       throw new RuntimeException();

@@ -225,7 +225,7 @@ public final class Slf4jMessageFormatter {
           System.err.print(className);
           System.err.println(']');
         }
-        Throwables.writeTo(t, System.err, Throwables.Detail.STANDARD);
+        Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT);
         sbuf.append("[FAILED toString() for ");
         sbuf.append(className);
         sbuf.append(']');

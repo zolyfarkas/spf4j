@@ -56,7 +56,7 @@ public final class FastStackCollector extends AbstractStackCollector {
   private final Predicate<Thread> threadFilter;
 
   private Thread[] requestFor = new Thread[]{};
-  
+
   public FastStackCollector(final boolean collectForMain, final String... xtraIgnoredThreads) {
     this(createNameBasedFilter(collectForMain, xtraIgnoredThreads));
   }
@@ -134,7 +134,7 @@ public final class FastStackCollector extends AbstractStackCollector {
           Thread thread = threads[i];
           stream.println("Thread " + thread.getName());
           try {
-            Throwables.writeTo(stackTrace, stream, Throwables.Detail.SHORT_PACKAGE);
+            Throwables.writeTo(stackTrace, stream, Throwables.PackageDetail.SHORT, true);
           } catch (IOException ex) {
             throw new RuntimeException(ex);
           }

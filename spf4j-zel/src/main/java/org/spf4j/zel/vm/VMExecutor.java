@@ -58,7 +58,7 @@ public final class VMExecutor {
 
               @Override
               public void uncaughtException(final Thread t, final Throwable e) {
-                System.err.println(Throwables.toString(e, Throwables.Detail.STANDARD));
+                System.err.println(Throwables.toString(e, Throwables.PackageDetail.SHORT));
               }
             }, true);
 

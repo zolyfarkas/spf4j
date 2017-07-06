@@ -113,12 +113,18 @@ public final class ThrowablesTest {
       Assert.assertFalse(Throwables.containsNonRecoverable(t));
     }
 
-//
-//    @Test
-//    public void testDuplicate() {
-//      Exception e1  = new Exception(); Exception e2  = new Exception();
-//      //Assert.assertEquals(e1, e2);
-//    }
+
+    @Test
+    public void testAbbreviation() throws IOException {
+      StringBuilder sb = new StringBuilder();
+      Throwables.writeAbreviatedClassName("org.spf4j.Class", sb);
+      Assert.assertEquals("o.s.Class", sb.toString());
+
+      sb = new StringBuilder();
+      Throwables.writeAbreviatedClassName("Class", sb);
+      Assert.assertEquals("Class", sb.toString());
+
+    }
 
 
 }

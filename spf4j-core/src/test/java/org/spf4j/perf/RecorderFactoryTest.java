@@ -46,7 +46,7 @@ public final class RecorderFactoryTest {
     Thread.setDefaultUncaughtExceptionHandler((final Thread t, final Throwable e) -> {
       StringBuilder sb = new StringBuilder(128);
       try {
-        Throwables.writeTo(e, sb, Throwables.Detail.STANDARD);
+        Throwables.writeTo(e, sb, Throwables.PackageDetail.SHORT);
       } catch (IOException ex) {
         Assert.fail("Got Exception: " + ex);
       }

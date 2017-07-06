@@ -436,7 +436,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
               // logging in shutdownhooks is not reliable.
               System.err.println("WARN: Could not clean heartbeat record,"
                       + " this error can be ignored since it is a best effort attempt, detail:");
-              Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
+              Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
             }
           }
         });

@@ -22,7 +22,7 @@ public final class ExceptionsTest {
         p.execute();
         Assert.fail();
        } catch (ZExecutionException ex) {
-           Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
+           Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
        }
     }
 
@@ -34,7 +34,7 @@ public final class ExceptionsTest {
         p.execute();
         Assert.fail();
        } catch (ZExecutionException ex) {
-           Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
+           Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
        }
     }
 

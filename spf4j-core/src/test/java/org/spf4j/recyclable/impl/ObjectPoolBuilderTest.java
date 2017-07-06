@@ -150,7 +150,7 @@ public final class ObjectPoolBuilderTest {
             pool.dispose();
             Assert.fail();
         } catch (ObjectDisposeException ex) {
-            Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
+            Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
         } finally {
           ExpensiveTestObject.setFAILALL(false);
         }
@@ -168,7 +168,7 @@ public final class ObjectPoolBuilderTest {
         try {
           pool.dispose();
         } catch (ObjectDisposeException ex) {
-          Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
+          Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
         }
 
     }

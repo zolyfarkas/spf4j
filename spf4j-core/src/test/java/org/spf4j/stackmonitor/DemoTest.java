@@ -40,7 +40,7 @@ public final class DemoTest {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
-                Throwables.writeTo(e, System.err, Throwables.Detail.NONE);
+                Throwables.writeTo(e, System.err, Throwables.PackageDetail.NONE);
             }
         });
     }

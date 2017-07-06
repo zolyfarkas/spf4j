@@ -92,8 +92,26 @@ public final class Throwables {
     });
   }
 
-  private static final Detail DEFAULT_DETAIL
-          = Detail.valueOf(System.getProperty("spf4j.throwables.defaultStackTraceDetail", "SHORT_PACKAGE"));
+  private static final PackageDetail DEFAULT_DETAIL
+          = PackageDetail.valueOf(System.getProperty("spf4j.throwables.defaultStackTraceDetail", "SHORT"));
+
+  private static volatile Predicate<Throwable> nonRecoverableClassificationPredicate = new Predicate<Throwable>() {
+    @Override
+    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+    public boolean test(final Throwable t) {
+      if (t instanceof Error && !(t instanceof StackOverflowError)) {
+        return true;
+      }
+      if (t instanceof IOException) {
+        String message = t.getMessage();
+        if (message != null && message.contains("Too many open files")) {
+          return true;
+        }
+      }
+      return false;
+    }
+  };
+
 
   private Throwables() {
   }
@@ -306,9 +324,14 @@ public final class Throwables {
 
   }
 
-  public static void writeTo(final StackTraceElement element, final Appendable to, final Detail detail)
+  public static void writeTo(final StackTraceElement element, final Appendable to, final PackageDetail detail,
+          final boolean abbreviatedClassNames)
           throws IOException {
-    to.append(element.getClassName());
+    if (abbreviatedClassNames) {
+      writeAbreviatedClassName(element.getClassName(), to);
+    } else {
+      to.append(element.getClassName());
+    }
     to.append('.');
     to.append(element.getMethodName());
     final String fileName = element.getFileName();
@@ -323,7 +346,7 @@ public final class Throwables {
     } else {
       to.append("(Unknown Source)");
     }
-    if (detail == Detail.NONE) {
+    if (detail == PackageDetail.NONE) {
       return;
     }
     PackageInfo pInfo = Reflections.getPackageInfo(element.getClassName());
@@ -332,7 +355,7 @@ public final class Throwables {
       String version = pInfo.getVersion();
       to.append('[');
       if (jarSourceUrl != null) {
-        if (detail == Detail.SHORT_PACKAGE || detail == Detail.STANDARD) {
+        if (detail == PackageDetail.SHORT) {
           String url = jarSourceUrl.toString();
           int lastIndexOf = url.lastIndexOf('/');
           if (lastIndexOf >= 0) {
@@ -354,23 +377,35 @@ public final class Throwables {
     }
   }
 
-  public enum Detail {
+  /**
+   * enum describing the PackageDetail level to be logged in the stack trace.
+   */
+  public enum PackageDetail {
+    /**
+     * No jar info or version info.
+     */
     NONE,
-    STANDARD, // equivalent with SHORT_PACKAGE
-    SHORT_PACKAGE,
-    LONG_PACKAGE
+    /**
+     * jar file name + manifest version.
+     */
+    SHORT,
+    /**
+     * complete jar path + manifest version.
+     */
+    LONG
+
   }
 
   public static String toString(final Throwable t) {
     return toString(t, DEFAULT_DETAIL);
   }
 
-  public static String toString(final Throwable t, final Detail detail) {
+  public static String toString(final Throwable t, final PackageDetail detail) {
     StringBuilder sb = toStringBuilder(t, detail);
     return sb.toString();
   }
 
-  public static StringBuilder toStringBuilder(final Throwable t, final Detail detail) {
+  public static StringBuilder toStringBuilder(final Throwable t, final PackageDetail detail) {
     StringBuilder sb = new StringBuilder(1024);
     try {
       writeTo(t, sb, detail);
@@ -383,7 +418,7 @@ public final class Throwables {
   @SuppressFBWarnings({"OCP_OVERLY_CONCRETE_PARAMETER", "NOS_NON_OWNED_SYNCHRONIZATION"})
   // I don't want this to throw a checked ex though... + I really want the coarse sync!
   public static void writeTo(@Nonnull final Throwable t, @Nonnull final PrintStream to,
-          @Nonnull final Detail detail) {
+          @Nonnull final PackageDetail detail) {
     try {
       synchronized (to) {
         writeTo(t, (Appendable) to, detail);
@@ -393,7 +428,12 @@ public final class Throwables {
     }
   }
 
-  public static void writeTo(final Throwable t, final Appendable to, final Detail detail) throws IOException {
+  public static void writeTo(final Throwable t, final Appendable to, final PackageDetail detail) throws IOException {
+    writeTo(t, to, detail, true);
+  }
+
+  public static void writeTo(final Throwable t, final Appendable to, final PackageDetail detail,
+          final boolean abbreviatedClassNames) throws IOException {
 
     Set<Throwable> dejaVu = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
     dejaVu.add(t);
@@ -402,18 +442,18 @@ public final class Throwables {
     to.append('\n');
     StackTraceElement[] trace = t.getStackTrace();
 
-    writeTo(trace, to, detail);
+    writeTo(trace, to, detail, abbreviatedClassNames);
 
     // Print suppressed exceptions, if any
     for (Throwable se : getSuppressed(t)) {
-      printEnclosedStackTrace(se, to, trace, SUPPRESSED_CAPTION, "\t", dejaVu, detail);
+      printEnclosedStackTrace(se, to, trace, SUPPRESSED_CAPTION, "\t", dejaVu, detail, abbreviatedClassNames);
     }
 
     Throwable ourCause = t.getCause();
 
     // Print cause, if any
     if (ourCause != null) {
-      printEnclosedStackTrace(ourCause, to, trace, CAUSE_CAPTION, "", dejaVu, detail);
+      printEnclosedStackTrace(ourCause, to, trace, CAUSE_CAPTION, "", dejaVu, detail, abbreviatedClassNames);
     }
 
   }
@@ -427,11 +467,12 @@ public final class Throwables {
     }
   }
 
-  public static void writeTo(final StackTraceElement[] trace, final Appendable to, final Detail detail)
+  public static void writeTo(final StackTraceElement[] trace, final Appendable to, final PackageDetail detail,
+          final boolean abbreviatedClassNames)
           throws IOException {
     for (StackTraceElement traceElement : trace) {
       to.append("\tat ");
-      writeTo(traceElement, to, detail);
+      writeTo(traceElement, to, detail, abbreviatedClassNames);
       to.append('\n');
     }
   }
@@ -451,7 +492,8 @@ public final class Throwables {
           final String caption,
           final String prefix,
           final Set<Throwable> dejaVu,
-          final Detail detail) throws IOException {
+          final PackageDetail detail,
+          final boolean abbreviatedClassNames) throws IOException {
     if (dejaVu.contains(t)) {
       s.append("\t[CIRCULAR REFERENCE:");
       toString(s, t);
@@ -468,7 +510,7 @@ public final class Throwables {
       s.append('\n');
       for (int i = 0; i < m; i++) {
         s.append(prefix).append("\tat ");
-        writeTo(trace[i], s, detail);
+        writeTo(trace[i], s, detail, abbreviatedClassNames);
         s.append('\n');
       }
       if (framesInCommon != 0) {
@@ -478,23 +520,23 @@ public final class Throwables {
 
       // Print suppressed exceptions, if any
       for (Throwable se : getSuppressed(t)) {
-        printEnclosedStackTrace(se, s, trace, SUPPRESSED_CAPTION, prefix + '\t', dejaVu, detail);
+        printEnclosedStackTrace(se, s, trace, SUPPRESSED_CAPTION, prefix + '\t', dejaVu, detail, abbreviatedClassNames);
       }
 
       // Print cause, if any
       Throwable ourCause = t.getCause();
       if (ourCause != null) {
-        printEnclosedStackTrace(ourCause, s, trace, CAUSE_CAPTION, prefix, dejaVu, detail);
+        printEnclosedStackTrace(ourCause, s, trace, CAUSE_CAPTION, prefix, dejaVu, detail, abbreviatedClassNames);
       }
     }
   }
 
   public static boolean isNonRecoverable(@Nonnull final Throwable t) {
-    return nrPredicate.test(t);
+    return nonRecoverableClassificationPredicate.test(t);
   }
 
   public static boolean containsNonRecoverable(@Nonnull final Throwable t) {
-    return contains(t, nrPredicate);
+    return contains(t, nonRecoverableClassificationPredicate);
   }
 
   /**
@@ -578,28 +620,30 @@ public final class Throwables {
 
 
   public static Predicate<Throwable> getNonRecoverablePredicate() {
-    return nrPredicate;
+    return nonRecoverableClassificationPredicate;
   }
 
   public static void setNonRecoverablePredicate(final Predicate<Throwable> predicate) {
-    Throwables.nrPredicate = predicate;
+    Throwables.nonRecoverableClassificationPredicate = predicate;
   }
 
-  private static volatile Predicate<Throwable> nrPredicate = new Predicate<Throwable>() {
-    @Override
-    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
-    public boolean test(final Throwable t) {
-      if (t instanceof Error && !(t instanceof StackOverflowError)) {
-        return true;
-      }
-      if (t instanceof IOException) {
-        String message = t.getMessage();
-        if (message != null && message.contains("Too many open files")) {
-          return true;
-        }
-      }
-      return false;
+  public static void writeAbreviatedClassName(final String className, final Appendable writeTo) throws IOException {
+    int ldIdx = className.lastIndexOf('.');
+    if (ldIdx < 0) {
+      writeTo.append(className);
+      return;
     }
-  };
+    boolean isPreviousDot = true;
+    for (int i = 0; i < ldIdx; i++) {
+      char c = className.charAt(i);
+      boolean isCurrentCharDot = c == '.';
+      if (isPreviousDot || isCurrentCharDot) {
+        writeTo.append(c);
+      }
+      isPreviousDot = isCurrentCharDot;
+    }
+    writeTo.append(className, ldIdx, className.length());
+  }
+
 
 }

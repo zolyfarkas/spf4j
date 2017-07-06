@@ -64,7 +64,7 @@ public final class NetworkMonitorAspectTest {
                             out.println(line);
                         }
                     } catch (IOException e) {
-                        Throwables.writeTo(e, System.err, Throwables.Detail.STANDARD);
+                        Throwables.writeTo(e, System.err, Throwables.PackageDetail.SHORT);
                     }
                 }
             }

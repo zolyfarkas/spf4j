@@ -72,7 +72,7 @@ public class LifoThreadPoolExecutorTestS {
                 try {
                     Thread.sleep(1);
                 } catch (InterruptedException ex) {
-                    Throwables.writeTo(ex, System.err, Throwables.Detail.STANDARD);
+                    Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
                 }
             }
         };

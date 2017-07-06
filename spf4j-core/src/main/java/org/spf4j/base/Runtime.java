@@ -215,7 +215,7 @@ public final class Runtime {
   static {
     // priming certain functionality to make sure it works when we need it (classes are already loaded).
     try (PrintStream stream = new PrintStream(new ByteArrayBuilder(), false, "UTF-8")) {
-      Throwables.writeTo(new RuntimeException("priming"), stream, Throwables.Detail.NONE);
+      Throwables.writeTo(new RuntimeException("priming"), stream, Throwables.PackageDetail.NONE);
     } catch (UnsupportedEncodingException ex) {
       throw new ExceptionInInitializerError(ex);
     }
@@ -253,8 +253,8 @@ public final class Runtime {
   public static void goDownWithError(@Nullable final Throwable t, final int exitCode) {
     try {
       if (t != null) {
-        Throwables.writeTo(t, System.err, Throwables.Detail.NONE); //High probability attempt to log first
-        Throwables.writeTo(t, System.err, Throwables.Detail.STANDARD); //getting more curageous :-)
+        Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE); //High probability attempt to log first
+        Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT); //getting more curageous :-)
         Lazy.LOGGER.error("Error, going down with exit code {}", exitCode, t); //Now we are pushing it...
       } else {
         Lazy.LOGGER.error("Error, going down with exit code {}", exitCode);
