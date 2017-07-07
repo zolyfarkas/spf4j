@@ -5,19 +5,21 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author zoly
  */
+@ParametersAreNonnullByDefault
 public final class Version implements Comparable<Version> {
 
     private final Comparable[] components;
 
     private final String image;
 
-    public Version(final String version) {
-        this.image = version;
+    public Version(final CharSequence version) {
+        this.image = version.toString();
         List<Comparable<?>> comps = new ArrayList<>(4);
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < version.length(); i++) {
