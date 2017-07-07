@@ -1,6 +1,7 @@
 package org.spf4j.base;
 
 import com.google.common.primitives.Ints;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,11 +11,11 @@ import java.util.List;
  * @author zoly
  */
 public final class Version implements Comparable<Version> {
-    
+
     private final Comparable[] components;
-    
+
     private final String image;
-    
+
     public Version(final String version) {
         this.image = version;
         List<Comparable<?>> comps = new ArrayList<>(4);
@@ -94,10 +95,32 @@ public final class Version implements Comparable<Version> {
         return components.clone();
     }
 
-    
+    public Comparable getComponent(final int pos) {
+      return components[pos];
+    }
+
+    @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
+    public int getMajor() {
+      return (int) components[0];
+    }
+
+    @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
+    public int getMinor() {
+      return (int) components[1];
+    }
+
+    @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
+    public int getPatch() {
+      return (int) components[2];
+    }
+
+    public int getNrComponents() {
+      return components.length;
+    }
+
     @Override
     public String toString() {
         return "Version{" + "components=" + Arrays.toString(components) + '}';
     }
- 
+
 }

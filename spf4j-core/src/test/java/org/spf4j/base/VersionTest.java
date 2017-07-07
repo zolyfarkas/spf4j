@@ -37,5 +37,12 @@ public class VersionTest {
         Assert.assertTrue(version1.compareTo(version2) > 0);
     }
 
+    @Test
+    public void testVersion4() {
+        Version version = new Version(org.spf4j.base.Runtime.JAVA_VERSION);
+        Assert.assertEquals(1, version.getMajor());
+        Assert.assertEquals(8, version.getMinor());
+    }
+
 
 }
