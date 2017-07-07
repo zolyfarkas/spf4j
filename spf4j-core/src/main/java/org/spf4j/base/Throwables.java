@@ -92,8 +92,13 @@ public final class Throwables {
     });
   }
 
-  private static final PackageDetail DEFAULT_DETAIL
-          = PackageDetail.valueOf(System.getProperty("spf4j.throwables.defaultStackTraceDetail", "SHORT"));
+  private static final PackageDetail DEFAULT_PACKAGE_DETAIL
+          = PackageDetail.valueOf(System.getProperty("spf4j.throwables.defaultStackTracePackageDetail", "SHORT"));
+
+
+  private static final boolean DEFAULT_TRACE_ELEMENT_ABBREVIATION
+          = Boolean.parseBoolean(System.getProperty("spf4j.throwables.defaultStackTraceAbbreviation", "true"));
+
 
   private static volatile Predicate<Throwable> nonRecoverableClassificationPredicate = new Predicate<Throwable>() {
     @Override
@@ -324,17 +329,29 @@ public final class Throwables {
 
   }
 
-  public static void writeTo(final StackTraceElement element, final Appendable to, final PackageDetail detail,
-          final boolean abbreviatedClassNames)
+  public static void writeTo(final StackTraceElement element, @Nullable final StackTraceElement previous,
+          final Appendable to, final PackageDetail detail,
+          final boolean abbreviatedTraceElement)
           throws IOException {
-    if (abbreviatedClassNames) {
-      writeAbreviatedClassName(element.getClassName(), to);
+    String currClassName = element.getClassName();
+    String prevClassName = previous == null ? null : previous.getClassName();
+    if (abbreviatedTraceElement) {
+      if (currClassName.equals(prevClassName)) {
+        to.append('^');
+      } else {
+        writeAbreviatedClassName(currClassName, to);
+      }
     } else {
-      to.append(element.getClassName());
+      to.append(currClassName);
     }
     to.append('.');
     to.append(element.getMethodName());
-    final String fileName = element.getFileName();
+    String currFileName = element.getFileName();
+    String fileName = currFileName;
+    if (abbreviatedTraceElement && java.util.Objects.equals(currFileName,
+            previous == null ? null : previous.getFileName())) {
+      fileName = "^";
+    }
     final int lineNumber = element.getLineNumber();
     if (element.isNativeMethod()) {
       to.append("(Native Method)");
@@ -349,7 +366,15 @@ public final class Throwables {
     if (detail == PackageDetail.NONE) {
       return;
     }
-    PackageInfo pInfo = Reflections.getPackageInfo(element.getClassName());
+    if (abbreviatedTraceElement && currClassName.equals(prevClassName)) {
+      to.append("[^]");
+      return;
+    }
+    PackageInfo pInfo = Reflections.getPackageInfo(currClassName);
+    if (abbreviatedTraceElement && prevClassName != null && pInfo.equals(Reflections.getPackageInfo(prevClassName))) {
+      to.append("[^]");
+      return;
+    }
     if (pInfo.hasInfo()) {
       URL jarSourceUrl = pInfo.getUrl();
       String version = pInfo.getVersion();
@@ -397,31 +422,45 @@ public final class Throwables {
   }
 
   public static String toString(final Throwable t) {
-    return toString(t, DEFAULT_DETAIL);
+    return toString(t, DEFAULT_PACKAGE_DETAIL);
   }
 
   public static String toString(final Throwable t, final PackageDetail detail) {
-    StringBuilder sb = toStringBuilder(t, detail);
+    return toString(t, detail, DEFAULT_TRACE_ELEMENT_ABBREVIATION);
+  }
+
+  public static String toString(final Throwable t, final PackageDetail detail, final boolean abbreviatedTraceElement) {
+    StringBuilder sb = toStringBuilder(t, detail, abbreviatedTraceElement);
     return sb.toString();
   }
 
   public static StringBuilder toStringBuilder(final Throwable t, final PackageDetail detail) {
+    return toStringBuilder(t, detail, DEFAULT_TRACE_ELEMENT_ABBREVIATION);
+  }
+
+  public static StringBuilder toStringBuilder(final Throwable t, final PackageDetail detail,
+          final boolean abbreviatedTraceElement) {
     StringBuilder sb = new StringBuilder(1024);
     try {
-      writeTo(t, sb, detail);
+      writeTo(t, sb, detail, abbreviatedTraceElement);
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
     return sb;
   }
 
+  public static void writeTo(@Nonnull final Throwable t, @Nonnull final PrintStream to,
+          @Nonnull final PackageDetail detail) {
+    writeTo(t, to, detail, DEFAULT_TRACE_ELEMENT_ABBREVIATION);
+  }
+
   @SuppressFBWarnings({"OCP_OVERLY_CONCRETE_PARAMETER", "NOS_NON_OWNED_SYNCHRONIZATION"})
   // I don't want this to throw a checked ex though... + I really want the coarse sync!
   public static void writeTo(@Nonnull final Throwable t, @Nonnull final PrintStream to,
-          @Nonnull final PackageDetail detail) {
+          @Nonnull final PackageDetail detail, final boolean abbreviatedTraceElement) {
     try {
       synchronized (to) {
-        writeTo(t, (Appendable) to, detail);
+        writeTo(t, (Appendable) to, detail, abbreviatedTraceElement);
       }
     } catch (IOException ex) {
       throw new RuntimeException(ex);
@@ -429,37 +468,36 @@ public final class Throwables {
   }
 
   public static void writeTo(final Throwable t, final Appendable to, final PackageDetail detail) throws IOException {
-    writeTo(t, to, detail, true);
+    writeTo(t, to, detail, DEFAULT_TRACE_ELEMENT_ABBREVIATION);
   }
 
   public static void writeTo(final Throwable t, final Appendable to, final PackageDetail detail,
-          final boolean abbreviatedClassNames) throws IOException {
+          final boolean abbreviatedTraceElement) throws IOException {
 
     Set<Throwable> dejaVu = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
     dejaVu.add(t);
 
-    toString(to, t);
+    writeMessageString(to, t);
     to.append('\n');
     StackTraceElement[] trace = t.getStackTrace();
 
-    writeTo(trace, to, detail, abbreviatedClassNames);
+    writeTo(trace, to, detail, abbreviatedTraceElement);
 
     // Print suppressed exceptions, if any
     for (Throwable se : getSuppressed(t)) {
-      printEnclosedStackTrace(se, to, trace, SUPPRESSED_CAPTION, "\t", dejaVu, detail, abbreviatedClassNames);
+      printEnclosedStackTrace(se, to, trace, SUPPRESSED_CAPTION, "\t", dejaVu, detail, abbreviatedTraceElement);
     }
 
     Throwable ourCause = t.getCause();
 
     // Print cause, if any
     if (ourCause != null) {
-      printEnclosedStackTrace(ourCause, to, trace, CAUSE_CAPTION, "", dejaVu, detail, abbreviatedClassNames);
+      printEnclosedStackTrace(ourCause, to, trace, CAUSE_CAPTION, "", dejaVu, detail, abbreviatedTraceElement);
     }
 
   }
 
-  public static void toString(final Appendable to, final Throwable t) throws IOException {
-    // Print our stack trace
+  public static void writeMessageString(final Appendable to, final Throwable t) throws IOException {
     to.append(t.getClass().getName());
     String message = t.getMessage();
     if (message != null) {
@@ -468,12 +506,15 @@ public final class Throwables {
   }
 
   public static void writeTo(final StackTraceElement[] trace, final Appendable to, final PackageDetail detail,
-          final boolean abbreviatedClassNames)
+          final boolean abbreviatedTraceElement)
           throws IOException {
+
+    StackTraceElement prevElem = null;
     for (StackTraceElement traceElement : trace) {
       to.append("\tat ");
-      writeTo(traceElement, to, detail, abbreviatedClassNames);
+      writeTo(traceElement, prevElem, to, detail, abbreviatedTraceElement);
       to.append('\n');
+      prevElem = traceElement;
     }
   }
 
@@ -493,10 +534,10 @@ public final class Throwables {
           final String prefix,
           final Set<Throwable> dejaVu,
           final PackageDetail detail,
-          final boolean abbreviatedClassNames) throws IOException {
+          final boolean abbreviatedTraceElement) throws IOException {
     if (dejaVu.contains(t)) {
       s.append("\t[CIRCULAR REFERENCE:");
-      toString(s, t);
+      writeMessageString(s, t);
       s.append(']');
     } else {
       dejaVu.add(t);
@@ -506,12 +547,15 @@ public final class Throwables {
       int m = trace.length - framesInCommon;
       // Print our stack trace
       s.append(prefix).append(caption);
-      toString(s, t);
+      writeMessageString(s, t);
       s.append('\n');
+      StackTraceElement prev = null;
       for (int i = 0; i < m; i++) {
         s.append(prefix).append("\tat ");
-        writeTo(trace[i], s, detail, abbreviatedClassNames);
+        StackTraceElement ste = trace[i];
+        writeTo(ste, prev, s, detail, abbreviatedTraceElement);
         s.append('\n');
+        prev = ste;
       }
       if (framesInCommon != 0) {
         s.append(prefix).append("\t... ").append(Integer.toString(framesInCommon)).append(" more");
@@ -520,13 +564,14 @@ public final class Throwables {
 
       // Print suppressed exceptions, if any
       for (Throwable se : getSuppressed(t)) {
-        printEnclosedStackTrace(se, s, trace, SUPPRESSED_CAPTION, prefix + '\t', dejaVu, detail, abbreviatedClassNames);
+        printEnclosedStackTrace(se, s, trace, SUPPRESSED_CAPTION, prefix + '\t',
+                dejaVu, detail, abbreviatedTraceElement);
       }
 
       // Print cause, if any
       Throwable ourCause = t.getCause();
       if (ourCause != null) {
-        printEnclosedStackTrace(ourCause, s, trace, CAUSE_CAPTION, prefix, dejaVu, detail, abbreviatedClassNames);
+        printEnclosedStackTrace(ourCause, s, trace, CAUSE_CAPTION, prefix, dejaVu, detail, abbreviatedTraceElement);
       }
     }
   }
