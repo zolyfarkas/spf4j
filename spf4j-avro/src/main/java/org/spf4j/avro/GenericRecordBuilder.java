@@ -31,7 +31,7 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.codehaus.commons.compiler.AbstractJavaSourceClassLoader;
 import org.codehaus.commons.compiler.CompilerFactoryFactory;
-import org.spf4j.avro.schema.Schemas;
+import org.spf4j.avro.schema.SchemaUtils;
 import org.spf4j.io.DeletingVisitor;
 import org.spf4j.io.SetFilesReadOnlyVisitor;
 
@@ -110,9 +110,9 @@ public final class GenericRecordBuilder implements Closeable {
   }
 
   public Class<? extends SpecificRecordBase> getClass(final Schema schema) {
-    Preconditions.checkArgument(Schemas.hasGeneratedJavaClass(schema), "schema %s has no java class", schema);
+    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), "schema %s has no java class", schema);
     try {
-      return (Class<? extends SpecificRecordBase>) source.loadClass(Schemas.getJavaClassName(schema));
+      return (Class<? extends SpecificRecordBase>) source.loadClass(SchemaUtils.getJavaClassName(schema));
     } catch (ClassNotFoundException ex) {
       throw new RuntimeException(ex);
     }

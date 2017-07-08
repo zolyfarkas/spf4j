@@ -71,6 +71,14 @@ public class SchemasTest {
     compat = SchemaCompatibility.checkReaderWriterCompatibility(recSchema, trimmed).getType();
     Assert.assertEquals(SchemaCompatibility.SchemaCompatibilityType.COMPATIBLE, compat);
 
+    Schema unmodifyable = Schemas.visit(recSchema, new UnmodifyableCloningVisitor(recSchema, false));
+    Assert.assertNotNull(unmodifyable.getDoc());
+    compat =
+            SchemaCompatibility.checkReaderWriterCompatibility(unmodifyable, recSchema).getType();
+    Assert.assertEquals(SchemaCompatibility.SchemaCompatibilityType.COMPATIBLE, compat);
+    compat = SchemaCompatibility.checkReaderWriterCompatibility(recSchema, unmodifyable).getType();
+    Assert.assertEquals(SchemaCompatibility.SchemaCompatibilityType.COMPATIBLE, compat);
+
   }
 
   private static class PrintingVisitor implements SchemaVisitor {

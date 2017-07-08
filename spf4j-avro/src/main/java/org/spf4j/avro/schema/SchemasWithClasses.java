@@ -23,7 +23,7 @@ public final class SchemasWithClasses implements SchemaVisitor<Map<String, Schem
     switch (schema.getType()) {
       case FIXED:
       case ENUM:
-        schemas.put(Schemas.getJavaClassName(schema), schema);
+        schemas.put(SchemaUtils.getJavaClassName(schema), schema);
         break;
     }
     return SchemaVisitorAction.CONTINUE;
@@ -32,7 +32,7 @@ public final class SchemasWithClasses implements SchemaVisitor<Map<String, Schem
   @Override
   public SchemaVisitorAction visitNonTerminal(final Schema schema) {
     if (schema.getType() == Schema.Type.RECORD) {
-      schemas.put(Schemas.getJavaClassName(schema), schema);
+      schemas.put(SchemaUtils.getJavaClassName(schema), schema);
     }
     return SchemaVisitorAction.CONTINUE;
   }

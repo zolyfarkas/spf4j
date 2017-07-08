@@ -8,13 +8,14 @@ import java.util.function.BiConsumer;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import static org.apache.avro.Schema.Type.RECORD;
+import org.apache.avro.UnmodifyableSchema;
 
 /**
  * this visitor will create a clone of the original Schema with docs and other nonesential fields stripped
  * by default. what attributes are copied is customizable.
  * @author zoly
  */
-public final class CloningVisitor implements SchemaVisitor<Schema> {
+public final class UnmodifyableCloningVisitor implements SchemaVisitor<Schema> {
 
   private final IdentityHashMap<Schema, Schema> replace = new IdentityHashMap<>();
 
@@ -24,12 +25,14 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
   private final BiConsumer<Schema, Schema> copySchema;
   private final boolean copyDocs;
 
-  public CloningVisitor(final Schema root) {
-    this(SchemaUtils.FIELD_ESENTIALS,
-            SchemaUtils.SCHEMA_ESENTIALS, false, root);
+  public UnmodifyableCloningVisitor(final Schema root, final boolean serializationSignificatOnly) {
+    this(serializationSignificatOnly ? SchemaUtils.FIELD_ESENTIALS : SchemaUtils.FIELD_EVERYTHING,
+            serializationSignificatOnly ? SchemaUtils.SCHEMA_ESENTIALS : SchemaUtils.SCHEMA_EVERYTHING,
+            !serializationSignificatOnly, root);
   }
 
-  public CloningVisitor(final BiConsumer<Field, Field> copyField,
+
+  public UnmodifyableCloningVisitor(final BiConsumer<Field, Field> copyField,
           final BiConsumer<Schema, Schema> copySchema,
           final boolean copyDocs, final Schema root) {
     this.copyField = copyField;
@@ -73,7 +76,7 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
         throw new IllegalStateException("Unsupported schema " + terminal);
     }
     copySchema.accept(terminal, newSchema);
-    replace.put(terminal, newSchema);
+    replace.put(terminal, UnmodifyableSchema.create(newSchema));
     return SchemaVisitorAction.CONTINUE;
   }
 
@@ -105,6 +108,7 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
           newFields.add(newField);
          }
          newSchema.setFields(newFields);
+         replace.put(nt, UnmodifyableSchema.create(newSchema));
          return SchemaVisitorAction.CONTINUE;
        case UNION:
           List<Schema> types = nt.getTypes();
@@ -125,7 +129,7 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
          throw new IllegalStateException("Illegal type " + type + ", schema " + nt);
      }
      copySchema.accept(nt, newSchema);
-     replace.put(nt, newSchema);
+     replace.put(nt, UnmodifyableSchema.create(newSchema));
      return SchemaVisitorAction.CONTINUE;
   }
 
