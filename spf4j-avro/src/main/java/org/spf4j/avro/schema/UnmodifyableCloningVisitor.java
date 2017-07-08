@@ -87,7 +87,7 @@ public final class UnmodifyableCloningVisitor implements SchemaVisitor<Schema> {
         Schema newSchema = Schema.createRecord(nt.getName(), copyDocs ? nt.getDoc() : null,
                 nt.getNamespace(), nt.isError());
         copySchema.accept(nt, newSchema);
-        replace.put(nt, newSchema);
+        replace.put(nt, UnmodifyableSchema.create(newSchema));
     }
     return SchemaVisitorAction.CONTINUE;
   }
@@ -108,7 +108,6 @@ public final class UnmodifyableCloningVisitor implements SchemaVisitor<Schema> {
           newFields.add(newField);
          }
          newSchema.setFields(newFields);
-         replace.put(nt, UnmodifyableSchema.create(newSchema));
          return SchemaVisitorAction.CONTINUE;
        case UNION:
           List<Schema> types = nt.getTypes();

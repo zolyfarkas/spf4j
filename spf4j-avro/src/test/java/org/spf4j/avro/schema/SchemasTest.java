@@ -20,6 +20,7 @@ package org.spf4j.avro.schema;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaCompatibility;
@@ -78,6 +79,19 @@ public class SchemasTest {
     Assert.assertEquals(SchemaCompatibility.SchemaCompatibilityType.COMPATIBLE, compat);
     compat = SchemaCompatibility.checkReaderWriterCompatibility(recSchema, unmodifyable).getType();
     Assert.assertEquals(SchemaCompatibility.SchemaCompatibilityType.COMPATIBLE, compat);
+
+    Schema schema1 = unmodifyable.getField("subNodes").schema().getElementType().getField("node").schema();
+    try {
+      schema1.addAlias("yahooo");
+      Assert.fail();
+    } catch (UnsupportedOperationException ex) {
+    }
+
+    try {
+      schema1.setFields(Collections.EMPTY_LIST);
+      Assert.fail();
+    } catch (UnsupportedOperationException ex) {
+    }
 
   }
 

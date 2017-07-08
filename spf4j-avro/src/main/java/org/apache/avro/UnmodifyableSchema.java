@@ -1,9 +1,11 @@
 package org.apache.avro;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 
 /**
@@ -125,7 +127,11 @@ public final class UnmodifyableSchema extends Schema {
 
   @Override
   public void setFields(final List<Field> fields) {
-    throw new UnsupportedOperationException();
+    try {
+      wrapped.setFields(fields);
+    } catch (AvroRuntimeException ex) {
+      throw new UnsupportedOperationException(ex);
+    }
   }
 
   @Override
@@ -187,5 +193,38 @@ public final class UnmodifyableSchema extends Schema {
   public String getProp(final String name) {
     return wrapped.getProp(name);
   }
+
+  @Override
+  void fieldsToJson(final Names names, final JsonGenerator gen) throws IOException {
+    wrapped.fieldsToJson(names, gen);
+  }
+
+  @Override
+  void toJson(final Names names, final JsonGenerator gen) throws IOException {
+    wrapped.toJson(names, gen);
+  }
+
+  @Override
+  public String toString(final boolean pretty) {
+    return wrapped.toString(pretty);
+  }
+
+  @Override
+  void setLogicalType(final LogicalType logicalType) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  void writeProps(final JsonGenerator gen) throws IOException {
+    wrapped.writeProps(gen);
+  }
+
+  @Override
+  Map<String, JsonNode> jsonProps(final Map<String, String> stringProps) {
+    throw new UnsupportedOperationException();
+  }
+
+
+
 
 }
