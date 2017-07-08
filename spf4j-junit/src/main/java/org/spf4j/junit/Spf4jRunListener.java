@@ -71,7 +71,7 @@ public final class Spf4jRunListener extends RunListener {
 
   @Override
   public void testFailure(final Failure failure)
-          throws IOException, InterruptedException {
+          throws IOException {
     File dumpToFile = sampler.dumpToFile(new File(destinationFolder, failure.getTestHeader() + ".ssdump2"));
     if (dumpToFile != null) {
       System.out.print("Profile saved to " + dumpToFile);
@@ -80,7 +80,7 @@ public final class Spf4jRunListener extends RunListener {
 
   @Override
   public void testFinished(final Description description)
-          throws IOException, InterruptedException {
+          throws IOException {
     File dump = sampler.dumpToFile(new File(destinationFolder, description.getDisplayName() + ".ssdump2"));
     if (dump != null) {
       System.out.print("Profile saved to " + dump);
@@ -89,12 +89,12 @@ public final class Spf4jRunListener extends RunListener {
   }
 
   @Override
-  public void testRunFinished(Result result) throws InterruptedException {
+  public void testRunFinished(final Result result) throws InterruptedException {
     sampler.stop();
   }
 
   @Override
-  public void testRunStarted(Description description)  {
+  public void testRunStarted(final Description description)  {
    sampler.start();
   }
 
