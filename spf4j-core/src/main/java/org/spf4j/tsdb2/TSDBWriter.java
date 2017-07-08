@@ -105,6 +105,7 @@ public final class TSDBWriter implements Closeable, Flushable {
       final int size = bab.size();
       toByteArray(size, buffer, MAGIC.length);
       raf.write(buffer, 0, size);
+      channel.force(true);
     } else {
       if (description != null) {
         throw new IllegalArgumentException("Providing description when appending is not allowed for " + file);
