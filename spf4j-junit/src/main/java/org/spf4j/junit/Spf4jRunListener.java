@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.junit.runner.Description;
+import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.spf4j.stackmonitor.FastStackCollector;
@@ -71,7 +72,6 @@ public final class Spf4jRunListener extends RunListener {
   @Override
   public void testFailure(final Failure failure)
           throws IOException, InterruptedException {
-    sampler.stop();
     File dumpToFile = sampler.dumpToFile(new File(destinationFolder, failure.getTestHeader() + ".ssdump2"));
     if (dumpToFile != null) {
       System.out.print("Profile saved to " + dumpToFile);
@@ -81,7 +81,6 @@ public final class Spf4jRunListener extends RunListener {
   @Override
   public void testFinished(final Description description)
           throws IOException, InterruptedException {
-    sampler.stop();
     File dump = sampler.dumpToFile(new File(destinationFolder, description.getDisplayName() + ".ssdump2"));
     if (dump != null) {
       System.out.print("Profile saved to " + dump);
@@ -90,8 +89,13 @@ public final class Spf4jRunListener extends RunListener {
   }
 
   @Override
-  public void testStarted(final Description description) {
-    sampler.start();
+  public void testRunFinished(Result result) throws InterruptedException {
+    sampler.stop();
+  }
+
+  @Override
+  public void testRunStarted(Description description)  {
+   sampler.start();
   }
 
   public Sampler getSampler() {
