@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.concurrent.Immutable;
 import org.apache.avro.Schema.Field;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
@@ -14,17 +15,18 @@ import org.codehaus.jackson.JsonNode;
  * @author zoly
  */
 @Beta
-public final class UnmodifyableField extends Field {
+@Immutable
+public final class ImmutableField extends Field {
 
   private final Field wrapped;
 
-  private UnmodifyableField(final Field field) {
+  private ImmutableField(final Field field) {
     super(field.name(), field.schema(), field.doc(), field.defaultVal(), field.order());
     this.wrapped = field;
   }
 
-  public static UnmodifyableField create(final Field field) {
-      return new UnmodifyableField(field);
+  public static ImmutableField create(final Field field) {
+      return new ImmutableField(field);
   }
 
   @Override
@@ -119,7 +121,7 @@ public final class UnmodifyableField extends Field {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final UnmodifyableField other = (UnmodifyableField) obj;
+    final ImmutableField other = (ImmutableField) obj;
     return Objects.equals(this.wrapped, other.wrapped);
   }
 

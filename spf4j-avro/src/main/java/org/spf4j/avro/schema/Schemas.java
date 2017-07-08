@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.function.Supplier;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
+import org.apache.avro.ImmutableSchema;
 import org.spf4j.ds.IdentityHashSet;
 
 /**
@@ -22,10 +23,16 @@ public final class Schemas {
   private Schemas() {
   }
 
-  public static Schema unmodifiable(final Schema schema, final boolean serializationSignificatOnly) {
-    return visit(schema, new UnmodifyableCloningVisitor(schema, serializationSignificatOnly));
+  public static ImmutableSchema immutable(final Schema schema) {
+    if (schema instanceof ImmutableSchema) {
+      return (ImmutableSchema) schema;
+    }
+    return visit(schema, new ImmutableCloningVisitor(schema, false));
   }
 
+  public static ImmutableSchema immutable(final Schema schema, final boolean withSerializationSignificatAttrsonly) {
+    return visit(schema, new ImmutableCloningVisitor(schema, withSerializationSignificatAttrsonly));
+  }
 
   /**
    * depth first visit.

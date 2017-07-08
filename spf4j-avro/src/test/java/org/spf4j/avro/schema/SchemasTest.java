@@ -72,7 +72,7 @@ public class SchemasTest {
     compat = SchemaCompatibility.checkReaderWriterCompatibility(recSchema, trimmed).getType();
     Assert.assertEquals(SchemaCompatibility.SchemaCompatibilityType.COMPATIBLE, compat);
 
-    Schema unmodifyable = Schemas.visit(recSchema, new UnmodifyableCloningVisitor(recSchema, false));
+    Schema unmodifyable = Schemas.visit(recSchema, new ImmutableCloningVisitor(recSchema, false));
     Assert.assertNotNull(unmodifyable.getDoc());
     compat =
             SchemaCompatibility.checkReaderWriterCompatibility(unmodifyable, recSchema).getType();

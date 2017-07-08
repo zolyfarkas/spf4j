@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.concurrent.Immutable;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 
@@ -12,17 +13,21 @@ import org.codehaus.jackson.JsonNode;
  * @author zoly
  */
 //CHECKSTYLE IGNORE EqualsHashCode FOR NEXT 1000 LINES
-public final class UnmodifyableSchema extends Schema {
+@Immutable
+public final class ImmutableSchema extends Schema {
 
   private final Schema wrapped;
 
-  private UnmodifyableSchema(final Schema schema) {
+  private ImmutableSchema(final Schema schema) {
     super(schema.getType());
     this.wrapped = schema;
   }
 
-  public static UnmodifyableSchema create(final Schema schema) {
-      return new UnmodifyableSchema(schema);
+  public static ImmutableSchema create(final Schema schema) {
+    if (schema instanceof ImmutableSchema) {
+      return (ImmutableSchema) schema;
+    }
+    return new ImmutableSchema(schema);
   }
 
   @Override
@@ -36,7 +41,7 @@ public final class UnmodifyableSchema extends Schema {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final UnmodifyableSchema other = (UnmodifyableSchema) obj;
+    final ImmutableSchema other = (ImmutableSchema) obj;
     return Objects.equals(this.wrapped, other.wrapped);
   }
 

@@ -8,16 +8,16 @@ import java.util.function.BiConsumer;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import static org.apache.avro.Schema.Type.RECORD;
-import org.apache.avro.UnmodifyableSchema;
+import org.apache.avro.ImmutableSchema;
 
 /**
  * this visitor will create a clone of the original Schema with docs and other nonesential fields stripped
  * by default. what attributes are copied is customizable.
  * @author zoly
  */
-public final class UnmodifyableCloningVisitor implements SchemaVisitor<Schema> {
+public final class ImmutableCloningVisitor implements SchemaVisitor<ImmutableSchema> {
 
-  private final IdentityHashMap<Schema, Schema> replace = new IdentityHashMap<>();
+  private final IdentityHashMap<Schema, ImmutableSchema> replace = new IdentityHashMap<>();
 
   private final Schema root;
 
@@ -25,14 +25,14 @@ public final class UnmodifyableCloningVisitor implements SchemaVisitor<Schema> {
   private final BiConsumer<Schema, Schema> copySchema;
   private final boolean copyDocs;
 
-  public UnmodifyableCloningVisitor(final Schema root, final boolean serializationSignificatOnly) {
+  public ImmutableCloningVisitor(final Schema root, final boolean serializationSignificatOnly) {
     this(serializationSignificatOnly ? SchemaUtils.FIELD_ESENTIALS : SchemaUtils.FIELD_EVERYTHING,
             serializationSignificatOnly ? SchemaUtils.SCHEMA_ESENTIALS : SchemaUtils.SCHEMA_EVERYTHING,
             !serializationSignificatOnly, root);
   }
 
 
-  public UnmodifyableCloningVisitor(final BiConsumer<Field, Field> copyField,
+  public ImmutableCloningVisitor(final BiConsumer<Field, Field> copyField,
           final BiConsumer<Schema, Schema> copySchema,
           final boolean copyDocs, final Schema root) {
     this.copyField = copyField;
@@ -76,7 +76,7 @@ public final class UnmodifyableCloningVisitor implements SchemaVisitor<Schema> {
         throw new IllegalStateException("Unsupported schema " + terminal);
     }
     copySchema.accept(terminal, newSchema);
-    replace.put(terminal, UnmodifyableSchema.create(newSchema));
+    replace.put(terminal, ImmutableSchema.create(newSchema));
     return SchemaVisitorAction.CONTINUE;
   }
 
@@ -87,7 +87,7 @@ public final class UnmodifyableCloningVisitor implements SchemaVisitor<Schema> {
         Schema newSchema = Schema.createRecord(nt.getName(), copyDocs ? nt.getDoc() : null,
                 nt.getNamespace(), nt.isError());
         copySchema.accept(nt, newSchema);
-        replace.put(nt, UnmodifyableSchema.create(newSchema));
+        replace.put(nt, ImmutableSchema.create(newSchema));
     }
     return SchemaVisitorAction.CONTINUE;
   }
@@ -128,18 +128,18 @@ public final class UnmodifyableCloningVisitor implements SchemaVisitor<Schema> {
          throw new IllegalStateException("Illegal type " + type + ", schema " + nt);
      }
      copySchema.accept(nt, newSchema);
-     replace.put(nt, UnmodifyableSchema.create(newSchema));
+     replace.put(nt, ImmutableSchema.create(newSchema));
      return SchemaVisitorAction.CONTINUE;
   }
 
   @Override
-  public Schema get() {
+  public ImmutableSchema get() {
     return replace.get(root);
   }
 
   @Override
   public String toString() {
-    return "CloningVisitor{" + "replace=" + replace + ", root=" + root + '}';
+    return "UnmodifiableCloningVisitor{" + "replace=" + replace + ", root=" + root + '}';
   }
 
 }
