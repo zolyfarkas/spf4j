@@ -5,12 +5,13 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.procedure.TObjectObjectProcedure;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PushbackInputStream;
 import java.nio.file.Files;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -33,136 +34,143 @@ import org.spf4j.base.Method;
  */
 public final class Converter {
 
-    private Converter() { }
+  private Converter() {
+  }
 
-    public static <E extends Exception> int convert(final Method method, final SampleNode node,
-            final int parentId, final int id,
-            final Handler<ASample, E> handler) throws E {
-        ASample sample = new ASample();
-        sample.id = id;
-        sample.count = node.getSampleCount();
-        AMethod m = new AMethod();
-        m.setName(method.getMethodName());
-        m.setDeclaringClass(method.getDeclaringClass());
-        sample.method = m;
-        sample.parentId = parentId;
-        handler.handle(sample, Long.MAX_VALUE);
-        final TMap<Method, SampleNode> subNodes = node.getSubNodes();
-        int nid = id + 1;
-        if (subNodes != null) {
-            final TObjectObjectProcedureImpl proc = new TObjectObjectProcedureImpl(id, handler);
-            subNodes.forEachEntry(proc);
-            nid = proc.getNid();
-        }
-        return nid;
+  private static final class TraversalNode {
+
+    private final Method method;
+    private final SampleNode node;
+    private final int parentId;
+
+    TraversalNode(final Method method, final SampleNode node, final int parentId) {
+      this.method = method;
+      this.node = node;
+      this.parentId = parentId;
     }
 
-    public static SampleNode convert(final Iterator<ASample> samples) {
-        TIntObjectMap<SampleNode> index = new TIntObjectHashMap<>();
-        while (samples.hasNext()) {
-            ASample asmp = samples.next();
-            SampleNode sn = new SampleNode(asmp.count, new THashMap<Method, SampleNode>());
-            SampleNode parent = index.get(asmp.parentId);
-            if (parent != null) {
-                AMethod method = asmp.getMethod();
-                Method m = Method.getMethod(method.declaringClass, method.getName());
-                final Map<Method, SampleNode> subNodes = parent.getSubNodes();
-                if (subNodes == null) {
-                    throw new IllegalStateException("Bug, state " + index + "; at node " + asmp);
-                }
-                subNodes.put(m, sn);
-            }
-            index.put(asmp.id, sn);
-        }
-        return index.get(0);
+    public Method getMethod() {
+      return method;
     }
 
-    public static void save(final File file, final SampleNode collected) throws IOException {
-        try (BufferedOutputStream bos = new BufferedOutputStream(
-                Files.newOutputStream(file.toPath()))) {
-            final SpecificDatumWriter<ASample> writer = new SpecificDatumWriter<>(ASample.SCHEMA$);
-            final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);
-            Converter.convert(Method.ROOT, collected,
-                    -1, 0, new Handler<ASample, IOException>() {
-
-                        @Override
-                        public void handle(final ASample object, final long deadline)
-                                throws IOException {
-                            writer.write(object, encoder);
-                        }
-                    });
-            encoder.flush();
-        }
+    public SampleNode getNode() {
+      return node;
     }
 
-    @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
-    public static SampleNode load(final File file) throws IOException {
-        try (MemorizingBufferedInputStream bis =
-                new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()))) {
-            final PushbackInputStream pis = new PushbackInputStream(bis);
-            final SpecificDatumReader<ASample> reader = new SpecificDatumReader<>(ASample.SCHEMA$);
-            final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(pis, null);
-            return convert(new Iterator<ASample>() {
-
-                @Override
-                public boolean hasNext() {
-                    try {
-                        int read = pis.read();
-                        pis.unread(read);
-                        return read >= 0;
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }
-
-                @Override
-                @SuppressFBWarnings
-                public ASample next() {
-                    try {
-                        return reader.read(null, decoder);
-                    } catch (IOException ex) {
-                        NoSuchElementException e = new NoSuchElementException();
-                        e.addSuppressed(ex);
-                        throw e;
-                    }
-                }
-
-                @Override
-                public void remove() {
-                    throw new UnsupportedOperationException("Not supported yet.");
-                }
-            });
-        }
+    public int getParentId() {
+      return parentId;
     }
 
-    private static final class TObjectObjectProcedureImpl<E extends Exception>
-                        implements TObjectObjectProcedure<Method, SampleNode> {
+    @Override
+    public String toString() {
+      return "TraversalNode{" + "method=" + method + ", node=" + node + ", parentId=" + parentId + '}';
+    }
 
-        private final int id;
-        private final Handler<ASample, E> handler;
-        private int nid;
+  }
 
-        TObjectObjectProcedureImpl(final int id, final Handler<ASample, E> handler) {
-            this.id = id;
-            this.handler = handler;
-            nid = id + 1;
+  public static <E extends Exception> int convert(final Method method, final SampleNode node,
+          final int parentId, final int id,
+          final Handler<ASample, E> handler) throws E {
+
+    final Deque<TraversalNode> dq = new ArrayDeque<>();
+    dq.addLast(new TraversalNode(method, node, parentId));
+    int nid = id;
+    while (!dq.isEmpty()) {
+      TraversalNode first = dq.removeFirst();
+      Method m = first.getMethod();
+      ASample sample = new ASample();
+      sample.id = nid;
+      SampleNode n = first.getNode();
+      sample.count = n.getSampleCount();
+      AMethod am = new AMethod();
+      am.setName(m.getMethodName());
+      am.setDeclaringClass(m.getDeclaringClass());
+      sample.method = am;
+      sample.parentId = first.getParentId();
+      final TMap<Method, SampleNode> subNodes = n.getSubNodes();
+      final int pid = nid;
+      if (subNodes != null) {
+        subNodes.forEachEntry((a, b) -> {
+          dq.addLast(new TraversalNode(a, b, pid));
+          return true;
+        });
+      }
+      handler.handle(sample, parentId);
+      nid++;
+    }
+    return nid;
+  }
+
+  public static SampleNode convert(final Iterator<ASample> samples) {
+    TIntObjectMap<SampleNode> index = new TIntObjectHashMap<>();
+    while (samples.hasNext()) {
+      ASample asmp = samples.next();
+      SampleNode sn = new SampleNode(asmp.count, new THashMap<Method, SampleNode>());
+      SampleNode parent = index.get(asmp.parentId);
+      if (parent != null) {
+        AMethod method = asmp.getMethod();
+        Method m = Method.getMethod(method.declaringClass, method.getName());
+        final Map<Method, SampleNode> subNodes = parent.getSubNodes();
+        if (subNodes == null) {
+          throw new IllegalStateException("Bug, state " + index + "; at node " + asmp);
+        }
+        subNodes.put(m, sn);
+      }
+      index.put(asmp.id, sn);
+    }
+    return index.get(0);
+  }
+
+  public static void save(final File file, final SampleNode collected) throws IOException {
+    try (BufferedOutputStream bos = new BufferedOutputStream(
+            Files.newOutputStream(file.toPath()))) {
+      final SpecificDatumWriter<ASample> writer = new SpecificDatumWriter<>(ASample.SCHEMA$);
+      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);
+      Converter.convert(Method.ROOT, collected,
+              -1, 0, (final ASample object, final long deadline) -> {
+                writer.write(object, encoder);
+      });
+      encoder.flush();
+    }
+  }
+
+  @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
+  public static SampleNode load(final File file) throws IOException {
+    try (MemorizingBufferedInputStream bis
+            = new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()))) {
+      final PushbackInputStream pis = new PushbackInputStream(bis);
+      final SpecificDatumReader<ASample> reader = new SpecificDatumReader<>(ASample.SCHEMA$);
+      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(pis, null);
+      return convert(new Iterator<ASample>() {
+
+        @Override
+        public boolean hasNext() {
+          try {
+            int read = pis.read();
+            pis.unread(read);
+            return read >= 0;
+          } catch (IOException ex) {
+            throw new RuntimeException(ex);
+          }
         }
 
         @Override
-        public boolean execute(final Method a, final SampleNode b) {
-            try {
-                nid = convert(a, b, id, nid, handler);
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            }
-            return true;
+        @SuppressFBWarnings
+        public ASample next() {
+          try {
+            return reader.read(null, decoder);
+          } catch (IOException ex) {
+            NoSuchElementException e = new NoSuchElementException();
+            e.addSuppressed(ex);
+            throw e;
+          }
         }
 
-        public int getNid() {
-            return nid;
+        @Override
+        public void remove() {
+          throw new UnsupportedOperationException();
         }
-
-
+      });
     }
-
+  }
 }
