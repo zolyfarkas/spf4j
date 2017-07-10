@@ -82,7 +82,7 @@ public final class TcpServer extends RestartableServiceImpl {
 
     private final int acceptBacklog;
 
-    private volatile boolean terminated;
+    private volatile boolean shouldRun;
 
     private volatile Selector selector;
 
@@ -95,7 +95,7 @@ public final class TcpServer extends RestartableServiceImpl {
       this.handlerFactory = handlerFactory;
       this.acceptBacklog = acceptBacklog;
       this.serverPort = serverPort;
-      this.terminated = false;
+      this.shouldRun = true;
       this.selector = null;
     }
 
@@ -129,7 +129,7 @@ public final class TcpServer extends RestartableServiceImpl {
         new AcceptorSelectorEventHandler(serverCh, handlerFactory, sel, executor,
                 tasksToRunBySelector, deadlineActions)
                 .initialInterestRegistration();
-        while (isRunning()) {
+        while (shouldRun) {
           int nrSelectors = sel.select(100);
           if (nrSelectors > 0) {
             Set<SelectionKey> selectedKeys = sel.selectedKeys();
@@ -193,6 +193,7 @@ public final class TcpServer extends RestartableServiceImpl {
 
     @Override
     protected void triggerShutdown() {
+      shouldRun = false;
       selector.wakeup();
     }
 
@@ -224,7 +225,7 @@ public final class TcpServer extends RestartableServiceImpl {
     public String toString() {
       return "TcpServer{" + "executor=" + executor + ", handlerFactory=" + handlerFactory
               + ", serverPort=" + serverPort + ", acceptBacklog=" + acceptBacklog
-              + ", terminated=" + terminated + ", selector=" + selector + '}';
+              + ", shouldRun=" + shouldRun + ", selector=" + selector + '}';
     }
   }
 }
