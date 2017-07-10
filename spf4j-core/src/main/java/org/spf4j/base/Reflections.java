@@ -5,6 +5,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
@@ -14,6 +15,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -30,10 +32,14 @@ import java.util.jar.Manifest;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.UnboundedLoadingCache;
 
 @ParametersAreNonnullByDefault
 public final class Reflections {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Reflections.class);
 
   private static final PackageInfo NONE = new PackageInfo(null, null);
 
@@ -50,7 +56,105 @@ public final class Reflections {
     PRIMITIVE_MAP.put(double.class, Double.class);
   }
 
+
+  private static final MethodHandle PARAMETER_TYPES_METHOD_FIELD_GET;
+  private static final MethodHandle PARAMETER_TYPES_CONSTR_FIELD_GET;
+
+
+  static {
+    Field mPtField = AccessController.doPrivileged((PrivilegedAction<Field>) () -> {
+      Field f;
+      try {
+        f = Method.class.getDeclaredField("parameterTypes");
+        f.setAccessible(true);
+      } catch (NoSuchFieldException ex) {
+        LOG.info("Para type stealing from Method not supported", ex);
+        f = null;
+      } catch (SecurityException ex) {
+        throw new RuntimeException(ex);
+      }
+      return f;
+    });
+    Field cPtField = AccessController.doPrivileged((PrivilegedAction<Field>) () -> {
+      Field f;
+      try {
+        f = Constructor.class.getDeclaredField("parameterTypes");
+        f.setAccessible(true);
+      } catch (NoSuchFieldException ex) {
+        LOG.info("Para type stealing from Constructor not supported", ex);
+        f = null;
+      } catch (SecurityException ex) {
+        throw new RuntimeException(ex);
+      }
+      return f;
+    });
+
+    MethodHandles.Lookup lookup = MethodHandles.lookup();
+    if (mPtField != null) {
+      try {
+        PARAMETER_TYPES_METHOD_FIELD_GET = lookup.unreflectGetter(mPtField);
+      } catch (IllegalAccessException ex) {
+        throw new ExceptionInInitializerError(ex);
+      }
+    } else {
+      PARAMETER_TYPES_METHOD_FIELD_GET = null;
+    }
+    if (cPtField != null) {
+      try {
+        PARAMETER_TYPES_CONSTR_FIELD_GET = lookup.unreflectGetter(cPtField);
+      } catch (IllegalAccessException ex) {
+        throw new ExceptionInInitializerError(ex);
+      }
+    } else {
+      PARAMETER_TYPES_CONSTR_FIELD_GET = null;
+    }
+  }
+
   private Reflections() { }
+
+
+
+  /**
+   * Optimized alternative of Method.getParameterTypes that steals the parameterTypeArry from method
+   * instead of copying it.
+   *
+   * Here is the benchmark comparison for a 5 arg method:
+   *
+   * Benchmark                                       Mode  Cnt           Score          Error  Units
+   * ReflectionsBenchmark.normalGetTypes            thrpt   10   227015245.933 ±  2725143.765  ops/s
+   * ReflectionsBenchmark.optimizedGetTypes         thrpt   10  1159407471.306 ± 21204385.301  ops/s
+   *
+   * @param m
+   * @return
+   */
+  public static Class<?>[] getParameterTypes(final Method m) {
+    if (PARAMETER_TYPES_METHOD_FIELD_GET != null) {
+      try {
+        return (Class<?>[]) PARAMETER_TYPES_METHOD_FIELD_GET.invokeExact(m);
+      } catch (Error | RuntimeException ex) {
+        throw ex;
+      } catch (Throwable ex) {
+        throw new UncheckedExecutionException(ex);
+      }
+    } else {
+      return m.getParameterTypes();
+    }
+  }
+
+
+  public static Class<?>[] getParameterTypes(final Constructor<?> m) {
+    if (PARAMETER_TYPES_CONSTR_FIELD_GET != null) {
+      try {
+        return (Class<?>[]) PARAMETER_TYPES_CONSTR_FIELD_GET.invokeExact(m);
+      } catch (Error | RuntimeException ex) {
+        throw ex;
+      } catch (Throwable ex) {
+        throw new UncheckedExecutionException(ex);
+      }
+    } else {
+      return m.getParameterTypes();
+    }
+  }
 
   public static Class<?> primitiveToWrapper(final Class<?> clasz) {
     if (clasz.isPrimitive()) {
@@ -104,7 +208,7 @@ public final class Reflections {
     String internedName = methodName.intern();
     for (Method m : c.getDeclaredMethods()) {
       if (m.getName() == internedName
-              && Arrays.equals(paramTypes, m.getParameterTypes())) {
+              && Arrays.equals(paramTypes, getParameterTypes(m))) {
         AccessController.doPrivileged(new PrivilegedAction<Void>() {
           @Override
           public Void run() {
@@ -125,7 +229,7 @@ public final class Reflections {
   @Nullable
   public static Constructor<?> getConstructor(final Class<?> c, final Class<?>... paramTypes) {
     for (Constructor cons : c.getDeclaredConstructors()) {
-      if (Arrays.equals(cons.getParameterTypes(), paramTypes)) {
+      if (Arrays.equals(getParameterTypes(cons), paramTypes)) {
         AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
           cons.setAccessible(true);
           return null;
@@ -156,7 +260,7 @@ public final class Reflections {
         continue;
       }
 
-      Class<?>[] actualTypes = m.getParameterTypes();
+      Class<?>[] actualTypes = getParameterTypes(m);
       if (actualTypes.length > paramTypes.length) {
         continue;
       }
@@ -215,7 +319,7 @@ public final class Reflections {
           throws IllegalAccessException, InvocationTargetException {
     int np = parameters.length;
     if (np > 0) {
-      Class<?>[] actTypes = m.getParameterTypes();
+      Class<?>[] actTypes = getParameterTypes(m);
       Class<?> lastParamClass = actTypes[actTypes.length - 1];
       if (Reflections.canAssign(lastParamClass, parameters[np - 1].getClass())) {
         return m.invoke(object, parameters);
@@ -487,7 +591,7 @@ public final class Reflections {
     Method[] methods = clasz.getMethods();
     final Map<Method, Method> map = new HashMap<>(methods.length);
     for (Method from : methods) {
-      Method to = getCompatibleMethodCached(target, from.getName(), from.getParameterTypes());
+      Method to = getCompatibleMethodCached(target, from.getName(), getParameterTypes(from));
       if (to == null || !Modifier.isStatic(to.getModifiers())) {
         throw new IllegalArgumentException("Cannot map from " + clasz + " to " + target);
       }
@@ -504,7 +608,7 @@ public final class Reflections {
     final Map<Method, Method> map = new HashMap<>(methods.length);
     Class<? extends Object> aClass = target.getClass();
     for (Method from : methods) {
-      Method to = getCompatibleMethodCached(aClass, from.getName(), from.getParameterTypes());
+      Method to = getCompatibleMethodCached(aClass, from.getName(), getParameterTypes(from));
       if (to == null) {
         throw new IllegalArgumentException("Cannot map from " + clasz + " to " + target);
       }

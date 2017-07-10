@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import javax.management.MBeanParameterInfo;
+import org.spf4j.base.Reflections;
 
 /**
  *
@@ -48,7 +49,7 @@ final class ExportedOperationImpl implements ExportedOperation {
         this.description = description;
         this.method = method;
         this.object = object;
-        Class<?>[] parameterTypes = method.getParameterTypes();
+        Class<?>[] parameterTypes = Reflections.getParameterTypes(method);
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         paramInfos = new MBeanParameterInfo[parameterTypes.length];
         for (int i = 0; i < paramInfos.length; i++) {

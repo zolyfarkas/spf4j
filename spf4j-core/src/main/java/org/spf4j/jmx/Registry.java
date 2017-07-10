@@ -32,6 +32,7 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
+import org.spf4j.base.Reflections;
 import org.spf4j.base.Strings;
 
 public final class Registry {
@@ -194,7 +195,7 @@ public final class Registry {
           final Map<String, ExportedOperationImpl> exportedOps, final JmxExport annot) {
     method.setAccessible(true); // this is to speed up invocation
     String methodName = method.getName();
-    int nrParams = method.getParameterTypes().length;
+    int nrParams = method.getParameterCount();
     if (nrParams == 0 && methodName.startsWith("get")) {
       String valueName = methodName.substring("get".length());
       valueName = Strings.withFirstCharLower(valueName);
@@ -231,11 +232,12 @@ public final class Registry {
     }
 
     ExportedValueImpl existing = (ExportedValueImpl) exportedAttributes.get(valueName);
+    Class<?> parameterType = Reflections.getParameterTypes(method)[0];
     if (existing == null) {
       existing = new ExportedValueImpl(valueName, null,
-              null, method, object, method.getParameterTypes()[0]);
+              null, method, object, parameterType);
     } else {
-      if (existing.getValueClass() != method.getParameterTypes()[0]) {
+      if (existing.getValueClass() != parameterType) {
         throw new IllegalArgumentException(
                 "Getter and setter icorrectly defined " + existing + ' ' + method);
       }
