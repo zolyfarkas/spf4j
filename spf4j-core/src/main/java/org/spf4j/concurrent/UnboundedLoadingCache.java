@@ -23,11 +23,13 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.MemorizedCallable;
@@ -60,6 +62,17 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
             initialSize, 0.75f, concurrency);
     this.loader = loader;
   }
+
+  /**
+   * Will use a ConcurrentSkipListMap to store the underlying data.
+   * @param comparator
+   * @param loader
+   */
+  public UnboundedLoadingCache(final Comparator<? super K> comparator, final CacheLoader<K, V> loader) {
+    this.map = new ConcurrentSkipListMap<>(comparator);
+    this.loader = loader;
+  }
+
 
   @Override
   public V get(final K key) throws ExecutionException {
