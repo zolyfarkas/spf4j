@@ -32,7 +32,7 @@ public class GenericRecordBenchmark {
     } catch (IOException ex) {
       throw new ExceptionInInitializerError(ex);
     }
-    CLASZ = new GenericRecordBuilder(SCHEMA).getClass(SCHEMA);
+    CLASZ = new GenericRecordBuilder(SCHEMA).getRecordClass(SCHEMA);
   }
 
 
