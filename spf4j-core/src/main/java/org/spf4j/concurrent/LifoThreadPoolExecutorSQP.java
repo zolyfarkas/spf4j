@@ -37,7 +37,6 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.GuardedBy;
 import org.spf4j.base.AbstractRunnable;
-import org.spf4j.base.SysExits;
 import static org.spf4j.concurrent.RejectedExecutionHandler.REJECT_EXCEPTION_EXEC_HANDLER;
 import org.spf4j.ds.ZArrayDequeue;
 import org.spf4j.jmx.JmxExport;
@@ -453,7 +452,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       do {
         try {
           doRun(maxIdleNanos);
-        } catch (RuntimeException e) {
+        } catch (Throwable e) {
           final UncaughtExceptionHandler uexh = this.getUncaughtExceptionHandler();
           try {
             uexh.uncaughtException(this, e);
@@ -461,8 +460,6 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
             ex.addSuppressed(e);
             throw new UncheckedExecutionException("Uncaught exception handler blew up: " + uexh, ex);
           }
-        } catch (Error e) {
-          org.spf4j.base.Runtime.goDownWithError(e, SysExits.EX_SOFTWARE);
         }
         poolStateLock.lock();
         try {

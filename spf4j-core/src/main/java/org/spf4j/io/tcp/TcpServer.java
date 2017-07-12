@@ -26,7 +26,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.CancelledKeyException;
-import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -38,7 +37,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.base.Throwables;
+import org.spf4j.base.Closeables;
 import org.spf4j.concurrent.RestartableServiceImpl;
 import org.spf4j.ds.UpdateablePriorityQueue;
 
@@ -166,18 +165,11 @@ public final class TcpServer extends RestartableServiceImpl {
           }
         }
       } finally {
-        try {
-          closeSelectorChannels(selector);
-        } catch (IOException ex) {
-          try {
-            sel.close();
-          } catch (IOException ex2) {
-            ex2.addSuppressed(ex);
-            throw ex2;
-          }
-          throw ex;
+        IOException closeAll =
+                Closeables.closeAll(Closeables.closeSelectorChannels(sel), sel, serverCh);
+        if (closeAll != null) {
+          throw closeAll;
         }
-        sel.close();
       }
     }
 
@@ -202,24 +194,6 @@ public final class TcpServer extends RestartableServiceImpl {
       this.stopAsync().awaitTerminated();
     }
 
-    public static void closeSelectorChannels(final Selector selector) throws IOException {
-      IOException ex = null;
-      for (SelectionKey key : selector.keys()) {
-        SelectableChannel channel = key.channel();
-        try {
-          channel.close();
-        } catch (IOException ex2) {
-          if (ex == null) {
-            ex = ex2;
-          } else {
-            ex = Throwables.suppress(ex, ex2);
-          }
-        }
-      }
-      if (ex != null) {
-        throw ex;
-      }
-    }
 
     @Override
     public String toString() {
