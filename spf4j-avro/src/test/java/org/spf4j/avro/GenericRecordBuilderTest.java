@@ -8,6 +8,7 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
+import org.apache.avro.generic.GenericEnumSymbol;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.junit.Test;
@@ -25,11 +26,11 @@ public class GenericRecordBuilderTest {
     String schemaStr = Resources.toString(Resources.getResource("SchemaBuilder.avsc"), Charsets.US_ASCII);
     Schema schema = new Schema.Parser().parse(schemaStr);
     try (GenericRecordBuilder builder = new GenericRecordBuilder(schema)) {
-      Class<? extends SpecificRecordBase> clasz = builder.getClass(schema);
+      Class<? extends SpecificRecordBase> clasz = builder.getRecordClass(schema);
       GenericRecord record = clasz.newInstance();
       record.put("requiredBoolean", Boolean.TRUE);
       Schema fieldSchema = schema.getField("optionalRecord").schema().getTypes().get(1);
-      Class<? extends SpecificRecordBase> nestedRecordClass = builder.getClass(fieldSchema);
+      Class<? extends SpecificRecordBase> nestedRecordClass = builder.getRecordClass(fieldSchema);
       SpecificRecordBase nr = nestedRecordClass.newInstance();
       nr.put("nestedRequiredBoolean", Boolean.TRUE);
       record.put("optionalRecord", nr);
@@ -51,15 +52,24 @@ public class GenericRecordBuilderTest {
             .name("record").type(reuse).noDefault()
             .endRecord();
     try (GenericRecordBuilder builder = new GenericRecordBuilder(record, record2)) {
-      Class<? extends SpecificRecordBase> clasz = builder.getClass(record);
-      Class<? extends SpecificRecordBase> clasz2 = builder.getClass(record);
+      Class<? extends SpecificRecordBase> clasz = builder.getRecordClass(record);
+      Class<? extends SpecificRecordBase> clasz2 = builder.getRecordClass(record);
       Assert.assertSame(clasz, clasz2);
       SpecificRecordBase myRecord = clasz.newInstance();
       myRecord.put("number", 35);
       Assert.assertEquals(35, (int) myRecord.get("number"));
-      Class<? extends SpecificRecordBase> aClass = builder.getClass(record2);
+      Class<? extends SpecificRecordBase> aClass = builder.getRecordClass(record2);
       GenericRecord r2 = aClass.newInstance();
       System.out.println(r2);
+    }
+  }
+
+  @Test
+  public void testEnumImplementation() {
+    Schema enumSchema = SchemaBuilder.enumeration("MyEnum").namespace("test").symbols("A", "B", "C");
+    try (GenericRecordBuilder builder = new GenericRecordBuilder(enumSchema)) {
+      Class<? extends GenericEnumSymbol> enumClass = builder.getEnumClass(enumSchema);
+      Assert.assertEquals("test.MyEnum", enumClass.getName());
     }
   }
 

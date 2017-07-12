@@ -28,6 +28,8 @@ import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
 import org.apache.avro.compiler.specific.SpecificCompiler;
 import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericEnumSymbol;
+import org.apache.avro.generic.GenericFixed;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.codehaus.commons.compiler.AbstractJavaSourceClassLoader;
 import org.codehaus.commons.compiler.CompilerFactoryFactory;
@@ -109,10 +111,28 @@ public final class GenericRecordBuilder implements Closeable {
     }
   }
 
-  public Class<? extends SpecificRecordBase> getClass(final Schema schema) {
+  public Class<? extends SpecificRecordBase> getRecordClass(final Schema schema) {
     Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), "schema %s has no java class", schema);
     try {
       return (Class<? extends SpecificRecordBase>) source.loadClass(SchemaUtils.getJavaClassName(schema));
+    } catch (ClassNotFoundException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
+  public Class<? extends GenericEnumSymbol> getEnumClass(final Schema schema) {
+    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), "schema %s has no java class", schema);
+    try {
+      return (Class<? extends GenericEnumSymbol>) source.loadClass(SchemaUtils.getJavaClassName(schema));
+    } catch (ClassNotFoundException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
+  public Class<? extends GenericFixed> getFixedClass(final Schema schema) {
+    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), "schema %s has no java class", schema);
+    try {
+      return (Class<? extends GenericFixed>) source.loadClass(SchemaUtils.getJavaClassName(schema));
     } catch (ClassNotFoundException ex) {
       throw new RuntimeException(ex);
     }
