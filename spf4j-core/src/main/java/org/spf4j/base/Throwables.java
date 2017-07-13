@@ -384,7 +384,17 @@ public final class Throwables {
           String url = jarSourceUrl.toString();
           int lastIndexOf = url.lastIndexOf('/');
           if (lastIndexOf >= 0) {
-            to.append(url, lastIndexOf + 1, url.length());
+            int lpos = url.length() - 1;
+            if (lastIndexOf == lpos) {
+              int prevSlPos = url.lastIndexOf('/', lpos - 1);
+              if (prevSlPos < 0) {
+                to.append(url);
+              } else {
+                to.append(url, prevSlPos + 1, url.length());
+              }
+            } else {
+              to.append(url, lastIndexOf + 1, url.length());
+            }
           } else {
             to.append(url);
           }
@@ -571,7 +581,8 @@ public final class Throwables {
       // Print cause, if any
       Throwable ourCause = t.getCause();
       if (ourCause != null) {
-        printEnclosedStackTrace(ourCause, s, trace, CAUSE_CAPTION, prefix, dejaVu, detail, abbreviatedTraceElement);
+        printEnclosedStackTrace(ourCause, s, trace, CAUSE_CAPTION, prefix,
+                dejaVu, detail, abbreviatedTraceElement);
       }
     }
   }
