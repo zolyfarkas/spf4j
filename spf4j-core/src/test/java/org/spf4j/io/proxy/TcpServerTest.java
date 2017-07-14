@@ -33,7 +33,8 @@ import org.spf4j.io.tcp.proxy.Sniffer;
 import org.spf4j.io.tcp.proxy.SnifferFactory;
 
 /**
- *
+ * https://unix.stackexchange.com/questions/17218/how-long-is-a-tcp-local-socket-address-that-has-been-bound-unavailable-after-clo
+ * https://stackoverflow.com/questions/13838256/java-closing-a-serversocket-and-opening-up-the-port
  * @author zoly
  */
 @SuppressFBWarnings({"SIC_INNER_SHOULD_BE_STATIC_ANON", "MDM_THREAD_YIELD"})
@@ -76,11 +77,6 @@ public class TcpServerTest {
     };
 
 
-  @After
-  public void waitForPortToBecomeAvailable() throws InterruptedException {
-    //https://stackoverflow.com/questions/13838256/java-closing-a-serversocket-and-opening-up-the-port
-    Thread.sleep(200);
-  }
 
   @Test(timeout = 1000000)
   public void testProxy() throws IOException, InterruptedException {
@@ -107,11 +103,11 @@ public class TcpServerTest {
 
     try (TcpServer server = new TcpServer(pool,
             new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), printSnifferFactory, printSnifferFactory, 10000, 5000),
-            1976, 10)) {
+            1977, 10)) {
       server.startAsync().awaitRunning();
 
-      byte[] proxiedContent = readfromSite("http://localhost:1976");
-//            System.out.println(new String(proxiedContent, "UTF-8"));
+      byte[] proxiedContent = readfromSite("http://localhost:1977");
+      Assert.assertNotNull(proxiedContent);
     }
   }
 
@@ -121,9 +117,9 @@ public class TcpServerTest {
     ForkJoinPool pool = new ForkJoinPool(1024);
     try (TcpServer server = new TcpServer(pool,
             new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), null, null, 10000, 5000),
-            1977, 10)) {
+            1978, 10)) {
       server.startAsync().awaitRunning();
-      readfromSite("http://localhost:1977"); // results in a socket exception after 5 seconds
+      readfromSite("http://localhost:1978"); // results in a socket exception after 5 seconds
       Assert.fail("Should timeout");
     }
   }
@@ -133,10 +129,10 @@ public class TcpServerTest {
     ForkJoinPool pool = new ForkJoinPool(1024);
     try (TcpServer server = new TcpServer(pool,
             new ProxyClientHandler(HostAndPort.fromParts("bla", 80), null, null, 10000, 5000),
-            1977, 10)) {
+            1979, 10)) {
       server.startAsync().awaitRunning(10, TimeUnit.SECONDS);
       server.stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
-      Thread.sleep(200);
+      Thread.sleep(10000);
       server.startAsync().awaitRunning(10, TimeUnit.SECONDS);
       Assert.assertTrue(server.isRunning());
     }
@@ -164,14 +160,14 @@ public class TcpServerTest {
         clientChannel.write(allocate);
         clientChannel.close();
       }
-    }, 1976, 10)) {
+    }, 1980, 10)) {
       rejServer.startAsync().awaitRunning();
 
       try (TcpServer server = new TcpServer(pool,
-              new ProxyClientHandler(HostAndPort.fromParts(testSite, 1976), null, null, 10000, 5000),
-              1977, 10)) {
+              new ProxyClientHandler(HostAndPort.fromParts(testSite, 1980), null, null, 10000, 5000),
+              1981, 10)) {
         server.startAsync().awaitRunning();
-        byte[] readfromSite = readfromSite("http://localhost:1977");
+        byte[] readfromSite = readfromSite("http://localhost:1981");
         System.out.println("Response: " + new String(readfromSite, StandardCharsets.UTF_8));
       }
     }
@@ -183,7 +179,7 @@ public class TcpServerTest {
     ForkJoinPool pool = new ForkJoinPool(1024);
     try (TcpServer server = new TcpServer(pool,
             new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), null, null, 10000, 10000),
-            1977, 10)) {
+            1982, 10)) {
       server.startAsync().awaitRunning();
       DefaultScheduler.INSTANCE.schedule(new AbstractRunnable(true) {
         @Override
@@ -191,7 +187,7 @@ public class TcpServerTest {
           server.close();
         }
       }, 2, TimeUnit.SECONDS);
-      readfromSite("http://localhost:1977"); // results in a socket exception after 5 seconds
+      readfromSite("http://localhost:1982"); // results in a socket exception after 5 seconds
       Assert.fail("Should timeout");
     }
   }
