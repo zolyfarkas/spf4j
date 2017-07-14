@@ -142,10 +142,10 @@ Callable<?> monitoredCallable =
 
 #### 4.2.3 Where are measurements stored?
  
- You can configure where the measurements are stored via the "perf.ms.config" system property like:
+ You can configure where the measurements are stored via the "spf4j.perf.ms.config" system property like:
 
 ```
-  -Dperf.ms.config=TSDB@/path/to/file.tsdb,TSDB_TXT@/path/to/file.tsdbtxt,GRAPHITE_UDP@1.1.1.1:8080,GRAPHITE_TCP@1.1.1.1:8080
+  -Dspf4j.perf.ms.config=TSDB@/path/to/file.tsdb,TSDB_TXT@/path/to/file.tsdbtxt,GRAPHITE_UDP@1.1.1.1:8080,GRAPHITE_TCP@1.1.1.1:8080
 ```
 
  TSDB - binary file format (this is the most efficient store)
