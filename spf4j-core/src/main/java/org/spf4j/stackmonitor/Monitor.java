@@ -49,7 +49,7 @@ public final class Monitor {
         @Option(name = "-di", usage = "the stack dump to file interval in milliseconds")
         private int dumpInterval = 3600000;
 
-        @Option(name = "-ss", usage = "start the stack sampling thread. (can also be done manually via jmx)")
+        @Option(name = "-ss", usage = "start the stack sampling. (can also be done manually via jmx)")
         private boolean startSampler = false;
 
 
