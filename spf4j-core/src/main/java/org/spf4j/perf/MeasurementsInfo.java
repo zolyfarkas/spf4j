@@ -41,8 +41,6 @@ public interface MeasurementsInfo {
 
     String getMeasurementUnit(int measurementNr);
 
-    int getMeasurementNr();
-
     int getNumberOfMeasurements();
 
 }

@@ -51,7 +51,8 @@ public final class TSDBTxtMeasurementStore
 
   public TSDBTxtMeasurementStore(final File file) throws IOException {
     this.writer = new BufferedWriter(new OutputStreamWriter(
-            Files.newOutputStream(file.toPath(), StandardOpenOption.APPEND), Charsets.UTF_8));
+            Files.newOutputStream(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.APPEND),
+            Charsets.UTF_8));
     this.fileName = INTERNER.intern(file.getPath());
   }
 

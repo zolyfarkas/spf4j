@@ -111,10 +111,5 @@ public final class MeasurementsInfoImpl implements MeasurementsInfo {
         return measurementUnits[measurementNr];
     }
 
-    @Override
-    public int getMeasurementNr() {
-        return measurementNames.length;
-    }
-
 
 }
