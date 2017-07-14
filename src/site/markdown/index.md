@@ -275,20 +275,20 @@ ${JAVA_HOME}/bin/java [your jvm args] org.spf4j.stackmonitor.Monitor -df [folder
 ```
 
  This will start your application with profiling enabled, with a 100 ms sampling interval. 
- After the process ends reportFile.html will be generated with a graphic width of 600 pixels. 
+ After the process ends ssdump file will ge generated containing the profiling data.
  Profiling can also be enabled/disabled via JMX.
 
  Supported arguments:
 
 ```
 Usage:
- -df [folder] : dump folder
- -dp [prefix] : dump file prefix
- -di N        : the stack dump to file interval in milliseconds
- -f VAL       : output to this file the perf report, format is HTML
- -main VAL    : the main class name
- -si N        : the stack sampling interval in milliseconds
- -ss          : start the stack sampling thread. (can also be done manually via jmx)
+ -df VAL   : dump folder (default: ./target)
+ -di N     : the stack dump to file interval in milliseconds (default: 3600000)
+ -dp VAL   : dump file prefix (default: ManagementFactory.getRuntimeMXBean().getName())
+ -main VAL : the main class name
+ -si N     : the stack sampling interval in milliseconds (default: 100)
+ -ss       : start the stack sampling thread. (can also be done manually via
+             jmx) (default: false)
 ```
 
  You can also run and control the profiler via its java API:
