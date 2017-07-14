@@ -1,29 +1,12 @@
+//CHECKSTYLE:OFF
+// This class is based of the Open JDK class. But it is heavilly cleaned up.
+
 /*
  * Copyright (c) 1997, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
  */
-//CHECKSTYLE:OFF
-// This class is based of the JDK class. But it is heavilly cleaned up.
+
 package org.spf4j.text;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;

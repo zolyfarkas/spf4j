@@ -7,16 +7,15 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 /**
- *
  * @author zoly
  */
 final class FormatInfo implements Serializable, Cloneable {
 
   private static final long serialVersionUID = 1L;
   private final Format format;
-  
+
   private final int offset;
-  
+
   private final int argumentNumber;
 
   FormatInfo(@Nullable final Format format, final int offset, final int argumentNumber) {
@@ -78,7 +77,7 @@ final class FormatInfo implements Serializable, Cloneable {
   protected FormatInfo clone() {
     return new FormatInfo((Format) format.clone(), offset, argumentNumber);
   }
-  
-  
-  
+
+
+
 }

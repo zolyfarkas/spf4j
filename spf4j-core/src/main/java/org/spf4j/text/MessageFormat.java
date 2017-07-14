@@ -1,17 +1,18 @@
 /**
- * High performance mutation (heavy) of the JDK message formatter.
- * 2 things are being done:
+ * High performance mutation of the JDK message formatter.
+ * Lots things of things have been done:
  * 1) reduced the amount of garbage generated during formatting.
  * 2) made some method invocations static.
  * 3) made is more flexible and usable against StringBuilder not only StringBuffer...
  * 4) thrown exceptions provide more detail on what went wrong.
+ * 5) cleaned up lots of static analisys reported issues.
  *
  * Some baseline benchmark results, this implementation is at about 20% faster in the MessageFormatterBenchmark
  * compared to the JDK implementation.
  *
- * MessageFormatterBenchmark.jdkMessageFormatter           thrpt   10   3813631.072 ± 323370.549  ops/s
- * MessageFormatterBenchmark.slf4jMessageFormatter         thrpt   10  14858871.864 ± 544079.529  ops/s
- * MessageFormatterBenchmark.spf4jMessageFormatter         thrpt   10   4674508.611 ± 108786.875  ops/s
+ * MessageFormatterBenchmark.jdkMessageFormatter           thrpt   10   3171458.241 ± 267444.400  ops/s
+ * MessageFormatterBenchmark.slf4jMessageFormatter         thrpt   10  12498774.260 ± 787905.382  ops/s
+ * MessageFormatterBenchmark.spf4jMessageFormatter         thrpt   10   4805587.940 ± 443633.701  ops/
  *
  * An interesting note is the fact that sl4fj claim of 10x better performance is inacurate...
  * (see claim: http://www.slf4j.org/api/org/slf4j/helpers/MessageFormatter.html)
@@ -22,6 +23,7 @@
  *
  *
  */
+
 // Maintain JDK style
 //CHECKSTYLE:OFF
 package org.spf4j.text;
@@ -859,9 +861,13 @@ public final class MessageFormat extends Format {
    * @exception IllegalArgumentException if an argument in the <code>arguments</code> array is not of the type expected
    * by the format element(s) that use it.
    */
-  public final Appendable format(Object[] arguments, Appendable result,
+  public final <T extends CharSequence & Appendable> T format(Object[] arguments, T result,
           @Nullable FieldPosition pos) throws IOException {
     return subformat(arguments, result, pos, null);
+  }
+
+  public final <T extends CharSequence & Appendable> T format(Object[] arguments, T result) throws IOException {
+    return format(arguments, result, null);
   }
 
   /**
@@ -897,9 +903,13 @@ public final class MessageFormat extends Format {
    * @exception IllegalArgumentException if an argument in the <code>arguments</code> array is not of the type expected
    * by the format element(s) that use it.
    */
-  public final Appendable format(Object arguments, Appendable result,
+  public final <T extends CharSequence & Appendable> T format(Object arguments, T result,
           FieldPosition pos) throws IOException {
-    return subformat((Object[]) arguments, result, pos, null);
+    if (arguments instanceof Object[]) {
+      return subformat((Object[]) arguments, result, pos, null);
+    } else {
+      return subformat(new Object [] {arguments}, result, pos, null);
+    }
   }
 
   /**
@@ -1146,10 +1156,15 @@ public final class MessageFormat extends Format {
   @Override
   public StringBuffer format(Object obj, StringBuffer toAppendTo, FieldPosition pos) {
     try {
-      return (StringBuffer) format(obj, (Appendable) toAppendTo, pos);
+      return syntethicFormat(obj, toAppendTo, pos);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
+  }
+
+  private <T extends CharSequence & Appendable> T syntethicFormat(Object obj, T toAppendTo, FieldPosition pos)
+          throws IOException {
+    return format(obj, toAppendTo, pos);
   }
 
 
@@ -1164,13 +1179,12 @@ public final class MessageFormat extends Format {
    */
   @SuppressFBWarnings({"PDP_POORLY_DEFINED_PARAMETER", "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"}) // Unfortunately I have no other way to write this
   // without code duplication to work for StringBuilder and StringBuffer....
-  private Appendable subformat(@Nullable Object[] arguments, @Nonnull Appendable result,
+   private <T extends Appendable & CharSequence> T subformat(@Nullable Object[] arguments, @Nonnull T result,
           @Nullable FieldPosition fp,
           @Nullable List<AttributedCharacterIterator> characterIterators)
           throws IOException {
-    CharSequence cs = (CharSequence) result;
     int lastOffset = 0;
-    int last = cs.length();
+    int last = result.length();
     for (int i = 0; i <= maxOffset; ++i) {
       FormatInfo finfo = formats[i];
       int offset = finfo.getOffset();
@@ -1217,10 +1231,10 @@ public final class MessageFormat extends Format {
       if (characterIterators != null) {
         // If characterIterators is non-null, it indicates we need
         // to get the CharacterIterator from the child formatter.
-        int cl = cs.length();
+        int cl = result.length();
         if (last != cl) {
           characterIterators.add(
-                  createAttributedCharacterIterator(cs.subSequence(last, cl).toString()));
+                  createAttributedCharacterIterator(result.subSequence(last, cl).toString()));
           last = cl;
         }
         if (subFormatter != null) {
@@ -1228,7 +1242,7 @@ public final class MessageFormat extends Format {
                   = subFormatter.formatToCharacterIterator(obj);
 
           append(result, subIterator);
-          int cl2 = cs.length();
+          int cl2 = result.length();
           if (last != cl2) {
             characterIterators.add(
                     createAttributedCharacterIterator(
@@ -1244,26 +1258,26 @@ public final class MessageFormat extends Format {
                   createAttributedCharacterIterator(
                           arg, java.text.MessageFormat.Field.ARGUMENT,
                           Integer.valueOf(argumentNumber)));
-          last = cs.length();
+          last = result.length();
         }
       } else {
         if (subFormatter != null) {
           arg = subFormatter.format(obj);
         }
-        last = cs.length();
+        last = result.length();
         result.append(arg);
         if (i == 0 && fp != null && java.text.MessageFormat.Field.ARGUMENT.equals(
                 fp.getFieldAttribute())) {
           fp.setBeginIndex(last);
-          fp.setEndIndex(cs.length());
+          fp.setEndIndex(result.length());
         }
-        last = cs.length();
+        last = result.length();
       }
 
     }
     result.append(pattern, lastOffset, pattern.length());
-    if (characterIterators != null && last != cs.length()) {
-      characterIterators.add(createAttributedCharacterIterator(cs.subSequence(last, cs.length()).toString()));
+    if (characterIterators != null && last != result.length()) {
+      characterIterators.add(createAttributedCharacterIterator(result.subSequence(last, result.length()).toString()));
     }
     return result;
   }
