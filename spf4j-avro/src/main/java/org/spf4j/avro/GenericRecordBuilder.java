@@ -44,12 +44,11 @@ import org.spf4j.io.SetFilesReadOnlyVisitor;
  * greater or smaller. The main benefit for this is the potential for eliminating the need for separate handling or
  * generic records vs specific records in the avro lib...
  *
- * Benchmark Mode Cnt Score Error Units GenericRecordBenchmark.testAvroGenericRecordNew thrpt 10 36162498.300 ±
- * 246967.965 ops/s GenericRecordBenchmark.testSpf4jGenericRecordNew thrpt 10 39773579.353 ± 939582.354 ops/s
+ * Benchmark Mode Cnt Score Error Units
+ * GenericRecordBenchmark.testAvroGenericRecordNew thrpt 10 36162498.300 ±246967.965 ops/s
+ * GenericRecordBenchmark.testSpf4jGenericRecordNew thrpt 10 39773579.353 ± 939582.354 ops/s
  * GenericRecordBenchmark.testAvroGenericRecordNewSetGet thrpt 10 36274035.575 ± 476132.764 ops/s
  * GenericRecordBenchmark.testSpf4jGenericRecordNewSetGet thrpt 10 40111265.012 ± 600216.931 ops/s
- *
- *
  *
  * @author zoly
  */
