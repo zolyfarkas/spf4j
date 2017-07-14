@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.AbstractRunnable;
@@ -75,6 +76,12 @@ public class TcpServerTest {
     };
 
 
+  @After
+  public void waitForPortToBecomeAvailable() throws InterruptedException {
+    //https://stackoverflow.com/questions/13838256/java-closing-a-serversocket-and-opening-up-the-port
+    Thread.sleep(200);
+  }
+
   @Test(timeout = 1000000)
   public void testProxy() throws IOException, InterruptedException {
     ForkJoinPool pool = new ForkJoinPool(1024);
@@ -129,6 +136,7 @@ public class TcpServerTest {
             1977, 10)) {
       server.startAsync().awaitRunning(10, TimeUnit.SECONDS);
       server.stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
+      Thread.sleep(200);
       server.startAsync().awaitRunning(10, TimeUnit.SECONDS);
       Assert.assertTrue(server.isRunning());
     }
