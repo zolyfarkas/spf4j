@@ -13,7 +13,8 @@
 
 ## 2. License and Contributions
 
- This library is [LGPL](http://www.gnu.org/licenses/lgpl.html) licensed.
+ This library is [LGPL](http://www.gnu.org/licenses/lgpl.html)
+ and [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.txt) licensed.
 
  Contributions/Contributors to spf4j are welcome.
 
