@@ -1,33 +1,36 @@
-/**
- * High performance mutation of the JDK message formatter.
- * Lots things of things have been done:
- * 1) reduced the amount of garbage generated during formatting.
- * 2) made some method invocations static.
- * 3) made is more flexible and usable against StringBuilder not only StringBuffer...
- * 4) thrown exceptions provide more detail on what went wrong.
- * 5) cleaned up lots of static analisys reported issues.
+/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
- * Some baseline benchmark results, this implementation is at about 20% faster in the MessageFormatterBenchmark
- * compared to the JDK implementation.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * MessageFormatterBenchmark.jdkMessageFormatter           thrpt   10   3171458.241 ± 267444.400  ops/s
- * MessageFormatterBenchmark.slf4jMessageFormatter         thrpt   10  12498774.260 ± 787905.382  ops/s
- * MessageFormatterBenchmark.spf4jMessageFormatter         thrpt   10   4805587.940 ± 443633.701  ops/
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * An interesting note is the fact that sl4fj claim of 10x better performance is inacurate...
- * (see claim: http://www.slf4j.org/api/org/slf4j/helpers/MessageFormatter.html)
- * The spf4j formatter benchmarked here is actually faster than the stock slf4j formatter...
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * Since its usability is better than the JDK one, a lot more performance improvement can be obtained in use.
- * The implementation is still pretty crappy
+ * Additionally licensed with:
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
-// Maintain JDK style
-//CHECKSTYLE:OFF
 package org.spf4j.text;
-
+//CHECKSTYLE:OFF
 /*
  * Copyright (c) 1996, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -73,6 +76,14 @@ import org.spf4j.base.CharSequences;
 import org.spf4j.base.Strings;
 
 /**
+ * Performance mutation of the JDK message formatter.
+ * Lots things of things have been done:
+ * 1) reduced the amount of garbage generated during formatting.
+ * 2) made some method invocations static.
+ * 3) made this more flexible and usable against StringBuilder not only StringBuffer...
+ * 4) thrown exceptions provide more detail on what went wrong.
+ * 5) cleaned up lots of static analisys reported issues.
+ *
  * <code>MessageFormat</code> provides a means to produce concatenated messages in a language-neutral way. Use this to
  * construct messages displayed for end users.
  *
